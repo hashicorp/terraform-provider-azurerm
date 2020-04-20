@@ -49,23 +49,11 @@ func resourceArmAutomationSchedule() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			//this is AutomationAccountName in the SDK
-			"account_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				Deprecated:    "account_name has been renamed to automation_account_name for clarity and to match the azure API",
-				ConflictsWith: []string{"automation_account_name"},
-				ValidateFunc:  azure.ValidateAutomationAccountName(),
-			},
-
 			"automation_account_name": {
-				Type:     schema.TypeString,
-				Optional: true, //todo change to required once account_name has been removed
-				Computed: true,
-				//ForceNew:      true, //todo this needs to come back once account_name has been removed
-				ConflictsWith: []string{"account_name"},
-				ValidateFunc:  azure.ValidateAutomationAccountName(),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"frequency": {
@@ -81,11 +69,11 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				}, true),
 			},
 
-			//ignored when frequency is `OneTime`
+			// ignored when frequency is `OneTime`
 			"interval": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Computed:     true, //defaults to 1 if frequency is not OneTime
+				Computed:     true, // defaults to 1 if frequency is not OneTime
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
@@ -94,16 +82,16 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
-				ValidateFunc:     validate.RFC3339DateInFutureBy(time.Duration(5) * time.Minute),
-				//defaults to now + 7 minutes in create function if not set
+				ValidateFunc:     validation.IsRFC3339Time,
+				// defaults to now + 7 minutes in create function if not set
 			},
 
 			"expiry_time": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true, //same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
+				Computed:         true, // same as start time when OneTime, ridiculous value when recurring: "9999-12-31T15:59:00-08:00"
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validate.RFC3339Time,
+				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
 			"description": {
@@ -112,10 +100,10 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			},
 
 			"timezone": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "UTC",
-				//todo figure out how to validate this properly
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "UTC",
+				ValidateFunc: validate.AzureTimeZoneString(),
 			},
 
 			"week_days": {
@@ -141,8 +129,11 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeInt,
-					ValidateFunc: validate.IntBetweenAndNot(-1, 31, 0),
+					Type: schema.TypeInt,
+					ValidateFunc: validation.All(
+						validation.IntBetween(-1, 31),
+						validation.IntNotInSlice([]int{0}),
+					),
 				},
 				Set:           set.HashInt,
 				ConflictsWith: []string{"week_days", "monthly_occurrence"},
@@ -168,9 +159,12 @@ func resourceArmAutomationSchedule() *schema.Resource {
 							}, true),
 						},
 						"occurrence": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.IntBetweenAndNot(-1, 5, 0),
+							Type:     schema.TypeInt,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(-1, 5),
+								validation.IntNotInSlice([]int{0}),
+							),
 						},
 					},
 				},
@@ -200,24 +194,6 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				return fmt.Errorf("`monthly_occurrence` can only be set when frequency is `Month`")
 			}
 
-			_, hasAccount := diff.GetOk("automation_account_name")
-			_, hasAutomationAccountWeb := diff.GetOk("account_name")
-			if !hasAccount && !hasAutomationAccountWeb {
-				return fmt.Errorf("`automation_account_name` must be set")
-			}
-
-			//if automation_account_name changed or account_name changed to or from nil force a new resource
-			//remove once we remove the deprecated property
-			oAan, nAan := diff.GetChange("automation_account_name")
-			if oAan != "" && nAan != "" {
-				diff.ForceNew("automation_account_name")
-			}
-
-			oAn, nAn := diff.GetChange("account_name")
-			if oAn != "" && nAn != "" {
-				diff.ForceNew("account_name")
-			}
-
 			return nil
 		},
 	}
@@ -232,14 +208,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	//CustomizeDiff should ensure one of these two is set
-	// todo remove this once `account_name` is removed
-	accountName := ""
-	if v, ok := d.GetOk("automation_account_name"); ok {
-		accountName = v.(string)
-	} else if v, ok := d.GetOk("account_name"); ok {
-		accountName = v.(string)
-	}
+	accountName := d.Get("automation_account_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accountName, name)
@@ -268,20 +237,24 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	}
 	properties := parameters.ScheduleCreateOrUpdateProperties
 
-	//start time can default to now + 7 (5 could be invalid by the time the API is called)
+	// start time can default to now + 7 (5 could be invalid by the time the API is called)
 	if v, ok := d.GetOk("start_time"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string)) //should be validated by the schema
+		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
+		duration := time.Duration(5) * time.Minute
+		if time.Until(t) < duration {
+			return fmt.Errorf("start_time is %q and should be at least %q in the future", t, duration)
+		}
 		properties.StartTime = &date.Time{Time: t}
 	} else {
 		properties.StartTime = &date.Time{Time: time.Now().Add(time.Duration(7) * time.Minute)}
 	}
 
 	if v, ok := d.GetOk("expiry_time"); ok {
-		t, _ := time.Parse(time.RFC3339, v.(string)) //should be validated by the schema
+		t, _ := time.Parse(time.RFC3339, v.(string)) // should be validated by the schema
 		properties.ExpiryTime = &date.Time{Time: t}
 	}
 
-	//only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
+	// only pay attention to interval if frequency is not OneTime, and default it to 1 if not set
 	if properties.Frequency != automation.OneTime {
 		if v, ok := d.GetOk("interval"); ok {
 			properties.Interval = utils.Int32(int32(v.(int)))
@@ -290,13 +263,9 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	//only pay attention to the advanced schedule fields if frequency is either Week or Month
+	// only pay attention to the advanced schedule fields if frequency is either Week or Month
 	if properties.Frequency == automation.Week || properties.Frequency == automation.Month {
-		advancedRef, err := expandArmAutomationScheduleAdvanced(d, d.Id() != "")
-		if err != nil {
-			return err
-		}
-		properties.AdvancedSchedule = advancedRef
+		properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters); err != nil {
@@ -344,7 +313,6 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("automation_account_name", accountName)
-	d.Set("account_name", accountName) // todo remove once `account_name` is removed
 	d.Set("frequency", string(resp.Frequency))
 
 	if v := resp.StartTime; v != nil {
@@ -354,7 +322,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 		d.Set("expiry_time", v.Format(time.RFC3339))
 	}
 	if v := resp.Interval; v != nil {
-		//seems to me missing its type in swagger, leading to it being a interface{} float64
+		// seems to me missing its type in swagger, leading to it being a interface{} float64
 		d.Set("interval", int(v.(float64)))
 	}
 	if v := resp.Description; v != nil {
@@ -402,7 +370,7 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) (*automation.AdvancedSchedule, error) {
+func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) *automation.AdvancedSchedule {
 	expandedAdvancedSchedule := automation.AdvancedSchedule{}
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
@@ -443,7 +411,7 @@ func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) 
 	}
 	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences
 
-	return &expandedAdvancedSchedule, nil
+	return &expandedAdvancedSchedule
 }
 
 func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule) *schema.Set {

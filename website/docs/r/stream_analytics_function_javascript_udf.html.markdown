@@ -19,19 +19,20 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_stream_analytics_function_javascript_udf" "example" {
   name                      = "example-javascript-function"
-  stream_analytics_job_name = "${data.azurerm_stream_analytics_job.example.name}"
-  resource_group_name       = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
+  stream_analytics_job_name = data.azurerm_stream_analytics_job.example.name
+  resource_group_name       = data.azurerm_stream_analytics_job.example.resource_group_name
 
   script = <<SCRIPT
 function getRandomNumber(in) {
   return in;
 }
 SCRIPT
+
 
   input {
     type = "bigint"
@@ -76,6 +77,15 @@ A `output` block supports the following:
 The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Stream Analytics JavaScript UDF Function.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics JavaScript UDF Function.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics JavaScript UDF Function.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics JavaScript UDF Function.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics JavaScript UDF Function.
 
 ## Import
 

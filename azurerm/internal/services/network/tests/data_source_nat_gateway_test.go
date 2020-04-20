@@ -18,7 +18,9 @@ func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDataSourceNatGateway_basic(data),
-				Check:  resource.ComposeTestCheckFunc(),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
+				),
 			},
 		},
 	})
@@ -51,8 +53,8 @@ func testAccDataSourceNatGateway_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_nat_gateway" "test" {
-  resource_group_name = "${azurerm_nat_gateway.test.resource_group_name}"
-  name                = "${azurerm_nat_gateway.test.name}"
+  resource_group_name = azurerm_nat_gateway.test.resource_group_name
+  name                = azurerm_nat_gateway.test.name
 }
 `, config)
 }
@@ -63,8 +65,8 @@ func testAccDataSourceNatGateway_complete(data acceptance.TestData) string {
 %s
 
 data "azurerm_nat_gateway" "test" {
-  resource_group_name = "${azurerm_nat_gateway.test.resource_group_name}"
-  name                = "${azurerm_nat_gateway.test.name}"
+  resource_group_name = azurerm_nat_gateway.test.resource_group_name
+  name                = azurerm_nat_gateway.test.name
 }
 `, config)
 }

@@ -33,6 +33,25 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetwork_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetwork_basicUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 
@@ -50,7 +69,7 @@ func TestAccAzureRMVirtualNetwork_basicUpdated(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMVirtualNetwork_basicUpdated(data),
+				Config: testAccAzureRMVirtualNetwork_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "2"),
@@ -163,24 +182,6 @@ func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualNetwork_bug373(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualNetwork_bug373(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
-				),
-			},
-		},
-	})
-}
-
 func testCheckAzureRMVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.VnetClient
@@ -270,6 +271,10 @@ func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
 
 func testAccAzureRMVirtualNetwork_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -278,8 +283,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -289,8 +294,12 @@ resource "azurerm_virtual_network" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMVirtualNetwork_basicUpdated(data acceptance.TestData) string {
+func testAccAzureRMVirtualNetwork_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -299,8 +308,9 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16", "10.10.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_servers         = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
 
   subnet {
     name           = "subnet1"
@@ -321,9 +331,9 @@ func testAccAzureRMVirtualNetwork_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_virtual_network" "import" {
-  name                = "${azurerm_virtual_network.test.name}"
-  location            = "${azurerm_virtual_network.test.location}"
-  resource_group_name = "${azurerm_virtual_network.test.resource_group_name}"
+  name                = azurerm_virtual_network.test.name
+  location            = azurerm_virtual_network.test.location
+  resource_group_name = azurerm_virtual_network.test.resource_group_name
   address_space       = ["10.0.0.0/16"]
 
   subnet {
@@ -336,25 +346,29 @@ resource "azurerm_virtual_network" "import" {
 
 func testAccAzureRMVirtualNetwork_ddosProtectionPlan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
-resource "azurerm_ddos_protection_plan" "test" {
+resource "azurerm_network_ddos_protection_plan" "test" {
   name                = "acctestddospplan-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ddos_protection_plan {
-    id     = "${azurerm_ddos_protection_plan.test.id}"
+    id     = azurerm_network_ddos_protection_plan.test.id
     enable = true
   }
 
@@ -368,6 +382,10 @@ resource "azurerm_virtual_network" "test" {
 
 func testAccAzureRMVirtualNetwork_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -376,8 +394,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -394,6 +412,10 @@ resource "azurerm_virtual_network" "test" {
 
 func testAccAzureRMVirtualNetwork_withTagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -402,8 +424,8 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   subnet {
     name           = "subnet1"
@@ -415,70 +437,4 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMVirtualNetwork_bug373(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-variable "environment" {
-  default = "TestVirtualNetworkBug373"
-}
-
-variable "network_cidr" {
-  default = "10.0.0.0/16"
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "${azurerm_resource_group.test.name}-vnet"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space       = ["${var.network_cidr}"]
-  location            = "${azurerm_resource_group.test.location}"
-
-  tags = {
-    environment = "${var.environment}"
-  }
-}
-
-resource "azurerm_subnet" "public" {
-  name                      = "${azurerm_resource_group.test.name}-subnet-public"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
-  address_prefix            = "10.0.1.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-}
-
-resource "azurerm_subnet" "private" {
-  name                      = "${azurerm_resource_group.test.name}-subnet-private"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
-  address_prefix            = "10.0.2.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-}
-
-resource "azurerm_network_security_group" "test" {
-  name                = "default-network-sg"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  security_rule {
-    name                       = "default-allow-all"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "*"
-    source_port_range          = "*"
-    destination_port_range     = "*"
-    source_address_prefix      = "${var.network_cidr}"
-    destination_address_prefix = "*"
-  }
-
-  tags = {
-    environment = "${var.environment}"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
 }

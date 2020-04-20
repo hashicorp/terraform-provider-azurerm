@@ -35,7 +35,9 @@ func NewUserAssignedIdentitiesClient(subscriptionID string) UserAssignedIdentiti
 	return NewUserAssignedIdentitiesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewUserAssignedIdentitiesClientWithBaseURI creates an instance of the UserAssignedIdentitiesClient client.
+// NewUserAssignedIdentitiesClientWithBaseURI creates an instance of the UserAssignedIdentitiesClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewUserAssignedIdentitiesClientWithBaseURI(baseURI string, subscriptionID string) UserAssignedIdentitiesClient {
 	return UserAssignedIdentitiesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -90,9 +92,7 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdatePreparer(ctx context.Co
 		"api-version": APIVersion,
 	}
 
-	parameters.ID = nil
-	parameters.Name = nil
-	parameters.Type = ""
+	parameters.IdentityProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -106,8 +106,7 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdatePreparer(ctx context.Co
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -183,8 +182,7 @@ func (client UserAssignedIdentitiesClient) DeletePreparer(ctx context.Context, r
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -259,8 +257,7 @@ func (client UserAssignedIdentitiesClient) GetPreparer(ctx context.Context, reso
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -335,8 +332,7 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroupPreparer(ctx conte
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -445,8 +441,7 @@ func (client UserAssignedIdentitiesClient) ListBySubscriptionPreparer(ctx contex
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -549,9 +544,7 @@ func (client UserAssignedIdentitiesClient) UpdatePreparer(ctx context.Context, r
 		"api-version": APIVersion,
 	}
 
-	parameters.ID = nil
-	parameters.Name = nil
-	parameters.Type = ""
+	parameters.IdentityProperties = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
@@ -565,8 +558,7 @@ func (client UserAssignedIdentitiesClient) UpdatePreparer(ctx context.Context, r
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client UserAssignedIdentitiesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

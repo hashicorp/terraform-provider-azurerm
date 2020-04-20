@@ -19,15 +19,15 @@ data "azurerm_postgresql_server" "example" {
 }
 
 output "postgresql_server_id" {
-  value = "${data.azurerm_postgresql_server.example.id}"
+  value = data.azurerm_postgresql_server.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the PostgreSQL Server.
+* `name` - The name of the PostgreSQL Server.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the PostgreSQL Server exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the PostgreSQL Server exists.
 
 ## Attributes Reference
 
@@ -40,3 +40,9 @@ output "postgresql_server_id" {
 * `administrator_login` - The administrator username of the PostgreSQL Server.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Azure Database Server.

@@ -47,6 +47,10 @@ func TestAccDataSourceAzureRMDataLakeStore_tier(t *testing.T) {
 
 func testAccDataSourceDataLakeStore_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -55,18 +59,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_data_lake_store" "test" {
   name                = "unlikely23exst2acct%s"
   location            = "%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 data "azurerm_data_lake_store" "test" {
-  name                = "${azurerm_data_lake_store.test.name}"
-  resource_group_name = "${azurerm_data_lake_store.test.resource_group_name}"
+  name                = azurerm_data_lake_store.test.name
+  resource_group_name = azurerm_data_lake_store.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary)
 }
 
 func testAccDataSourceDataLakeStore_tier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -76,7 +84,7 @@ resource "azurerm_data_lake_store" "test" {
   name                = "unlikely23exst2acct%s"
   location            = "%s"
   tier                = "Commitment_1TB"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
   tags = {
     hello = "world"
@@ -84,8 +92,8 @@ resource "azurerm_data_lake_store" "test" {
 }
 
 data "azurerm_data_lake_store" "test" {
-  name                = "${azurerm_data_lake_store.test.name}"
-  resource_group_name = "${azurerm_data_lake_store.test.resource_group_name}"
+  name                = azurerm_data_lake_store.test.name
+  resource_group_name = azurerm_data_lake_store.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.Locations.Primary)
 }

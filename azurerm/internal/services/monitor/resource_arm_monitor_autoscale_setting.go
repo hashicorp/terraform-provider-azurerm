@@ -44,7 +44,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -73,7 +73,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"capacity": {
 							Type:     schema.TypeList,
@@ -114,7 +114,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 												"metric_name": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 												"metric_resource_id": {
 													Type:         schema.TypeString,
@@ -230,12 +230,12 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 									"start": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.RFC3339Time,
+										ValidateFunc: validation.IsRFC3339Time,
 									},
 									"end": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.RFC3339Time,
+										ValidateFunc: validation.IsRFC3339Time,
 									},
 								},
 							},
@@ -334,7 +334,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 									"service_uri": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"properties": {
 										Type:     schema.TypeMap,

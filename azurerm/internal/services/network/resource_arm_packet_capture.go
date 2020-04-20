@@ -19,9 +19,10 @@ import (
 
 func resourceArmPacketCapture() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPacketCaptureCreate,
-		Read:   resourceArmPacketCaptureRead,
-		Delete: resourceArmPacketCaptureDelete,
+		Create:             resourceArmPacketCaptureCreate,
+		Read:               resourceArmPacketCaptureRead,
+		Delete:             resourceArmPacketCaptureDelete,
+		DeprecationMessage: "This resource has been renamed to azurerm_network_packet_capture and will be removed in version 3.0 of the provider.",
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -174,11 +175,6 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	filters, err := expandArmPacketCaptureFilters(d)
-	if err != nil {
-		return err
-	}
-
 	properties := network.PacketCapture{
 		PacketCaptureParameters: &network.PacketCaptureParameters{
 			Target:                  utils.String(targetResourceId),
@@ -186,7 +182,7 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 			BytesToCapturePerPacket: utils.Int32(int32(bytesToCapturePerPacket)),
 			TimeLimitInSeconds:      utils.Int32(int32(timeLimitInSeconds)),
 			TotalBytesPerSession:    utils.Int32(int32(totalBytesPerSession)),
-			Filters:                 filters,
+			Filters:                 expandArmPacketCaptureFilters(d),
 		},
 	}
 
@@ -334,10 +330,10 @@ func flattenArmPacketCaptureStorageLocation(input *network.PacketCaptureStorageL
 	return []interface{}{output}
 }
 
-func expandArmPacketCaptureFilters(d *schema.ResourceData) (*[]network.PacketCaptureFilter, error) {
+func expandArmPacketCaptureFilters(d *schema.ResourceData) *[]network.PacketCaptureFilter {
 	inputFilters := d.Get("filter").([]interface{})
 	if len(inputFilters) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	filters := make([]network.PacketCaptureFilter, 0)
@@ -361,7 +357,7 @@ func expandArmPacketCaptureFilters(d *schema.ResourceData) (*[]network.PacketCap
 		filters = append(filters, filter)
 	}
 
-	return &filters, nil
+	return &filters
 }
 
 func flattenArmPacketCaptureFilters(input *[]network.PacketCaptureFilter) []interface{} {

@@ -7,15 +7,15 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-//seems you can only set one contact:
+// seems you can only set one contact:
 // Invalid security contact name was provided - only 'defaultX' is allowed where X is an index
 // Invalid security contact name 'default0' was provided. Expected 'default1'
 // Message="Invalid security contact name 'default2' was provided. Expected 'default1'"
@@ -43,13 +43,13 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 			"email": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"phone": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"alert_notifications": {
@@ -118,10 +118,8 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 		}
 
 		d.SetId(*resp.ID)
-	} else {
-		if _, err := client.Update(ctx, name, contact); err != nil {
-			return fmt.Errorf("Error updating Security Center Contact: %+v", err)
-		}
+	} else if _, err := client.Update(ctx, name, contact); err != nil {
+		return fmt.Errorf("Error updating Security Center Contact: %+v", err)
 	}
 
 	return resourceArmSecurityCenterContactRead(d, meta)

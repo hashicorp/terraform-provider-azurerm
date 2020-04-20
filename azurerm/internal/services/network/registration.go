@@ -11,6 +11,14 @@ func (r Registration) Name() string {
 	return "Network"
 }
 
+// WebsiteCategories returns a list of categories which can be used for the sidebar
+func (r Registration) WebsiteCategories() []string {
+	return []string{
+		"Load Balancer",
+		"Network",
+	}
+}
+
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
@@ -24,7 +32,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_network_interface":                         dataSourceArmNetworkInterface(),
 		"azurerm_network_security_group":                    dataSourceArmNetworkSecurityGroup(),
 		"azurerm_network_watcher":                           dataSourceArmNetworkWatcher(),
-		"azurerm_private_link_endpoint_connection":          dataSourceArmPrivateLinkEndpointConnection(),
 		"azurerm_private_endpoint_connection":               dataSourceArmPrivateEndpointConnection(),
 		"azurerm_private_link_service":                      dataSourceArmPrivateLinkService(),
 		"azurerm_private_link_service_endpoint_connections": dataSourceArmPrivateLinkServiceEndpointConnections(),
@@ -32,6 +39,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_public_ips":                                dataSourceArmPublicIPs(),
 		"azurerm_public_ip_prefix":                          dataSourceArmPublicIpPrefix(),
 		"azurerm_route_table":                               dataSourceArmRouteTable(),
+		"azurerm_network_service_tags":                      dataSourceNetworkServiceTags(),
 		"azurerm_subnet":                                    dataSourceArmSubnet(),
 		"azurerm_virtual_hub":                               dataSourceArmVirtualHub(),
 		"azurerm_virtual_network_gateway":                   dataSourceArmVirtualNetworkGateway(),
@@ -46,11 +54,10 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_application_gateway":                  resourceArmApplicationGateway(),
 		"azurerm_application_security_group":           resourceArmApplicationSecurityGroup(),
 		"azurerm_bastion_host":                         resourceArmBastionHost(),
-		"azurerm_connection_monitor":                   resourceArmConnectionMonitor(),
-		"azurerm_ddos_protection_plan":                 resourceArmDDoSProtectionPlan(),
 		"azurerm_express_route_circuit_authorization":  resourceArmExpressRouteCircuitAuthorization(),
 		"azurerm_express_route_circuit_peering":        resourceArmExpressRouteCircuitPeering(),
 		"azurerm_express_route_circuit":                resourceArmExpressRouteCircuit(),
+		"azurerm_express_route_gateway":                resourceArmExpressRouteGateway(),
 		"azurerm_firewall_application_rule_collection": resourceArmFirewallApplicationRuleCollection(),
 		"azurerm_firewall_nat_rule_collection":         resourceArmFirewallNatRuleCollection(),
 		"azurerm_firewall_network_rule_collection":     resourceArmFirewallNetworkRuleCollection(),
@@ -71,11 +78,11 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_network_interface_application_security_group_association":               resourceArmNetworkInterfaceApplicationSecurityGroupAssociation(),
 		"azurerm_network_interface_backend_address_pool_association":                     resourceArmNetworkInterfaceBackendAddressPoolAssociation(),
 		"azurerm_network_interface_nat_rule_association":                                 resourceArmNetworkInterfaceNatRuleAssociation(),
+		"azurerm_network_interface_security_group_association":                           resourceArmNetworkInterfaceSecurityGroupAssociation(),
 		"azurerm_network_packet_capture":                                                 resourceArmNetworkPacketCapture(),
 		"azurerm_network_profile":                                                        resourceArmNetworkProfile(),
 		"azurerm_packet_capture":                                                         resourceArmPacketCapture(),
 		"azurerm_point_to_site_vpn_gateway":                                              resourceArmPointToSiteVPNGateway(),
-		"azurerm_private_link_endpoint":                                                  resourceArmPrivateLinkEndpoint(),
 		"azurerm_private_endpoint":                                                       resourceArmPrivateEndpoint(),
 		"azurerm_private_link_service":                                                   resourceArmPrivateLinkService(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
@@ -91,6 +98,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_subnet_nat_gateway_association":                                         resourceArmSubnetNatGatewayAssociation(),
 		"azurerm_subnet":                                                                 resourceArmSubnet(),
 		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
+		"azurerm_virtual_hub_connection":                                                 resourceArmVirtualHubConnection(),
 		"azurerm_virtual_network_gateway_connection":                                     resourceArmVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network_gateway":                                                resourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),

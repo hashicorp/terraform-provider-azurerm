@@ -41,7 +41,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -50,7 +50,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -133,11 +133,6 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 	autoStart := d.Get("auto_start").(bool)
 	intervalInSeconds := int32(d.Get("interval_in_seconds").(int))
 
-	source, err := expandArmNetworkConnectionMonitorSource(d)
-	if err != nil {
-		return err
-	}
-
 	dest, err := expandArmNetworkConnectionMonitorDestination(d)
 	if err != nil {
 		return err
@@ -162,7 +157,7 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 		ConnectionMonitorParameters: &network.ConnectionMonitorParameters{
-			Source:                      source,
+			Source:                      expandArmNetworkConnectionMonitorSource(d),
 			Destination:                 dest,
 			AutoStart:                   utils.Bool(autoStart),
 			MonitoringIntervalInSeconds: utils.Int32(intervalInSeconds),
@@ -282,7 +277,7 @@ func flattenArmNetworkConnectionMonitorSource(input *network.ConnectionMonitorSo
 	return []interface{}{output}
 }
 
-func expandArmNetworkConnectionMonitorSource(d *schema.ResourceData) (*network.ConnectionMonitorSource, error) {
+func expandArmNetworkConnectionMonitorSource(d *schema.ResourceData) *network.ConnectionMonitorSource {
 	sources := d.Get("source").([]interface{})
 	source := sources[0].(map[string]interface{})
 
@@ -294,7 +289,7 @@ func expandArmNetworkConnectionMonitorSource(d *schema.ResourceData) (*network.C
 		monitorSource.Port = utils.Int32(int32(v.(int)))
 	}
 
-	return &monitorSource, nil
+	return &monitorSource
 }
 
 func flattenArmNetworkConnectionMonitorDestination(input *network.ConnectionMonitorDestination) []interface{} {

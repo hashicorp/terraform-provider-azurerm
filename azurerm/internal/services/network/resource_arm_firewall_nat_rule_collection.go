@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -77,7 +76,7 @@ func resourceArmFirewallNatRuleCollection() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"description": {
 							Type:     schema.TypeString,
@@ -192,10 +191,8 @@ func resourceArmFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, me
 
 		ruleCollections[index] = newRuleCollection
 	} else {
-		if features.ShouldResourcesBeImported() && d.IsNewResource() {
-			if index != -1 {
-				return tf.ImportAsExistsError("azurerm_firewall_nat_rule_collection", id)
-			}
+		if features.ShouldResourcesBeImported() && d.IsNewResource() && index != -1 {
+			return tf.ImportAsExistsError("azurerm_firewall_nat_rule_collection", id)
 		}
 
 		// first double check it doesn't already exist

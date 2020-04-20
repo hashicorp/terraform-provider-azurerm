@@ -1,7 +1,6 @@
 package streamanalytics
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -9,9 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -40,14 +39,14 @@ func resourceArmStreamAnalyticsReferenceInputBlob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"stream_analytics_job_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -55,38 +54,38 @@ func resourceArmStreamAnalyticsReferenceInputBlob() *schema.Resource {
 			"date_format": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"path_pattern": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_account_key": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"storage_container_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"time_format": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"serialization": azure.SchemaStreamAnalyticsStreamInputSerialization(),
@@ -94,7 +93,7 @@ func resourceArmStreamAnalyticsReferenceInputBlob() *schema.Resource {
 	}
 }
 
-func getBlobReferenceInputProps(ctx context.Context, d *schema.ResourceData) (streamanalytics.Input, error) {
+func getBlobReferenceInputProps(d *schema.ResourceData) (streamanalytics.Input, error) {
 	name := d.Get("name").(string)
 	containerName := d.Get("storage_container_name").(string)
 	dateFormat := d.Get("date_format").(string)
@@ -158,7 +157,7 @@ func resourceArmStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, 
 		}
 	}
 
-	props, err := getBlobReferenceInputProps(ctx, d)
+	props, err := getBlobReferenceInputProps(d)
 	if err != nil {
 		return fmt.Errorf("Error creating the input props for resource creation: %v", err)
 	}
@@ -190,7 +189,7 @@ func resourceArmStreamAnalyticsReferenceInputBlobUpdate(d *schema.ResourceData, 
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	props, err := getBlobReferenceInputProps(ctx, d)
+	props, err := getBlobReferenceInputProps(d)
 	if err != nil {
 		return fmt.Errorf("Error creating the input props for resource update: %v", err)
 	}

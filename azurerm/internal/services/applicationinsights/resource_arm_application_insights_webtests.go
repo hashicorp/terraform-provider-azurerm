@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -100,9 +100,9 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					ValidateFunc:     validate.NoEmptyStrings,
-					StateFunc:        azure.NormalizeLocation,
-					DiffSuppressFunc: azure.SuppressLocationDiff,
+					ValidateFunc:     validation.StringIsNotEmpty,
+					StateFunc:        location.StateFunc,
+					DiffSuppressFunc: location.DiffSuppressFunc,
 				},
 			},
 

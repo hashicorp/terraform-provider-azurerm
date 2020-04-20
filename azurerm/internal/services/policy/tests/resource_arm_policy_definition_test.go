@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -10,6 +9,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
@@ -76,7 +77,7 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroyInMgmtGroup,
 		Steps: []resource.TestStep{
 			{
 				Config: testAzureRMPolicyDefinition_ManagementGroup(data),
@@ -99,20 +100,54 @@ func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string) resour
 			return fmt.Errorf("not found: %s", policyName)
 		}
 
-		policyName := rs.Primary.Attributes["name"]
-		managementGroupID := rs.Primary.Attributes["management_group_id"]
-
-		resp, err := client.GetAtManagementGroup(ctx, policyName, managementGroupID)
+		id, err := parse.PolicyDefinitionID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Bad: GetAtManagementGroup on policyDefinitionsClient: %s", err)
+			return err
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("policy does not exist: %s", policyName)
+		scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup)
+		if !ok {
+			return fmt.Errorf("Bad: cannot get the management group from Policy Definition %q", id.Name)
+		}
+
+		if resp, err := client.GetAtManagementGroup(ctx, id.Name, scopeId.ManagementGroupId); err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Policy Definition %q does not exist", id.Name)
+			}
+			return fmt.Errorf("Bad: GetAtManagementGroup on Policy.DefinitionsClient: %+v", err)
 		}
 
 		return nil
 	}
+}
+
+func testCheckAzureRMPolicyDefinitionDestroyInMgmtGroup(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_policy_definition" {
+			continue
+		}
+
+		id, err := parse.PolicyDefinitionID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		scopeId, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup)
+		if !ok {
+			return fmt.Errorf("Bad: cannot get the management group from Policy Definition %q", id.Name)
+		}
+
+		if resp, err := client.GetAtManagementGroup(ctx, id.Name, scopeId.ManagementGroupId); err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Get on Policy.DefinitionsClient: %+v", err)
+			}
+		}
+	}
+
+	return nil
 }
 
 func testCheckAzureRMPolicyDefinitionExists(resourceName string) resource.TestCheckFunc {
@@ -125,15 +160,16 @@ func testCheckAzureRMPolicyDefinitionExists(resourceName string) resource.TestCh
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		policyName := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, policyName)
+		id, err := parse.PolicyDefinitionID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on policyDefinitionsClient: %s", err)
+			return err
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("policy does not exist: %s", policyName)
+		if resp, err := client.Get(ctx, id.Name); err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Policy Definition %q does not exist", id.Name)
+			}
+			return fmt.Errorf("Bad: Get on Policy.DefinitionsClient: %+v", err)
 		}
 
 		return nil
@@ -149,16 +185,15 @@ func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-
-		resp, err := client.Get(ctx, name)
-
+		id, err := parse.PolicyDefinitionID(rs.Primary.ID)
 		if err != nil {
-			return nil
+			return err
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("policy still exists:%s", *resp.Name)
+		if resp, err := client.Get(ctx, id.Name); err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Get on Policy.DefinitionsClient: %+v", err)
+			}
 		}
 	}
 
@@ -167,6 +202,10 @@ func testCheckAzureRMPolicyDefinitionDestroy(s *terraform.State) error {
 
 func testAzureRMPolicyDefinition_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctestpol-%d"
   policy_type  = "Custom"
@@ -209,18 +248,22 @@ func testAzureRMPolicyDefinition_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_policy_definition" "import" {
-  name         = "${azurerm_policy_definition.test.name}"
-  policy_type  = "${azurerm_policy_definition.test.policy_type}"
-  mode         = "${azurerm_policy_definition.test.mode}"
-  display_name = "${azurerm_policy_definition.test.display_name}"
-  policy_rule  = "${azurerm_policy_definition.test.policy_rule}"
-  parameters   = "${azurerm_policy_definition.test.parameters}"
+  name         = azurerm_policy_definition.test.name
+  policy_type  = azurerm_policy_definition.test.policy_type
+  mode         = azurerm_policy_definition.test.mode
+  display_name = azurerm_policy_definition.test.display_name
+  policy_rule  = azurerm_policy_definition.test.policy_rule
+  parameters   = azurerm_policy_definition.test.parameters
 }
 `, template)
 }
 
 func testAzureRMPolicyDefinition_computedMetadata(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "test" {
   name         = "acctest-%d"
   policy_type  = "Custom"
@@ -255,6 +298,10 @@ POLICY_RULE
 
 func testAzureRMPolicyDefinition_ManagementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
 }
@@ -264,7 +311,7 @@ resource "azurerm_policy_definition" "test" {
   policy_type         = "Custom"
   mode                = "All"
   display_name        = "acctestpol-%d"
-  management_group_id = "${azurerm_management_group.test.group_id}"
+  management_group_id = azurerm_management_group.test.group_id
 
   policy_rule = <<POLICY_RULE
 	{

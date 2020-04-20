@@ -117,6 +117,10 @@ func testCheckAzureRMMariaDBFirewallRuleDestroy(s *terraform.State) error {
 
 func testAccAzureRMMariaDBFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -127,12 +131,7 @@ resource "azurerm_mariadb_server" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name     = "GP_Gen5_2"
-    capacity = 2
-    tier     = "GeneralPurpose"
-    family   = "Gen5"
-  }
+  sku_name = "GP_Gen5_2"
 
   storage_profile {
     storage_mb            = 51200
@@ -161,11 +160,11 @@ func testAccAzureRMMariaDBFirewallRule_requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_mariadb_firewall_rule" "import" {
-  name                = "${azurerm_mariadb_firewall_rule.test.name}"
-  resource_group_name = "${azurerm_mariadb_firewall_rule.test.resource_group_name}"
-  server_name         = "${azurerm_mariadb_firewall_rule.test.server_name}"
-  start_ip_address    = "${azurerm_mariadb_firewall_rule.test.start_ip_address}"
-  end_ip_address      = "${azurerm_mariadb_firewall_rule.test.end_ip_address}"
+  name                = azurerm_mariadb_firewall_rule.test.name
+  resource_group_name = azurerm_mariadb_firewall_rule.test.resource_group_name
+  server_name         = azurerm_mariadb_firewall_rule.test.server_name
+  start_ip_address    = azurerm_mariadb_firewall_rule.test.start_ip_address
+  end_ip_address      = azurerm_mariadb_firewall_rule.test.end_ip_address
 }
 `, testAccAzureRMMariaDBFirewallRule_basic(data))
 }

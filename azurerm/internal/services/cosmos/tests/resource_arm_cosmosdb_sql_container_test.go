@@ -65,6 +65,7 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 				Config: testAccAzureRMCosmosDbSqlContainer_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl", "500"),
 					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "600"),
 				),
 			},
@@ -74,6 +75,7 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 				Config: testAccAzureRMCosmosDbSqlContainer_update(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbSqlContainerExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "default_ttl", "1000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "throughput", "400"),
 				),
 			},
@@ -127,7 +129,7 @@ func testCheckAzureRMCosmosDbSqlContainerExists(resourceName string) resource.Te
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		database := rs.Primary.Attributes["database_name"]
 
-		resp, err := client.GetSQLContainer(ctx, resourceGroup, database, account, name)
+		resp, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}
@@ -146,12 +148,10 @@ func testAccAzureRMCosmosDbSqlContainer_basic(data acceptance.TestData) string {
 
 resource "azurerm_cosmosdb_sql_container" "test" {
   name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
 }
-
-
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
 }
 
@@ -161,16 +161,16 @@ func testAccAzureRMCosmosDbSqlContainer_complete(data acceptance.TestData) strin
 
 resource "azurerm_cosmosdb_sql_container" "test" {
   name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_path  = "/definition/id"
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
-  throughput = 600
+  default_ttl = 500
+  throughput  = 600
 }
-
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
 }
 
@@ -180,15 +180,15 @@ func testAccAzureRMCosmosDbSqlContainer_update(data acceptance.TestData) string 
 
 resource "azurerm_cosmosdb_sql_container" "test" {
   name                = "acctest-CSQLC-%[2]d"
-  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.test.name}"
-  database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_path  = "/definition/id"
   unique_key {
     paths = ["/definition/id1", "/definition/id2"]
   }
-  throughput = 400
+  default_ttl = 1000
+  throughput  = 400
 }
-
 `, testAccAzureRMCosmosDbSqlDatabase_basic(data), data.RandomInteger)
 }

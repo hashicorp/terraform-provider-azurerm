@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -41,7 +42,20 @@ func SchemaHDInsightTier() *schema.Schema {
 			string(hdinsight.Premium),
 		}, false),
 		// TODO: file a bug about this
-		DiffSuppressFunc: SuppressLocationDiff,
+		DiffSuppressFunc: location.DiffSuppressFunc,
+	}
+}
+
+func SchemaHDInsightTls() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeString,
+		Optional: true,
+		ForceNew: true,
+		ValidateFunc: validation.StringInSlice([]string{
+			"1.0",
+			"1.1",
+			"1.2",
+		}, false),
 	}
 }
 
@@ -161,13 +175,13 @@ func SchemaHDInsightsStorageAccounts() *schema.Schema {
 					Required:     true,
 					ForceNew:     true,
 					Sensitive:    true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"storage_container_id": {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"is_default": {
 					Type:     schema.TypeBool,
@@ -197,7 +211,7 @@ func SchemaHDInsightsGen2StorageAccounts() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"managed_identity_resource_id": {
 					Type:         schema.TypeString,
@@ -405,7 +419,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			ForceNew: true,
 			Elem: &schema.Schema{
 				Type:         schema.TypeString,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			Set: schema.HashString,
 			ConflictsWith: []string{

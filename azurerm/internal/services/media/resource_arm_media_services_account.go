@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +24,6 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 		Read:   resourceArmMediaServicesAccountRead,
 		Update: resourceArmMediaServicesAccountCreateUpdate,
 		Delete: resourceArmMediaServicesAccountDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -32,6 +31,11 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.MediaServicesAccountID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -70,7 +74,7 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 
 			// TODO: support Tags when this bug is fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/5249
-			//"tags": tags.Schema(),
+			// "tags": tags.Schema(),
 		},
 	}
 }
@@ -115,27 +119,24 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MediaServicesAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Path["mediaservices"]
-	resourceGroup := id.ResourceGroup
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Media Services Account %q was not found in Resource Group %q - removing from state", name, resourceGroup)
+			log.Printf("[INFO] Media Services Account %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Media Services Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Media Services Account %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -158,20 +159,17 @@ func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.MediaServicesAccountID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	name := id.Path["mediaservices"]
-	resourceGroup := id.ResourceGroup
-
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(resp.Response) {
 			return nil
 		}
-		return fmt.Errorf("Error issuing AzureRM delete request for Media Services Account '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Media Services Account '%s': %+v", id.Name, err)
 	}
 
 	return nil

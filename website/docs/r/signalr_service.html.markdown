@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_signalr_service" "example" {
   name                = "tfex-signalr"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name     = "Free_F1"
@@ -100,6 +100,15 @@ The following attributes are exported:
 * `secondary_access_key` - The secondary access key for the SignalR service.
 
 * `secondary_connection_string` - The secondary connection string for the SignalR service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the SignalR Service.
+* `update` - (Defaults to 30 minutes) Used when updating the SignalR Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SignalR Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the SignalR Service.
 
 ## Import
 

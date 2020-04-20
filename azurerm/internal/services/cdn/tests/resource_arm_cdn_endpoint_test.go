@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 )
 
 func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
@@ -171,6 +172,7 @@ func TestAccAzureRMCdnEndpoint_withGeoFilters(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
@@ -229,6 +231,119 @@ func TestAccAzureRMCdnEndpoint_isHttpAndHttpsAllowedUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCdnEndpoint_globalDeliveryRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCdnEndpoint_globalDeliveryRule(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.cache_expiration_action.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.cache_expiration_action.0.behavior", "Override"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.cache_expiration_action.0.duration", "5.04:44:23"),
+				),
+			},
+			{
+				Config: testAccAzureRMCdnEndpoint_globalDeliveryRuleUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.cache_expiration_action.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.cache_expiration_action.0.behavior", "SetIfMissing"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.cache_expiration_action.0.duration", "12.04:11:22"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.modify_response_header_action.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.modify_response_header_action.0.action", "Overwrite"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.modify_response_header_action.0.name", "Content-Type"),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.0.modify_response_header_action.0.value", "application/json"),
+				),
+			},
+			{
+				Config: testAccAzureRMCdnEndpoint_globalDeliveryRuleRemove(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "global_delivery_rule.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMCdnEndpoint_deliveryRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCdnEndpoint_deliveryRule(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.name", "http2https"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.order", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.request_scheme_condition.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.request_scheme_condition.0.match_values.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.url_redirect_action.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.url_redirect_action.0.redirect_type", "Found"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.url_redirect_action.0.protocol", "Https"),
+				),
+			},
+			{
+				Config: testAccAzureRMCdnEndpoint_deliveryRuleUpdate1(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.name", "http2https"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.order", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.request_scheme_condition.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.request_scheme_condition.0.negate_condition", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.request_scheme_condition.0.match_values.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.url_redirect_action.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.url_redirect_action.0.redirect_type", "Found"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.url_redirect_action.0.protocol", "Https"),
+				),
+			},
+			{
+				Config: testAccAzureRMCdnEndpoint_deliveryRuleUpdate2(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.name", "http2https"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.order", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.request_scheme_condition.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.request_scheme_condition.0.negate_condition", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.request_scheme_condition.0.match_values.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.url_redirect_action.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.url_redirect_action.0.redirect_type", "Found"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.0.url_redirect_action.0.protocol", "Https"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.1.name", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.1.order", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.1.device_condition.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.1.device_condition.0.match_values.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.1.modify_response_header_action.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.1.modify_response_header_action.0.action", "Delete"),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.1.modify_response_header_action.0.name", "Content-Language"),
+				),
+			},
+			{
+				Config: testAccAzureRMCdnEndpoint_deliveryRuleRemove(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "delivery_rule.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Cdn.EndpointsClient
@@ -240,20 +355,18 @@ func testCheckAzureRMCdnEndpointExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		profileName := rs.Primary.Attributes["profile_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for cdn endpoint: %s", name)
+		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cdnEndpointsClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: CDN Endpoint %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: CDN Endpoint %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -300,11 +413,12 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		profileName := rs.Primary.Attributes["profile_name"]
+		id, err := parse.CdnEndpointID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, profileName, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.ProfileName, id.Name)
 		if err != nil {
 			return nil
 		}
@@ -319,6 +433,10 @@ func testCheckAzureRMCdnEndpointDestroy(s *terraform.State) error {
 
 func testAccAzureRMCdnEndpoint_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -326,16 +444,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
@@ -353,10 +471,10 @@ func testAccAzureRMCdnEndpoint_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cdn_endpoint" "import" {
-  name                = "${azurerm_cdn_endpoint.test.name}"
-  profile_name        = "${azurerm_cdn_endpoint.test.profile_name}"
-  location            = "${azurerm_cdn_endpoint.test.location}"
-  resource_group_name = "${azurerm_cdn_endpoint.test.resource_group_name}"
+  name                = azurerm_cdn_endpoint.test.name
+  profile_name        = azurerm_cdn_endpoint.test.profile_name
+  location            = azurerm_cdn_endpoint.test.location
+  resource_group_name = azurerm_cdn_endpoint.test.resource_group_name
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
@@ -370,6 +488,10 @@ resource "azurerm_cdn_endpoint" "import" {
 
 func testAccAzureRMCdnEndpoint_hostHeader(data acceptance.TestData, domain string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -377,16 +499,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   origin_host_header  = "%s"
 
   origin {
@@ -406,6 +528,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -413,16 +539,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
@@ -441,6 +567,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -448,16 +578,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
@@ -475,6 +605,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_geoFilters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -482,16 +616,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = false
   is_https_allowed    = true
   origin_path         = "/origin-path"
@@ -521,6 +655,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_optimized(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -528,16 +666,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = false
   is_https_allowed    = true
   optimization_type   = "GeneralWebDelivery"
@@ -554,6 +692,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_fullFields(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -561,16 +703,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                          = "acctestcdnend%d"
-  profile_name                  = "${azurerm_cdn_profile.test.name}"
-  location                      = "${azurerm_resource_group.test.location}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  profile_name                  = azurerm_cdn_profile.test.name
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
   is_http_allowed               = true
   is_https_allowed              = true
   content_types_to_compress     = ["text/html"]
@@ -603,6 +745,10 @@ resource "azurerm_cdn_endpoint" "test" {
 
 func testAccAzureRMCdnEndpoint_isHttpAndHttpsAllowed(data acceptance.TestData, isHttpAllowed string, isHttpsAllowed string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -610,16 +756,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cdn_profile" "test" {
   name                = "acctestcdnprof%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard_Verizon"
 }
 
 resource "azurerm_cdn_endpoint" "test" {
   name                = "acctestcdnend%d"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = %s
   is_https_allowed    = %s
 
@@ -631,4 +777,334 @@ resource "azurerm_cdn_endpoint" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, isHttpAllowed, isHttpsAllowed)
+}
+
+func testAccAzureRMCdnEndpoint_globalDeliveryRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Microsoft"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  origin_host_header = "www.example.com"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
+
+  global_delivery_rule {
+    cache_expiration_action {
+      behavior = "Override"
+      duration = "5.04:44:23"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMCdnEndpoint_globalDeliveryRuleUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Microsoft"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  origin_host_header = "www.example.com"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
+
+  global_delivery_rule {
+    cache_expiration_action {
+      behavior = "SetIfMissing"
+      duration = "12.04:11:22"
+    }
+
+    modify_response_header_action {
+      action = "Overwrite"
+      name   = "Content-Type"
+      value  = "application/json"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMCdnEndpoint_globalDeliveryRuleRemove(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Microsoft"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  origin_host_header = "www.example.com"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMCdnEndpoint_deliveryRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Microsoft"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  origin_host_header = "www.example.com"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
+
+  delivery_rule {
+    name  = "http2https"
+    order = 1
+
+    request_scheme_condition {
+      match_values = ["HTTP"]
+    }
+
+    url_redirect_action {
+      redirect_type = "Found"
+      protocol      = "Https"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMCdnEndpoint_deliveryRuleUpdate1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Microsoft"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  origin_host_header = "www.example.com"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
+
+  delivery_rule {
+    name  = "http2https"
+    order = 1
+
+    request_scheme_condition {
+      negate_condition = true
+      match_values     = ["HTTPS"]
+    }
+
+    url_redirect_action {
+      redirect_type = "Found"
+      protocol      = "Https"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMCdnEndpoint_deliveryRuleUpdate2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Microsoft"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  origin_host_header = "www.example.com"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
+
+  delivery_rule {
+    name  = "http2https"
+    order = 1
+
+    request_scheme_condition {
+      negate_condition = true
+      match_values     = ["HTTPS"]
+    }
+
+    url_redirect_action {
+      redirect_type = "Found"
+      protocol      = "Https"
+    }
+  }
+
+  delivery_rule {
+    name  = "test"
+    order = 2
+
+    device_condition {
+      match_values = ["Mobile"]
+    }
+
+    modify_response_header_action {
+      action = "Delete"
+      name   = "Content-Language"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMCdnEndpoint_deliveryRuleRemove(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_cdn_profile" "test" {
+  name                = "acctestcdnprof%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard_Microsoft"
+}
+
+resource "azurerm_cdn_endpoint" "test" {
+  name                = "acctestcdnend%d"
+  profile_name        = azurerm_cdn_profile.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  origin_host_header = "www.example.com"
+
+  origin {
+    name       = "acceptanceTestCdnOrigin1"
+    host_name  = "www.example.com"
+    https_port = 443
+    http_port  = 80
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMManagementGroup_basic(t *testing.T) {
@@ -33,11 +32,6 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -258,49 +252,71 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 }
 
 func testAzureRMManagementGroup_basic() string {
-	return fmt.Sprintf(`
-resource "azurerm_management_group" "test" {}
-`)
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_management_group" "test" {
+}
+`
 }
 
 func testAzureRMManagementGroup_requiresImport() string {
-	return fmt.Sprintf(`
-resource "azurerm_management_group" "test" {}
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_management_group" "test" {
+}
 
 resource "azurerm_management_group" "import" {
-  group_id = "${azurerm_management_group.test.group_id}"
+  name = azurerm_management_group.test.name
 }
-`)
+`
 }
 
 func testAzureRMManagementGroup_nested() string {
-	return fmt.Sprintf(`
+	return `
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "parent" {
 }
 
 resource "azurerm_management_group" "child" {
-  parent_management_group_id = "${azurerm_management_group.parent.id}"
+  parent_management_group_id = azurerm_management_group.parent.id
 }
-`)
+`
 }
 
 func testAzureRMManagementGroup_multiLevel() string {
-	return fmt.Sprintf(`
+	return `
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "grandparent" {
 }
 
 resource "azurerm_management_group" "parent" {
-  parent_management_group_id = "${azurerm_management_group.grandparent.id}"
+  parent_management_group_id = azurerm_management_group.grandparent.id
 }
 
 resource "azurerm_management_group" "child" {
-  parent_management_group_id = "${azurerm_management_group.parent.id}"
+  parent_management_group_id = azurerm_management_group.parent.id
 }
-`)
+`
 }
 
 func testAzureRMManagementGroup_withName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
 }
@@ -310,6 +326,10 @@ resource "azurerm_management_group" "test" {
 // TODO: switch this out for dynamically creating a subscription once that's supported in the future
 func testAzureRMManagementGroup_withSubscriptions(subscriptionID string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   subscription_ids = [
     "%s",

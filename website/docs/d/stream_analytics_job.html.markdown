@@ -20,15 +20,15 @@ data "azurerm_stream_analytics_job" "example" {
 }
 
 output "job_id" {
-  value = "${data.azurerm_stream_analytics_job.example.job_id}"
+  value = data.azurerm_stream_analytics_job.example.job_id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Stream Analytics Job.
+* `name` - Specifies the name of the Stream Analytics Job.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Stream Analytics Job is located in.
+* `resource_group_name` - Specifies the name of the resource group the Stream Analytics Job is located in.
 
 ## Attributes Reference
 
@@ -54,3 +54,9 @@ output "job_id" {
 
 * `transformation_query` - The query that will be run in the streaming job, [written in Stream Analytics Query Language (SAQL)](https://msdn.microsoft.com/library/azure/dn834998).
 
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Job.

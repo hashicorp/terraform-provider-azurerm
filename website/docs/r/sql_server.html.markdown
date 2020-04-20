@@ -22,13 +22,28 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
+resource "azurerm_storage_account" "example" {
+  name                     = "examplesa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_sql_server" "example" {
   name                         = "mysqlserver"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
-  location                     = "${azurerm_resource_group.example.location}"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
+
+  extended_auditing_policy {
+    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
+    storage_account_access_key_is_secondary = true
+    retention_in_days                       = 6
+  }
 
   tags = {
     environment = "production"
@@ -51,7 +66,11 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
+* `connection_policy` - (Optional) The connection policy the server will use. Possible values are `Default`, `Proxy`, and `Redirect`. Defaults to `Default`.
+
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -79,6 +98,27 @@ The following attributes are exported:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
 -> You can access the Principal ID via `${azurerm_sql_server.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_sql_server.example.identity.0.tenant_id}`
+
+---
+
+A `extended_auditing_policy` block supports the following:
+
+* `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
+
+* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
+
+* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
+
+* `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
+
+### Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the SQL Server.
+* `update` - (Defaults to 60 minutes) Used when updating the SQL Server.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Server.
+* `delete` - (Defaults to 60 minutes) Used when deleting the SQL Server.
 
 ## Import
 

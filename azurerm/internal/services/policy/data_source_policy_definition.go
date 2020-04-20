@@ -6,8 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
@@ -23,38 +22,58 @@ func dataSourceArmPolicyDefinition() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"display_name": {
 				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"name", "display_name"},
 			},
-			"management_group_id": {
+
+			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: azure.ValidateResourceIDOrEmpty,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				ExactlyOneOf: []string{"name", "display_name"},
 			},
-			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
+
+			"management_group_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"management_group_name"},
+				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
 			},
+
+			"management_group_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"management_group_id"},
+			},
+
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"policy_type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"policy_rule": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"parameters": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"metadata": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -68,39 +87,30 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("display_name").(string)
-	managementGroupID := d.Get("management_group_id").(string)
-
-	var policyDefinitions policy.DefinitionListResultIterator
-	var err error
-
-	if managementGroupID != "" {
-		policyDefinitions, err = client.ListByManagementGroupComplete(ctx, managementGroupID)
-	} else {
-		policyDefinitions, err = client.ListComplete(ctx)
+	displayName := d.Get("display_name").(string)
+	name := d.Get("name").(string)
+	managementGroupName := ""
+	if v, ok := d.GetOk("management_group_name"); ok {
+		managementGroupName = v.(string)
 	}
-
-	if err != nil {
-		return fmt.Errorf("Error loading Policy Definition List: %+v", err)
+	if v, ok := d.GetOk("management_group_id"); ok {
+		managementGroupName = v.(string)
 	}
 
 	var policyDefinition policy.Definition
-
-	for policyDefinitions.NotDone() {
-		def := policyDefinitions.Value()
-		if def.DisplayName != nil && *def.DisplayName == name {
-			policyDefinition = def
-			break
-		}
-
-		err = policyDefinitions.NextWithContext(ctx)
+	var err error
+	// one of display_name and name must be non-empty, this is guaranteed by schema
+	if displayName != "" {
+		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, managementGroupName)
 		if err != nil {
-			return fmt.Errorf("Error loading Policy Definition List: %s", err)
+			return fmt.Errorf("failed to read Policy Definition (Display Name %q): %+v", displayName, err)
 		}
 	}
-
-	if policyDefinition.ID == nil {
-		return fmt.Errorf("Error loading Policy Definition List: could not find policy '%s'", name)
+	if name != "" {
+		policyDefinition, err = getPolicyDefinitionByName(ctx, client, name, managementGroupName)
+		if err != nil {
+			return fmt.Errorf("failed to read Policy Definition %q: %+v", name, err)
+		}
 	}
 
 	d.SetId(*policyDefinition.ID)

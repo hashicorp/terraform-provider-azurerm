@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -74,6 +73,8 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 			"cluster_version": azure.SchemaHDInsightClusterVersion(),
 
 			"tier": azure.SchemaHDInsightTier(),
+
+			"tls_min_version": azure.SchemaHDInsightTls(),
 
 			"component_version": {
 				Type:     schema.TypeList,
@@ -136,12 +137,12 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 												"name": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 												"uri": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
+													ValidateFunc: validation.StringIsNotEmpty,
 												},
 											},
 										},
@@ -179,6 +180,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	clusterVersion := d.Get("cluster_version").(string)
 	t := d.Get("tags").(map[string]interface{})
 	tier := hdinsight.Tier(d.Get("tier").(string))
+	tls := d.Get("tls_min_version").(string)
 
 	componentVersionsRaw := d.Get("component_version").([]interface{})
 	componentVersions := expandHDInsightHadoopComponentVersion(componentVersionsRaw)
@@ -220,9 +222,10 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	params := hdinsight.ClusterCreateParametersExtended{
 		Location: utils.String(location),
 		Properties: &hdinsight.ClusterCreateProperties{
-			Tier:           tier,
-			OsType:         hdinsight.Linux,
-			ClusterVersion: utils.String(clusterVersion),
+			Tier:                   tier,
+			OsType:                 hdinsight.Linux,
+			ClusterVersion:         utils.String(clusterVersion),
+			MinSupportedTLSVersion: utils.String(tls),
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Hadoop"),
 				ComponentVersion: componentVersions,
@@ -276,12 +279,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 			Target:     []string{"Running"},
 			Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
 			MinTimeout: 15 * time.Second,
-		}
-
-		if features.SupportsCustomTimeouts() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			stateConf.Timeout = 60 * time.Minute
+			Timeout:    d.Timeout(schema.TimeoutCreate),
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
@@ -332,6 +330,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 	if props := resp.Properties; props != nil {
 		d.Set("cluster_version", props.ClusterVersion)
 		d.Set("tier", string(props.Tier))
+		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
 			if err := d.Set("component_version", flattenHDInsightHadoopComponentVersion(def.ComponentVersion)); err != nil {

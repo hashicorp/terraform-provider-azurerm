@@ -34,6 +34,14 @@ func dataUser() *schema.Resource {
 				ConflictsWith: []string{"object_id"},
 			},
 
+			"mail_nickname": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ValidateFunc:  validate.NoEmptyStrings,
+				ConflictsWith: []string{"object_id", "user_principal_name"},
+			},
+
 			"account_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -44,12 +52,27 @@ func dataUser() *schema.Resource {
 				Computed: true,
 			},
 
+			"immutable_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"mail": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"mail_nickname": {
+			"onpremises_sam_account_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"onpremises_user_principal_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"usage_location": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -75,8 +98,14 @@ func dataSourceUserRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error finding Azure AD User with object ID %q: %+v", oId, err)
 		}
 		user = *u
+	} else if mailNickname, ok := d.Get("mail_nickname").(string); ok && mailNickname != "" {
+		u, err := graph.UserGetByMailNickname(&client, ctx, mailNickname)
+		if err != nil {
+			return fmt.Errorf("Error finding Azure AD User with email alias %q: %+v", mailNickname, err)
+		}
+		user = *u
 	} else {
-		return fmt.Errorf("one of `object_id` or `user_principal_name` must be supplied")
+		return fmt.Errorf("one of `object_id`, `user_principal_name` and `mail_nickname` must be supplied")
 	}
 
 	if user.ObjectID == nil {
@@ -88,8 +117,13 @@ func dataSourceUserRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("user_principal_name", user.UserPrincipalName)
 	d.Set("account_enabled", user.AccountEnabled)
 	d.Set("display_name", user.DisplayName)
+	d.Set("immutable_id", user.ImmutableID)
 	d.Set("mail", user.Mail)
 	d.Set("mail_nickname", user.MailNickname)
+	d.Set("usage_location", user.UsageLocation)
+
+	d.Set("onpremises_sam_account_name", user.AdditionalProperties["onPremisesSamAccountName"])
+	d.Set("onpremises_user_principal_name", user.AdditionalProperties["onPremisesUserPrincipalName"])
 
 	return nil
 }

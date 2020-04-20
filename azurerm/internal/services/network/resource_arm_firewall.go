@@ -8,9 +8,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -32,10 +32,10 @@ func resourceArmFirewall() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(40 * time.Minute),
+			Create: schema.DefaultTimeout(90 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(40 * time.Minute),
-			Delete: schema.DefaultTimeout(40 * time.Minute),
+			Update: schema.DefaultTimeout(90 * time.Minute),
+			Delete: schema.DefaultTimeout(90 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -58,7 +58,7 @@ func resourceArmFirewall() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"subnet_id": {
 							Type:         schema.TypeString,
@@ -66,17 +66,9 @@ func resourceArmFirewall() *schema.Resource {
 							ForceNew:     true,
 							ValidateFunc: validateAzureFirewallSubnetName,
 						},
-						"internal_public_ip_address_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							Deprecated:   "This field has been deprecated in favour of the `public_ip_address_id` property to better match the Azure SDK.",
-						},
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
+							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"private_ip_address": {
@@ -267,12 +259,12 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 				}
 				subnetName := parsedSubnetId.Path["subnets"]
 
-				if !SliceContainsValue(subnetNamesToLock, subnetName) {
+				if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
 					subnetNamesToLock = append(subnetNamesToLock, subnetName)
 				}
 
 				virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
-				if !SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+				if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 				}
 			}
@@ -310,15 +302,7 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 		data := configRaw.(map[string]interface{})
 		name := data["name"].(string)
 		subnetId := data["subnet_id"].(string)
-
-		pubID, exist := data["internal_public_ip_address_id"].(string)
-		if !exist || pubID == "" {
-			pubID, exist = data["public_ip_address_id"].(string)
-		}
-
-		if !exist || pubID == "" {
-			return nil, nil, nil, fmt.Errorf("one of `internal_public_ip_address_id` or `public_ip_address_id` must be set")
-		}
+		pubID := data["public_ip_address_id"].(string)
 
 		ipConfig := network.AzureFirewallIPConfiguration{
 			Name: utils.String(name),
@@ -338,11 +322,11 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 			subnetName := subnetID.Path["subnets"]
 			virtualNetworkName := subnetID.Path["virtualNetworks"]
 
-			if !SliceContainsValue(subnetNamesToLock, subnetName) {
+			if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
 				subnetNamesToLock = append(subnetNamesToLock, subnetName)
 			}
 
-			if !SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+			if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 				virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 			}
 
@@ -384,7 +368,6 @@ func flattenArmFirewallIPConfigurations(input *[]network.AzureFirewallIPConfigur
 
 		if pip := props.PublicIPAddress; pip != nil {
 			if id := pip.ID; id != nil {
-				afIPConfig["internal_public_ip_address_id"] = *id
 				afIPConfig["public_ip_address_id"] = *id
 			}
 		}
@@ -399,7 +382,7 @@ func ValidateAzureFirewallName(v interface{}, k string) (warnings []string, erro
 
 	// From the Portal:
 	// The name must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z]([0-9a-zA-Z.\_-]{0,}[0-9a-zA-Z_])?$`).Match([]byte(value)); !matched {
+	if matched := regexp.MustCompile(`^[0-9a-zA-Z]([0-9a-zA-Z._-]{0,}[0-9a-zA-Z_])?$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q must begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.", k))
 	}
 

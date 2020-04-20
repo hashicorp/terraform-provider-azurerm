@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -51,7 +52,7 @@ func resourceArmMariaDbVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"subnet_id": {
@@ -137,7 +138,7 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 		return fmt.Errorf("Error creating MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
-	//Wait for the provisioning state to become ready
+	// Wait for the provisioning state to become ready
 	log.Printf("[DEBUG] Waiting for MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) to become ready: %+v", name, serverName, resourceGroup, err)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
@@ -146,15 +147,10 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 5,
 	}
-
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		stateConf.Timeout = 30 * time.Minute
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
@@ -257,7 +253,7 @@ func mariaDbVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client
 			return resp, string(props.State), nil
 		}
 
-		//Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
+		// Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
 		log.Printf("[DEBUG] Retrieving MariaDb Virtual Network Rule %q (MariaDb Server: %q, Resource Group: %q) returned empty VirtualNetworkRuleProperties", resourceGroup, serverName, name)
 		return resp, "Unknown", nil
 	}

@@ -234,21 +234,19 @@ func resourceArmIotHubDPSSharedAccessPolicyRead(d *schema.ResourceData, meta int
 	d.Set("primary_key", accessPolicy.PrimaryKey)
 	d.Set("secondary_key", accessPolicy.SecondaryKey)
 
-	if props := iothubDps.Properties; props != nil {
-		if host := props.ServiceOperationsHostName; host != nil {
-			if pKey := accessPolicy.PrimaryKey; pKey != nil {
-				if err := d.Set("primary_connection_string", getSAPConnectionString(*host, keyName, *pKey)); err != nil {
-					return fmt.Errorf("error setting `primary_connection_string`: %v", err)
-				}
-			}
-
-			if sKey := accessPolicy.SecondaryKey; sKey != nil {
-				if err := d.Set("secondary_connection_string", getSAPConnectionString(*host, keyName, *sKey)); err != nil {
-					return fmt.Errorf("error setting `secondary_connection_string`: %v", err)
-				}
-			}
+	primaryConnectionString := ""
+	secondaryConnectionString := ""
+	if iothubDps.Properties != nil && iothubDps.Properties.ServiceOperationsHostName != nil {
+		hostname := iothubDps.Properties.ServiceOperationsHostName
+		if primary := accessPolicy.PrimaryKey; primary != nil {
+			primaryConnectionString = getSAPConnectionString(*hostname, keyName, *primary)
+		}
+		if secondary := accessPolicy.SecondaryKey; secondary != nil {
+			secondaryConnectionString = getSAPConnectionString(*hostname, keyName, *secondary)
 		}
 	}
+	d.Set("primary_connection_string", primaryConnectionString)
+	d.Set("secondary_connection_string", secondaryConnectionString)
 
 	rights := flattenDpsAccessRights(accessPolicy.Rights)
 	d.Set("enrollment_read", rights.enrollmentRead)

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -51,7 +51,7 @@ func resourceArmMySqlVirtualNetworkRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"subnet_id": {
@@ -86,46 +86,6 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
-	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
-	subnetsClient := meta.(*clients.Client).Network.SubnetsClient
-	subnetParsedId, err := azure.ParseAzureResourceID(subnetId)
-	if err != nil {
-		return err
-	}
-
-	subnetResourceGroup := subnetParsedId.ResourceGroup
-	virtualNetwork := subnetParsedId.Path["virtualNetworks"]
-	subnetName := subnetParsedId.Path["subnets"]
-	subnet, err := subnetsClient.Get(ctx, subnetResourceGroup, virtualNetwork, subnetName, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(subnet.Response) {
-			return fmt.Errorf("Subnet with ID %q was not found: %+v", subnetId, err)
-		}
-
-		return fmt.Errorf("Error obtaining Subnet %q (Virtual Network %q / Resource Group %q: %+v", subnetName, virtualNetwork, subnetResourceGroup, err)
-	}
-
-	containsEndpoint := false
-	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if endpoints := props.ServiceEndpoints; endpoints != nil {
-			for _, e := range *endpoints {
-				if e.Service == nil {
-					continue
-				}
-
-				if strings.EqualFold(*e.Service, "Microsoft.Sql") {
-					containsEndpoint = true
-					break
-				}
-			}
-		}
-	}
-
-	if !containsEndpoint {
-		return fmt.Errorf("Error creating MySQL Virtual Network Rule: Subnet %q (Virtual Network %q / Resource Group %q) must contain a Service Endpoint for `Microsoft.Sql`", subnetName, virtualNetwork, subnetResourceGroup)
-	}
-
 	parameters := mysql.VirtualNetworkRule{
 		VirtualNetworkRuleProperties: &mysql.VirtualNetworkRuleProperties{
 			VirtualNetworkSubnetID:           utils.String(subnetId),
@@ -133,12 +93,12 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 		},
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating MySQL Virtual Network Rule %q (MySQL Server: %q, Resource Group: %q): %+v", name, serverName, resourceGroup, err)
 	}
 
-	//Wait for the provisioning state to become ready
-	log.Printf("[DEBUG] Waiting for MySQL Virtual Network Rule %q (MySQL Server: %q, Resource Group: %q) to become ready: %+v", name, serverName, resourceGroup, err)
+	// Wait for the provisioning state to become ready
+	log.Printf("[DEBUG] Waiting for MySQL Virtual Network Rule %q (MySQL Server: %q, Resource Group: %q) to become ready", name, serverName, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
@@ -146,18 +106,13 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 5,
 	}
-
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		stateConf.Timeout = 30 * time.Minute
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
-	if _, err = stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for MySQL Virtual Network Rule %q (MySQL Server: %q, Resource Group: %q) to be created or updated: %+v", name, serverName, resourceGroup, err)
 	}
 
@@ -257,7 +212,7 @@ func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *
 			return resp, string(props.State), nil
 		}
 
-		//Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
+		// Valid response was returned but VirtualNetworkRuleProperties was nil. Basically the rule exists, but with no properties for some reason. Assume Unknown instead of returning error.
 		log.Printf("[DEBUG] Retrieving MySQL Virtual Network Rule %q (MySQL Server: %q, Resource Group: %q) returned empty VirtualNetworkRuleProperties", resourceGroup, serverName, name)
 		return resp, "Unknown", nil
 	}

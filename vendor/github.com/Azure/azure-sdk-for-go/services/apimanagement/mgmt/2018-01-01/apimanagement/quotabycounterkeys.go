@@ -36,7 +36,9 @@ func NewQuotaByCounterKeysClient(subscriptionID string) QuotaByCounterKeysClient
 	return NewQuotaByCounterKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewQuotaByCounterKeysClientWithBaseURI creates an instance of the QuotaByCounterKeysClient client.
+// NewQuotaByCounterKeysClientWithBaseURI creates an instance of the QuotaByCounterKeysClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewQuotaByCounterKeysClientWithBaseURI(baseURI string, subscriptionID string) QuotaByCounterKeysClient {
 	return QuotaByCounterKeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -115,8 +117,7 @@ func (client QuotaByCounterKeysClient) ListByServicePreparer(ctx context.Context
 // ListByServiceSender sends the ListByService request. The method will close the
 // http.Response Body if it receives an error.
 func (client QuotaByCounterKeysClient) ListByServiceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServiceResponder handles the response to the ListByService request. The method always
@@ -209,8 +210,7 @@ func (client QuotaByCounterKeysClient) UpdatePreparer(ctx context.Context, resou
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client QuotaByCounterKeysClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

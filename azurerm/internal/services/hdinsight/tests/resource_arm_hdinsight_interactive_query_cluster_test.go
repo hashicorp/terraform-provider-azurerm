@@ -205,6 +205,32 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMHDInsightInteractiveQueryCluster_tls(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_tls(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+		},
+	})
+}
+
 func testAccAzureRMHDInsightInteractiveQueryCluster_basic(data acceptance.TestData) string {
 	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
 	return fmt.Sprintf(`
@@ -212,8 +238,8 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_basic(data acceptance.TestDa
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   cluster_version     = "3.6"
   tier                = "Standard"
 
@@ -228,8 +254,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.test.id}"
-    storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
@@ -318,15 +344,75 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_requiresImport(data acceptan
 %s
 
 resource "azurerm_hdinsight_interactive_query_cluster" "import" {
-  name                = "${azurerm_hdinsight_interactive_query_cluster.test.name}"
-  resource_group_name = "${azurerm_hdinsight_interactive_query_cluster.test.resource_group_name}"
-  location            = "${azurerm_hdinsight_interactive_query_cluster.test.location}"
-  cluster_version     = "${azurerm_hdinsight_interactive_query_cluster.test.cluster_version}"
-  tier                = "${azurerm_hdinsight_interactive_query_cluster.test.tier}"
-  component_version   = "${azurerm_hdinsight_interactive_query_cluster.test.component_version}"
-  gateway             = "${azurerm_hdinsight_interactive_query_cluster.test.gateway}"
-  storage_account     = "${azurerm_hdinsight_interactive_query_cluster.test.storage_account}"
-  roles               = "${azurerm_hdinsight_interactive_query_cluster.test.roles}"
+  name                = azurerm_hdinsight_interactive_query_cluster.test.name
+  resource_group_name = azurerm_hdinsight_interactive_query_cluster.test.resource_group_name
+  location            = azurerm_hdinsight_interactive_query_cluster.test.location
+  cluster_version     = azurerm_hdinsight_interactive_query_cluster.test.cluster_version
+  tier                = azurerm_hdinsight_interactive_query_cluster.test.tier
+  dynamic "component_version" {
+    for_each = azurerm_hdinsight_interactive_query_cluster.test.component_version
+    content {
+      interactive_hive = component_version.value.interactive_hive
+    }
+  }
+  dynamic "gateway" {
+    for_each = azurerm_hdinsight_interactive_query_cluster.test.gateway
+    content {
+      enabled  = gateway.value.enabled
+      password = gateway.value.password
+      username = gateway.value.username
+    }
+  }
+  dynamic "storage_account" {
+    for_each = azurerm_hdinsight_interactive_query_cluster.test.storage_account
+    content {
+      is_default           = storage_account.value.is_default
+      storage_account_key  = storage_account.value.storage_account_key
+      storage_container_id = storage_account.value.storage_container_id
+    }
+  }
+  dynamic "roles" {
+    for_each = azurerm_hdinsight_interactive_query_cluster.test.roles
+    content {
+      dynamic "head_node" {
+        for_each = lookup(roles.value, "head_node", [])
+        content {
+          password           = lookup(head_node.value, "password", null)
+          ssh_keys           = lookup(head_node.value, "ssh_keys", null)
+          subnet_id          = lookup(head_node.value, "subnet_id", null)
+          username           = head_node.value.username
+          virtual_network_id = lookup(head_node.value, "virtual_network_id", null)
+          vm_size            = head_node.value.vm_size
+        }
+      }
+
+      dynamic "worker_node" {
+        for_each = lookup(roles.value, "worker_node", [])
+        content {
+          min_instance_count    = lookup(worker_node.value, "min_instance_count", null)
+          password              = lookup(worker_node.value, "password", null)
+          ssh_keys              = lookup(worker_node.value, "ssh_keys", null)
+          subnet_id             = lookup(worker_node.value, "subnet_id", null)
+          target_instance_count = worker_node.value.target_instance_count
+          username              = worker_node.value.username
+          virtual_network_id    = lookup(worker_node.value, "virtual_network_id", null)
+          vm_size               = worker_node.value.vm_size
+        }
+      }
+
+      dynamic "zookeeper_node" {
+        for_each = lookup(roles.value, "zookeeper_node", [])
+        content {
+          password           = lookup(zookeeper_node.value, "password", null)
+          ssh_keys           = lookup(zookeeper_node.value, "ssh_keys", null)
+          subnet_id          = lookup(zookeeper_node.value, "subnet_id", null)
+          username           = zookeeper_node.value.username
+          virtual_network_id = lookup(zookeeper_node.value, "virtual_network_id", null)
+          vm_size            = zookeeper_node.value.vm_size
+        }
+      }
+    }
+  }
 }
 `, template)
 }
@@ -342,8 +428,8 @@ variable "ssh_key" {
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   cluster_version     = "3.6"
   tier                = "Standard"
 
@@ -358,8 +444,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.test.id}"
-    storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
@@ -367,20 +453,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     head_node {
       vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
-      ssh_keys = ["${var.ssh_key}"]
+      ssh_keys = [var.ssh_key]
     }
 
     worker_node {
       vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
-      ssh_keys              = ["${var.ssh_key}"]
+      ssh_keys              = [var.ssh_key]
       target_instance_count = 3
     }
 
     zookeeper_node {
       vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
-      ssh_keys = ["${var.ssh_key}"]
+      ssh_keys = [var.ssh_key]
     }
   }
 }
@@ -394,8 +480,8 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_updated(data acceptance.Test
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   cluster_version     = "3.6"
   tier                = "Standard"
 
@@ -410,8 +496,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.test.id}"
-    storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
@@ -451,21 +537,21 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_virtualNetwork(data acceptan
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   cluster_version     = "3.6"
   tier                = "Standard"
 
@@ -480,8 +566,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.test.id}"
-    storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
@@ -490,8 +576,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
       vm_size            = "Standard_D13_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
-      subnet_id          = "${azurerm_subnet.test.id}"
-      virtual_network_id = "${azurerm_virtual_network.test.id}"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
     }
 
     worker_node {
@@ -499,16 +585,16 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
-      subnet_id             = "${azurerm_subnet.test.id}"
-      virtual_network_id    = "${azurerm_virtual_network.test.id}"
+      subnet_id             = azurerm_subnet.test.id
+      virtual_network_id    = azurerm_virtual_network.test.id
     }
 
     zookeeper_node {
       vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
-      subnet_id          = "${azurerm_subnet.test.id}"
-      virtual_network_id = "${azurerm_virtual_network.test.id}"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
     }
   }
 }
@@ -523,21 +609,21 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_complete(data acceptance.Tes
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   cluster_version     = "3.6"
   tier                = "Standard"
 
@@ -552,8 +638,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.test.id}"
-    storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
 
@@ -562,8 +648,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
       vm_size            = "Standard_D13_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
-      subnet_id          = "${azurerm_subnet.test.id}"
-      virtual_network_id = "${azurerm_virtual_network.test.id}"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
     }
 
     worker_node {
@@ -571,16 +657,16 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
       target_instance_count = 3
-      subnet_id             = "${azurerm_subnet.test.id}"
-      virtual_network_id    = "${azurerm_virtual_network.test.id}"
+      subnet_id             = azurerm_subnet.test.id
+      virtual_network_id    = azurerm_virtual_network.test.id
     }
 
     zookeeper_node {
       vm_size            = "Standard_A4_V2"
       username           = "acctestusrvm"
       password           = "AccTestvdSC4daf986!"
-      subnet_id          = "${azurerm_subnet.test.id}"
-      virtual_network_id = "${azurerm_virtual_network.test.id}"
+      subnet_id          = azurerm_subnet.test.id
+      virtual_network_id = azurerm_virtual_network.test.id
     }
   }
 
@@ -593,6 +679,10 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
 
 func testAccAzureRMHDInsightInteractiveQueryCluster_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -600,16 +690,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctest"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -617,6 +706,10 @@ resource "azurerm_storage_container" "test" {
 
 func testAccAzureRMHDInsightInteractiveQueryCluster_gen2template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -652,4 +745,57 @@ resource "azurerm_role_assignment" "test" {
   principal_id         = "${azurerm_user_assigned_identity.test.principal_id}"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMHDInsightInteractiveQueryCluster_tls(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "3.6"
+  tier                = "Standard"
+  tls_min_version     = "1.2"
+
+  component_version {
+    interactive_hive = "2.1"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D13_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D14_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }

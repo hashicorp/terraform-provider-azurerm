@@ -3,6 +3,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
@@ -113,7 +114,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"fqdns": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MinItems: 1,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -123,33 +123,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"ip_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MinItems: 1,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validate.IPv4Address,
-							},
-						},
-
-						// TODO: remove in 2.0
-						"fqdn_list": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "`fqdn_list` has been deprecated in favour of the `fqdns` field",
-							MinItems:   1,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-
-						// TODO: remove in 2.0
-						"ip_address_list": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "`ip_address_list` has been deprecated in favour of the `ip_addresses` field",
-							MinItems:   1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.IPv4Address,
@@ -209,7 +183,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"affinity_cookie_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"host_name": {
@@ -252,7 +226,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 
@@ -529,13 +503,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"redirect_configuration_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"rewrite_rule_set_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"backend_address_pool_id": {
@@ -584,7 +558,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"redirect_type": {
@@ -601,13 +575,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"target_listener_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"target_url": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"include_path": {
@@ -687,9 +661,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"capacity": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 32),
+							Type:     schema.TypeInt,
+							Optional: true,
 						},
 					},
 				},
@@ -704,13 +677,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"data": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
 						},
 
@@ -730,13 +703,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"data": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							Sensitive:    true,
 						},
 
@@ -755,23 +728,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
-			// TODO: remove in 2.0
-			"disabled_ssl_protocols": {
-				Type:       schema.TypeList,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "has been replaced by `ssl_policy`.`disabled_protocols`",
-				Elem: &schema.Schema{
-					Type:             schema.TypeString,
-					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(network.TLSv10),
-						string(network.TLSv11),
-						string(network.TLSv12),
-					}, true),
-				},
-			},
-
 			"ssl_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -781,7 +737,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"disabled_protocols": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -795,13 +750,10 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"policy_type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(network.Custom),
-									string(network.Predefined),
-								}, false),
-							},
+							ValidateFunc: validation.StringInSlice([]string{
+								string(network.Custom),
+								string(network.Predefined),
+							}, false),
 						},
 
 						"policy_name": {
@@ -903,7 +855,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 									"body": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Default:  "*",
 									},
 
 									"status_code": {
@@ -933,7 +884,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"rewrite_rule": {
@@ -944,7 +895,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"rule_sequence": {
@@ -1038,15 +989,21 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"data": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
 							StateFunc: base64EncodedStateFunc,
 						},
 
 						"password": {
 							Type:      schema.TypeString,
-							Required:  true,
+							Optional:  true,
 							Sensitive: true,
+						},
+
+						"key_vault_secret_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateKeyVaultChildId,
 						},
 
 						"id": {
@@ -1085,13 +1042,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"default_redirect_configuration_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"default_rewrite_rule_set_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"path_rule": {
@@ -1125,13 +1082,13 @@ func resourceArmApplicationGateway() *schema.Resource {
 									"redirect_configuration_name": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"rewrite_rule_set_name": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"backend_address_pool_id": {
@@ -1314,7 +1271,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 										Optional: true,
 									},
 									"selector": {
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 										Type:         schema.TypeString,
 										Optional:     true,
 									},
@@ -1354,6 +1311,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: ApplicationGatewayCustomizeDiff,
 	}
 }
 
@@ -1389,10 +1348,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	gatewayIDFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s"
 	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.Account.SubscriptionId, resGroup, name)
 
-	trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("Error expanding `trusted_root_certificate`: %+v", err)
-	}
+	trustedRootCertificates := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	if err != nil {
@@ -1407,6 +1363,11 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	redirectConfigurations, err := expandApplicationGatewayRedirectConfigurations(d, gatewayID)
 	if err != nil {
 		return fmt.Errorf("Error expanding `redirect_configuration`: %+v", err)
+	}
+
+	sslCertificates, err := expandApplicationGatewaySslCertificates(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `ssl_certificate`: %+v", err)
 	}
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
@@ -1432,7 +1393,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			RequestRoutingRules:           requestRoutingRules,
 			RedirectConfigurations:        redirectConfigurations,
 			Sku:                           expandApplicationGatewaySku(d),
-			SslCertificates:               expandApplicationGatewaySslCertificates(d),
+			SslCertificates:               sslCertificates,
 			SslPolicy:                     expandApplicationGatewaySslPolicy(d),
 
 			RewriteRuleSets: expandApplicationGatewayRewriteRuleSets(d),
@@ -1575,10 +1536,6 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		}
 		if setErr := d.Set("backend_http_settings", backendHttpSettings); setErr != nil {
 			return fmt.Errorf("Error setting `backend_http_settings`: %+v", setErr)
-		}
-
-		if setErr := d.Set("disabled_ssl_protocols", flattenApplicationGatewayDisabledSSLProtocols(props.SslPolicy)); setErr != nil {
-			return fmt.Errorf("Error setting `disabled_ssl_protocols`: %+v", setErr)
 		}
 
 		if setErr := d.Set("ssl_policy", flattenApplicationGatewaySslPolicy(props.SslPolicy)); setErr != nil {
@@ -1757,7 +1714,7 @@ func expandApplicationGatewayAuthenticationCertificates(certs []interface{}) *[]
 	return &results
 }
 
-func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]network.ApplicationGatewayTrustedRootCertificate, error) {
+func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) *[]network.ApplicationGatewayTrustedRootCertificate {
 	results := make([]network.ApplicationGatewayTrustedRootCertificate, 0)
 
 	for _, raw := range certs {
@@ -1765,29 +1722,20 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ne
 
 		name := v["name"].(string)
 		data := v["data"].(string)
-		// kvsid := v["key_vault_secret_id"].(string)
 
 		output := network.ApplicationGatewayTrustedRootCertificate{
 			Name: utils.String(name),
 			ApplicationGatewayTrustedRootCertificatePropertiesFormat: &network.ApplicationGatewayTrustedRootCertificatePropertiesFormat{},
 		}
 
-		/*		if data == "" && kvsid == "" {
-					return nil, fmt.Errorf("Error: either `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
-				}
-				if data != "" && kvsid != "" {
-					return nil, fmt.Errorf("Error: only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
-				}*/
-
 		if data != "" {
 			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
 		}
-		//	output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.KeyVaultSecretID = &kvsid
 
 		results = append(results, output)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.ApplicationGatewayAuthenticationCertificate, d *schema.ResourceData) []interface{} {
@@ -1891,21 +1839,6 @@ func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]netw
 			})
 		}
 
-		if len(backendAddresses) == 0 {
-			// TODO: remove in 2.0
-			for _, ip := range v["ip_address_list"].([]interface{}) {
-				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-					IPAddress: utils.String(ip.(string)),
-				})
-			}
-			// TODO: remove in 2.0
-			for _, ip := range v["fqdn_list"].([]interface{}) {
-				backendAddresses = append(backendAddresses, network.ApplicationGatewayBackendAddress{
-					Fqdn: utils.String(ip.(string)),
-				})
-			}
-		}
-
 		name := v["name"].(string)
 		output := network.ApplicationGatewayBackendAddressPool{
 			Name: utils.String(name),
@@ -1945,10 +1878,6 @@ func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGa
 		output := map[string]interface{}{
 			"fqdns":        fqdnList,
 			"ip_addresses": ipAddressList,
-
-			// TODO: deprecated - remove in 2.0
-			"ip_address_list": ipAddressList,
-			"fqdn_list":       fqdnList,
 		}
 
 		if config.ID != nil {
@@ -2161,7 +2090,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 func expandApplicationGatewayConnectionDraining(d map[string]interface{}) *network.ApplicationGatewayConnectionDraining {
 	connectionsRaw := d["connection_draining"].([]interface{})
 
-	if len(connectionsRaw) <= 0 {
+	if len(connectionsRaw) == 0 {
 		return nil
 	}
 
@@ -2194,24 +2123,10 @@ func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.Applicat
 	disabledSSLPolicies := make([]network.ApplicationGatewaySslProtocol, 0)
 
 	vs := d.Get("ssl_policy").([]interface{})
-	vsdsp := d.Get("disabled_ssl_protocols").([]interface{})
-
-	if len(vsdsp) == 0 && len(vs) == 0 {
-		policy = network.ApplicationGatewaySslPolicy{
-			DisabledSslProtocols: &disabledSSLPolicies,
-		}
-	}
-
-	for _, policy := range vsdsp {
-		disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
-	}
 
 	if len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
 		policyType := network.ApplicationGatewaySslPolicyType(v["policy_type"].(string))
-
-		// reset disabledSSLPolicies here to always use the new disabled_protocols block in favor of disabled_ssl_protocols
-		disabledSSLPolicies = disabledSSLPolicies[:0]
 
 		for _, policy := range v["disabled_protocols"].([]interface{}) {
 			disabledSSLPolicies = append(disabledSSLPolicies, network.ApplicationGatewaySslProtocol(policy.(string)))
@@ -2277,19 +2192,6 @@ func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPoli
 	output["disabled_protocols"] = disabledSslProtocols
 
 	results = append(results, output)
-	return results
-}
-
-func flattenApplicationGatewayDisabledSSLProtocols(input *network.ApplicationGatewaySslPolicy) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil || input.DisabledSslProtocols == nil {
-		return results
-	}
-
-	for _, v := range *input.DisabledSslProtocols {
-		results = append(results, string(v))
-	}
-
 	return results
 }
 
@@ -3130,6 +3032,7 @@ func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gate
 			ApplicationGatewayRedirectConfigurationPropertiesFormat: &network.ApplicationGatewayRedirectConfigurationPropertiesFormat{
 				RedirectType:       network.ApplicationGatewayRedirectType(redirectType),
 				IncludeQueryString: utils.Bool(includeQueryString),
+				IncludePath:        utils.Bool(includePath),
 			},
 		}
 
@@ -3141,16 +3044,11 @@ func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gate
 			return nil, fmt.Errorf("Conflict between `target_listener_name` and `target_url` (redirection is either to URL or target listener)")
 		}
 
-		if targetUrl != "" && includePath {
-			return nil, fmt.Errorf("`include_path` is not a valid option when `target_url` is set")
-		}
-
 		if targetListenerName != "" {
 			targetListenerID := fmt.Sprintf("%s/httpListeners/%s", gatewayID, targetListenerName)
 			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.TargetListener = &network.SubResource{
 				ID: utils.String(targetListenerID),
 			}
-			output.ApplicationGatewayRedirectConfigurationPropertiesFormat.IncludePath = utils.Bool(includePath)
 		}
 
 		if targetUrl != "" {
@@ -3282,7 +3180,7 @@ func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interf
 	return []interface{}{result}
 }
 
-func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.ApplicationGatewaySslCertificate {
+func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network.ApplicationGatewaySslCertificate, error) {
 	vs := d.Get("ssl_certificate").([]interface{})
 	results := make([]network.ApplicationGatewaySslCertificate, 0)
 
@@ -3292,22 +3190,39 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 		name := v["name"].(string)
 		data := v["data"].(string)
 		password := v["password"].(string)
-
-		// data must be base64 encoded
-		data = utils.Base64EncodeIfNot(data)
+		kvsid := v["key_vault_secret_id"].(string)
 
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
-			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{
-				Data:     utils.String(data),
-				Password: utils.String(password),
-			},
+			ApplicationGatewaySslCertificatePropertiesFormat: &network.ApplicationGatewaySslCertificatePropertiesFormat{},
+		}
+
+		// nolint gocritic
+		if data != "" && kvsid != "" {
+			return nil, fmt.Errorf("only one of `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
+		} else if data != "" {
+			// data must be base64 encoded
+			output.ApplicationGatewaySslCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
+
+			if password == "" {
+				return nil, fmt.Errorf("'password' is required if `data` is specified for the `ssl_certificate` block %q", name)
+			}
+
+			output.ApplicationGatewaySslCertificatePropertiesFormat.Password = utils.String(password)
+		} else if kvsid != "" {
+			if password != "" {
+				return nil, fmt.Errorf("only one of `key_vault_secret_id` or `password` must be specified for the `ssl_certificate` block %q", name)
+			}
+
+			output.ApplicationGatewaySslCertificatePropertiesFormat.KeyVaultSecretID = utils.String(kvsid)
+		} else {
+			return nil, fmt.Errorf("either `key_vault_secret_id` or `data` must be specified for the `ssl_certificate` block %q", name)
 		}
 
 		results = append(results, output)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewaySslCertificate, d *schema.ResourceData) []interface{} {
@@ -3333,6 +3248,10 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 		if props := v.ApplicationGatewaySslCertificatePropertiesFormat; props != nil {
 			if data := props.PublicCertData; data != nil {
 				output["public_cert_data"] = *data
+			}
+
+			if kvsid := props.KeyVaultSecretID; kvsid != nil {
+				output["key_vault_secret_id"] = *kvsid
 			}
 		}
 
@@ -3822,4 +3741,26 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	}
 
 	return results
+}
+
+func ApplicationGatewayCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
+	capacity, hasCapacity := d.GetOk("sku.0.capacity")
+	tier := d.Get("sku.0.tier").(string)
+
+	if !hasAutoscaleConfig && !hasCapacity {
+		return fmt.Errorf("The Application Gateway must specify either `capacity` or `autoscale_configuration` for the selected SKU tier %q", tier)
+	}
+
+	if hasCapacity {
+		if (strings.EqualFold(tier, string(network.ApplicationGatewayTierStandard)) || strings.EqualFold(tier, string(network.ApplicationGatewayTierWAF))) && (capacity.(int) < 1 || capacity.(int) > 32) {
+			return fmt.Errorf("The value '%d' exceeds the maximum capacity allowed for a %q V1 SKU, the %q SKU must have a capacity value between 1 and 32", capacity, tier, tier)
+		}
+
+		if (strings.EqualFold(tier, string(network.ApplicationGatewayTierStandardV2)) || strings.EqualFold(tier, string(network.ApplicationGatewayTierWAFV2))) && (capacity.(int) < 1 || capacity.(int) > 125) {
+			return fmt.Errorf("The value '%d' exceeds the maximum capacity allowed for a %q V2 SKU, the %q SKU must have a capacity value between 1 and 125", capacity, tier, tier)
+		}
+	}
+
+	return nil
 }

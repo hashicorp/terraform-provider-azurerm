@@ -3,15 +3,19 @@ package dns
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +26,6 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 		Read:   resourceArmDnsTxtRecordRead,
 		Update: resourceArmDnsTxtRecordCreateUpdate,
 		Delete: resourceArmDnsTxtRecordDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -32,7 +33,10 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
-
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DnsTxtRecordID(id)
+			return err
+		}),
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -53,8 +57,9 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"value": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringLenBetween(1, 1024),
 						},
 					},
 				},
@@ -134,27 +139,23 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DnsTxtRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["TXT"]
-	zoneName := id.Path["dnszones"]
-
-	resp, err := client.Get(ctx, resGroup, zoneName, name, dns.TXT)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.TXT)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS TXT record %s: %+v", name, err)
+		return fmt.Errorf("Error reading DNS TXT record %s: %+v", id.Name, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("zone_name", zoneName)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("zone_name", id.ZoneName)
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
 
@@ -169,32 +170,28 @@ func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DnsTxtRecordID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resGroup := id.ResourceGroup
-	name := id.Path["TXT"]
-	zoneName := id.Path["dnszones"]
-
-	resp, err := client.Delete(ctx, resGroup, zoneName, name, dns.TXT, "")
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.ZoneName, id.Name, dns.TXT, "")
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", name, err)
+		return fmt.Errorf("Error deleting DNS TXT Record %s: %+v", id.Name, err)
 	}
 
 	return nil
 }
 
 func flattenAzureRmDnsTxtRecords(records *[]dns.TxtRecord) []map[string]interface{} {
-	results := make([]map[string]interface{}, 0, len(*records))
+	results := make([]map[string]interface{}, 0)
 
 	if records != nil {
 		for _, record := range *records {
 			txtRecord := make(map[string]interface{})
 
 			if v := record.Value; v != nil {
-				value := (*v)[0]
+				value := strings.Join(*v, "")
 				txtRecord["value"] = value
 			}
 
@@ -209,9 +206,17 @@ func expandAzureRmDnsTxtRecords(d *schema.ResourceData) *[]dns.TxtRecord {
 	recordStrings := d.Get("record").(*schema.Set).List()
 	records := make([]dns.TxtRecord, len(recordStrings))
 
+	segmentLen := 254
 	for i, v := range recordStrings {
 		record := v.(map[string]interface{})
-		value := []string{record["value"].(string)}
+		v := record["value"].(string)
+
+		var value []string
+		for len(v) > segmentLen {
+			value = append(value, v[:segmentLen])
+			v = v[segmentLen:]
+		}
+		value = append(value, v)
 
 		txtRecord := dns.TxtRecord{
 			Value: &value,

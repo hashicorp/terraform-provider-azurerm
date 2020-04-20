@@ -10,9 +10,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -61,7 +61,7 @@ func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFu
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"automation_account_name": {
@@ -97,7 +97,7 @@ func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[stri
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"automation_account_name": {
@@ -150,17 +150,18 @@ func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interfa
 	encrypted := d.Get("encrypted").(bool)
 	value := ""
 
-	if varTypeLower == "datetime" {
+	switch varTypeLower {
+	case "datetime":
 		vTime, parseErr := time.Parse(time.RFC3339, d.Get("value").(string))
 		if parseErr != nil {
 			return fmt.Errorf("Error invalid time format: %+v", parseErr)
 		}
 		value = fmt.Sprintf("\"\\/Date(%d)\\/\"", vTime.UnixNano()/1000000)
-	} else if varTypeLower == "bool" {
+	case "bool":
 		value = strconv.FormatBool(d.Get("value").(bool))
-	} else if varTypeLower == "int" {
+	case "int":
 		value = strconv.Itoa(d.Get("value").(int))
-	} else if varTypeLower == "string" {
+	case "string":
 		value = strconv.Quote(d.Get("value").(string))
 	}
 

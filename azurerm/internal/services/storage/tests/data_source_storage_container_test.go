@@ -31,6 +31,10 @@ func TestAccDataSourceArmStorageContainer_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMStorageContainer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "containerdstest-%s"
   location = "%s"
@@ -47,13 +51,12 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "containerdstest-%s"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
   metadata = {
     k1 = "v1"
     k2 = "v2"
-   }
+  }
 }
 
 data "azurerm_storage_container" "test" {

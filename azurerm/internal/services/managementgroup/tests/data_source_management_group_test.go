@@ -28,12 +28,16 @@ func TestAccDataSourceArmManagementGroup_basic(t *testing.T) {
 
 func testAccDataSourceArmManagementGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_management_group" "test" {
   display_name = "acctestmg-%d"
 }
 
 data "azurerm_management_group" "test" {
-  group_id = "${azurerm_management_group.test.group_id}"
+  name = azurerm_management_group.test.name
 }
 `, data.RandomInteger)
 }

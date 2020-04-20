@@ -3,16 +3,15 @@ package keyvault
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -39,71 +38,31 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"key_vault_id": {
-				Type:          schema.TypeString,
-				Optional:      true, //todo required in 2.0
-				Computed:      true, //todo removed in 2.0
-				ForceNew:      true,
-				ValidateFunc:  azure.ValidateResourceID,
-				ConflictsWith: []string{"vault_name"},
-			},
-
-			// todo remove in 2.0
-			"vault_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				Deprecated:    "This property has been deprecated in favour of the key_vault_id property. This will prevent a class of bugs as described in https://github.com/terraform-providers/terraform-provider-azurerm/issues/2396 and will be removed in version 2.0 of the provider",
-				ValidateFunc:  validate.NoEmptyStrings,
-				ConflictsWith: []string{"key_vault_id"},
-			},
-
-			// todo remove in 2.0
-			"resource_group_name": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				ForceNew:   true,
-				Computed:   true,
-				Deprecated: "This property has been deprecated as the resource group is now pulled from the vault ID and will be removed in version 2.0 of the provider",
-				ValidateFunc: func(v interface{}, k string) (warnings []string, errors []error) {
-					value := v.(string)
-
-					if len(value) > 80 {
-						errors = append(errors, fmt.Errorf("%q may not exceed 80 characters in length", k))
-					}
-
-					if strings.HasSuffix(value, ".") {
-						errors = append(errors, fmt.Errorf("%q may not end with a period", k))
-					}
-
-					// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
-					if matched := regexp.MustCompile(`^[-\w\._\(\)]+$`).Match([]byte(value)); !matched {
-						errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
-					}
-
-					return warnings, errors
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.UUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"object_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.UUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"application_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.UUID,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
@@ -124,8 +83,6 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	log.Printf("[INFO] Preparing arguments for Key Vault Access Policy: %s.", action)
 
 	vaultId := d.Get("key_vault_id").(string)
-	vaultName := d.Get("vault_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
 
 	tenantIdRaw := d.Get("tenant_id").(string)
 	tenantId, err := uuid.FromString(tenantIdRaw)
@@ -136,24 +93,15 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	applicationIdRaw := d.Get("application_id").(string)
 	objectId := d.Get("object_id").(string)
 
-	if vaultName == "" {
-		if vaultId == "" {
-			return fmt.Errorf("one of `key_vault_id` or `vault_name` must be set")
-		}
-		id, err2 := azure.ParseAzureResourceID(vaultId)
-		if err2 != nil {
-			return err2
-		}
+	id, err := azure.ParseAzureResourceID(vaultId)
+	if err != nil {
+		return err
+	}
 
-		resourceGroup = id.ResourceGroup
-
-		vaultNameTemp, ok := id.Path["vaults"]
-		if !ok {
-			return fmt.Errorf("key_value_id does not contain `vaults`: %q", vaultId)
-		}
-		vaultName = vaultNameTemp
-	} else if resourceGroup == "" {
-		return fmt.Errorf("one of `resource_group_name` must be set when `vault_name` is used")
+	resourceGroup := id.ResourceGroup
+	vaultName, ok := id.Path["vaults"]
+	if !ok {
+		return fmt.Errorf("key_value_id does not contain `vaults`: %q", vaultId)
 	}
 
 	keyVault, err := client.Get(ctx, resourceGroup, vaultName)
@@ -323,8 +271,6 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("key_vault_id", resp.ID)
-	d.Set("vault_name", resp.Name)
-	d.Set("resource_group_name", resGroup)
 	d.Set("object_id", objectId)
 
 	if tid := policy.TenantID; tid != nil {

@@ -73,7 +73,7 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"index_policy": {
@@ -104,7 +104,7 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							Set: schema.HashString,
 						},
@@ -114,7 +114,7 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							Set: schema.HashString,
 						},
@@ -140,13 +140,13 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 						"conflict_resolution_path": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"conflict_resolution_procedure": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -164,7 +164,7 @@ func resourceArmCosmosDbGremlinGraph() *schema.Resource {
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -418,7 +418,7 @@ func resourceArmCosmosDbGremlinGraphDelete(d *schema.ResourceData, meta interfac
 
 func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *schema.ResourceData) *documentdb.IndexingPolicy {
 	i := d.Get("index_policy").([]interface{})
-	if len(i) <= 0 || i[0] == nil {
+	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 
@@ -439,7 +439,7 @@ func expandAzureRmCosmosDbGrelinGraphIndexingPolicy(d *schema.ResourceData) *doc
 
 func expandAzureRmCosmosDbGremlinGraphConflicResolutionPolicy(d *schema.ResourceData) *documentdb.ConflictResolutionPolicy {
 	i := d.Get("conflict_resolution_policy").([]interface{})
-	if len(i) <= 0 || i[0] == nil {
+	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 
@@ -492,7 +492,7 @@ func expandAzureRmCosmosDbGremlinGraphExcludedPath(input map[string]interface{})
 
 func expandAzureRmCosmosDbGremlinGraphUniqueKeys(s *schema.Set) *[]documentdb.UniqueKey {
 	i := s.List()
-	if len(i) <= 0 || i[0] == nil {
+	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 

@@ -25,7 +25,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identityNone(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -48,7 +47,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssigned(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// disable it
@@ -60,7 +58,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssigned(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssigned(data),
@@ -71,7 +68,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssigned(t *testing
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -93,7 +89,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssigned(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// disable it
@@ -105,7 +100,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssigned(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssigned(data),
@@ -115,7 +109,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssigned(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// second
@@ -126,7 +119,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identityUserAssigned(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -149,7 +141,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigne
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// disable it
@@ -161,7 +152,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigne
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigned(data),
@@ -172,7 +162,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_identitySystemAssignedUserAssigne
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})

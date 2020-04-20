@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_client_config", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_client_config", "current")
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	tenantId := os.Getenv("ARM_TENANT_ID")
 	subscriptionId := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -27,8 +27,6 @@ func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tenant_id", tenantId),
 					resource.TestCheckResourceAttr(data.ResourceName, "subscription_id", subscriptionId),
 					testAzureRMClientConfigGUIDAttr(data.ResourceName, "object_id"),
-					testAzureRMClientConfigGUIDAttr(data.ResourceName, "service_principal_application_id"),
-					testAzureRMClientConfigGUIDAttr(data.ResourceName, "service_principal_object_id"),
 				),
 			},
 		},
@@ -37,10 +35,7 @@ func TestAccDataSourceAzureRMClientConfig_basic(t *testing.T) {
 
 func testAzureRMClientConfigGUIDAttr(name, key string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		r, err := regexp.Compile("^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$")
-		if err != nil {
-			return err
-		}
+		r := regexp.MustCompile("^[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}$")
 
 		return resource.TestMatchResourceAttr(name, key, r)(s)
 	}

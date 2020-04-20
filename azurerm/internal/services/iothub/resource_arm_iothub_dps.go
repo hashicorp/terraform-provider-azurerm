@@ -73,19 +73,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 								string(devices.S1),
 								string(devices.S2),
 								string(devices.S3),
-							}, true), // todo 2.0 make this case sensitive
-						},
-
-						"tier": {
-							Type:       schema.TypeString,
-							Optional:   true,
-							Computed:   true,
-							Deprecated: "This property is no longer required and will be removed in version 2.0 of the provider",
-							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.Basic),
-								string(devices.Free),
-								string(devices.Standard),
-							}, true),
+							}, false),
 						},
 
 						"capacity": {
@@ -105,7 +93,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 						"connection_string": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							ForceNew:     true,
 							// Azure returns the key as ****. We'll suppress that here.
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -118,7 +106,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 						"location": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 							StateFunc:    azure.NormalizeLocation,
 							ForceNew:     true,
 						},
@@ -295,12 +283,7 @@ func waitForIotHubDPSToBeDeleted(ctx context.Context, client *iothub.IotDpsResou
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Refresh: iothubdpsStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 40 * time.Minute
+		Timeout: d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -359,7 +342,6 @@ func flattenIoTHubDPSSku(input *iothub.IotDpsSkuInfo) []interface{} {
 	output := make(map[string]interface{})
 
 	output["name"] = string(input.Name)
-	output["tier"] = input.Tier
 	if capacity := input.Capacity; capacity != nil {
 		output["capacity"] = int(*capacity)
 	}

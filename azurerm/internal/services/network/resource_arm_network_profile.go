@@ -7,9 +7,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -42,7 +42,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -58,7 +58,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"ip_configuration": {
 							Type:     schema.TypeList,
@@ -68,7 +68,7 @@ func resourceArmNetworkProfile() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"subnet_id": {
 										Type:         schema.TypeString,
@@ -121,11 +121,6 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	cniConfigs, err := expandNetworkProfileContainerNetworkInterface(d)
-	if err != nil {
-		return fmt.Errorf("Error building list of Container Network Interface Configurations: %+v", err)
-	}
-
 	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(d)
 	if err != nil {
 		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
@@ -144,7 +139,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 		Location: &location,
 		Tags:     tags.Expand(t),
 		ProfilePropertiesFormat: &network.ProfilePropertiesFormat{
-			ContainerNetworkInterfaceConfigurations: cniConfigs,
+			ContainerNetworkInterfaceConfigurations: expandNetworkProfileContainerNetworkInterface(d),
 		},
 	}
 
@@ -254,7 +249,7 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 	return err
 }
 
-func expandNetworkProfileContainerNetworkInterface(d *schema.ResourceData) (*[]network.ContainerNetworkInterfaceConfiguration, error) {
+func expandNetworkProfileContainerNetworkInterface(d *schema.ResourceData) *[]network.ContainerNetworkInterfaceConfiguration {
 	cniConfigs := d.Get("container_network_interface").([]interface{})
 	retCNIConfigs := make([]network.ContainerNetworkInterfaceConfiguration, 0)
 
@@ -291,7 +286,7 @@ func expandNetworkProfileContainerNetworkInterface(d *schema.ResourceData) (*[]n
 		retCNIConfigs = append(retCNIConfigs, retCNIConfig)
 	}
 
-	return &retCNIConfigs, nil
+	return &retCNIConfigs
 }
 
 func expandNetworkProfileVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]string, *[]string, error) {
@@ -315,11 +310,11 @@ func expandNetworkProfileVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]s
 			subnetName := subnetResourceID.Path["subnets"]
 			vnetName := subnetResourceID.Path["virtualNetworks"]
 
-			if !SliceContainsValue(subnetNames, subnetName) {
+			if !azure.SliceContainsValue(subnetNames, subnetName) {
 				subnetNames = append(subnetNames, subnetName)
 			}
 
-			if !SliceContainsValue(vnetNames, vnetName) {
+			if !azure.SliceContainsValue(vnetNames, vnetName) {
 				vnetNames = append(vnetNames, vnetName)
 			}
 		}

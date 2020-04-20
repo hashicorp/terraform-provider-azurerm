@@ -56,7 +56,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.GUID,
+					ValidateFunc: validation.IsUUID,
 				},
 				Set: schema.HashString,
 			},
@@ -71,7 +71,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.GUID,
+					ValidateFunc: validation.IsUUID,
 				},
 				Set: schema.HashString,
 			},
@@ -134,17 +134,6 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			"alias": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"network_interface_ids": {
-				Type:       schema.TypeSet,
-				Computed:   true,
-				Deprecated: "This field is deprecated and be removed in version 2.0 of the Azure Provider",
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-				Set: schema.HashString,
 			},
 
 			"tags": tags.Schema(),
@@ -230,14 +219,10 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 		MinTimeout: 15 * time.Second,
 	}
 
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		stateConf.Timeout = 60 * time.Minute
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -301,11 +286,6 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 
 		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
-		}
-
-		// TODO: remove in 2.0
-		if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
-			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 		}
 	}
 
@@ -444,21 +424,6 @@ func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkSer
 }
 
 func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) *schema.Set {
-	results := &schema.Set{F: schema.HashString}
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		if id := item.ID; id != nil {
-			results.Add(*id)
-		}
-	}
-
-	return results
-}
-
-func flattenArmPrivateLinkServiceInterface(input *[]network.Interface) *schema.Set {
 	results := &schema.Set{F: schema.HashString}
 	if input == nil {
 		return results

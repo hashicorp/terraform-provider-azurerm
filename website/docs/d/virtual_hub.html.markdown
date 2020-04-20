@@ -14,8 +14,8 @@ Uses this data source to access information about an existing Virtual Hub.
 
 ```hcl
 data "azurerm_virtual_hub" "example" {
-  name           = "example-hub"
-  resource_group = "example-resources"
+  name                = "example-hub"
+  resource_group_name = "example-resources"
 }
 
 output "virtual_hub_id" {
@@ -28,9 +28,9 @@ output "virtual_hub_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Virtual Hub.
+* `name` - The name of the Virtual Hub.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the Virtual Hub exists.
+* `resource_group_name` - The Name of the Resource Group where the Virtual Hub exists.
 
 
 ## Attributes Reference
@@ -44,3 +44,9 @@ The following attributes are exported:
 * `tags` - A mapping of tags assigned to the Virtual Hub.
 
 * `virtual_wan_id` - The ID of the Virtual WAN within which the Virtual Hub exists.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub.

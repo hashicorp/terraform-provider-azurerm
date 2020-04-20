@@ -9,7 +9,7 @@ import (
 )
 
 func testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_network_ddos_protection_plan", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -32,8 +32,8 @@ func testAccAzureRMNetworkDDoSProtectionPlanDataSource_basicConfig(data acceptan
 %s
 
 data "azurerm_network_ddos_protection_plan" "test" {
-  name                = "${azurerm_network_ddos_protection_plan.test.name}"
-  resource_group_name = "${azurerm_network_ddos_protection_plan.test.resource_group_name}"
+  name                = azurerm_network_ddos_protection_plan.test.name
+  resource_group_name = azurerm_network_ddos_protection_plan.test.resource_group_name
 }
 `, testAccAzureRMNetworkDDoSProtectionPlan_basicConfig(data))
 }

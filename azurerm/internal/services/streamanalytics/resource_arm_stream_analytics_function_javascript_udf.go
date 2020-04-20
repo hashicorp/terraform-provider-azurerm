@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -40,14 +39,14 @@ func resourceArmStreamAnalyticsFunctionUDF() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"stream_analytics_job_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -101,7 +100,7 @@ func resourceArmStreamAnalyticsFunctionUDF() *schema.Resource {
 			"script": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 				// TODO: JS diff suppress func?!
 			},
 		},
@@ -168,10 +167,8 @@ func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, m
 		}
 
 		d.SetId(*read.ID)
-	} else {
-		if _, err := client.Update(ctx, function, resourceGroup, jobName, name, ""); err != nil {
-			return fmt.Errorf("Error Updating Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
+	} else if _, err := client.Update(ctx, function, resourceGroup, jobName, name, ""); err != nil {
+		return fmt.Errorf("Error Updating Stream Analytics Function Javascript UDF %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
 	return resourceArmStreamAnalyticsFunctionUDFRead(d, meta)

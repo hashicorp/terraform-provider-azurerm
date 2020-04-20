@@ -25,16 +25,16 @@ resource "azurerm_resource_group" "secondary" {
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "example-recovery-vault"
-  location            = "${azurerm_resource_group.secondary.location}"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  location            = azurerm_resource_group.secondary.location
+  resource_group_name = azurerm_resource_group.secondary.name
   sku                 = "Standard"
 }
 
 resource "azurerm_site_recovery_fabric" "fabric" {
   name                = "primary-fabric"
-  resource_group_name = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
-  location            = "${azurerm_resource_group.primary.location}"
+  resource_group_name = azurerm_resource_group.secondary.name
+  recovery_vault_name = azurerm_recovery_services_vault.vault.name
+  location            = azurerm_resource_group.primary.location
 }
 ```
 
@@ -54,11 +54,20 @@ The following arguments are supported:
 
 In addition to the arguments above, the following attributes are exported:
 
-* `id` - The resource ID.
+* `id` - The ID of the Site Recovery Fabric.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Site Recovery Fabric.
+* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Fabric.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Fabric.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Site Recovery Fabric.
 
 ## Import
 
-Site recovery recovery vault fabric can be imported using the `resource id`, e.g.
+Site Recovery Fabric can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_site_recovery_fabric.myfabric /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric-name

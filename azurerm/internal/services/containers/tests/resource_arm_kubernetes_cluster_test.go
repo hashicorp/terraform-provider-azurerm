@@ -9,10 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var olderKubernetesVersion = "1.14.8"
-var currentKubernetesVersion = "1.15.5"
+var olderKubernetesVersion = "1.15.10"
+var currentKubernetesVersion = "1.16.7"
 
 func TestAccAzureRMKubernetes_all(t *testing.T) {
 	// we can conditionally run tests tests individually, or combined
@@ -31,15 +32,12 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"addonProfileRouting":                   testAccAzureRMKubernetesCluster_addonProfileRouting,
 		},
 		"auth": {
-			"apiServerAuthorizedIPRanges":                testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
-			"enablePodSecurityPolicy":                    testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
-			"managedClusterIdentityWithServicePrincipal": testAccAzureRMKubernetesCluster_managedClusterIdentityServicePrincipal,
-			"roleBasedAccessControl":                     testAccAzureRMKubernetesCluster_roleBasedAccessControl,
-			"roleBasedAccessControlAAD":                  testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
-		},
-		"legacy": {
-			"legacyAgentPoolProfileAvailabilitySet": testAccAzureRMKubernetesCluster_legacyAgentPoolProfileAvailabilitySet,
-			"legacyAgentPoolProfileVMSS":            testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS,
+			"apiServerAuthorizedIPRanges": testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
+			"enablePodSecurityPolicy":     testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
+			"managedClusterIdentity":      testAccAzureRMKubernetesCluster_managedClusterIdentity,
+			"roleBasedAccessControl":      testAccAzureRMKubernetesCluster_roleBasedAccessControl,
+			"roleBasedAccessControlAAD":   testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
+			"servicePrincipal":            testAccAzureRMKubernetesCluster_servicePrincipal,
 		},
 		"network": {
 			"advancedNetworkingKubenet":                   testAccAzureRMKubernetesCluster_advancedNetworkingKubenet,
@@ -52,8 +50,13 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"advancedNetworkingAzureNPMPolicyComplete":    testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
 			"enableNodePublicIP":                          testAccAzureRMKubernetesCluster_enableNodePublicIP,
 			"internalNetwork":                             testAccAzureRMKubernetesCluster_internalNetwork,
+			"basicLoadBalancerProfile":                    testAccAzureRMKubernetesCluster_basicLoadBalancerProfile,
+			"changingLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_changingLoadBalancerProfile,
+			"prefixedLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
 			"standardLoadBalancer":                        testAccAzureRMKubernetesCluster_standardLoadBalancer,
 			"standardLoadBalancerComplete":                testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
+			"standardLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_standardLoadBalancerProfile,
+			"standardLoadBalancerProfileComplete":         testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete,
 		},
 		"nodePool": {
 			"autoScale":                      testAccAzureRMKubernetesClusterNodePool_autoScale,
@@ -66,6 +69,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"manualScaleMultiplePoolsUpdate": testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate,
 			"manualScaleUpdate":              testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate,
 			"manualScaleVMSku":               testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku,
+			"nodeLabels":                     testAccAzureRMKubernetesClusterNodePool_nodeLabels,
 			"nodePublicIP":                   testAccAzureRMKubernetesClusterNodePool_nodePublicIP,
 			"nodeTaints":                     testAccAzureRMKubernetesClusterNodePool_nodeTaints,
 			"requiresImport":                 testAccAzureRMKubernetesClusterNodePool_requiresImport,
@@ -76,21 +80,28 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"windowsAndLinux":                testAccAzureRMKubernetesClusterNodePool_windowsAndLinux,
 		},
 		"other": {
-			"basicAvailabilitySet":  testAccAzureRMKubernetesCluster_basicAvailabilitySet,
-			"basicVMSS":             testAccAzureRMKubernetesCluster_basicVMSS,
-			"requiresImport":        testAccAzureRMKubernetesCluster_requiresImport,
-			"linuxProfile":          testAccAzureRMKubernetesCluster_linuxProfile,
-			"nodeTaints":            testAccAzureRMKubernetesCluster_nodeTaints,
-			"nodeResourceGroup":     testAccAzureRMKubernetesCluster_nodeResourceGroup,
-			"upgradeConfig":         testAccAzureRMKubernetesCluster_upgrade,
-			"tags":                  testAccAzureRMKubernetesCluster_tags,
-			"windowsProfile":        testAccAzureRMKubernetesCluster_windowsProfile,
-			"privateLinkOn":         testAccAzureRMKubernetesCluster_privateLinkOn,
-			"updatePublicRangesOff": testAccAzureRMKubernetesCluster_privateLinkOff,
+			"basicAvailabilitySet":           testAccAzureRMKubernetesCluster_basicAvailabilitySet,
+			"basicVMSS":                      testAccAzureRMKubernetesCluster_basicVMSS,
+			"requiresImport":                 testAccAzureRMKubernetesCluster_requiresImport,
+			"linuxProfile":                   testAccAzureRMKubernetesCluster_linuxProfile,
+			"nodeLabels":                     testAccAzureRMKubernetesCluster_nodeLabels,
+			"nodeTaints":                     testAccAzureRMKubernetesCluster_nodeTaints,
+			"nodeResourceGroup":              testAccAzureRMKubernetesCluster_nodeResourceGroup,
+			"upgradeConfig":                  testAccAzureRMKubernetesCluster_upgrade,
+			"tags":                           testAccAzureRMKubernetesCluster_tags,
+			"windowsProfile":                 testAccAzureRMKubernetesCluster_windowsProfile,
+			"outboundTypeLoadBalancer":       testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
+			"outboundTypeUserDefinedRouting": testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting,
+			"privateClusterOn":               testAccAzureRMKubernetesCluster_privateClusterOn,
+			"privateClusterOff":              testAccAzureRMKubernetesCluster_privateClusterOff,
 		},
 		"scaling": {
 			"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
+			"manualScaleIgnoreChanges":         testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges,
 			"removeAgent":                      testAccAzureRMKubernetesCluster_removeAgent,
+			"autoScalingEnabledError":          testAccAzureRMKubernetesCluster_autoScalingError,
+			"autoScalingEnabledErrorMax":       testAccAzureRMKubernetesCluster_autoScalingErrorMax,
+			"autoScalingEnabledErrorMin":       testAccAzureRMKubernetesCluster_autoScalingErrorMin,
 			"autoScalingNodeCountUnset":        testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset,
 			"autoScalingNoAvailabilityZones":   testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones,
 			"autoScalingWithAvailabilityZones": testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones,
@@ -114,9 +125,10 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"addOnProfileRouting":                         testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting,
 			"autoscalingNoAvailabilityZones":              testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones,
 			"autoscalingWithAvailabilityZones":            testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones,
+			"nodeLabels":                                  testAccDataSourceAzureRMKubernetesCluster_nodeLabels,
 			"nodeTaints":                                  testAccDataSourceAzureRMKubernetesCluster_nodeTaints,
 			"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
-			"privateLink":                                 testAccDataSourceAzureRMKubernetesCluster_privateLink,
+			"privateCluster":                              testAccDataSourceAzureRMKubernetesCluster_privateCluster,
 		},
 	}
 
@@ -188,4 +200,46 @@ func testCheckAzureRMKubernetesClusterDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func kubernetesClusterUpdateNodePoolCount(resourceName string, nodeCount int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Containers.AgentPoolsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		nodePoolName := rs.Primary.Attributes["default_node_pool.0.name"]
+		clusterName := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		nodePool, err := client.Get(ctx, resourceGroup, clusterName, nodePoolName)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on agentPoolsClient: %+v", err)
+		}
+
+		if nodePool.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q) does not exist", nodePoolName, clusterName, resourceGroup)
+		}
+
+		if nodePool.ManagedClusterAgentPoolProfileProperties == nil {
+			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q): `properties` was nil", nodePoolName, clusterName, resourceGroup)
+		}
+
+		nodePool.ManagedClusterAgentPoolProfileProperties.Count = utils.Int32(int32(nodeCount))
+
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, nodePoolName, nodePool)
+		if err != nil {
+			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Bad: waiting for update of node pool %q: %+v", nodePoolName, err)
+		}
+
+		return nil
+	}
 }

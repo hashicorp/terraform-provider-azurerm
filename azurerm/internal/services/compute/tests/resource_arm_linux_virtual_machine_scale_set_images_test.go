@@ -24,7 +24,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(data, "18.04-LTS"),
@@ -34,7 +33,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -69,7 +67,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesFromCapturedVirtualMachineI
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// then update the image on this Virtual Machine Scale Set
@@ -80,7 +77,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesFromCapturedVirtualMachineI
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -102,7 +98,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdate(data, "18.04-LTS"),
@@ -112,7 +107,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -134,7 +128,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(data, "18.04-LTS"),
@@ -144,7 +137,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -166,7 +158,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_imagesRollingUpdate(data, "18.04-LTS"),
@@ -176,7 +167,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T)
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -198,7 +188,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -229,7 +218,6 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "test"
-  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }
@@ -309,9 +297,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   rolling_upgrade_policy {
-    max_batch_instance_percent              = 21
-    max_unhealthy_instance_percent          = 22
-    max_unhealthy_upgraded_instance_percent = 23
+    max_batch_instance_percent              = 100
+    max_unhealthy_instance_percent          = 100
+    max_unhealthy_upgraded_instance_percent = 100
     pause_time_between_batches              = "PT30S"
   }
 
@@ -451,9 +439,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "mradministrator"
   admin_password      = "P@ssword1234!"
- 
+
   disable_password_authentication = false
-  source_image_id     = azurerm_image.%s.id
+  source_image_id                 = azurerm_image.%s.id
 
   os_disk {
     storage_account_type = "Standard_LRS"
@@ -521,17 +509,23 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(da
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+provider "azurerm" {
+  features {
+    virtual_machine_scale_set {
+      roll_instances_when_required = false
+    }
+  }
+}
 
-  disable_password_authentication               = false
-  terraform_should_roll_instances_when_required = false
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+  disable_password_authentication = false
 
   source_image_reference {
     publisher = "Canonical"
@@ -584,7 +578,6 @@ resource "azurerm_lb" "test" {
 
 resource "azurerm_lb_backend_address_pool" "test" {
   name                = "test"
-  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
 }

@@ -47,6 +47,10 @@ func TestAccDataSourceAzureRMSnapshot_encryption(t *testing.T) {
 
 func testAccDataSourceAzureRMSnapshot_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -54,8 +58,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestmd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
@@ -63,21 +67,25 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_snapshot" "test" {
   name                = "acctestss_%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   create_option       = "Copy"
-  source_uri          = "${azurerm_managed_disk.test.id}"
+  source_uri          = azurerm_managed_disk.test.id
 }
 
 data "azurerm_snapshot" "snapshot" {
-  name                = "${azurerm_snapshot.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_snapshot.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccDataSourceAzureRMSnapshot_encryption(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -87,8 +95,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctestmd-%d"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "10"
@@ -96,17 +104,15 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acctestkv%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -125,10 +131,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name      = "generated-certificate"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
-  key_type  = "RSA"
-  key_size  = 2048
+  name         = "generated-certificate"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
   key_opts = [
     "decrypt",
@@ -141,37 +147,37 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_secret" "test" {
-  name      = "secret-sauce"
-  value     = "szechuan"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "secret-sauce"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.test.id
 }
 
 resource "azurerm_snapshot" "test" {
   name                = "acctestss_%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   create_option       = "Copy"
-  source_uri          = "${azurerm_managed_disk.test.id}"
+  source_uri          = azurerm_managed_disk.test.id
   disk_size_gb        = "20"
 
   encryption_settings {
     enabled = true
 
     disk_encryption_key {
-      secret_url      = "${azurerm_key_vault_secret.test.id}"
-      source_vault_id = "${azurerm_key_vault.test.id}"
+      secret_url      = azurerm_key_vault_secret.test.id
+      source_vault_id = azurerm_key_vault.test.id
     }
 
     key_encryption_key {
-      key_url         = "${azurerm_key_vault_key.test.id}"
-      source_vault_id = "${azurerm_key_vault.test.id}"
+      key_url         = azurerm_key_vault_key.test.id
+      source_vault_id = azurerm_key_vault.test.id
     }
   }
 }
 
 data "azurerm_snapshot" "snapshot" {
-  name                = "${azurerm_snapshot.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = azurerm_snapshot.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }

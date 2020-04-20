@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -64,7 +65,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"throughput": {
@@ -72,6 +73,13 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
+			},
+
+			"default_ttl": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
 			"unique_key": {
@@ -86,7 +94,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -143,6 +151,10 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 		db.SQLContainerCreateUpdateProperties.Resource.UniqueKeyPolicy = &documentdb.UniqueKeyPolicy{
 			UniqueKeys: keys,
 		}
+	}
+
+	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
+		db.SQLContainerCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
@@ -208,7 +220,11 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	future, err := client.CreateUpdateSQLContainer(ctx, id.Container, id.Account, id.Database, id.Container, db)
+	if defaultTTL, hasTTL := d.GetOk("default_ttl"); hasTTL {
+		db.SQLContainerCreateUpdateProperties.Resource.DefaultTTL = utils.Int32(int32(defaultTTL.(int)))
+	}
+
+	future, err := client.CreateUpdateSQLContainer(ctx, id.ResourceGroup, id.Account, id.Database, id.Container, db)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for Cosmos SQL Container %s (Account: %s, Database:%s): %+v", id.Container, id.Account, id.Database, err)
 	}
@@ -284,6 +300,10 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 				return fmt.Errorf("Error setting `unique_key`: %+v", err)
 			}
 		}
+
+		if defaultTTL := props.DefaultTTL; defaultTTL != nil {
+			d.Set("default_ttl", defaultTTL)
+		}
 	}
 
 	throughputResp, err := client.GetSQLContainerThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Container)
@@ -327,7 +347,7 @@ func resourceArmCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interfac
 
 func expandCosmosSQLContainerUniqueKeys(s *schema.Set) *[]documentdb.UniqueKey {
 	i := s.List()
-	if len(i) <= 0 || i[0] == nil {
+	if len(i) == 0 || i[0] == nil {
 		return nil
 	}
 

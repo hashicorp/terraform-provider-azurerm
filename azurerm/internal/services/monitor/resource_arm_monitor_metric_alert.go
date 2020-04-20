@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -44,7 +43,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -53,7 +52,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
 			// But to prevent potential state migration in the future, let's stick to use Set now
 
-			//lintignore:S018
+			// lintignore:S018
 			"scopes": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -75,12 +74,12 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 						"metric_namespace": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"metric_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"aggregation": {
 							Type:     schema.TypeString,
@@ -97,12 +96,12 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Equals",
-								"NotEquals",
-								"GreaterThan",
-								"GreaterThanOrEqual",
-								"LessThan",
-								"LessThanOrEqual",
+								string(insights.OperatorEquals),
+								string(insights.OperatorGreaterThan),
+								string(insights.OperatorGreaterThanOrEqual),
+								string(insights.OperatorLessThan),
+								string(insights.OperatorLessThanOrEqual),
+								string(insights.OperatorNotEquals),
 							}, false),
 						},
 						"threshold": {
@@ -117,7 +116,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"operator": {
 										Type:     schema.TypeString,
@@ -167,7 +166,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 			"auto_mitigate": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"description": {
@@ -373,7 +372,7 @@ func expandMonitorMetricAlertCriteria(input []interface{}) *insights.MetricAlert
 			MetricNamespace: utils.String(v["metric_namespace"].(string)),
 			MetricName:      utils.String(v["metric_name"].(string)),
 			TimeAggregation: v["aggregation"].(string),
-			Operator:        v["operator"].(string),
+			Operator:        insights.Operator(v["operator"].(string)),
 			Threshold:       utils.Float(v["threshold"].(float64)),
 			Dimensions:      &dimensions,
 		})
@@ -398,7 +397,7 @@ func expandMonitorMetricAlertAction(input []interface{}) *[]insights.MetricAlert
 
 			actions = append(actions, insights.MetricAlertAction{
 				ActionGroupID:     utils.String(agID),
-				WebhookProperties: props,
+				WebHookProperties: props,
 			})
 		}
 	}
@@ -426,9 +425,9 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 		if aggr, ok := metric.TimeAggregation.(string); ok {
 			v["aggregation"] = aggr
 		}
-		if op, ok := metric.Operator.(string); ok {
-			v["operator"] = op
-		}
+
+		v["operator"] = string(metric.Operator)
+
 		if metric.Threshold != nil {
 			v["threshold"] = *metric.Threshold
 		}
@@ -467,7 +466,7 @@ func flattenMonitorMetricAlertAction(input *[]insights.MetricAlertAction) (resul
 		}
 
 		props := make(map[string]string)
-		for pk, pv := range action.WebhookProperties {
+		for pk, pv := range action.WebHookProperties {
 			if pv != nil {
 				props[pk] = *pv
 			}

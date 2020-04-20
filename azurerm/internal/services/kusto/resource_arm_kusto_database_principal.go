@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -29,6 +28,7 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
+			// TODO: confirm these
 			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(60 * time.Minute),
@@ -81,14 +81,14 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"object_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"fully_qualified_name": {
@@ -132,11 +132,12 @@ func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interf
 	clientID := d.Get("client_id").(string)
 	objectID := d.Get("object_id").(string)
 	fqn := ""
-	if principalType == "User" {
+	switch principalType {
+	case "User":
 		fqn = fmt.Sprintf("aaduser=%s;%s", objectID, clientID)
-	} else if principalType == "Group" {
+	case "Group":
 		fqn = fmt.Sprintf("aadgroup=%s;%s", objectID, clientID)
-	} else if principalType == "App" {
+	case "App":
 		fqn = fmt.Sprintf("aadapp=%s;%s", objectID, clientID)
 	}
 

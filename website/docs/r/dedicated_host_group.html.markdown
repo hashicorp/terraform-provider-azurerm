@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dedicated_host_group" "example" {
   name                        = "example-dedicated-host-group"
-  resource_group_name         = "${azurerm_resource_group.example.name}"
-  location                    = "${azurerm_resource_group.example.location}"
+  resource_group_name         = azurerm_resource_group.example.name
+  location                    = azurerm_resource_group.example.location
   platform_fault_domain_count = 1
 }
 ```
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `platform_fault_domain_count` - (Required) The number of fault domains that the Dedicated Host Group spans. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) A list of Availability Zones in which the Dedicated Host Group should be located. Changing this forces a new resource to be created. 
+* `zones` - (Optional) A list of Availability Zones in which the Dedicated Host Group should be located. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -47,6 +47,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Dedicated Host Group.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Dedicated Host Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Dedicated Host Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dedicated Host Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dedicated Host Group.
 
 ## Import
 

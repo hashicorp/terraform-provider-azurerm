@@ -343,8 +343,8 @@ func testAccAzureRMFirewallNatRuleCollection_basic(data acceptance.TestData) str
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -360,7 +360,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -380,9 +380,9 @@ func testAccAzureRMFirewallNatRuleCollection_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_firewall_nat_rule_collection" "import" {
-  name                = "${azurerm_firewall_nat_rule_collection.test.name}"
-  azure_firewall_name = "${azurerm_firewall_nat_rule_collection.test.azure_firewall_name}"
-  resource_group_name = "${azurerm_firewall_nat_rule_collection.test.resource_group_name}"
+  name                = azurerm_firewall_nat_rule_collection.test.name
+  azure_firewall_name = azurerm_firewall_nat_rule_collection.test.azure_firewall_name
+  resource_group_name = azurerm_firewall_nat_rule_collection.test.resource_group_name
   priority            = 100
   action              = "Dnat"
 
@@ -398,7 +398,7 @@ resource "azurerm_firewall_nat_rule_collection" "import" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -419,8 +419,8 @@ func testAccAzureRMFirewallNatRuleCollection_updatedName(data acceptance.TestDat
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -436,7 +436,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -457,8 +457,8 @@ func testAccAzureRMFirewallNatRuleCollection_multiple(data acceptance.TestData) 
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -474,7 +474,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -488,8 +488,8 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
 resource "azurerm_firewall_nat_rule_collection" "test_add" {
   name                = "acctestnrc_add-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 200
   action              = "Dnat"
 
@@ -505,7 +505,7 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -526,8 +526,8 @@ func testAccAzureRMFirewallNatRuleCollection_multipleUpdate(data acceptance.Test
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 300
   action              = "Dnat"
 
@@ -543,7 +543,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -557,8 +557,8 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
 resource "azurerm_firewall_nat_rule_collection" "test_add" {
   name                = "acctestnrc_add-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 400
   action              = "Dnat"
 
@@ -574,7 +574,7 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -595,8 +595,8 @@ func testAccAzureRMFirewallNatRuleCollection_multipleRules(data acceptance.TestD
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -612,7 +612,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -635,7 +635,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [
@@ -656,8 +656,8 @@ func testAccAzureRMFirewallNatRuleCollection_updateFirewallTags(data acceptance.
 
 resource "azurerm_firewall_nat_rule_collection" "test" {
   name                = "acctestnrc-%d"
-  azure_firewall_name = "${azurerm_firewall.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  azure_firewall_name = azurerm_firewall.test.name
+  resource_group_name = azurerm_resource_group.test.name
   priority            = 100
   action              = "Dnat"
 
@@ -673,7 +673,7 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
     ]
 
     destination_addresses = [
-      "${azurerm_public_ip.test.ip_address}",
+      azurerm_public_ip.test.ip_address,
     ]
 
     protocols = [

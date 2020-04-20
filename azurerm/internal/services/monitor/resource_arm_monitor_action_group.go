@@ -11,9 +11,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -41,7 +41,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -66,12 +66,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"email_address": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
@@ -89,29 +89,29 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"workspace_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"connection_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"ticket_configuration": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateFunc:     validation.ValidateJsonString,
+							ValidateFunc:     validation.StringIsJSON,
 							DiffSuppressFunc: structure.SuppressJsonDiff,
 						},
 						"region": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ValidateFunc:     validate.NoEmptyStrings,
-							DiffSuppressFunc: azure.SuppressLocationDiff,
+							ValidateFunc:     validation.StringIsNotEmpty,
+							DiffSuppressFunc: location.DiffSuppressFunc,
 						},
 					},
 				},
@@ -125,12 +125,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"email_address": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -144,17 +144,17 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"country_code": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"phone_number": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -168,12 +168,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"service_uri": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
@@ -191,7 +191,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"automation_account_id": {
 							Type:         schema.TypeString,
@@ -201,12 +201,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"runbook_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"webhook_resource_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"is_global_runbook": {
 							Type:     schema.TypeBool,
@@ -215,7 +215,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"service_uri": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
@@ -234,17 +234,17 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"country_code": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"phone_number": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -258,17 +258,17 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"resource_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"callback_url": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
@@ -286,7 +286,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"function_app_resource_id": {
 							Type:         schema.TypeString,
@@ -296,12 +296,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"function_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"http_trigger_url": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
@@ -319,12 +319,12 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"role_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: validation.IsUUID,
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,

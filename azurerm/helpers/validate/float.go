@@ -6,21 +6,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-// FloatAtLeast returns a SchemaValidateFunc which tests if the provided value
-// is of type float64 and is at least min (inclusive)
-func FloatAtLeast(min float64) schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (_ []string, errors []error) {
+// FloatInSlice returns a SchemaValidateFunc which tests if the provided value
+// is of type float64 and matches the value of an element in the valid slice
+func FloatInSlice(valid []float64) schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
 		v, ok := i.(float64)
 		if !ok {
-			errors = append(errors, fmt.Errorf("expected type of %s to be float64", k))
-			return nil, errors
+			errors = append(errors, fmt.Errorf("expected type of %s to be float", i))
+			return warnings, errors
 		}
 
-		if v < min {
-			errors = append(errors, fmt.Errorf("expected %s to be at least (%f), got %f", k, min, v))
-			return nil, errors
+		for _, validFloat := range valid {
+			if v == validFloat {
+				return warnings, errors
+			}
 		}
 
-		return nil, errors
+		errors = append(errors, fmt.Errorf("expected %s to be one of %v, got %f", k, valid, v))
+		return warnings, errors
 	}
 }

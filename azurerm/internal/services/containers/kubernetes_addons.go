@@ -1,16 +1,19 @@
 package containers
 
 import (
+	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-10-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	azureHelpers "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 const (
+	// note: the casing on these keys is important
 	aciConnectorKey           = "aciConnectorLinux"
 	azurePolicyKey            = "azurepolicy"
 	kubernetesDashboardKey    = "kubeDashboard"
@@ -18,7 +21,22 @@ const (
 	omsAgentKey               = "omsagent"
 )
 
-func SchemaKubernetesAddOnProfiles() *schema.Schema {
+// The AKS API hard-codes which add-ons are supported in which environment
+// as such unfortunately we can't just send "disabled" - we need to strip
+// the unsupported addons from the HTTP response. As such this defines
+// the list of unsupported addons in the defined region - e.g. by being
+// omitted from this list an addon/environment combination will be supported
+var unsupportedAddonsForEnvironment = map[string][]string{
+	azure.ChinaCloud.Name: {
+		aciConnectorKey,           // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5510
+		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
+	},
+	azure.USGovernmentCloud.Name: {
+		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
+	},
+}
+
+func schemaKubernetesAddOnProfiles() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		MaxItems: 1,
@@ -40,7 +58,7 @@ func SchemaKubernetesAddOnProfiles() *schema.Schema {
 							"subnet_name": {
 								Type:         schema.TypeString,
 								Optional:     true,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
 					},
@@ -107,7 +125,7 @@ func SchemaKubernetesAddOnProfiles() *schema.Schema {
 							"log_analytics_workspace_id": {
 								Type:         schema.TypeString,
 								Optional:     true,
-								ValidateFunc: azure.ValidateResourceID,
+								ValidateFunc: azureHelpers.ValidateResourceID,
 							},
 						},
 					},
@@ -117,21 +135,21 @@ func SchemaKubernetesAddOnProfiles() *schema.Schema {
 	}
 }
 
-func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerservice.ManagedClusterAddonProfile {
+func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
 	disabled := containerservice.ManagedClusterAddonProfile{
 		Enabled: utils.Bool(false),
 	}
 
 	profiles := map[string]*containerservice.ManagedClusterAddonProfile{
-		// note: the casing on these keys is important
 		aciConnectorKey:           &disabled,
 		azurePolicyKey:            &disabled,
 		kubernetesDashboardKey:    &disabled,
 		httpApplicationRoutingKey: &disabled,
 		omsAgentKey:               &disabled,
 	}
+
 	if len(input) == 0 {
-		return profiles
+		return filterUnsupportedKubernetesAddOns(profiles, env)
 	}
 
 	profile := input[0].(map[string]interface{})
@@ -141,7 +159,7 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 	if len(httpApplicationRouting) > 0 && httpApplicationRouting[0] != nil {
 		value := httpApplicationRouting[0].(map[string]interface{})
 		enabled := value["enabled"].(bool)
-		addonProfiles["httpApplicationRouting"] = &containerservice.ManagedClusterAddonProfile{
+		addonProfiles[httpApplicationRoutingKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 		}
 	}
@@ -156,7 +174,7 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
 		}
 
-		addonProfiles["omsagent"] = &containerservice.ManagedClusterAddonProfile{
+		addonProfiles[omsAgentKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config:  config,
 		}
@@ -172,7 +190,7 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 			config["SubnetName"] = utils.String(subnetName.(string))
 		}
 
-		addonProfiles["aciConnectorLinux"] = &containerservice.ManagedClusterAddonProfile{
+		addonProfiles[aciConnectorKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config:  config,
 		}
@@ -183,7 +201,7 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 		value := kubeDashboard[0].(map[string]interface{})
 		enabled := value["enabled"].(bool)
 
-		addonProfiles["kubeDashboard"] = &containerservice.ManagedClusterAddonProfile{
+		addonProfiles[kubernetesDashboardKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config:  nil,
 		}
@@ -194,16 +212,45 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 		value := azurePolicy[0].(map[string]interface{})
 		enabled := value["enabled"].(bool)
 
-		addonProfiles["azurepolicy"] = &containerservice.ManagedClusterAddonProfile{
+		addonProfiles[azurePolicyKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config:  nil,
 		}
 	}
 
-	return addonProfiles
+	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
 }
 
-func FlattenKubernetesAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
+func filterUnsupportedKubernetesAddOns(input map[string]*containerservice.ManagedClusterAddonProfile, env azure.Environment) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
+	var filter = func(input map[string]*containerservice.ManagedClusterAddonProfile, key string) (*map[string]*containerservice.ManagedClusterAddonProfile, error) {
+		output := input
+		if v, ok := output[key]; ok {
+			if v.Enabled != nil && *v.Enabled {
+				return nil, fmt.Errorf("The addon %q is not supported for a Kubernetes Cluster located in %q", key, env.Name)
+			}
+
+			// otherwise it's disabled by default, so just remove it
+			delete(output, key)
+		}
+
+		return &output, nil
+	}
+
+	output := input
+	if unsupportedAddons, ok := unsupportedAddonsForEnvironment[env.Name]; ok {
+		for _, key := range unsupportedAddons {
+			out, err := filter(output, key)
+			if err != nil {
+				return nil, err
+			}
+
+			output = *out
+		}
+	}
+	return &output, nil
+}
+
+func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
 	// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
 	// meaning what's submitted could be different to what's returned..
 	var locateInProfile = func(key string) *containerservice.ManagedClusterAddonProfile {

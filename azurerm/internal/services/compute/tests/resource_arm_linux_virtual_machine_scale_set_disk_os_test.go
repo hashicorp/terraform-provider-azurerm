@@ -24,7 +24,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			), {
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadOnly"),
 				Check: resource.ComposeTestCheckFunc(
@@ -33,7 +32,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			), {
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(data, "ReadWrite"),
 				Check: resource.ComposeTestCheckFunc(
@@ -42,7 +40,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -65,7 +62,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				Config: testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(data, 30),
@@ -75,7 +71,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 			{
 				// resize a second time to confirm https://github.com/Azure/azure-rest-api-specs/issues/1906
@@ -86,7 +81,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskCustomSize(t *testing.
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -133,7 +127,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskEphemeral(t *testing.T
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -155,7 +148,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStan
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -177,7 +169,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypeStan
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -199,7 +190,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskStorageAccountTypePrem
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -221,7 +211,6 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_disksOSDiskWriteAcceleratorEnable
 			},
 			data.ImportStep(
 				"admin_password",
-				"terraform_should_roll_instances_when_required",
 			),
 		},
 	})
@@ -318,6 +307,10 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetDepe
 	location := "westus2"
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -331,13 +324,15 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
+  purge_protection_enabled    = true
+  soft_delete_enabled         = true
   enabled_for_disk_encryption = true
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.service_principal_object_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
   key_permissions = [
     "create",
@@ -448,9 +443,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   os_disk {
-    storage_account_type    = "Standard_LRS"
-    caching                 = "ReadOnly"
-    disk_encryption_set_id  = azurerm_disk_encryption_set.test.id
+    storage_account_type   = "Standard_LRS"
+    caching                = "ReadOnly"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
   }
 
   network_interface {

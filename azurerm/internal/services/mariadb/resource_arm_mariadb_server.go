@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -55,10 +54,8 @@ func resourceArmMariaDbServer() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku_name": {
-				Type:          schema.TypeString,
-				Optional:      true, // required in 2.0
-				Computed:      true, // remove in 2.0
-				ConflictsWith: []string{"sku"},
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"B_Gen5_1",
 					"B_Gen5_2",
@@ -74,80 +71,18 @@ func resourceArmMariaDbServer() *schema.Resource {
 				}, false),
 			},
 
-			// remove in 2.0
-			"sku": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"sku_name"},
-				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"B_Gen5_1",
-								"B_Gen5_2",
-								"GP_Gen5_2",
-								"GP_Gen5_4",
-								"GP_Gen5_8",
-								"GP_Gen5_16",
-								"GP_Gen5_32",
-								"MO_Gen5_2",
-								"MO_Gen5_4",
-								"MO_Gen5_8",
-								"MO_Gen5_16",
-							}, false),
-						},
-
-						"capacity": {
-							Type:     schema.TypeInt,
-							Required: true,
-							ValidateFunc: validate.IntInSlice([]int{
-								1,
-								2,
-								4,
-								8,
-								16,
-								32,
-							}),
-						},
-
-						"tier": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(mariadb.Basic),
-								string(mariadb.GeneralPurpose),
-								string(mariadb.MemoryOptimized),
-							}, false),
-						},
-
-						"family": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Gen5",
-							}, false),
-						},
-					},
-				},
-			},
-
 			"administrator_login": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"administrator_login_password": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"version": {
@@ -167,9 +102,12 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_mb": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4096000, 1024),
+							Type:     schema.TypeInt,
+							Required: true,
+							ValidateFunc: validation.All(
+								validation.IntBetween(5120, 4096000),
+								validation.IntDivisibleBy(1024),
+							),
 						},
 
 						"backup_retention_days": {
@@ -181,6 +119,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 						"geo_redundant_backup": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mariadb.Enabled),
 								string(mariadb.Disabled),
@@ -246,17 +185,9 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 
 	storageProfile := expandAzureRmMariaDbStorageProfile(d)
 
-	var sku *mariadb.Sku
-	if b, ok := d.GetOk("sku_name"); ok {
-		var err error
-		sku, err = expandServerSkuName(b.(string))
-		if err != nil {
-			return fmt.Errorf("error expanding sku_name for PostgreSQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
-		}
-	} else if _, ok := d.GetOk("sku"); ok {
-		sku = expandAzureRmMariaDbServerSku(d)
-	} else {
-		return fmt.Errorf("One of `sku` or `sku_name` must be set for PostgreSQL Server %q (Resource Group %q)", name, resourceGroup)
+	sku, err := expandServerSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("error expanding sku_name for MariaDB Server %q (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	skuName := sku.Name
@@ -394,10 +325,6 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if err := d.Set("sku", flattenMariaDbServerSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
-	}
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -464,23 +391,6 @@ func expandServerSkuName(skuName string) (*mariadb.Sku, error) {
 	}, nil
 }
 
-func expandAzureRmMariaDbServerSku(d *schema.ResourceData) *mariadb.Sku {
-	skus := d.Get("sku").([]interface{})
-	sku := skus[0].(map[string]interface{})
-
-	name := sku["name"].(string)
-	capacity := sku["capacity"].(int)
-	tier := sku["tier"].(string)
-	family := sku["family"].(string)
-
-	return &mariadb.Sku{
-		Name:     utils.String(name),
-		Tier:     mariadb.SkuTier(tier),
-		Capacity: utils.Int32(int32(capacity)),
-		Family:   utils.String(family),
-	}
-}
-
 func expandAzureRmMariaDbStorageProfile(d *schema.ResourceData) *mariadb.StorageProfile {
 	storageprofiles := d.Get("storage_profile").([]interface{})
 	storageprofile := storageprofiles[0].(map[string]interface{})
@@ -496,30 +406,6 @@ func expandAzureRmMariaDbStorageProfile(d *schema.ResourceData) *mariadb.Storage
 		StorageMB:           utils.Int32(int32(storageMB)),
 		StorageAutogrow:     mariadb.StorageAutogrow(autoGrow),
 	}
-}
-
-func flattenMariaDbServerSku(sku *mariadb.Sku) []interface{} {
-	values := map[string]interface{}{}
-
-	if sku == nil {
-		return []interface{}{}
-	}
-
-	if name := sku.Name; name != nil {
-		values["name"] = *name
-	}
-
-	if capacity := sku.Capacity; capacity != nil {
-		values["capacity"] = *capacity
-	}
-
-	values["tier"] = string(sku.Tier)
-
-	if family := sku.Family; family != nil {
-		values["family"] = *family
-	}
-
-	return []interface{}{values}
 }
 
 func flattenMariaDbStorageProfile(storage *mariadb.StorageProfile) []interface{} {

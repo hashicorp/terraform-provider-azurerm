@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -41,14 +40,14 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"event_delivery_schema": {
@@ -84,7 +83,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 						"queue_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -132,7 +131,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 						"url": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.URLIsHTTPS,
+							ValidateFunc: validation.IsURLWithHTTPS,
 						},
 					},
 				},
@@ -183,7 +182,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 						"storage_blob_container_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -297,22 +296,20 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-	scope := id.Scope
-	name := id.Name
 
-	resp, err := client.Get(ctx, scope, name)
+	resp, err := client.Get(ctx, id.Scope, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid Event Subscription '%s' was not found (resource group '%s')", name, scope)
+			log.Printf("[WARN] EventGrid Event Subscription '%s' was not found (resource group '%s')", id.Name, id.Scope)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Event Subscription '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on EventGrid Event Subscription '%s': %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("scope", scope)
+	d.Set("scope", id.Scope)
 
 	if props := resp.EventSubscriptionProperties; props != nil {
 		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
@@ -323,52 +320,52 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 
 		if storageQueueEndpoint, ok := props.Destination.AsStorageQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("storage_queue_endpoint", flattenEventGridEventSubscriptionStorageQueueEndpoint(storageQueueEndpoint)); err != nil {
-				return fmt.Errorf("Error setting `storage_queue_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `storage_queue_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 		if eventHubEndpoint, ok := props.Destination.AsEventHubEventSubscriptionDestination(); ok {
 			if err := d.Set("eventhub_endpoint", flattenEventGridEventSubscriptionEventHubEndpoint(eventHubEndpoint)); err != nil {
-				return fmt.Errorf("Error setting `eventhub_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `eventhub_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 		if hybridConnectionEndpoint, ok := props.Destination.AsHybridConnectionEventSubscriptionDestination(); ok {
 			if err := d.Set("hybrid_connection_endpoint", flattenEventGridEventSubscriptionHybridConnectionEndpoint(hybridConnectionEndpoint)); err != nil {
-				return fmt.Errorf("Error setting `hybrid_connection_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `hybrid_connection_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 		if _, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
-			fullURL, err := client.GetFullURL(ctx, scope, name)
+			fullURL, err := client.GetFullURL(ctx, id.Scope, id.Name)
 			if err != nil {
-				return fmt.Errorf("Error making Read request on EventGrid Event Subscription full URL '%s': %+v", name, err)
+				return fmt.Errorf("Error making Read request on EventGrid Event Subscription full URL '%s': %+v", id.Name, err)
 			}
 			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(&fullURL)); err != nil {
-				return fmt.Errorf("Error setting `webhook_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `webhook_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 
 		if filter := props.Filter; filter != nil {
 			d.Set("included_event_types", filter.IncludedEventTypes)
 			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
-				return fmt.Errorf("Error setting `subject_filter` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `subject_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 
 		if props.DeadLetterDestination != nil {
 			if storageBlobDeadLetterDestination, ok := props.DeadLetterDestination.AsStorageBlobDeadLetterDestination(); ok {
 				if err := d.Set("storage_blob_dead_letter_destination", flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(storageBlobDeadLetterDestination)); err != nil {
-					return fmt.Errorf("Error setting `storage_blob_dead_letter_destination` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+					return fmt.Errorf("Error setting `storage_blob_dead_letter_destination` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 				}
 			}
 		}
 
 		if retryPolicy := props.RetryPolicy; retryPolicy != nil {
 			if err := d.Set("retry_policy", flattenEventGridEventSubscriptionRetryPolicy(retryPolicy)); err != nil {
-				return fmt.Errorf("Error setting `retry_policy` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `retry_policy` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 
 		if err := d.Set("labels", props.Labels); err != nil {
-			return fmt.Errorf("Error setting `labels` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+			return fmt.Errorf("Error setting `labels` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 		}
 	}
 
@@ -384,22 +381,20 @@ func resourceArmEventGridEventSubscriptionDelete(d *schema.ResourceData, meta in
 	if err != nil {
 		return err
 	}
-	scope := id.Scope
-	name := id.Name
 
-	future, err := client.Delete(ctx, scope, name)
+	future, err := client.Delete(ctx, id.Scope, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Event Grid Event Subscription %q: %+v", name, err)
+		return fmt.Errorf("Error deleting Event Grid Event Subscription %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Event Grid Event Subscription %q: %+v", name, err)
+		return fmt.Errorf("Error deleting Event Grid Event Subscription %q: %+v", id.Name, err)
 	}
 
 	return nil

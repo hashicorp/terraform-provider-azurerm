@@ -4,9 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
@@ -17,7 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,9 +27,11 @@ func resourceArmPolicyDefinition() *schema.Resource {
 		Update: resourceArmPolicyDefinitionCreateUpdate,
 		Read:   resourceArmPolicyDefinitionRead,
 		Delete: resourceArmPolicyDefinitionDelete,
-		Importer: &schema.ResourceImporter{
-			State: resourceArmPolicyDefinitionImport,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.PolicyDefinitionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -68,9 +69,20 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			},
 
 			"management_group_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ConflictsWith: []string{"management_group_name"},
+				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
+			},
+
+			"management_group_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true, // TODO -- remove this when deprecation resolves
+				ConflictsWith: []string{"management_group_id"},
 			},
 
 			"display_name": {
@@ -86,7 +98,14 @@ func resourceArmPolicyDefinition() *schema.Resource {
 			"policy_rule": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: structure.SuppressJsonDiff,
+			},
+
+			"parameters": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
@@ -94,14 +113,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				ValidateFunc:     validation.ValidateJsonString,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
-			},
-
-			"parameters": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 		},
@@ -118,10 +130,16 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	mode := d.Get("mode").(string)
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
-	managementGroupID := d.Get("management_group_id").(string)
+	managementGroupName := ""
+	if v, ok := d.GetOk("management_group_name"); ok {
+		managementGroupName = v.(string)
+	}
+	if v, ok := d.GetOk("management_group_id"); ok {
+		managementGroupName = v.(string)
+	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := getPolicyDefinition(ctx, client, name, managementGroupID)
+	if d.IsNewResource() {
+		existing, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Policy Definition %q: %s", name, err)
@@ -171,10 +189,10 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 
 	var err error
 
-	if managementGroupID == "" {
+	if managementGroupName == "" {
 		_, err = client.CreateOrUpdate(ctx, name, definition)
 	} else {
-		_, err = client.CreateOrUpdateAtManagementGroup(ctx, name, definition, managementGroupID)
+		_, err = client.CreateOrUpdateAtManagementGroup(ctx, name, definition, managementGroupName)
 	}
 
 	if err != nil {
@@ -186,26 +204,22 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name, managementGroupID),
+		Refresh:                   policyDefinitionRefreshFunc(ctx, client, name, managementGroupName),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
 
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		stateConf.Timeout = 5 * time.Minute
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Policy Definition %q to become available: %s", name, err)
 	}
 
-	resp, err := getPolicyDefinition(ctx, client, name, managementGroupID)
+	resp, err := getPolicyDefinitionByName(ctx, client, name, managementGroupName)
 	if err != nil {
 		return err
 	}
@@ -220,14 +234,18 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name, err := parsePolicyDefinitionNameFromId(d.Id())
+	id, err := parse.PolicyDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	managementGroupID := parseManagementGroupIdFromPolicyId(d.Id())
+	managementGroupName := ""
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	case parse.ScopeAtManagementGroup:
+		managementGroupName = scopeId.ManagementGroupId
+	}
 
-	resp, err := getPolicyDefinition(ctx, client, name, managementGroupID)
+	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -240,7 +258,8 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("management_group_id", managementGroupID)
+	d.Set("management_group_id", managementGroupName)
+	d.Set("management_group_name", managementGroupName)
 
 	if props := resp.DefinitionProperties; props != nil {
 		d.Set("policy_type", props.PolicyType)
@@ -269,18 +288,22 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name, err := parsePolicyDefinitionNameFromId(d.Id())
+	id, err := parse.PolicyDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	managementGroupID := parseManagementGroupIdFromPolicyId(d.Id())
+	managementGroupID := ""
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	case parse.ScopeAtManagementGroup:
+		managementGroupID = scopeId.ManagementGroupId
+	}
 
 	var resp autorest.Response
 	if managementGroupID == "" {
-		resp, err = client.Delete(ctx, name)
+		resp, err = client.Delete(ctx, id.Name)
 	} else {
-		resp, err = client.DeleteAtManagementGroup(ctx, name, managementGroupID)
+		resp, err = client.DeleteAtManagementGroup(ctx, id.Name, managementGroupID)
 	}
 
 	if err != nil {
@@ -288,36 +311,15 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Policy Definition %q: %+v", name, err)
+		return fmt.Errorf("Error deleting Policy Definition %q: %+v", id.Name, err)
 	}
 
 	return nil
 }
 
-func parsePolicyDefinitionNameFromId(id string) (string, error) {
-	components := strings.Split(id, "/")
-
-	if len(components) == 0 {
-		return "", fmt.Errorf("Azure Policy Definition Id is empty or not formatted correctly: %s", id)
-	}
-
-	return components[len(components)-1], nil
-}
-
-func parseManagementGroupIdFromPolicyId(id string) string {
-	r, _ := regexp.Compile("managementgroups/(.+)/providers/.*$")
-
-	if r.MatchString(id) {
-		parms := r.FindAllStringSubmatch(id, -1)[0]
-		return parms[1]
-	}
-
-	return ""
-}
-
 func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := getPolicyDefinition(ctx, client, name, managementGroupID)
+		res, err := getPolicyDefinitionByName(ctx, client, name, managementGroupID)
 
 		if err != nil {
 			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policyAssignmentRefreshFunc for Policy Assignment %q: %s", name, err)
@@ -325,31 +327,6 @@ func policyDefinitionRefreshFunc(ctx context.Context, client *policy.Definitions
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
-}
-
-func resourceArmPolicyDefinitionImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	if managementGroupID := parseManagementGroupIdFromPolicyId(d.Id()); managementGroupID != "" {
-		d.Set("management_group_id", managementGroupID)
-
-		if name, _ := parsePolicyDefinitionNameFromId(d.Id()); name != "" {
-			d.Set("name", name)
-		}
-
-		return []*schema.ResourceData{d}, nil
-	}
-
-	//import a subscription based policy as before
-	return schema.ImportStatePassthrough(d, meta)
-}
-
-func getPolicyDefinition(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
-	if managementGroupID == "" {
-		res, err = client.Get(ctx, name)
-	} else {
-		res, err = client.GetAtManagementGroup(ctx, name, managementGroupID)
-	}
-
-	return res, err
 }
 
 func flattenJSON(stringMap interface{}) string {

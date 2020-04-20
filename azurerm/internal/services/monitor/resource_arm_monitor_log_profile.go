@@ -10,12 +10,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -42,7 +43,7 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"storage_account_id": {
 				Type:         schema.TypeString,
@@ -60,8 +61,8 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					StateFunc:        azure.NormalizeLocation,
-					DiffSuppressFunc: azure.SuppressLocationDiff,
+					StateFunc:        location.StateFunc,
+					DiffSuppressFunc: location.DiffSuppressFunc,
 				},
 				Set: schema.HashString,
 			},
@@ -145,23 +146,18 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error Creating/Updating Log Profile %q: %+v", name, err)
 	}
 
-	duration := 600 * time.Second
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			duration = d.Timeout(schema.TimeoutCreate)
-		} else {
-			duration = d.Timeout(schema.TimeoutUpdate)
-		}
-	}
-
 	log.Printf("[DEBUG] Waiting for Log Profile %q to be provisioned", name)
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"NotFound"},
 		Target:                    []string{"Available"},
 		Refresh:                   logProfilesCreateRefreshFunc(ctx, client, name),
-		Timeout:                   duration,
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
+	}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+	} else {
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {

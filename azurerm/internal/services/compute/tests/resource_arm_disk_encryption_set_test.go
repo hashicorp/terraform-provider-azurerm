@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,13 +23,6 @@ func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
-			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
 			{
 				Config: testAccAzureRMDiskEncryptionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -54,13 +48,6 @@ func TestAccAzureRMDiskEncryptionSet_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
 				Config: testAccAzureRMDiskEncryptionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
@@ -80,13 +67,6 @@ func TestAccAzureRMDiskEncryptionSet_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
 				Config: testAccAzureRMDiskEncryptionSet_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDiskEncryptionSetExists(data.ResourceName),
@@ -105,13 +85,6 @@ func TestAccAzureRMDiskEncryptionSet_update(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMDiskEncryptionSetDestroy,
 		Steps: []resource.TestStep{
-			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMDiskEncryptionSet_dependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
 			{
 				Config: testAccAzureRMDiskEncryptionSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -137,15 +110,17 @@ func testCheckAzureRMDiskEncryptionSetExists(resourceName string) resource.TestC
 			return fmt.Errorf("Disk Encryption Set not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DiskEncryptionSetID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.DiskEncryptionSetsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Disk Encryption Set %q (Resource Group %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Disk Encryption Set %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on Compute.DiskEncryptionSetsClient: %+v", err)
 		}
@@ -163,10 +138,12 @@ func testCheckAzureRMDiskEncryptionSetDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.DiskEncryptionSetID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Compute.DiskEncryptionSetsClient: %+v", err)
 			}
@@ -178,6 +155,7 @@ func testCheckAzureRMDiskEncryptionSetDestroy(s *terraform.State) error {
 	return nil
 }
 
+// nolint unparam
 func enableSoftDeleteAndPurgeProtectionForKeyVault(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
@@ -188,6 +166,7 @@ func enableSoftDeleteAndPurgeProtectionForKeyVault(resourceName string) resource
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
+		// TODO: use keyvault's custom ID parse function when implemented
 		vaultName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
@@ -214,6 +193,10 @@ func testAccAzureRMDiskEncryptionSet_dependencies(data acceptance.TestData) stri
 	location := "northeurope"
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
@@ -228,9 +211,12 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "premium"
 
+  purge_protection_enabled = true
+  soft_delete_enabled      = true
+
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.service_principal_object_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",

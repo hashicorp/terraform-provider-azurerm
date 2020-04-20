@@ -11,9 +11,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -29,7 +30,7 @@ func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
 		Delete: resourceArmVirtualMachineScaleSetExtensionDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseVirtualMachineScaleSetExtensionID(id)
+			_, err := parse.VirtualMachineScaleSetExtensionID(id)
 			return err
 		}),
 
@@ -45,34 +46,34 @@ func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"virtual_machine_scale_set_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateScaleSetResourceID,
+				ValidateFunc: validate.VirtualMachineScaleSetID,
 			},
 
 			"publisher": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"type_handler_version": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"auto_upgrade_minor_version": {
@@ -90,7 +91,7 @@ func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Sensitive:        true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
@@ -105,7 +106,7 @@ func resourceArmVirtualMachineScaleSetExtension() *schema.Resource {
 			"settings": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ValidateFunc:     validation.ValidateJsonString,
+				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 		},
@@ -118,7 +119,7 @@ func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, me
 	defer cancel()
 
 	name := d.Get("name").(string)
-	virtualMachineScaleSetId, err := ParseVirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
+	virtualMachineScaleSetId, err := parse.VirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
 	if err != nil {
 		return err
 	}
@@ -198,7 +199,7 @@ func resourceArmVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetExtensionID(d.Id())
+	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -260,13 +261,13 @@ func resourceArmVirtualMachineScaleSetExtensionUpdate(d *schema.ResourceData, me
 		Name: utils.String(id.Name),
 		VirtualMachineScaleSetExtensionProperties: &props,
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, id.Name, extension)
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, extension)
 	if err != nil {
-		return fmt.Errorf("Error updating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineName, id.ResourceGroup, err)
+		return fmt.Errorf("Error updating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for update of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	return resourceArmVirtualMachineScaleSetExtensionRead(d, meta)
@@ -278,31 +279,31 @@ func resourceArmVirtualMachineScaleSetExtensionRead(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetExtensionID(d.Id())
+	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	vmss, err := vmssClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName)
+	vmss, err := vmssClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName)
 	if err != nil {
 		if utils.ResponseWasNotFound(vmss.Response) {
-			log.Printf("Virtual Machine Scale Set %q was not found in Resource Group %q - removing Extension from state!", id.VirtualMachineName, id.ResourceGroup)
+			log.Printf("Virtual Machine Scale Set %q was not found in Resource Group %q - removing Extension from state!", id.VirtualMachineScaleSetName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.VirtualMachineName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("Extension %q (Virtual Machine Scale Set %q / Resource Group %q) was not found - removing from state!", id.Name, id.VirtualMachineName, id.ResourceGroup)
+			log.Printf("Extension %q (Virtual Machine Scale Set %q / Resource Group %q) was not found - removing from state!", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -338,22 +339,22 @@ func resourceArmVirtualMachineScaleSetExtensionDelete(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetExtensionID(d.Id())
+	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineName, id.Name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineName, id.ResourceGroup, err)
+		return fmt.Errorf("Error deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineName, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
 	}
 
 	return nil

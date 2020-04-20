@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_mysql_server" "example" {
   name                = "mysql-server-1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku_name = "B_Gen5_2"
 
@@ -82,6 +82,15 @@ The following attributes are exported:
 * `id` - The ID of the MySQL Server.
 
 * `fqdn` - The FQDN of the MySQL Server.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the MySQL Server.
+* `update` - (Defaults to 60 minutes) Used when updating the MySQL Server.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Server.
+* `delete` - (Defaults to 60 minutes) Used when deleting the MySQL Server.
 
 ## Import
 

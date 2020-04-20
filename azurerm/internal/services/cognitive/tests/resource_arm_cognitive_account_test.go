@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,29 +24,6 @@ func TestAccAzureRMCognitiveAccount_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMCognitiveAccount_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMCognitiveAccount_basicOldSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMCognitiveAccount_basicOldSku(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "Face"),
@@ -166,6 +144,42 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCognitiveAccount_qnaRuntimeEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppCognitiveAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCognitiveAccount_qnaRuntimeEndpoint(data, "https://localhost:8080/"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
+					resource.TestCheckResourceAttr(data.ResourceName, "qna_runtime_endpoint", "https://localhost:8080/"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCognitiveAccount_qnaRuntimeEndpoint(data, "https://localhost:9000/"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCognitiveAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "QnAMaker"),
+					resource.TestCheckResourceAttr(data.ResourceName, "qna_runtime_endpoint", "https://localhost:9000/"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Cognitive.AccountsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -175,10 +189,12 @@ func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.GetProperties(ctx, resourceGroup, name)
+		resp, err := client.GetProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if resp.StatusCode != http.StatusNotFound {
 				return fmt.Errorf("Cognitive Services Account still exists:\n%#v", resp)
@@ -202,13 +218,15 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.CognitiveAccountID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.GetProperties(ctx, resourceGroup, name)
+		resp, err := conn.GetProperties(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Cognitive Services Account %q (Resource Group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Cognitive Services Account %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on cognitiveAccountsClient: %+v", err)
@@ -220,15 +238,19 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 
 func testAccAzureRMCognitiveAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-cognitive-%d"
   location = "%s"
 }
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Face"
 
   sku_name = "S0"
@@ -236,38 +258,21 @@ resource "azurerm_cognitive_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMCognitiveAccount_basicOldSku(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cognitive_account" "test" {
-  name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  kind                = "Face"
-
-  sku {
-    name = "S0"
-    tier = "Standard"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func testAccAzureRMCognitiveAccount_speechServices(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-cognitive-%d"
   location = "%s"
 }
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "SpeechServices"
 
   sku_name = "S0"
@@ -281,10 +286,10 @@ func testAccAzureRMCognitiveAccount_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_cognitive_account" "import" {
-  name                = "${azurerm_cognitive_account.test.name}"
-  location            = "${azurerm_cognitive_account.test.location}"
-  resource_group_name = "${azurerm_cognitive_account.test.resource_group_name}"
-  kind                = "${azurerm_cognitive_account.test.kind}"
+  name                = azurerm_cognitive_account.test.name
+  location            = azurerm_cognitive_account.test.location
+  resource_group_name = azurerm_cognitive_account.test.resource_group_name
+  kind                = azurerm_cognitive_account.test.kind
 
   sku_name = "S0"
 }
@@ -293,15 +298,19 @@ resource "azurerm_cognitive_account" "import" {
 
 func testAccAzureRMCognitiveAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-cognitive-%d"
   location = "%s"
 }
 
 resource "azurerm_cognitive_account" "test" {
   name                = "acctestcogacc-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   kind                = "Face"
 
   sku_name = "S0"
@@ -311,4 +320,28 @@ resource "azurerm_cognitive_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMCognitiveAccount_qnaRuntimeEndpoint(data acceptance.TestData, url string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cognitive-%d"
+  location = "%s"
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                = "acctestcogacc-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  kind                 = "QnAMaker"
+  qna_runtime_endpoint = "%s"
+
+  sku_name = "S0"
+}
+`, data.RandomInteger, data.Locations.Ternary, data.RandomInteger, url)
 }

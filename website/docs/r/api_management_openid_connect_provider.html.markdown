@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
@@ -30,8 +30,8 @@ resource "azurerm_api_management" "example" {
 
 resource "azurerm_api_management_openid_connect_provider" "example" {
   name                = "example-provider"
-  api_management_name = "${azurerm_api_management.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  api_management_name = azurerm_api_management.example.name
+  resource_group_name = azurerm_resource_group.example.name
   client_id           = "00001111-2222-3333-4444-555566667777"
   display_name        = "Example Provider"
   metadata_endpoint   = "https://example.com/example"
@@ -65,6 +65,15 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management OpenID Connect Provider.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management OpenID Connect Provider.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management OpenID Connect Provider.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management OpenID Connect Provider.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management OpenID Connect Provider.
 
 ## Import
 

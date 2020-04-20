@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_iothub_dps" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -52,8 +52,6 @@ A `sku` block supports the following:
 
 * `name` - (Required) The name of the sku. Possible values are `B1`, `B2`, `B3`, `F1`, `S1`, `S2`, and `S3`.
 
-* `tier` - (Required) The billing tier for the IoT Device Provisioning Service. Possible values are `Basic`, `Free` or `Standard`.
-
 * `capacity` - (Required) The number of provisioned IoT Device Provisioning Service units.
 
 ---
@@ -64,7 +62,7 @@ A `linked_hub` block supports the following:
 
 * `location` - (Required) The location of the IoT hub. Changing this forces a new resource.
 
-* `apply_application_policy` - (Optional) Determines whether to apply application policies to the IoT Hub. Defaults to false.
+* `apply_allocation_policy` - (Optional) Determines whether to apply allocation policies to the IoT Hub. Defaults to false.
 
 * `allocation_weight` - (Optional) The weight applied to the IoT Hub. Defaults to 0.
 
@@ -83,6 +81,17 @@ The following attributes are exported:
 * `id_scope` - The unique identifier of the IoT Device Provisioning Service.
 
 * `service_operations_host_name` - The service endpoint of the IoT Device Provisioning Service.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub Device Provisioning Service.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Device Provisioning Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Device Provisioning Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Device Provisioning Service.
 
 ## Import
 

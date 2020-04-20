@@ -11,7 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,7 +27,7 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -183,45 +183,16 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 	if resp.VirtualNetworkGatewayConnectionPropertiesFormat != nil {
 		gwc := *resp.VirtualNetworkGatewayConnectionPropertiesFormat
 
-		if gwc.SharedKey != nil {
-			d.Set("shared_key", gwc.SharedKey)
-		}
-
-		if gwc.AuthorizationKey != nil {
-			d.Set("authorization_key", gwc.AuthorizationKey)
-		}
-
-		if gwc.EnableBgp != nil {
-			d.Set("enable_bgp", gwc.EnableBgp)
-		}
-
-		if gwc.IngressBytesTransferred != nil {
-			d.Set("ingress_bytes_transferred", gwc.IngressBytesTransferred)
-		}
-
-		if gwc.EgressBytesTransferred != nil {
-			d.Set("egress_bytes_transferred", gwc.EgressBytesTransferred)
-		}
-
-		if gwc.UsePolicyBasedTrafficSelectors != nil {
-			d.Set("use_policy_based_traffic_selectors", gwc.UsePolicyBasedTrafficSelectors)
-		}
-
-		if gwc.ExpressRouteGatewayBypass != nil {
-			d.Set("express_route_gateway_bypass", gwc.ExpressRouteGatewayBypass)
-		}
-
-		if string(gwc.ConnectionType) != "" {
-			d.Set("type", string(gwc.ConnectionType))
-		}
-
-		if string(gwc.ConnectionProtocol) != "" {
-			d.Set("connection_protocol", string(gwc.ConnectionProtocol))
-		}
-
-		if gwc.RoutingWeight != nil {
-			d.Set("routing_weight", gwc.RoutingWeight)
-		}
+		d.Set("shared_key", gwc.SharedKey)
+		d.Set("authorization_key", gwc.AuthorizationKey)
+		d.Set("enable_bgp", gwc.EnableBgp)
+		d.Set("ingress_bytes_transferred", gwc.IngressBytesTransferred)
+		d.Set("egress_bytes_transferred", gwc.EgressBytesTransferred)
+		d.Set("use_policy_based_traffic_selectors", gwc.UsePolicyBasedTrafficSelectors)
+		d.Set("express_route_gateway_bypass", gwc.ExpressRouteGatewayBypass)
+		d.Set("type", string(gwc.ConnectionType))
+		d.Set("connection_protocol", string(gwc.ConnectionProtocol))
+		d.Set("routing_weight", gwc.RoutingWeight)
 
 		if gwc.VirtualNetworkGateway1 != nil {
 			d.Set("virtual_network_gateway_id", gwc.VirtualNetworkGateway1.ID)
@@ -239,9 +210,7 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 			d.Set("express_route_circuit_id", gwc.Peer.ID)
 		}
 
-		if gwc.ResourceGUID != nil {
-			d.Set("resource_guid", gwc.ResourceGUID)
-		}
+		d.Set("resource_guid", gwc.ResourceGUID)
 
 		ipsecPoliciesSettingsFlat := flattenArmVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(gwc.IpsecPolicies)
 		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {

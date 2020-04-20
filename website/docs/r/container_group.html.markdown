@@ -22,8 +22,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_container_group" "example" {
   name                = "example-continst"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   ip_address_type     = "public"
   dns_name_label      = "aci-label"
   os_type             = "Linux"
@@ -128,10 +128,6 @@ A `container` block supports:
 * `readiness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `readiness_probe` block below. Changing this forces a new resource to be created.
 
 * `liveness_probe` - (Optional) The definition of a readiness probe for this container as documented in the `liveness_probe` block below. Changing this forces a new resource to be created.
-
-* `command` - (Optional) A command line to be run on the container. Changing this forces a new resource to be created.
-
-~> **NOTE:** The field `command` has been deprecated in favor of `commands` to better match the API.
 
 * `commands` - (Optional) A list of commands which should be run on the container. Changing this forces a new resource to be created.
 
@@ -247,11 +243,20 @@ The `http_get` block supports:
 
 The following attributes are exported:
 
-* `id` - The container group ID.
+* `id` - The ID of the Container Group.
 
 * `ip_address` - The IP address allocated to the container group.
 
 * `fqdn` - The FQDN of the container group derived from `dns_name_label`.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Container Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container Group.
 
 ## Import
 

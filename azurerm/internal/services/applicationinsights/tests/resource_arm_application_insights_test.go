@@ -248,7 +248,10 @@ func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "application_type", "web"),
+					resource.TestCheckResourceAttr(data.ResourceName, "retention_in_days", "120"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sampling_percentage", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_data_cap_in_gb", "50"),
+					resource.TestCheckResourceAttr(data.ResourceName, "daily_data_cap_notifications_disabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
 				),
@@ -260,6 +263,10 @@ func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
 
 func testAccAzureRMApplicationInsights_basic(data acceptance.TestData, applicationType string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -267,8 +274,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   application_type    = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, applicationType)
@@ -280,27 +287,35 @@ func testAccAzureRMApplicationInsights_requiresImport(data acceptance.TestData, 
 %s
 
 resource "azurerm_application_insights" "import" {
-  name                = "${azurerm_application_insights.test.name}"
-  location            = "${azurerm_application_insights.test.location}"
-  resource_group_name = "${azurerm_application_insights.test.resource_group_name}"
-  application_type    = "${azurerm_application_insights.test.application_type}"
+  name                = azurerm_application_insights.test.name
+  location            = azurerm_application_insights.test.location
+  resource_group_name = azurerm_application_insights.test.resource_group_name
+  application_type    = azurerm_application_insights.test.application_type
 }
 `, template)
 }
 
 func testAccAzureRMApplicationInsights_complete(data acceptance.TestData, applicationType string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
 
 resource "azurerm_application_insights" "test" {
-  name                = "acctestappinsights-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  application_type    = "%s"
-  sampling_percentage = 50
+  name                                  = "acctestappinsights-%d"
+  location                              = azurerm_resource_group.test.location
+  resource_group_name                   = azurerm_resource_group.test.name
+  application_type                      = "%s"
+  retention_in_days                     = 120
+  sampling_percentage                   = 50
+  daily_data_cap_in_gb                  = 50
+  daily_data_cap_notifications_disabled = true
+  disable_ip_masking                    = true
 
   tags = {
     Hello = "World"

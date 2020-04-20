@@ -51,7 +51,7 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Service.
 * `location` - (Required) Specifies the supported Azure Region where the Service should be created.
 
-~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`. 
+~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
 * `access_policy_ids` - (Optional) A set of Azure object id's that are allowed to access the Service. If not configured, the default value is the object id of the service principal or user that is running Terraform.
 * `authentication_configuration` - (Optional) An `authentication_configuration` block as defined below.
@@ -81,7 +81,18 @@ A `cors_configuration` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The `id` of the Healthcare Service.
+* `id` - The ID of the Healthcare Service.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Healthcare Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Healthcare Service.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Service.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare Service.
 
 ## Import
 
