@@ -62,11 +62,7 @@ func TestAccAzureRMFrontDoor_global(t *testing.T) {
 }
 
 func TestAccAzureRMFrontDoor_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
+	
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
