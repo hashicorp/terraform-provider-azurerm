@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
 * `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
 
 BUG FIXES:
