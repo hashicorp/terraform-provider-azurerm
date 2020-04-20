@@ -81,7 +81,7 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	})
 }
 func TestAccAzureRMSnapshot_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

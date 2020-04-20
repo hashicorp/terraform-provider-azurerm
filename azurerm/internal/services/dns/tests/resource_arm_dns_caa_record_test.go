@@ -35,7 +35,7 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_dns_caa_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -131,7 +131,7 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 }
 
 func TestAccAzureRMSharedImageVersion_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 
 	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)

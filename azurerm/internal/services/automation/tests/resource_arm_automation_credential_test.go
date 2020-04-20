@@ -33,7 +33,7 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_automation_credential", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

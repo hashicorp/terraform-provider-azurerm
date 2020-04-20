@@ -95,7 +95,6 @@ func testAccAzureRMCosmosDBAccount_basicWith(t *testing.T, kind documentdb.Datab
 }
 
 func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 

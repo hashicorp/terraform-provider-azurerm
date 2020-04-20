@@ -196,7 +196,6 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 }
 
 func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 

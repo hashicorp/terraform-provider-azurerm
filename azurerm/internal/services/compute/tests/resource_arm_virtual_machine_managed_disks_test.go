@@ -41,7 +41,6 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(t *t
 }
 
 func TestAccAzureRMVirtualMachine_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "test")
 	var vm compute.VirtualMachine

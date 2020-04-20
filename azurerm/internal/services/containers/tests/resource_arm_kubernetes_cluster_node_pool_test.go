@@ -467,7 +467,6 @@ func TestAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
 }
 
 func testAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 

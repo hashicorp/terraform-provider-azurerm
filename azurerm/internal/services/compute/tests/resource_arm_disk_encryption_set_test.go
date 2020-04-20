@@ -35,7 +35,6 @@ func TestAccAzureRMDiskEncryptionSet_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDiskEncryptionSet_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_disk_encryption_set", "test")
 

@@ -34,7 +34,6 @@ func TestAccAzureRMCosmosGremlinDatabase_basic(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosGremlinDatabase_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_database", "test")
 

@@ -104,7 +104,6 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDatabricksWorkspace_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 

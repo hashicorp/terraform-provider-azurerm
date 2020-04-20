@@ -62,7 +62,6 @@ func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 

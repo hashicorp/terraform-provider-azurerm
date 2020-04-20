@@ -98,7 +98,6 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 }
 
 func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 

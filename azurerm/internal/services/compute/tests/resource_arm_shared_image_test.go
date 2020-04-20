@@ -32,7 +32,6 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_shared_image", "test")
 	resource.ParallelTest(t, resource.TestCase{

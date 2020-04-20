@@ -37,7 +37,6 @@ func TestAccAzureRMDevSpaceController_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevSpaceController_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_devspace_controller", "test")
 	clientId := os.Getenv("ARM_CLIENT_ID")

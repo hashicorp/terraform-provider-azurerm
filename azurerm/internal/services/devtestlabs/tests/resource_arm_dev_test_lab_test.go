@@ -34,7 +34,6 @@ func TestAccAzureRMDevTestLab_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 

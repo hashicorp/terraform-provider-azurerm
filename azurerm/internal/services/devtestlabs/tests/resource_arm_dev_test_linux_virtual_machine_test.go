@@ -39,7 +39,6 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_linux_virtual_machine", "test")
 

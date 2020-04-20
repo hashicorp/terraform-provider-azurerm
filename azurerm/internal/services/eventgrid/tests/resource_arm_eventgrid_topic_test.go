@@ -36,7 +36,7 @@ func TestAccAzureRMEventGridTopic_basic(t *testing.T) {
 }
 
 func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -106,7 +106,7 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 }
 
 func testAccAzureRMRoleAssignment_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	id := uuid.New().String()
 

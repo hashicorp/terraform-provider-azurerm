@@ -50,7 +50,6 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_basicWindows(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineScaleSetExtension_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
 	resource.ParallelTest(t, resource.TestCase{

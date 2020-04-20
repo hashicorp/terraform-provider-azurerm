@@ -40,7 +40,6 @@ func TestAccAzureRMVirtualMachineScaleSet_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineScaleSet_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set", "test")
 	resource.ParallelTest(t, resource.TestCase{

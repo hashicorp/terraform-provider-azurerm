@@ -101,7 +101,6 @@ func TestAccAzureRMSpringCloudService_complete(t *testing.T) {
 }
 
 func TestAccAzureRMSpringCloudService_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
 

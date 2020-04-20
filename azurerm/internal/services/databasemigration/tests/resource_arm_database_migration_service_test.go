@@ -58,7 +58,6 @@ func TestAccAzureRMDatabaseMigrationService_complete(t *testing.T) {
 }
 
 func TestAccAzureRMDatabaseMigrationService_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_service", "test")
 

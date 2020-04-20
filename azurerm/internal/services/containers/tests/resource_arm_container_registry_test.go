@@ -92,7 +92,6 @@ func TestAccAzureRMContainerRegistry_basic_basic(t *testing.T) {
 }
 
 func TestAccAzureRMContainerRegistry_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
 

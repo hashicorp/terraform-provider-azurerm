@@ -31,7 +31,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_automation_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

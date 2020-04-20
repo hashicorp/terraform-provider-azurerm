@@ -45,7 +45,7 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 }
 
 func TestAccAzureRMBatchPool_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

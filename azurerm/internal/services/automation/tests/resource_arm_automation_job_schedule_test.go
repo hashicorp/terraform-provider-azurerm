@@ -74,7 +74,7 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_automation_job_schedule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

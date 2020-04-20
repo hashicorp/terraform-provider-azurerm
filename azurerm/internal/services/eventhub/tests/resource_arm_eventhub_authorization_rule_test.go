@@ -59,7 +59,7 @@ func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage 
 }
 
 func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
-	
+
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

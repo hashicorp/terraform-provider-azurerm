@@ -34,7 +34,6 @@ func TestAccAzureRMDataLakeAnalyticsAccount_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataLakeAnalyticsAccount_requiresImport(t *testing.T) {
-	
 
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_account", "test")
 
