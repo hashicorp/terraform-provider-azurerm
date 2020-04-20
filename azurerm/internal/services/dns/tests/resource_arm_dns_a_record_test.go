@@ -35,11 +35,7 @@ func TestAccAzureRMDnsARecord_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsARecord_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
+	
 	data := acceptance.BuildTestData(t, "azurerm_dns_a_record", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
