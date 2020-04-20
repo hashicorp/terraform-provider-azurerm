@@ -142,7 +142,13 @@ A 'block3' block supports the following:
 				Required: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"tags": tagsSchema(),
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 	gen := setupDocGen(false, resource)
@@ -177,19 +183,5 @@ func setupDocGen(isDataSource bool, resource *schema.Resource) documentationGene
 		isDataSource:      isDataSource,
 		websiteCategories: []string{WEBSITE_CATEGORY},
 		resource:          resource,
-	}
-}
-
-func tagsSchema() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeMap,
-		Optional: true,
-		ValidateFunc: func(i interface{}, s string) (warnings []string, errors []error) {
-			// doesn't matter, purely for consistency
-			return
-		},
-		Elem: &schema.Schema{
-			Type: schema.TypeString,
-		},
 	}
 }
