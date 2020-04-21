@@ -54,11 +54,6 @@ func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
 }
 
 func TestAccAzureRMNetAppVolume_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
