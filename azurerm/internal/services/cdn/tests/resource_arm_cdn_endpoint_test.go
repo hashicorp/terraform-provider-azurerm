@@ -449,6 +449,8 @@ resource "azurerm_cdn_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
+  origin_host_header = "www.example.com"
+
   origin {
     name       = "acceptanceTestCdnOrigin1"
     host_name  = "www.example.com"
@@ -469,6 +471,8 @@ resource "azurerm_cdn_endpoint" "import" {
   profile_name        = azurerm_cdn_endpoint.test.profile_name
   location            = azurerm_cdn_endpoint.test.location
   resource_group_name = azurerm_cdn_endpoint.test.resource_group_name
+
+  origin_host_header = "www.example.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
@@ -544,6 +548,8 @@ resource "azurerm_cdn_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
+  origin_host_header = "www.example.com"
+
   origin {
     name       = "acceptanceTestCdnOrigin2"
     host_name  = "www.example.com"
@@ -582,6 +588,8 @@ resource "azurerm_cdn_endpoint" "test" {
   profile_name        = azurerm_cdn_profile.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  origin_host_header = "www.example.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
@@ -624,6 +632,8 @@ resource "azurerm_cdn_endpoint" "test" {
   is_https_allowed    = true
   origin_path         = "/origin-path"
   probe_path          = "/origin-path/probe"
+
+  origin_host_header = "www.example.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
@@ -673,6 +683,8 @@ resource "azurerm_cdn_endpoint" "test" {
   is_http_allowed     = false
   is_https_allowed    = true
   optimization_type   = "GeneralWebDelivery"
+
+  origin_host_header = "www.example.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
@@ -762,6 +774,8 @@ resource "azurerm_cdn_endpoint" "test" {
   resource_group_name = azurerm_resource_group.test.name
   is_http_allowed     = %s
   is_https_allowed    = %s
+
+  origin_host_header = "www.example.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
