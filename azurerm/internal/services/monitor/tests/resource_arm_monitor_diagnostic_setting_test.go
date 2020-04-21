@@ -39,11 +39,6 @@ func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

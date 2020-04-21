@@ -32,11 +32,6 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

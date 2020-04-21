@@ -37,11 +37,6 @@ func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

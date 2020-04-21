@@ -67,11 +67,6 @@ func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 }
 
 func testAccAzureRMMonitorLogProfile_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_monitor_log_profile", "test")
 
 	resource.Test(t, resource.TestCase{
