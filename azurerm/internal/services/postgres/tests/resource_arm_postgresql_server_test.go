@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -136,12 +135,8 @@ func TestAccAzureRMPostgreSQLServer_autogrowOnly(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -500,12 +495,12 @@ resource "azurerm_postgresql_server" "import" {
   location            = azurerm_postgresql_server.test.location
   resource_group_name = azurerm_postgresql_server.test.resource_group_name
 
-  administrator_login          = azurerm_postgresql_server.test.login
-  administrator_login_password = azurerm_postgresql_server.test.password
+  administrator_login          = azurerm_postgresql_server.test.administrator_login
+  administrator_login_password = azurerm_postgresql_server.test.administrator_login_password
 
-  sku_name   = azurerm_postgresql_server.test.sku
+  sku_name   = azurerm_postgresql_server.test.sku_name
   version    = azurerm_postgresql_server.test.version
-  storage_mb = azurerm_postgresql_server.test.storage_profile.0.storage_mb
+  storage_mb = azurerm_postgresql_server.test.storage_profile.storage_mb
 
   ssl_enforcement_enabled = azurerm_postgresql_server.test.ssl_enforcement_enabled
 }
