@@ -29,5 +29,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_sentinel_alert_rule_ms_security_incident": resourceArmSentinelAlertRuleMsSecurityIncident(),
+		"azurerm_sentinel_alert_rule_scheduled":            resourceArmSentinelAlertRuleScheduled(),
 	}
 }

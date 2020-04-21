@@ -2,13 +2,13 @@ package validate
 
 import (
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
 	iso8601 "github.com/btubbs/datetime"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/rickb777/date/period"
 )
 
 func ISO8601Duration(i interface{}, k string) (warnings []string, errors []error) {
@@ -18,12 +18,36 @@ func ISO8601Duration(i interface{}, k string) (warnings []string, errors []error
 		return
 	}
 
-	matched, _ := regexp.MatchString(`^P([0-9]+Y)?([0-9]+M)?([0-9]+W)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.?[0-9]+)?S)?)?$`, v)
-
-	if !matched {
-		errors = append(errors, fmt.Errorf("expected %s to be in ISO 8601 duration format, got %s", k, v))
+	if _, err := period.Parse(v); err != nil {
+		errors = append(errors, err)
 	}
 	return warnings, errors
+}
+
+func ISO8601DurationBetween(min string, max string) func(i interface{}, k string) (warnings []string, errors []error) {
+	minDuration := period.MustParse(min).DurationApprox()
+	maxDuration := period.MustParse(max).DurationApprox()
+	if minDuration >= maxDuration {
+		panic(fmt.Sprintf("min duration (%v) >= max duration (%v)", minDuration, maxDuration))
+	}
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		v, ok := i.(string)
+		if !ok {
+			return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
+		}
+
+		p, err := period.Parse(v)
+		if err != nil {
+			return nil, []error{err}
+		}
+
+		duration := p.DurationApprox()
+		if duration < minDuration || duration > maxDuration {
+			return nil, []error{fmt.Errorf("expected %s to be in the range (%v - %v), got %v", k, minDuration, maxDuration, duration)}
+		}
+
+		return nil, nil
+	}
 }
 
 func ISO8601DateTime(i interface{}, k string) (warnings []string, errors []error) {
