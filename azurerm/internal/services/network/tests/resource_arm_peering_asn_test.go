@@ -164,7 +164,7 @@ resource "azurerm_peer_asn" "test" {
   asn  = 123
   contact {
     role  = "Noc"
-    email = "email@test.com"
+    email = "Email@test.com"
   }
   peer_name = "acctest-peer"
 }
@@ -181,12 +181,12 @@ resource "azurerm_peer_asn" "test" {
   asn  = 123
   contact {
     role  = "Noc"
-    email = "email@test.com"
+    email = "Email@test.com"
     phone = 12345
   }
   contact {
     role  = "Service"
-    email = "email@test.com"
+    email = "Email@test.com"
     phone = 12345
   }
   peer_name = "acctest-peer2"
@@ -204,7 +204,7 @@ resource "azurerm_peer_asn" "import" {
   asn  = azurerm_peer_asn.test.asn
   contact {
     role  = "Noc"
-    email = "email@test.com"
+    email = "Email@test.com"
   }
   peer_name = azurerm_peer_asn.test.peer_name
 }
