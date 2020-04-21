@@ -55,11 +55,6 @@ func TestAccAzureRMStreamAnalyticsJob_complete(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_job", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

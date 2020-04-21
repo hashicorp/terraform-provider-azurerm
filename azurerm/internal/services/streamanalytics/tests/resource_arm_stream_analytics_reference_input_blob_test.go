@@ -95,11 +95,6 @@ func TestAccAzureRMStreamAnalyticsReferenceInputBlob_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsReferenceInputBlob_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_reference_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

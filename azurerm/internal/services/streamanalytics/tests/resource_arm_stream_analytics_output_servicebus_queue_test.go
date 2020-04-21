@@ -95,11 +95,6 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

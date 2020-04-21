@@ -56,11 +56,6 @@ func TestAccAzureRMStreamAnalyticsOutputSql_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsOutputSql_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_mssql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
