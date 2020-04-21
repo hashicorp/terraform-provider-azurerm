@@ -32,7 +32,6 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_dns_zone", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

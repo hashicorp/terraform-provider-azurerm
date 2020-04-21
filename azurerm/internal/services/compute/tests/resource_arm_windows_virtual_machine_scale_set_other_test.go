@@ -292,7 +292,6 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherPriorityRegular(t *testing
 }
 
 func TestAccAzureRMWindowsVirtualMachineScaleSet_otherRequiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

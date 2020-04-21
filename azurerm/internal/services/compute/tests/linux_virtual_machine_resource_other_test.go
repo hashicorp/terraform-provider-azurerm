@@ -231,7 +231,6 @@ func TestAccLinuxVirtualMachine_otherProvisionVMAgentDisabled(t *testing.T) {
 }
 
 func TestAccLinuxVirtualMachine_otherRequiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

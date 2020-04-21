@@ -38,8 +38,8 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,

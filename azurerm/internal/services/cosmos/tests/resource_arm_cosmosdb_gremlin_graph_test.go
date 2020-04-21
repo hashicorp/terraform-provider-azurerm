@@ -32,7 +32,6 @@ func TestAccAzureRMCosmosDbGremlinGraph_basic(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDbGremlinGraph_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_gremlin_graph", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

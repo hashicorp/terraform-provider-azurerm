@@ -55,7 +55,6 @@ func testAccAzureRMMarketplaceAgreement_basic(t *testing.T) {
 }
 
 func testAccAzureRMMarketplaceAgreement_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_agreement", "test")
 
 	resource.Test(t, resource.TestCase{

@@ -32,7 +32,6 @@ func TestAccAzureRMCdnProfile_basic(t *testing.T) {
 }
 
 func TestAccAzureRMCdnProfile_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

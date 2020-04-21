@@ -32,7 +32,6 @@ func TestAccAzureRMAutomationDscNodeConfiguration_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationDscNodeConfiguration_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_nodeconfiguration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

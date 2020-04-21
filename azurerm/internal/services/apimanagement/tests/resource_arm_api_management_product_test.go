@@ -39,7 +39,6 @@ func TestAccAzureRMApiManagementProduct_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementProduct_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_product", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

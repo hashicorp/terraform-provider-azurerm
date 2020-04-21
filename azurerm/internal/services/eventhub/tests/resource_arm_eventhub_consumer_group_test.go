@@ -31,7 +31,6 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMEventHubConsumerGroup_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_consumer_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

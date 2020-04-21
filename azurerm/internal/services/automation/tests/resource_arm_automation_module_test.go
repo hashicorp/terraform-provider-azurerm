@@ -31,7 +31,6 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_automation_module", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

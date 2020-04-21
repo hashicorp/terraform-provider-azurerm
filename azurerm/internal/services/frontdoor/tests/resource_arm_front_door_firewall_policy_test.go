@@ -117,8 +117,8 @@ func TestAccAzureRMFrontDoorFirewallPolicy_basic(t *testing.T) {
 }
 
 func TestAccAzureRMFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_firewall_policy", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,

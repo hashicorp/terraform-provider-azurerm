@@ -32,7 +32,6 @@ func TestAccAzureRMCdnEndpoint_basic(t *testing.T) {
 }
 
 func TestAccAzureRMCdnEndpoint_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_cdn_endpoint", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

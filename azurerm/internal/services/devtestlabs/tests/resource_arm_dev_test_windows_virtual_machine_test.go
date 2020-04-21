@@ -38,7 +38,6 @@ func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

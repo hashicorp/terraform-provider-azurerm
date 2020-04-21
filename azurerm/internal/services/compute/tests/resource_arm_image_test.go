@@ -119,7 +119,6 @@ func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
 }
 
 func TestAccAzureRMImage_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine", "testsource")
 
 	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)

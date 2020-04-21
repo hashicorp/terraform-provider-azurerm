@@ -32,7 +32,6 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -33,7 +33,6 @@ func TestAccAzureRMManagedDisk_empty(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	var d compute.Disk
 
@@ -275,7 +274,6 @@ func TestAccAzureRMManagedDisk_update_withUltraSSD(t *testing.T) {
 }
 
 func TestAccAzureRMManagedDisk_import_withUltraSSD(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_managed_disk", "test")
 	var d compute.Disk
 

@@ -210,7 +210,6 @@ func TestAccAzureRMEventHub_basicOnePartition(t *testing.T) {
 }
 
 func TestAccAzureRMEventHub_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

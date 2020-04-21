@@ -55,7 +55,6 @@ func TestAccAzureRMIotHubSharedAccessPolicy_writeWithoutRead(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubSharedAccessPolicy_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_iothub_shared_access_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

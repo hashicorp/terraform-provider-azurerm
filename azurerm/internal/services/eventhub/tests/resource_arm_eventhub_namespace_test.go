@@ -32,7 +32,6 @@ func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
 }
 
 func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

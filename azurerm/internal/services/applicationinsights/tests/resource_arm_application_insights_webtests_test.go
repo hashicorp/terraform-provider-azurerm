@@ -89,7 +89,6 @@ func TestAccAzureRMApplicationInsightsWebTests_update(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationInsightsWebTests_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_web_test", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

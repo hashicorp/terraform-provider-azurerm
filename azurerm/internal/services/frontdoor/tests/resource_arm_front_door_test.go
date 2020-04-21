@@ -61,8 +61,8 @@ func TestAccAzureRMFrontDoor_global(t *testing.T) {
 }
 
 func TestAccAzureRMFrontDoor_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,

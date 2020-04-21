@@ -42,7 +42,6 @@ func TestAccAzureRMVirtualMachineExtension_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineExtension_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_extension", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

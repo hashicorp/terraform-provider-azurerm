@@ -31,7 +31,6 @@ func TestAccAzureRMIotHubDPSCertificate_basic(t *testing.T) {
 }
 
 func TestAccAzureRMIotHubDPSCertificate_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_iothub_dps_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

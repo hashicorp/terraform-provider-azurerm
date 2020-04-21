@@ -156,7 +156,6 @@ func TestAccAzureRMDedicatedHost_update(t *testing.T) {
 }
 
 func TestAccAzureRMDedicatedHost_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -32,7 +32,6 @@ func TestAccProximityPlacementGroup_basic(t *testing.T) {
 }
 
 func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_proximity_placement_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

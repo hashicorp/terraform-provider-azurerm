@@ -60,7 +60,6 @@ func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 }
 
 func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

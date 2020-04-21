@@ -186,7 +186,6 @@ func TestAccAzureRMApiManagementBackend_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementBackend_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

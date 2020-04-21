@@ -34,7 +34,6 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

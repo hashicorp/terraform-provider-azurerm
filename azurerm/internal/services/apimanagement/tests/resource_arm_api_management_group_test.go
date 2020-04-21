@@ -33,7 +33,6 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

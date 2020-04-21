@@ -32,7 +32,6 @@ func TestAccAzureRMDevTestPolicy_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestPolicy_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

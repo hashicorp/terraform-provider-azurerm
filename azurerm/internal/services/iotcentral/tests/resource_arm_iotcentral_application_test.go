@@ -80,7 +80,6 @@ func TestAccAzureRMIoTCentralApplication_update(t *testing.T) {
 }
 
 func TestAccAzureRMIoTCentralApplication_requiresImportErrorStep(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

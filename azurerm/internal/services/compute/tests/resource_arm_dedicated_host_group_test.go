@@ -33,7 +33,6 @@ func TestAccAzureRMDedicatedHostGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDedicatedHostGroup_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_dedicated_host_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -37,7 +37,6 @@ func TestAccAzureRMDataLakeAnalyticsFirewallRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataLakeAnalyticsFirewallRule_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_analytics_firewall_rule", "test")
 	startIP := "1.1.1.1"
 	endIP := "2.2.2.2"

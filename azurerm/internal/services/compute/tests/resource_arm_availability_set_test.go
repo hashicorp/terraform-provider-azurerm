@@ -35,7 +35,6 @@ func TestAccAzureRMAvailabilitySet_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAvailabilitySet_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_availability_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
