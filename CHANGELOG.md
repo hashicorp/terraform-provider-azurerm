@@ -3,12 +3,13 @@
 FEATURES:
 
 * **New Resource:** `azurerm_maintenance_configuration` [GH-6038]
+* **New Resource:** `azurerm_servicebus_namespace_network_rule_set` [GH-6379]
 
 IMPROVEMENTS:
 
 * dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
 * Data Source: `app_service_environment` - export the `location` property [GH-6538]
-* `cosmosdb_mongo_collection` - support for the `index` and `system_index` properties [GH-6426]
+* `azurerm_cosmosdb_mongo_collection` - support for the `index` and `system_index` properties [GH-6426]
 * `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
 
 BUG FIXES:
