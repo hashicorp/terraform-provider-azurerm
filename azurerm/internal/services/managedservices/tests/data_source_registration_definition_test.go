@@ -13,8 +13,8 @@ import (
 
 func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_registration_definition", "test")
-	// This resource needs multiple tenants to test the resource.
-	// Currently, I have set ARM_SECOND_TENANT_ID to be read from enviornment variable.
+	// Multiple tenants are needed to test this resource. 
+	// Second tenant ID needs to be set as a enviornment variable ARM_SECOND_TENANT_ID.
 	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
 	id := uuid.New().String()
 

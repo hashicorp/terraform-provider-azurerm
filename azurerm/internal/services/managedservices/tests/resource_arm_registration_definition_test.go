@@ -17,6 +17,8 @@ import (
 
 func TestAccAzureRMRegistrationDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_registration_definition", "test")
+	// Multiple tenants are needed to test this resource.
+	// Second tenant ID needs to be set as a enviornment variable ARM_SECOND_TENANT_ID.
 	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
