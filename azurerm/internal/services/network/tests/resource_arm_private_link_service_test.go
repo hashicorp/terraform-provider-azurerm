@@ -35,11 +35,6 @@ func TestAccAzureRMPrivateLinkService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPrivateLinkService_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

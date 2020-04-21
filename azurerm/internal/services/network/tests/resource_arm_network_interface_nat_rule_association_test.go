@@ -33,11 +33,6 @@ func TestAccAzureRMNetworkInterfaceNATRuleAssociation_basic(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkInterfaceNATRuleAssociation_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_network_interface_nat_rule_association", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },

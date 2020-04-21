@@ -35,11 +35,6 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering(t *testing.T) 
 }
 
 func testAccAzureRMExpressRouteCircuitPeering_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 
 	resource.Test(t, resource.TestCase{

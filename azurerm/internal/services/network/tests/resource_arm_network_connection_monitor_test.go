@@ -38,11 +38,6 @@ func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
 }
 
 func testAccAzureRMNetworkConnectionMonitor_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
 	resource.Test(t, resource.TestCase{

@@ -159,11 +159,6 @@ func TestAccAzureRMApplicationGateway_http2(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationGateway_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

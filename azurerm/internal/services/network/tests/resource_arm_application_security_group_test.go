@@ -32,10 +32,7 @@ func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+
 
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
 

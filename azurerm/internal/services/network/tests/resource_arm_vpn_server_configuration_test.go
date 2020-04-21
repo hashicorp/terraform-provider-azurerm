@@ -58,11 +58,6 @@ func TestAccAzureRMVPNServerConfiguration_certificate(t *testing.T) {
 }
 
 func TestAccAzureRMVPNServerConfiguration_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_vpn_server_configuration", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

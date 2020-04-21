@@ -32,11 +32,6 @@ func TestAccAzureRMPointToSiteVPNGateway_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPointToSiteVPNGateway_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_point_to_site_vpn_gateway", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

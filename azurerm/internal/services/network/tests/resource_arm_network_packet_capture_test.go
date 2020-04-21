@@ -32,11 +32,6 @@ func testAccAzureRMNetworkPacketCapture_localDisk(t *testing.T) {
 }
 
 func testAccAzureRMNetworkPacketCapture_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_network_packet_capture", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -36,11 +36,6 @@ func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
 }
 
 func TestAccAzureRMFirewallNetworkRuleCollection_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

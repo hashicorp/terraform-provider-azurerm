@@ -59,11 +59,6 @@ func testAccAzureRMNetworkDDoSProtectionPlan_basic(t *testing.T) {
 }
 
 func testAccAzureRMNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
 
 	resource.Test(t, resource.TestCase{

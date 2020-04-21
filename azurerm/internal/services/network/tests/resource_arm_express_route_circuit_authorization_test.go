@@ -34,11 +34,6 @@ func testAccAzureRMExpressRouteCircuitAuthorization_basic(t *testing.T) {
 }
 
 func testAccAzureRMExpressRouteCircuitAuthorization_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_authorization", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

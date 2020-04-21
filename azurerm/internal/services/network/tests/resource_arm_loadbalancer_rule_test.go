@@ -180,11 +180,6 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 }
 
 func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 
 	var lb network.LoadBalancer

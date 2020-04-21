@@ -32,11 +32,6 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGatewayConnection_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
