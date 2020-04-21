@@ -658,10 +658,12 @@ func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.S
 func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interface{} {
 	values := map[string]interface{}{}
 
+	values["storage_mb"] = nil
 	if storageMB := resp.StorageMB; storageMB != nil {
 		values["storage_mb"] = *storageMB
 	}
 
+	values["backup_retention_days"] = nil
 	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
 		values["backup_retention_days"] = *backupRetentionDays
 	}
