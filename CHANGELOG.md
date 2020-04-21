@@ -19,6 +19,7 @@ BUG FIXES:
 * `azurerm_application_gateway` - prevent panic by disallowing empty values for `backend_address_pool.#.fqdns` [GH-6549]
 * `azurerm_cdn_endpoint` - `origin_host_header` is now required [GH-6550]
 * `azurerm_cdn_endpoint` - setting the `request_header_condition` block [GH-6541]
+* `azurerm_virtual_network_gateway` - per api requirements, `public_ip_address_id` is required [GH-6548]
 
 ## 2.6.0 (April 16, 2020)
 
