@@ -60,11 +60,6 @@ func TestAccAzureRMHPCCacheBlobTarget_update(t *testing.T) {
 }
 
 func TestAccAzureRMHPCCacheBlobTarget_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_target", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

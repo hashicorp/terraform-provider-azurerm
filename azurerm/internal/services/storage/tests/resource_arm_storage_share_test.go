@@ -31,10 +31,6 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShare_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

@@ -35,10 +35,6 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
