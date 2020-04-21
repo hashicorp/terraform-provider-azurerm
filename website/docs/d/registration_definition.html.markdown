@@ -16,26 +16,14 @@ Use this data source to access information about an existing Registration Defini
 data "azurerm_subscription" "primary" {
 }
 
-resource "azuread_application" "example" {
-  name = "acctestspa-%d"
-}
-
-resource "azuread_service_principal" "example" {
-  application_id = azuread_application.example.application_id
-}
-
-data "azurerm_role_definition" "builtin" {
-  name = "Contributor"
-}
-
 resource "azurerm_registration_definition" "example" {
-  name                  = "Sample registration"
-  scope                 = data.azurerm_subscription.primary.id
-  description           = "This is a registration definition created via Terraform"
-  managed_by_tenant_id  = "00000000-0000-0000-0000-000000000000"
+  registration_definition_name  = "Sample registration"
+  scope                         = data.azurerm_subscription.primary.id
+  description                   = "This is a registration definition created via Terraform"
+  managed_by_tenant_id          = "00000000-0000-0000-0000-000000000000"
 
   authorization {
-    principal_id        = azuread_service_principal.example.id
+    principal_id        = "00000000-0000-0000-0000-000000000000"
     role_definition_id  = data.azurerm_role_definition.builtin.name
   }
 }

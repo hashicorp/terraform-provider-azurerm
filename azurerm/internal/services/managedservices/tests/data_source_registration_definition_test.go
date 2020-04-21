@@ -12,10 +12,12 @@ import (
 )
 
 func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
+	// Multiple tenants are needed to test this resource.
+	// Second tenant ID needs to be set as a enviornment variable ARM_TENANT_ID_ALT.
+	// ObjectId for user, usergroup or service principal in second tenant needs to be set as a enviornment variable ARM_PRINCIPAL_ID_ALT_TENANT.
+	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
+	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 	data := acceptance.BuildTestData(t, "data.azurerm_registration_definition", "test")
-	// Multiple tenants are needed to test this resource. 
-	// Second tenant ID needs to be set as a enviornment variable ARM_SECOND_TENANT_ID.
-	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -23,7 +25,7 @@ func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceRegistrationDefinition_basic(id, secondTenantID, data),
+				Config: testAccDataSourceRegistrationDefinition_basic(id, secondTenantID, principalID, data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
@@ -39,7 +41,7 @@ func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceRegistrationDefinition_basic(id string, secondTenantID string, data acceptance.TestData) string {
+func testAccDataSourceRegistrationDefinition_basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -48,25 +50,22 @@ provider "azurerm" {
 data "azurerm_subscription" "primary" {
 }
 
-data "azurerm_client_config" "test" {
-}
-
 resource "azurerm_registration_definition" "test" {
-  registration_definition_id 	= "%s"
-  registration_definition_name  = "acctestrd-%d"
-  description				 	= "Acceptance Test Registration Definition"
-  scope                      	= data.azurerm_subscription.primary.id
-  managed_by_tenant_id       	= "%s"
+  registration_definition_id = "%s"
+  registration_definition_name = "acctestrd-%d"
+  description = "Acceptance Test Registration Definition"
+  scope = data.azurerm_subscription.primary.id
+  managed_by_tenant_id = "%s"
 
   authorization {
-	principal_id        = data.azurerm_client_config.test.object_id
-	role_definition_id  = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+	principal_id = "%s"
+	role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 
 data "azurerm_registration_definition" "test" {
   registration_definition_id = azurerm_registration_definition.test.registration_definition_id
-  scope              		 = data.azurerm_subscription.primary.id
+  scope = data.azurerm_subscription.primary.id
 }
-`, id, data.RandomInteger, secondTenantID)
+`, id, data.RandomInteger, secondTenantID, principalID)
 }

@@ -15,10 +15,12 @@ import (
 )
 
 func TestAccAzureRMRegistrationAssignment_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_registration_assignment", "test")
 	// Multiple tenants are needed to test this resource.
-	// Second tenant ID needs to be set as a enviornment variable ARM_SECOND_TENANT_ID.
-	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
+	// Second tenant ID needs to be set as a enviornment variable ARM_TENANT_ID_ALT.
+	// ObjectId for user, usergroup or service principal in second tenant needs to be set as a enviornment variable ARM_PRINCIPAL_ID_ALT_TENANT.
+	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
+	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
+	data := acceptance.BuildTestData(t, "azurerm_registration_assignment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,7 +28,7 @@ func TestAccAzureRMRegistrationAssignment_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRegistrationAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRegistrationAssignment_basic(uuid.New().String(), secondTenantID, data),
+				Config: testAccAzureRMRegistrationAssignment_basic(uuid.New().String(), secondTenantID, principalID, data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRegistrationAssignmentExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "registration_assignment_id"),
@@ -42,7 +44,8 @@ func TestAccAzureRMRegistrationAssignment_requiresImport(t *testing.T) {
 		return
 	}
 	data := acceptance.BuildTestData(t, "azurerm_registration_assignment", "test")
-	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
+	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
+	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -51,14 +54,14 @@ func TestAccAzureRMRegistrationAssignment_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRegistrationAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRegistrationAssignment_basic(id, secondTenantID, data),
+				Config: testAccAzureRMRegistrationAssignment_basic(id, secondTenantID, principalID, data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRegistrationAssignmentExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "registration_assignment_id"),
 				),
 			},
 			{
-				Config:      testAccAzureRMRegistrationAssignment_requiresImport(id, secondTenantID, data),
+				Config:      testAccAzureRMRegistrationAssignment_requiresImport(id, secondTenantID, principalID, data),
 				ExpectError: acceptance.RequiresImportError("azurerm_registration_assignment"),
 			},
 		},
@@ -67,7 +70,8 @@ func TestAccAzureRMRegistrationAssignment_requiresImport(t *testing.T) {
 
 func TestAccAzureRMRegistrationAssignment_emptyID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_registration_assignment", "test")
-	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
+	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
+	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -75,7 +79,7 @@ func TestAccAzureRMRegistrationAssignment_emptyID(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRegistrationAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMRegistrationAssignment_emptyId(secondTenantID, data),
+				Config: testAccAzureRMRegistrationAssignment_emptyId(secondTenantID, principalID, data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRegistrationAssignmentExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
@@ -140,27 +144,24 @@ func testCheckAzureRMRegistrationAssignmentDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMRegistrationAssignment_basic(id string, secondTenantID string, data acceptance.TestData) string {
+func testAccAzureRMRegistrationAssignment_basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+	features {}
 }
-
+	  
 data "azurerm_subscription" "primary" {
 }
 
-data "azurerm_client_config" "test" {
-}
-
 resource "azurerm_registration_definition" "test" {
-  name                       = "acctestrd-%d"
-  description				 = "Acceptance Test Registration Definition"
-  scope                      = data.azurerm_subscription.primary.id
-  managed_by_tenant_id       = "%s"
+  registration_definition_name = "acctestrd-%d"
+  description = "Acceptance Test Registration Definition"
+  scope = data.azurerm_subscription.primary.id
+  managed_by_tenant_id = "%s"
 
   authorization {
-	principal_id        = data.azurerm_client_config.test.object_id
-	role_definition_id  = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+	principal_id = "%s"
+	role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 
@@ -170,22 +171,22 @@ resource "azurerm_registration_assignment" "test" {
    registration_definition_id = azurerm_registration_definition.test.id
 }
 
-`, data.RandomInteger, secondTenantID, id)
+`, data.RandomInteger, secondTenantID, principalID, id)
 }
 
-func testAccAzureRMRegistrationAssignment_requiresImport(id string, secondTenantID string, data acceptance.TestData) string {
+func testAccAzureRMRegistrationAssignment_requiresImport(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_registration_assignment" "import" {
   registration_assignment_id = azurerm_registration_assignment.test.registration_assignment_id
   registration_definition_id = azurerm_registration_assignment.test.registration_definition_id
-  scope                      = azurerm_registration_assignment.test.scope
+  scope = azurerm_registration_assignment.test.scope
 }
-`, testAccAzureRMRegistrationAssignment_basic(id, secondTenantID, data))
+`, testAccAzureRMRegistrationAssignment_basic(id, secondTenantID, principalID, data))
 }
 
-func testAccAzureRMRegistrationAssignment_emptyId(secondTenantID string, data acceptance.TestData) string {
+func testAccAzureRMRegistrationAssignment_emptyId(secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
 	features {}
@@ -194,24 +195,21 @@ provider "azurerm" {
 data "azurerm_subscription" "primary" {
 }
 
-data "azurerm_client_config" "test" {
-}
-
 resource "azurerm_registration_definition" "test" {
-  name                       = "acctestrd-%d"
-  description				 = "Acceptance Test Registration Definition"
-  scope                      = data.azurerm_subscription.primary.id
-  managed_by_tenant_id       = "%s"
+  registration_definition_name = "acctestrd-%d"
+  description = "Acceptance Test Registration Definition"
+  scope = data.azurerm_subscription.primary.id
+  managed_by_tenant_id = "%s"
 
   authorization {
-	principal_id        = data.azurerm_client_config.test.object_id
-	role_definition_id  = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+	principal_id = "%s"
+	role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 
 resource "azurerm_registration_assignment" "test" {
-	scope = data.azurerm_subscription.primary.id
-	registration_definition_id = azurerm_registration_definition.test.id
+  scope = data.azurerm_subscription.primary.id
+  registration_definition_id = azurerm_registration_definition.test.id
  }
-`, data.RandomInteger, secondTenantID)
+`, data.RandomInteger, secondTenantID, principalID)
 }

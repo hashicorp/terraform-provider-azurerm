@@ -17,9 +17,6 @@ Manages a Registration Definition.
 data "azurerm_subscription" "primary" {
 }
 
-data "azurerm_client_config" "test" {
-}
-
 resource "azurerm_registration_definition" "example" {
   registration_definition_name  = "Sample registration"
   scope                         = data.azurerm_subscription.primary.id
@@ -27,7 +24,7 @@ resource "azurerm_registration_definition" "example" {
   managed_by_tenant_id          = "00000000-0000-0000-0000-000000000000"
 
   authorization {
-    principal_id        = data.azurerm_client_config.test.object_id
+    principal_id        = "00000000-0000-0000-0000-000000000000"
     role_definition_id  = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
