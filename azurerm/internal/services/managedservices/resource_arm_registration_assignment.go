@@ -188,7 +188,7 @@ func resourceArmRegistrationAssignmentDelete(d *schema.ResourceData, meta interf
 	}
 
 	// The sleep is needed to ensure the registration assignment is successfully deleted.
-	// Bug # is logged with the Product team to track this issue.
+	// A bug will be logged with the Azure product team to address this issue.
 	time.Sleep(30 * time.Second)
 
 	return nil

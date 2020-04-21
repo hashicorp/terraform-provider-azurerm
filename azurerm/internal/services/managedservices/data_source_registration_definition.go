@@ -33,7 +33,7 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"name": {
+			"registration_definition_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -95,7 +95,7 @@ func dataSourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interf
 			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)
-		d.Set("name", props.RegistrationDefinitionName)
+		d.Set("registration_definition_name", props.RegistrationDefinitionName)
 		d.Set("managed_by_tenant_id", props.ManagedByTenantID)
 	}
 

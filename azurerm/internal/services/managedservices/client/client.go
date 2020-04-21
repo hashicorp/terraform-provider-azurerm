@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common" 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
@@ -18,7 +18,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&RegistrationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		RegistrationDefinitionsClient: &RegistrationDefinitionsClient, 
+		RegistrationDefinitionsClient: &RegistrationDefinitionsClient,
 		RegistrationAssignmentsClient: &RegistrationAssignmentsClient,
 	}
 }

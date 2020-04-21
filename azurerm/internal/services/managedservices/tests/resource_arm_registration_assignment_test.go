@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -28,6 +27,7 @@ func TestAccAzureRMRegistrationAssignment_basic(t *testing.T) {
 				Config: testAccAzureRMRegistrationAssignment_basic(uuid.New().String(), secondTenantID, data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRegistrationAssignmentExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "registration_assignment_id"),
 				),
 			},
 		},
@@ -52,6 +52,7 @@ func TestAccAzureRMRegistrationAssignment_requiresImport(t *testing.T) {
 				Config: testAccAzureRMRegistrationAssignment_basic(id, secondTenantID, data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRegistrationAssignmentExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "registration_assignment_id"),
 				),
 			},
 			{
@@ -62,58 +63,7 @@ func TestAccAzureRMRegistrationAssignment_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMRegistrationAssignment_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_registration_assignment", "test")
-	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRegistrationAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRegistrationAssignment_complete(uuid.New().String(), secondTenantID, data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRegistrationAssignmentExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("registration_assignment_id"),
-		},
-	})
-}
-
-func TestAccAzureRMRegistrationAssignment_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_registration_assignment", "test")
-	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
-	id := uuid.New().String()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMRegistrationAssignmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMRegistrationAssignment_basic(id, secondTenantID, data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRegistrationAssignmentExists(data.ResourceName),
-					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
-				),
-			},
-			{
-				Config: testAccAzureRMRegistrationAssignment_updated(id, secondTenantID, data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRegistrationAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMRegistrationAssignment_emptyName(t *testing.T) {
+func TestAccAzureRMRegistrationAssignment_emptyID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_registration_assignment", "test")
 	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
 
@@ -127,7 +77,7 @@ func TestAccAzureRMRegistrationAssignment_emptyName(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRegistrationAssignmentExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "registration_assignment_id"),
 				),
 			},
 		},
@@ -136,7 +86,7 @@ func TestAccAzureRMRegistrationAssignment_emptyName(t *testing.T) {
 
 func testCheckAzureRMRegistrationAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ManagedServices.RegistrationAssignmentsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -146,12 +96,13 @@ func testCheckAzureRMRegistrationAssignmentExists(resourceName string) resource.
 
 		scope := rs.Primary.Attributes["scope"]
 		RegistrationAssignmentID := rs.Primary.Attributes["registration_assignment_id"]
+		expandRegistrationDefinition := true
 
-		resp, err := client.Get(ctx, scope, RegistrationAssignmentID)
+		resp, err := client.Get(ctx, scope, RegistrationAssignmentID, &expandRegistrationDefinition)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Registration Definition %q (Scope: %q) does not exist", RegistrationAssignmentID, scope)
+				return fmt.Errorf("Bad: Registration Assignment %q (Scope: %q) does not exist", RegistrationAssignmentID, scope)
 			}
 			return fmt.Errorf("Bad: Get on RegistrationAssignmentsClient: %+v", err)
 		}
@@ -161,7 +112,7 @@ func testCheckAzureRMRegistrationAssignmentExists(resourceName string) resource.
 }
 
 func testCheckAzureRMRegistrationAssignmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Authorization.RoleDefinitionsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ManagedServices.RegistrationAssignmentsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -171,8 +122,9 @@ func testCheckAzureRMRegistrationAssignmentDestroy(s *terraform.State) error {
 
 		scope := rs.Primary.Attributes["scope"]
 		RegistrationAssignmentID := rs.Primary.Attributes["registration_assignment_id"]
+		expandRegistrationDefinition := true
 
-		resp, err := client.Get(ctx, scope, RegistrationAssignmentID)
+		resp, err := client.Get(ctx, scope, RegistrationAssignmentID, &expandRegistrationDefinition)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -195,27 +147,18 @@ provider "azurerm" {
 data "azurerm_subscription" "primary" {
 }
 
-resource "azuread_application" "test" {
-	name = "acctestspa-%d"
-}
-		
-resource "azuread_service_principal" "test" {
-	application_id = azuread_application.test.application_id
-}
-	  
-data "azurerm_role_definition" "builtin" {
-	name = "Contributor"
+data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_registration_definition" "test" {
-  registration_definition_id = "%s"
   name                       = "acctestrd-%d"
+  description				 = "Acceptance Test Registration Definition"
   scope                      = data.azurerm_subscription.primary.id
   managed_by_tenant_id       = "%s"
 
   authorization {
-	principal_id        = azuread_service_principal.test.id
-	role_definition_id  = data.azurerm_role_definition.builtin.name
+	principal_id        = data.azurerm_client_config.test.object_id
+	role_definition_id  = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 
@@ -225,7 +168,7 @@ resource "azurerm_registration_assignment" "test" {
    registration_definition_id = azurerm_registration_definition.test.id
 }
 
-`, data.RandomInteger, id, data.RandomInteger, secondTenantID, id)
+`, data.RandomInteger, secondTenantID, id)
 }
 
 func testAccAzureRMRegistrationAssignment_requiresImport(id string, secondTenantID string, data acceptance.TestData) string {
@@ -240,89 +183,6 @@ resource "azurerm_registration_assignment" "import" {
 `, testAccAzureRMRegistrationAssignment_basic(id, secondTenantID, data))
 }
 
-func testAccAzureRMRegistrationAssignment_complete(id string, secondTenantID string, data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_subscription" "primary" {
-}
-
-resource "azuread_application" "test" {
-	name = "acctestspa-%d"
-}
-		
-resource "azuread_service_principal" "test" {
-	application_id = azuread_application.test.application_id
-}
-	  
-data "azurerm_role_definition" "builtin" {
-	name = "Contributor"
-}
-
-resource "azurerm_registration_definition" "test" {
-  name                       = "acctestrd-%d"
-  description				 = "Acceptance Test Registration Definition"
-  scope                      = data.azurerm_subscription.primary.id
-  managed_by_tenant_id       = "%s"
-
-  authorization {
-	principal_id        = azuread_service_principal.test.id
-	role_definition_id  = data.azurerm_role_definition.builtin.name
-  }
-}
-
-resource "azurerm_registration_assignment" "test" {
-	registration_assignment_id = "%s"
-	scope = data.azurerm_subscription.primary.id
-	registration_definition_id = azurerm_registration_definition.test.id
- }
-
-`, data.RandomInteger, data.RandomInteger, secondTenantID, id)
-}
-
-func testAccAzureRMRegistrationAssignment_updated(id string, secondTenantID string, data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_subscription" "primary" {
-}
-	 
-resource "azuread_application" "test" {
-	name = "acctestspa-%d"
-}
-		
-resource "azuread_service_principal" "test" {
-	application_id = azuread_application.test.application_id
-}
-	  
-data "azurerm_role_definition" "builtin" {
-	name = "Contributor"
-}
-
-resource "azurerm_registration_definition" "test" {
-  name                       = "acctestrd-%d"
-  description				 = "Acceptance Test Registration Definition"
-  scope                      = data.azurerm_subscription.primary.id
-  managed_by_tenant_id       = "%s"
-
-  authorization {
-	principal_id        = azuread_service_principal.test.id
-	role_definition_id  = data.azurerm_role_definition.builtin.name
-  }
-}
-
-resource "azurerm_registration_assignment" "test" {
-	registration_assignment_id = "%s"
-	scope = data.azurerm_subscription.primary.id
-	registration_definition_id = azurerm_registration_definition.test.id
- }
-`, data.RandomInteger, data.RandomInteger, secondTenantID, id)
-}
-
 func testAccAzureRMRegistrationAssignment_emptyId(secondTenantID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -331,35 +191,25 @@ provider "azurerm" {
 	  
 data "azurerm_subscription" "primary" {
 }
-	 
-resource "azuread_application" "test" {
-	name = "acctestspa-%d"
+
+data "azurerm_client_config" "test" {
 }
-		
-resource "azuread_service_principal" "test" {
-	application_id = azuread_application.test.application_id
-}
-	  
-data "azurerm_role_definition" "builtin" {
-	name = "Contributor"
-}
-	  
+
 resource "azurerm_registration_definition" "test" {
-	name                       	= "acctestrd-%d"
-	description				 	= "Acceptance Test Registration Definition"
-	scope                      	= data.azurerm_subscription.primary.id
-	managed_by_tenant_id       	= "%s"
-		
-	authorization {
-		principal_id        = azuread_service_principal.test.id
-		role_definition_id  = data.azurerm_role_definition.builtin.name
-	}
+  name                       = "acctestrd-%d"
+  description				 = "Acceptance Test Registration Definition"
+  scope                      = data.azurerm_subscription.primary.id
+  managed_by_tenant_id       = "%s"
+
+  authorization {
+	principal_id        = data.azurerm_client_config.test.object_id
+	role_definition_id  = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+  }
 }
 
 resource "azurerm_registration_assignment" "test" {
 	scope = data.azurerm_subscription.primary.id
 	registration_definition_id = azurerm_registration_definition.test.id
  }
-
-`, data.RandomInteger, data.RandomInteger, secondTenantID)
+`, data.RandomInteger, secondTenantID)
 }

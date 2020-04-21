@@ -58,7 +58,7 @@ output "registration_definition_id" {
 ## Attributes Reference
 
 * `id` - the Registration Definition ID.
-* `name` - the name of the Registration Definition.
+* `registration_definition_name` - the name of the Registration Definition.
 * `description` - the description of the Registration Definition.
 * `scope` - the scope at which the Registration Definition applies too, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`. Only subscription level scope is supported.
 * `managed_by_tenant_id` - the ID of the managing tenant.

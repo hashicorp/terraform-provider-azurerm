@@ -13,6 +13,8 @@ import (
 
 func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_registration_definition", "test")
+	// This resource needs multiple tenants to test the resource.
+	// Currently, I have set ARM_SECOND_TENANT_ID to be read from enviornment variable.
 	secondTenantID := os.Getenv("ARM_SECOND_TENANT_ID")
 	id := uuid.New().String()
 
@@ -23,14 +25,14 @@ func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceRegistrationDefinition_basic(id, secondTenantID, data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "description"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "registrationDefinitionName"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
+					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
+					resource.TestCheckResourceAttr(data.ResourceName, "registration_definition_name", fmt.Sprintf("acctestrd-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test Registration Definition"),
 					resource.TestMatchResourceAttr(data.ResourceName, "managed_by_tenant_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "authorization.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "authorization.role_definition_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "authorization.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "authorization.0.role_definition_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -46,27 +48,19 @@ provider "azurerm" {
 data "azurerm_subscription" "primary" {
 }
 
-resource "azuread_application" "test" {
-	name = "acctestspa-%d"
-}
-		
-resource "azuread_service_principal" "test" {
-	application_id = azuread_application.test.application_id
-}
-	  
-data "azurerm_role_definition" "builtin" {
-	name = "Contributor"
+data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_registration_definition" "test" {
-  registration_definition_id = "%s"
-  name                       = "acctestrd-%d"
-  scope                      = data.azurerm_subscription.primary.id
-  managed_by_tenant_id       = "%s"
+  registration_definition_id 	= "%s"
+  registration_definition_name  = "acctestrd-%d"
+  description				 	= "Acceptance Test Registration Definition"
+  scope                      	= data.azurerm_subscription.primary.id
+  managed_by_tenant_id       	= "%s"
 
   authorization {
-	principal_id        = azuread_service_principal.test.id
-	role_definition_id  = data.azurerm_role_definition.builtin.name
+	principal_id        = data.azurerm_client_config.test.object_id
+	role_definition_id  = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 
@@ -74,5 +68,5 @@ data "azurerm_registration_definition" "test" {
   registration_definition_id = azurerm_registration_definition.test.registration_definition_id
   scope              		 = data.azurerm_subscription.primary.id
 }
-`, data.RandomInteger, id, data.RandomInteger, secondTenantID)
+`, id, data.RandomInteger, secondTenantID)
 }

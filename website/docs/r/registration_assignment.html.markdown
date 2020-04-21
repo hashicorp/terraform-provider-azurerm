@@ -17,34 +17,25 @@ Assigns a given Registration Definition to a subscription or resource group.
 data "azurerm_subscription" "primary" {
 }
 
-resource "azuread_application" "example" {
-  name = "acctestspa-%d"
-}
-
-resource "azuread_service_principal" "example" {
-  application_id = azuread_application.example.application_id
-}
-
-data "azurerm_role_definition" "builtin" {
-  name = "Contributor"
+data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_registration_definition" "example" {
-  name                  = "Sample registration"
-  scope                 = data.azurerm_subscription.primary.id
-  description           = "This is a registration definition created via Terraform"
-  managed_by_tenant_id  = "00000000-0000-0000-0000-000000000000"
+  registration_definition_name  = "Sample registration"
+  scope                         = data.azurerm_subscription.primary.id
+  description                   = "This is a registration definition created via Terraform"
+  managed_by_tenant_id          = "00000000-0000-0000-0000-000000000000"
 
   authorization {
-    principal_id        = azuread_service_principal.example.id
-    role_definition_id  = data.azurerm_role_definition.builtin.name
+    principal_id        = data.azurerm_client_config.test.object_id
+    role_definition_id  = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 
 resource "azurerm_registration_assignment" "example" {
-   registration_assignment_id = "%s"
-   scope = data.azurerm_subscription.primary.id
-   registration_definition_id = azurerm_registration_definition.example.id
+  registration_assignment_id = "%s"
+  scope = data.azurerm_subscription.primary.id
+  registration_definition_id = azurerm_registration_definition.example.id
 }
 ```
 

@@ -49,7 +49,7 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"name": {
+			"registration_definition_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -123,7 +123,7 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 		Properties: &managedservices.RegistrationDefinitionProperties{
 			Description:                utils.String(d.Get("description").(string)),
 			Authorizations:             expandManagedServicesDefinitionAuthorization(d.Get("authorization").(*schema.Set).List()),
-			RegistrationDefinitionName: utils.String(d.Get("name").(string)),
+			RegistrationDefinitionName: utils.String(d.Get("registration_definition_name").(string)),
 			ManagedByTenantID:          utils.String(d.Get("managed_by_tenant_id").(string)),
 		},
 	}
@@ -175,7 +175,7 @@ func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)
-		d.Set("name", props.RegistrationDefinitionName)
+		d.Set("registration_definition_name", props.RegistrationDefinitionName)
 		d.Set("managed_by_tenant_id", props.ManagedByTenantID)
 	}
 

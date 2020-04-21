@@ -17,27 +17,18 @@ Manages a Registration Definition.
 data "azurerm_subscription" "primary" {
 }
 
-resource "azuread_application" "example" {
-  name = "acctestspa-%d"
-}
-
-resource "azuread_service_principal" "example" {
-  application_id = azuread_application.example.application_id
-}
-
-data "azurerm_role_definition" "builtin" {
-  name = "Contributor"
+data "azurerm_client_config" "test" {
 }
 
 resource "azurerm_registration_definition" "example" {
-  name                  = "Sample registration"
-  scope                 = data.azurerm_subscription.primary.id
-  description           = "This is a registration definition created via Terraform"
-  managed_by_tenant_id  = "00000000-0000-0000-0000-000000000000"
+  registration_definition_name  = "Sample registration"
+  scope                         = data.azurerm_subscription.primary.id
+  description                   = "This is a registration definition created via Terraform"
+  managed_by_tenant_id          = "00000000-0000-0000-0000-000000000000"
 
   authorization {
-    principal_id        = azuread_service_principal.example.id
-    role_definition_id  = data.azurerm_role_definition.builtin.name
+    principal_id        = data.azurerm_client_config.test.object_id
+    role_definition_id  = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 ```
@@ -48,7 +39,7 @@ The following arguments are supported:
 
 * `registration_definition_id` - (Optional) A unique UUID/GUID which identifies this registration definition - one will be generated if not specified. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the Registration Definition.
+* `registration_definition_name` - (Required) The name of the Registration Definition.
 
 * `scope` - (Required) The scope at which the Registration Definition applies too, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`. Only subscription level scope is supported.
 
