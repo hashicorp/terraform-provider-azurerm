@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_private_dns_zone` [GH-6512]
 * **New Resource:** `azurerm_maintenance_configuration` [GH-6038]
 * **New Resource:** `azurerm_servicebus_namespace_network_rule_set` [GH-6379]
 
