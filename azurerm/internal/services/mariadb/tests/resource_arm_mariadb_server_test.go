@@ -35,11 +35,6 @@ func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

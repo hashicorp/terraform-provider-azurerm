@@ -32,11 +32,6 @@ func TestAccAzureRMMariaDBFirewallRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDBFirewallRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_firewall_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
