@@ -36,11 +36,6 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_endpoint", "testAzure")
 	externalResourceName := "azurerm_traffic_manager_endpoint.testExternal"
 
