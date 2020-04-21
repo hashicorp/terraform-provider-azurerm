@@ -174,7 +174,7 @@ The `ip_configuration` block supports:
     the associated subnet is named `GatewaySubnet`. Therefore, each virtual
     network can contain at most a single Virtual Network Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of the public ip address to associate
+* `public_ip_address_id` - (Required) The ID of the public ip address to associate
     with the Virtual Network Gateway.
 
 The `vpn_client_configuration` block supports:
