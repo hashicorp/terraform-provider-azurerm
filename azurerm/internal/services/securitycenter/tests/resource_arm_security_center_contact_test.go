@@ -60,11 +60,6 @@ func testAccAzureRMSecurityCenterContact_basic(t *testing.T) {
 }
 
 func testAccAzureRMSecurityCenterContact_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

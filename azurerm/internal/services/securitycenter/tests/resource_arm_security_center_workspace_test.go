@@ -40,11 +40,6 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 }
 
 func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
 
