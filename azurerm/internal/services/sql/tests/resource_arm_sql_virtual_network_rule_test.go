@@ -50,10 +50,6 @@ func TestAccAzureRMSqlVirtualNetworkRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSqlVirtualNetworkRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_sql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

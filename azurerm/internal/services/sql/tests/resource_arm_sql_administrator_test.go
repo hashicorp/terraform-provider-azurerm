@@ -39,10 +39,6 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

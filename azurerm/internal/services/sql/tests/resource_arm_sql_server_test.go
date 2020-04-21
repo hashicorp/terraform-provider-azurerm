@@ -37,10 +37,6 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
