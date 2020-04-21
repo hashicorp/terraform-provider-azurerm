@@ -33,9 +33,9 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-
-				_, err := parse.PostgresServerServerID(d.Id())
-				return []*schema.ResourceData{d}, err
+				if _, err := parse.PostgresServerServerID(d.Id()); err != nil {
+					return []*schema.ResourceData{d}, err
+				}
 
 				d.Set("create_mode", "Default")
 				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
