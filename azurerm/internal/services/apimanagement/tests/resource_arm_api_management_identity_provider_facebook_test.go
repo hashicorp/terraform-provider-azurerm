@@ -64,7 +64,6 @@ func TestAccAzureRMApiManagementIdentityProviderFacebook_update(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementIdentityProviderFacebook_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_facebook", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

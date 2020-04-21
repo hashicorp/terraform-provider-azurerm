@@ -31,7 +31,6 @@ func TestAccAzureRMApiManagementApiSchema_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementApiSchema_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_schema", "test")
 
 	resource.Test(t, resource.TestCase{

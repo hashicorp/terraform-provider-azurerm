@@ -40,7 +40,6 @@ func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

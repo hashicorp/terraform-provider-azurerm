@@ -31,7 +31,6 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_openid_connect_provider", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

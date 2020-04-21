@@ -36,7 +36,6 @@ func TestAccAzureRMApiManagementAPIPolicy_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementAPIPolicy_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

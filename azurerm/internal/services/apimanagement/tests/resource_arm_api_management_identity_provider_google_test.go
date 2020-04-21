@@ -61,7 +61,6 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_update(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementIdentityProviderGoogle_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_api_management_identity_provider_google", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
