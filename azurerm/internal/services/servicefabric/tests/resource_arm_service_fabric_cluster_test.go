@@ -89,10 +89,6 @@ func TestAccAzureRMServiceFabricCluster_basicNodeTypeUpdate(t *testing.T) {
 }
 
 func TestAccAzureRMServiceFabricCluster_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_service_fabric_cluster", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
