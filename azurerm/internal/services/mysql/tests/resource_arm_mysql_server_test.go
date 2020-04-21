@@ -32,11 +32,6 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -59,11 +54,6 @@ func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
