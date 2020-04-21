@@ -138,7 +138,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 			DisplayName:      utils.String(d.Get("display_name").(string)),
 			Description:      utils.String(d.Get("description").(string)),
 			Enabled:          utils.Bool(d.Get("enabled").(bool)),
-			SeveritiesFilter: expandSeverityFilter(d.Get("severity_filter").(*schema.Set).List()),
+			SeveritiesFilter: expandAlertRuleMsSecurityIncidentSeverityFilter(d.Get("severity_filter").(*schema.Set).List()),
 		},
 	}
 
@@ -220,7 +220,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 		if err := d.Set("text_whitelist", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
 			return fmt.Errorf(`setting "text_whitelist": %+v`, err)
 		}
-		if err := d.Set("severity_filter", flattenSeverityFilter(prop.SeveritiesFilter)); err != nil {
+		if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
 			return fmt.Errorf(`setting "severity_filter": %+v`, err)
 		}
 	}
@@ -245,7 +245,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentDelete(d *schema.ResourceData
 	return nil
 }
 
-func expandSeverityFilter(input []interface{}) *[]securityinsight.AlertSeverity {
+func expandAlertRuleMsSecurityIncidentSeverityFilter(input []interface{}) *[]securityinsight.AlertSeverity {
 	result := make([]securityinsight.AlertSeverity, 0)
 
 	for _, e := range input {
@@ -255,7 +255,7 @@ func expandSeverityFilter(input []interface{}) *[]securityinsight.AlertSeverity 
 	return &result
 }
 
-func flattenSeverityFilter(input *[]securityinsight.AlertSeverity) []interface{} {
+func flattenAlertRuleMsSecurityIncidentSeverityFilter(input *[]securityinsight.AlertSeverity) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

@@ -218,18 +218,5 @@ resource "azurerm_log_analytics_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
-
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
-}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
