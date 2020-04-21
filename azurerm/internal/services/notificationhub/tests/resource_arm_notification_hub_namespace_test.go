@@ -31,11 +31,6 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 }
 
 func TestAccAzureRMNotificationHubNamespace_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
