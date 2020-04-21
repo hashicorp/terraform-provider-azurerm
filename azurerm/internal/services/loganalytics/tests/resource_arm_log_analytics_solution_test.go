@@ -31,11 +31,6 @@ func TestAccAzureRMLogAnalyticsSolution_basicContainerMonitoring(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsSolution_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_solution", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

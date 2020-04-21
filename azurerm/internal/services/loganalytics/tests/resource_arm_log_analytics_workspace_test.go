@@ -75,11 +75,6 @@ func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
