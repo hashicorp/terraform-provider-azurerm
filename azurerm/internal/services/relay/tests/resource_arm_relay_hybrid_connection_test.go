@@ -80,11 +80,6 @@ func TestAccAzureRMRelayHybridConnection_update(t *testing.T) {
 }
 
 func TestAccAzureRMRelayHybridConnection_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
