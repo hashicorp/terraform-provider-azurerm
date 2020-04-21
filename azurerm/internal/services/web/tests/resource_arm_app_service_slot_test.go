@@ -34,11 +34,6 @@ func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_app_service_slot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
