@@ -13,8 +13,8 @@ import (
 
 func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 	// Multiple tenants are needed to test this resource.
-	// Second tenant ID needs to be set as a enviornment variable ARM_TENANT_ID_ALT.
-	// ObjectId for user, usergroup or service principal in second tenant needs to be set as a enviornment variable ARM_PRINCIPAL_ID_ALT_TENANT.
+	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.
+	// ObjectId for user, usergroup or service principal in second tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
 	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 	data := acceptance.BuildTestData(t, "data.azurerm_registration_definition", "test")
@@ -51,21 +51,21 @@ data "azurerm_subscription" "primary" {
 }
 
 resource "azurerm_registration_definition" "test" {
-  registration_definition_id = "%s"
+  registration_definition_id   = "%s"
   registration_definition_name = "acctestrd-%d"
-  description = "Acceptance Test Registration Definition"
-  scope = data.azurerm_subscription.primary.id
-  managed_by_tenant_id = "%s"
+  description                  = "Acceptance Test Registration Definition"
+  scope                        = data.azurerm_subscription.primary.id
+  managed_by_tenant_id         = "%s"
 
   authorization {
-	principal_id = "%s"
-	role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    principal_id       = "%s"
+    role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 
 data "azurerm_registration_definition" "test" {
   registration_definition_id = azurerm_registration_definition.test.registration_definition_id
-  scope = data.azurerm_subscription.primary.id
+  scope                      = data.azurerm_subscription.primary.id
 }
 `, id, data.RandomInteger, secondTenantID, principalID)
 }

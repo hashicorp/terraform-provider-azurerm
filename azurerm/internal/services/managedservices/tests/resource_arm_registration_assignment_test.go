@@ -16,8 +16,8 @@ import (
 
 func TestAccAzureRMRegistrationAssignment_basic(t *testing.T) {
 	// Multiple tenants are needed to test this resource.
-	// Second tenant ID needs to be set as a enviornment variable ARM_TENANT_ID_ALT.
-	// ObjectId for user, usergroup or service principal in second tenant needs to be set as a enviornment variable ARM_PRINCIPAL_ID_ALT_TENANT.
+	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.
+	// ObjectId for user, usergroup or service principal in second tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
 	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 	data := acceptance.BuildTestData(t, "azurerm_registration_assignment", "test")
@@ -147,28 +147,28 @@ func testCheckAzureRMRegistrationAssignmentDestroy(s *terraform.State) error {
 func testAccAzureRMRegistrationAssignment_basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
-	  
+
 data "azurerm_subscription" "primary" {
 }
 
 resource "azurerm_registration_definition" "test" {
   registration_definition_name = "acctestrd-%d"
-  description = "Acceptance Test Registration Definition"
-  scope = data.azurerm_subscription.primary.id
-  managed_by_tenant_id = "%s"
+  description                  = "Acceptance Test Registration Definition"
+  scope                        = data.azurerm_subscription.primary.id
+  managed_by_tenant_id         = "%s"
 
   authorization {
-	principal_id = "%s"
-	role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    principal_id       = "%s"
+    role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 
 resource "azurerm_registration_assignment" "test" {
-   registration_assignment_id = "%s"
-   scope = data.azurerm_subscription.primary.id
-   registration_definition_id = azurerm_registration_definition.test.id
+  registration_assignment_id = "%s"
+  scope                      = data.azurerm_subscription.primary.id
+  registration_definition_id = azurerm_registration_definition.test.id
 }
 
 `, data.RandomInteger, secondTenantID, principalID, id)
@@ -181,7 +181,7 @@ func testAccAzureRMRegistrationAssignment_requiresImport(id string, secondTenant
 resource "azurerm_registration_assignment" "import" {
   registration_assignment_id = azurerm_registration_assignment.test.registration_assignment_id
   registration_definition_id = azurerm_registration_assignment.test.registration_definition_id
-  scope = azurerm_registration_assignment.test.scope
+  scope                      = azurerm_registration_assignment.test.scope
 }
 `, testAccAzureRMRegistrationAssignment_basic(id, secondTenantID, principalID, data))
 }
@@ -189,27 +189,27 @@ resource "azurerm_registration_assignment" "import" {
 func testAccAzureRMRegistrationAssignment_emptyId(secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
-	  
+
 data "azurerm_subscription" "primary" {
 }
 
 resource "azurerm_registration_definition" "test" {
   registration_definition_name = "acctestrd-%d"
-  description = "Acceptance Test Registration Definition"
-  scope = data.azurerm_subscription.primary.id
-  managed_by_tenant_id = "%s"
+  description                  = "Acceptance Test Registration Definition"
+  scope                        = data.azurerm_subscription.primary.id
+  managed_by_tenant_id         = "%s"
 
   authorization {
-	principal_id = "%s"
-	role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    principal_id       = "%s"
+    role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
 
 resource "azurerm_registration_assignment" "test" {
-  scope = data.azurerm_subscription.primary.id
+  scope                      = data.azurerm_subscription.primary.id
   registration_definition_id = azurerm_registration_definition.test.id
- }
+}
 `, data.RandomInteger, secondTenantID, principalID)
 }

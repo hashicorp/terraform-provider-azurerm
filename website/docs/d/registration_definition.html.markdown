@@ -17,14 +17,14 @@ data "azurerm_subscription" "primary" {
 }
 
 resource "azurerm_registration_definition" "example" {
-  registration_definition_name  = "Sample registration"
-  scope                         = data.azurerm_subscription.primary.id
-  description                   = "This is a registration definition created via Terraform"
-  managed_by_tenant_id          = "00000000-0000-0000-0000-000000000000"
+  registration_definition_name = "Sample registration"
+  scope                        = data.azurerm_subscription.primary.id
+  description                  = "This is a registration definition created via Terraform"
+  managed_by_tenant_id         = "00000000-0000-0000-0000-000000000000"
 
   authorization {
-    principal_id        = "00000000-0000-0000-0000-000000000000"
-    role_definition_id  = data.azurerm_role_definition.builtin.name
+    principal_id       = "00000000-0000-0000-0000-000000000000"
+    role_definition_id = data.azurerm_role_definition.builtin.name
   }
 }
 
