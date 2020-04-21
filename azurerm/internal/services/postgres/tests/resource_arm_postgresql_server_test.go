@@ -26,7 +26,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFive(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -44,14 +44,14 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointFiveDeprecated(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_basic(data, "9.5"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -69,7 +69,7 @@ func TestAccAzureRMPostgreSQLServer_basicNinePointSix(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -87,7 +87,7 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -105,7 +105,7 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -123,14 +123,14 @@ func TestAccAzureRMPostgreSQLServer_autogrowOnly(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_basic(data, "11"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -171,7 +171,7 @@ func TestAccAzureRMPostgreSQLServer_complete(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -189,21 +189,21 @@ func TestAccAzureRMPostgreSQLServer_updatedDeprecated(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_completeDeprecated(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_basicDeprecated(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -221,21 +221,21 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_complete(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_basic(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -253,14 +253,14 @@ func TestAccAzureRMPostgreSQLServer_completeDeprecatedUpdate(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_complete(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -278,14 +278,14 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_sku(data, "10.0", "MO_Gen5_16"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -303,7 +303,7 @@ func TestAccAzureRMPostgreSQLServer_createReplica(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				Config: testAccAzureRMPostgreSQLServer_createReplica(data, "11"),
 				Check: resource.ComposeTestCheckFunc(
@@ -311,7 +311,7 @@ func TestAccAzureRMPostgreSQLServer_createReplica(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.replica"),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
@@ -331,7 +331,7 @@ func TestAccAzureRMPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 			{
 				PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
 				Config:    testAccAzureRMPostgreSQLServer_createPointInTimeRestore(data, "11", restoreTime.Format(time.RFC3339)),
@@ -340,7 +340,7 @@ func TestAccAzureRMPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists("azurerm_postgresql_server.restore"),
 				),
 			},
-			data.ImportStep("administrator_login_password", "create_mode"),
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }

@@ -20,7 +20,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,10 +31,20 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 		Update: resourceArmPostgreSQLServerUpdate,
 		Delete: resourceArmPostgreSQLServerDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.PostgresServerServerID(id)
-			return err
-		}),
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+
+				_, err := parse.PostgresServerServerID(d.Id())
+				return []*schema.ResourceData{d}, err
+
+				d.Set("create_mode", "Default")
+				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
+					d.Set("create_mode", v)
+				}
+
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
