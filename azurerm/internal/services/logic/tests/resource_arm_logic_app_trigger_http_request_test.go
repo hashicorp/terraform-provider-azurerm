@@ -30,11 +30,6 @@ func TestAccAzureRMLogicAppTriggerHttpRequest_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLogicAppTriggerHttpRequest_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

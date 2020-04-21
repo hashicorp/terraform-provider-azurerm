@@ -29,11 +29,6 @@ func TestAccAzureRMLogicAppTriggerCustom_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLogicAppTriggerCustom_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_custom", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

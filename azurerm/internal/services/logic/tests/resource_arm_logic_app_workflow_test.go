@@ -38,11 +38,6 @@ func TestAccAzureRMLogicAppWorkflow_empty(t *testing.T) {
 }
 
 func TestAccAzureRMLogicAppWorkflow_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
