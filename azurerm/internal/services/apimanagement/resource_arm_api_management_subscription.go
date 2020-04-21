@@ -46,9 +46,6 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 			// 3.0 this seems to have been renamed to owner id?
 			"user_id": azure.SchemaApiManagementChildID(),
 
-			// 3.0 this seems to have been renamed to scope?
-			"product_id": azure.SchemaApiManagementChildID(),
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
@@ -57,6 +54,14 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			// TODO this now sets the scope property - either a scope block needs adding or additional properties `api_id` and maybe `all_apis`
+			"product_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"state": {
