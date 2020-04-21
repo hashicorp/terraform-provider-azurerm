@@ -35,11 +35,6 @@ func TestAccAzureRMMsSqlVirtualMachine_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMsSqlVirtualMachine_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
