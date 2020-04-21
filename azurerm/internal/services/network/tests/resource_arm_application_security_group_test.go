@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,8 +31,6 @@ func TestAccAzureRMApplicationSecurityGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
-
-
 	data := acceptance.BuildTestData(t, "azurerm_application_security_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
