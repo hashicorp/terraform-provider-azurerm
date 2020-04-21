@@ -50,6 +50,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"microsoft.insights":                {},
 		"Microsoft.Logic":                   {},
 		"Microsoft.MachineLearningServices": {},
+		"Microsoft.Maintenance":             {},
 		"Microsoft.ManagedIdentity":         {},
 		"Microsoft.Management":              {},
 		"Microsoft.Maps":                    {},
