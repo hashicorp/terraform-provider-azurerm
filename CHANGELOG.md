@@ -1,5 +1,9 @@
 ## 2.7.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_maintenance_configuration` [GH-6038]
+
 IMPROVEMENTS:
 
 * dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
