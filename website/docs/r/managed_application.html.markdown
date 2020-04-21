@@ -69,13 +69,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `kind` - (Required) The kind of the managed application. Possible values are `MarketPlace` and `ServiceCatalog`. Changing this forces a new resource to be created.
+* `kind` - (Required) The kind of the managed application to deploy. Possible values are `MarketPlace` and `ServiceCatalog`. Changing this forces a new resource to be created.
 
-* `managed_resource_group_name` - (Required) The name of the target resource group which holds all the resources that are required by the managed application. Changing this forces a new resource to be created.
+* `managed_resource_group_name` - (Required) The name of the target resource group where all the resources deployed by the managed application will reside. Changing this forces a new resource to be created.
 
-* `application_definition_id` - (Optional) The fully qualified path of managed application definition ID.
+* `application_definition_id` - (Optional) The application definition ID to deploy.
 
-* `parameters` - (Optional) The name and value pairs that define the managed application parameters.
+* `parameters` - (Optional) A mapping of name and value pairs to pass to the managed application as parameters.
 
 * `plan` - (Optional) One `plan` block as defined below.
 
@@ -93,7 +93,9 @@ The `plan` block exports the following:
 
 * `version` - (Required) Specifies the version of the plan from the marketplace.
 
-* `promotion_code` - (Optional) Specifies the promotion code of the plan. 
+* `promotion_code` - (Optional) Specifies the promotion code to use with the plan.
+
+~> **NOTE:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. For example, to accept the terms using PowerShell, please use `Set-AzContext -SubscriptionId "00000000-0000-0000-0000-000000000000"; Get-AzMarketplaceTerms -Publisher "cisco" -Product "meraki-vmx" -Name "meraki-vmx100" | Set-AzMarketplaceTerms -Accept`.
 
 ## Attributes Reference
 

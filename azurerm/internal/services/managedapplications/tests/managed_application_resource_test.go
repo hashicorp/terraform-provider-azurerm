@@ -190,11 +190,13 @@ func testAccAzureRMManagedApplication_requiresImport(data acceptance.TestData) s
 %s
 
 resource "azurerm_managed_application" "import" {
-  name                = azurerm_managed_application.test.name
-  location            = azurerm_managed_application.test.location
-  resource_group_name = azurerm_managed_application.test.resource_group_name
+  name                        = azurerm_managed_application.test.name
+  location                    = azurerm_managed_application.test.location
+  resource_group_name         = azurerm_managed_application.test.resource_group_name
+  kind                        = "ServiceCatalog"
+  managed_resource_group_name = "infraGroup%d"
 }
-`, testAccAzureRMManagedApplication_basic(data))
+`, testAccAzureRMManagedApplication_basic(data), data.RandomInteger)
 }
 
 func testAccAzureRMManagedApplication_complete(data acceptance.TestData) string {
