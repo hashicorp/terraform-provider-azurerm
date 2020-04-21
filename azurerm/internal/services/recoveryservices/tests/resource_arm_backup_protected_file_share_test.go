@@ -39,11 +39,6 @@ func TestAccAzureRMBackupProtectedFileShare_basic(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectedFileShare_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_file_share", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
