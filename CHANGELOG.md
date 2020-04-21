@@ -1,12 +1,21 @@
 ## 2.7.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_maintenance_configuration` [GH-6038]
+* **New Resource:** `azurerm_servicebus_namespace_network_rule_set` [GH-6379]
+
 IMPROVEMENTS:
 
+* dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
+* Data Source: `app_service_environment` - export the `location` property [GH-6538]
+* `azurerm_cosmosdb_mongo_collection` - support for the `index` and `system_index` properties [GH-6426]
 * `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
 
 BUG FIXES:
 
 * Data Source: `azurerm_private_link_service` - fixing a crash when parsing the response [GH-6504]
+* `resource_arm_application_gateway` - prevent panic by disallowing empty values for `backend_address_pool.#.fqdns` [GH-6549]
 
 ## 2.6.0 (April 16, 2020)
 

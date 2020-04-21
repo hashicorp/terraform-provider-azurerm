@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databasemigration/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -57,11 +56,6 @@ func TestAccAzureRMDatabaseMigrationProject_complete(t *testing.T) {
 }
 
 func TestAccAzureRMDatabaseMigrationProject_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
 
 	resource.Test(t, resource.TestCase{
