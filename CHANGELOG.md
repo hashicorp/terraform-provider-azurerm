@@ -18,6 +18,7 @@ BUG FIXES:
 * Data Source: `azurerm_private_link_service` - fixing a crash when parsing the response [GH-6504]
 * `azurerm_application_gateway` - prevent panic by disallowing empty values for `backend_address_pool.#.fqdns` [GH-6549]
 * `azurerm_cdn_endpoint` - `origin_host_header` is now required [GH-6550]
+* `azurerm_cdn_endpoint` - setting the `request_header_condition` block [GH-6541]
 
 ## 2.6.0 (April 16, 2020)
 
