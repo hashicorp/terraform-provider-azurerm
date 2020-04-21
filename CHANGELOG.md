@@ -1,4 +1,15 @@
 ## 2.7.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
+* `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
+
+BUG FIXES:
+
+* Data Source: `azurerm_private_link_service` - fixing a crash when parsing the response [GH-6504]
+* `resource_arm_application_gateway` - prevent panic by disallowing empty values for `backend_address_pool.#.fqdns` [GH-6549]
+
 ## 2.6.0 (April 16, 2020)
 
 FEATURES:

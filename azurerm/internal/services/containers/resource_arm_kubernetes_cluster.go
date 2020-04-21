@@ -319,9 +319,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"private_link_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ConflictsWith: []string{"private_cluster_enabled"},
+				Deprecated:    "Deprecated in favor of `private_cluster_enabled`", // TODO -- remove this in next major version
+			},
+
+			"private_cluster_enabled": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true, // TODO -- remove this when deprecation resolves
+				ConflictsWith: []string{"private_link_enabled"},
 			},
 
 			"role_based_access_control": {
@@ -580,10 +591,16 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
 	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
 
-	enablePrivateLink := d.Get("private_link_enabled").(bool)
+	enablePrivateCluster := false
+	if v, ok := d.GetOk("private_link_enabled"); ok {
+		enablePrivateCluster = v.(bool)
+	}
+	if v, ok := d.GetOk("private_cluster_enabled"); ok {
+		enablePrivateCluster = v.(bool)
+	}
 
 	apiAccessProfile := containerservice.ManagedClusterAPIServerAccessProfile{
-		EnablePrivateCluster: &enablePrivateLink,
+		EnablePrivateCluster: &enablePrivateCluster,
 		AuthorizedIPRanges:   apiServerAuthorizedIPRanges,
 	}
 
@@ -764,7 +781,14 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("api_server_authorized_ip_ranges") {
 		updateCluster = true
 		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
-		enablePrivateCluster := d.Get("private_link_enabled").(bool)
+
+		enablePrivateCluster := false
+		if v, ok := d.GetOk("private_link_enabled"); ok {
+			enablePrivateCluster = v.(bool)
+		}
+		if v, ok := d.GetOk("private_cluster_enabled"); ok {
+			enablePrivateCluster = v.(bool)
+		}
 		existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{
 			AuthorizedIPRanges:   utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw),
 			EnablePrivateCluster: &enablePrivateCluster,
@@ -933,6 +957,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			}
 
 			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
+			d.Set("private_cluster_enabled", accessProfile.EnablePrivateCluster)
 		}
 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
