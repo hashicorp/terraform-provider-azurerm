@@ -7,6 +7,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
+* `cosmosdb_mongo_collection` - support for the `index` and `system_index` properties [GH-6426]
 * `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
 
 BUG FIXES:
