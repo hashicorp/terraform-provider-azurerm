@@ -24,7 +24,7 @@ func resourceArmApiManagementProperty() *schema.Resource {
 		Update: resourceArmApiManagementPropertyCreateUpdate,
 		Delete: resourceArmApiManagementPropertyDelete,
 
-		DeprecationMessage: "This property has been renamed to `azurerm_api_management_named_value` to reflects changes in the API/SDK and will be removed in version 3.0 of the provider.",
+		DeprecationMessage: "This resource has been superseded by `azurerm_api_management_named_value` to reflects changes in the API/SDK and will be removed in version 3.0 of the provider.",
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -143,7 +143,7 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 	}
 	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
-	name := id.Path["properties"]
+	name := id.Path["namedValues"]
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -181,7 +181,7 @@ func resourceArmApiManagementPropertyDelete(d *schema.ResourceData, meta interfa
 	}
 	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
-	name := id.Path["properties"]
+	name := id.Path["namedValues"]
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {

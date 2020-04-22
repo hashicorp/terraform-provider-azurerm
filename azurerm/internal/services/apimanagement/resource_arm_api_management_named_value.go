@@ -130,7 +130,7 @@ func resourceArmApiManagementNamedValueRead(d *schema.ResourceData, meta interfa
 	}
 	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
-	name := id.Path["properties"]
+	name := id.Path["namedValues"]
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -168,7 +168,7 @@ func resourceArmApiManagementNamedValueDelete(d *schema.ResourceData, meta inter
 	}
 	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
-	name := id.Path["properties"]
+	name := id.Path["namedValues"]
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
