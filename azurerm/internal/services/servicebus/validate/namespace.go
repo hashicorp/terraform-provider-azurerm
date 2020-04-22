@@ -3,6 +3,7 @@ package validate
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
 )
@@ -31,6 +32,12 @@ func ServiceBusNamespaceName(i interface{}, k string) (warnings []string, errors
 
 	if matched := regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,100}[a-zA-Z0-9]$").MatchString(v); !matched {
 		errors = append(errors, fmt.Errorf("%q can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number", k))
+		return
+	}
+
+	// The name cannot end with "-", "-sb" or "-mgmt"
+	if strings.HasSuffix(v, "-") || strings.HasSuffix(v, "-sb") || strings.HasSuffix(v, "-mgmt") {
+		errors = append(errors, fmt.Errorf("%q cannot end with a hyphen, -sb, or -mgmt", k))
 		return
 	}
 
