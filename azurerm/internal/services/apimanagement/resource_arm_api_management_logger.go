@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -117,7 +117,7 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Logger %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Logger %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -142,12 +142,12 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("creating Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("retrieving Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Logger %q (Resource Group %q / API Management Service %q) ID", name, resourceGroup, serviceName)
@@ -177,7 +177,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Logger %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("reading Logger %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -188,7 +188,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 		d.Set("buffered", properties.IsBuffered)
 		d.Set("description", properties.Description)
 		if err := d.Set("eventhub", flattenArmApiManagementLoggerEventHub(d, properties)); err != nil {
-			return fmt.Errorf("Error setting `eventhub`: %s", err)
+			return fmt.Errorf("setting `eventhub`: %s", err)
 		}
 	}
 
@@ -223,7 +223,7 @@ func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if _, err := client.Update(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("Error updating Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("updating Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	return resourceArmApiManagementLoggerRead(d, meta)
@@ -243,9 +243,9 @@ func resourceArmApiManagementLoggerDelete(d *schema.ResourceData, meta interface
 	serviceName := id.Path["service"]
 	name := id.Path["loggers"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, "", utils.Bool(false)); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+			return fmt.Errorf("deleting Logger %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 		}
 	}
 

@@ -56,7 +56,7 @@ func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta inter
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Error checking for present of existing API %q / Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing API %q / Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -69,7 +69,7 @@ func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta inter
 
 	resp, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, apiName)
 	if err != nil {
-		return fmt.Errorf("Error adding API %q to Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
+		return fmt.Errorf("adding API %q to Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
 	}
 
 	// there's no Read so this is best-effort
@@ -100,7 +100,7 @@ func resourceArmApiManagementProductApiRead(d *schema.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving API %q / Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API %q / Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
 	}
 
 	// This can be removed once updated to apimanagement API to 2019-01-01
@@ -135,7 +135,7 @@ func resourceArmApiManagementProductApiDelete(d *schema.ResourceData, meta inter
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productId, apiName); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error removing API %q from Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
+			return fmt.Errorf("removing API %q from Product %q (API Management Service %q / Resource Group %q): %+v", apiName, productId, serviceName, resourceGroup, err)
 		}
 	}
 
