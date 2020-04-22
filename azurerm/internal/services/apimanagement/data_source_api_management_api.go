@@ -129,7 +129,7 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("API %q Revision %q (API Management Service %q / Resource Group %q) does not exist!", name, revision, serviceName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -151,11 +151,11 @@ func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("version_set_id", props.APIVersionSetID)
 
 		if err := d.Set("protocols", flattenApiManagementApiDataSourceProtocols(props.Protocols)); err != nil {
-			return fmt.Errorf("Error setting `protocols`: %s", err)
+			return fmt.Errorf("setting `protocols`: %s", err)
 		}
 
 		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiDataSourceSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
-			return fmt.Errorf("Error setting `subscription_key_parameter_names`: %+v", err)
+			return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
 		}
 	}
 

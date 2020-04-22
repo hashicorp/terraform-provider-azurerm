@@ -70,7 +70,7 @@ func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, m
 		existing, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Product Policy (API Management Service %q / Product %q / Resource Group %q): %s", serviceName, productID, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Product Policy (API Management Service %q / Product %q / Resource Group %q): %s", serviceName, productID, resourceGroup, err)
 			}
 		}
 
@@ -103,12 +103,12 @@ func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, m
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productID, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating or updating Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
+		return fmt.Errorf("creating or updating Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, productID, apimanagement.PolicyExportFormatXML)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
+		return fmt.Errorf("retrieving Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ID for Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
@@ -139,7 +139,7 @@ func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta inte
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request for Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
+		return fmt.Errorf("making Read request for Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -170,7 +170,7 @@ func resourceArmApiManagementProductPolicyDelete(d *schema.ResourceData, meta in
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, productID, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
+			return fmt.Errorf("deleting Product Policy (Resource Group %q / API Management Service %q / Product %q): %+v", resourceGroup, serviceName, productID, err)
 		}
 	}
 

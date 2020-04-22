@@ -207,14 +207,14 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	versionSetId := d.Get("version_set_id").(string)
 
 	if version != "" && versionSetId == "" {
-		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
+		return fmt.Errorf("setting `version` without the required `version_set_id`")
 	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing API %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing API %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -271,7 +271,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, apiParams, ""); err != nil {
-			return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -304,12 +304,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, ""); err != nil {
-		return fmt.Errorf("Error creating/updating API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating/updating API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -349,7 +349,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	d.Set("api_management_name", serviceName)
@@ -369,11 +369,11 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("version_set_id", props.APIVersionSetID)
 
 		if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
-			return fmt.Errorf("Error setting `protocols`: %s", err)
+			return fmt.Errorf("setting `protocols`: %s", err)
 		}
 
 		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
-			return fmt.Errorf("Error setting `subscription_key_parameter_names`: %+v", err)
+			return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
 		}
 	}
 
@@ -404,7 +404,7 @@ func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{})
 	deleteRevisions := utils.Bool(true)
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, "", deleteRevisions); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting API %q / Revision %q (API Management Service %q / Resource Group %q): %s", name, revision, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting API %q / Revision %q (API Management Service %q / Resource Group %q): %s", name, revision, serviceName, resourceGroup, err)
 		}
 	}
 

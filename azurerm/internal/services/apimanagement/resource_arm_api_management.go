@@ -399,7 +399,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing API Management Service %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing API Management Service %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -446,16 +446,16 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation/update of API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -468,14 +468,14 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings, ""); err != nil {
-		return fmt.Errorf("Error setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf(" setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
 	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
 	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings, ""); err != nil {
-		return fmt.Errorf("Error setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf(" setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
@@ -489,14 +489,14 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 		// remove the existing policy
 		if resp, err := policyClient.Delete(ctx, resourceGroup, name, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Error removing Policies from API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("removing Policies from API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
 		// then add the new one, if it exists
 		if policy != nil {
 			if _, err := policyClient.CreateOrUpdate(ctx, resourceGroup, name, *policy, ""); err != nil {
-				return fmt.Errorf("Error setting Policies for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf(" setting Policies for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 	}
@@ -525,26 +525,26 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 	signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
 	signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
 	policy, err := policyClient.Get(ctx, resourceGroup, name, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		if !utils.ResponseWasNotFound(policy.Response) {
-			return fmt.Errorf("Error retrieving Policy for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("retrieving Policy for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -557,7 +557,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 	identity := flattenAzureRmApiManagementMachineIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if props := resp.ServiceProperties; props != nil {
@@ -572,37 +572,37 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
 
 		if err := d.Set("security", flattenApiManagementSecurityCustomProperties(props.CustomProperties)); err != nil {
-			return fmt.Errorf("Error setting `security`: %+v", err)
+			return fmt.Errorf("setting `security`: %+v", err)
 		}
 
 		if err := d.Set("protocols", flattenApiManagementProtocolsCustomProperties(props.CustomProperties)); err != nil {
-			return fmt.Errorf("Error setting `protocols`: %+v", err)
+			return fmt.Errorf("setting `protocols`: %+v", err)
 		}
 
 		hostnameConfigs := flattenApiManagementHostnameConfigurations(props.HostnameConfigurations, d)
 		if err := d.Set("hostname_configuration", hostnameConfigs); err != nil {
-			return fmt.Errorf("Error setting `hostname_configuration`: %+v", err)
+			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
 
 		if err := d.Set("additional_location", flattenApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
-			return fmt.Errorf("Error setting `additional_location`: %+v", err)
+			return fmt.Errorf("setting `additional_location`: %+v", err)
 		}
 	}
 
 	if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		return fmt.Errorf("setting `sku_name`: %+v", err)
 	}
 
 	if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
-		return fmt.Errorf("Error setting `sign_in`: %+v", err)
+		return fmt.Errorf("setting `sign_in`: %+v", err)
 	}
 
 	if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
-		return fmt.Errorf("Error setting `sign_up`: %+v", err)
+		return fmt.Errorf("setting `sign_up`: %+v", err)
 	}
 
 	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
-		return fmt.Errorf("Error setting `policy`: %+v", err)
+		return fmt.Errorf("setting `policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1033,7 +1033,7 @@ func parseApiManagementNilableDictionary(input map[string]*string, key string) b
 
 	val, err := strconv.ParseBool(*v)
 	if err != nil {
-		log.Printf("Error parsing %q (key %q) as bool: %+v - assuming false", key, *v, err)
+		log.Printf(" parsing %q (key %q) as bool: %+v - assuming false", key, *v, err)
 		return false
 	}
 

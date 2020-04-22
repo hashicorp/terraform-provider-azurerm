@@ -82,7 +82,7 @@ func resourceArmApiManagementNamedValueCreateUpdate(d *schema.ResourceData, meta
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Property %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+				return fmt.Errorf(" checking for presence of existing Property %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -104,12 +104,12 @@ func resourceArmApiManagementNamedValueCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating or updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf(" creating or updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf(" retrieving Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ID for Property %q (Resource Group %q / API Management Service %q)", name, resourceGroup, serviceName)
@@ -140,7 +140,7 @@ func resourceArmApiManagementNamedValueRead(d *schema.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request for Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf(" making Read request for Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -172,7 +172,7 @@ func resourceArmApiManagementNamedValueDelete(d *schema.ResourceData, meta inter
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+			return fmt.Errorf(" deleting Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 		}
 	}
 

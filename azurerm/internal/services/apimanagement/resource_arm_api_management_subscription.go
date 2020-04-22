@@ -111,7 +111,7 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -145,12 +145,12 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 	sendEmail := utils.Bool(false)
 	_, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, subscriptionId, params, sendEmail, "")
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -179,7 +179,7 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 	}
 
 	d.Set("subscription_id", subscriptionId)
@@ -213,7 +213,7 @@ func resourceArmApiManagementSubscriptionDelete(d *schema.ResourceData, meta int
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, subscriptionId, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error removing Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
+			return fmt.Errorf("removing Subscription %q (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
 		}
 	}
 

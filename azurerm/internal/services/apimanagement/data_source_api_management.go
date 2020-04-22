@@ -161,7 +161,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("API Management Service %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("Error retrieving API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -185,11 +185,11 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("public_ip_addresses", props.PublicIPAddresses)
 
 		if err := d.Set("hostname_configuration", flattenDataSourceApiManagementHostnameConfigurations(props.HostnameConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `hostname_configuration`: %+v", err)
+			return fmt.Errorf("setting `hostname_configuration`: %+v", err)
 		}
 
 		if err := d.Set("additional_location", flattenDataSourceApiManagementAdditionalLocations(props.AdditionalLocations)); err != nil {
-			return fmt.Errorf("Error setting `additional_location`: %+v", err)
+			return fmt.Errorf("setting `additional_location`: %+v", err)
 		}
 	}
 
