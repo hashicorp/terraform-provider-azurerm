@@ -291,5 +291,4 @@ func flattenArmVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(t
 	}
 
 	return schemaTrafficSelectorPolicies
-
 }
