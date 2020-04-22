@@ -461,7 +461,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"request_routing_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
@@ -2663,7 +2663,7 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 }
 
 func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRequestRoutingRule, error) {
-	vs := d.Get("request_routing_rule").([]interface{})
+	vs := d.Get("request_routing_rule").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayRequestRoutingRule, 0)
 
 	for _, raw := range vs {
