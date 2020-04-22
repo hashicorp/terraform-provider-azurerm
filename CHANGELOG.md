@@ -8,6 +8,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* dependencies: updating `apimanagement` to `2019-12-01` [GH-6479]
 * dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
 * Data Source: `app_service_environment` - export the `location` property [GH-6538]
 * `azurerm_cosmosdb_mongo_collection` - support for the `index` and `system_index` properties [GH-6426]
