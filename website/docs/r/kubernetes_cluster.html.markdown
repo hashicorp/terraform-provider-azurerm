@@ -100,9 +100,7 @@ In addition, one of either `identity` or `service_principal` must be specified.
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
-* `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
-
--> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
+* `private_cluster_enabled` Should this Kubernetes Cluster have it's API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
@@ -362,6 +360,8 @@ The following attributes are exported:
 
 * `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
+* `kubelet_identity` - A `kubelet_identity` block as defined below.  
+
 ---
 
 A `http_application_routing` block exports the following:
@@ -381,6 +381,16 @@ The `identity` block exports the following:
 * `principal_id` - The principal id of the system assigned identity which is used by master components.
 
 * `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+
+---
+
+The `kubelet_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
 
 ---
 

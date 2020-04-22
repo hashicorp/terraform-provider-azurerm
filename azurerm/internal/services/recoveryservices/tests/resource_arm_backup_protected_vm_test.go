@@ -29,9 +29,9 @@ func TestAccAzureRMBackupProtectedVm_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{ // vault cannot be deleted unless we unregister all backups
+			{
+				// vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedVm_base(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
@@ -58,9 +58,9 @@ func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMBackupProtectedVm_requiresImport),
-			{ // vault cannot be deleted unless we unregister all backups
+			{
+				// vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedVm_base(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
@@ -82,9 +82,9 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{ // vault cannot be deleted unless we unregister all backups
+			{
+				// vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedVm_additionalVault(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
@@ -116,22 +116,22 @@ func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
 				),
 			},
-			{ // Remove backup policy link
+			{
+				// Remove backup policy link
 				// Backup policy link will need to be removed first so the VM's backup policy subsequently reverts to Default
 				// Azure API is quite sensitive, adding the step to control resource cleanup order
 				ResourceName: fBackupPolicyResourceName,
 				Config:       testAccAzureRMBackupProtectedVm_withVM(data),
-				Check:        resource.ComposeTestCheckFunc(),
 			},
-			{ // Then VM can be removed
+			{
+				// Then VM can be removed
 				ResourceName: virtualMachine,
 				Config:       testAccAzureRMBackupProtectedVm_withSecondPolicy(data),
-				Check:        resource.ComposeTestCheckFunc(),
 			},
-			{ // Remove backup policies and vault
+			{
+				// Remove backup policies and vault
 				ResourceName: data.ResourceName,
 				Config:       testAccAzureRMBackupProtectedVm_basePolicyTest(data),
-				Check:        resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
