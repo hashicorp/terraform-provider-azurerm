@@ -72,18 +72,18 @@ func dataSourceArmDataShareAccountRead(d *schema.ResourceData, meta interface{})
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failure in retrieving DataShare Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving DataShare Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read DataShare Account %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading DataShare Account %q (Resource Group %q): ID is empty", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if err := d.Set("identity", flattenAzureRmDataShareAccountIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("failure in setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
