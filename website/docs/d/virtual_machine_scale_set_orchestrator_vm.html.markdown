@@ -14,12 +14,12 @@ Use this data source to access information about an existing Virtual Machine Sca
 
 ```hcl
 provider "azurerm" {
-features {}
+  features {}
 }
 
 data "azurerm_virtual_machine_scale_set_orchestrator_vm" "example" {
-name = "example-VMSS"
-resource_group_name = "example-resources"
+  name                = "example-VMSS"
+  resource_group_name = "example-resources"
 }
 
 output "id" {

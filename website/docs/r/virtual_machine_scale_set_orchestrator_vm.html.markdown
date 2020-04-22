@@ -56,7 +56,7 @@ resource "azurerm_virtual_machine_scale_set_orchestrator_vm" "eample" {
   resource_group_name = azurerm_resource_group.example.name
 
   platform_fault_domain_count = 5
-single_placement_group = true
+  single_placement_group      = true
 
   zones = ["1"]
 }
