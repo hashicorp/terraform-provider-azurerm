@@ -552,7 +552,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"redirect_configuration": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -3015,7 +3015,7 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 }
 
 func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRedirectConfiguration, error) {
-	vs := d.Get("redirect_configuration").([]interface{})
+	vs := d.Get("redirect_configuration").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayRedirectConfiguration, 0)
 
 	for _, raw := range vs {
