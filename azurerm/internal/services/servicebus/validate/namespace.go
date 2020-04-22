@@ -30,8 +30,8 @@ func ServiceBusNamespaceName(i interface{}, k string) (warnings []string, errors
 		return
 	}
 
-	if matched := regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,100}[a-zA-Z0-9]$").MatchString(v); !matched {
-		errors = append(errors, fmt.Errorf("%q can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number", k))
+	if matched := regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$").MatchString(v); !matched {
+		errors = append(errors, fmt.Errorf("%q can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long", k))
 		return
 	}
 
