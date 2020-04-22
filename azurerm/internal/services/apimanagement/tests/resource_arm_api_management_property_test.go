@@ -52,6 +52,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag2"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAPIManagementProperty_update(data),
 				Check: resource.ComposeTestCheckFunc(

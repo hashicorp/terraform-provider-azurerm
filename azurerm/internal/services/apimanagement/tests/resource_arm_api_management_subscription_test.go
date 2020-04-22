@@ -25,8 +25,6 @@ func TestAccAzureRMAPIManagementSubscription_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 				),
 			},
 			data.ImportStep(),
@@ -51,8 +49,6 @@ func TestAccAzureRMAPIManagementSubscription_requiresImport(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMAPIManagementSubscription_requiresImport),
@@ -74,8 +70,6 @@ func TestAccAzureRMAPIManagementSubscription_update(t *testing.T) {
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "submitted"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 				),
 			},
 			{
@@ -117,8 +111,6 @@ func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
 					testCheckAzureRMAPIManagementSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "state", "active"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subscription_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 				),
 			},
 			data.ImportStep(),

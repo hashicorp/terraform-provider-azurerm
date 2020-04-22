@@ -68,7 +68,7 @@ func TestAccAzureRMAPIManagementAuthorizationServer_complete(t *testing.T) {
 					testCheckAzureRMAPIManagementAuthorizationServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
