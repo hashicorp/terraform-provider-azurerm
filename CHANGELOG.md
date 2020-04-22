@@ -25,6 +25,7 @@ BUG FIXES:
 * `azurerm_cdn_endpoint` - `origin_host_header` is now required [GH-6550]
 * `azurerm_cdn_endpoint` - setting the `request_header_condition` block [GH-6541]
 * `azurerm_iothub_dps` - fix crash when path isn't cased correctly [GH-6570]
+* `azurerm_linux_virtual_machine_scale_set` - fixes crash with `boot_diagnositics` [GH-6569]
 * `azurerm_postgres_server` - the `storage_mb` is no optional when `auto_grow` is enabled [GH-6459]
 * `azurerm_virtual_network_gateway` - per api requirements, `public_ip_address_id` is required [GH-6548]
 
