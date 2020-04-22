@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,10 +32,6 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

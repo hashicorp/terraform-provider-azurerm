@@ -9,7 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,10 +36,6 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

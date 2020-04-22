@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,11 +32,6 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDBVirtualNetworkRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
