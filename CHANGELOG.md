@@ -11,6 +11,7 @@ IMPROVEMENTS:
 * dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
 * Data Source: `app_service_environment` - export the `location` property [GH-6538]
 * `azurerm_cosmosdb_mongo_collection` - support for the `index` and `system_index` properties [GH-6426]
+* `azurerm_function_app` - Added `storage_account_id` and `storage_account_access_key` [GH-6304]
 * `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
 * `azurerm_postgres_server` - support for the `create_mode` property allowing for creation of replicas, point in time restores, and geo restors [GH-6459]
 * `azurerm_postgres_server` - support for the `infrastructure_encryption_enabled`, `public_network_access_enabled`, and `ssl_minimal_tls_version_enforced`, properties [GH-6459]
