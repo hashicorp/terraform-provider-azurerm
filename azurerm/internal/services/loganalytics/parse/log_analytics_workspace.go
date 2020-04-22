@@ -7,6 +7,7 @@ import (
 )
 
 type LogAnalyticsWorkspaceId struct {
+	Subscription  string
 	ResourceGroup string
 	Name          string
 }
@@ -18,6 +19,7 @@ func LogAnalyticsWorkspaceID(input string) (*LogAnalyticsWorkspaceId, error) {
 	}
 
 	server := LogAnalyticsWorkspaceId{
+		Subscription:  id.SubscriptionID,
 		ResourceGroup: id.ResourceGroup,
 	}
 

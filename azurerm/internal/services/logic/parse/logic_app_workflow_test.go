@@ -4,12 +4,12 @@ import (
 	"testing"
 )
 
-func TestLogAnalyticsWorkspaceID(t *testing.T) {
+func TestLogicAppWorkflowID(t *testing.T) {
 	testData := []struct {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *LogAnalyticsWorkspaceId
+		Expect *LogicAppWorkflowId
 	}{
 		{
 			Name:  "Empty",
@@ -27,23 +27,17 @@ func TestLogAnalyticsWorkspaceID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "Resource Group ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/",
+			Name:  "No Workflow Name",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/workflows",
 			Error: true,
 		},
 		{
-			Name:  "Missing Workspace Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces",
-			Error: true,
-		},
-		{
-			Name:  "Workspace Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1",
-			Error: true,
-			Expect: &LogAnalyticsWorkspaceId{
+			Name:  "Correct case",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/workflows/workflow1",
+			Expect: &LogicAppWorkflowId{
 				Subscription:  "00000000-0000-0000-0000-000000000000",
 				ResourceGroup: "resGroup1",
-				Name:          "workspace1",
+				Name:          "workflow1",
 			},
 		},
 	}
@@ -51,7 +45,7 @@ func TestLogAnalyticsWorkspaceID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := LogAnalyticsWorkspaceID(v.Input)
+		actual, err := LogicAppWorkflowID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
