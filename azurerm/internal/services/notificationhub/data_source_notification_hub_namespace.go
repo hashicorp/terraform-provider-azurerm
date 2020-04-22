@@ -2,6 +2,7 @@ package notificationhub
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
@@ -53,9 +54,7 @@ func dataSourceNotificationHubNamespace() *schema.Resource {
 				Computed: true,
 			},
 
-			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
-			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			// "tags": tags.SchemaDataSource(),
+			"tags": tags.SchemaDataSource(),
 
 			"servicebus_endpoint": {
 				Type:     schema.TypeString,
@@ -101,7 +100,7 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *schema.ResourceData, m
 		d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenNotificationHubDataSourceNamespacesSku(input *notificationhubs.Sku) []interface{} {

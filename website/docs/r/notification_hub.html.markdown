@@ -56,6 +56,8 @@ The following arguments are supported:
 
 ~> **NOTE:** Removing the `gcm_credential` block will currently force a recreation of this resource [due to this bug in the Azure SDK for Go](https://github.com/Azure/azure-sdk-for-go/issues/2246) - we'll remove this limitation when the SDK bug is fixed.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `apns_credential` block contains:

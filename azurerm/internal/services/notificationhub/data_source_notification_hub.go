@@ -2,6 +2,7 @@ package notificationhub
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
@@ -80,9 +81,7 @@ func dataSourceNotificationHub() *schema.Resource {
 				},
 			},
 
-			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
-			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			// "tags": tags.SchemaDataSource(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -131,7 +130,7 @@ func dataSourceNotificationHubRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenNotificationHubsDataSourceAPNSCredentials(input *notificationhubs.ApnsCredential) []interface{} {
