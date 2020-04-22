@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 
-* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
+* `public_network_access_enabled` - (Optional) Should public network access be allowed for this server? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

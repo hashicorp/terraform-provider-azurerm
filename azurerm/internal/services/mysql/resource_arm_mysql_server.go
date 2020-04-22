@@ -342,7 +342,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("administrator_login", resp.AdministratorLogin)
 	d.Set("version", string(resp.Version))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
-	d.Set("public_network_access_enabled", resp.PublicNetworkAccess == mysql.PublicNetworkAccessEnumEnabled)
+	d.Set("public_network_access_enabled", resp.PublicNetworkAccess != mysql.PublicNetworkAccessEnumDisabled)
 
 	if err := d.Set("storage_profile", flattenMySQLStorageProfile(resp.StorageProfile)); err != nil {
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
