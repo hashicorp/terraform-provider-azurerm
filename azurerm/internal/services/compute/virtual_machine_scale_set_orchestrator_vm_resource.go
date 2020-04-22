@@ -19,23 +19,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualMachineScaleSetVMMode() *schema.Resource {
+func resourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineScaleSetVMModeCreateUpdate,
-		Read:   resourceArmVirtualMachineScaleSetVMModeRead,
-		Update: resourceArmVirtualMachineScaleSetVMModeCreateUpdate,
-		Delete: resourceArmVirtualMachineScaleSetVMModeDelete,
+		Create: resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate,
+		Read:   resourceArmVirtualMachineScaleSetOrchestratorVMRead,
+		Update: resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate,
+		Delete: resourceArmVirtualMachineScaleSetOrchestratorVMDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
-		}, importVirtualMachineScaleSetVMOMode),
+		}, importVirtualMachineScaleSetOrchestratorVM),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -58,6 +58,11 @@ func resourceArmVirtualMachineScaleSetVMMode() *schema.Resource {
 				ValidateFunc: validation.IntBetween(0, 5),
 			},
 
+			"single_placement_group": {
+				Type:     schema.TypeBool,
+				Required: true,
+			},
+
 			// the VMO mode can only be deployed into one zone, and its zone will also be assigned to all its VM instances
 			"zones": azure.SchemaSingleZone(),
 
@@ -71,7 +76,7 @@ func resourceArmVirtualMachineScaleSetVMMode() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetVMModeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -83,7 +88,7 @@ func resourceArmVirtualMachineScaleSetVMModeCreateUpdate(d *schema.ResourceData,
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for existing Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -92,47 +97,39 @@ func resourceArmVirtualMachineScaleSetVMModeCreateUpdate(d *schema.ResourceData,
 		}
 	}
 
-	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-
-	faultDomainCount := d.Get("platform_fault_domain_count").(int)
-
-	zonesRaw := d.Get("zones").([]interface{})
-	zones := azure.ExpandZones(zonesRaw)
-
 	props := compute.VirtualMachineScaleSet{
-		Location: utils.String(location),
-		Tags:     tags.Expand(t),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
-			PlatformFaultDomainCount: utils.Int32(int32(faultDomainCount)),
-			SinglePlacementGroup:     utils.Bool(true), // This is hard-coded because currently the service only accepts true, false or absence will cause errors
+			PlatformFaultDomainCount: utils.Int32(int32(d.Get("platform_fault_domain_count").(int))),
+			SinglePlacementGroup:     utils.Bool(d.Get("single_placement_group").(bool)),
 		},
-		Zones: zones,
+		Zones: azure.ExpandZones(d.Get("zones").([]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
 	if err != nil {
-		return fmt.Errorf("Error creating Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Error retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): ID was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): ID was nil", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualMachineScaleSetVMModeRead(d, meta)
+	return resourceArmVirtualMachineScaleSetOrchestratorVMRead(d, meta)
 }
 
-func resourceArmVirtualMachineScaleSetVMModeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineScaleSetOrchestratorVMRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -150,7 +147,7 @@ func resourceArmVirtualMachineScaleSetVMModeRead(d *schema.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -159,17 +156,18 @@ func resourceArmVirtualMachineScaleSetVMModeRead(d *schema.ResourceData, meta in
 
 	if props := resp.VirtualMachineScaleSetProperties; props != nil {
 		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+		d.Set("single_placement_group", props.SinglePlacementGroup)
 		d.Set("unique_id", props.UniqueID)
 	}
 
 	if err := d.Set("zones", resp.Zones); err != nil {
-		return fmt.Errorf("Error setting `zones`: %+v", err)
+		return fmt.Errorf("setting `zones`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualMachineScaleSetVMModeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualMachineScaleSetOrchestratorVMDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -185,16 +183,16 @@ func resourceArmVirtualMachineScaleSetVMModeDelete(d *schema.ResourceData, meta 
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
