@@ -48,7 +48,7 @@ func TestAccAzureRMNotificationHub_updateTag(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMNotificationHub_basic(data),
+				Config: testAccAzureRMNotificationHub_withoutTag(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNotificationHubExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
