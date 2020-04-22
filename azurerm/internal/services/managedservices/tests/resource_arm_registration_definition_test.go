@@ -207,13 +207,9 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "primary" {
-}
-
 resource "azurerm_registration_definition" "test" {
   registration_definition_id   = "%s"
   registration_definition_name = "acctestrd-%d"
-  scope                        = data.azurerm_subscription.primary.id
   managed_by_tenant_id         = "%s"
 
   authorization {
@@ -231,7 +227,6 @@ func testAccAzureRMRegistrationDefinition_requiresImport(id string, secondTenant
 resource "azurerm_registration_definition" "import" {
   registration_definition_name = azurerm_registration_definition.test.registration_definition_name
   registration_definition_id   = azurerm_registration_definition.test.registration_definition_id
-  scope                        = azurerm_registration_definition.test.scope
   managed_by_tenant_id         = azurerm_registration_definition.test.managed_by_tenant_id
   authorization {
     principal_id       = azurerm_registration_definition.test.managed_by_tenant_id
@@ -247,14 +242,10 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "primary" {
-}
-
 resource "azurerm_registration_definition" "test" {
   registration_definition_id   = "%s"
   registration_definition_name = "acctestrd-%d"
   description                  = "Acceptance Test Registration Definition"
-  scope                        = data.azurerm_subscription.primary.id
   managed_by_tenant_id         = "%s"
 
   authorization {
@@ -271,13 +262,9 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "primary" {
-}
-
 resource "azurerm_registration_definition" "test" {
   registration_definition_name = "acctestrd-%d"
   description                  = "Acceptance Test Registration Definition"
-  scope                        = data.azurerm_subscription.primary.id
   managed_by_tenant_id         = "%s"
 
   authorization {

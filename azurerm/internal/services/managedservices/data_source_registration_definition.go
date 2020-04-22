@@ -28,9 +28,8 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 			},
 
 			"scope": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"registration_definition_name": {
@@ -74,7 +73,12 @@ func dataSourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interf
 	defer cancel()
 
 	registrationDefinitionID := d.Get("registration_definition_id").(string)
-	scope := d.Get("scope").(string)
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	if subscriptionID == "" {
+		return fmt.Errorf("Error reading Subscription for Registration Definition %q", registrationDefinitionID)
+	}
+
+	scope := buildScopeForRegistrationDefinition(subscriptionID)
 
 	resp, err := client.Get(ctx, scope, registrationDefinitionID)
 	if err != nil {

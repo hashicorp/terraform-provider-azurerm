@@ -43,15 +43,14 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"scope": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"registration_definition_name": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+
+			"scope": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"description": {
@@ -104,7 +103,12 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 		registrationDefinitionID = uuid
 	}
 
-	scope := d.Get("scope").(string)
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+	if subscriptionID == "" {
+		return fmt.Errorf("Error reading Subscription for Registration Definition %q", registrationDefinitionID)
+	}
+
+	scope := buildScopeForRegistrationDefinition(subscriptionID)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, registrationDefinitionID)
@@ -151,7 +155,7 @@ func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureregistrationDefinitionID(d.Id())
+	id, err := parseAzureRegistrationDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,7 +191,7 @@ func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureregistrationDefinitionID(d.Id())
+	id, err := parseAzureRegistrationDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -205,7 +209,7 @@ type registrationDefinitionID struct {
 	registrationDefinitionID string
 }
 
-func parseAzureregistrationDefinitionID(id string) (*registrationDefinitionID, error) {
+func parseAzureRegistrationDefinitionID(id string) (*registrationDefinitionID, error) {
 	segments := strings.Split(id, "/providers/Microsoft.ManagedServices/registrationDefinitions/")
 
 	if len(segments) != 2 {
@@ -218,6 +222,10 @@ func parseAzureregistrationDefinitionID(id string) (*registrationDefinitionID, e
 	}
 
 	return &azureregistrationDefinitionID, nil
+}
+
+func buildScopeForRegistrationDefinition(subscriptionID string) string {
+	return fmt.Sprintf("/subscriptions/%s", subscriptionID)
 }
 
 func flattenManagedServicesDefinitionAuthorization(input *[]managedservices.Authorization) []interface{} {

@@ -47,14 +47,10 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "primary" {
-}
-
 resource "azurerm_registration_definition" "test" {
   registration_definition_id   = "%s"
   registration_definition_name = "acctestrd-%d"
   description                  = "Acceptance Test Registration Definition"
-  scope                        = data.azurerm_subscription.primary.id
   managed_by_tenant_id         = "%s"
 
   authorization {
@@ -65,7 +61,6 @@ resource "azurerm_registration_definition" "test" {
 
 data "azurerm_registration_definition" "test" {
   registration_definition_id = azurerm_registration_definition.test.registration_definition_id
-  scope                      = data.azurerm_subscription.primary.id
 }
 `, id, data.RandomInteger, secondTenantID, principalID)
 }

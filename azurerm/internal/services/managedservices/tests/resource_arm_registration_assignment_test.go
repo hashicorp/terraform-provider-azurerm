@@ -156,7 +156,6 @@ data "azurerm_subscription" "primary" {
 resource "azurerm_registration_definition" "test" {
   registration_definition_name = "acctestrd-%d"
   description                  = "Acceptance Test Registration Definition"
-  scope                        = data.azurerm_subscription.primary.id
   managed_by_tenant_id         = "%s"
 
   authorization {
@@ -198,7 +197,6 @@ data "azurerm_subscription" "primary" {
 resource "azurerm_registration_definition" "test" {
   registration_definition_name = "acctestrd-%d"
   description                  = "Acceptance Test Registration Definition"
-  scope                        = data.azurerm_subscription.primary.id
   managed_by_tenant_id         = "%s"
 
   authorization {

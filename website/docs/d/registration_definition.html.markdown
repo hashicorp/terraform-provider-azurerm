@@ -13,12 +13,8 @@ Use this data source to access information about an existing Registration Defini
 ## Example Usage
 
 ```hcl
-data "azurerm_subscription" "primary" {
-}
-
 resource "azurerm_registration_definition" "example" {
   registration_definition_name = "Sample registration"
-  scope                        = data.azurerm_subscription.primary.id
   description                  = "This is a registration definition created via Terraform"
   managed_by_tenant_id         = "00000000-0000-0000-0000-000000000000"
 
@@ -30,7 +26,6 @@ resource "azurerm_registration_definition" "example" {
 
 data "azurerm_registration_definition" "example" {
   registration_definition_id = azurerm_registration_definition.definition1.registration_definition_id
-  scope                      = data.azurerm_subscription.primary.id # /subscriptions/00000000-0000-0000-0000-000000000000
 }
 
 output "registration_definition_id" {
@@ -41,7 +36,6 @@ output "registration_definition_id" {
 ## Argument Reference
 
 * `registration_definition_id` - (Required) Specifies the ID of the Registration Definition as a UUID/GUID.
-* `scope` - (Required) Specifies the Scope at which the Custom Role Definition exists.
 
 ## Attributes Reference
 
