@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -104,6 +105,22 @@ func TestAccLinuxVirtualMachine_otherComputerNameDefault(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherComputerNameDefaultInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config:      testLinuxVirtualMachine_otherComputerNameDefaultInvalid(data),
+				ExpectError: regexp.MustCompile("unable to assume default computer name"),
+			},
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherComputerNameCustom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 
@@ -116,7 +133,7 @@ func TestAccLinuxVirtualMachine_otherComputerNameCustom(t *testing.T) {
 				Config: testLinuxVirtualMachine_otherComputerNameCustom(data),
 				Check: resource.ComposeTestCheckFunc(
 					checkLinuxVirtualMachineExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "computer_name", "custom123"),
+					resource.TestCheckResourceAttr(data.ResourceName, "computer_name", "custom-linux-hostname-123"),
 				),
 			},
 			data.ImportStep(),
@@ -504,6 +521,41 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, template, data.RandomInteger)
 }
 
+func testLinuxVirtualMachine_otherComputerNameDefaultInvalid(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-this-name-too-long-to-be-a-linux-vm-computer-name-1234567890"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
 func testLinuxVirtualMachine_otherComputerNameCustom(data acceptance.TestData) string {
 	template := testLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
@@ -515,7 +567,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
   admin_username      = "adminuser"
-  computer_name       = "custom123"
+  computer_name       = "custom-linux-hostname-123"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
