@@ -31,6 +31,41 @@ func TestAccAzureRMNotificationHub_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNotificationHub_updateTag(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNotificationHub_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNotificationHub_withoutTag(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNotificationHub_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMNotificationHub_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -106,6 +141,38 @@ func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMNotificationHub_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRGpol-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  namespace_type      = "NotificationHub"
+  sku_name            = "Free"
+}
+
+resource "azurerm_notification_hub" "test" {
+  name                = "acctestnh-%d"
+  namespace_name      = azurerm_notification_hub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMNotificationHub_withoutTag(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

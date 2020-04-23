@@ -318,7 +318,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"frontend_port": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -461,7 +461,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"request_routing_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
@@ -552,7 +552,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"redirect_configuration": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -2405,7 +2405,7 @@ func flattenApplicationGatewayIPConfigurations(input *[]network.ApplicationGatew
 }
 
 func expandApplicationGatewayFrontendPorts(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendPort {
-	vs := d.Get("frontend_port").([]interface{})
+	vs := d.Get("frontend_port").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayFrontendPort, 0)
 
 	for _, raw := range vs {
@@ -2663,7 +2663,7 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 }
 
 func expandApplicationGatewayRequestRoutingRules(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRequestRoutingRule, error) {
-	vs := d.Get("request_routing_rule").([]interface{})
+	vs := d.Get("request_routing_rule").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayRequestRoutingRule, 0)
 
 	for _, raw := range vs {
@@ -3015,7 +3015,7 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 }
 
 func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRedirectConfiguration, error) {
-	vs := d.Get("redirect_configuration").([]interface{})
+	vs := d.Get("redirect_configuration").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayRedirectConfiguration, 0)
 
 	for _, raw := range vs {
