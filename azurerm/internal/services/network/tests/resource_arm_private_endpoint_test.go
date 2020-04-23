@@ -236,9 +236,6 @@ resource "azurerm_private_link_service" "test" {
 
 func testAccAzureRMPrivateEndpoint_serviceManualApprove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_private_link_service" "test" {
   name                = "acctestPLS-%d"
