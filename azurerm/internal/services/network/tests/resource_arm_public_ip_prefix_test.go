@@ -118,7 +118,7 @@ func TestAccAzureRMPublicIpPrefix_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPublicIpPrefix_prefixLength(t *testing.T) {
+func TestAccAzureRMPublicIpPrefix_prefixLength31(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -127,11 +127,34 @@ func TestAccAzureRMPublicIpPrefix_prefixLength(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMPublicIPPrefix_prefixLength(data),
+				Config: testAccAzureRMPublicIPPrefix_prefixLength31(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_prefix"),
 					resource.TestCheckResourceAttr(data.ResourceName, "prefix_length", "31"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMPublicIpPrefix_prefixLength24(t *testing.T) {
+	// NOTE: This test will fail unless the subscription is updated
+	//        to accept a minimum PrefixLength of 24
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPublicIPPrefixDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPublicIPPrefix_prefixLength24(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIPPrefixExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ip_prefix"),
+					resource.TestCheckResourceAttr(data.ResourceName, "prefix_length", "24"),
 				),
 			},
 			data.ImportStep(),
@@ -254,7 +277,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMPublicIPPrefix_prefixLength(data acceptance.TestData) string {
+func testAccAzureRMPublicIPPrefix_prefixLength31(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -271,6 +294,27 @@ resource "azurerm_public_ip_prefix" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   prefix_length = 31
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMPublicIPPrefix_prefixLength24(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  prefix_length = 24
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

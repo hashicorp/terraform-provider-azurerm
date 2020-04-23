@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -68,7 +68,7 @@ func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.Resou
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Twitter)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Identity Provider %q (API Management Service %q / Resource Group %q): %s", apimanagement.Twitter, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Identity Provider %q (API Management Service %q / Resource Group %q): %s", apimanagement.Twitter, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -77,8 +77,8 @@ func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.Resou
 		}
 	}
 
-	parameters := apimanagement.IdentityProviderContract{
-		IdentityProviderContractProperties: &apimanagement.IdentityProviderContractProperties{
+	parameters := apimanagement.IdentityProviderCreateContract{
+		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
 			ClientID:     utils.String(clientID),
 			ClientSecret: utils.String(clientSecret),
 			Type:         apimanagement.Twitter,
@@ -86,12 +86,12 @@ func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.Resou
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apimanagement.Twitter, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Twitter, resourceGroup, serviceName, err)
+		return fmt.Errorf("creating or updating Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Twitter, resourceGroup, serviceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Twitter)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Twitter, resourceGroup, serviceName, err)
+		return fmt.Errorf("retrieving Identity Provider %q (Resource Group %q / API Management Service %q): %+v", apimanagement.Twitter, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ID for Identity Provider %q (Resource Group %q / API Management Service %q)", apimanagement.Twitter, resourceGroup, serviceName)
@@ -122,7 +122,7 @@ func resourceArmApiManagementIdentityProviderTwitterRead(d *schema.ResourceData,
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request for Identity Provider %q (Resource Group %q / API Management Service %q): %+v", identityProviderName, resourceGroup, serviceName, err)
+		return fmt.Errorf("making Read request for Identity Provider %q (Resource Group %q / API Management Service %q): %+v", identityProviderName, resourceGroup, serviceName, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -151,7 +151,7 @@ func resourceArmApiManagementIdentityProviderTwitterDelete(d *schema.ResourceDat
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apimanagement.IdentityProviderType(identityProviderName), ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Identity Provider %q (Resource Group %q / API Management Service %q): %+v", identityProviderName, resourceGroup, serviceName, err)
+			return fmt.Errorf("deleting Identity Provider %q (Resource Group %q / API Management Service %q): %+v", identityProviderName, resourceGroup, serviceName, err)
 		}
 	}
 
