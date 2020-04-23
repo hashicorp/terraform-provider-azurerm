@@ -21,7 +21,7 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"metered":                      testAccAzureRMExpressRouteCircuit_basicMetered,
 			"unlimited":                    testAccAzureRMExpressRouteCircuit_basicUnlimited,
 			"update":                       testAccAzureRMExpressRouteCircuit_update,
-			"updateTags": testAccAzureRMExpressRouteCircuit_updateTags,
+			"updateTags":                   testAccAzureRMExpressRouteCircuit_updateTags,
 			"tierUpdate":                   testAccAzureRMExpressRouteCircuit_tierUpdate,
 			"premiumMetered":               testAccAzureRMExpressRouteCircuit_premiumMetered,
 			"premiumUnlimited":             testAccAzureRMExpressRouteCircuit_premiumUnlimited,
