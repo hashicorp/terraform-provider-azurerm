@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
@@ -36,11 +35,6 @@ func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
 }
 
 func TestAccAzureRMFirewallNetworkRuleCollection_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_firewall_network_rule_collection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

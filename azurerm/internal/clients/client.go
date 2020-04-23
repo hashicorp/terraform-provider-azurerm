@@ -41,6 +41,7 @@ import (
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
 	machinelearning "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/client"
+	maintenance "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/client"
 	managementgroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/client"
 	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
@@ -118,6 +119,7 @@ type Client struct {
 	LogAnalytics       *loganalytics.Client
 	Logic              *logic.Client
 	MachineLearning    *machinelearning.Client
+	Maintenance        *maintenance.Client
 	ManagedApplication *managedapplication.Client
 	ManagementGroups   *managementgroup.Client
 	Maps               *maps.Client
@@ -196,6 +198,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.Logic = logic.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
+	client.Maintenance = maintenance.NewClient(o)
 	client.ManagedApplication = managedapplication.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
 	client.Maps = maps.NewClient(o)

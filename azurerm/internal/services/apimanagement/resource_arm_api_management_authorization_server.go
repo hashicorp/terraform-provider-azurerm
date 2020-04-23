@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -197,7 +197,7 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Authorization Server %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Authorization Server %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -262,12 +262,12 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, params, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Authorization Server %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Authorization Server %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Authorization Server %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Authorization Server %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -300,7 +300,7 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Authorization Server %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Authorization Server %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	d.Set("api_management_name", serviceName)
@@ -321,23 +321,23 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 		d.Set("token_endpoint", props.TokenEndpoint)
 
 		if err := d.Set("authorization_methods", flattenApiManagementAuthorizationServerAuthorizationMethods(props.AuthorizationMethods)); err != nil {
-			return fmt.Errorf("Error flattening `authorization_methods`: %+v", err)
+			return fmt.Errorf("flattening `authorization_methods`: %+v", err)
 		}
 
 		if err := d.Set("bearer_token_sending_methods", flattenApiManagementAuthorizationServerBearerTokenSendingMethods(props.BearerTokenSendingMethods)); err != nil {
-			return fmt.Errorf("Error flattening `bearer_token_sending_methods`: %+v", err)
+			return fmt.Errorf("flattening `bearer_token_sending_methods`: %+v", err)
 		}
 
 		if err := d.Set("client_authentication_method", flattenApiManagementAuthorizationServerClientAuthenticationMethods(props.ClientAuthenticationMethod)); err != nil {
-			return fmt.Errorf("Error flattening `client_authentication_method`: %+v", err)
+			return fmt.Errorf("flattening `client_authentication_method`: %+v", err)
 		}
 
 		if err := d.Set("grant_types", flattenApiManagementAuthorizationServerGrantTypes(props.GrantTypes)); err != nil {
-			return fmt.Errorf("Error flattening `grant_types`: %+v", err)
+			return fmt.Errorf("flattening `grant_types`: %+v", err)
 		}
 
 		if err := d.Set("token_body_parameter", flattenApiManagementAuthorizationServerTokenBodyParameters(props.TokenBodyParameters)); err != nil {
-			return fmt.Errorf("Error flattening `token_body_parameter`: %+v", err)
+			return fmt.Errorf("flattening `token_body_parameter`: %+v", err)
 		}
 	}
 
@@ -360,7 +360,7 @@ func resourceArmApiManagementAuthorizationServerDelete(d *schema.ResourceData, m
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Authorization Server %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting Authorization Server %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
 		}
 	}
 

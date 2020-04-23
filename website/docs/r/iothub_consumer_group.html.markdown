@@ -37,7 +37,7 @@ resource "azurerm_iothub_consumer_group" "example" {
   name                   = "terraform"
   iothub_name            = azurerm_iothub.example.name
   eventhub_endpoint_name = "events"
-  resource_group_name    = azurerm_resource_group.foo.name
+  resource_group_name    = azurerm_resource_group.example.name
 }
 ```
 

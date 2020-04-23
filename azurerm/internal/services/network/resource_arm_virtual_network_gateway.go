@@ -150,7 +150,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 					},

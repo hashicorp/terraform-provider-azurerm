@@ -1,6 +1,8 @@
 package deliveryruleconditions
 
 import (
+	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -93,32 +95,44 @@ func ExpandArmCdnEndpointConditionRequestHeader(input []interface{}) []cdn.Basic
 	return output
 }
 
-func FlattenArmCdnEndpointConditionRequestHeader(cc *cdn.DeliveryRuleRequestHeaderCondition) map[string]interface{} {
-	res := make(map[string]interface{}, 1)
+func FlattenArmCdnEndpointConditionRequestHeader(input cdn.BasicDeliveryRuleCondition) (*map[string]interface{}, error) {
+	condition, ok := input.AsDeliveryRuleRequestHeaderCondition()
+	if !ok {
+		return nil, fmt.Errorf("expected a delivery rule request header condition")
+	}
 
-	if params := cc.Parameters; params != nil {
+	selector := ""
+	operator := ""
+	matchValues := make([]interface{}, 0)
+	negateCondition := false
+	transforms := make([]string, 0)
+	if params := condition.Parameters; params != nil {
 		if params.Selector != nil {
-			res["selector"] = *params.Selector
+			selector = *params.Selector
 		}
 
-		res["operator"] = string(params.Operator)
+		operator = string(params.Operator)
 
 		if params.NegateCondition != nil {
-			res["negate_condition"] = *params.NegateCondition
+			negateCondition = *params.NegateCondition
 		}
 
 		if params.MatchValues != nil {
-			res["match_values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(params.MatchValues))
+			matchValues = utils.FlattenStringSlice(params.MatchValues)
 		}
 
 		if params.Transforms != nil {
-			transforms := make([]string, 0)
 			for _, transform := range *params.Transforms {
 				transforms = append(transforms, string(transform))
 			}
-			res["transforms"] = &transforms
 		}
 	}
 
-	return res
+	return &map[string]interface{}{
+		"selector":         selector,
+		"operator":         operator,
+		"match_values":     schema.NewSet(schema.HashString, matchValues),
+		"negate_condition": negateCondition,
+		"transforms":       transforms,
+	}, nil
 }

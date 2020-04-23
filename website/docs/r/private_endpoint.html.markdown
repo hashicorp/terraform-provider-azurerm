@@ -111,6 +111,8 @@ The following arguments are supported:
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `private_service_connection` supports the following:
