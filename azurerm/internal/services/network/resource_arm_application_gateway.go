@@ -401,6 +401,15 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 						},
 
+						"host_names": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
 						"ssl_certificate_name": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -2233,6 +2242,10 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 			listener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName = &host
 		}
 
+		if hosts, ok := v["host_names"]; ok {
+			listener.ApplicationGatewayHTTPListenerPropertiesFormat.Hostnames = utils.ExpandStringSlice(hosts.(*schema.Set).List())
+		}
+
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
 			certID := fmt.Sprintf("%s/sslCertificates/%s", gatewayID, sslCertName)
 			listener.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate = &network.SubResource{
@@ -2290,6 +2303,10 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if hostname := props.HostName; hostname != nil {
 				output["host_name"] = *hostname
+			}
+
+			if hostnames := props.Hostnames; hostnames != nil {
+				output["host_names"] = utils.FlattenStringSlice(hostnames)
 			}
 
 			output["protocol"] = string(props.Protocol)
