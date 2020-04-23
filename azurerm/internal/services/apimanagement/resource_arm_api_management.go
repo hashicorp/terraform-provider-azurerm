@@ -56,22 +56,6 @@ func resourceArmApiManagementService() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"public_ip_addresses": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
-			"private_ip_addresses": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
 			"publisher_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -123,6 +107,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"virtual_network_type": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  string(apimanagement.VirtualNetworkTypeNone),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(apimanagement.VirtualNetworkTypeNone),
@@ -388,19 +373,7 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
-
 			"gateway_url": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"gateway_regional_url": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"portal_url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -410,10 +383,38 @@ func resourceArmApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
+			"gateway_regional_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"public_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"private_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"portal_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"scm_url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
