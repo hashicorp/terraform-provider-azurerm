@@ -163,6 +163,26 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_virtualNetworkInternal(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_type", "Internal"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -505,4 +525,46 @@ resource "azurerm_api_management" "test" {
   resource_group_name = azurerm_resource_group.test1.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_virtualNetworkInternal(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNET-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestSNET-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  virtual_network_type = "Internal"
+  virtual_network_configuration {
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
