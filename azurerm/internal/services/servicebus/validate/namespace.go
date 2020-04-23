@@ -35,7 +35,8 @@ func ServiceBusNamespaceName(i interface{}, k string) (warnings []string, errors
 		return
 	}
 
-	// The name cannot end with "-", "-sb" or "-mgmt"
+	// The name cannot end with "-", "-sb" or "-mgmt".
+	// See more details from link https://docs.microsoft.com/en-us/rest/api/servicebus/create-namespace.
 	illegalSuffixes := []string{"-", "-sb", "-mgmt"}
 	for _, illegalSuffix := range illegalSuffixes {
 		if strings.HasSuffix(v, illegalSuffix) {
