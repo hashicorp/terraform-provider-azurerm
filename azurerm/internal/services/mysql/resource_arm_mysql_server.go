@@ -191,7 +191,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	publicAccess := mysql.PublicNetworkAccessEnumEnabled
-	if v := d.Get("public_network_access_enabled"); !v.(bool) {
+	if v := d.Get("public_network_access_enabled").(bool); !v {
 		publicAccess = mysql.PublicNetworkAccessEnumDisabled
 	}
 
@@ -267,7 +267,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	publicAccess := mysql.PublicNetworkAccessEnumEnabled
-	if v := d.Get("public_network_access_enabled"); !v.(bool) {
+	if v := d.Get("public_network_access_enabled").(bool); !v {
 		publicAccess = mysql.PublicNetworkAccessEnumDisabled
 	}
 
