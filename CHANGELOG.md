@@ -25,6 +25,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_private_link_service` - fixing a crash when parsing the response [GH-6504]
 * `azurerm_application_gateway` - prevent panic by disallowing empty values for `backend_address_pool.#.fqdns` [GH-6549]
+* `azurerm_application_gateway` - block reordering without changes no longer causes update [GH-6476]
 * `azurerm_cdn_endpoint` - `origin_host_header` is now required [GH-6550]
 * `azurerm_cdn_endpoint` - setting the `request_header_condition` block [GH-6541]
 * `azurerm_iothub_dps` - fix crash when path isn't cased correctly [GH-6570]
@@ -32,6 +33,7 @@ BUG FIXES:
 * `azurerm_postgres_server` - the `storage_mb` is no optional when `auto_grow` is enabled [GH-6459]
 * `azurerm_public_ip_prefix` - Update `prefix_length` validation to accept all valid IPv4 address ranges [GH-6589]
 * `azurerm_virtual_network_gateway` - per api requirements, `public_ip_address_id` is required [GH-6548]
+
 
 ## 2.6.0 (April 16, 2020)
 
