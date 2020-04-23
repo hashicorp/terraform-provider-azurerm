@@ -18,6 +18,7 @@ IMPROVEMENTS:
 * `azurerm_postgres_server` - support for the `infrastructure_encryption_enabled`, `public_network_access_enabled`, and `ssl_minimal_tls_version_enforced`, properties [GH-6459]
 * `azurerm_postgres_server` - all properties in the `storage_profile` block have been moved to the top level [GH-6459]
 * `azurerm_postgres_server` - the following properties were renamed and changed to a boolean type: `ssl_enforcement` to `ssl_enforcement_enabled`, `geo_redundant_backup` to `backup_geo_redundant_enabled`, and `auto_grow` to `auto_grow_enabled` [GH-6459]
+* `azurerm_private_endpoint` - Add support for `tags` [GH-6574]
 
 BUG FIXES:
 
@@ -28,6 +29,7 @@ BUG FIXES:
 * `azurerm_iothub_dps` - fix crash when path isn't cased correctly [GH-6570]
 * `azurerm_linux_virtual_machine_scale_set` - fixes crash with `boot_diagnositics` [GH-6569]
 * `azurerm_postgres_server` - the `storage_mb` is no optional when `auto_grow` is enabled [GH-6459]
+* `azurerm_public_ip_prefix` - Update `prefix_length` validation to accept all valid IPv4 address ranges [GH-6589]
 * `azurerm_virtual_network_gateway` - per api requirements, `public_ip_address_id` is required [GH-6548]
 
 ## 2.6.0 (April 16, 2020)
