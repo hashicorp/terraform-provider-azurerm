@@ -140,6 +140,8 @@ func TestAccAzureRMPublicIpPrefix_prefixLength31(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpPrefix_prefixLength24(t *testing.T) {
+	// NOTE: This test will fail unless the subscription is updated
+	//        to accept a minimum PrefixLength of 24
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
