@@ -125,7 +125,7 @@ func testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpda
 	})
 }
 
-func TestAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testing.T) {
+func testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringWithRouteFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit_peering", "test")
 
 	resource.Test(t, resource.TestCase{
