@@ -40,6 +40,7 @@ BUG FIXES:
 * `azurerm_cdn_endpoint` - setting the `request_header_condition` block [GH-6541]
 * `azurerm_iothub_dps` - fix crash when path isn't cased correctly [GH-6570]
 * `azurerm_linux_virtual_machine_scale_set` - fixes crash with `boot_diagnositics` [GH-6569]
+* `azurerm_policy_assignment` - allow scopes that don't start with `subscription/<id>` [GH-6576]
 * `azurerm_postgres_server` - the `storage_mb` is no optional when `auto_grow` is enabled [GH-6459]
 * `azurerm_public_ip_prefix` - Update `prefix_length` validation to accept all valid IPv4 address ranges [GH-6589]
 * `azurerm_route` - validation added [GH-6055]
