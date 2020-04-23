@@ -59,6 +59,11 @@ func TestSpringCloudAppID(t *testing.T) {
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/Apps/app1",
 			Expected: nil,
 		},
+		{
+			Name:     "invalid app name Casing",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/Apps/App1",
+			Expected: nil,
+		},
 	}
 
 	for _, v := range testData {

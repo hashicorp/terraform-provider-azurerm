@@ -21,7 +21,6 @@ func resourceArmSpringCloudApp() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmSpringCloudAppCreate,
 		Read:   resourceArmSpringCloudAppRead,
-		Update: nil,
 		Delete: resourceArmSpringCloudAppDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -67,7 +66,7 @@ func resourceArmSpringCloudAppCreate(d *schema.ResourceData, meta interface{}) e
 	existing, err := client.Get(ctx, resourceGroup, serviceName, name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
