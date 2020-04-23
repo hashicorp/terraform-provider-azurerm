@@ -59,7 +59,7 @@ func resourceArmPublicIpPrefix() *schema.Resource {
 				Optional:     true,
 				Default:      28,
 				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(28, 31),
+				ValidateFunc: validation.IntBetween(0, 32),
 			},
 
 			"ip_prefix": {
