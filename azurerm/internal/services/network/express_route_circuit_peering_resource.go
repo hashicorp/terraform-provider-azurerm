@@ -194,10 +194,8 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 				ID: utils.String(route_filter_id),
 			}
 		}
-	} else {
-		if route_filter_id != "" {
-			return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
-		}
+	} else if route_filter_id != "" {
+		return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringType, parameters)
