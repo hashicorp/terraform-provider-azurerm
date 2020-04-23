@@ -7,7 +7,7 @@ func TestBlueprintVersionID(t *testing.T) {
 		Name     string
 		Input    string
 		Error    bool
-		Expected *BlueprintVersionId
+		Expected *VersionId
 	}{
 		{
 			Name:  "Empty",
@@ -26,18 +26,18 @@ func TestBlueprintVersionID(t *testing.T) {
 		},
 		// We have two valid possibilities to check for
 		{
-			Name: "Valid subscription scoped",
+			Name:  "Valid subscription scoped",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Blueprint/blueprints/simpleBlueprint/versions/v1-test",
-			Expected: &BlueprintVersionId{
+			Expected: &VersionId{
 				Scope:     "subscriptions/00000000-0000-0000-0000-000000000000",
 				Blueprint: "simpleBlueprint",
 				Name:      "v1-test",
 			},
 		},
 		{
-			Name: "Valid management group scoped",
+			Name:  "Valid management group scoped",
 			Input: "/providers/Microsoft.Management/managementGroups/testAccManagementGroup/providers/Microsoft.Blueprint/blueprints/simpleBlueprint/versions/v1-test",
-			Expected: &BlueprintVersionId{
+			Expected: &VersionId{
 				Scope:     "providers/Microsoft.Management/managementGroups/testAccManagementGroup",
 				Blueprint: "simpleBlueprint",
 				Name:      "v1-test",
@@ -48,7 +48,7 @@ func TestBlueprintVersionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := BlueprintVersionID(v.Input)
+		actual, err := VersionID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

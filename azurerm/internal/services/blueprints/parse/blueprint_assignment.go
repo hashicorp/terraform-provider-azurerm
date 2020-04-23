@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type BlueprintAssignmentId struct {
+type AssignmentId struct {
 	// "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Blueprint/blueprintAssignments/assignSimpleBlueprint",
 	// "/managementGroups/ContosoOnlineGroup/providers/Microsoft.Blueprint/blueprintAssignments/assignSimpleBlueprint",
 
@@ -16,12 +16,12 @@ type BlueprintAssignmentId struct {
 	Name            string
 }
 
-func BlueprintAssignmentID(input string) (*BlueprintAssignmentId, error) {
+func AssignmentID(input string) (*AssignmentId, error) {
 	if len(input) == 0 {
 		return nil, fmt.Errorf("Bad: Assignment ID is empty string")
 	}
 
-	assignmentID := BlueprintAssignmentId{}
+	assignmentID := AssignmentId{}
 
 	idParts := strings.Split(strings.Trim(input, "/"), "/")
 	if len(idParts) != 6 {
@@ -39,7 +39,7 @@ func BlueprintAssignmentID(input string) (*BlueprintAssignmentId, error) {
 
 	switch idParts[0] {
 	case "managementGroups":
-		assignmentID = BlueprintAssignmentId{
+		assignmentID = AssignmentId{
 			Scope:           fmt.Sprintf("%s/%s", idParts[0], idParts[1]),
 			ManagementGroup: idParts[1],
 		}

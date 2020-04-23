@@ -9,7 +9,7 @@ func TestBlueprintAssignmentID(t *testing.T) {
 		Name     string
 		Input    string
 		Error    bool
-		Expected *BlueprintAssignmentId
+		Expected *AssignmentId
 	}{
 		{
 			Name:  "Empty",
@@ -31,7 +31,7 @@ func TestBlueprintAssignmentID(t *testing.T) {
 			Name:  "Valid subscription scoped",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Blueprint/blueprintAssignments/assignSimpleBlueprint",
 			Error: false,
-			Expected: &BlueprintAssignmentId{
+			Expected: &AssignmentId{
 				Scope:        "subscriptions/00000000-0000-0000-0000-000000000000",
 				Subscription: "00000000-0000-0000-0000-000000000000",
 				Name:         "assignSimpleBlueprint",
@@ -41,7 +41,7 @@ func TestBlueprintAssignmentID(t *testing.T) {
 			Name:  "Valid managementGroup scoped",
 			Input: "/managementGroups/testAccManagementGroup/providers/Microsoft.Blueprint/blueprintAssignments/assignSimpleBlueprint",
 			Error: false,
-			Expected: &BlueprintAssignmentId{
+			Expected: &AssignmentId{
 				Scope:           "managementGroups/testAccManagementGroup",
 				ManagementGroup: "testAccManagementGroup",
 				Name:            "assignSimpleBlueprint",
@@ -62,7 +62,7 @@ func TestBlueprintAssignmentID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := BlueprintAssignmentID(v.Input)
+		actual, err := AssignmentID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

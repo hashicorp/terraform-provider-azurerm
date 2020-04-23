@@ -6,25 +6,23 @@ import (
 	"strings"
 )
 
-type VersionId struct {
-	// "/{resourceScope}/providers/Microsoft.Blueprint/blueprints/{blueprintName}/versions/{versionId}"
-	// "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Blueprint/blueprints/simpleBlueprint/versions/v1"
-	// "/providers/Microsoft.Management/managementGroups/ContosoOnlineGroup/providers/Microsoft.Blueprint/blueprints/simpleBlueprint/versions/v1"
+type DefinitionId struct {
+	// "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Blueprint/blueprints/simpleBlueprint"
+	// "/providers/Microsoft.Management/managementGroups/ContosoOnlineGroup/providers/Microsoft.Blueprint/blueprints/simpleBlueprint"
 
-	Scope     string
-	Blueprint string
-	Name      string
+	Name  string
+	Scope string
 }
 
-func VersionID(input string) (*VersionId, error) {
+func DefinitionID(input string) (*DefinitionId, error) {
 	if len(input) == 0 {
-		return nil, fmt.Errorf("Bad: Blueprint version ID cannot be an empty string")
+		return nil, fmt.Errorf("Bad: Blueprint ID cannot be an empty string")
 	}
 
-	versionId := VersionId{}
+	definitionId := DefinitionId{}
 
 	idParts := strings.Split(strings.Trim(input, "/"), "/")
-	if len(idParts) != 8 && len(idParts) != 10 {
+	if len(idParts) != 6 && len(idParts) != 8 {
 		return nil, fmt.Errorf("Bad: Blueprint Version ID invalid: %q", input)
 	}
 
@@ -39,10 +37,9 @@ func VersionID(input string) (*VersionId, error) {
 
 		}
 
-		versionId = VersionId{
-			Scope:     fmt.Sprintf("providers/Microsoft.Management/managementGroups/%s", idParts[3]),
-			Blueprint: idParts[6],
-			Name:      idParts[9],
+		definitionId = DefinitionId{
+			Scope: fmt.Sprintf("providers/Microsoft.Management/managementGroups/%s", idParts[3]),
+			Name:  idParts[6],
 		}
 
 	case "subscriptions":
@@ -51,13 +48,12 @@ func VersionID(input string) (*VersionId, error) {
 			return nil, fmt.Errorf("[ERROR] Unable to parse Image ID %q: %+v", input, err)
 		}
 
-		versionId.Scope = fmt.Sprintf("subscriptions/%s", id.SubscriptionID)
-		versionId.Blueprint = idParts[5]
-		versionId.Name = idParts[7]
+		definitionId.Scope = fmt.Sprintf("subscriptions/%s", id.SubscriptionID)
+		definitionId.Name = idParts[5]
 
 	default:
 		return nil, fmt.Errorf("Bad: Invalid ID, should start with one of `/provider` or `/subscriptions`: %q", input)
 	}
 
-	return &versionId, nil
+	return &definitionId, nil
 }
