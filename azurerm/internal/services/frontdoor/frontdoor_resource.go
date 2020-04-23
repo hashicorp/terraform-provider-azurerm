@@ -609,7 +609,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 					}
 				}
 
-				if customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateDisabled {
+				if customHttpsProvisioningEnabled {
 					// Build a custom Https configuration based off the config file to send to the enable call
 					// NOTE: I do not need to check to see if this exists since I already do that in the validation code
 					chc := frontendEndpoint["custom_https_configuration"].([]interface{})
@@ -619,9 +619,11 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 						minTLSVersion = httpsConfig.MinimumTLSVersion
 					}
 					customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHTTPSConfiguration, minTLSVersion)
-					// Enable Custom Domain HTTPS for the Frontend Endpoint
-					if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d, true, name, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
-						return fmt.Errorf("Unable enable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+					if provisioningState == frontdoor.CustomHTTPSProvisioningStateDisabled || customHTTPSConfigurationUpdate != *properties.CustomHTTPSConfiguration {
+						// Enable Custom Domain HTTPS for the Frontend Endpoint
+						if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d, true, name, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
+							return fmt.Errorf("Unable to enable/update Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+						}
 					}
 				} else if !customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled {
 					// Disable Custom Domain HTTPS for the Frontend Endpoint
