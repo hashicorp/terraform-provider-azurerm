@@ -156,14 +156,13 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 }
 
 func testAccAzureRMSharedImage_basic(data acceptance.TestData, hyperVGen string) string {
-	hyperVGenAttr := ""
-	if hyperVGen != "" {
-		hyperVGenAttr = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
-	}
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+}
+
+variable "hyper_v_generation" {
+  default = "%s"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -183,8 +182,7 @@ resource "azurerm_shared_image" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   os_type             = "Linux"
-
-  %s
+  hyper_v_generation  = var.hyper_v_generation != "" ? var.hyper_v_generation : null
 
   identifier {
     publisher = "AccTesPublisher%d"
@@ -192,7 +190,7 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, hyperVGenAttr, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, hyperVGen, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMSharedImage_requiresImport(data acceptance.TestData) string {
