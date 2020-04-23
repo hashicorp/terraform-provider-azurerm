@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_postgres_server` - all properties in the `storage_profile` block have been moved to the top level [GH-6459]
 * `azurerm_postgres_server` - the following properties were renamed and changed to a boolean type: `ssl_enforcement` to `ssl_enforcement_enabled`, `geo_redundant_backup` to `backup_geo_redundant_enabled`, and `auto_grow` to `auto_grow_enabled` [GH-6459]
 * `azurerm_private_endpoint` - Add support for `tags` [GH-6574]
+* `azurerm_shared_image` - support `hyper_v_generation` property [GH-6511]
 
 BUG FIXES:
 
