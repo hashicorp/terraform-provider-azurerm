@@ -39,11 +39,12 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.test.id
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 ```
 ## Example Usage (in a Consumption Plan)
@@ -75,11 +76,12 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                      = "test-azure-functions"
-  location                  = azurerm_resource_group.example.location
-  resource_group_name       = azurerm_resource_group.example.name
-  app_service_plan_id       = azurerm_app_service_plan.example.id
-  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  name                       = "test-azure-functions"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  app_service_plan_id        = azurerm_app_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.test.id
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 ```
 
@@ -95,7 +97,9 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
 
-* `storage_connection_string` - (Required) The connection string of the backend storage account which will be used by this Function App (such as the dashboard, logs).
+* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App (such as the dashboard, logs).
+
+* `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 

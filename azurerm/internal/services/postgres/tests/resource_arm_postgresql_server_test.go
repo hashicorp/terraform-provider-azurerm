@@ -111,6 +111,7 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 
 func TestAccAzureRMPostgreSQLServer_autogrowOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,

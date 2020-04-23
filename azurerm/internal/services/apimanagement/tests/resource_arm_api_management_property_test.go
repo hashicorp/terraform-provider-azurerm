@@ -52,6 +52,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag2"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAPIManagementProperty_update(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -69,7 +70,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.PropertyClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.NamedValueClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -96,7 +97,7 @@ func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.PropertyClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.NamedValueClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -113,7 +114,7 @@ func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.T
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: API Management Property %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
 			}
-			return fmt.Errorf("Bad: Get on apiManagement.PropertyClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.NamedValueClient: %+v", err)
 		}
 
 		return nil
