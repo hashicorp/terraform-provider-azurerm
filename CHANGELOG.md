@@ -33,8 +33,8 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine_scale_set` - fixes crash with `boot_diagnositics` [GH-6569]
 * `azurerm_postgres_server` - the `storage_mb` is no optional when `auto_grow` is enabled [GH-6459]
 * `azurerm_public_ip_prefix` - Update `prefix_length` validation to accept all valid IPv4 address ranges [GH-6589]
+* `azurerm_route` - validation added [GH-6055]
 * `azurerm_virtual_network_gateway` - per api requirements, `public_ip_address_id` is required [GH-6548]
-
 
 ## 2.6.0 (April 16, 2020)
 
