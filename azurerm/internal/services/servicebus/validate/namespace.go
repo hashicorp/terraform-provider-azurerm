@@ -36,9 +36,12 @@ func ServiceBusNamespaceName(i interface{}, k string) (warnings []string, errors
 	}
 
 	// The name cannot end with "-", "-sb" or "-mgmt"
-	if strings.HasSuffix(v, "-") || strings.HasSuffix(v, "-sb") || strings.HasSuffix(v, "-mgmt") {
-		errors = append(errors, fmt.Errorf("%q cannot end with a hyphen, -sb, or -mgmt", k))
-		return
+	illegalSuffixes := []string{"-", "-sb", "-mgmt"}
+	for _, illegalSuffix := range illegalSuffixes {
+		if strings.HasSuffix(v, illegalSuffix) {
+			errors = append(errors, fmt.Errorf("%q cannot end with a hyphen, -sb, or -mgmt", k))
+			return
+		}
 	}
 
 	return warnings, errors
