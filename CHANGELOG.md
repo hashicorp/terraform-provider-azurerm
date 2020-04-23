@@ -27,6 +27,8 @@ IMPROVEMENTS:
 * `azurerm_postgres_server` - the following properties were renamed and changed to a boolean type: `ssl_enforcement` to `ssl_enforcement_enabled`, `geo_redundant_backup` to `backup_geo_redundant_enabled`, and `auto_grow` to `auto_grow_enabled` [GH-6459]
 * `azurerm_private_endpoint` - Add support for `tags` [GH-6574]
 * `azurerm_shared_image` - support `hyper_v_generation` property [GH-6511]
+* `azurerm_linux_virtual_machine_scale_set` - support for the `automatic_instance_repair` property [GH-6346]
+* `azurerm_windows_virtual_machine_scale_set` - support for the `automatic_instance_repair` property [GH-6346]
 
 BUG FIXES:
 
