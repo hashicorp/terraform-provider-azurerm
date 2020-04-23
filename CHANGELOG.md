@@ -7,14 +7,20 @@ FEATURES:
 * **New Resource:** `azurerm_servicebus_namespace_network_rule_set` [GH-6379]
 * **New Resource:** `azurerm_spring_cloud_app` [GH-6384]
 
+DEPENDENCIES: 
+
+* updating `apimanagement` to `2019-12-01` [GH-6479]
+* updating the fork of `github.com/Azure/go-autorest` [GH-6509]
+
 IMPROVEMENTS:
 
-* dependencies: updating `apimanagement` to `2019-12-01` [GH-6479]
-* dependencies: updating the fork of `github.com/Azure/go-autorest` [GH-6509]
 * Data Source: `app_service_environment` - export the `location` property [GH-6538]
+* Data Source: `azurerm_notification_hub_namespace` - export `tags` [GH-6578]
 * `azurerm_cosmosdb_mongo_collection` - support for the `index` and `system_index` properties [GH-6426]
 * `azurerm_function_app` - Added `storage_account_id` and `storage_account_access_key` [GH-6304]
 * `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
+* `azurerm_notification_hub` - support for `tags` [GH-6578]
+* `azurerm_notification_hub_namespace` - support for `tags` [GH-6578]
 * `azurerm_postgres_server` - support for the `create_mode` property allowing for creation of replicas, point in time restores, and geo restors [GH-6459]
 * `azurerm_postgres_server` - support for the `infrastructure_encryption_enabled`, `public_network_access_enabled`, and `ssl_minimal_tls_version_enforced`, properties [GH-6459]
 * `azurerm_postgres_server` - all properties in the `storage_profile` block have been moved to the top level [GH-6459]
@@ -42,9 +48,12 @@ FEATURES:
 
 * **New Data Source:** `azurerm_policy_set_definition` ([#6305](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6305))
 
+DEPENDENCIES:
+
+* updating `github.com/Azure/azure-sdk-for-go` to `v41.2.0` ([#6419](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6419))
+
 IMPROVEMENTS:
 
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v41.2.0` ([#6419](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6419))
 * Data Source: `azurerm_policy_definition` - can now lookup with `name` ([#6275](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6275))
 * Data Source: `azurerm_policy_definition` - the field `management_group_id` has been deprecated and renamed to `management_group_name` ([#6275](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6275))
 * `azurerm_application_insights` - support for the `disable_ip_masking` property ([#6354](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6354))
