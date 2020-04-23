@@ -639,7 +639,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		}
 
 		if err := d.Set("virtual_network_configuration", flattenApiManagementVirtualNetworkConfiguration(props.VirtualNetworkConfiguration)); err != nil {
-			return fmt.Errorf("Error setting `virtual_network_configuration`: %+v", err)
+			return fmt.Errorf("setting `virtual_network_configuration`: %+v", err)
 		}
 	}
 
