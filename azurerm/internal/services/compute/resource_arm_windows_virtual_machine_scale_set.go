@@ -96,6 +96,8 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 
 			"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
 
+			"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
+
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
 			"computer_name_prefix": {
@@ -456,6 +458,8 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	}
 
 	scaleInPolicy := d.Get("scale_in_policy").(string)
+	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
+	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location),
@@ -471,6 +475,7 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		Tags:     tags.Expand(t),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
 			AdditionalCapabilities:                 additionalCapabilities,
+			AutomaticRepairsPolicy:                 automaticRepairsPolicy,
 			DoNotRunExtensionsOnOverprovisionedVMs: utils.Bool(d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)),
 			Overprovision:                          utils.Bool(d.Get("overprovision").(bool)),
 			SinglePlacementGroup:                   utils.Bool(d.Get("single_placement_group").(bool)),
@@ -711,6 +716,12 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 	}
 
+	if d.HasChange("automatic_instance_repair") {
+		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
+		automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+		updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
+	}
+
 	if d.HasChange("identity") {
 		identityRaw := d.Get("identity").([]interface{})
 		identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
@@ -820,6 +831,10 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 
 	if err := d.Set("additional_capabilities", FlattenVirtualMachineScaleSetAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
 		return fmt.Errorf("Error setting `additional_capabilities`: %+v", props.AdditionalCapabilities)
+	}
+
+	if err := d.Set("automatic_instance_repair", FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
+		return fmt.Errorf("Error setting `automatic_instance_repair`: %+v", err)
 	}
 
 	d.Set("do_not_run_extensions_on_overprovisioned_machines", props.DoNotRunExtensionsOnOverprovisionedVMs)
