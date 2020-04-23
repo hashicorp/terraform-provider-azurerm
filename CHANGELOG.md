@@ -16,6 +16,7 @@ IMPROVEMENTS:
 
 * Data Source: `app_service_environment` - export the `location` property [GH-6538]
 * Data Source: `azurerm_notification_hub_namespace` - export `tags` [GH-6578]
+* `azurerm_api_management` - support for virtual network integrations [GH-5769]
 * `azurerm_cosmosdb_mongo_collection` - support for the `index` and `system_index` properties [GH-6426]
 * `azurerm_function_app` - Added `storage_account_id` and `storage_account_access_key` [GH-6304]
 * `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
