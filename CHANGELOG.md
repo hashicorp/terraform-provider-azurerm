@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_mongo_collection` - support for the `index` and `system_index` properties [GH-6426]
 * `azurerm_function_app` - Added `storage_account_id` and `storage_account_access_key` [GH-6304]
 * `azurerm_kubernetes_cluster` - deprecating `private_link_enabled` in favour of `private_cluster_enabled ` [GH-6431]
+* `azurerm_mysql_server` - support for the `public_network_access_enabled` property [GH-6590]
 * `azurerm_notification_hub` - support for `tags` [GH-6578]
 * `azurerm_notification_hub_namespace` - support for `tags` [GH-6578]
 * `azurerm_postgres_server` - support for the `create_mode` property allowing for creation of replicas, point in time restores, and geo restors [GH-6459]
