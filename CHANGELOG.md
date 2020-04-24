@@ -1,4 +1,9 @@
 ## 2.8.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_api_management` - `sku_name` supports Consumption [GH-6602]
+
 ## 2.7.0 (April 23, 2020)
 
 FEATURES:
