@@ -174,6 +174,9 @@ func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} 
 }
 
 func ExpandHDInsightsHiveMetastore(input []interface{}) map[string]interface{} {
+	if len(input) == 0 {
+		return nil
+	}
 	vs := input[0].(map[string]interface{})
 
 	server := vs["server"].(string)
@@ -200,6 +203,9 @@ func ExpandHDInsightsHiveMetastore(input []interface{}) map[string]interface{} {
 }
 
 func ExpandHDInsightsOozieMetastore(input []interface{}) map[string]interface{} {
+	if len(input) == 0 {
+		return nil
+	}
 	vs := input[0].(map[string]interface{})
 
 	server := vs["server"].(string)
@@ -227,6 +233,9 @@ func ExpandHDInsightsOozieMetastore(input []interface{}) map[string]interface{} 
 }
 
 func ExpandHDInsightsAmbariMetastore(input []interface{}) map[string]interface{} {
+	if len(input) == 0 {
+		return nil
+	}
 	vs := input[0].(map[string]interface{})
 
 	server := vs["server"].(string)
