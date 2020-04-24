@@ -14,7 +14,6 @@ import (
 
 func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -127,6 +126,28 @@ func TestAccAzureRMMonitorDiagnosticSetting_storageAccount(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "AuditEvent"),
 					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "metric.1439188313.category", "AllMetrics"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMonitorDiagnosticSetting_activityLog(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorDiagnosticSetting_activityLog(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "Administrative"),
 				),
 			},
 			data.ImportStep(),
@@ -469,6 +490,47 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
     retention_policy {
       enabled = false
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func testAccAzureRMMonitorDiagnosticSetting_activityLog(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+
+data "azurerm_subscription" "current" {
+}
+
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+}
+
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name               = "acctest-DS-%[1]d"
+  target_resource_id = data.azurerm_subscription.current.id
+  storage_account_id = azurerm_storage_account.test.id
+
+  log {
+    category = "Administrative"
+    enabled  = true
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
