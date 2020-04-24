@@ -85,7 +85,7 @@ func resourceArmApiManagementGroupCreateUpdate(d *schema.ResourceData, meta inte
 	externalID := d.Get("external_id").(string)
 	groupType := d.Get("type").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

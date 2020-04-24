@@ -74,7 +74,7 @@ func resourceArmApiManagementIdentityProviderAADCreateUpdate(d *schema.ResourceD
 	clientSecret := d.Get("client_secret").(string)
 	allowedTenants := d.Get("allowed_tenants").([]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Aad)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

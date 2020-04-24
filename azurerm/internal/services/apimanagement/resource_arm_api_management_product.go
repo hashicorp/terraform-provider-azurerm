@@ -98,7 +98,7 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 	subscriptionsLimit := d.Get("subscriptions_limit").(int)
 	published := d.Get("published").(bool)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

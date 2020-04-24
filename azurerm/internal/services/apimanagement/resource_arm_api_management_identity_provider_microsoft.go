@@ -64,7 +64,7 @@ func resourceArmApiManagementIdentityProviderMicrosoftCreateUpdate(d *schema.Res
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Microsoft)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

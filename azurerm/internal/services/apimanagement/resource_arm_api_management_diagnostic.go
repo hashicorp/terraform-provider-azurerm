@@ -65,7 +65,7 @@ func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, diagnosticId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

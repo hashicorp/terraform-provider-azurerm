@@ -111,7 +111,7 @@ func resourceArmApiManagementUserCreateUpdate(d *schema.ResourceData, meta inter
 	note := d.Get("note").(string)
 	password := d.Get("password").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, userId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

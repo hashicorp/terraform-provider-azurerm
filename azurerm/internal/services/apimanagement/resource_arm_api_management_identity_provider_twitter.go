@@ -64,7 +64,7 @@ func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.Resou
 	clientID := d.Get("api_key").(string)
 	clientSecret := d.Get("api_secret_key").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Twitter)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

@@ -113,7 +113,7 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Either `eventhub` or `application_insights` is required")
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
