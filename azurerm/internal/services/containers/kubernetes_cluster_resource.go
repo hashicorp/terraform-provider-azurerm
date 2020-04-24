@@ -71,6 +71,67 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"default_node_pool": SchemaDefaultNodePool(),
 
+			"auto_scaler_profile": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scan_interval": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: containerValidate.Duration,
+						},
+						"scale_down_delay_after_add": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: containerValidate.Duration,
+						},
+						"scale_down_delay_after_delete": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: containerValidate.Duration,
+						},
+						"scale_down_delay_after_failure": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: containerValidate.Duration,
+						},
+						"scale_down_unneeded": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: containerValidate.Duration,
+						},
+						"scale_down_unready": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: containerValidate.Duration,
+						},
+						"scale_down_utilization_treshold": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"max_graceful_termination_sec": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						// "balance_similar_node_groups": {
+						// 	Type:     schema.TypeBool,
+						// 	Required: true,
+						// },
+					},
+				},
+			},
+
 			// Optional
 			"addon_profile": schemaKubernetesAddOnProfiles(),
 
@@ -622,6 +683,9 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
 
+	autoScalerProfileRaw := d.Get("auto_scaler_profile").([]interface{})
+	autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
+
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
@@ -630,6 +694,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			AadProfile:              azureADProfile,
 			AddonProfiles:           *addonProfiles,
 			AgentPoolProfiles:       agentProfiles,
+			AutoScalerProfile:       autoScalerProfile,
 			DNSPrefix:               utils.String(dnsPrefix),
 			EnableRBAC:              utils.Bool(rbacEnabled),
 			KubernetesVersion:       utils.String(kubernetesVersion),
@@ -810,6 +875,15 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("auto_scaler_profile") {
+		updateCluster = true
+		autoScalerProfileRaw := d.Get("auto_scaler_profile").(*schema.Set).List()
+
+		autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
+
+		existing.ManagedClusterProperties.AutoScalerProfile = autoScalerProfile
+	}
+
 	if d.HasChange("enable_pod_security_policy") {
 		updateCluster = true
 		enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
@@ -987,6 +1061,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		addonProfiles := flattenKubernetesAddOnProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("setting `addon_profile`: %+v", err)
+		}
+
+		autoScalerProfile := flattenKubernetesClusterAutoScalerProfile(props.AutoScalerProfile)
+		if err := d.Set("auto_scaler_profile", autoScalerProfile); err != nil {
+			return fmt.Errorf("setting `auto_scaler_profile`: %+v", err)
 		}
 
 		flattenedDefaultNodePool, err := FlattenDefaultNodePool(props.AgentPoolProfiles, d)
@@ -1647,4 +1726,101 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 	identity["type"] = string(input.Type)
 
 	return []interface{}{identity}
+}
+
+func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.ManagedClusterPropertiesAutoScalerProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	scanInterval := ""
+	if profile.ScanInterval != nil {
+		scanInterval = *profile.ScanInterval
+	}
+
+	scaleDownDelayAfterAdd := ""
+	if profile.ScaleDownDelayAfterAdd != nil {
+		scaleDownDelayAfterAdd = *profile.ScaleDownDelayAfterAdd
+	}
+
+	scaleDownDelayAfterDelete := ""
+	if profile.ScaleDownDelayAfterDelete != nil {
+		scaleDownDelayAfterDelete = *profile.ScaleDownDelayAfterDelete
+	}
+
+	scaleDownDelayAfterFailure := ""
+	if profile.ScaleDownDelayAfterFailure != nil {
+		scaleDownDelayAfterFailure = *profile.ScaleDownDelayAfterFailure
+	}
+
+	scaleDownUnneededTime := ""
+	if profile.ScaleDownUnneededTime != nil {
+		scaleDownUnneededTime = *profile.ScaleDownUnneededTime
+	}
+
+	scaleDownUnreadyTime := ""
+	if profile.ScaleDownUnreadyTime != nil {
+		scaleDownUnreadyTime = *profile.ScaleDownUnreadyTime
+	}
+
+	scaleDownUtilizationThreshold := ""
+	if profile.ScaleDownUtilizationThreshold != nil {
+		scaleDownUtilizationThreshold = *profile.ScaleDownUtilizationThreshold
+	}
+
+	maxGracefulTerminationSec := ""
+	if profile.MaxGracefulTerminationSec != nil {
+		maxGracefulTerminationSec = *profile.MaxGracefulTerminationSec
+	}
+
+	// balanceSimilarNodeGroups := false
+	// if profile.BalanceSimilarNodeGroups != nil {
+	// 	balanceSimilarNodeGroups = *profile.BalanceSimilarNodeGroups
+	// }
+
+	return []interface{}{
+		map[string]interface{}{
+			"scan_interval":                   scanInterval,
+			"scale_down_delay_after_add":      scaleDownDelayAfterAdd,
+			"scale_down_delay_after_delete":   scaleDownDelayAfterDelete,
+			"scale_down_delay_after_failure":  scaleDownDelayAfterFailure,
+			"scale_down_unneeded":             scaleDownUnneededTime,
+			"scale_down_unready":              scaleDownUnreadyTime,
+			"scale_down_utilization_treshold": scaleDownUtilizationThreshold,
+			"max_graceful_termination_sec":    maxGracefulTerminationSec,
+			// "balance_similar_node_groups":     balanceSimilarNodeGroups,
+		},
+	}
+}
+
+func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerservice.ManagedClusterPropertiesAutoScalerProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	// balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	scanInterval := config["scan_interval"].(string)
+	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
+	scaleDownDelayAfterDelete := config["scale_down_delay_after_delete"].(string)
+	scaleDownDelayAfterFailure := config["scale_down_delay_after_failure"].(string)
+	scaleDownUnneededTime := config["scale_down_unneeded"].(string)
+	scaleDownUnreadyTime := config["scale_down_unready"].(string)
+	scaleDownUtilizationThreshold := config["scale_down_utilization_treshold"].(string)
+	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
+
+	autoScalerProfile := containerservice.ManagedClusterPropertiesAutoScalerProfile{
+		// BalanceSimilarNodeGroups:      utils.Bool(balanceSimilarNodeGroups),
+		ScanInterval:                  utils.String(scanInterval),
+		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
+		ScaleDownDelayAfterDelete:     utils.String(scaleDownDelayAfterDelete),
+		ScaleDownDelayAfterFailure:    utils.String(scaleDownDelayAfterFailure),
+		ScaleDownUnneededTime:         utils.String(scaleDownUnneededTime),
+		ScaleDownUnreadyTime:          utils.String(scaleDownUnreadyTime),
+		ScaleDownUtilizationThreshold: utils.String(scaleDownUtilizationThreshold),
+		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
+	}
+
+	return &autoScalerProfile
 }
