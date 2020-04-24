@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_api_management` - `sku_name` supports Consumption [GH-6602]
+* `azurerm_api_management_api` - support for openapi v3 content formats [GH-6618]
 
 ## 2.7.0 (April 23, 2020)
 
