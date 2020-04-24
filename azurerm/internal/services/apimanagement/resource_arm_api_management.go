@@ -72,6 +72,7 @@ func resourceArmApiManagementService() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: azure.MinCapacitySkuNameInSlice([]string{
+					string(apimanagement.SkuTypeConsumption),
 					string(apimanagement.SkuTypeDeveloper),
 					string(apimanagement.SkuTypeBasic),
 					string(apimanagement.SkuTypeStandard),
