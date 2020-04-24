@@ -446,13 +446,13 @@ func testAccAzureRMApiManagementApi_subscriptionRequired(data acceptance.TestDat
 %s
 
 resource "azurerm_api_management_api" "test" {
-  name                	= "acctestapi-%d"
-  resource_group_name 	= azurerm_resource_group.test.name
-  api_management_name 	= azurerm_api_management.test.name
-  display_name        	= "api1"
-  path                	= "api1"
-  protocols           	= ["https"]
-  revision            	= "1"
+  name                  = "acctestapi-%d"
+  resource_group_name   = azurerm_resource_group.test.name
+  api_management_name   = azurerm_api_management.test.name
+  display_name          = "api1"
+  path                  = "api1"
+  protocols             = ["https"]
+  revision              = "1"
   subscription_required = false
 }
 `, template, data.RandomInteger)
