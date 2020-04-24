@@ -100,6 +100,10 @@ func resourceArmApiManagementApi() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(apimanagement.Openapi),
+								string(apimanagement.Openapijson),
+								string(apimanagement.OpenapijsonLink),
+								string(apimanagement.OpenapiLink),
 								string(apimanagement.SwaggerJSON),
 								string(apimanagement.SwaggerLinkJSON),
 								string(apimanagement.WadlLinkJSON),
