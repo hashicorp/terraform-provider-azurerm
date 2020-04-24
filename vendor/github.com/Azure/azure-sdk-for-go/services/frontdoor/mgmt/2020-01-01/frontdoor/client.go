@@ -99,7 +99,7 @@ func (client BaseClient) CheckFrontDoorNameAvailability(ctx context.Context, che
 
 // CheckFrontDoorNameAvailabilityPreparer prepares the CheckFrontDoorNameAvailability request.
 func (client BaseClient) CheckFrontDoorNameAvailabilityPreparer(ctx context.Context, checkFrontDoorNameAvailabilityInput CheckNameAvailabilityInput) (*http.Request, error) {
-	const APIVersion = "2019-05-01"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -180,7 +180,7 @@ func (client BaseClient) CheckFrontDoorNameAvailabilityWithSubscriptionPreparer(
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-01"
+	const APIVersion = "2020-01-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
