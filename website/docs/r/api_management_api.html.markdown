@@ -74,6 +74,8 @@ The following arguments are supported:
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
+* `subscription_required` - (Optional) Should this API require a subscription key?
+
 * `version` - (Optional) The Version number of this API, if this API is versioned.
 
 * `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
