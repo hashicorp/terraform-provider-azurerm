@@ -86,6 +86,5 @@ func TestBlueprintAssignmentID(t *testing.T) {
 		if actual.Subscription == "" && actual.ManagementGroup != v.Expected.ManagementGroup {
 			t.Fatalf("Expected %q but got %q for ManagementGroup", v.Expected.ManagementGroup, actual.ManagementGroup)
 		}
-
 	}
 }

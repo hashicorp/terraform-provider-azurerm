@@ -2,8 +2,9 @@ package parse
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type AssignmentId struct {

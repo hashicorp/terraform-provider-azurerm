@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,15 +27,18 @@ func ManagedIdentitySchema() *schema.Schema {
 					Default:  string(blueprint.ManagedServiceIdentityTypeSystemAssigned),
 					ValidateFunc: validation.StringInSlice([]string{
 						// ManagedServiceIdentityTypeNone is not valid; a valid and privileged Identity is required for the service to apply the changes.
+						// SystemAssigned type not currently supported - The Portal performs significant activity in temporary escalation of permissions to Owner on the target scope
+						// Such activity in the Provider would be brittle
+						// string(blueprint.ManagedServiceIdentityTypeSystemAssigned),
 						string(blueprint.ManagedServiceIdentityTypeUserAssigned),
-						string(blueprint.ManagedServiceIdentityTypeSystemAssigned),
 					}, false),
 				},
 
 				"user_assigned_identities": {
 					// The API only seems to care about the "key" portion of this struct, which is the ResourceID of the Identity
 					Type:     schema.TypeList,
-					Optional: true,
+					Required: true,
+					MinItems: 1,
 					Elem: &schema.Schema{
 						Type:         schema.TypeString,
 						ValidateFunc: validate.UserAssignedIdentityId,
@@ -106,4 +111,108 @@ func normalizeAssignmentResourceGroupValuesJSON(jsonString interface{}) string {
 
 	b, _ := json.Marshal(values)
 	return string(b)
+}
+
+func expandArmBlueprintAssignmentParameters(input string) map[string]*blueprint.ParameterValue {
+	var result map[string]*blueprint.ParameterValue
+	// the string has been validated by the schema, therefore the error is ignored here, since it will never happen.
+	_ = json.Unmarshal([]byte(input), &result)
+	return result
+}
+
+func expandArmBlueprintAssignmentResourceGroups(input string) map[string]*blueprint.ResourceGroupValue {
+	var result map[string]*blueprint.ResourceGroupValue
+	// the string has been validated by the schema, therefore the error is ignored here, since it will never happen.
+	_ = json.Unmarshal([]byte(input), &result)
+	return result
+}
+
+func expandArmBlueprintAssignmentIdentity(input []interface{}) (*blueprint.ManagedServiceIdentity, error) {
+	if len(input) == 0 {
+		return nil, fmt.Errorf("Managed Service Identity was empty")
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	identity := blueprint.ManagedServiceIdentity{
+		Type: blueprint.ManagedServiceIdentityType(raw["type"].(string)),
+	}
+
+	identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
+	identityIds := make(map[string]*blueprint.UserAssignedIdentity)
+	for _, v := range identityIdsRaw {
+		identityIds[v.(string)] = &blueprint.UserAssignedIdentity{}
+	}
+
+	return &identity, nil
+}
+
+func flattenArmBlueprintAssignmentIdentity(input *blueprint.ManagedServiceIdentity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	identityIds := make([]string, 0)
+	if input.UserAssignedIdentities != nil {
+		for k := range input.UserAssignedIdentities {
+			identityIds = append(identityIds, k)
+		}
+	}
+
+	principalId := ""
+	if input.PrincipalID != nil {
+		principalId = *input.PrincipalID
+	}
+
+	tenantId := ""
+	if input.TenantID != nil {
+		tenantId = *input.TenantID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"type":         string(input.Type),
+			"identity_ids": identityIds,
+			"principal_id": principalId,
+			"tenant_id":    tenantId,
+		},
+	}
+}
+
+func flattenArmBlueprintAssignmentParameters(input map[string]*blueprint.ParameterValue) (string, error) {
+	if len(input) == 0 {
+		return "", nil
+	}
+
+	b, err := json.Marshal(input)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
+
+func flattenArmBlueprintAssignmentResourceGroups(input map[string]*blueprint.ResourceGroupValue) (string, error) {
+	if len(input) == 0 {
+		return "", nil
+	}
+
+	b, err := json.Marshal(input)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
+
+func splitPublishedVersionID(input string) (blueprintID, versionName string) {
+	versionID, err := parse.VersionID(input)
+	if err != nil {
+		return "", ""
+	}
+
+	versionName = versionID.Name
+	blueprintID = fmt.Sprintf("/%s/providers/Microsoft.Blueprint/blueprints/%s", versionID.Scope, versionID.Blueprint)
+
+	return
 }

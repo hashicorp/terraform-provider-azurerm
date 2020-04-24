@@ -2,8 +2,9 @@ package parse
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type DefinitionId struct {
@@ -34,7 +35,6 @@ func DefinitionID(input string) (*DefinitionId, error) {
 		}
 		if idParts[4] != "providers" || idParts[5] != "Microsoft.Blueprint" || idParts[6] != "blueprints" {
 			return nil, fmt.Errorf("Bad: ID has invalid resource provider segment(s), shoud be `/providers/Microsoft.Blueprint/blueprints/`, case sensitive: %q", input)
-
 		}
 
 		definitionId = DefinitionId{
