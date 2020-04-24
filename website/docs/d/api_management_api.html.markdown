@@ -65,12 +65,6 @@ output "api_management_api_id" {
 
 ---
 
-An `authentication_settings` block exports the following:
-
-* `subscription_key_required` - Whether the API requires a subscription key or not.
-
----
-
 A `subscription_key_parameter_names` block exports the following:
 
 * `header` - The name of the HTTP Header which should be used for the Subscription Key.
