@@ -67,6 +67,13 @@ func resourceArmFrontDoor() *schema.Resource {
 				Required: true,
 			},
 
+			"backend_pools_send_receive_timeout_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      60,
+				ValidateFunc: validation.IntBetween(0, 240),
+			},
+
 			// remove in 3.0
 			"location": {
 				Type:       schema.TypeString,
@@ -527,6 +534,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	backendPools := d.Get("backend_pool").([]interface{})
 	frontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPoolsSettings := d.Get("enforce_backend_pools_certificate_name_check").(bool)
+	backendPoolsSendReceiveTimeoutSeconds := int32(d.Get("backend_pools_send_receive_timeout_seconds").(int))
 	enabledState := d.Get("load_balancer_enabled").(bool)
 
 	t := d.Get("tags").(map[string]interface{})
@@ -537,7 +545,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			FriendlyName:          utils.String(friendlyName),
 			RoutingRules:          expandArmFrontDoorRoutingRule(routingRules, frontDoorPath),
 			BackendPools:          expandArmFrontDoorBackendPools(backendPools, frontDoorPath),
-			BackendPoolsSettings:  expandArmFrontDoorBackendPoolsSettings(backendPoolsSettings),
+			BackendPoolsSettings:  expandArmFrontDoorBackendPoolsSettings(backendPoolsSettings, backendPoolsSendReceiveTimeoutSeconds),
 			FrontendEndpoints:     expandArmFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorPath),
 			HealthProbeSettings:   expandArmFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorPath),
 			LoadBalancingSettings: expandArmFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorPath),
@@ -683,8 +691,14 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `backend_pool`: %+v", err)
 		}
 
-		if err := d.Set("enforce_backend_pools_certificate_name_check", flattenArmFrontDoorBackendPoolsSettings(properties.BackendPoolsSettings)); err != nil {
+		backendPoolSettings := flattenArmFrontDoorBackendPoolsSettings(properties.BackendPoolsSettings)
+
+		if err := d.Set("enforce_backend_pools_certificate_name_check", backendPoolSettings["enforce_backend_pools_certificate_name_check"].(bool)); err != nil {
 			return fmt.Errorf("setting `enforce_backend_pools_certificate_name_check`: %+v", err)
+		}
+
+		if err := d.Set("backend_pools_send_receive_timeout_seconds", backendPoolSettings["backend_pools_send_receive_timeout_seconds"].(int32)); err != nil {
+			return fmt.Errorf("setting `backend_pools_send_receive_timeout_seconds`: %+v", err)
 		}
 
 		d.Set("cname", properties.Cname)
@@ -832,7 +846,7 @@ func expandArmFrontDoorBackendEnabledState(isEnabled bool) frontdoor.BackendEnab
 	return frontdoor.Disabled
 }
 
-func expandArmFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool) *frontdoor.BackendPoolsSettings {
+func expandArmFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool, backendPoolsSendReceiveTimeoutSeconds int32) *frontdoor.BackendPoolsSettings {
 	enforceCheck := frontdoor.EnforceCertificateNameCheckEnabledStateDisabled
 
 	if enforceCertificateNameCheck {
@@ -841,6 +855,7 @@ func expandArmFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool) *f
 
 	result := frontdoor.BackendPoolsSettings{
 		EnforceCertificateNameCheck: enforceCheck,
+		SendRecvTimeoutSeconds:      utils.Int32(backendPoolsSendReceiveTimeoutSeconds),
 	}
 
 	return &result
@@ -1180,17 +1195,25 @@ func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []map[strin
 	return output
 }
 
-func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) bool {
+func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	// Set default values
+	result["enforce_backend_pools_certificate_name_check"] = true
+	result["backend_pools_send_receive_timeout_seconds"] = int32(60)
+
 	if input == nil {
-		return true
+		return result
 	}
 
-	result := false
+	result["enforce_backend_pools_certificate_name_check"] = false
 
-	if enforceCertificateNameCheck := input.EnforceCertificateNameCheck; enforceCertificateNameCheck != "" {
-		if enforceCertificateNameCheck == frontdoor.EnforceCertificateNameCheckEnabledStateEnabled {
-			result = true
-		}
+	if enforceCertificateNameCheck := input.EnforceCertificateNameCheck; enforceCertificateNameCheck != "" && enforceCertificateNameCheck == frontdoor.EnforceCertificateNameCheckEnabledStateEnabled {
+		result["enforce_backend_pools_certificate_name_check"] = true
+	}
+
+	if sendRecvTimeoutSeconds := input.SendRecvTimeoutSeconds; sendRecvTimeoutSeconds != nil {
+		result["backend_pools_send_receive_timeout_seconds"] = *sendRecvTimeoutSeconds
 	}
 
 	return result
