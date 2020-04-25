@@ -261,7 +261,7 @@ A `metastores` block supports the following:
 
 * `oozie` - (Optional) A `oozie` block as defined below.
 
-* `ambari` - (Optional) A `amabari` block as defined below.
+* `ambari` - (Optional) A `ambari` block as defined below.
 
 ---
 
