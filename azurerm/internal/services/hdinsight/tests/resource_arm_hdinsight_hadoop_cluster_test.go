@@ -345,7 +345,7 @@ func TestAccAzureRMHDInsightHadoopCluster_tls(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHDInsightHadoopCluster_metastore(t *testing.T) {
+func TestAccAzureRMHDInsightHadoopCluster_allMetastores(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -353,7 +353,7 @@ func TestAccAzureRMHDInsightHadoopCluster_metastore(t *testing.T) {
 		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHDInsightHadoopCluster_metastore(data),
+				Config: testAccAzureRMHDInsightHadoopCluster_allMetastores(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -383,6 +383,43 @@ func TestAccAzureRMHDInsightHadoopCluster_hiveMetastore(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightHadoopCluster_hiveMetastore(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMHDInsightHadoopCluster_updateMetastore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_hadoop_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_hiveMetastore(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account",
+				"metastores.0.hive.0.password",
+				"metastores.0.oozie.0.password",
+				"metastores.0.ambari.0.password"),
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_allMetastores(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -1101,7 +1138,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMHDInsightHadoopCluster_metastore(data acceptance.TestData) string {
+func testAccAzureRMHDInsightHadoopCluster_allMetastores(data acceptance.TestData) string {
 	template := testAccAzureRMHDInsightHadoopCluster_template(data)
 	return fmt.Sprintf(`
 %s
