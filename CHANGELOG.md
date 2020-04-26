@@ -9,6 +9,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_sql_database` - prevent extended auditing policy for secondary databases [GH-6402]
+* `azurerm_web_application_firewall_policy` - support for the `managed_rules` property which is required by the new API version [GH-6126]
 
 ## 2.7.0 (April 23, 2020)
 
