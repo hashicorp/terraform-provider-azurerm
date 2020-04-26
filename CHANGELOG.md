@@ -4,6 +4,7 @@ IMPROVEMENTS:
 
 * `azurerm_api_management` - `sku_name` supports the `Consumption` value for `sku` [GH-6602]
 * `azurerm_api_management_api` - support for openapi v3 content formats [GH-6618]
+* `azurerm_express_route_circuit_peering` - support for the `customer_asn` and `routing_registry_name` propeties [GH-6596]
 * `azurerm_mssql_database` - support for the `extended_auditing_policy` block [GH-6402]
 
 BUG FIXES:
