@@ -17,6 +17,7 @@ import (
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -98,6 +99,8 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.MsSqlElasticPoolID,
 			},
+
+			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
 
 			"license_type": {
 				Type:     schema.TypeString,
@@ -270,6 +273,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 
 func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
+	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -321,11 +325,15 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if v, ok := d.GetOk("create_mode"); ok {
-		if _, ok := d.GetOk("creation_source_database_id"); (v.(string) == string(sql.CreateModeCopy) || v.(string) == string(sql.CreateModePointInTimeRestore) || v.(string) == string(sql.CreateModeRestore) || v.(string) == string(sql.CreateModeSecondary)) && !ok {
-			return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", v.(string))
-		}
-		params.DatabaseProperties.CreateMode = sql.CreateMode(v.(string))
+	createMode, ok := d.GetOk("create_mode")
+	if _, dbok := d.GetOk("creation_source_database_id"); ok && (createMode.(string) == string(sql.CreateModeCopy) || createMode.(string) == string(sql.CreateModePointInTimeRestore) || createMode.(string) == string(sql.CreateModeRestore) || createMode.(string) == string(sql.CreateModeSecondary)) && !dbok {
+		return fmt.Errorf("'creation_source_database_id' is required for create_mode %s", createMode.(string))
+	}
+	params.DatabaseProperties.CreateMode = sql.CreateMode(createMode.(string))
+
+	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
+	if (createMode == string(sql.CreateModeOnlineSecondary) || createMode == string(sql.Secondary)) && len(auditingPolicies) > 0 {
+		return fmt.Errorf("could not configure auditing policies on SQL Database %q (Resource Group %q, Server %q) in secondary create mode", name, serverId.ResourceGroup, serverId.Name)
 	}
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
@@ -382,12 +390,22 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("setting database threat detection policy: %+v", err)
 	}
 
+	if createMode != string(sql.CreateModeOnlineSecondary) && createMode != string(sql.CreateModeSecondary) {
+		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
+			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmMsSqlDBBlobAuditingPolicies(auditingPolicies),
+		}
+		if _, err = auditingClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, auditingProps); err != nil {
+			return fmt.Errorf("failure in issuing create/update request for SQL Database %q Blob Auditing Policies(SQL Server %q/ Resource Group %q): %+v", name, serverId.Name, serverId.ResourceGroup, err)
+		}
+	}
+
 	return resourceArmMsSqlDatabaseRead(d, meta)
 }
 
 func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
+	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -439,6 +457,16 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		if err := d.Set("threat_detection_policy", flattenArmMsSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
+	}
+
+	auditingResp, err := auditingClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	if err != nil {
+		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", id.Name, err)
+	}
+
+	flattenBlobAuditing := helper.FlattenAzureRmMsSqlDBBlobAuditingPolicies(&auditingResp, d)
+	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
+		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

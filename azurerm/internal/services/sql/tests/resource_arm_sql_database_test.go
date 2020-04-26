@@ -483,6 +483,25 @@ func TestAccAzureRMSqlDatabase_withBlobAuditingPolicesUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_onlineSecondaryMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlDatabase_onlineSecondaryMode(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password", "create_mode"),
+		},
+	})
+}
+
 func testAccAzureRMSqlDatabase_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1091,4 +1110,60 @@ resource "azurerm_sql_database" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15))
+}
+
+func testAccAzureRMSqlDatabase_onlineSecondaryMode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsqlserver%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                             = "acctestdb%[1]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  server_name                      = azurerm_sql_server.test.name
+  location                         = azurerm_resource_group.test.location
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%[1]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_sql_server" "test2" {
+  name                         = "acctestsqlserver2%[1]d"
+  resource_group_name          = azurerm_resource_group.test2.name
+  location                     = azurerm_resource_group.test2.location
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test2" {
+  name                = "acctestdb2%[1]d"
+  resource_group_name = azurerm_resource_group.test2.name
+  server_name         = azurerm_sql_server.test2.name
+  location            = azurerm_resource_group.test2.location
+  create_mode         = "OnlineSecondary"
+  source_database_id  = azurerm_sql_database.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
