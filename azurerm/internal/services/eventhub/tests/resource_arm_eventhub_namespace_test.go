@@ -143,6 +143,8 @@ func TestAccAzureRMEventHubNamespace_readDefaultKeys(t *testing.T) {
 				Config: testAccAzureRMEventHubNamespace_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
+					resource.TestMatchResourceAttr(data.ResourceName, "alias_default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
+					resource.TestMatchResourceAttr(data.ResourceName, "alias_default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
 					resource.TestMatchResourceAttr(data.ResourceName, "default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
 					resource.TestMatchResourceAttr(data.ResourceName, "default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
 					resource.TestMatchResourceAttr(data.ResourceName, "default_primary_key", regexp.MustCompile(".+")),

@@ -65,13 +65,17 @@ The following attributes are exported:
 
 * `id` - The EventHub Namespace Authorization Rule ID.
 
-* `primary_key` - The Primary Key for the Authorization Rule.
+* `alias_primary_connection_string` - The alias of the Primary Connection String for the Authorization Rule.
+
+* `alias_secondary_connection_string` - The alias of the Secondary Connection String for the Authorization Rule.
 
 * `primary_connection_string` - The Primary Connection String for the Authorization Rule.
 
-* `secondary_key` - The Secondary Key for the Authorization Rule.
+* `primary_key` - The Primary Key for the Authorization Rule.
 
 * `secondary_connection_string` - The Secondary Connection String for the Authorization Rule.
+
+* `secondary_key` - The Secondary Key for the Authorization Rule.
 
 ## Timeouts
 

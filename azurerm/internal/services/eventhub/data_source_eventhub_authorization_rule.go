@@ -38,13 +38,13 @@ func dataSourceEventHubAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateEventHubName(),
 			},
 
-			"primary_key": {
+			"alias_primary_connection_string": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"secondary_key": {
+			"alias_secondary_connection_string": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -56,7 +56,19 @@ func dataSourceEventHubAuthorizationRule() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"primary_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"secondary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -103,6 +115,8 @@ func dataSourceEventHubAuthorizationRuleRead(d *schema.ResourceData, meta interf
 	d.Set("secondary_key", keysResp.SecondaryKey)
 	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
 	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
+	d.Set("alias_primary_connection_string", keysResp.AliasPrimaryConnectionString)
+	d.Set("alias_secondary_connection_string", keysResp.AliasSecondaryConnectionString)
 
 	return nil
 }

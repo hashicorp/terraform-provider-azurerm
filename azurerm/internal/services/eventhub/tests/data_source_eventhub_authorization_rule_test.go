@@ -27,6 +27,8 @@ func TestAccDataSourceAzureRMEventHubAuthorizationRule(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_secondary_connection_string"),
 				),
 			},
 		},

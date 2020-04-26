@@ -37,22 +37,25 @@ The following attributes are exported:
 
 * `id` - The EventHub ID.
 
-* `namespace_name` - The name of the EventHub Namespace. 
+* `alias_primary_connection_string` - The alias of the Primary Connection String for the Event Hubs authorization Rule.
+
+* `alias_secondary_connection_string` - The alias of the Secondary Connection String for the Event Hubs authorization Rule.
 
 * `listen` - Does this Authorization Rule have permissions to Listen to the Event Hub?
 
-* `send` - Does this Authorization Rule have permissions to Send to the Event Hub?
-
 * `manage` - Does this Authorization Rule have permissions to Manage to the Event Hub?
 
-* `primary_key` - The Primary Key for the Event Hubs authorization Rule.
+* `namespace_name` - The name of the EventHub Namespace. 
 
 * `primary_connection_string` - The Primary Connection String for the Event Hubs authorization Rule.
 
-* `secondary_key` - The Secondary Key for the Event Hubs authorization Rule.
+* `primary_key` - The Primary Key for the Event Hubs authorization Rule.
 
 * `secondary_connection_string` - The Secondary Connection String for the Event Hubs authorization Rule.
 
+* `secondary_key` - The Secondary Key for the Event Hubs authorization Rule.
+
+* `send` - Does this Authorization Rule have permissions to Send to the Event Hub?
 
 ## Timeouts
 

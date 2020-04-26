@@ -34,12 +34,19 @@ func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"listen": {
-				Type:     schema.TypeBool,
-				Computed: true,
+			"alias_primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
-			"send": {
+			"alias_secondary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"listen": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -49,13 +56,19 @@ func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 				Computed: true,
 			},
 
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"primary_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"primary_connection_string": {
+			"secondary_connection_string": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -67,10 +80,9 @@ func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"secondary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
+			"send": {
+				Type:     schema.TypeBool,
+				Computed: true,
 			},
 		},
 	}
@@ -118,6 +130,8 @@ func dataSourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, me
 	d.Set("secondary_key", keysResp.SecondaryKey)
 	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
 	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
+	d.Set("alias_primary_connection_string", keysResp.AliasPrimaryConnectionString)
+	d.Set("alias_secondary_connection_string", keysResp.AliasSecondaryConnectionString)
 
 	return nil
 }
