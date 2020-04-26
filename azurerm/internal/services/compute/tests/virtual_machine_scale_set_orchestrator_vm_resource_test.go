@@ -125,8 +125,8 @@ func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_requiresImport(t 
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_orchestrator_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() {acceptance.PreCheck(t)},
-		Providers: acceptance.SupportedProviders,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMDestroy,
 		Steps: []resource.TestStep{
 			{
