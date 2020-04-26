@@ -242,6 +242,32 @@ func TestAccAzureRMMsSqlElasticPool_resize_vCore(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlElasticPool_licenseType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlElasticPool_licenseTypeLicenseIncluded(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
+				),
+			},
+			{
+				Config: testAccAzureRMMsSqlElasticPool_licenseTypeBasePrice(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.ElasticPoolsClient
@@ -496,4 +522,57 @@ resource "azurerm_mssql_elasticpool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant)
+}
+
+func testAccAzureRMMsSqlElasticPool_licenseTypeBasePrice(data acceptance.TestData) string {
+	return testAccAzureRMMsSqlElasticPool_licenseType_Template(data, "BasePrice")
+}
+
+func testAccAzureRMMsSqlElasticPool_licenseTypeLicenseIncluded(data acceptance.TestData) string {
+	return testAccAzureRMMsSqlElasticPool_licenseType_Template(data, "LicenseIncluded")
+}
+
+func testAccAzureRMMsSqlElasticPool_licenseType_Template(data acceptance.TestData, licenseType string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctest%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-dtu-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
+  max_size_gb         = 50
+  zone_redundant      = false
+  license_type        = "%[3]s"
+
+  sku {
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0
+    max_capacity = 4
+  }
+
+}
+`, data.RandomInteger, data.Locations.Primary, licenseType)
 }
