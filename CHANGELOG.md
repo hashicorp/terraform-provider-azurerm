@@ -2,8 +2,13 @@
 
 IMPROVEMENTS:
 
-* `azurerm_api_management` - `sku_name` supports Consumption [GH-6602]
+* `azurerm_api_management` - `sku_name` supports the `Consumption` value for `sku` [GH-6602]
 * `azurerm_api_management_api` - support for openapi v3 content formats [GH-6618]
+* `azurerm_mssql_database` - support for the `extended_auditing_policy` block [GH-6402]
+
+BUG FIXES:
+
+* `azurerm_sql_database` - prevent extended auditing policy for secondary databases [GH-6402]
 
 ## 2.7.0 (April 23, 2020)
 
