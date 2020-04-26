@@ -19,6 +19,8 @@ func TestAccDataSourceAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basic(t
 			{
 				Config: testAccDataSourceAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basic(data),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(data.ResourceName, "location"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "unique_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),

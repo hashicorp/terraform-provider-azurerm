@@ -157,6 +157,10 @@ The following arguments are supported:
 
 * `timezone` - (Optional) Specifies the Time Zone which should be used by the Virtual Machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 
+* `virtual_machine_scale_set_id` - (Optional) Specifies the Virtual Machine Scale Set that this Virtual Machine needs to be added.
+
+~> **NOTE:** The referenced Virtual Machine Scale Set must be in the orchestration mode of `VM`. This could be only used accompany by `azurerm_virtual_machine_scale_set_orchestrator_vm`.
+
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below.
 
 * `zone` - (Optional) The Zone in which this Virtual Machine should be created. Changing this forces a new resource to be created.

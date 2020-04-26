@@ -41,6 +41,8 @@ output "id" {
 
 * `tags` - A mapping of tags assigned to this Virtual Machine Scale Set Orchestrator VM.
 
+* `unique_id` - The Unique ID of this Virtual Machine Scale Set Orchestrator VM.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

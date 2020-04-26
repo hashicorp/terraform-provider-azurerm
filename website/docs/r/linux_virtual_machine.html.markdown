@@ -166,6 +166,10 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
+* `virtual_machine_scale_set_id` - (Optional) Specifies the Virtual Machine Scale Set that this Virtual Machine needs to be added.
+
+~> **NOTE:** The referenced Virtual Machine Scale Set must be in the orchestration mode of `VM`. This could be only used accompany by `azurerm_virtual_machine_scale_set_orchestrator_vm`.
+
 * `zone` - (Optional) The Zone in which this Virtual Machine should be created. Changing this forces a new resource to be created.
 
 ---

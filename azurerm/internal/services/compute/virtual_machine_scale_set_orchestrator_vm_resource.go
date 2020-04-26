@@ -43,7 +43,7 @@ func resourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateLinuxName,
+				ValidateFunc: ValidateVMSSOrchestratorVMName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -61,9 +61,10 @@ func resourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
 			"single_placement_group": {
 				Type:     schema.TypeBool,
 				Required: true,
+				ForceNew: true,
 			},
 
-			// the VMO mode can only be deployed into one zone, and its zone will also be assigned to all its VM instances
+			// the VMO mode can only be deployed into one zone for now, and its zone will also be assigned to all its VM instances
 			"zones": azure.SchemaSingleZone(),
 
 			"unique_id": {
@@ -88,12 +89,12 @@ func resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate(d *schema.Resou
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_windows_virtual_machine_scale_set", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_orchestrator_vm", *resp.ID)
 		}
 	}
 
@@ -109,20 +110,20 @@ func resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate(d *schema.Resou
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
 	if err != nil {
-		return fmt.Errorf("creating Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil {
-		return fmt.Errorf("retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): ID was nil", name, resourceGroup)
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("retrieving Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): ID was empty", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
@@ -142,12 +143,12 @@ func resourceArmVirtualMachineScaleSetOrchestratorVMRead(d *schema.ResourceData,
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual Machine Scale Set VM Mode %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Virtual Machine Scale Set Orchestrator VM %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -183,16 +184,16 @@ func resourceArmVirtualMachineScaleSetOrchestratorVMDelete(d *schema.ResourceDat
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Virtual Machine Scale Set VM Mode %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -25,12 +25,17 @@ func dataSourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateLinuxName,
+				ValidateFunc: ValidateVMSSOrchestratorVMName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
+
+			"unique_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"tags": tags.SchemaDataSource(),
 		},
@@ -66,6 +71,9 @@ func dataSourceArmVirtualMachineScaleSetOrchestratorVMRead(d *schema.ResourceDat
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	if props := resp.VirtualMachineScaleSetProperties; props != nil {
+		d.Set("unique_id", props.UniqueID)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

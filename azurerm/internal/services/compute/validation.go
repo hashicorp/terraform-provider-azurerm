@@ -90,6 +90,11 @@ func ValidateWindowsName(i interface{}, k string) (warnings []string, errors []e
 	return warnings, errors
 }
 
+// Currently the name validation for VMSS in orchestration mode VM is the same as Linux ones.
+func ValidateVMSSOrchestratorVMName(i interface{}, k string) (warnings []string, errors []error) {
+	return ValidateLinuxName(i, k)
+}
+
 func validateDiskEncryptionSetName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

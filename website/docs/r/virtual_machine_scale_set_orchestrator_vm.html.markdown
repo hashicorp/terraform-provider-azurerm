@@ -10,7 +10,7 @@ description: |-
 
 Manages a Virtual Machine Scale Set Orchestrator VM.
 
-~> **NOTE:** This resource is part of the public preview feature of virtual machine scale set orchestration mode, and this resource manages a virtual machine scale set in VM orchestration mode. You can find more information about the orchestration mode in [this doc](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
+~> **NOTE:** This resource is part of the public preview feature of virtual machine scale set orchestration mode, which manages a virtual machine scale set in VM orchestration mode. You can find more information about the orchestration mode [here](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
 
 ## Example Usage
 
@@ -99,13 +99,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Virtual Machine Scale Set Orchestrator VM should be exist. Changing this forces a new resource to be created.
 
-* `platform_fault_domain_count` - (Required) Specifies the number of fault domains that are used by this Virtual Machine Scale Set Orchestrator VM.
+* `platform_fault_domain_count` - (Required) Specifies the number of fault domains that are used by this Virtual Machine Scale Set Orchestrator VM. Changing this forces a new resource to be created.
 
-~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - [a list can be found here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
+~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
-* `single_placement_group` - (Required) Should the Virtual Machine Scale Set Orchestrator VM use single placement group?
+* `single_placement_group` - (Required) Should the Virtual Machine Scale Set Orchestrator VM use single placement group? Changing this forces a new resource to be created.
 
-~> **NOTE:** You can only assign `single_placement_group` `false` unless you have opted-in the private preview program of the orchestration mode of virtual machine scale sets.
+~> **NOTE:** You cannot assign `single_placement_group` to `true` unless you have opted-in the private preview program of the orchestration mode of virtual machine scale sets.
 
 * `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in. Changing this forces a new resource to be created.
 

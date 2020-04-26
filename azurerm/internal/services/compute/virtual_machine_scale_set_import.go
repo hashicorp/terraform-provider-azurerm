@@ -22,7 +22,7 @@ func importVirtualMachineScaleSetOrchestratorVM(d *schema.ResourceData, meta int
 
 	vm, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return []*schema.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := assertVirtualMachineScaleSetOrchestratorVM(vm); err != nil {
