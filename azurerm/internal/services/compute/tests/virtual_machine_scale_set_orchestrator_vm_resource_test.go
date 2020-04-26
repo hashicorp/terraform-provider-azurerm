@@ -590,7 +590,7 @@ resource "azurerm_virtual_machine_scale_set_orchestrator_vm" "test" {
 
   tags = {
     ENV = "Test",
-	FOO = "Bar"
+    FOO = "Bar"
   }
 }
 
