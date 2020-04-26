@@ -123,6 +123,8 @@ A `blob_properties` block supports the following:
 
 * `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
+* `change_feed` - (Optional) A `change_feed` block as defined below.
+
 ---
 
 A `cors_rule` block supports the following:
@@ -150,6 +152,14 @@ A `custom_domain` block supports the following:
 A `delete_retention_policy` block supports the following:
 
 * `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
+
+---
+
+A `change_feed` block supports the following:
+
+~> **NOTE:** `change_feed` is in public preview, and is available in the westcentralus and westus2 regions. [More information](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-change-feed)
+
+* `enable` - (Optional) Indicates whether change feed event logging is enabled for the Blob service.
 
 ---
 

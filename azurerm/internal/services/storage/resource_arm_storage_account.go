@@ -245,6 +245,19 @@ func resourceArmStorageAccount() *schema.Resource {
 								},
 							},
 						},
+						"change_feed": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1341,7 +1354,20 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 	corsRaw := v["cors_rule"].([]interface{})
 	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
 
+	changeFeed := v["change_feed"].([]interface{})
+	props.BlobServicePropertiesProperties.ChangeFeed = expandBlobPropertiesChangeFeed(changeFeed)
+
 	return props
+}
+
+func expandBlobPropertiesChangeFeed(input []interface{}) *storage.ChangeFeed {
+	if len(input) == 0 {
+		return nil
+	}
+
+	changeFeedAttr := input[0].(map[string]interface{})
+
+	return &storage.ChangeFeed{Enabled: utils.Bool(changeFeedAttr["enabled"].(bool))}
 }
 
 func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
@@ -1604,7 +1630,12 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
 	}
 
-	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 {
+	flattenedChangeFeed := make([]interface{}, 0)
+	if changeFeed := input.BlobServicePropertiesProperties.ChangeFeed; changeFeed != nil {
+		flattenedChangeFeed = flattenBlobPropertiesChangeFeed(changeFeed)
+	}
+
+	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 && len(flattenedChangeFeed) == 0 {
 		return []interface{}{}
 	}
 
@@ -1612,6 +1643,24 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		map[string]interface{}{
 			"cors_rule":               flattenedCorsRules,
 			"delete_retention_policy": flattenedDeletePolicy,
+			"change_feed":             flattenedChangeFeed,
+		},
+	}
+}
+
+func flattenBlobPropertiesChangeFeed(input *storage.ChangeFeed) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled": enabled,
 		},
 	}
 }
