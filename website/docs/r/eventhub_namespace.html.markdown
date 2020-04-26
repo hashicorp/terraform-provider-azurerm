@@ -89,10 +89,10 @@ The following attributes are exported only if there is an authorization rule nam
 `RootManageSharedAccessKey` which is created automatically by Azure.
 
 * `alias_default_primary_connection_string` - The alias of the primary connection string for the authorization
-    rule `RootManageSharedAccessKey`.
+    rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
 
 * `alias_default_secondary_connection_string` - The alias of the secondary connection string for the
-    authorization rule `RootManageSharedAccessKey`.
+    authorization rule `RootManageSharedAccessKey`, which is generated when disaster recovery is enabled.
 
 * `default_primary_connection_string` - The primary connection string for the authorization
     rule `RootManageSharedAccessKey`.

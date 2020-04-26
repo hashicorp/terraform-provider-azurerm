@@ -47,8 +47,6 @@ func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage 
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_secondary_connection_string"),
 					resource.TestCheckResourceAttr(data.ResourceName, "listen", strconv.FormatBool(listen)),
 					resource.TestCheckResourceAttr(data.ResourceName, "send", strconv.FormatBool(send)),
 					resource.TestCheckResourceAttr(data.ResourceName, "manage", strconv.FormatBool(manage)),
@@ -108,11 +106,30 @@ func TestAccAzureRMEventHubAuthorizationRule_rightsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_secondary_connection_string"),
 					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "send", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "manage", "true"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMEventHubAuthorizationRule_withAliasConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubAuthorizationRule_withAliasConnectionString(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_secondary_connection_string"),
 				),
 			},
 			data.ImportStep(),
@@ -233,4 +250,65 @@ resource "azurerm_eventhub_authorization_rule" "import" {
   manage              = azurerm_eventhub_authorization_rule.test.manage
 }
 `, template)
+}
+
+func testAccAzureRMEventHubAuthorizationRule_withAliasConnectionString(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ehar-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-ehar-%[1]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku = "Standard"
+}
+
+resource "azurerm_eventhub_namespace" "test2" {
+  name                = "acctesteventhubnamespace2-%[1]d"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+
+  sku = "Standard"
+}
+
+resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
+  name                 = "acctest-EHN-DRC-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  namespace_name       = azurerm_eventhub_namespace.test.name
+  partner_namespace_id = azurerm_eventhub_namespace.test2.id
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  partition_count   = 2
+  message_retention = 1
+}
+
+resource "azurerm_eventhub_authorization_rule" "test" {
+  name                = "acctest-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  eventhub_name       = azurerm_eventhub.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  listen = true
+  send   = true
+  manage = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

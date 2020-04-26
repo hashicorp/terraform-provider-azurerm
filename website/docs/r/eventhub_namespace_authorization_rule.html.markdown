@@ -65,9 +65,9 @@ The following attributes are exported:
 
 * `id` - The EventHub Namespace Authorization Rule ID.
 
-* `alias_primary_connection_string` - The alias of the Primary Connection String for the Authorization Rule.
+* `alias_primary_connection_string` - The alias of the Primary Connection String for the Authorization Rule, which is generated when disaster recovery is enabled.
 
-* `alias_secondary_connection_string` - The alias of the Secondary Connection String for the Authorization Rule.
+* `alias_secondary_connection_string` - The alias of the Secondary Connection String for the Authorization Rule, which is generated when disaster recovery is enabled.
 
 * `primary_connection_string` - The Primary Connection String for the Authorization Rule.
 

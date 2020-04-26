@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.eventhub_namespace_authorization_rule", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace_authorization_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -21,6 +21,27 @@ func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_basic(t *testing
 					resource.TestCheckResourceAttrSet(data.ResourceName, "listen"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "manage"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "send"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_namespace_authorization_rule", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
+			},
+			{
+				Config: testAccDataSourceEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_secondary_connection_string"),
 				),
 			},
 		},
@@ -62,4 +83,17 @@ data "azurerm_eventhub_namespace_authorization_rule" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, listen, send, manage)
+}
+
+func testAccDataSourceEventHubNamespaceAuthorizationRule_withAliasConnectionString(data acceptance.TestData) string {
+	template := testAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_eventhub_namespace_authorization_rule" "test" {
+  name                = azurerm_eventhub_namespace_authorization_rule.test.name
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, template)
 }
