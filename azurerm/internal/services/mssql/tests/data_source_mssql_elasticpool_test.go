@@ -33,8 +33,8 @@ func TestAccDataSourceAzureRMMsSqlElasticPool_basic(t *testing.T) {
 			},
 		},
 	})
-
 }
+
 func TestAccDataSourceAzureRMMsSqlElasticPool_licenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_elasticpool", "test")
 
