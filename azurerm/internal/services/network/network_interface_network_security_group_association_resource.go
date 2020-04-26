@@ -100,7 +100,7 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationCreate(d *schema.Resourc
 	resourceId := fmt.Sprintf("%s|%s", networkInterfaceId, networkSecurityGroupId)
 	if features.ShouldResourcesBeImported() {
 		if props.NetworkSecurityGroup != nil {
-			return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceGroup)
+			return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceId)
 		}
 	}
 
