@@ -386,7 +386,7 @@ func expandMonitorDiagnosticsSettingsLogs(input []interface{}) []insights.LogSet
 		enabled := v["enabled"].(bool)
 		policiesRaw := v["retention_policy"].([]interface{})
 		var retentionPolicy *insights.RetentionPolicy
-		if policiesRaw != nil && len(policiesRaw) != 0 {
+		if len(policiesRaw) != 0 {
 			policyRaw := policiesRaw[0].(map[string]interface{})
 			retentionDays := policyRaw["days"].(int)
 			retentionEnabled := policyRaw["enabled"].(bool)
