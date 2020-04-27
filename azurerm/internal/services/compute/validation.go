@@ -98,7 +98,7 @@ func ValidateWindowsComputerNameFull(i interface{}, k string) (warnings []string
 
 func ValidateWindowsComputerNamePrefix(i interface{}, k string) (warnings []string, errors []error) {
 	// Windows computer name prefix cannot be more than 9 characters long
-	return ValidateWindowsComputerName(i, k, 90)
+	return ValidateWindowsComputerName(i, k, 9)
 }
 
 func ValidateWindowsComputerName(i interface{}, k string, maxLength int) (warnings []string, errors []error) {

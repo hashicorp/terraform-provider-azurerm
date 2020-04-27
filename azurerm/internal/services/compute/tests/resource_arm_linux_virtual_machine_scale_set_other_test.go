@@ -81,7 +81,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefixInvalid(t 
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefixInvalid(data),
+				Config:      testAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefixInvalid(data),
 				ExpectError: regexp.MustCompile("unable to assume default computer name prefix"),
 			},
 		},
@@ -682,13 +682,13 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefixInvalid(da
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                 = "acctestvmss-%d-too-long-to-be-a-computer-name-but-not-vmss-name"
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = "acctestvmss-%d-too-long-to-be-a-computer-name-but-not-vmss-name"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   disable_password_authentication = false
 
