@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -108,7 +109,6 @@ resource "azurerm_policy_set_definition" "test" {
     }
 PARAMETERS
 
-
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -121,7 +121,6 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
-
 }
 `, data.RandomInteger, data.RandomInteger)
 }
@@ -166,7 +165,6 @@ resource "azurerm_policy_definition" "test" {
   }
 POLICY_RULE
 
-
   parameters = <<PARAMETERS
 	{
     "allowedLocations": {
@@ -179,13 +177,12 @@ POLICY_RULE
     }
   }
 PARAMETERS
-
 }
 
 resource "azurerm_policy_set_definition" "test" {
-  name         = "acctestpolset-%d"
+  name         = "acctestPolSet-%d"
   policy_type  = "Custom"
-  display_name = "acctestpolset-%d"
+  display_name = "acctestPolSet-display-%d"
 
   parameters = <<PARAMETERS
     {
@@ -200,7 +197,6 @@ resource "azurerm_policy_set_definition" "test" {
     }
 PARAMETERS
 
-
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -213,7 +209,6 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
-
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -247,7 +242,6 @@ resource "azurerm_policy_set_definition" "test" {
     }
 PARAMETERS
 
-
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -260,7 +254,6 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
-
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -275,20 +268,21 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		policySetName := rs.Primary.Attributes["name"]
-		managementGroupId := rs.Primary.Attributes["management_group_id"]
+		id, err := parse.PolicySetDefinitionID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		var err error
 		var resp policy.SetDefinition
-		if managementGroupId != "" {
-			resp, err = client.GetAtManagementGroup(ctx, policySetName, managementGroupId)
+		if mgmtGroupID, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
+			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupId)
 		} else {
-			resp, err = client.Get(ctx, policySetName)
+			resp, err = client.Get(ctx, id.Name)
 		}
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("policy set definition does not exist: %s", policySetName)
+				return fmt.Errorf("policy set definition does not exist: %s", id.Name)
 			} else {
 				return fmt.Errorf("Bad: Get on policySetDefinitionsClient: %s", err)
 			}
@@ -307,25 +301,22 @@ func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		policySetName := rs.Primary.Attributes["name"]
-		managementGroupId := rs.Primary.Attributes["management_group_id"]
+		id, err := parse.PolicySetDefinitionID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		var err error
 		var resp policy.SetDefinition
-		if managementGroupId != "" {
-			resp, err = client.GetAtManagementGroup(ctx, policySetName, managementGroupId)
+		if mgmtGroupID, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
+			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupId)
 		} else {
-			resp, err = client.Get(ctx, policySetName)
+			resp, err = client.Get(ctx, id.Name)
 		}
 
 		if err == nil {
-			return fmt.Errorf("policy set definition still exists: %s", *resp.Name)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		} else {
-			return err
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Get on Policy.SetDefinitionsClient: %+v", err)
+			}
 		}
 	}
 

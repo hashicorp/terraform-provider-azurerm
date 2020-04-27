@@ -112,6 +112,13 @@ func testAccDataSourceSubnet_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.0.0/24"
+}
+
 data "azurerm_subnet" "test" {
   name                 = azurerm_subnet.test.name
   virtual_network_name = azurerm_subnet.test.virtual_network_name

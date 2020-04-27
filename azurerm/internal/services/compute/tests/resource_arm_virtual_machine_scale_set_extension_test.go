@@ -2,15 +2,14 @@ package tests
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMVirtualMachineScaleSetExtension_basicLinux(t *testing.T) {
@@ -50,12 +49,8 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_basicWindows(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineScaleSetExtension_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_extension", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -216,23 +211,20 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) 
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]
-		virtualMachineScaleSetId, err := compute.ParseVirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
+		id, err := parse.VirtualMachineScaleSetExtensionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, virtualMachineScaleSetId.ResourceGroup, virtualMachineScaleSetId.Name, name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, "")
 		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Extension %q (VirtualMachineScaleSet %q / Resource Group: %q) does not exist", id.Name, id.VirtualMachineScaleSetName, id.ResourceGroup)
+			}
 			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Extension %q (VirtualMachineScaleSet %q / Resource Group: %q) does not exist", name, virtualMachineScaleSetId.Name, virtualMachineScaleSetId.ResourceGroup)
-		}
-
-		return err
+		return nil
 	}
 }
 
@@ -245,22 +237,18 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionDestroy(s *terraform.State) 
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]
-		virtualMachineScaleSetId, err := compute.ParseVirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
+		id, err := parse.VirtualMachineScaleSetExtensionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, virtualMachineScaleSetId.ResourceGroup, virtualMachineScaleSetId.Name, name, "")
-
-		if err != nil {
-			return nil
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.Name, ""); err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Get on Compute.VMScaleSetExtensionsClient: %+v", err)
+			}
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Virtual Machine Scale Set Extension still exists:\n%#v", resp.VirtualMachineScaleSetExtensionProperties)
-		}
+		return nil
 	}
 
 	return nil

@@ -161,7 +161,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	var createdProbeId string
-	for _, Probe := range *(*read.LoadBalancerPropertiesFormat).Probes {
+	for _, Probe := range *read.LoadBalancerPropertiesFormat.Probes {
 		if *Probe.Name == name {
 			createdProbeId = *Probe.ID
 		}

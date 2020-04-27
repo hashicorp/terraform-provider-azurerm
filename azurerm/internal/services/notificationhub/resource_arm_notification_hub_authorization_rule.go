@@ -228,7 +228,7 @@ func expandNotificationHubAuthorizationRuleRights(manage bool, send bool, listen
 	}
 
 	if send {
-		rights = append(rights, notificationhubs.Send)
+		rights = append(rights, notificationhubs.SendEnumValue)
 	}
 
 	if listen {
@@ -248,7 +248,7 @@ func flattenNotificationHubAuthorizationRuleRights(input *[]notificationhubs.Acc
 		case notificationhubs.Manage:
 			manage = true
 			continue
-		case notificationhubs.Send:
+		case notificationhubs.SendEnumValue:
 			send = true
 			continue
 		case notificationhubs.Listen:

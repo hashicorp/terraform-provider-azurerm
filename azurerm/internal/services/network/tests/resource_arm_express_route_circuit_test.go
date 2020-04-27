@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,7 +34,8 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"requiresImport":                testAccAzureRMExpressRouteCircuitPeering_requiresImport,
 		},
 		"MicrosoftPeering": {
-			"microsoftPeering": testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
+			"microsoftPeering":                testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
+			"microsoftPeeringCustomerRouting": testAccAzureRMExpressRouteCircuitPeering_microsoftPeeringCustomerRouting,
 		},
 		"authorization": {
 			"basic":          testAccAzureRMExpressRouteCircuitAuthorization_basic,
@@ -78,11 +78,6 @@ func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 }
 
 func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	var erc network.ExpressRouteCircuit
 

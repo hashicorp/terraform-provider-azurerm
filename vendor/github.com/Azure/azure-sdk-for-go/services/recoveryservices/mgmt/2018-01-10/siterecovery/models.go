@@ -21970,6 +21970,8 @@ type VMwareCbtDiskInput struct {
 	LogStorageAccountSasSecretName *string `json:"logStorageAccountSasSecretName,omitempty"`
 	// DiskType - The disk type. Possible values include: 'StandardLRS', 'PremiumLRS', 'StandardSSDLRS'
 	DiskType DiskAccountType `json:"diskType,omitempty"`
+	// DiskEncryptionSetID - The DiskEncryptionSet ARM Id.
+	DiskEncryptionSetID *string `json:"diskEncryptionSetId,omitempty"`
 }
 
 // VMwareCbtEnableMigrationInput vMwareCbt specific enable migration input.
@@ -22209,6 +22211,8 @@ type VMwareCbtMigrationDetails struct {
 	MigrationProgressPercentage *int32 `json:"migrationProgressPercentage,omitempty"`
 	// ResyncProgressPercentage - READ-ONLY; The resync progress percentage.
 	ResyncProgressPercentage *int32 `json:"resyncProgressPercentage,omitempty"`
+	// ResyncRequired - READ-ONLY; A value indicating whether resync is required.
+	ResyncRequired *string `json:"resyncRequired,omitempty"`
 	// ResyncState - READ-ONLY; The resync state. Possible values include: 'ResyncStateNone', 'ResyncStatePreparedForResynchronization', 'ResyncStateStartedResynchronization'
 	ResyncState ResyncState `json:"resyncState,omitempty"`
 	// PerformAutoResync - A value indicating whether auto resync is to be done.
@@ -22491,6 +22495,8 @@ type VMwareCbtProtectedDiskDetails struct {
 	LogStorageAccountID *string `json:"logStorageAccountId,omitempty"`
 	// LogStorageAccountSasSecretName - READ-ONLY; The key vault secret name of the log storage account.
 	LogStorageAccountSasSecretName *string `json:"logStorageAccountSasSecretName,omitempty"`
+	// DiskEncryptionSetID - READ-ONLY; The DiskEncryptionSet ARM Id.
+	DiskEncryptionSetID *string `json:"diskEncryptionSetId,omitempty"`
 	// SeedManagedDiskID - READ-ONLY; The ARM Id of the seed managed disk.
 	SeedManagedDiskID *string `json:"seedManagedDiskId,omitempty"`
 	// TargetManagedDiskID - READ-ONLY; The ARM Id of the target managed disk.

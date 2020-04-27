@@ -140,6 +140,11 @@ func resourceArmNetworkInterface() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"internal_domain_name_suffix": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 
 			// Computed
@@ -425,12 +430,17 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		appliedDNSServers := make([]string, 0)
 		dnsServers := make([]string, 0)
 		internalDnsNameLabel := ""
+		internalDomainNameSuffix := ""
 		if dnsSettings := props.DNSSettings; dnsSettings != nil {
 			appliedDNSServers = flattenNetworkInterfaceDnsServers(dnsSettings.AppliedDNSServers)
 			dnsServers = flattenNetworkInterfaceDnsServers(dnsSettings.DNSServers)
 
 			if dnsSettings.InternalDNSNameLabel != nil {
 				internalDnsNameLabel = *dnsSettings.InternalDNSNameLabel
+			}
+
+			if dnsSettings.InternalDomainNameSuffix != nil {
+				internalDomainNameSuffix = *dnsSettings.InternalDomainNameSuffix
 			}
 		}
 
@@ -450,6 +460,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
 		d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 		d.Set("internal_dns_name_label", internalDnsNameLabel)
+		d.Set("internal_domain_name_suffix", internalDomainNameSuffix)
 		d.Set("mac_address", props.MacAddress)
 		d.Set("private_ip_address", primaryPrivateIPAddress)
 		d.Set("virtual_machine_id", virtualMachineId)

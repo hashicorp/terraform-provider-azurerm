@@ -17,6 +17,7 @@ func RequiredResourceProviders() map[string]struct{} {
 	// NOTE: Resource Providers in this list are case sensitive
 	return map[string]struct{}{
 		"Microsoft.ApiManagement":           {},
+		"Microsoft.AppPlatform":             {},
 		"Microsoft.Authorization":           {},
 		"Microsoft.Automation":              {},
 		"Microsoft.BotService":              {},
@@ -33,6 +34,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.DataLakeAnalytics":       {},
 		"Microsoft.DataLakeStore":           {},
 		"Microsoft.DataMigration":           {},
+		"Microsoft.DBforMariaDB":            {},
 		"Microsoft.DBforMySQL":              {},
 		"Microsoft.DBforPostgreSQL":         {},
 		"Microsoft.Devices":                 {},
@@ -48,6 +50,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"microsoft.insights":                {},
 		"Microsoft.Logic":                   {},
 		"Microsoft.MachineLearningServices": {},
+		"Microsoft.Maintenance":             {},
 		"Microsoft.ManagedIdentity":         {},
 		"Microsoft.Management":              {},
 		"Microsoft.Maps":                    {},

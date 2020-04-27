@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -100,6 +100,10 @@ func resourceArmApiManagementApi() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(apimanagement.Openapi),
+								string(apimanagement.Openapijson),
+								string(apimanagement.OpenapijsonLink),
+								string(apimanagement.OpenapiLink),
 								string(apimanagement.SwaggerJSON),
 								string(apimanagement.SwaggerLinkJSON),
 								string(apimanagement.WadlLinkJSON),
@@ -207,14 +211,14 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	versionSetId := d.Get("version_set_id").(string)
 
 	if version != "" && versionSetId == "" {
-		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
+		return fmt.Errorf("setting `version` without the required `version_set_id`")
 	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing API %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing API %q (API Management Service %q / Resource Group %q): %s", name, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -246,12 +250,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		log.Printf("[DEBUG] Importing API Management API %q of type %q", name, contentFormat)
 		apiParams := apimanagement.APICreateOrUpdateParameter{
 			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
-				APIType:       apiType,
-				SoapAPIType:   soapApiType,
-				ContentFormat: apimanagement.ContentFormat(contentFormat),
-				ContentValue:  utils.String(contentValue),
-				Path:          utils.String(path),
-				APIVersion:    utils.String(version),
+				APIType:     apiType,
+				SoapAPIType: soapApiType,
+				Format:      apimanagement.ContentFormat(contentFormat),
+				Value:       utils.String(contentValue),
+				Path:        utils.String(path),
+				APIVersion:  utils.String(version),
 			},
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
@@ -271,7 +275,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, apiParams, ""); err != nil {
-			return fmt.Errorf("Error creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -304,12 +308,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, ""); err != nil {
-		return fmt.Errorf("Error creating/updating API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating/updating API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -349,7 +353,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
 	}
 
 	d.Set("api_management_name", serviceName)
@@ -369,11 +373,11 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("version_set_id", props.APIVersionSetID)
 
 		if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
-			return fmt.Errorf("Error setting `protocols`: %s", err)
+			return fmt.Errorf("setting `protocols`: %s", err)
 		}
 
 		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
-			return fmt.Errorf("Error setting `subscription_key_parameter_names`: %+v", err)
+			return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
 		}
 	}
 
@@ -404,7 +408,7 @@ func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{})
 	deleteRevisions := utils.Bool(true)
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, "", deleteRevisions); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting API %q / Revision %q (API Management Service %q / Resource Group %q): %s", name, revision, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting API %q / Revision %q (API Management Service %q / Resource Group %q): %s", name, revision, serviceName, resourceGroup, err)
 		}
 	}
 

@@ -73,6 +73,25 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.0", "Windows"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.action", "Block"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.match_variable", "RequestHeaderNames"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.selector", "x-shared-secret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.selector_match_operator", "Equals"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.match_variable", "RequestCookieNames"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.selector", "too-much-fun"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.selector_match_operator", "EndsWith"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.type", "OWASP"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.version", "3.1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.rule_group_name", "REQUEST-920-PROTOCOL-ENFORCEMENT"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.0", "920300"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.1", "920440"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.mode", "Prevention"),
 				),
 			},
 			data.ImportStep(),
@@ -129,6 +148,25 @@ func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.0", "Windows"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.action", "Block"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.match_variable", "RequestHeaderNames"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.selector", "x-shared-secret"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.0.selector_match_operator", "Equals"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.match_variable", "RequestCookieNames"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.selector", "too-much-fun"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.1.selector_match_operator", "EndsWith"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.type", "OWASP"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.version", "3.1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.rule_group_name", "REQUEST-920-PROTOCOL-ENFORCEMENT"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.0", "920300"),
+					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.managed_rule_set.0.rule_group_override.0.disabled_rules.1", "920440"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.mode", "Prevention"),
 				),
 			},
 			data.ImportStep(),
@@ -199,6 +237,18 @@ resource "azurerm_web_application_firewall_policy" "test" {
   name                = "acctestwafpolicy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }
+  }
+
+  policy_settings {
+    enabled = true
+    mode    = "Detection"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -264,6 +314,38 @@ resource "azurerm_web_application_firewall_policy" "test" {
     }
 
     action = "Block"
+  }
+
+  managed_rules {
+    exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-shared-secret"
+      selector_match_operator = "Equals"
+    }
+
+    exclusion {
+      match_variable          = "RequestCookieNames"
+      selector                = "too-much-fun"
+      selector_match_operator = "EndsWith"
+    }
+
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+
+      rule_group_override {
+        rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+        disabled_rules = [
+          "920300",
+          "920440",
+        ]
+      }
+    }
+  }
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

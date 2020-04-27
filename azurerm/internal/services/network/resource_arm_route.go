@@ -40,7 +40,7 @@ func resourceArmRoute() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: ValidateRouteName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -49,7 +49,7 @@ func resourceArmRoute() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: ValidateRouteTableName,
 			},
 
 			"address_prefix": {

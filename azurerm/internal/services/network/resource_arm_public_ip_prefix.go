@@ -59,7 +59,7 @@ func resourceArmPublicIpPrefix() *schema.Resource {
 				Optional:     true,
 				Default:      28,
 				ForceNew:     true,
-				ValidateFunc: validation.IntBetween(28, 31),
+				ValidateFunc: validation.IntBetween(0, 31),
 			},
 
 			"ip_prefix": {
@@ -104,11 +104,11 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, publicIpPrefix)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("creating/Updating Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for completion of Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name, "")
@@ -143,7 +143,7 @@ func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) err
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("making Read request on Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -179,11 +179,11 @@ func resourceArmPublicIpPrefixDelete(d *schema.ResourceData, meta interface{}) e
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("deleting Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("waiting for deletion of Public IP Prefix %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil
