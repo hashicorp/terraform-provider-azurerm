@@ -2027,7 +2027,7 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  policy_setting {
+  policy_settings {
     enabled = true
     mode    = "Prevention"
   }
