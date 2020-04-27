@@ -119,56 +119,56 @@ func testCheckAzureRMSqlDatabaseShortTermPolicyDestroy(s *terraform.State) error
 
 func testAccAzureRMSqlDatabaseShortTermPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+		provider "azurerm" {
+			features {}
+		}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+		resource "azurerm_resource_group" "test" {
+			name     = "acctestRG-%d"
+			location = "%s"
+		}
 
-resource "azurerm_sql_server" "test" {
-  name                         = "acctestsqlserver%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-}
+		resource "azurerm_sql_server" "test" {
+			name                         = "acctestsqlserver%d"
+			resource_group_name          = azurerm_resource_group.test.name
+			location                     = azurerm_resource_group.test.location
+			version                      = "12.0"
+			administrator_login          = "mradministrator"
+			administrator_login_password = "thisIsDog11"
+		}
 
-resource "azurerm_sql_database" "test" {
-  name                             = "acctestdb%d"
-  resource_group_name              = azurerm_resource_group.test.name
-  server_name                      = azurerm_sql_server.test.name
-  location                         = azurerm_resource_group.test.location
-  edition                          = "Standard"
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  max_size_bytes                   = "1073741824"
-  requested_service_objective_name = "S0"
-}
+		resource "azurerm_sql_database" "test" {
+			name                             = "acctestdb%d"
+			resource_group_name              = azurerm_resource_group.test.name
+			server_name                      = azurerm_sql_server.test.name
+			location                         = azurerm_resource_group.test.location
+			edition                          = "Standard"
+			collation                        = "SQL_Latin1_General_CP1_CI_AS"
+			max_size_bytes                   = "1073741824"
+			requested_service_objective_name = "S0"
+		}
 
-resource "azurerm_sql_database_short_term_retention_policy" "test" {
-  database_name       = azurerm_sql_database.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
+		resource "azurerm_sql_database_short_term_retention_policy" "test" {
+			database_name       = azurerm_sql_database.test.name
+			resource_group_name = azurerm_resource_group.test.name
+			server_name         = azurerm_sql_server.test.name
 
-	retention_days = 7
-}
+			retention_days = 7
+		}
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMSqlDatabaseShortTermPolicy_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+		%s
 
-resource "azurerm_sql_database_short_term_retention_policy" "import" {
-  database_name       = azurerm_sql_database.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
+		resource "azurerm_sql_database_short_term_retention_policy" "import" {
+			database_name       = azurerm_sql_database.test.name
+			resource_group_name = azurerm_resource_group.test.name
+			server_name         = azurerm_sql_server.test.name
 
-	retention_days = 7
-}
-`, testAccAzureRMSqlDatabaseShortTermPolicy_basic(data))
+			retention_days = 7
+		}
+		`, testAccAzureRMSqlDatabaseShortTermPolicy_basic(data))
 }

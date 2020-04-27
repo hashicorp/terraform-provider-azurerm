@@ -119,62 +119,62 @@ func testCheckAzureRMSqlDatabaseLongTermPolicyDestroy(s *terraform.State) error 
 
 func testAccAzureRMSqlDatabaseLongTermPolicy_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+		provider "azurerm" {
+			features {}
+		}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+		resource "azurerm_resource_group" "test" {
+			name     = "acctestRG-%d"
+			location = "%s"
+		}
 
-resource "azurerm_sql_server" "test" {
-  name                         = "acctestsqlserver%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-}
+		resource "azurerm_sql_server" "test" {
+			name                         = "acctestsqlserver%d"
+			resource_group_name          = azurerm_resource_group.test.name
+			location                     = azurerm_resource_group.test.location
+			version                      = "12.0"
+			administrator_login          = "mradministrator"
+			administrator_login_password = "thisIsDog11"
+		}
 
-resource "azurerm_sql_database" "test" {
-  name                             = "acctestdb%d"
-  resource_group_name              = azurerm_resource_group.test.name
-  server_name                      = azurerm_sql_server.test.name
-  location                         = azurerm_resource_group.test.location
-  edition                          = "Standard"
-  collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  max_size_bytes                   = "1073741824"
-  requested_service_objective_name = "S0"
-}
+		resource "azurerm_sql_database" "test" {
+			name                             = "acctestdb%d"
+			resource_group_name              = azurerm_resource_group.test.name
+			server_name                      = azurerm_sql_server.test.name
+			location                         = azurerm_resource_group.test.location
+			edition                          = "Standard"
+			collation                        = "SQL_Latin1_General_CP1_CI_AS"
+			max_size_bytes                   = "1073741824"
+			requested_service_objective_name = "S0"
+		}
 
-resource "azurerm_sql_database_long_term_retention_policy" "test" {
-  database_name       = azurerm_sql_database.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
+		resource "azurerm_sql_database_long_term_retention_policy" "test" {
+			database_name       = azurerm_sql_database.test.name
+			resource_group_name = azurerm_resource_group.test.name
+			server_name         = azurerm_sql_server.test.name
 
-	weekly_retention  = "P1W"
-	monthly_retention = "P1M"
-	yearly_retention  = "P1Y"
-	week_of_year      = 1
-}
+			weekly_retention  = "P1W"
+			monthly_retention = "P1M"
+			yearly_retention  = "P1Y"
+			week_of_year      = 1
+		}
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+		`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMSqlDatabaseLongTermPolicy_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+		%s
 
-resource "azurerm_sql_database_long_term_retention_policy" "import" {
-  database_name       = azurerm_sql_database.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  server_name         = azurerm_sql_server.test.name
+		resource "azurerm_sql_database_long_term_retention_policy" "import" {
+			database_name       = azurerm_sql_database.test.name
+			resource_group_name = azurerm_resource_group.test.name
+			server_name         = azurerm_sql_server.test.name
 
-	weekly_retention  = "P1W"
-	monthly_retention = "P1M"
-	yearly_retention  = "P1Y"
-	week_of_year      = 1
-}
-`, testAccAzureRMSqlDatabaseLongTermPolicy_basic(data))
+			weekly_retention  = "P1W"
+			monthly_retention = "P1M"
+			yearly_retention  = "P1Y"
+			week_of_year      = 1
+		}
+		`, testAccAzureRMSqlDatabaseLongTermPolicy_basic(data))
 }
