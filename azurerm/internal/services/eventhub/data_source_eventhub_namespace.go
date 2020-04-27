@@ -53,6 +53,16 @@ func dataSourceEventHubNamespace() *schema.Resource {
 				Computed: true,
 			},
 
+			"kafka_enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"maximum_throughput_units": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"default_primary_connection_string": {
 				Type:      schema.TypeString,
 				Computed:  true,
@@ -75,16 +85,6 @@ func dataSourceEventHubNamespace() *schema.Resource {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
-			},
-
-			"kafka_enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"maximum_throughput_units": {
-				Type:     schema.TypeInt,
-				Computed: true,
 			},
 
 			"sku": {

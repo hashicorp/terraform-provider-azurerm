@@ -50,42 +50,6 @@ func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"alias_primary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"alias_secondary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
 		}),
 
 		CustomizeDiff: azure.EventHubAuthorizationRuleCustomizeDiff,

@@ -124,9 +124,18 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(
 		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
+				// `alias_primary_connection_string` and `alias_secondary_connection_string` are still `nil` in `azurerm_eventhub_namespace_authorization_rule` after created `azurerm_eventhub_namespace` successfully since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
+				// So these two properties should be checked in the second run.
+				// And `depends_on` cannot be applied to `azurerm_eventhub_namespace_authorization_rule`.
+				// Because it would throw error message `BreakPairing operation is only allowed on primary namespace with valid secondary namespace.` while destroying `azurerm_eventhub_namespace_disaster_recovery_config` if `depends_on` is applied.
 				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMEventHubNamespaceAuthorizationRule_withAliasConnectionString(data),
+				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_primary_connection_string"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_secondary_connection_string"),
 				),

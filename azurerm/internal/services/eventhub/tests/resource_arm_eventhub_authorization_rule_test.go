@@ -309,6 +309,8 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   listen = true
   send   = true
   manage = true
+
+  depends_on = [azurerm_eventhub_namespace_disaster_recovery_config.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }

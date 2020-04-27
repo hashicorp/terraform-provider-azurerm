@@ -100,7 +100,13 @@ func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 			Default:  false,
 		},
 
-		"primary_key": {
+		"alias_primary_connection_string": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"alias_secondary_connection_string": {
 			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
@@ -112,13 +118,19 @@ func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 			Sensitive: true,
 		},
 
-		"secondary_key": {
+		"primary_key": {
 			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
 		},
 
 		"secondary_connection_string": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_key": {
 			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,

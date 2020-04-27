@@ -162,6 +162,8 @@ func TestAccAzureRMEventHubNamespace_withAliasConnectionString(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
 		Steps: []resource.TestStep{
 			{
+				// `alias_default_primary_connection_string` and `alias_default_secondary_connection_string` are still `nil` in `azurerm_eventhub_namespace` after created `azurerm_eventhub_namespace` successfully since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
+				// So these two properties should be checked in the second run.
 				Config: testAccAzureRMEventHubNamespace_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
@@ -170,7 +172,6 @@ func TestAccAzureRMEventHubNamespace_withAliasConnectionString(t *testing.T) {
 			{
 				Config: testAccAzureRMEventHubNamespace_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "alias_default_primary_connection_string", regexp.MustCompile("Endpoint=.+")),
 					resource.TestMatchResourceAttr(data.ResourceName, "alias_default_secondary_connection_string", regexp.MustCompile("Endpoint=.+")),
 				),

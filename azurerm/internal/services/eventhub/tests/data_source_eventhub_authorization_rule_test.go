@@ -42,9 +42,6 @@ func TestAccDataSourceAzureRMEventHubAuthorizationRule_withAliasConnectionString
 		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventHubAuthorizationRule_withAliasConnectionString(data),
-			},
-			{
 				Config: testAccDataSourceAzureRMEventHubAuthorizationRule_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
