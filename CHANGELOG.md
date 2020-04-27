@@ -1,5 +1,10 @@
 ## 2.8.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_sentinel_alert_rule_ms_security_incident` [GH-6606]
+* **New Resource:** `azurerm_sentinel_alert_rule_ms_security_incident` [GH-6606]
+
 IMPROVEMENTS:
 
 * `azurerm_api_management` - `sku_name` supports the `Consumption` value for `sku` [GH-6602]
