@@ -290,7 +290,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 			}
 		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
-		d.Set("license_type", properties.LicenseType)
+		d.Set("license_type", string(properties.LicenseType))
 
 		if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("Error setting `per_database_settings`: %+v", err)
