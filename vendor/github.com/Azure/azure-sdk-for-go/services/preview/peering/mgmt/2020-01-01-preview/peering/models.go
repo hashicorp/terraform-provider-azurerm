@@ -338,9 +338,9 @@ type BgpSession struct {
 	SessionPrefixV4 *string `json:"sessionPrefixV4,omitempty"`
 	// SessionPrefixV6 - The IPv6 prefix that contains both ends' IPv6 addresses.
 	SessionPrefixV6 *string `json:"sessionPrefixV6,omitempty"`
-	// MicrosoftSessionIPv4Address - READ-ONLY; The IPv4 session address on Microsoft's end.
+	// MicrosoftSessionIPv4Address - The IPv4 session address on Microsoft's end.
 	MicrosoftSessionIPv4Address *string `json:"microsoftSessionIPv4Address,omitempty"`
-	// MicrosoftSessionIPv6Address - READ-ONLY; The IPv6 session address on Microsoft's end.
+	// MicrosoftSessionIPv6Address - The IPv6 session address on Microsoft's end.
 	MicrosoftSessionIPv6Address *string `json:"microsoftSessionIPv6Address,omitempty"`
 	// PeerSessionIPv4Address - The IPv4 session address on peer's end.
 	PeerSessionIPv4Address *string `json:"peerSessionIPv4Address,omitempty"`
