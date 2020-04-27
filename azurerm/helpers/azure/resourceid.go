@@ -34,16 +34,16 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 
 	components := strings.Split(path, "/")
 
-  // If the path starts with #@ it is a structure like 
-  // #@location.onmicrosoft.com/resource/subscriptions/....
-  // This will break later by parsing too many segments so it would be good to
-  // strip it out of the array now and start with ['subscriptions', 'subscriptionID', ...]
-  if strings.HasPrefix(path, "#@") {
-    components = components[2:]
-  }
+	// If the path starts with #@ it is a structure like
+	// #@location.onmicrosoft.com/resource/subscriptions/....
+	// This will break later by parsing too many segments so it would be good to
+	// strip it out of the array now and start with ['subscriptions', 'subscriptionID', ...]
+	if strings.HasPrefix(path, "#@") {
+		components = components[2:]
+	}
 
 	// We should have an even number of key-value pairs.
-	if len(components) % 2 != 0 {
+	if len(components)%2 != 0 {
 		return nil, fmt.Errorf("The number of path segments is not divisible by 2 in %q", path)
 	}
 
