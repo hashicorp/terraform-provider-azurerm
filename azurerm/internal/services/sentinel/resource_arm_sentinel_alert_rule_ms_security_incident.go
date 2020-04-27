@@ -100,7 +100,11 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 			"text_whitelist": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
 			},
 		},
 	}
@@ -142,9 +146,8 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 		},
 	}
 
-	// If `text_whitelist` is set, it has to at least contain one item.
-	if whitelist := d.Get("text_whitelist").(*schema.Set).List(); len(whitelist) != 0 {
-		param.DisplayNamesFilter = utils.ExpandStringSlice(whitelist)
+	if whitelist, ok := d.GetOk("text_whitelist"); ok {
+		param.DisplayNamesFilter = utils.ExpandStringSlice(whitelist.(*schema.Set).List())
 	}
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
