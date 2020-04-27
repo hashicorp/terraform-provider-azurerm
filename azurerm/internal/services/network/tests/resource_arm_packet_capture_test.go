@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
@@ -32,11 +31,6 @@ func testAccAzureRMPacketCapture_localDisk(t *testing.T) {
 }
 
 func testAccAzureRMPacketCapture_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_packet_capture", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -181,28 +175,28 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_network_watcher" "test" {
   name                = "acctestnw-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "testconfiguration1"
@@ -213,9 +207,9 @@ resource "azurerm_network_interface" "test" {
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.test.id]
   vm_size               = "Standard_F2"
 
   storage_image_reference {
@@ -245,9 +239,7 @@ resource "azurerm_virtual_machine" "test" {
 
 resource "azurerm_virtual_machine_extension" "test" {
   name                       = "network-watcher"
-  location                   = "${azurerm_resource_group.test.location}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
-  virtual_machine_name       = "${azurerm_virtual_machine.test.name}"
+  virtual_machine_id         = azurerm_virtual_machine.src.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
   type_handler_version       = "1.4"

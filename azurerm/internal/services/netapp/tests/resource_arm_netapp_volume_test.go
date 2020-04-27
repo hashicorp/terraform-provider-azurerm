@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -54,11 +53,6 @@ func TestAccAzureRMNetAppVolume_nfsv41(t *testing.T) {
 }
 
 func TestAccAzureRMNetAppVolume_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -291,13 +285,13 @@ func testAccAzureRMNetAppVolume_nfsv41(data acceptance.TestData) string {
 
 resource "azurerm_netapp_volume" "test" {
   name                = "acctest-NetAppVolume-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_netapp_account.test.name}"
-  pool_name           = "${azurerm_netapp_pool.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
   volume_path         = "my-unique-file-path-%d"
   service_level       = "Standard"
-  subnet_id           = "${azurerm_subnet.test.id}"
+  subnet_id           = azurerm_subnet.test.id
   protocols           = ["NFSv4.1"]
   storage_quota_in_gb = 100
 

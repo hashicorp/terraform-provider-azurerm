@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -132,8 +133,8 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 						"workspace_region": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azure.NormalizeLocation,
-							DiffSuppressFunc: azure.SuppressLocationDiff,
+							StateFunc:        location.StateFunc,
+							DiffSuppressFunc: location.DiffSuppressFunc,
 						},
 
 						"workspace_resource_id": {
@@ -162,13 +163,13 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 	}
 }
 
-func azureRMSuppressFlowLogRetentionPolicyEnabledDiff(k, old, new string, d *schema.ResourceData) bool {
+func azureRMSuppressFlowLogRetentionPolicyEnabledDiff(_, old, _ string, d *schema.ResourceData) bool {
 	// Ignore if flow log is disabled as the returned flow log configuration
 	// returns default value `false` which may differ from config
 	return old != "" && !d.Get("enabled").(bool)
 }
 
-func azureRMSuppressFlowLogRetentionPolicyDaysDiff(k, old, new string, d *schema.ResourceData) bool {
+func azureRMSuppressFlowLogRetentionPolicyDaysDiff(_, old, _ string, d *schema.ResourceData) bool {
 	// Ignore if flow log is disabled as the returned flow log configuration
 	// returns default value `0` which may differ from config
 	return old != "" && !d.Get("enabled").(bool)

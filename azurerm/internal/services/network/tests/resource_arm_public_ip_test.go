@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
@@ -37,11 +36,6 @@ func TestAccAzureRMPublicIpStatic_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPublicIpStatic_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -112,7 +106,7 @@ func TestAccAzureRMPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
+func TestAccAzureRMPublicIpStatic_standard_withIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -121,9 +115,13 @@ func TestAccAzureRMPublicIpStatic_standard_withIPv6_fails(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPublicIpDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccAzureRMPublicIPStatic_standard_withIPVersion(data, "IPv6"),
-				ExpectError: regexp.MustCompile("Cannot specify publicIpAllocationMethod as Static for IPv6 PublicIp"),
+				Config: testAccAzureRMPublicIPStatic_standard_withIPVersion(data, "IPv6"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPublicIpExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "ip_version", "IPv6"),
+				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -168,6 +166,7 @@ func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMPublicIpStatic_basic_withIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	ipVersion := "IPv4"

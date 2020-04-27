@@ -42,7 +42,7 @@ func resourceArmSpatialAnchorsAccount() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[-\w\._\(\)]+$`),
+					regexp.MustCompile(`^[-\w._()]+$`),
 					"Spatial Anchors Account name must be 1 - 90 characters long, contain only word characters and underscores.",
 				),
 			},

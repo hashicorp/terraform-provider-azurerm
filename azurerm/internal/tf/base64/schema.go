@@ -13,6 +13,7 @@ func OptionalSchema(isVirtualMachine bool) *schema.Schema {
 		Type:         schema.TypeString,
 		Optional:     true,
 		ForceNew:     isVirtualMachine,
+		Sensitive:    true,
 		ValidateFunc: validation.StringIsBase64,
 	}
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	nw "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 )
 
@@ -180,11 +179,6 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 }
 
 func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_lb", "test")
 
 	var lb network.LoadBalancer
@@ -434,6 +428,7 @@ resource "azurerm_lb" "test" {
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
 
+// nolint: unparam
 func testAccAzureRMLoadBalancerRule_basic(data acceptance.TestData, lbRuleName, sku string) string {
 	return fmt.Sprintf(`
 %s

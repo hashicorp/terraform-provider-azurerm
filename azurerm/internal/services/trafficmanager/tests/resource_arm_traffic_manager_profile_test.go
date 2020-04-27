@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMTrafficManagerProfile_basic(t *testing.T) {
@@ -81,11 +80,6 @@ func TestAccAzureRMTrafficManagerProfile_update(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -315,6 +309,11 @@ resource "azurerm_traffic_manager_profile" "test" {
       "301-303",
     ]
 
+    custom_header {
+      name  = "foo"
+      value = "bar"
+    }
+
     protocol = "tcp"
     port     = 777
 
@@ -356,6 +355,11 @@ resource "azurerm_traffic_manager_profile" "test" {
     expected_status_code_ranges = [
       "302-304",
     ]
+
+    custom_header {
+      name  = "foo2"
+      value = "bar2"
+    }
 
     protocol = "https"
     port     = 442

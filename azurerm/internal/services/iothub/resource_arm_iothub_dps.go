@@ -219,6 +219,10 @@ func resourceArmIotHubDPSRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["provisioningServices"]
+	// the name path can use the ProvisioningServices in older iterations
+	if name == "" {
+		name = id.Path["ProvisioningServices"]
+	}
 
 	resp, err := client.Get(ctx, name, resourceGroup)
 	if err != nil {

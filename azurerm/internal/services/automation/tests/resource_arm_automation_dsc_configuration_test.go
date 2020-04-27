@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,12 +37,8 @@ func TestAccAzureRMAutomationDscConfiguration_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -139,16 +134,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_automation_account" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 
 resource "azurerm_automation_dsc_configuration" "test" {
   name                    = "acctest"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  automation_account_name = "${azurerm_automation_account.test.name}"
-  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  location                = azurerm_resource_group.test.location
   content_embedded        = "configuration acctest {}"
   description             = "test"
 

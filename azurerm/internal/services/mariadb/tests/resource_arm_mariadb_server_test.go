@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,11 +34,6 @@ func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -189,10 +183,7 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 				Config: testAccAzureRMMariaDbServer_generalPurpose(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "GP_Gen5_32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "GeneralPurpose"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_32"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "640000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),
@@ -201,10 +192,7 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 				Config: testAccAzureRMMariaDbServer_memoryOptimized(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "MO_Gen5_16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.tier", "MemoryOptimized"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.family", "Gen5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "MO_Gen5_16"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_profile.0.storage_mb", "4096000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "administrator_login", "acctestun"),
 				),

@@ -90,27 +90,6 @@ func ValidateWindowsName(i interface{}, k string) (warnings []string, errors []e
 	return warnings, errors
 }
 
-func ValidateScaleSetResourceID(i interface{}, k string) (s []string, es []error) {
-	v, ok := i.(string)
-	if !ok {
-		es = append(es, fmt.Errorf("expected type of %s to be string", k))
-		return
-	}
-
-	id, err := ParseVirtualMachineScaleSetID(v)
-	if err != nil {
-		es = append(es, fmt.Errorf("Error parsing %q as a VM Scale Set Resource ID: %s", v, err))
-		return
-	}
-
-	if id.Name == "" {
-		es = append(es, fmt.Errorf("Error parsing %q as a VM Scale Set Resource ID: `virtualMachineScaleSets` segment was empty", v))
-		return
-	}
-
-	return
-}
-
 func validateDiskEncryptionSetName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
@@ -140,7 +119,7 @@ func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []er
 
 func validateManagedDiskSizeGB(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
-	if value < 1 || value > 32767 {
+	if value < 0 || value > 32767 {
 		errors = append(errors, fmt.Errorf(
 			"The `disk_size_gb` can only be between 0 and 32767"))
 	}

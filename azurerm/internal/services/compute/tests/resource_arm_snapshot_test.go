@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -81,10 +80,6 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	})
 }
 func TestAccAzureRMSnapshot_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_snapshot", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -365,9 +360,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -390,10 +383,10 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name      = "generated-certificate"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
-  key_type  = "RSA"
-  key_size  = 2048
+  name         = "generated-certificate"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
 
   key_opts = [
     "decrypt",
@@ -406,9 +399,9 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_key_vault_secret" "test" {
-  name      = "secret-sauce"
-  value     = "szechuan"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+  name         = "secret-sauce"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.test.id
 }
 
 resource "azurerm_snapshot" "test" {

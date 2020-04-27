@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMIoTCentralApplication_basic(t *testing.T) {
@@ -81,11 +80,6 @@ func TestAccAzureRMIoTCentralApplication_update(t *testing.T) {
 }
 
 func TestAccAzureRMIoTCentralApplication_requiresImportErrorStep(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_iotcentral_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -216,13 +210,12 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iotcentral_application" "test" {
   name                = "acctest-iotcentralapp-%[2]d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sub_domain          = "acctest-iotcentralapp-%[2]d"
   display_name        = "acctest-iotcentralapp-%[2]d"
   sku                 = "ST1"
   tags = {
-
     ENV = "Test"
   }
 }

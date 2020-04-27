@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMHDInsightStormCluster_basic(t *testing.T) {
@@ -36,12 +35,8 @@ func TestAccAzureRMHDInsightStormCluster_basic(t *testing.T) {
 }
 
 func TestAccAzureRMHDInsightStormCluster_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -163,6 +158,32 @@ func TestAccAzureRMHDInsightStormCluster_complete(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightStormCluster_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+		},
+	})
+}
+
+func TestAccAzureRMHDInsightStormCluster_tls(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_storm_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightStormCluster_tls(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
@@ -596,4 +617,57 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMHDInsightStormCluster_tls(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightStormCluster_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_storm_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "3.6"
+  tier                = "Standard"
+  tls_min_version     = "1.2"
+
+  component_version {
+    storm = "1.1"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_A4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 3
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }

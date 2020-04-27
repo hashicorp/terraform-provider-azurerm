@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -29,7 +30,7 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 		Delete: resourceArmWindowsVirtualMachineScaleSetDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := ParseVirtualMachineScaleSetID(id)
+			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
 		}, importVirtualMachineScaleSet(compute.Windows, "azurerm_windows_virtual_machine_scale_set")),
 
@@ -94,6 +95,8 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"additional_unattend_content": additionalUnattendContentSchema(),
 
 			"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
+
+			"automatic_instance_repair": VirtualMachineScaleSetAutomaticRepairsPolicySchema(),
 
 			"boot_diagnostics": bootDiagnosticsSchema(),
 
@@ -455,6 +458,8 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	}
 
 	scaleInPolicy := d.Get("scale_in_policy").(string)
+	automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
+	automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
 
 	props := compute.VirtualMachineScaleSet{
 		Location: utils.String(location),
@@ -470,6 +475,7 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		Tags:     tags.Expand(t),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
 			AdditionalCapabilities:                 additionalCapabilities,
+			AutomaticRepairsPolicy:                 automaticRepairsPolicy,
 			DoNotRunExtensionsOnOverprovisionedVMs: utils.Bool(d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)),
 			Overprovision:                          utils.Bool(d.Get("overprovision").(bool)),
 			SinglePlacementGroup:                   utils.Bool(d.Get("single_placement_group").(bool)),
@@ -527,7 +533,7 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -710,6 +716,12 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
 	}
 
+	if d.HasChange("automatic_instance_repair") {
+		automaticRepairsPolicyRaw := d.Get("automatic_instance_repair").([]interface{})
+		automaticRepairsPolicy := ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(automaticRepairsPolicyRaw)
+		updateProps.AutomaticRepairsPolicy = automaticRepairsPolicy
+	}
+
 	if d.HasChange("identity") {
 		identityRaw := d.Get("identity").([]interface{})
 		identity, err := ExpandVirtualMachineScaleSetIdentity(identityRaw)
@@ -771,7 +783,7 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -819,6 +831,10 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 
 	if err := d.Set("additional_capabilities", FlattenVirtualMachineScaleSetAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
 		return fmt.Errorf("Error setting `additional_capabilities`: %+v", props.AdditionalCapabilities)
+	}
+
+	if err := d.Set("automatic_instance_repair", FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(props.AutomaticRepairsPolicy)); err != nil {
+		return fmt.Errorf("Error setting `automatic_instance_repair`: %+v", err)
 	}
 
 	d.Set("do_not_run_extensions_on_overprovisioned_machines", props.DoNotRunExtensionsOnOverprovisionedVMs)
@@ -959,7 +975,7 @@ func resourceArmWindowsVirtualMachineScaleSetDelete(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineScaleSetID(d.Id())
+	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
 	}

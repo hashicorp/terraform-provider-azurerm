@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,11 +32,6 @@ func TestAccAzureRMPostgreSQLVirtualNetworkRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLVirtualNetworkRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_virtual_network_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -533,22 +527,22 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-VNET-%d"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctest-SN-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Storage"]
 }
 
 resource "azurerm_postgresql_server" "test" {
   name                = "acctestpostgresqlsvr-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "GP_Gen5_2"
 
@@ -566,9 +560,9 @@ resource "azurerm_postgresql_server" "test" {
 
 resource "azurerm_postgresql_virtual_network_rule" "test" {
   name                                 = "acctestpostgresqlvnetrule%d"
-  resource_group_name                  = "${azurerm_resource_group.test.name}"
-  server_name                          = "${azurerm_postgresql_server.test.name}"
-  subnet_id                            = "${azurerm_subnet.test.id}"
+  resource_group_name                  = azurerm_resource_group.test.name
+  server_name                          = azurerm_postgresql_server.test.name
+  subnet_id                            = azurerm_subnet.test.id
   ignore_missing_vnet_service_endpoint = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)

@@ -7,7 +7,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -129,7 +128,6 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.username", "acrusername"),
 					resource.TestCheckResourceAttr(data.ResourceName, "image_registry_credential.1.password", "acrpassword"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container.0.ports.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "container.0.protocol", "UDP"),
 				),
 			},
 			{
@@ -197,11 +195,6 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 }
 
 func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -454,7 +447,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   identity {
@@ -498,7 +494,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   identity {
@@ -543,7 +542,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   identity {
@@ -581,7 +583,10 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = 80
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   tags = {
@@ -608,7 +613,10 @@ resource "azurerm_container_group" "import" {
     image  = "microsoft/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-    port   = "80"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
   }
 
   tags = {
@@ -1083,7 +1091,6 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_share" "test" {
   name = "acctestss-%d"
 
-  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 
   quota = 50

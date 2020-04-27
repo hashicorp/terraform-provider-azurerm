@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -123,7 +123,7 @@ func resourceArmApiManagementApiOperationCreateUpdate(d *schema.ResourceData, me
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Operation %q (API %q / API Management Service %q / Resource Group %q): %s", operationId, apiId, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Operation %q (API %q / API Management Service %q / Resource Group %q): %s", operationId, apiId, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -165,12 +165,12 @@ func resourceArmApiManagementApiOperationCreateUpdate(d *schema.ResourceData, me
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, operationId, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating/updating API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating/updating API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiId, operationId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -201,7 +201,7 @@ func resourceArmApiManagementApiOperationRead(d *schema.ResourceData, meta inter
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
 	}
 
 	d.Set("operation_id", operationId)
@@ -217,17 +217,17 @@ func resourceArmApiManagementApiOperationRead(d *schema.ResourceData, meta inter
 
 		flattenedRequest := flattenApiManagementOperationRequestContract(props.Request)
 		if err := d.Set("request", flattenedRequest); err != nil {
-			return fmt.Errorf("Error flattening `request`: %+v", err)
+			return fmt.Errorf("flattening `request`: %+v", err)
 		}
 
 		flattenedResponse := flattenApiManagementOperationResponseContract(props.Responses)
 		if err := d.Set("response", flattenedResponse); err != nil {
-			return fmt.Errorf("Error flattening `response`: %+v", err)
+			return fmt.Errorf("flattening `response`: %+v", err)
 		}
 
 		flattenedTemplateParams := azure.FlattenApiManagementOperationParameterContract(props.TemplateParameters)
 		if err := d.Set("template_parameter", flattenedTemplateParams); err != nil {
-			return fmt.Errorf("Error flattening `template_parameter`: %+v", err)
+			return fmt.Errorf("flattening `template_parameter`: %+v", err)
 		}
 	}
 
@@ -252,7 +252,7 @@ func resourceArmApiManagementApiOperationDelete(d *schema.ResourceData, meta int
 	resp, err := client.Delete(ctx, resourceGroup, serviceName, apiId, operationId, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting API Operation %q (API %q / API Management Service %q / Resource Group %q): %+v", operationId, apiId, serviceName, resourceGroup, err)
 		}
 	}
 

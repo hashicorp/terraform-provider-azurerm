@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMHDInsightMLServicesCluster_basic(t *testing.T) {
@@ -39,12 +38,8 @@ func TestAccAzureRMHDInsightMLServicesCluster_basic(t *testing.T) {
 }
 
 func TestAccAzureRMHDInsightMLServicesCluster_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -178,6 +173,35 @@ func TestAccAzureRMHDInsightMLServicesCluster_complete(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMHDInsightMLServicesCluster_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.edge_node.0.password",
+				"roles.0.edge_node.0.vm_size",
+				"storage_account"),
+		},
+	})
+}
+
+func TestAccAzureRMHDInsightMLServicesCluster_tls(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_ml_services_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightMLServicesCluster_tls(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
@@ -639,4 +663,60 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMHDInsightMLServicesCluster_tls(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightMLServicesCluster_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_ml_services_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "3.6"
+  tier                = "Standard"
+  rstudio             = true
+  tls_min_version     = "1.2"
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D3_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    edge_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }

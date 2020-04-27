@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
@@ -32,11 +31,6 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_monitor_action_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -608,20 +602,18 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 }
 
 resource "azurerm_automation_runbook" "test" {
-  name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  log_verbose         = "true"
-  log_progress        = "true"
-  description         = "This is an test runbook"
-  runbook_type        = "PowerShellWorkflow"
+  name                    = "Get-AzureVMTutorial"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+  log_verbose             = "true"
+  log_progress            = "true"
+  description             = "This is an test runbook"
+  runbook_type            = "PowerShellWorkflow"
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
@@ -749,11 +741,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
@@ -889,20 +882,18 @@ resource "azurerm_automation_account" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  sku {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 }
 
 resource "azurerm_automation_runbook" "test" {
-  name                = "Get-AzureVMTutorial"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  log_verbose         = "true"
-  log_progress        = "true"
-  description         = "This is an test runbook"
-  runbook_type        = "PowerShellWorkflow"
+  name                    = "Get-AzureVMTutorial"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+  log_verbose             = "true"
+  log_progress            = "true"
+  description             = "This is an test runbook"
+  runbook_type            = "PowerShellWorkflow"
 
   publish_content_link {
     uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
@@ -951,11 +942,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  name                       = "acctestFA-%d"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  app_service_plan_id        = "${azurerm_app_service_plan.test.id}"
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }

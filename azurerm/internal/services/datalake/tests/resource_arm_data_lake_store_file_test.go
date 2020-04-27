@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -98,11 +97,6 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 }
 
 func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_data_lake_store_file", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -237,7 +231,7 @@ func testAccAzureRMDataLakeStoreFile_requiresImport(data acceptance.TestData) st
 
 resource "azurerm_data_lake_store_file" "import" {
   remote_file_path = azurerm_data_lake_store_file.test.remote_file_path
-  account_name     = azurerm_data_lake_store_file.test.name
+  account_name     = azurerm_data_lake_store_file.test.account_name
   local_file_path  = "./testdata/application_gateway_test.cer"
 }
 `, template)

@@ -167,6 +167,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
+// nolint unused - mistakenly marked as unused
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

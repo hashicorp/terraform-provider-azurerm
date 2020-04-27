@@ -76,6 +76,12 @@ func resourceArmHPCCache() *schema.Resource {
 					"Standard_8G",
 				}, false),
 			},
+
+			"mount_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -168,6 +174,7 @@ func resourceArmHPCCacheRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.CacheProperties; props != nil {
 		d.Set("cache_size_in_gb", props.CacheSizeGB)
 		d.Set("subnet_id", props.Subnet)
+		d.Set("mount_addresses", utils.FlattenStringSlice(props.MountAddresses))
 	}
 
 	if sku := resp.Sku; sku != nil {
