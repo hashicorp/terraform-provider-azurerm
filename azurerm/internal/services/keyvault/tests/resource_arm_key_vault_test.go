@@ -469,6 +469,33 @@ func TestAccAzureRMKeyVault_purgeProtectionAttemptToDisable(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVault_deletePolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVault_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKeyVault_noPolicy(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "access_policy.#", "0"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -1156,6 +1183,33 @@ resource "azurerm_key_vault" "test" {
   sku_name                 = "premium"
   soft_delete_enabled      = true
   purge_protection_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMKeyVault_noPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "vault%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "premium"
+
+  access_policy = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
