@@ -62,6 +62,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
@@ -137,6 +138,7 @@ func SupportedServices() []common.ServiceRegistration {
 		resource.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
+		sentinel.Registration{},
 		servicebus.Registration{},
 		servicefabric.Registration{},
 		signalr.Registration{},

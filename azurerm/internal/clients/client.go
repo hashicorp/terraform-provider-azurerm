@@ -66,6 +66,7 @@ import (
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	search "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/client"
 	securityCenter "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/client"
+	sentinel "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/client"
 	serviceBus "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/client"
 	serviceFabric "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/client"
 	signalr "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/client"
@@ -144,6 +145,7 @@ type Client struct {
 	Resource           *resource.Client
 	Search             *search.Client
 	SecurityCenter     *securityCenter.Client
+	Sentinel           *sentinel.Client
 	ServiceBus         *serviceBus.Client
 	ServiceFabric      *serviceFabric.Client
 	SignalR            *signalr.Client
@@ -223,6 +225,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Resource = resource.NewClient(o)
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
+	client.Sentinel = sentinel.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.SignalR = signalr.NewClient(o)
