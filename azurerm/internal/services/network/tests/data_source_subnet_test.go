@@ -30,6 +30,28 @@ func TestAccDataSourceSubnet_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMSubnet_basic_addressPrefixes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSubnet_basic_addressPrefixes(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "virtual_network_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "address_prefixes.#"),
+					resource.TestCheckResourceAttr(data.ResourceName, "network_security_group_id", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "route_table_id", ""),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceSubnet_networkSecurityGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_subnet", "test")
 
@@ -125,6 +147,35 @@ data "azurerm_subnet" "test" {
   resource_group_name  = azurerm_subnet.test.resource_group_name
 }
 `, template)
+}
+
+func testAccDataSourceSubnet_basic_addressPrefixes(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctest%d-rg"
+  location = "%s"
+}
+resource "azurerm_virtual_network" "test" {
+  name                = "acctest%d-vn"
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+resource "azurerm_subnet" "test" {
+  name                 = "acctest%d-private"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefixes     = ["10.0.0.0/24", "ace:cab:deca:deed::/64"]
+}
+data "azurerm_subnet" "test" {
+  name                 = "${azurerm_subnet.test.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccDataSourceSubnet_networkSecurityGroupDependencies(data acceptance.TestData) string {
