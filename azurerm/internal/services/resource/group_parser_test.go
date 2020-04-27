@@ -42,6 +42,13 @@ func TestParseResourceGroup(t *testing.T) {
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/virtualMachines/machine1",
 			Expected: nil,
 		},
+    {
+      Name:     "Full Resource Group URL as ID",
+      Input:    "https://portal.azure.com/#@location.onmicrosoft.com/resource/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
+      Expected: &ResourceGroupResourceID{
+        Name: "foo",
+      },
+    },
 	}
 
 	for _, v := range testData {
