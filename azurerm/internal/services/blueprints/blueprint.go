@@ -24,7 +24,6 @@ func ManagedIdentitySchema() *schema.Schema {
 				"type": {
 					Type:     schema.TypeString,
 					Required: true,
-					Default:  string(blueprint.ManagedServiceIdentityTypeSystemAssigned),
 					ValidateFunc: validation.StringInSlice([]string{
 						// ManagedServiceIdentityTypeNone is not valid; a valid and privileged Identity is required for the service to apply the changes.
 						// SystemAssigned type not currently supported - The Portal performs significant activity in temporary escalation of permissions to Owner on the target scope

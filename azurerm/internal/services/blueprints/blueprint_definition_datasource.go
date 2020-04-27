@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,16 +24,22 @@ func dataSourceArmBlueprintDefinition() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validate.BlueprintName,
 			},
 
-			"scope": {
+			"scope_type": {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"subscription",
 					"managementGroup",
 				}, false),
+			},
+
+			"scope_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			// Computed
@@ -62,17 +68,11 @@ func dataSourceArmBlueprintDefinition() *schema.Resource {
 				Computed: true,
 			},
 
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"versions": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem: schema.Schema{
-					Type:     schema.TypeString,
-					Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 		},
@@ -84,8 +84,16 @@ func dataSourceArmBlueprintDefinitionRead(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	scope := d.Get("scope").(string)
 	name := d.Get("name").(string)
+	var scope string
+	scopeName := d.Get("scope_name").(string)
+	scopeType := d.Get("scope_type").(string)
+	switch scopeType {
+	case "subscription":
+		scope = fmt.Sprintf("subscriptions/%s", scopeName)
+	case "managementGroup":
+		scope = fmt.Sprintf("providers/Microsoft.Management/managementGroups/%s", scopeName)
+	}
 
 	resp, err := client.Get(ctx, scope, name)
 	if err != nil {
@@ -114,9 +122,7 @@ func dataSourceArmBlueprintDefinitionRead(d *schema.ResourceData, meta interface
 
 	d.Set("time_created", resp.Status.TimeCreated.String())
 
-	if resp.Type != nil {
-		d.Set("type", resp.Type)
-	}
+	d.Set("target_scope", resp.TargetScope)
 
 	if resp.Versions != nil {
 		d.Set("versions", resp.Versions)
