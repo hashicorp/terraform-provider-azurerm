@@ -23,16 +23,16 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_postgresql_server" "example" {
-  name                = "example-postgresql-server"
+  name                = "example-psqlserver"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
   administrator_login          = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
 
-  sku_name   = "B_Gen5_2"
-  version    = "9.5"
-  storage_mb = 5120
+  sku_name   = "GP_Gen5_4"
+  version    = "9.6"
+  storage_mb = 640000
 
   backup_retention_days        = 7
   geo_redundant_backup_enabled = true
