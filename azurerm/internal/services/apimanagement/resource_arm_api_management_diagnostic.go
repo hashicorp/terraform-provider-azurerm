@@ -124,12 +124,12 @@ func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interfa
 	resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Diagnostic %q (Resource Group %q / API Management Service %q) was not found - removing from state!", diagnosticId, diagnosticId.ResourceGroup, diagnosticId.ServiceName)
+			log.Printf("[DEBUG] Diagnostic %q (Resource Group %q / API Management Service %q) was not found - removing from state!", diagnosticId.Name, diagnosticId.ResourceGroup, diagnosticId.ServiceName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId, diagnosticId.ResourceGroup, diagnosticId.ServiceName, err)
+		return fmt.Errorf("making Read request for Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId.Name, diagnosticId.ResourceGroup, diagnosticId.ServiceName, err)
 	}
 
 	d.Set("identifier", resp.Name)
@@ -152,7 +152,7 @@ func resourceArmApiManagementDiagnosticDelete(d *schema.ResourceData, meta inter
 
 	if resp, err := client.Delete(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.Name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId, diagnosticId.ResourceGroup, diagnosticId.ServiceName, err)
+			return fmt.Errorf("deleting Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId.Name, diagnosticId.ResourceGroup, diagnosticId.ServiceName, err)
 		}
 	}
 
