@@ -25,17 +25,15 @@ resource "azurerm_postgresql_server" "example" {
 
   sku_name = "B_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 5120
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-    auto_grow             = "Enabled"
-  }
+  storage_mb                   = 5120
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
+  auto_grow_enabled            = true
 
   administrator_login          = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 ```
 
@@ -70,16 +68,16 @@ The following arguments are supported:
 * `creation_source_server_id` - (Optional) For creation modes other then default the source server ID to use.
 
 * `infrastructure_encryption_enabled` - (Optional) Whether or not infrastructure is encrypted for this server. Defaults to `false`.
-  
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
-* `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore` the point in time to restore from `creation_source_server_id`. 
+* `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore` the point in time to restore from `creation_source_server_id`.
 
 * `ssl_minimal_tls_version_enforced` - (Optional) The mimimun TLS version to support on the sever. Possible values are `TLSEnforcementDisabled`, `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLSEnforcementDisabled`.
- 
+
 * `storage_mb` - (Optional) Max storage allowed for a server. Possible values are between `5120` MB(5GB) and `1048576` MB(1TB) for the Basic SKU and between `5120` MB(5GB) and `4194304` MB(4TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/postgresql/servers/create#StorageProfile).
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.  
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
