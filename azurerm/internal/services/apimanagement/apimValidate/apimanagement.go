@@ -2,6 +2,7 @@ package apimValidate
 
 import (
 	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 )
 
