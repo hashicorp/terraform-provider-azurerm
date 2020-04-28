@@ -12,6 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/apimValidate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -22,9 +25,11 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 		Read:   resourceArmApiManagementDiagnosticRead,
 		Update: resourceArmApiManagementDiagnosticCreateUpdate,
 		Delete: resourceArmApiManagementDiagnosticDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ApiManagementDiagnosticID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -46,6 +51,12 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
+
+			"logger_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: apimValidate.ApiManagementLoggerID,
+			},
 
 			"enabled": {
 				Type:       schema.TypeBool,
@@ -79,7 +90,9 @@ func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	parameters := apimanagement.DiagnosticContract{
-		DiagnosticContractProperties: &apimanagement.DiagnosticContractProperties{},
+		DiagnosticContractProperties: &apimanagement.DiagnosticContractProperties{
+			LoggerID: utils.String(d.Get("logger_id").(string)),
+		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, diagnosticId, parameters, ""); err != nil {
@@ -91,7 +104,7 @@ func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("retrieving Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId, resourceGroup, serviceName, err)
 	}
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Diagnostic %q (Resource Group %q / API Management Service %q)", diagnosticId, resourceGroup, serviceName)
+		return fmt.Errorf("reading ID for Diagnostic %q (Resource Group %q / API Management Service %q): ID is empty", diagnosticId, resourceGroup, serviceName)
 	}
 	d.SetId(*resp.ID)
 
@@ -103,28 +116,26 @@ func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	diagnosticId, err := parse.ApiManagementDiagnosticID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	diagnosticId := id.Path["diagnostics"]
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, diagnosticId)
+	resp, err := client.Get(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Diagnostic %q (Resource Group %q / API Management Service %q) was not found - removing from state!", diagnosticId, resourceGroup, serviceName)
+			log.Printf("[DEBUG] Diagnostic %q (Resource Group %q / API Management Service %q) was not found - removing from state!", diagnosticId, diagnosticId.ResourceGroup, diagnosticId.ServiceName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId, resourceGroup, serviceName, err)
+		return fmt.Errorf("making Read request for Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId, diagnosticId.ResourceGroup, diagnosticId.ServiceName, err)
 	}
 
 	d.Set("identifier", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
-	d.Set("api_management_name", serviceName)
+	d.Set("resource_group_name", diagnosticId.ResourceGroup)
+	d.Set("api_management_name", diagnosticId.ServiceName)
+	d.Set("logger_id", resp.LoggerID)
 
 	return nil
 }
@@ -134,17 +145,14 @@ func resourceArmApiManagementDiagnosticDelete(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	diagnosticId, err := parse.ApiManagementDiagnosticID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	serviceName := id.Path["service"]
-	diagnosticId := id.Path["diagnostics"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, diagnosticId, ""); err != nil {
+	if resp, err := client.Delete(ctx, diagnosticId.ResourceGroup, diagnosticId.ServiceName, diagnosticId.Name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId, resourceGroup, serviceName, err)
+			return fmt.Errorf("deleting Diagnostic %q (Resource Group %q / API Management Service %q): %+v", diagnosticId, diagnosticId.ResourceGroup, diagnosticId.ServiceName, err)
 		}
 	}
 
