@@ -251,19 +251,21 @@ func TestAccAzureRMMsSqlElasticPool_licenseType(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMsSqlElasticPool_licenseTypeLicenseIncluded(data),
+				Config: testAccAzureRMMsSqlElasticPool_licenseType_Template(data, "LicenseIncluded"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
 				),
 			},
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMMsSqlElasticPool_licenseTypeBasePrice(data),
+				Config: testAccAzureRMMsSqlElasticPool_licenseType_Template(data, "BasePrice"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -522,14 +524,6 @@ resource "azurerm_mssql_elasticpool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant)
-}
-
-func testAccAzureRMMsSqlElasticPool_licenseTypeBasePrice(data acceptance.TestData) string {
-	return testAccAzureRMMsSqlElasticPool_licenseType_Template(data, "BasePrice")
-}
-
-func testAccAzureRMMsSqlElasticPool_licenseTypeLicenseIncluded(data acceptance.TestData) string {
-	return testAccAzureRMMsSqlElasticPool_licenseType_Template(data, "LicenseIncluded")
 }
 
 func testAccAzureRMMsSqlElasticPool_licenseType_Template(data acceptance.TestData, licenseType string) string {
