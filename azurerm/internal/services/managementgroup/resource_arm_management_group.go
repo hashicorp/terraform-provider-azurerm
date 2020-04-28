@@ -91,7 +91,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	armTenantID := meta.(*clients.Client).Account.TenantId
 
 	groupName := uuid.New().String()
-	if v, ok := d.GetOk("group_name"); ok {
+	if v, ok := d.GetOk("name"); ok {
 		groupName = v.(string)
 	}
 	if v, ok := d.GetOk("group_id"); ok {
@@ -107,11 +107,11 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
+			// 403 is returned if it doesn't exist or user doesn't have proper permissions to view it
+			if utils.ResponseWasForbidden(existing.Response) {
+				log.Printf("[DEBUG] Management Group %q does not exist or authorization is forbidden from the user", groupName)
 			}
 		}
-
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_management_group", *existing.ID)
 		}
@@ -199,7 +199,7 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 	recurse := true
 	resp, err := client.Get(ctx, id.GroupId, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasForbidden(resp.Response) {
 			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
