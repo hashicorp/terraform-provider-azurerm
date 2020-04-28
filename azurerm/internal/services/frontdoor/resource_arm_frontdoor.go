@@ -62,6 +62,9 @@ func resourceArmFrontDoor() *schema.Resource {
 				Default:  true,
 			},
 
+			// TODO: In 3.0
+			// Move 'enforce_backend_pools_certificate_name_check' and 'backend_pools_send_receive_timeout_seconds'
+			// into a 'backend_pool_settings' block
 			"enforce_backend_pools_certificate_name_check": {
 				Type:     schema.TypeBool,
 				Required: true,
@@ -74,7 +77,7 @@ func resourceArmFrontDoor() *schema.Resource {
 				ValidateFunc: validation.IntBetween(0, 240),
 			},
 
-			// remove in 3.0
+			// TODO: Remove in 3.0
 			"location": {
 				Type:       schema.TypeString,
 				Optional:   true,
