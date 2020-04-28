@@ -1,18 +1,21 @@
 package maintenance
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	validateCompute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/parse"
-	maintenanceValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -43,14 +46,17 @@ func resourceArmMaintenanceAssignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: maintenanceValidate.MaintenanceConfigurationID,
+				ValidateFunc: validate.MaintenanceConfigurationID,
 			},
 
 			"target_resource_id": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     azure.ValidateResourceID,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					validateCompute.DedicatedHostID,
+					validateCompute.VirtualMachineID,
+				),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
@@ -59,28 +65,18 @@ func resourceArmMaintenanceAssignment() *schema.Resource {
 
 func resourceArmMaintenanceAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Maintenance.ConfigurationAssignmentsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	targetResourceId := d.Get("target_resource_id").(string)
-	id, err := parse.TargetResourceID(targetResourceId)
+	id, _ := parse.TargetResourceID(targetResourceId)
+
+	existing, err := getMaintenanceAssignment(ctx, client, id, targetResourceId)
 	if err != nil {
 		return err
 	}
-
-	var listResp maintenance.ListConfigurationAssignmentsResult
-	if id.HasParentResource {
-		listResp, err = client.ListParent(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceParentType, id.ResourceParentName, id.ResourceType, id.ResourceName)
-	} else {
-		listResp, err = client.List(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceType, id.ResourceName)
-	}
-	if err != nil {
-		if !utils.ResponseWasNotFound(listResp.Response) {
-			return fmt.Errorf("checking for presense of existing Maintenance assignment to resource %q: %+v", targetResourceId, err)
-		}
-	}
-	if listResp.Value != nil && len(*listResp.Value) > 0 {
-		return tf.ImportAsExistsError("azurerm_maintenance_assignment", *(*listResp.Value)[0].ID)
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_maintenance_assignment", *existing.ID)
 	}
 
 	maintenanceConfigurationID := d.Get("maintenance_configuration_id").(string)
@@ -97,18 +93,16 @@ func resourceArmMaintenanceAssignmentCreate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	var resp maintenance.ConfigurationAssignment
-	if id.HasParentResource {
-		resp, err = client.CreateOrUpdateParent(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceParentType, id.ResourceParentName, id.ResourceType, id.ResourceName, assignmentName, assignment)
-	} else {
-		resp, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceType, id.ResourceName, assignmentName, assignment)
-	}
-	if err != nil {
-		return fmt.Errorf("creating Maintenance Assignment to resource %q: %+v", targetResourceId, err)
+	if _, err := createMaintenanceAssignment(ctx, client, id, assignmentName, &assignment); err != nil {
+		return fmt.Errorf("creating Maintenance Assignment (target resource id: %q): %+v", targetResourceId, err)
 	}
 
+	resp, err := getMaintenanceAssignment(ctx, client, id, targetResourceId)
+	if err != nil {
+		return err
+	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read Maintenance Assignment to resource %q", targetResourceId)
+		return fmt.Errorf("empty or nil ID of Maintenance Assignment (target resource id %q)", targetResourceId)
 	}
 
 	d.SetId(*resp.ID)
@@ -125,25 +119,12 @@ func resourceArmMaintenanceAssignmentRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	var listResp maintenance.ListConfigurationAssignmentsResult
-	if id.HasParentResource {
-		listResp, err = client.ListParent(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceParentType, id.ResourceParentName, id.ResourceType, id.ResourceName)
-	} else {
-		listResp, err = client.List(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceType, id.ResourceName)
-	}
+	assignment, err := getMaintenanceAssignment(ctx, client, id.TargetResourceId, id.ResourceId)
 	if err != nil {
-		if !utils.ResponseWasNotFound(listResp.Response) {
-			return fmt.Errorf("checking for present of existing Maintenance assignment to resource %q: %+v", id.ResourceId, err)
-		}
-		return fmt.Errorf("listing Maintenance assignment to resource %q: %+v", id.ResourceId, err)
+		return err
 	}
-	if listResp.Value == nil || len(*listResp.Value) == 0 {
-		return fmt.Errorf("could not find Maintenance assignment to resource %q", id.ResourceId)
-	}
-
-	assignment := (*listResp.Value)[0]
 	if assignment.ID == nil || *assignment.ID == "" {
-		return fmt.Errorf("cannot read Maintenance Assignment to resource %q ID", id.ResourceId)
+		return fmt.Errorf("empty or nil ID of Maintenance Assignment (target resource id: %q", id.ResourceId)
 	}
 
 	// in list api, `ResourceID` returned is always nil
@@ -164,14 +145,46 @@ func resourceArmMaintenanceAssignmentDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	if id.HasParentResource {
-		_, err = client.DeleteParent(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceParentType, id.ResourceParentName, id.ResourceType, id.ResourceName, id.Name)
-	} else {
-		_, err = client.Delete(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceType, id.ResourceName, id.Name)
-	}
-	if err != nil {
+	if _, err := deleteMaintenanceAssignment(ctx, client, id); err != nil {
 		return fmt.Errorf("deleting Maintenance Assignment to resource %q: %+v", id.ResourceId, err)
 	}
 
 	return nil
+}
+
+func getMaintenanceAssignment(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parse.TargetResourceId, targetResourceId string) (maintenance.ConfigurationAssignment, error) {
+	var listResp maintenance.ListConfigurationAssignmentsResult
+	var err error
+	if id.HasParentResource {
+		listResp, err = client.ListParent(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceParentType, id.ResourceParentName, id.ResourceType, id.ResourceName)
+	} else {
+		listResp, err = client.List(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceType, id.ResourceName)
+	}
+	if err != nil {
+		if !utils.ResponseWasNotFound(listResp.Response) {
+			return maintenance.ConfigurationAssignment{}, fmt.Errorf("checking for presence of existing Maintenance assignment (target resource id %q): %+v", targetResourceId, err)
+		}
+		return maintenance.ConfigurationAssignment{}, nil
+	}
+	if listResp.Value == nil || len(*listResp.Value) == 0 {
+		return maintenance.ConfigurationAssignment{}, fmt.Errorf("could not find Maintenance assignment (target resource id %q)", targetResourceId)
+	}
+
+	return (*listResp.Value)[0], nil
+}
+
+func createMaintenanceAssignment(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parse.TargetResourceId, assignmentName string, assignment *maintenance.ConfigurationAssignment) (maintenance.ConfigurationAssignment, error) {
+	if id.HasParentResource {
+		return client.CreateOrUpdateParent(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceParentType, id.ResourceParentName, id.ResourceType, id.ResourceName, assignmentName, *assignment)
+	} else {
+		return client.CreateOrUpdate(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceType, id.ResourceName, assignmentName, *assignment)
+	}
+}
+
+func deleteMaintenanceAssignment(ctx context.Context, client *maintenance.ConfigurationAssignmentsClient, id *parse.MaintenanceAssignmentId) (maintenance.ConfigurationAssignment, error) {
+	if id.HasParentResource {
+		return client.DeleteParent(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceParentType, id.ResourceParentName, id.ResourceType, id.ResourceName, id.Name)
+	} else {
+		return client.Delete(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceType, id.ResourceName, id.Name)
+	}
 }

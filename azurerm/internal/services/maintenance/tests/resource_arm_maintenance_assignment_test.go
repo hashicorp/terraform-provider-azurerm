@@ -14,7 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMaintenanceAssignment_vmBasic(t *testing.T) {
+func TestAccAzureRMMaintenanceAssignment_basicVM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -23,15 +23,13 @@ func TestAccAzureRMMaintenanceAssignment_vmBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-
 				Config: testAccAzureRMMaintenanceAssignment_vmTemplate(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
 				// It may take a few minutes after starting a VM for it to become available to assign to a configuration
 				// for newly created machine, wait several minutes
-				PreConfig: func() { time.Sleep(3 * time.Minute) },
-				Config:    testAccAzureRMMaintenanceAssignment_vmBasic(data),
+				PreConfig: func() { time.Sleep(5 * time.Minute) },
+				Config:    testAccAzureRMMaintenanceAssignment_basicVM(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMaintenanceAssignmentExists(data.ResourceName),
 				),
@@ -42,7 +40,7 @@ func TestAccAzureRMMaintenanceAssignment_vmBasic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMaintenanceAssignment_vmRequiresImport(t *testing.T) {
+func TestAccAzureRMMaintenanceAssignment_requiresImportVM(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -51,25 +49,23 @@ func TestAccAzureRMMaintenanceAssignment_vmRequiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-
 				Config: testAccAzureRMMaintenanceAssignment_vmTemplate(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
 				// It may take a few minutes after starting a VM for it to become available to assign to a configuration
 				// for newly created machine, wait several minutes
-				PreConfig: func() { time.Sleep(3 * time.Minute) },
-				Config:    testAccAzureRMMaintenanceAssignment_vmBasic(data),
+				PreConfig: func() { time.Sleep(5 * time.Minute) },
+				Config:    testAccAzureRMMaintenanceAssignment_basicVM(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMaintenanceAssignmentExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMMaintenanceAssignment_vmRequiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMMaintenanceAssignment_requiresImportVM),
 		},
 	})
 }
 
-func TestAccAzureRMMaintenanceAssignment_dedicatedHostBasic(t *testing.T) {
+func TestAccAzureRMMaintenanceAssignment_basicDedicatedHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -78,15 +74,13 @@ func TestAccAzureRMMaintenanceAssignment_dedicatedHostBasic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-
 				Config: testAccAzureRMMaintenanceAssignment_dedicatedHostTemplate(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
 				// It may take a few minutes after starting a VM for it to become available to assign to a configuration
 				// for newly created machine, wait several minutes
-				PreConfig: func() { time.Sleep(3 * time.Minute) },
-				Config:    testAccAzureRMMaintenanceAssignment_dedicatedHostBasic(data),
+				PreConfig: func() { time.Sleep(5 * time.Minute) },
+				Config:    testAccAzureRMMaintenanceAssignment_basicDedicatedHost(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMaintenanceAssignmentExists(data.ResourceName),
 				),
@@ -96,7 +90,7 @@ func TestAccAzureRMMaintenanceAssignment_dedicatedHostBasic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMaintenanceAssignment_dedicatedHostRequiresImport(t *testing.T) {
+func TestAccAzureRMMaintenanceAssignment_requiresImportDedicatedHost(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_maintenance_assignment", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -105,20 +99,18 @@ func TestAccAzureRMMaintenanceAssignment_dedicatedHostRequiresImport(t *testing.
 		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-
 				Config: testAccAzureRMMaintenanceAssignment_dedicatedHostTemplate(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 			{
 				// It may take a few minutes after starting a VM for it to become available to assign to a configuration
 				// for newly created machine, wait several minutes
-				PreConfig: func() { time.Sleep(3 * time.Minute) },
-				Config:    testAccAzureRMMaintenanceAssignment_dedicatedHostBasic(data),
+				PreConfig: func() { time.Sleep(5 * time.Minute) },
+				Config:    testAccAzureRMMaintenanceAssignment_basicDedicatedHost(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMaintenanceAssignmentExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMMaintenanceAssignment_dedicatedHostRequiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMMaintenanceAssignment_requiresImportDedicatedHost),
 		},
 	})
 }
@@ -151,7 +143,7 @@ func testCheckAzureRMMaintenanceAssignmentDestroy(s *terraform.State) error {
 			return nil
 		}
 		if listResp.Value != nil && len(*listResp.Value) > 0 {
-			return fmt.Errorf("maintenance assignment to resource %q still exists", id.ResourceId)
+			return fmt.Errorf("maintenance assignment (target resource id: %q) still exists", id.ResourceId)
 		}
 
 		return nil
@@ -187,14 +179,14 @@ func testCheckAzureRMMaintenanceAssignmentExists(resourceName string) resource.T
 			return fmt.Errorf("bad: list on ConfigurationAssignmentsClient: %+v", err)
 		}
 		if listResp.Value == nil || len(*listResp.Value) == 0 {
-			return fmt.Errorf("could not find Maintenance Assignment to resource %q", id.ResourceId)
+			return fmt.Errorf("could not find Maintenance Assignment (target resource id: %q)", id.ResourceId)
 		}
 
 		return nil
 	}
 }
 
-func testAccAzureRMMaintenanceAssignment_vmBasic(data acceptance.TestData) string {
+func testAccAzureRMMaintenanceAssignment_basicVM(data acceptance.TestData) string {
 	template := testAccAzureRMMaintenanceAssignment_vmTemplate(data)
 	return fmt.Sprintf(`
 %s
@@ -207,8 +199,8 @@ resource "azurerm_maintenance_assignment" "test" {
 `, template)
 }
 
-func testAccAzureRMMaintenanceAssignment_vmRequiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMaintenanceAssignment_vmBasic(data)
+func testAccAzureRMMaintenanceAssignment_requiresImportVM(data acceptance.TestData) string {
+	template := testAccAzureRMMaintenanceAssignment_basicVM(data)
 	return fmt.Sprintf(`
 %s
 
@@ -220,7 +212,7 @@ resource "azurerm_maintenance_assignment" "import" {
 `, template)
 }
 
-func testAccAzureRMMaintenanceAssignment_dedicatedHostBasic(data acceptance.TestData) string {
+func testAccAzureRMMaintenanceAssignment_basicDedicatedHost(data acceptance.TestData) string {
 	template := testAccAzureRMMaintenanceAssignment_dedicatedHostTemplate(data)
 	return fmt.Sprintf(`
 %s
@@ -233,8 +225,8 @@ resource "azurerm_maintenance_assignment" "test" {
 `, template)
 }
 
-func testAccAzureRMMaintenanceAssignment_dedicatedHostRequiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMaintenanceAssignment_dedicatedHostBasic(data)
+func testAccAzureRMMaintenanceAssignment_requiresImportDedicatedHost(data acceptance.TestData) string {
+	template := testAccAzureRMMaintenanceAssignment_basicDedicatedHost(data)
 	return fmt.Sprintf(`
 %s
 

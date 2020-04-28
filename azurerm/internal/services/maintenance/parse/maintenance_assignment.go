@@ -59,7 +59,7 @@ func TargetResourceID(input string) (*TargetResourceId, error) {
 	var resourceParentType, resourceParentName, resourceType, resourceName string
 	var hasParentResource bool
 	if len(id.Path) != 1 && len(id.Path) != 2 {
-		return nil, fmt.Errorf("parsing target resource id %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing target resource id %q", input)
 	}
 
 	if len(id.Path) == 1 {
