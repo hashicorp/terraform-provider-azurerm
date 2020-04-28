@@ -13,6 +13,10 @@ Manages an API Management Service Diagnostic.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -61,7 +65,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the API Management Service exists. Changing this forces a new resource to be created.
 
-* `logger_id` - (Required) The id of the target API Management Logger where the API Management Diagnostic should be saved. Changing this forces a new resource to be created.
+* `logger_id` - (Required) The id of the target API Management Logger where the API Management Diagnostic should be saved.
 
 ---
 

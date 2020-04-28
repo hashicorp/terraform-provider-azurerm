@@ -15,7 +15,7 @@ type ApiManagementLoggerId struct {
 func ApiManagementLoggerID(input string) (*ApiManagementLoggerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Api Management Logger ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing Api Management Logger ID %q: %+v", input, err)
 	}
 
 	logger := ApiManagementLoggerId{
@@ -46,7 +46,7 @@ type ApiManagementDiagnosticId struct {
 func ApiManagementDiagnosticID(input string) (*ApiManagementDiagnosticId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Api Management Diagnostic ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing Api Management Diagnostic ID %q: %+v", input, err)
 	}
 
 	diagnostic := ApiManagementDiagnosticId{
