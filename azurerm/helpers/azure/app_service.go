@@ -450,6 +450,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					}, false),
 				},
 
+				"health_check_path": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
 				"linux_fx_version": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -745,6 +750,11 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 				},
 
 				"ftps_state": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"health_check_path": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -1486,6 +1496,10 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
+	if v, ok := config["health_check_path"]; ok {
+		siteConfig.HealthCheckPath = utils.String(v.(string))
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -1606,6 +1620,11 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["scm_type"] = string(input.ScmType)
 	result["ftps_state"] = string(input.FtpsState)
+
+	if input.HealthCheckPath != nil {
+		result["health_check_path"] = *input.HealthCheckPath
+	}
+
 	result["min_tls_version"] = string(input.MinTLSVersion)
 
 	result["cors"] = FlattenWebCorsSettings(input.Cors)
