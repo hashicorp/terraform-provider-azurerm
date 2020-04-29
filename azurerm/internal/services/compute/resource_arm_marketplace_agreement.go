@@ -185,7 +185,9 @@ func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{
 
 	d.Set("publisher", publisher)
 	d.Set("offer", offer)
+	d.Set("product", offer)
 	d.Set("plan", plan)
+	d.Set("name", plan)
 
 	if props := resp.AgreementProperties; props != nil {
 		if accepted := props.Accepted != nil && *props.Accepted; !accepted {
