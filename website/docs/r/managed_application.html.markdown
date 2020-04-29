@@ -95,7 +95,7 @@ The `plan` block exports the following:
 
 * `promotion_code` - (Optional) Specifies the promotion code to use with the plan.
 
-~> **NOTE:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. For example, to accept the terms using PowerShell, please use `Set-AzContext -SubscriptionId "00000000-0000-0000-0000-000000000000"; Get-AzMarketplaceTerms -Publisher "plan-publisher" -Product "plan-product" -Name "plan-name" | Set-AzMarketplaceTerms -Accept`.
+~> **NOTE:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
 
 ## Attributes Reference
 
