@@ -366,7 +366,7 @@ func TestAccAzureRMKeyVault_softDeleteRecoveryDisabled(t *testing.T) {
 			{
 				// attempting to re-create it requires recovery, which is enabled by default
 				Config:      testAccAzureRMKeyVault_softDeleteRecoveryDisabled(data),
-				ExpectError: regexp.MustCompile("is currently in a deleted but recoverable state, and its name cannot be reused"),
+				ExpectError: regexp.MustCompile("An existing soft-deleted Key Vault exists with the Name"),
 			},
 		},
 	})
@@ -1140,7 +1140,6 @@ provider "azurerm" {
   features {
     key_vault {
       recover_soft_deleted_key_vaults = false
-      purge_soft_delete_on_destroy    = false
     }
   }
 }
@@ -1159,28 +1158,8 @@ resource "azurerm_key_vault" "test" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "premium"
   soft_delete_enabled = true
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    secret_permissions = [
-      "get",
-      "delete",
-      "set",
-    ]
-  }
 }
-
-# Azure will silently undelete in create mode "default" (rather than "recover") unless it has content.
-# For the tests to generate an error message when creating a keyvault with the same name as a soft deleted one, 
-# and where the intent was not to recover, this secret is necessary.
-resource "azurerm_key_vault_secret" "test" {
-  name         = "secret-%s"
-  value        = "rick-and-morty"
-  key_vault_id = azurerm_key_vault.test.id
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMKeyVault_purgeProtectionAndSoftDelete(data acceptance.TestData) string {
