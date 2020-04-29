@@ -204,6 +204,12 @@ func testAccAzureRMManagedApplication_complete(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_marketplace_agreement" "test" {
+  publisher = "cisco"
+  offer     = "meraki-vmx"
+  plan      = "meraki-vmx100"
+}
+
 resource "azurerm_managed_application" "test" {
   name                        = "acctestCompleteManagedApp%d"
   location                    = azurerm_resource_group.test.location
@@ -212,11 +218,11 @@ resource "azurerm_managed_application" "test" {
   managed_resource_group_name = "completeInfraGroup%d"
 
   plan {
-    name      = "meraki-vmx100"
-    product   = "meraki-vmx"
-    publisher = "cisco"
+    name      = azurerm_marketplace_agreement.test.plan
+    product   = azurerm_marketplace_agreement.test.offer
+    publisher = azurerm_marketplace_agreement.test.publisher
     version   = "1.0.44"
-  }
+  } 
 
   parameters = {
     baseUrl                     = ""
