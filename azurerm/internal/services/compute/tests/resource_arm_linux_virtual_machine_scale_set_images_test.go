@@ -670,8 +670,8 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_imagesPlan(data acceptance.TestDa
 
 resource "azurerm_marketplace_agreement" "test" {
   publisher = "cloudbees"
-  offer     = "jenkins-operations-center"
-  plan      = "jenkins-operations-center-solo"
+  product   = "jenkins-operations-center"
+  name      = "jenkins-operations-center-solo"
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -709,12 +709,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   plan {
-    name      = "jenkins-operations-center-solo"
-    product   = "jenkins-operations-center"
-    publisher = "cloudbees"
+    publisher = azurerm_marketplace_agreement.test.publisher
+    product   = azurerm_marketplace_agreement.test.product
+    name      = azurerm_marketplace_agreement.test.name
   }
-
-  depends_on = ["azurerm_marketplace_agreement.test"]
 }
 `, template, data.RandomInteger)
 }

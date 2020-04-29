@@ -24,11 +24,19 @@ resource "azurerm_marketplace_agreement" "barracuda" {
 
 The following arguments are supported:
 
-* `offer` - (Required) The Offer of the Marketplace Image. Changing this forces a new resource to be created.
-
-* `plan` - (Required) The Plan of the Marketplace Image. Changing this forces a new resource to be created.
-
 * `publisher` - (Required) The Publisher of the Marketplace Image. Changing this forces a new resource to be created.
+
+* `offer` - (Optional) The Offer of the Marketplace Image, also known as `product`. Changing this forces a new resource to be created.
+
+* `product` - (Optional) The Product of the Marketplace Image, also known as `offer`. Changing this forces a new resource to be created.
+
+~> **Note:** One of `offer` or `product` must be specified.
+
+* `plan` - (Optional) The Plan of the Marketplace Image, also known as `name`. Changing this forces a new resource to be created.
+
+* `name` - (Optional) The Plan of the Marketplace Image,also known as `plan`. Changing this forces a new resource to be created.
+
+~> **Note:** One of `plan` or `name` must be specified.
 
 ## Attributes Reference
 

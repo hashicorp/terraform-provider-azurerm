@@ -247,8 +247,8 @@ func testWindowsVirtualMachine_imageFromPlan(data acceptance.TestData) string {
 
 resource "azurerm_marketplace_agreement" "test" {
   publisher = "plesk"
-  offer     = "plesk-onyx-windows"
-  plan      = "plsk-win-hst-azr-m"
+  product     = "plesk-onyx-windows"
+  name      = "plsk-win-hst-azr-m"
 }
 
 resource "azurerm_windows_virtual_machine" "test" {
@@ -268,9 +268,9 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   plan {
-    name      = "plsk-win-hst-azr-m"
-    product   = "plesk-onyx-windows"
-    publisher = "plesk"
+    publisher = azurerm_marketplace_agreement.test.publisher
+    product   = azurerm_marketplace_agreement.test.product
+    name      = azurerm_marketplace_agreement.test.name
   }
 
   source_image_reference {
@@ -279,8 +279,6 @@ resource "azurerm_windows_virtual_machine" "test" {
     sku       = "plsk-win-hst-azr-m"
     version   = "latest"
   }
-
-  depends_on = ["azurerm_marketplace_agreement.test"]
 }
 `, template)
 }
