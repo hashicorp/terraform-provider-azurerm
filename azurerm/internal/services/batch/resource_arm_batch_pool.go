@@ -138,6 +138,15 @@ func resourceArmBatchPool() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+						"container_image_names": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 						"container_registries": {
 							Type:       schema.TypeList,
 							Optional:   true,

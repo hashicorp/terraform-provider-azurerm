@@ -289,6 +289,8 @@ func TestAccAzureRMBatchPool_container(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.type", "DockerCompatible"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_image_names.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_image_names.0", "centos7"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
@@ -1068,6 +1070,7 @@ resource "azurerm_batch_pool" "test" {
 
   container_configuration {
     type = "DockerCompatible"
+	container_image_names = [ "centos7" ]
     container_registries {
       registry_server = "myContainerRegistry.azurecr.io"
       user_name       = "myUserName"

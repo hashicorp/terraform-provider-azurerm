@@ -205,6 +205,15 @@ func FlattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainer
 	if armContainerConfiguration.Type != nil {
 		result["type"] = *armContainerConfiguration.Type
 	}
+	
+	names := &schema.Set{F: schema.HashString}
+	if armContainerConfiguration.ContainerImageNames != nil {
+		for _, armName := range *armContainerConfiguration.ContainerImageNames {
+			names.Add(string(armName))
+		}
+	}
+	result["container_image_names"] = names
+	
 	result["container_registries"] = flattenBatchPoolContainerRegistries(d, armContainerConfiguration.ContainerRegistries)
 
 	return []interface{}{result}
