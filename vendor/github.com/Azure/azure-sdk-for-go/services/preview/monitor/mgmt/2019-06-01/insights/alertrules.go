@@ -42,7 +42,7 @@ func NewAlertRulesClientWithBaseURI(baseURI string, subscriptionID string) Alert
 	return AlertRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates or updates an alert rule.
+// CreateOrUpdate creates or updates a classic metric alert rule.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // ruleName - the name of the rule.
@@ -131,7 +131,7 @@ func (client AlertRulesClient) CreateOrUpdateResponder(resp *http.Response) (res
 	return
 }
 
-// Delete deletes an alert rule
+// Delete deletes a classic metric alert rule
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // ruleName - the name of the rule.
@@ -206,7 +206,7 @@ func (client AlertRulesClient) DeleteResponder(resp *http.Response) (result auto
 	return
 }
 
-// Get gets an alert rule
+// Get gets a classic metric alert rule
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // ruleName - the name of the rule.
@@ -282,7 +282,7 @@ func (client AlertRulesClient) GetResponder(resp *http.Response) (result AlertRu
 	return
 }
 
-// ListByResourceGroup list the alert rules within a resource group.
+// ListByResourceGroup list the classic metric alert rules within a resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 func (client AlertRulesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result AlertRuleResourceCollection, err error) {
@@ -356,7 +356,7 @@ func (client AlertRulesClient) ListByResourceGroupResponder(resp *http.Response)
 	return
 }
 
-// ListBySubscription list the alert rules within a subscription.
+// ListBySubscription list the classic metric alert rules within a subscription.
 func (client AlertRulesClient) ListBySubscription(ctx context.Context) (result AlertRuleResourceCollection, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.ListBySubscription")
@@ -427,7 +427,7 @@ func (client AlertRulesClient) ListBySubscriptionResponder(resp *http.Response) 
 	return
 }
 
-// Update updates an existing AlertRuleResource. To update other fields use the CreateOrUpdate method.
+// Update updates an existing classic metric AlertRuleResource. To update other fields use the CreateOrUpdate method.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // ruleName - the name of the rule.

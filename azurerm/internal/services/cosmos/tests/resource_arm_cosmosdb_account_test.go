@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMCosmosDBAccount_basic_global_boundedStaleness(t *testing.T) {
@@ -95,11 +94,6 @@ func testAccAzureRMCosmosDBAccount_basicWith(t *testing.T, kind documentdb.Datab
 }
 
 func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -616,7 +610,7 @@ resource "azurerm_cosmosdb_account" "test" {
 func testAccAzureRMCosmosDBAccount_capabilities(data acceptance.TestData, kind documentdb.DatabaseAccountKind, capabilities []string) string {
 	capeTf := ""
 	for _, c := range capabilities {
-		capeTf = capeTf + fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
+		capeTf += fmt.Sprintf("capabilities {name = \"%s\"}\n", c)
 	}
 
 	return fmt.Sprintf(`

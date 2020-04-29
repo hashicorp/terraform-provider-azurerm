@@ -34,6 +34,8 @@ output "elasticpool_id" {
 
 ## Attributes Reference
 
+* `license_type` - The license type to apply for this database.
+
 * `location` - Specifies the supported Azure location where the resource exists.
 
 * `max_size_gb` - The max data size of the elastic pool in gigabytes.

@@ -147,10 +147,7 @@ func FindLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*networ
 
 // sets the loadbalancer_id in the ResourceData from the sub resources full id
 func loadBalancerSubResourceStateImporter(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
-	r, err := regexp.Compile(`.+\/loadBalancers\/.+?\/`)
-	if err != nil {
-		return nil, err
-	}
+	r := regexp.MustCompile(`.+/loadBalancers/.+?/`)
 
 	lbID := strings.TrimSuffix(r.FindString(d.Id()), "/")
 	parsed, err := azure.ParseAzureResourceID(lbID)

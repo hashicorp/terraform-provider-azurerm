@@ -15,5 +15,5 @@ func NormalizeJson(jsonString interface{}) string {
 		return fmt.Sprintf("Error parsing JSON: %+v", err)
 	}
 	b, _ := json.Marshal(j)
-	return string(b[:])
+	return string(b)
 }

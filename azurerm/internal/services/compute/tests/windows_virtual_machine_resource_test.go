@@ -7,21 +7,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func checkWindowsVirtualMachineIsDestroyed(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		if rs.Type != "azurerm_windows_virtual_machine" {
 			continue
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
+		id, err := parse.VirtualMachineID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -36,20 +40,23 @@ func checkWindowsVirtualMachineIsDestroyed(s *terraform.State) error {
 
 func checkWindowsVirtualMachineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		name := rs.Primary.Attributes["name"]
+		id, err := parse.VirtualMachineID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		resp, err := client.Get(ctx, resourceGroup, name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Windows Virtual Machine %q (Resource Group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: Windows Virtual Machine %q (Resource Group: %q) does not exist", id.Name, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on VMClient: %+v", err)

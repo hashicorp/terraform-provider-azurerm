@@ -58,6 +58,8 @@ The following arguments are supported:
 
 * `security_rule` - (Optional) [List of objects](/docs/configuration/attr-as-blocks.html) representing security rules, as defined below.
 
+-> **NOTE** Since `security_rule` can be configured both inline and via the separate `azurerm_network_security_rule` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 

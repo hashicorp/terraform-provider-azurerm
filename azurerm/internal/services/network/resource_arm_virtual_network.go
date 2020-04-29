@@ -93,10 +93,16 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				},
 			},
 
-			"subnet": {
-				Type:     schema.TypeSet,
-				Optional: true,
+			"guid": {
+				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"subnet": {
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -232,11 +238,14 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
+		d.Set("guid", props.ResourceGUID)
+
 		if space := props.AddressSpace; space != nil {
 			d.Set("address_space", utils.FlattenStringSlice(space.AddressPrefixes))
 		}
@@ -434,8 +443,9 @@ func resourceAzureSubnetHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(m["name"].(string))
-		buf.WriteString(m["address_prefix"].(string))
-
+		if v, ok := m["address_prefix"]; ok {
+			buf.WriteString(v.(string))
+		}
 		if v, ok := m["security_group"]; ok {
 			buf.WriteString(v.(string))
 		}

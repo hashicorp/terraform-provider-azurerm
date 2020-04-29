@@ -356,11 +356,12 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = "${azurerm_resource_group.test.location}"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
-  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  name                       = "acctestFA-%d"
+  location                   = "${azurerm_resource_group.test.location}"
+  resource_group_name        = "${azurerm_resource_group.test.name}"
+  app_service_plan_id        = "${azurerm_app_service_plan.test.id}"
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 data "azurerm_monitor_action_group" "test" {

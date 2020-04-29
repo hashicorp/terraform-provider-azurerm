@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,12 +38,8 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -58,6 +54,26 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(t *testing.T)
 			{
 				Config:      testAccAzureRMVirtualMachineDataDiskAttachment_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_data_disk_attachment"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualMachineDataDiskAttachment_destroy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualMachineDataDiskAttachment_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineDataDiskAttachmentExists(data.ResourceName),
+					testCheckAzureRMVirtualMachineDataDiskAttachmentDisappears(data.ResourceName),
+				),
+				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
@@ -300,6 +316,72 @@ func testCheckAzureRMVirtualMachineDataDiskAttachmentDestroy(s *terraform.State)
 	}
 
 	return nil
+}
+
+func testCheckAzureRMVirtualMachineDataDiskAttachmentDisappears(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		virtualMachineId := rs.Primary.Attributes["virtual_machine_id"]
+
+		id, err := azure.ParseAzureResourceID(virtualMachineId)
+		if err != nil {
+			return err
+		}
+
+		virtualMachineName := id.Path["virtualMachines"]
+		resourceGroup := id.ResourceGroup
+
+		resp, err := client.Get(ctx, resourceGroup, virtualMachineName, "")
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return fmt.Errorf("Bad: Get on vmClient: %+v", err)
+		}
+
+		diskId, err := azure.ParseAzureResourceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		diskName := diskId.Path["dataDisks"]
+
+		outputDisks := make([]compute.DataDisk, 0)
+		for _, disk := range *resp.StorageProfile.DataDisks {
+			// deliberately not using strings.Equals as this is case sensitive
+			if *disk.Name == diskName {
+				continue
+			}
+
+			outputDisks = append(outputDisks, disk)
+		}
+		resp.StorageProfile.DataDisks = &outputDisks
+
+		// fixes #2485
+		resp.Identity = nil
+		// fixes #1600
+		resp.Resources = nil
+
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualMachineName, resp)
+		if err != nil {
+			return fmt.Errorf("Error updating Virtual Machine %q (Resource Group %q) with Disk %q: %+v", virtualMachineName, resourceGroup, diskName, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for Virtual Machine %q (Resource Group %q) to finish updating Disk %q: %+v", virtualMachineName, resourceGroup, diskName, err)
+		}
+
+		return nil
+	}
 }
 
 func testAccAzureRMVirtualMachineDataDiskAttachment_basic(data acceptance.TestData) string {

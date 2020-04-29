@@ -6,7 +6,7 @@ description: |-
   Manages a Email integration for a Bot Channel
 ---
 
-# azurerm_bot_connection
+# azurerm_bot_channel_email
 
 Manages a Email integration for a Bot Channel
 

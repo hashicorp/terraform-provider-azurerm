@@ -152,6 +152,12 @@ func resourceArmMySqlServer() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -184,6 +190,11 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	publicAccess := mysql.PublicNetworkAccessEnumEnabled
+	if v := d.Get("public_network_access_enabled").(bool); !v {
+		publicAccess = mysql.PublicNetworkAccessEnumDisabled
+	}
+
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -211,6 +222,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 			SslEnforcement:             mysql.SslEnforcementEnum(d.Get("ssl_enforcement").(string)),
 			StorageProfile:             expandMySQLStorageProfile(d),
 			CreateMode:                 mysql.CreateMode("Default"),
+			PublicNetworkAccess:        publicAccess,
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -254,12 +266,18 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("error expanding sku_name for MySQL Server %q (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
+	publicAccess := mysql.PublicNetworkAccessEnumEnabled
+	if v := d.Get("public_network_access_enabled").(bool); !v {
+		publicAccess = mysql.PublicNetworkAccessEnumDisabled
+	}
+
 	properties := mysql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
 			StorageProfile:             expandMySQLStorageProfile(d),
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			Version:                    mysql.ServerVersion(d.Get("version").(string)),
 			SslEnforcement:             mysql.SslEnforcementEnum(d.Get("ssl_enforcement").(string)),
+			PublicNetworkAccess:        publicAccess,
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -324,6 +342,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("administrator_login", resp.AdministratorLogin)
 	d.Set("version", string(resp.Version))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
+	d.Set("public_network_access_enabled", resp.PublicNetworkAccess != mysql.PublicNetworkAccessEnumDisabled)
 
 	if err := d.Set("storage_profile", flattenMySQLStorageProfile(resp.StorageProfile)); err != nil {
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)

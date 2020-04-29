@@ -9,7 +9,7 @@ import (
 )
 
 func testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_network_ddos_protection_plan", "test")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

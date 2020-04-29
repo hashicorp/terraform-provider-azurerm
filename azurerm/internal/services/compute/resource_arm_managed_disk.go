@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -16,7 +15,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -28,9 +29,10 @@ func resourceArmManagedDisk() *schema.Resource {
 		Update: resourceArmManagedDiskUpdate,
 		Delete: resourceArmManagedDiskDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ManagedDiskID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -205,10 +207,8 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 			diskMBps := int32(v.(int))
 			props.DiskMBpsReadWrite = &diskMBps
 		}
-	} else {
-		if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-			return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
-		}
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
 	}
 
 	if createOption == compute.Import {
@@ -292,7 +292,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DisksClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk update.")
@@ -300,6 +300,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	storageAccountType := d.Get("storage_account_type").(string)
+	shouldShutDown := false
 
 	disk, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -320,6 +321,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("storage_account_type") {
+		shouldShutDown = true
 		var skuName compute.DiskStorageAccountTypes
 		for _, v := range compute.PossibleDiskStorageAccountTypesValues() {
 			if strings.EqualFold(storageAccountType, string(v)) {
@@ -343,10 +345,8 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 			diskMBps := int32(v.(int))
 			diskUpdate.DiskMBpsReadWrite = &diskMBps
 		}
-	} else {
-		if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
-			return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
-		}
+	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
+		return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
 	}
 
 	if d.HasChange("os_type") {
@@ -355,6 +355,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("disk_size_gb") {
 		if old, new := d.GetChange("disk_size_gb"); new.(int) > old.(int) {
+			shouldShutDown = true
 			diskUpdate.DiskUpdateProperties.DiskSizeGB = utils.Int32(int32(new.(int)))
 		} else {
 			return fmt.Errorf("Error - New size must be greater than original size. Shrinking disks is not supported on Azure")
@@ -362,6 +363,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("disk_encryption_set_id") {
+		shouldShutDown = true
 		if diskEncryptionSetId := d.Get("disk_encryption_set_id").(string); diskEncryptionSetId != "" {
 			diskUpdate.Encryption = &compute.Encryption{
 				Type:                compute.EncryptionAtRestWithCustomerKey,
@@ -372,9 +374,14 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	// whilst we need to shut this down, if we're not attached to anything there's no point
+	if shouldShutDown && disk.ManagedBy == nil {
+		shouldShutDown = false
+	}
+
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
-	if disk.ManagedBy != nil {
-		virtualMachine, err := ParseVirtualMachineID(*disk.ManagedBy)
+	if shouldShutDown {
+		virtualMachine, err := parse.VirtualMachineID(*disk.ManagedBy)
 		if err != nil {
 			return fmt.Errorf("Error parsing VMID %q for disk attachment: %+v", *disk.ManagedBy, err)
 		}
@@ -390,7 +397,6 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		shouldTurnBackOn := true
-		shouldShutDown := true
 		shouldDeallocate := true
 
 		if instanceView.Statuses != nil {
@@ -401,7 +407,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 
 				// could also be the provisioning state which we're not bothered with here
 				state := strings.ToLower(*status.Code)
-				if !strings.HasPrefix(state, "PowerState/") {
+				if !strings.HasPrefix(state, "powerstate/") {
 					continue
 				}
 
@@ -493,25 +499,23 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ManagedDiskID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["disks"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Disk %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("[ERROR] Error making Read request on Azure Managed Disk %s (resource group %s): %s", name, resGroup, err)
+		return fmt.Errorf("Error making Read request on Azure Managed Disk %s (resource group %s): %s", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("zones", utils.FlattenStringSlice(resp.Zones))
 
 	if location := resp.Location; location != nil {
@@ -561,24 +565,18 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ManagedDiskID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["disks"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
-		}
+		return fmt.Errorf("Error deleting Managed Disk %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deletion of Managed Disk %q (Resource Group %q): %+v", name, resGroup, err)
-		}
+		return fmt.Errorf("Error waiting for deletion of Managed Disk %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

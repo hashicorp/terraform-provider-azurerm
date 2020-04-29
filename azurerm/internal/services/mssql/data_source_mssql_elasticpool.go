@@ -61,6 +61,11 @@ func dataSourceArmMsSqlElasticpool() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+
+			"license_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -99,6 +104,7 @@ func dataSourceArmMsSqlElasticpoolRead(d *schema.ResourceData, meta interface{})
 		d.Set("max_size_bytes", props.MaxSizeBytes)
 
 		d.Set("zone_redundant", props.ZoneRedundant)
+		d.Set("license_type", props.LicenseType)
 
 		if perDbSettings := props.PerDatabaseSettings; perDbSettings != nil {
 			d.Set("per_db_min_capacity", perDbSettings.MinCapacity)
