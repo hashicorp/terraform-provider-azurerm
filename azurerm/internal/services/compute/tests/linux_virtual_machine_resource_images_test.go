@@ -260,6 +260,8 @@ resource "azurerm_marketplace_agreement" "test" {
   publisher = "cloudbees"
   offer     = "jenkins-operations-center"
   plan      = "jenkins-operations-center-solo"
+
+  ignore_existing_agreement = true
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
@@ -293,12 +295,10 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   source_image_reference {
     publisher = "cloudbees"
-    offer     = "jenkins-operations-center"
-    sku       = "jenkins-operations-center-solo"
+    offer     = azurerm_marketplace_agreement.test.offer
+    sku       = azurerm_marketplace_agreement.test.plan
     version   = "latest"
   }
-
-  depends_on = ["azurerm_marketplace_agreement.test"]
 }
 `, template, data.RandomInteger)
 }

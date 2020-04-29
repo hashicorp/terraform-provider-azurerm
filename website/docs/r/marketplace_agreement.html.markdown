@@ -17,6 +17,8 @@ resource "azurerm_marketplace_agreement" "barracuda" {
   publisher = "barracudanetworks"
   offer     = "waf"
   plan      = "hourly"
+
+  ignore_existing_agreement = true
 }
 ```
 
@@ -37,6 +39,8 @@ The following arguments are supported:
 * `name` - (Optional) The Plan of the Marketplace Image,also known as `plan`. Changing this forces a new resource to be created.
 
 ~> **Note:** One of `plan` or `name` must be specified.
+
+* `ignore_existing_agreement` - (Optional) Ignore any existing agreement and not require import.
 
 ## Attributes Reference
 

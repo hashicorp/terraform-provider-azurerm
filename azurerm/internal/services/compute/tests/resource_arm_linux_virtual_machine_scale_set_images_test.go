@@ -672,6 +672,8 @@ resource "azurerm_marketplace_agreement" "test" {
   publisher = "cloudbees"
   product   = "jenkins-operations-center"
   name      = "jenkins-operations-center-solo"
+
+  ignore_existing_agreement = true
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {

@@ -663,6 +663,8 @@ resource "azurerm_marketplace_agreement" "test" {
   publisher = "plesk"
   product   = "plesk-onyx-windows"
   name      = "plsk-win-hst-azr-m"
+
+  ignore_existing_agreement = true
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
