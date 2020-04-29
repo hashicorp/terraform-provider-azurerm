@@ -11,11 +11,16 @@ func ResponseWasNotFound(resp autorest.Response) bool {
 	return ResponseWasStatusCode(resp, http.StatusNotFound)
 }
 
+func ResponseWasForbidden(resp autorest.Response) bool {
+	return ResponseWasStatusCode(resp, http.StatusForbidden)
+}
+
 func ResponseErrorIsRetryable(err error) bool {
 	if arerr, ok := err.(autorest.DetailedError); ok {
 		err = arerr.Original
 	}
 
+	// nolint gocritic
 	switch e := err.(type) {
 	case net.Error:
 		if e.Temporary() || e.Timeout() {

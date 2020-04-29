@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -135,9 +136,7 @@ func resourceArmNotificationHub() *schema.Resource {
 				},
 			},
 
-			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
-			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			// "tags": tags.Schema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -165,27 +164,16 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	apnsRaw := d.Get("apns_credential").([]interface{})
-	apnsCredential, err := expandNotificationHubsAPNSCredentials(apnsRaw)
-	if err != nil {
-		return err
-	}
-
-	gcmRaw := d.Get("gcm_credential").([]interface{})
-	gcmCredentials, err := expandNotificationHubsGCMCredentials(gcmRaw)
-	if err != nil {
-		return err
-	}
-
 	parameters := notificationhubs.CreateOrUpdateParameters{
 		Location: utils.String(location),
 		Properties: &notificationhubs.Properties{
-			ApnsCredential: apnsCredential,
-			GcmCredential:  gcmCredentials,
+			ApnsCredential: expandNotificationHubsAPNSCredentials(d.Get("apns_credential").([]interface{})),
+			GcmCredential:  expandNotificationHubsGCMCredentials(d.Get("gcm_credential").([]interface{})),
 		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err = client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
 		return fmt.Errorf("Error creating Notification Hub %q (Namespace %q / Resource Group %q): %+v", name, namespaceName, resourceGroup, err)
 	}
 
@@ -286,7 +274,7 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) error {
@@ -312,9 +300,9 @@ func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func expandNotificationHubsAPNSCredentials(inputs []interface{}) (*notificationhubs.ApnsCredential, error) {
+func expandNotificationHubsAPNSCredentials(inputs []interface{}) *notificationhubs.ApnsCredential {
 	if len(inputs) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := inputs[0].(map[string]interface{})
@@ -339,7 +327,7 @@ func expandNotificationHubsAPNSCredentials(inputs []interface{}) (*notificationh
 			Token:    utils.String(token),
 		},
 	}
-	return &credentials, nil
+	return &credentials
 }
 
 func flattenNotificationHubsAPNSCredentials(input *notificationhubs.ApnsCredential) []interface{} {
@@ -377,9 +365,9 @@ func flattenNotificationHubsAPNSCredentials(input *notificationhubs.ApnsCredenti
 	return []interface{}{output}
 }
 
-func expandNotificationHubsGCMCredentials(inputs []interface{}) (*notificationhubs.GcmCredential, error) {
+func expandNotificationHubsGCMCredentials(inputs []interface{}) *notificationhubs.GcmCredential {
 	if len(inputs) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := inputs[0].(map[string]interface{})
@@ -389,7 +377,7 @@ func expandNotificationHubsGCMCredentials(inputs []interface{}) (*notificationhu
 			GoogleAPIKey: utils.String(apiKey),
 		},
 	}
-	return &credentials, nil
+	return &credentials
 }
 
 func flattenNotificationHubsGCMCredentials(input *notificationhubs.GcmCredential) []interface{} {

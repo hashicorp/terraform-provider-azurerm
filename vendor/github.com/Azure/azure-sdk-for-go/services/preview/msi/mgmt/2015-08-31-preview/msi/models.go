@@ -30,17 +30,16 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
 
-// UserAssignedIdentities enumerates the values for user assigned identities.
-type UserAssignedIdentities string
-
-const (
-	// MicrosoftManagedIdentityuserAssignedIdentities ...
-	MicrosoftManagedIdentityuserAssignedIdentities UserAssignedIdentities = "Microsoft.ManagedIdentity/userAssignedIdentities"
-)
-
-// PossibleUserAssignedIdentitiesValues returns an array of possible values for the UserAssignedIdentities const type.
-func PossibleUserAssignedIdentitiesValues() []UserAssignedIdentities {
-	return []UserAssignedIdentities{MicrosoftManagedIdentityuserAssignedIdentities}
+// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // CloudError an error response from the ManagedServiceIdentity service.
@@ -64,18 +63,18 @@ type CloudErrorBody struct {
 // Identity describes an identity resource.
 type Identity struct {
 	autorest.Response `json:"-"`
-	// Tags - Resource tags
-	Tags map[string]*string `json:"tags"`
 	// IdentityProperties - READ-ONLY; The properties associated with the identity.
 	*IdentityProperties `json:"properties,omitempty"`
-	// Type - READ-ONLY; The type of resource i.e. Microsoft.ManagedIdentity/userAssignedIdentities. Possible values include: 'MicrosoftManagedIdentityuserAssignedIdentities'
-	Type UserAssignedIdentities `json:"type,omitempty"`
-	// ID - READ-ONLY; The id of the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
-	Name *string `json:"name,omitempty"`
-	// Location - The Azure region where the resource lives.
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
 	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Identity.
@@ -99,15 +98,6 @@ func (i *Identity) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				i.Tags = tags
-			}
 		case "properties":
 			if v != nil {
 				var identityProperties IdentityProperties
@@ -117,14 +107,23 @@ func (i *Identity) UnmarshalJSON(body []byte) error {
 				}
 				i.IdentityProperties = &identityProperties
 			}
-		case "type":
+		case "tags":
 			if v != nil {
-				var typeVar UserAssignedIdentities
-				err = json.Unmarshal(*v, &typeVar)
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
 				if err != nil {
 					return err
 				}
-				i.Type = typeVar
+				i.Tags = tags
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				i.Location = &location
 			}
 		case "id":
 			if v != nil {
@@ -144,14 +143,14 @@ func (i *Identity) UnmarshalJSON(body []byte) error {
 				}
 				i.Name = &name
 			}
-		case "location":
+		case "type":
 			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
 				if err != nil {
 					return err
 				}
-				i.Location = &location
+				i.Type = &typeVar
 			}
 		}
 	}
@@ -337,29 +336,42 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 	return OperationListResultPage{fn: getNextPage}
 }
 
-// Resource describes common properties of a resource.
-type Resource struct {
-	// ID - READ-ONLY; The id of the resource.
+// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
+// required location and tags
+type ProxyResource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Location - The Azure region where the resource lives.
-	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// Resource ...
+type Resource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // SystemAssignedIdentity describes a system assigned identity resource.
 type SystemAssignedIdentity struct {
 	autorest.Response `json:"-"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
 	// IdentityProperties - READ-ONLY; The properties associated with the identity.
 	*IdentityProperties `json:"properties,omitempty"`
-	// Type - READ-ONLY; The type of resource i.e. Microsoft.Compute/virtualMachineScaleSets
-	Type *string `json:"type,omitempty"`
-	// ID - READ-ONLY; The id of the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource.
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Location - The Azure region where the resource lives.
-	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for SystemAssignedIdentity.
@@ -367,6 +379,9 @@ func (sai SystemAssignedIdentity) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if sai.Location != nil {
 		objectMap["location"] = sai.Location
+	}
+	if sai.Tags != nil {
+		objectMap["tags"] = sai.Tags
 	}
 	return json.Marshal(objectMap)
 }
@@ -380,6 +395,24 @@ func (sai *SystemAssignedIdentity) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				sai.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				sai.Tags = tags
+			}
 		case "properties":
 			if v != nil {
 				var identityProperties IdentityProperties
@@ -388,15 +421,6 @@ func (sai *SystemAssignedIdentity) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				sai.IdentityProperties = &identityProperties
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				sai.Type = &typeVar
 			}
 		case "id":
 			if v != nil {
@@ -416,19 +440,45 @@ func (sai *SystemAssignedIdentity) UnmarshalJSON(body []byte) error {
 				}
 				sai.Name = &name
 			}
-		case "location":
+		case "type":
 			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
 				if err != nil {
 					return err
 				}
-				sai.Location = &location
+				sai.Type = &typeVar
 			}
 		}
 	}
 
 	return nil
+}
+
+// TrackedResource the resource model definition for a ARM tracked top level resource
+type TrackedResource struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	return json.Marshal(objectMap)
 }
 
 // UserAssignedIdentitiesListResult values returned by the List operation.

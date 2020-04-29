@@ -175,12 +175,13 @@ $ export ARM_SUBSCRIPTION_ID="00000000-0000-0000-0000-000000000000"
 $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 ```
 
-The following Provider block can be specified - where `1.44.0` is the version of the Azure Provider that you'd like to use:
+The following Provider block can be specified - where `2.5.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  version = "=2.5.0"
+  features {}
 }
 ```
 
@@ -200,12 +201,14 @@ variable "client_secret" {
 
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.44.0"
+  version = "=2.4.0"
 
   subscription_id = "00000000-0000-0000-0000-000000000000"
   client_id       = "00000000-0000-0000-0000-000000000000"
   client_secret   = var.client_secret
   tenant_id       = "00000000-0000-0000-0000-000000000000"
+
+  features {}
 }
 ```
 

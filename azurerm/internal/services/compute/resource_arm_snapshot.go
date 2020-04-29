@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -100,7 +99,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	createOption := d.Get("create_option").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -245,8 +244,7 @@ func ValidateSnapshotName(v interface{}, _ string) (warnings []string, errors []
 	// a-z, A-Z, 0-9, _ and -. The max name length is 80
 	value := v.(string)
 
-	r, _ := regexp.Compile("^[A-Za-z0-9_-]+$")
-	if !r.MatchString(value) {
+	if !regexp.MustCompile("^[A-Za-z0-9_-]+$").MatchString(value) {
 		errors = append(errors, fmt.Errorf("Snapshot Names can only contain alphanumeric characters and underscores."))
 	}
 

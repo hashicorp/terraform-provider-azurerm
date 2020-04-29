@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -59,7 +60,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 					string(operationalinsights.Premium),
 					string(operationalinsights.Standalone),
 					string(operationalinsights.Standard),
-					string("Unlimited"), // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
+					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -167,24 +168,22 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LogAnalyticsWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["workspaces"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on AzureRM Log Analytics workspaces '%s': %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM Log Analytics workspaces '%s': %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -196,9 +195,9 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
 
-	sharedKeys, err := client.GetSharedKeys(ctx, resGroup, name)
+	sharedKeys, err := client.GetSharedKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", name, err)
+		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.Name, err)
 	} else {
 		d.Set("primary_shared_key", sharedKeys.PrimarySharedKey)
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
@@ -211,21 +210,18 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.LogAnalyticsWorkspaceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["workspaces"]
-
-	resp, err := client.Delete(ctx, resGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
 		}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", name, err)
+		return fmt.Errorf("Error issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.Name, err)
 	}
 
 	return nil
@@ -234,8 +230,7 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 func ValidateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	r, _ := regexp.Compile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$")
-	if !r.MatchString(value) {
+	if !regexp.MustCompile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$").MatchString(value) {
 		errors = append(errors, fmt.Errorf("Workspace Name can only contain alphabet, number, and '-' character. You can not use '-' as the start and end of the name"))
 	}
 

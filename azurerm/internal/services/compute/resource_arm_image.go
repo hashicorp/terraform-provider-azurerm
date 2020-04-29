@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -199,7 +198,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	zoneResilient := d.Get("zone_resilient").(bool)
 	hyperVGeneration := d.Get("hyper_v_generation").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -219,19 +218,9 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		HyperVGeneration: compute.HyperVGenerationTypes(hyperVGeneration),
 	}
 
-	osDisk, err := expandAzureRmImageOsDisk(d)
-	if err != nil {
-		return err
-	}
-
-	dataDisks, err := expandAzureRmImageDataDisks(d)
-	if err != nil {
-		return err
-	}
-
 	storageProfile := compute.ImageStorageProfile{
-		OsDisk:        osDisk,
-		DataDisks:     &dataDisks,
+		OsDisk:        expandAzureRmImageOsDisk(d),
+		DataDisks:     expandAzureRmImageDataDisks(d),
 		ZoneResilient: utils.Bool(zoneResilient),
 	}
 
@@ -402,7 +391,7 @@ func flattenAzureRmImageDataDisks(diskImages *[]compute.ImageDataDisk) []interfa
 	return result
 }
 
-func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, error) {
+func expandAzureRmImageOsDisk(d *schema.ResourceData) *compute.ImageOSDisk {
 	osDisk := &compute.ImageOSDisk{}
 	disks := d.Get("os_disk").([]interface{})
 
@@ -440,10 +429,10 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 		}
 	}
 
-	return osDisk, nil
+	return osDisk
 }
 
-func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDisk, error) {
+func expandAzureRmImageDataDisks(d *schema.ResourceData) *[]compute.ImageDataDisk {
 	disks := d.Get("data_disk").([]interface{})
 
 	dataDisks := make([]compute.ImageDataDisk, 0, len(disks))
@@ -480,5 +469,5 @@ func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDis
 		dataDisks = append(dataDisks, dataDisk)
 	}
 
-	return dataDisks, nil
+	return &dataDisks
 }

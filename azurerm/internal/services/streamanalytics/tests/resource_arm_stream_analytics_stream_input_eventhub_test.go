@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsStreamInputEventHub_avro(t *testing.T) {
@@ -95,11 +94,6 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsStreamInputEventHub_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_eventhub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

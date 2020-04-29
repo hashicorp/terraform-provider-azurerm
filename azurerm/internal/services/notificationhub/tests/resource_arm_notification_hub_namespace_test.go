@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
@@ -30,12 +29,42 @@ func TestAccAzureRMNotificationHubNamespace_free(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMNotificationHubNamespace_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
+func TestAccAzureRMNotificationHubNamespace_updateTag(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNotificationHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNotificationHubNamespace_free(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubNamespaceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNotificationHubNamespace_withoutTag(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubNamespaceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNotificationHubNamespace_free(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubNamespaceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
 
+func TestAccAzureRMNotificationHubNamespace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_notification_hub_namespace", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -105,6 +134,32 @@ func testCheckAzureRMNotificationHubNamespaceDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMNotificationHubNamespace_free(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_notification_hub_namespace" "test" {
+  name                = "acctestnhn-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  namespace_type      = "NotificationHub"
+
+  sku_name = "Free"
+
+  tags = {
+    env = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMNotificationHubNamespace_withoutTag(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

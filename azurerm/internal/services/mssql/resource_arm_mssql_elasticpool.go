@@ -151,6 +151,16 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 				Optional: true,
 			},
 
+			"license_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.BasePrice),
+					string(sql.LicenseIncluded),
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -199,6 +209,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		Tags:     tags.Expand(t),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
 			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
+			LicenseType:         sql.ElasticPoolLicenseType(d.Get("license_type").(string)),
 		},
 	}
 
@@ -211,10 +222,8 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 			maxSizeBytes := v.(float64) * 1073741824
 			elasticPool.MaxSizeBytes = utils.Int64(int64(maxSizeBytes))
 		}
-	} else {
-		if v, ok := d.GetOk("max_size_bytes"); ok {
-			elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
-		}
+	} else if v, ok := d.GetOk("max_size_bytes"); ok {
+		elasticPool.MaxSizeBytes = utils.Int64(int64(v.(int)))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, elasticPoolName, elasticPool)
@@ -281,6 +290,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 			}
 		}
 		d.Set("zone_redundant", properties.ZoneRedundant)
+		d.Set("license_type", string(properties.LicenseType))
 
 		if err := d.Set("per_database_settings", flattenAzureRmMsSqlElasticPoolPerDatabaseSettings(properties.PerDatabaseSettings)); err != nil {
 			return fmt.Errorf("Error setting `per_database_settings`: %+v", err)

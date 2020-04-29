@@ -6,12 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -66,11 +65,11 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 	serviceName := d.Get("api_management_name").(string)
 	apiName := d.Get("api_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName, apimanagement.PolicyExportFormatXML)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing API Policy (API Management Service %q / API %q / Resource Group %q): %s", serviceName, apiName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing API Policy (API Management Service %q / API %q / Resource Group %q): %s", serviceName, apiName, resourceGroup, err)
 			}
 		}
 
@@ -86,8 +85,8 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			ContentFormat: apimanagement.RawxmlLink,
-			PolicyContent: utils.String(xmlLink),
+			Format: apimanagement.RawxmlLink,
+			Value:  utils.String(xmlLink),
 		}
 	} else if xmlContent != "" {
 		// this is intentionally an else-if since `xml_content` is computed
@@ -98,8 +97,8 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			ContentFormat: apimanagement.Rawxml,
-			PolicyContent: utils.String(xmlContent),
+			Format: apimanagement.Rawxml,
+			Value:  utils.String(xmlContent),
 		}
 	}
 
@@ -108,12 +107,12 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiName, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating or updating API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
+		return fmt.Errorf("creating or updating API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, apimanagement.PolicyExportFormatXML)
 	if err != nil {
-		return fmt.Errorf("Error retrieving API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
+		return fmt.Errorf("retrieving API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ID for API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
@@ -136,7 +135,7 @@ func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interfac
 	serviceName := id.Path["service"]
 	apiName := id.Path["apis"]
 
-	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName)
+	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, apimanagement.PolicyExportFormatXML)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] API Policy (Resource Group %q / API Management Service %q / API %q) was not found - removing from state!", resourceGroup, serviceName, apiName)
@@ -144,7 +143,7 @@ func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request for API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
+		return fmt.Errorf("making Read request for API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -153,7 +152,7 @@ func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interfac
 
 	if properties := resp.PolicyContractProperties; properties != nil {
 		policyContent := ""
-		if pc := properties.PolicyContent; pc != nil {
+		if pc := properties.Value; pc != nil {
 			policyContent = html.UnescapeString(*pc)
 		}
 
@@ -180,7 +179,7 @@ func resourceArmApiManagementAPIPolicyDelete(d *schema.ResourceData, meta interf
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
+			return fmt.Errorf("deleting API Policy (Resource Group %q / API Management Service %q / API %q): %+v", resourceGroup, serviceName, apiName, err)
 		}
 	}
 

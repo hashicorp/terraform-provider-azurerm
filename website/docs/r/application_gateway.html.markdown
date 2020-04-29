@@ -288,6 +288,10 @@ A `http_listener` block supports the following:
 
 * `host_name` - (Optional) The Hostname which should be used for this HTTP Listener.
 
+* `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
+
+-> **NOTE** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
+
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
 * `require_sni` - (Optional) Should Server Name Indication be Required? Defaults to `false`.

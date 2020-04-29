@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,11 +33,6 @@ func TestAccAzureRMMsSqlDatabase_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMsSqlDatabase_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -296,6 +290,79 @@ func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 				),
 			},
 			data.ImportStep("create_mode", "creation_source_database_id", "sample_name"),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data, "Enabled"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.state", "Enabled"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.retention_days", "15"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.disabled_alerts.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.email_account_admins", "Enabled"),
+				),
+			},
+			data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+			{
+				Config: testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data, "Disabled"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "threat_detection_policy.0.state", "Disabled"),
+				),
+			},
+			data.ImportStep("sample_name", "threat_detection_policy.0.storage_account_access_key"),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_withBlobAuditingPolices(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_withBlobAuditingPolices(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
+			{
+				Config: testAccAzureRMMsSqlDatabase_withBlobAuditingPolicesUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
+			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -631,4 +698,111 @@ resource "azurerm_mssql_database" "secondary" {
 
 }
 `, template, data.RandomInteger, data.Locations.Secondary)
+}
+
+func testAccAzureRMMsSqlDatabase_threatDetectionPolicy(data acceptance.TestData, state string) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "test%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name         = "acctest-db-%[2]d"
+  server_id    = azurerm_sql_server.test.id
+  collation    = "SQL_AltDiction_CP850_CI_AI"
+  license_type = "BasePrice"
+  max_size_gb  = 1
+  sample_name  = "AdventureWorksLT"
+  sku_name     = "GP_Gen4_2"
+
+  threat_detection_policy {
+    retention_days             = 15
+    state                      = "%[3]s"
+    disabled_alerts            = ["Sql_Injection"]
+    email_account_admins       = "Enabled"
+    storage_account_access_key = azurerm_storage_account.test.primary_access_key
+    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    use_server_default         = "Disabled"
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger, state)
+}
+
+func testAccAzureRMMsSqlDatabase_withBlobAuditingPolices(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_sql_server.test.id
+  extended_auditing_policy {
+    storage_endpoint                        = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.test.primary_access_key
+    storage_account_access_key_is_secondary = true
+    retention_in_days                       = 6
+  }
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_withBlobAuditingPolicesUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_sql_server.test.id
+  extended_auditing_policy {
+    storage_endpoint                        = azurerm_storage_account.test2.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
+    storage_account_access_key_is_secondary = false
+    retention_in_days                       = 3
+  }
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
 }

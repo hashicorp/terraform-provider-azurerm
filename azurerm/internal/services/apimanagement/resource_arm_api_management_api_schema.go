@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -67,11 +66,11 @@ func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta 
 	serviceName := d.Get("api_management_name").(string)
 	apiName := d.Get("api_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
 			}
 		}
 
@@ -92,12 +91,12 @@ func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiName, schemaID, parameters, ""); err != nil {
-		return fmt.Errorf("Error creating or updating API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+		return fmt.Errorf("creating or updating API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiName, schemaID)
 	if err != nil {
-		return fmt.Errorf("Error retrieving API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+		return fmt.Errorf("retrieving API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
 	}
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read ID for API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
@@ -129,7 +128,7 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request for API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+		return fmt.Errorf("making Read request for API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
 	}
 
 	d.Set("resource_group_name", resourceGroup)
@@ -161,9 +160,9 @@ func resourceArmApiManagementApiSchemaDelete(d *schema.ResourceData, meta interf
 	apiName := id.Path["apis"]
 	schemaID := id.Path["schemas"]
 
-	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, schemaID, ""); err != nil {
+	if resp, err := client.Delete(ctx, resourceGroup, serviceName, apiName, schemaID, "", utils.Bool(false)); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
+			return fmt.Errorf("deleting API Schema %q (API Management Service %q / API %q / Resource Group %q): %s", schemaID, serviceName, apiName, resourceGroup, err)
 		}
 	}
 

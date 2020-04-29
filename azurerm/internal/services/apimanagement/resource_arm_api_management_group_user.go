@@ -56,7 +56,7 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
-				return fmt.Errorf("Error checking for present of existing User %q / Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing User %q / Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -69,7 +69,7 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 
 	resp, err := client.Create(ctx, resourceGroup, serviceName, groupName, userId)
 	if err != nil {
-		return fmt.Errorf("Error adding User %q to Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
+		return fmt.Errorf("adding User %q to Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
 	}
 
 	// there's no Read so this is best-effort
@@ -100,7 +100,7 @@ func resourceArmApiManagementGroupUserRead(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving User %q / Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving User %q / Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
 	}
 
 	d.Set("group_name", groupName)
@@ -127,7 +127,7 @@ func resourceArmApiManagementGroupUserDelete(d *schema.ResourceData, meta interf
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, groupName, userId); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error removing User %q from Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
+			return fmt.Errorf("removing User %q from Group %q (API Management Service %q / Resource Group %q): %+v", userId, groupName, serviceName, resourceGroup, err)
 		}
 	}
 

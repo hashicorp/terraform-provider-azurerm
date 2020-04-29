@@ -52,6 +52,11 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"tls_min_version": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"gateway": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -130,6 +135,7 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 	if props := resp.Properties; props != nil {
 		d.Set("cluster_version", props.ClusterVersion)
 		d.Set("tier", string(props.Tier))
+		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
 			d.Set("component_versions", flattenHDInsightsDataSourceComponentVersions(def.ComponentVersion))

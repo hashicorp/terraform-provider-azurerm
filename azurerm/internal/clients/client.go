@@ -41,6 +41,7 @@ import (
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
 	machinelearning "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning/client"
+	maintenance "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/client"
 	managementgroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/client"
 	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
@@ -65,6 +66,7 @@ import (
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	search "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/client"
 	securityCenter "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/client"
+	sentinel "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/client"
 	serviceBus "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/client"
 	serviceFabric "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/client"
 	signalr "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/client"
@@ -118,6 +120,7 @@ type Client struct {
 	LogAnalytics       *loganalytics.Client
 	Logic              *logic.Client
 	MachineLearning    *machinelearning.Client
+	Maintenance        *maintenance.Client
 	ManagedApplication *managedapplication.Client
 	ManagementGroups   *managementgroup.Client
 	Maps               *maps.Client
@@ -142,6 +145,7 @@ type Client struct {
 	Resource           *resource.Client
 	Search             *search.Client
 	SecurityCenter     *securityCenter.Client
+	Sentinel           *sentinel.Client
 	ServiceBus         *serviceBus.Client
 	ServiceFabric      *serviceFabric.Client
 	SignalR            *signalr.Client
@@ -196,6 +200,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.Logic = logic.NewClient(o)
 	client.MachineLearning = machinelearning.NewClient(o)
+	client.Maintenance = maintenance.NewClient(o)
 	client.ManagedApplication = managedapplication.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
 	client.Maps = maps.NewClient(o)
@@ -220,6 +225,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Resource = resource.NewClient(o)
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
+	client.Sentinel = sentinel.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.SignalR = signalr.NewClient(o)

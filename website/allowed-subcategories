@@ -1,7 +1,6 @@
 API Management
 Analysis Services
 App Configuration
-App Platform
 App Service (Web Apps)
 Application Insights
 Authorization
@@ -34,6 +33,7 @@ Load Balancer
 Log Analytics
 Logic App
 Machine Learning
+Maintenance
 Managed Applications
 Management
 Maps
@@ -51,7 +51,9 @@ Recovery Services
 Redis
 Search
 Security Center
+Sentinel
 Service Fabric
+Spring Cloud
 Storage
 Stream Analytics
 Template

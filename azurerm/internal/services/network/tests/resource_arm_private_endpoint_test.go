@@ -32,6 +32,42 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPrivateEndpoint_updateTag(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPrivateEndpoint_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMPrivateEndpoint_withTag(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMPrivateEndpoint_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMPrivateEndpoint_requestMessage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
 
@@ -200,9 +236,6 @@ resource "azurerm_private_link_service" "test" {
 
 func testAccAzureRMPrivateEndpoint_serviceManualApprove(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_private_link_service" "test" {
   name                = "acctestPLS-%d"
@@ -236,6 +269,29 @@ resource "azurerm_private_endpoint" "test" {
     name                           = azurerm_private_link_service.test.name
     is_manual_connection           = false
     private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+}
+`, testAccAzureRMPrivateEndpointTemplate_template(data, testAccAzureRMPrivateEndpoint_serviceAutoApprove(data)), data.RandomInteger)
+}
+
+func testAccAzureRMPrivateEndpoint_withTag(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+
+  tags = {
+    env = "TEST"
   }
 }
 `, testAccAzureRMPrivateEndpointTemplate_template(data, testAccAzureRMPrivateEndpoint_serviceAutoApprove(data)), data.RandomInteger)

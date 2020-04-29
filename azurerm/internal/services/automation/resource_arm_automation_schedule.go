@@ -16,7 +16,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -210,7 +209,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 	resGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("automation_account_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -265,11 +264,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 
 	// only pay attention to the advanced schedule fields if frequency is either Week or Month
 	if properties.Frequency == automation.Week || properties.Frequency == automation.Month {
-		advancedRef, err := expandArmAutomationScheduleAdvanced(d, d.Id() != "")
-		if err != nil {
-			return err
-		}
-		properties.AdvancedSchedule = advancedRef
+		properties.AdvancedSchedule = expandArmAutomationScheduleAdvanced(d, d.Id() != "")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, accountName, name, parameters); err != nil {
@@ -374,7 +369,7 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) (*automation.AdvancedSchedule, error) {
+func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) *automation.AdvancedSchedule {
 	expandedAdvancedSchedule := automation.AdvancedSchedule{}
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.
@@ -415,7 +410,7 @@ func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) 
 	}
 	expandedAdvancedSchedule.MonthlyOccurrences = &expandedMonthlyOccurrences
 
-	return &expandedAdvancedSchedule, nil
+	return &expandedAdvancedSchedule
 }
 
 func flattenArmAutomationScheduleAdvancedWeekDays(s *automation.AdvancedSchedule) *schema.Set {

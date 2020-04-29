@@ -100,9 +100,7 @@ In addition, one of either `identity` or `service_principal` must be specified.
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
-* `private_link_enabled` Should this Kubernetes Cluster have Private Link Enabled? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
-
--> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit [Private Azure Kubernetes Service cluster](https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
+* `private_cluster_enabled` Should this Kubernetes Cluster have it's API server only exposed on internal IP addresses? This provides a Private IP Address for the Kubernetes API on the Virtual Network where the Kubernetes Cluster is located. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
 
@@ -146,11 +144,15 @@ A `addon_profile` block supports the following:
 
 * `aci_connector_linux` - (Optional) A `aci_connector_linux` block. For more details, please visit [Create and configure an AKS cluster to use virtual nodes](https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-portal).
 
+-> **NOTE:** At this time ACI Connector's are not supported in Azure China.
+
 * `azure_policy` - (Optional) A `azure_policy` block as defined below. For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
 -> **NOTE**: Azure Policy for Azure Kubernetes Service is currently in preview and not available to subscriptions that have not [opted-in](https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks?toc=/azure/aks/toc.json) to join `Azure Policy` preview.
 
 * `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
+
+-> **NOTE:** At this time HTTP Application Routing is not supported in Azure China or Azure US Government.
 
 * `kube_dashboard` - (Optional) A `kube_dashboard` block as defined below.
 
@@ -271,6 +273,8 @@ A `network_profile` block supports the following:
 
 * `docker_bridge_cidr` - (Optional) IP address (in CIDR notation) used as the Docker bridge IP address on nodes. This is required when `network_plugin` is set to `azure`. Changing this forces a new resource to be created.
 
+* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer` and `userDefinedRouting`. Defaults to `loadBalancer`.
+
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet`. Changing this forces a new resource to be created.
 
 * `service_cidr` - (Optional) The Network Range used by the Kubernetes service. This is required when `network_plugin` is set to `azure`. Changing this forces a new resource to be created.
@@ -291,9 +295,15 @@ A `load_balancer_profile` block supports the following:
 
 * `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
 
+-> **NOTE** User has to explicitly set `managed_outbound_ip_count` to empty slice (`[]`) to remove it.
+
 * `outbound_ip_prefix_ids` - (Optional) The ID of the outbound Public IP Address Prefixes which should be used for the cluster load balancer.
 
+-> **NOTE** User has to explicitly set `outbound_ip_prefix_ids` to empty slice (`[]`) to remove it.
+
 * `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
+
+-> **NOTE** User has to explicitly set `outbound_ip_address_ids` to empty slice (`[]`) to remove it.
 
 ---
 
@@ -356,6 +366,8 @@ The following attributes are exported:
 
 * `node_resource_group` - The auto-generated Resource Group which contains the resources for this Managed Kubernetes Cluster.
 
+* `kubelet_identity` - A `kubelet_identity` block as defined below.  
+
 ---
 
 A `http_application_routing` block exports the following:
@@ -375,6 +387,16 @@ The `identity` block exports the following:
 * `principal_id` - The principal id of the system assigned identity which is used by master components.
 
 * `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+
+---
+
+The `kubelet_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
 
 ---
 

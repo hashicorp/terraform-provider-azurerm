@@ -542,35 +542,35 @@ The deprecated `public_ip_address_allocation` field will be removed. This field 
 
 ### Resource `azurerm_recovery_replicated_vm`
 
-This resource was deprecated in favor of `azurerm_site_recovery_replicated_vm` and has been removed.
+This resource was deprecated in favour of `azurerm_site_recovery_replicated_vm` and has been removed.
 
 ### Resource `azurerm_recovery_services_fabric`
 
-The resource was deprecated in favor of `azurerm_site_recovery_fabric` and has been removed.
+The resource was deprecated in favour of `azurerm_site_recovery_fabric` and has been removed.
 
 ### Resource `azurerm_recovery_services_network_mapping`
 
-This resource was deprecated in favor of `azurerm_site_recovery_network_mapping` and has been removed.
+This resource was deprecated in favour of `azurerm_site_recovery_network_mapping` and has been removed.
 
 ### Resource `azurerm_recovery_services_protected_vm`
 
-This resource was deprecated in favor of `azurerm_backup_protected_vm` and has been removed.
+This resource was deprecated in favour of `azurerm_backup_protected_vm` and has been removed.
 
 ### Resource `azurerm_recovery_services_protection_container`
 
-This resource was deprecated in favor of `azurerm_site_recovery_protection_container` and has been removed.
+This resource was deprecated in favour of `azurerm_site_recovery_protection_container` and has been removed.
 
 ### Resource `azurerm_recovery_services_protection_container_mapping`
 
-This resource was deprecated in favor of `azurerm_site_recovery_protection_container_mapping` and has been removed.
+This resource was deprecated in favour of `azurerm_site_recovery_protection_container_mapping` and has been removed.
 
 ### Resource `azurerm_recovery_services_protection_policy_vm`
 
-This resource was deprecated in favor of `azurerm_backup_policy_vm` and has been removed.
+This resource was deprecated in favour of `azurerm_backup_policy_vm` and has been removed.
 
 ### Resource `azurerm_recovery_services_replication_policy`
 
-This resource was deprecated in favor of `azurerm_site_recovery_replication_policy` and has been removed.
+This resource was deprecated in favour of `azurerm_site_recovery_replication_policy` and has been removed.
 
 ### Resource: `azurerm_relay_namespace`
 
@@ -656,7 +656,7 @@ The existing `azurerm_virtual_machine` Resource will continue to be available in
 
 ### Resource: `azurerm_virtual_machine_extension`
 
-The deprecated `virtual_machine_name`, `location`, and `resource_group_name` field will be removed in favor of `virtual_machine_id`.
+The deprecated `virtual_machine_name`, `location`, and `resource_group_name` field will be removed in favour of `virtual_machine_id`.
 
 ### Resource: `azurerm_virtual_machine_scale_set`
 

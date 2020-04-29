@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_user_assigned_identity", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_user_assigned_identity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -28,8 +28,8 @@ func TestAccDataSourceAzureRMUserAssignedIdentity_basic(t *testing.T) {
 					resource.TestMatchResourceAttr(data.ResourceName, "principal_id", validate.UUIDRegExp),
 					resource.TestMatchResourceAttr(data.ResourceName, "client_id", validate.UUIDRegExp),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					testEqualResourceAttr(data.ResourceName, "data."+data.ResourceName, "principal_id"),
-					testEqualResourceAttr(data.ResourceName, "data."+data.ResourceName, "client_id"),
+					testEqualResourceAttr(data.ResourceName, "azurerm_user_assigned_identity.test", "principal_id"),
+					testEqualResourceAttr(data.ResourceName, "azurerm_user_assigned_identity.test", "client_id"),
 				),
 			},
 		},

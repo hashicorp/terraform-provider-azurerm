@@ -209,12 +209,12 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 		ValidityInYears:   utils.Int32(int32(validityInYears)),
 	}
 
-	productType := d.Get("product_type").(string)
-	if productType == "Standard" {
+	switch d.Get("product_type").(string) {
+	case "Standard":
 		properties.ProductType = web.StandardDomainValidatedSsl
-	} else if productType == "WildCard" {
+	case "WildCard":
 		properties.ProductType = web.StandardDomainValidatedWildCardSsl
-	} else {
+	default:
 		return fmt.Errorf("Error setting `product_type` for App Service Certificate Order %q (Resource Group %q), either `Standard` or `WildCard`.", name, resourceGroup)
 	}
 

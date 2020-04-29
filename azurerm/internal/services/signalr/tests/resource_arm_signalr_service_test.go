@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
 )
 
@@ -43,10 +42,6 @@ func TestAccAzureRMSignalRService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSignalRService_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -325,7 +320,6 @@ func TestAccAzureRMSignalRService_serviceMode(t *testing.T) {
 				Config: testAccAzureRMSignalRService_withServiceMode(data, "Serverless"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "features.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "features.0.flag", "ServiceMode"),
 					resource.TestCheckResourceAttr(data.ResourceName, "features.0.value", "Serverless"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),

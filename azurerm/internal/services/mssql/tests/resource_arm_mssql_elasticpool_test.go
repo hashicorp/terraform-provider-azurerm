@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // TODO: add import tests
@@ -38,11 +37,6 @@ func TestAccAzureRMMsSqlElasticPool_basic_DTU(t *testing.T) {
 }
 
 func TestAccAzureRMMsSqlElasticPool_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -244,6 +238,34 @@ func TestAccAzureRMMsSqlElasticPool_resize_vCore(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "per_database_settings.0.max_capacity", "8"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlElasticPool_licenseType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlElasticPool_licenseType_Template(data, "LicenseIncluded"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "LicenseIncluded"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlElasticPool_licenseType_Template(data, "BasePrice"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlElasticPoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -502,4 +524,49 @@ resource "azurerm_mssql_elasticpool" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant)
+}
+
+func testAccAzureRMMsSqlElasticPool_licenseType_Template(data acceptance.TestData, licenseType string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctest%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-dtu-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
+  max_size_gb         = 50
+  zone_redundant      = false
+  license_type        = "%[3]s"
+
+  sku {
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0
+    max_capacity = 4
+  }
+
+}
+`, data.RandomInteger, data.Locations.Primary, licenseType)
 }

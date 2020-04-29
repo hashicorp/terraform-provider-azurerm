@@ -141,7 +141,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		var err error
 		if img, err = client.Get(ctx, resGroup, name, ""); err != nil {
 			if utils.ResponseWasNotFound(img.Response) {
-				return fmt.Errorf("Error: Image %q (Resource Group %q) was not found", name, resGroup)
+				return fmt.Errorf("image %q was not found in resource group %q", name, resGroup)
 			}
 			return fmt.Errorf("[ERROR] Error making Read request on Azure Image %q (resource group %q): %+v", name, resGroup, err)
 		}

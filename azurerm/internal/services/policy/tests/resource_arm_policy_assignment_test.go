@@ -9,10 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMPolicyAssignment_basic(t *testing.T) {
+func TestAccAzureRMPolicyAssignment_basicCustom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -20,7 +19,25 @@ func TestAccAzureRMPolicyAssignment_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_basic(data),
+				Config: testAzureRMPolicyAssignment_basicCustom(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMPolicyAssignment_basicBuiltin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyAssignment_basicBuiltin(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
 				),
@@ -31,11 +48,6 @@ func TestAccAzureRMPolicyAssignment_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -43,7 +55,7 @@ func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyAssignment_basic(data),
+				Config: testAzureRMPolicyAssignment_basicCustom(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
 				),
@@ -155,24 +167,24 @@ func testCheckAzureRMPolicyAssignmentDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAzureRMPolicyAssignment_basic(data acceptance.TestData) string {
+func testAzureRMPolicyAssignment_basicCustom(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_policy_definition" "test" {
-  name         = "acctestpol-%d"
+  name         = "acctestpol-%[1]d"
   policy_type  = "Custom"
   mode         = "All"
-  display_name = "acctestpol-%d"
+  display_name = "acctestpol-%[1]d"
 
   policy_rule = <<POLICY_RULE
 	{
     "if": {
       "not": {
         "field": "location",
-        "equals": "%s"
+        "equals": "%[2]s"
       }
     },
     "then": {
@@ -184,20 +196,50 @@ POLICY_RULE
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_policy_assignment" "test" {
-  name                 = "acctestpa-%d"
+  name                 = "acctestpa-%[1]d"
   scope                = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
 }
-`, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAzureRMPolicyAssignment_basicBuiltin(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_policy_definition" "test" {
+  display_name = "Allowed locations"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_policy_assignment" "test" {
+  name                 = "acctestpa-%[1]d"
+  scope                = azurerm_resource_group.test.id
+  policy_definition_id = data.azurerm_policy_definition.test.id
+  parameters           = <<PARAMETERS
+{
+  "listOfAllowedLocations": {
+    "value": [ "%[2]s" ]
+  }
+}
+PARAMETERS
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAzureRMPolicyAssignment_requiresImport(data acceptance.TestData) string {
-	template := testAzureRMPolicyAssignment_basic(data)
+	template := testAzureRMPolicyAssignment_basicCustom(data)
 	return fmt.Sprintf(`
 %s
 

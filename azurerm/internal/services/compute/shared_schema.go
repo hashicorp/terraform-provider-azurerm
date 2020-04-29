@@ -113,7 +113,7 @@ func bootDiagnosticsSchema() *schema.Schema {
 }
 
 func expandBootDiagnostics(input []interface{}) *compute.DiagnosticsProfile {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &compute.DiagnosticsProfile{
 			BootDiagnostics: &compute.BootDiagnostics{
 				Enabled:    utils.Bool(false),

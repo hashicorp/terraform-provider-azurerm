@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -85,6 +84,12 @@ func resourceArmApplicationInsights() *schema.Resource {
 				ValidateFunc: validation.FloatBetween(0, 100),
 			},
 
+			"disable_ip_masking": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": tags.Schema(),
 
 			"daily_data_cap_in_gb": {
@@ -126,7 +131,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -141,6 +146,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 
 	applicationType := d.Get("application_type").(string)
 	samplingPercentage := utils.Float(d.Get("sampling_percentage").(float64))
+	disableIpMasking := d.Get("disable_ip_masking").(bool)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
@@ -148,6 +154,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		ApplicationID:      &name,
 		ApplicationType:    insights.ApplicationType(applicationType),
 		SamplingPercentage: samplingPercentage,
+		DisableIPMasking:   utils.Bool(disableIpMasking),
 	}
 
 	if v, ok := d.GetOk("retention_in_days"); ok {
@@ -243,6 +250,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
 		d.Set("sampling_percentage", props.SamplingPercentage)
+		d.Set("disable_ip_masking", props.DisableIPMasking)
 		if v := props.RetentionInDays; v != nil {
 			d.Set("retention_in_days", v)
 		}

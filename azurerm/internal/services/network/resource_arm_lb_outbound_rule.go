@@ -178,7 +178,7 @@ func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, met
 	}
 
 	var outboundRuleId string
-	for _, OutboundRule := range *(*read.LoadBalancerPropertiesFormat).OutboundRules {
+	for _, OutboundRule := range *read.LoadBalancerPropertiesFormat.OutboundRules {
 		if *OutboundRule.Name == name {
 			outboundRuleId = *OutboundRule.ID
 		}
