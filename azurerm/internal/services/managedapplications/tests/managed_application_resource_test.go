@@ -222,7 +222,7 @@ resource "azurerm_managed_application" "test" {
     product   = azurerm_marketplace_agreement.test.offer
     publisher = azurerm_marketplace_agreement.test.publisher
     version   = "1.0.44"
-  } 
+  }
 
   parameters = {
     baseUrl                     = ""
