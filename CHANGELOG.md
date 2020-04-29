@@ -18,10 +18,11 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_monitor_diagnostic_setting` - make `retention_policy` and `retention_policy` optional [GH-6603]
+* `azurerm_redis_cache` - correctly build connection strings when SSL is disabled [GH-6635]
 * `azurerm_sql_database` - prevent extended auditing policy for secondary databases [GH-6402]
 * `azurerm_web_application_firewall_policy` - support for the `managed_rules` property which is required by the new API version [GH-6126]
 * `azurerm_virtual_network_gateway_connection` - `shared_key` is now optional when `type` is `IPSec` [GH-6565]
-* `azurerm_monitor_diagnostic_setting` - make `retention_policy` and `retention_policy` optional [GH-6603]
 
 ## 2.7.0 (April 23, 2020)
 
