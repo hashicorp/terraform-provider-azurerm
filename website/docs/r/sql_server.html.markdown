@@ -1,7 +1,7 @@
 ---
 subcategory: "Database"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_mssql_server"
+page_title: "Azure Resource Manager: azurerm_sql_server"
 description: |-
   Manages a Microsoft SQL Azure Database Server.
 
@@ -30,8 +30,8 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_mssql_server" "example" {
-  name                         = "mysqlserver"
+resource "azurerm_sql_server" "example" {
+  name                         = "mssqlserver"
   resource_group_name          = azurerm_resource_group.example.name
   location                     = azurerm_resource_group.example.location
   version                      = "12.0"
@@ -125,5 +125,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 SQL Servers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver
+terraform import azurerm_sql_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver
 ```
