@@ -173,7 +173,6 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		props.ServerProperties.PublicNetworkAccess = sql.ServerPublicNetworkAccessDisabled
 	}
 
-
 	if d.HasChange("administrator_login_password") {
 		adminPassword := d.Get("administrator_login_password").(string)
 		props.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
