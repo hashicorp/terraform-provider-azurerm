@@ -19,6 +19,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_key_vault` - can now be created without subscription level permissions [GH-6260]
 * `azurerm_monitor_diagnostic_setting` - make `retention_policy` and `retention_policy` optional [GH-6603]
 * `azurerm_redis_cache` - correctly build connection strings when SSL is disabled [GH-6635]
 * `azurerm_sql_database` - prevent extended auditing policy for secondary databases [GH-6402]
