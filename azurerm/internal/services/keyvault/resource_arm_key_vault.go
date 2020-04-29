@@ -214,19 +214,24 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// before creating check to see if the key vault exists in the soft delete state
+	softDeletedKeyVault, err := client.GetDeleted(ctx, name, location)
+	if err != nil {
+		// If Terraform lacks permission to read at the Subscription we'll get 409, not 404
+		if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) && !utils.ResponseWasForbidden(softDeletedKeyVault.Response) {
+			return fmt.Errorf("Error checking for the presence of an existing Soft-Deleted Key Vault %q (Location %q): %+v", name, location, err)
+		}
+	}
+
+	// if so, does the user want us to recover it?
+
 	recoverSoftDeletedKeyVault := false
-	if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
-		softDeletedKeyVault, err := client.GetDeleted(ctx, name, location)
-		if err != nil {
-			if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
-				return fmt.Errorf("Error checking for the presence of an existing Soft-Deleted Key Vault %q (Location %q): %+v", name, location, err)
-			}
+	if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) && !utils.ResponseWasForbidden(softDeletedKeyVault.Response) {
+		if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
+			// this exists but the users opted out so they must import this it out-of-band
+			return fmt.Errorf(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location))
 		}
 
-		// if so, does the user want us to recover it?
-		if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) {
-			recoverSoftDeletedKeyVault = true
-		}
+		recoverSoftDeletedKeyVault = true
 	}
 
 	tenantUUID := uuid.FromStringOrNil(d.Get("tenant_id").(string))
@@ -774,6 +779,22 @@ func flattenKeyVaultNetworkAcls(input *keyvault.NetworkRuleSet) []interface{} {
 	output["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, virtualNetworkRules)
 
 	return []interface{}{output}
+}
+
+func optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location string) string {
+	return fmt.Sprintf(`
+An existing soft-deleted Key Vault exists with the Name %q in the location %q, however
+automatically recovering this KeyVault has been disabled via the "features" block.
+
+Terraform can automatically recover the soft-deleted Key Vault when this behaviour is
+enabled within the "features" block (located within the "provider" block) - more
+information can be found here:
+
+https://www.terraform.io/docs/providers/azurerm/index.html#features
+
+Alternatively you can manually recover this (e.g. using the Azure CLI) and then import
+this into Terraform via "terraform import", or pick a different name/location.
+`, name, location)
 }
 
 type keyVaultDeletionStatus struct {
