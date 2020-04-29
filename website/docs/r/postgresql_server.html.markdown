@@ -25,17 +25,15 @@ resource "azurerm_postgresql_server" "example" {
 
   sku_name = "B_Gen5_2"
 
-  storage_profile {
-    storage_mb            = 5120
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-    auto_grow             = "Enabled"
-  }
+  storage_mb            = 5120
+  backup_retention_days = 7
+  geo_redundant_backup  = "false"
+  auto_grow             = "true"
 
   administrator_login          = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.5"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement              = "true"
 }
 ```
 
@@ -51,7 +49,7 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this PostgreSQL Server. The name of the SKU, follows the `tier` + `family` + `cores` pattern (e.g. `B_Gen4_1`, `GP_Gen5_8`). For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/postgresql/servers/create#sku).
 
-* `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
+* `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `true` and `false`.
 
 * `administrator_login` - (Optional) The Administrator Login for the PostgreSQL Server. Required when `create_mode` is `Default`. Changing this forces a new resource to be created.
 
