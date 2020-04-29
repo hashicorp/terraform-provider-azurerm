@@ -661,7 +661,7 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_imagesPlan(data acceptance.Test
 
 resource "azurerm_marketplace_agreement" "test" {
   publisher = "plesk"
-  product     = "plesk-onyx-windows"
+  product   = "plesk-onyx-windows"
   name      = "plsk-win-hst-azr-m"
 }
 
@@ -698,8 +698,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   plan {
-publisher = azurerm_marketplace_agreement.test.publisher
-product   = azurerm_marketplace_agreement.test.product
+    publisher = azurerm_marketplace_agreement.test.publisher
+    product   = azurerm_marketplace_agreement.test.product
     name      = azurerm_marketplace_agreement.test.name
   }
 }

@@ -247,7 +247,7 @@ func testWindowsVirtualMachine_imageFromPlan(data acceptance.TestData) string {
 
 resource "azurerm_marketplace_agreement" "test" {
   publisher = "plesk"
-  product     = "plesk-onyx-windows"
+  product   = "plesk-onyx-windows"
   name      = "plsk-win-hst-azr-m"
 }
 

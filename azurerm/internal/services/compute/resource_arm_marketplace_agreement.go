@@ -10,14 +10,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmMarketplaceAgreement() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMarketplaceAgreementCreateUpdate,
+		Create: resourceArmMarketplaceAgreementCreate,
 		Read:   resourceArmMarketplaceAgreementRead,
 		Delete: resourceArmMarketplaceAgreementDelete,
 		Importer: &schema.ResourceImporter{
@@ -42,33 +41,43 @@ func resourceArmMarketplaceAgreement() *schema.Resource {
 			"offer": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"plane", "name"},
+				ExactlyOneOf: []string{"offer", "product"},
 			},
 
 			"product": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"plane", "name"},
+				ExactlyOneOf: []string{"offer", "product"},
 			},
 
 			"plan": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"plane", "name"},
+				ExactlyOneOf: []string{"plan", "name"},
 			},
 
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"plane", "name"},
+				ExactlyOneOf: []string{"plan", "name"},
+			},
+
+			"ignore_existing_agreement": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"license_text_link": {
@@ -84,18 +93,26 @@ func resourceArmMarketplaceAgreement() *schema.Resource {
 	}
 }
 
-func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMarketplaceAgreementCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.MarketplaceAgreementsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	offer := d.Get("offer").(string)
-	plan := d.Get("plan").(string)
 	publisher := d.Get("publisher").(string)
+
+	offer := d.Get("offer").(string)
+	if v := d.Get("product").(string); v != "" {
+		offer = v
+	}
+
+	plan := d.Get("plan").(string)
+	if v := d.Get("name").(string); v != "" {
+		plan = v
+	}
 
 	log.Printf("[DEBUG] Retrieving the Marketplace Terms for Publisher %q / Offer %q / Plan %q", publisher, offer, plan)
 
-	if features.ShouldResourcesBeImported() {
+	if d.IsNewResource() && !d.Get("ignore_existing_agreement").(bool) {
 		agreement, err := client.Get(ctx, publisher, offer, plan)
 		if err != nil {
 			if !utils.ResponseWasNotFound(agreement.Response) {

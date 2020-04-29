@@ -15,6 +15,7 @@ func TestAccAzureRMMarketplaceAgreement(t *testing.T) {
 	testCases := map[string]map[string]func(t *testing.T){
 		"basic": {
 			"basic":             testAccAzureRMMarketplaceAgreement_basic,
+			"aliases":           testAccAzureRMMarketplaceAgreement_basicAliases,
 			"requiresImport":    testAccAzureRMMarketplaceAgreement_requiresImport,
 			"agreementCanceled": testAccAzureRMMarketplaceAgreement_agreementCanceled,
 		},
@@ -49,7 +50,28 @@ func testAccAzureRMMarketplaceAgreement_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "privacy_policy_link"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("ignore_existing_agreement"),
+		},
+	})
+}
+
+func testAccAzureRMMarketplaceAgreement_basicAliases(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_marketplace_agreement", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMarketplaceAgreementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMarketplaceAgreement_basicAliasesConfig(),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMarketplaceAgreementExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "license_text_link"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "privacy_policy_link"),
+				),
+			},
+			data.ImportStep("ignore_existing_agreement"),
 		},
 	})
 }
@@ -186,6 +208,24 @@ resource "azurerm_marketplace_agreement" "test" {
   publisher = "barracudanetworks"
   offer     = "waf"
   plan      = "hourly"
+
+  ignore_existing_agreement = true
+}
+`
+}
+
+func testAccAzureRMMarketplaceAgreement_basicAliasesConfig() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_marketplace_agreement" "test" {
+  publisher = "barracudanetworks"
+  product   = "waf"
+  name      = "hourly"
+
+  ignore_existing_agreement = true
 }
 `
 }
