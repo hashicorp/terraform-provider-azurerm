@@ -280,7 +280,6 @@ resource "azurerm_eventhub_authorization_rule" "test1" {
 	resource_group_name   = azurerm_resource_group.test.name
 	send                  = true
 	listen                = true
-	manage                = true
 }
 
 resource "azurerm_eventhub_authorization_rule" "test2" {
@@ -290,7 +289,6 @@ resource "azurerm_eventhub_authorization_rule" "test2" {
 	resource_group_name   = azurerm_resource_group.test.name
 	send                  = true
 	listen                = true
-	manage                = true
 }
 
 resource "azurerm_eventhub_authorization_rule" "test3" {
@@ -300,7 +298,6 @@ resource "azurerm_eventhub_authorization_rule" "test3" {
 	resource_group_name   = azurerm_resource_group.test.name
 	send                  = true
 	listen                = true
-	manage                = true
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
