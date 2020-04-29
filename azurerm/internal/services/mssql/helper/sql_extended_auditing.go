@@ -43,7 +43,7 @@ func ExtendedAuditingSchema() *schema.Schema {
 }
 
 func ExpandAzureRmSqlServerBlobAuditingPolicies(input []interface{}) *sql.ExtendedServerBlobAuditingPolicyProperties {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &sql.ExtendedServerBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
 		}
@@ -98,7 +98,7 @@ func FlattenAzureRmSqlServerBlobAuditingPolicies(extendedServerBlobAuditingPolic
 }
 
 func ExpandAzureRmMsSqlDBBlobAuditingPolicies(input []interface{}) *sql.ExtendedDatabaseBlobAuditingPolicyProperties {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &sql.ExtendedDatabaseBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
 		}

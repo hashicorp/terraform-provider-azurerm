@@ -125,5 +125,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 SQL Servers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sql_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver
+terraform import azurerm_mssql_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver
 ```
