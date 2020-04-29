@@ -2,6 +2,10 @@ package compute
 
 import (
 	"fmt"
+	"log"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -9,8 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"time"
 )
 
 func dataSourceArmSharedImageVersions() *schema.Resource {
@@ -36,13 +38,18 @@ func dataSourceArmSharedImageVersions() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": azure.SchemaLocationForDataSource(),
-
 			"images": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"location": azure.SchemaLocationForDataSource(),
+
 						"managed_image_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -102,7 +109,6 @@ func dataSourceArmSharedImageVersionsRead(d *schema.ResourceData, meta interface
 		}
 		return fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", imageName, galleryName, resourceGroup, err)
 	}
-	return fmt.Errorf("%+v", resp.Response())
 
 	d.SetId(time.Now().UTC().String())
 
@@ -110,27 +116,46 @@ func dataSourceArmSharedImageVersionsRead(d *schema.ResourceData, meta interface
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
 
-	if location := resp.Response().Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(location))
+	if err := d.Set("images", flattenSharedImageVersions(resp.Values())); err != nil {
+		return fmt.Errorf("setting `images`: %+v", err)
 	}
-	/*
-		if props := resp.GalleryImageVersionProperties; props != nil {
-			if profile := props.PublishingProfile; profile != nil {
-				d.Set("exclude_from_latest", profile.ExcludeFromLatest)
 
-				flattenedRegions := flattenSharedImageVersionDataSourceTargetRegions(profile.TargetRegions)
-				if err := d.Set("target_region", flattenedRegions); err != nil {
-					return fmt.Errorf("Error setting `target_region`: %+v", err)
-				}
-			}
+	return nil
+}
 
-			if profile := props.StorageProfile; profile != nil {
-				if source := profile.Source; source != nil {
-					d.Set("managed_image_id", source.ID)
-				}
-			}
+func flattenSharedImageVersions(input []compute.GalleryImageVersion) []interface{} {
+	results := make([]interface{}, 0)
+
+	for _, imageVersion := range input {
+		flattenedIPAddress := flattenSharedImageVersion(imageVersion)
+		results = append(results, flattenedIPAddress)
+	}
+
+	return results
+}
+
+func flattenSharedImageVersion(input compute.GalleryImageVersion) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	output["name"] = input.Name
+
+	if location := input.Location; location != nil {
+		output["location"] = azure.NormalizeLocation(*location)
+	}
+
+	if props := input.GalleryImageVersionProperties; props != nil {
+		if profile := props.PublishingProfile; profile != nil {
+			output["exclude_from_latest"] = profile.ExcludeFromLatest
+			output["target_region"] = flattenSharedImageVersionDataSourceTargetRegions(profile.TargetRegions)
 		}
 
-		return tags.FlattenAndSet(d, resp.Tags)*/
-	return nil
+		if profile := props.StorageProfile; profile != nil {
+			if source := profile.Source; source != nil {
+				output["managed_image_id"] = source.ID
+			}
+		}
+		output["tags"] = tags.Flatten(input.Tags)
+	}
+
+	return output
 }

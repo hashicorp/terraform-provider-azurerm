@@ -32,10 +32,10 @@ func TestAccDataSourceAzureRMSharedImageVersions_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceSharedImageVersions_basic(data, username, password, hostname),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_image_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_region.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_region.0.storage_account_type", "Standard_LRS"),
+					resource.TestCheckResourceAttr(data.ResourceName, "images.0.tags.%", "0"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "images.0.managed_image_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "images.0.target_region.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "images.0.target_region.0.storage_account_type", "Standard_LRS"),
 				),
 			},
 		},
