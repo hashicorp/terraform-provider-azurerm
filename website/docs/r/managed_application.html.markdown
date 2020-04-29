@@ -95,13 +95,15 @@ The `plan` block exports the following:
 
 * `promotion_code` - (Optional) Specifies the promotion code to use with the plan.
 
-~> **NOTE:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. For example, to accept the terms using PowerShell, please use `Set-AzContext -SubscriptionId "00000000-0000-0000-0000-000000000000"; Get-AzMarketplaceTerms -Publisher "cisco" -Product "meraki-vmx" -Name "meraki-vmx100" | Set-AzMarketplaceTerms -Accept`.
+~> **NOTE:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. For example, to accept the terms using PowerShell, please use `Set-AzContext -SubscriptionId "00000000-0000-0000-0000-000000000000"; Get-AzMarketplaceTerms -Publisher "plan-publisher" -Product "plan-product" -Name "plan-name" | Set-AzMarketplaceTerms -Accept`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Managed Application.
+
+* `managed_app_outputs` - The name and value pairs that define the managed application outputs.
 
 ## Timeouts
 

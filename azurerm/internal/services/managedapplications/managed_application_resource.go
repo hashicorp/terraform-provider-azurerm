@@ -3,7 +3,6 @@ package managedapplications
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications"
@@ -15,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -114,6 +114,14 @@ func resourceManagedApplication() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"managed_app_outputs": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -151,9 +159,7 @@ func resourceManagedApplicationCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 	if v, ok := d.GetOk("application_definition_id"); ok {
-		a := v.(string)
-		b := utils.String(a)
-		parameters.ApplicationDefinitionID = b
+		parameters.ApplicationDefinitionID = utils.String(v.(string))
 	}
 	if v, ok := d.GetOk("plan"); ok {
 		parameters.Plan = expandManagedApplicationPlan(v.([]interface{}))
@@ -221,16 +227,20 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("setting `plan`: %+v", err)
 	}
 	if props := resp.ApplicationProperties; props != nil {
-		parsedManagedResourceGroupID := strings.Split(*props.ManagedResourceGroupID, "/")
-		d.Set("managed_resource_group_name", parsedManagedResourceGroupID[len(parsedManagedResourceGroupID)-1])
+		id, err := resource.ParseResourceGroupID(*props.ManagedResourceGroupID)
+		if err != nil {
+			return err
+		}
+
+		d.Set("managed_resource_group_name", id.Name)
 		d.Set("application_definition_id", props.ApplicationDefinitionID)
 
-		if v := props.Parameters; v != nil {
-			params := make(map[string]interface{})
-			for key, value := range v.(map[string]interface{}) {
-				params[key] = value.(map[string]interface{})["value"]
-			}
-			d.Set("parameters", params)
+		if err = d.Set("parameters", flattenManagedApplicationParametersOrOutputs(props.Parameters)); err != nil {
+			return err
+		}
+
+		if err = d.Set("managed_app_outputs", flattenManagedApplicationParametersOrOutputs(props.Outputs)); err != nil {
+			return err
 		}
 	}
 
@@ -308,6 +318,21 @@ func flattenManagedApplicationPlan(input *managedapplications.Plan) []interface{
 		"version":        version,
 		"promotion_code": promotionCode,
 	})
+
+	return results
+}
+
+func flattenManagedApplicationParametersOrOutputs(input interface{}) map[string]interface{} {
+	results := make(map[string]interface{})
+	if input == nil {
+		return results
+	}
+
+	for k, v := range input.(map[string]interface{}) {
+		if v != nil {
+			results[k] = v.(map[string]interface{})["value"].(string)
+		}
+	}
 
 	return results
 }
