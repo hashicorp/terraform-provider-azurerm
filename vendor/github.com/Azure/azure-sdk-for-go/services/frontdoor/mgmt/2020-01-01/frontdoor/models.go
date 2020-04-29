@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
 
 // ActionType enumerates the values for action type.
 type ActionType string
@@ -272,6 +272,23 @@ func PossibleForwardingProtocolValues() []ForwardingProtocol {
 	return []ForwardingProtocol{HTTPOnly, HTTPSOnly, MatchRequest}
 }
 
+// HeaderActionType enumerates the values for header action type.
+type HeaderActionType string
+
+const (
+	// Append ...
+	Append HeaderActionType = "Append"
+	// Delete ...
+	Delete HeaderActionType = "Delete"
+	// Overwrite ...
+	Overwrite HeaderActionType = "Overwrite"
+)
+
+// PossibleHeaderActionTypeValues returns an array of possible values for the HeaderActionType const type.
+func PossibleHeaderActionTypeValues() []HeaderActionType {
+	return []HeaderActionType{Append, Delete, Overwrite}
+}
+
 // HealthProbeEnabled enumerates the values for health probe enabled.
 type HealthProbeEnabled string
 
@@ -373,6 +390,21 @@ const (
 // PossibleManagedRuleExclusionSelectorMatchOperatorValues returns an array of possible values for the ManagedRuleExclusionSelectorMatchOperator const type.
 func PossibleManagedRuleExclusionSelectorMatchOperatorValues() []ManagedRuleExclusionSelectorMatchOperator {
 	return []ManagedRuleExclusionSelectorMatchOperator{Contains, EndsWith, Equals, EqualsAny, StartsWith}
+}
+
+// MatchProcessingBehavior enumerates the values for match processing behavior.
+type MatchProcessingBehavior string
+
+const (
+	// Continue ...
+	Continue MatchProcessingBehavior = "Continue"
+	// Stop ...
+	Stop MatchProcessingBehavior = "Stop"
+)
+
+// PossibleMatchProcessingBehaviorValues returns an array of possible values for the MatchProcessingBehavior const type.
+func PossibleMatchProcessingBehaviorValues() []MatchProcessingBehavior {
+	return []MatchProcessingBehavior{Continue, Stop}
 }
 
 // MatchVariable enumerates the values for match variable.
@@ -564,6 +596,27 @@ func PossiblePolicyResourceStateValues() []PolicyResourceState {
 	return []PolicyResourceState{PolicyResourceStateCreating, PolicyResourceStateDeleting, PolicyResourceStateDisabled, PolicyResourceStateDisabling, PolicyResourceStateEnabled, PolicyResourceStateEnabling}
 }
 
+// PrivateEndpointStatus enumerates the values for private endpoint status.
+type PrivateEndpointStatus string
+
+const (
+	// Approved ...
+	Approved PrivateEndpointStatus = "Approved"
+	// Disconnected ...
+	Disconnected PrivateEndpointStatus = "Disconnected"
+	// Pending ...
+	Pending PrivateEndpointStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateEndpointStatus = "Rejected"
+	// Timeout ...
+	Timeout PrivateEndpointStatus = "Timeout"
+)
+
+// PossiblePrivateEndpointStatusValues returns an array of possible values for the PrivateEndpointStatus const type.
+func PossiblePrivateEndpointStatusValues() []PrivateEndpointStatus {
+	return []PrivateEndpointStatus{Approved, Disconnected, Pending, Rejected, Timeout}
+}
+
 // Protocol enumerates the values for protocol.
 type Protocol string
 
@@ -585,13 +638,17 @@ type Query string
 const (
 	// StripAll ...
 	StripAll Query = "StripAll"
+	// StripAllExcept ...
+	StripAllExcept Query = "StripAllExcept"
 	// StripNone ...
 	StripNone Query = "StripNone"
+	// StripOnly ...
+	StripOnly Query = "StripOnly"
 )
 
 // PossibleQueryValues returns an array of possible values for the Query const type.
 func PossibleQueryValues() []Query {
-	return []Query{StripAll, StripNone}
+	return []Query{StripAll, StripAllExcept, StripNone, StripOnly}
 }
 
 // RedirectProtocol enumerates the values for redirect protocol.
@@ -683,6 +740,74 @@ func PossibleRoutingRuleEnabledStateValues() []RoutingRuleEnabledState {
 	return []RoutingRuleEnabledState{RoutingRuleEnabledStateDisabled, RoutingRuleEnabledStateEnabled}
 }
 
+// RulesEngineMatchVariable enumerates the values for rules engine match variable.
+type RulesEngineMatchVariable string
+
+const (
+	// RulesEngineMatchVariableIsMobile ...
+	RulesEngineMatchVariableIsMobile RulesEngineMatchVariable = "IsMobile"
+	// RulesEngineMatchVariablePostArgs ...
+	RulesEngineMatchVariablePostArgs RulesEngineMatchVariable = "PostArgs"
+	// RulesEngineMatchVariableQueryString ...
+	RulesEngineMatchVariableQueryString RulesEngineMatchVariable = "QueryString"
+	// RulesEngineMatchVariableRemoteAddr ...
+	RulesEngineMatchVariableRemoteAddr RulesEngineMatchVariable = "RemoteAddr"
+	// RulesEngineMatchVariableRequestBody ...
+	RulesEngineMatchVariableRequestBody RulesEngineMatchVariable = "RequestBody"
+	// RulesEngineMatchVariableRequestFilename ...
+	RulesEngineMatchVariableRequestFilename RulesEngineMatchVariable = "RequestFilename"
+	// RulesEngineMatchVariableRequestFilenameExtension ...
+	RulesEngineMatchVariableRequestFilenameExtension RulesEngineMatchVariable = "RequestFilenameExtension"
+	// RulesEngineMatchVariableRequestHeader ...
+	RulesEngineMatchVariableRequestHeader RulesEngineMatchVariable = "RequestHeader"
+	// RulesEngineMatchVariableRequestMethod ...
+	RulesEngineMatchVariableRequestMethod RulesEngineMatchVariable = "RequestMethod"
+	// RulesEngineMatchVariableRequestPath ...
+	RulesEngineMatchVariableRequestPath RulesEngineMatchVariable = "RequestPath"
+	// RulesEngineMatchVariableRequestScheme ...
+	RulesEngineMatchVariableRequestScheme RulesEngineMatchVariable = "RequestScheme"
+	// RulesEngineMatchVariableRequestURI ...
+	RulesEngineMatchVariableRequestURI RulesEngineMatchVariable = "RequestUri"
+)
+
+// PossibleRulesEngineMatchVariableValues returns an array of possible values for the RulesEngineMatchVariable const type.
+func PossibleRulesEngineMatchVariableValues() []RulesEngineMatchVariable {
+	return []RulesEngineMatchVariable{RulesEngineMatchVariableIsMobile, RulesEngineMatchVariablePostArgs, RulesEngineMatchVariableQueryString, RulesEngineMatchVariableRemoteAddr, RulesEngineMatchVariableRequestBody, RulesEngineMatchVariableRequestFilename, RulesEngineMatchVariableRequestFilenameExtension, RulesEngineMatchVariableRequestHeader, RulesEngineMatchVariableRequestMethod, RulesEngineMatchVariableRequestPath, RulesEngineMatchVariableRequestScheme, RulesEngineMatchVariableRequestURI}
+}
+
+// RulesEngineOperator enumerates the values for rules engine operator.
+type RulesEngineOperator string
+
+const (
+	// RulesEngineOperatorAny ...
+	RulesEngineOperatorAny RulesEngineOperator = "Any"
+	// RulesEngineOperatorBeginsWith ...
+	RulesEngineOperatorBeginsWith RulesEngineOperator = "BeginsWith"
+	// RulesEngineOperatorContains ...
+	RulesEngineOperatorContains RulesEngineOperator = "Contains"
+	// RulesEngineOperatorEndsWith ...
+	RulesEngineOperatorEndsWith RulesEngineOperator = "EndsWith"
+	// RulesEngineOperatorEqual ...
+	RulesEngineOperatorEqual RulesEngineOperator = "Equal"
+	// RulesEngineOperatorGeoMatch ...
+	RulesEngineOperatorGeoMatch RulesEngineOperator = "GeoMatch"
+	// RulesEngineOperatorGreaterThan ...
+	RulesEngineOperatorGreaterThan RulesEngineOperator = "GreaterThan"
+	// RulesEngineOperatorGreaterThanOrEqual ...
+	RulesEngineOperatorGreaterThanOrEqual RulesEngineOperator = "GreaterThanOrEqual"
+	// RulesEngineOperatorIPMatch ...
+	RulesEngineOperatorIPMatch RulesEngineOperator = "IPMatch"
+	// RulesEngineOperatorLessThan ...
+	RulesEngineOperatorLessThan RulesEngineOperator = "LessThan"
+	// RulesEngineOperatorLessThanOrEqual ...
+	RulesEngineOperatorLessThanOrEqual RulesEngineOperator = "LessThanOrEqual"
+)
+
+// PossibleRulesEngineOperatorValues returns an array of possible values for the RulesEngineOperator const type.
+func PossibleRulesEngineOperatorValues() []RulesEngineOperator {
+	return []RulesEngineOperator{RulesEngineOperatorAny, RulesEngineOperatorBeginsWith, RulesEngineOperatorContains, RulesEngineOperatorEndsWith, RulesEngineOperatorEqual, RulesEngineOperatorGeoMatch, RulesEngineOperatorGreaterThan, RulesEngineOperatorGreaterThanOrEqual, RulesEngineOperatorIPMatch, RulesEngineOperatorLessThan, RulesEngineOperatorLessThanOrEqual}
+}
+
 // RuleType enumerates the values for rule type.
 type RuleType string
 
@@ -762,27 +887,50 @@ func PossibleTimeseriesTypeValues() []TimeseriesType {
 	return []TimeseriesType{LatencyP50, LatencyP75, LatencyP95, MeasurementCounts}
 }
 
+// Transform enumerates the values for transform.
+type Transform string
+
+const (
+	// Lowercase ...
+	Lowercase Transform = "Lowercase"
+	// RemoveNulls ...
+	RemoveNulls Transform = "RemoveNulls"
+	// Trim ...
+	Trim Transform = "Trim"
+	// Uppercase ...
+	Uppercase Transform = "Uppercase"
+	// URLDecode ...
+	URLDecode Transform = "UrlDecode"
+	// URLEncode ...
+	URLEncode Transform = "UrlEncode"
+)
+
+// PossibleTransformValues returns an array of possible values for the Transform const type.
+func PossibleTransformValues() []Transform {
+	return []Transform{Lowercase, RemoveNulls, Trim, Uppercase, URLDecode, URLEncode}
+}
+
 // TransformType enumerates the values for transform type.
 type TransformType string
 
 const (
-	// Lowercase ...
-	Lowercase TransformType = "Lowercase"
-	// RemoveNulls ...
-	RemoveNulls TransformType = "RemoveNulls"
-	// Trim ...
-	Trim TransformType = "Trim"
-	// Uppercase ...
-	Uppercase TransformType = "Uppercase"
-	// URLDecode ...
-	URLDecode TransformType = "UrlDecode"
-	// URLEncode ...
-	URLEncode TransformType = "UrlEncode"
+	// TransformTypeLowercase ...
+	TransformTypeLowercase TransformType = "Lowercase"
+	// TransformTypeRemoveNulls ...
+	TransformTypeRemoveNulls TransformType = "RemoveNulls"
+	// TransformTypeTrim ...
+	TransformTypeTrim TransformType = "Trim"
+	// TransformTypeUppercase ...
+	TransformTypeUppercase TransformType = "Uppercase"
+	// TransformTypeURLDecode ...
+	TransformTypeURLDecode TransformType = "UrlDecode"
+	// TransformTypeURLEncode ...
+	TransformTypeURLEncode TransformType = "UrlEncode"
 )
 
 // PossibleTransformTypeValues returns an array of possible values for the TransformType const type.
 func PossibleTransformTypeValues() []TransformType {
-	return []TransformType{Lowercase, RemoveNulls, Trim, Uppercase, URLDecode, URLEncode}
+	return []TransformType{TransformTypeLowercase, TransformTypeRemoveNulls, TransformTypeTrim, TransformTypeUppercase, TransformTypeURLDecode, TransformTypeURLEncode}
 }
 
 // AzureAsyncOperationResult the response body contains the status of the specified asynchronous operation,
@@ -801,6 +949,12 @@ type AzureAsyncOperationResult struct {
 type Backend struct {
 	// Address - Location of the backend (IP address or FQDN)
 	Address *string `json:"address,omitempty"`
+	// PrivateLinkAlias - The Alias of the Private Link resource. Populating this optional field indicates that this backend is 'Private'
+	PrivateLinkAlias *string `json:"privateLinkAlias,omitempty"`
+	// PrivateEndpointStatus - READ-ONLY; The Approval status for the connection to the Private Link. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected', 'Timeout'
+	PrivateEndpointStatus PrivateEndpointStatus `json:"privateEndpointStatus,omitempty"`
+	// PrivateLinkApprovalMessage - A custom message to be included in the approval request to connect to the Private Link
+	PrivateLinkApprovalMessage *string `json:"privateLinkApprovalMessage,omitempty"`
 	// HTTPPort - The HTTP TCP port number. Must be between 1 and 65535.
 	HTTPPort *int32 `json:"httpPort,omitempty"`
 	// HTTPSPort - The HTTPS TCP port number. Must be between 1 and 65535.
@@ -902,7 +1056,7 @@ type BackendPoolListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// BackendPoolProperties the JSON object that contains the properties required to create a routing rule.
+// BackendPoolProperties the JSON object that contains the properties required to create a Backend Pool.
 type BackendPoolProperties struct {
 	// ResourceState - Resource status. Possible values include: 'ResourceStateCreating', 'ResourceStateEnabling', 'ResourceStateEnabled', 'ResourceStateDisabling', 'ResourceStateDisabled', 'ResourceStateDeleting'
 	ResourceState ResourceState `json:"resourceState,omitempty"`
@@ -935,10 +1089,14 @@ type BackendPoolUpdateParameters struct {
 // CacheConfiguration caching settings for a caching-type route. To disable caching, do not provide a
 // cacheConfiguration object.
 type CacheConfiguration struct {
-	// QueryParameterStripDirective - Treatment of URL query terms when forming the cache key. Possible values include: 'StripNone', 'StripAll'
+	// QueryParameterStripDirective - Treatment of URL query terms when forming the cache key. Possible values include: 'StripNone', 'StripAll', 'StripOnly', 'StripAllExcept'
 	QueryParameterStripDirective Query `json:"queryParameterStripDirective,omitempty"`
+	// QueryParameters - query parameters to include or exclude (comma separated).
+	QueryParameters *string `json:"queryParameters,omitempty"`
 	// DynamicCompression - Whether to use dynamic compression for cached content. Possible values include: 'DynamicCompressionEnabledEnabled', 'DynamicCompressionEnabledDisabled'
 	DynamicCompression DynamicCompressionEnabled `json:"dynamicCompression,omitempty"`
+	// CacheDuration - The duration for which the content needs to be cached. Allowed format is in ISO 8601 format (http://en.wikipedia.org/wiki/ISO_8601#Durations). HTTP requires the value to be no more than a year
+	CacheDuration *string `json:"cacheDuration,omitempty"`
 }
 
 // CertificateSourceParameters parameters required for enabling SSL with Front Door-managed certificates
@@ -2077,6 +2235,16 @@ type FrontendEndpointUpdateParameters struct {
 type FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink struct {
 	// ID - Resource ID.
 	ID *string `json:"id,omitempty"`
+}
+
+// HeaderAction an action that can manipulate an http header.
+type HeaderAction struct {
+	// HeaderActionType - Which type of manipulation to apply to the header. Possible values include: 'Append', 'Delete', 'Overwrite'
+	HeaderActionType HeaderActionType `json:"headerActionType,omitempty"`
+	// HeaderName - The name of the header this action will apply to.
+	HeaderName *string `json:"headerName,omitempty"`
+	// Value - The value to update the given header name with. This value is not used if the actionType is Delete.
+	Value *string `json:"value,omitempty"`
 }
 
 // HealthProbeSettingsListResult result of the request to list HealthProbeSettings. It contains a list of
@@ -3708,6 +3876,10 @@ type Properties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Cname - READ-ONLY; The host that each frontendEndpoint must CNAME to.
 	Cname *string `json:"cname,omitempty"`
+	// FrontdoorID - READ-ONLY; The Id of the frontdoor.
+	FrontdoorID *string `json:"frontdoorId,omitempty"`
+	// RulesEngines - READ-ONLY; Rules Engine Configurations available to routing rules.
+	RulesEngines *[]RulesEngine `json:"rulesEngines,omitempty"`
 	// FriendlyName - A friendly name for the frontDoor
 	FriendlyName *string `json:"friendlyName,omitempty"`
 	// RoutingRules - Routing rules associated with this Front Door.
@@ -4010,6 +4182,8 @@ type RoutingRuleProperties struct {
 	EnabledState RoutingRuleEnabledState `json:"enabledState,omitempty"`
 	// RouteConfiguration - A reference to the routing configuration.
 	RouteConfiguration BasicRouteConfiguration `json:"routeConfiguration,omitempty"`
+	// RulesEngine - A reference to a specific Rules Engine Configuration to apply to this route.
+	RulesEngine *SubResource `json:"rulesEngine,omitempty"`
 }
 
 // UnmarshalJSON is the custom unmarshaler for RoutingRuleProperties struct.
@@ -4074,6 +4248,15 @@ func (rrp *RoutingRuleProperties) UnmarshalJSON(body []byte) error {
 				}
 				rrp.RouteConfiguration = routeConfiguration
 			}
+		case "rulesEngine":
+			if v != nil {
+				var rulesEngine SubResource
+				err = json.Unmarshal(*v, &rulesEngine)
+				if err != nil {
+					return err
+				}
+				rrp.RulesEngine = &rulesEngine
+			}
 		}
 	}
 
@@ -4092,6 +4275,8 @@ type RoutingRuleUpdateParameters struct {
 	EnabledState RoutingRuleEnabledState `json:"enabledState,omitempty"`
 	// RouteConfiguration - A reference to the routing configuration.
 	RouteConfiguration BasicRouteConfiguration `json:"routeConfiguration,omitempty"`
+	// RulesEngine - A reference to a specific Rules Engine Configuration to apply to this route.
+	RulesEngine *SubResource `json:"rulesEngine,omitempty"`
 }
 
 // UnmarshalJSON is the custom unmarshaler for RoutingRuleUpdateParameters struct.
@@ -4147,10 +4332,390 @@ func (rrup *RoutingRuleUpdateParameters) UnmarshalJSON(body []byte) error {
 				}
 				rrup.RouteConfiguration = routeConfiguration
 			}
+		case "rulesEngine":
+			if v != nil {
+				var rulesEngine SubResource
+				err = json.Unmarshal(*v, &rulesEngine)
+				if err != nil {
+					return err
+				}
+				rrup.RulesEngine = &rulesEngine
+			}
 		}
 	}
 
 	return nil
+}
+
+// RulesEngine a rules engine configuration containing a list of rules that will run to modify the runtime
+// behavior of the request and response.
+type RulesEngine struct {
+	autorest.Response `json:"-"`
+	// RulesEngineProperties - Properties of the Rules Engine Configuration.
+	*RulesEngineProperties `json:"properties,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for RulesEngine.
+func (re RulesEngine) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if re.RulesEngineProperties != nil {
+		objectMap["properties"] = re.RulesEngineProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for RulesEngine struct.
+func (re *RulesEngine) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var rulesEngineProperties RulesEngineProperties
+				err = json.Unmarshal(*v, &rulesEngineProperties)
+				if err != nil {
+					return err
+				}
+				re.RulesEngineProperties = &rulesEngineProperties
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				re.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				re.Type = &typeVar
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				re.ID = &ID
+			}
+		}
+	}
+
+	return nil
+}
+
+// RulesEngineAction one or more actions that will execute, modifying the request and/or response.
+type RulesEngineAction struct {
+	// RequestHeaderActions - A list of header actions to apply from the request from AFD to the origin.
+	RequestHeaderActions *[]HeaderAction `json:"requestHeaderActions,omitempty"`
+	// ResponseHeaderActions - A list of header actions to apply from the response from AFD to the client.
+	ResponseHeaderActions *[]HeaderAction `json:"responseHeaderActions,omitempty"`
+	// RouteConfigurationOverride - Override the route configuration.
+	RouteConfigurationOverride BasicRouteConfiguration `json:"routeConfigurationOverride,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for RulesEngineAction struct.
+func (rea *RulesEngineAction) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "requestHeaderActions":
+			if v != nil {
+				var requestHeaderActions []HeaderAction
+				err = json.Unmarshal(*v, &requestHeaderActions)
+				if err != nil {
+					return err
+				}
+				rea.RequestHeaderActions = &requestHeaderActions
+			}
+		case "responseHeaderActions":
+			if v != nil {
+				var responseHeaderActions []HeaderAction
+				err = json.Unmarshal(*v, &responseHeaderActions)
+				if err != nil {
+					return err
+				}
+				rea.ResponseHeaderActions = &responseHeaderActions
+			}
+		case "routeConfigurationOverride":
+			if v != nil {
+				routeConfigurationOverride, err := unmarshalBasicRouteConfiguration(*v)
+				if err != nil {
+					return err
+				}
+				rea.RouteConfigurationOverride = routeConfigurationOverride
+			}
+		}
+	}
+
+	return nil
+}
+
+// RulesEngineListResult result of the request to list Rules Engine Configurations. It contains a list of
+// RulesEngine objects and a URL link to get the next set of results.
+type RulesEngineListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; List of rulesEngines within a Front Door.
+	Value *[]RulesEngine `json:"value,omitempty"`
+	// NextLink - URL to get the next set of RulesEngine objects if there are any.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// RulesEngineListResultIterator provides access to a complete listing of RulesEngine values.
+type RulesEngineListResultIterator struct {
+	i    int
+	page RulesEngineListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *RulesEngineListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RulesEngineListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *RulesEngineListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter RulesEngineListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter RulesEngineListResultIterator) Response() RulesEngineListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter RulesEngineListResultIterator) Value() RulesEngine {
+	if !iter.page.NotDone() {
+		return RulesEngine{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the RulesEngineListResultIterator type.
+func NewRulesEngineListResultIterator(page RulesEngineListResultPage) RulesEngineListResultIterator {
+	return RulesEngineListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (relr RulesEngineListResult) IsEmpty() bool {
+	return relr.Value == nil || len(*relr.Value) == 0
+}
+
+// rulesEngineListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (relr RulesEngineListResult) rulesEngineListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if relr.NextLink == nil || len(to.String(relr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(relr.NextLink)))
+}
+
+// RulesEngineListResultPage contains a page of RulesEngine values.
+type RulesEngineListResultPage struct {
+	fn   func(context.Context, RulesEngineListResult) (RulesEngineListResult, error)
+	relr RulesEngineListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *RulesEngineListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RulesEngineListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.relr)
+	if err != nil {
+		return err
+	}
+	page.relr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *RulesEngineListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page RulesEngineListResultPage) NotDone() bool {
+	return !page.relr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page RulesEngineListResultPage) Response() RulesEngineListResult {
+	return page.relr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page RulesEngineListResultPage) Values() []RulesEngine {
+	if page.relr.IsEmpty() {
+		return nil
+	}
+	return *page.relr.Value
+}
+
+// Creates a new instance of the RulesEngineListResultPage type.
+func NewRulesEngineListResultPage(getNextPage func(context.Context, RulesEngineListResult) (RulesEngineListResult, error)) RulesEngineListResultPage {
+	return RulesEngineListResultPage{fn: getNextPage}
+}
+
+// RulesEngineMatchCondition define a match condition
+type RulesEngineMatchCondition struct {
+	// RulesEngineMatchVariable - Match Variable. Possible values include: 'RulesEngineMatchVariableIsMobile', 'RulesEngineMatchVariableRemoteAddr', 'RulesEngineMatchVariableRequestMethod', 'RulesEngineMatchVariableQueryString', 'RulesEngineMatchVariablePostArgs', 'RulesEngineMatchVariableRequestURI', 'RulesEngineMatchVariableRequestPath', 'RulesEngineMatchVariableRequestFilename', 'RulesEngineMatchVariableRequestFilenameExtension', 'RulesEngineMatchVariableRequestHeader', 'RulesEngineMatchVariableRequestBody', 'RulesEngineMatchVariableRequestScheme'
+	RulesEngineMatchVariable RulesEngineMatchVariable `json:"rulesEngineMatchVariable,omitempty"`
+	// Selector - Name of selector in RequestHeader or RequestBody to be matched
+	Selector *string `json:"selector,omitempty"`
+	// RulesEngineOperator - Describes operator to apply to the match condition. Possible values include: 'RulesEngineOperatorAny', 'RulesEngineOperatorIPMatch', 'RulesEngineOperatorGeoMatch', 'RulesEngineOperatorEqual', 'RulesEngineOperatorContains', 'RulesEngineOperatorLessThan', 'RulesEngineOperatorGreaterThan', 'RulesEngineOperatorLessThanOrEqual', 'RulesEngineOperatorGreaterThanOrEqual', 'RulesEngineOperatorBeginsWith', 'RulesEngineOperatorEndsWith'
+	RulesEngineOperator RulesEngineOperator `json:"rulesEngineOperator,omitempty"`
+	// NegateCondition - Describes if this is negate condition or not
+	NegateCondition *bool `json:"negateCondition,omitempty"`
+	// RulesEngineMatchValue - Match values to match against. The operator will apply to each value in here with OR semantics. If any of them match the variable with the given operator this match condition is considered a match.
+	RulesEngineMatchValue *[]string `json:"rulesEngineMatchValue,omitempty"`
+	// Transforms - List of transforms
+	Transforms *[]Transform `json:"transforms,omitempty"`
+}
+
+// RulesEngineProperties the JSON object that contains the properties required to create a Rules Engine
+// Configuration.
+type RulesEngineProperties struct {
+	// ResourceState - Resource status. Possible values include: 'ResourceStateCreating', 'ResourceStateEnabling', 'ResourceStateEnabled', 'ResourceStateDisabling', 'ResourceStateDisabled', 'ResourceStateDeleting'
+	ResourceState ResourceState `json:"resourceState,omitempty"`
+	// Rules - A list of rules that define a particular Rules Engine Configuration.
+	Rules *[]RulesEngineRule `json:"rules,omitempty"`
+}
+
+// RulesEngineRule contains a list of match conditions, and an action on how to modify the
+// request/response. If multiple rules match, the actions from one rule that conflict with a previous rule
+// overwrite for a singular action, or append in the case of headers manipulation.
+type RulesEngineRule struct {
+	// Name - A name to refer to this specific rule.
+	Name *string `json:"name,omitempty"`
+	// Priority - A priority assigned to this rule.
+	Priority *int32 `json:"priority,omitempty"`
+	// Action - Actions to perform on the request and response if all of the match conditions are met.
+	Action *RulesEngineAction `json:"action,omitempty"`
+	// MatchConditions - A list of match conditions that must meet in order for the actions of this rule to run. Having no match conditions means the actions will always run.
+	MatchConditions *[]RulesEngineMatchCondition `json:"matchConditions,omitempty"`
+	// MatchProcessingBehavior - If this rule is a match should the rules engine continue running the remaining rules or stop. If not present, defaults to Continue. Possible values include: 'Continue', 'Stop'
+	MatchProcessingBehavior MatchProcessingBehavior `json:"matchProcessingBehavior,omitempty"`
+}
+
+// RulesEnginesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type RulesEnginesCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *RulesEnginesCreateOrUpdateFuture) Result(client RulesEnginesClient) (re RulesEngine, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("frontdoor.RulesEnginesCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if re.Response.Response, err = future.GetResult(sender); err == nil && re.Response.Response.StatusCode != http.StatusNoContent {
+		re, err = client.CreateOrUpdateResponder(re.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesCreateOrUpdateFuture", "Result", re.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// RulesEnginesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type RulesEnginesDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *RulesEnginesDeleteFuture) Result(client RulesEnginesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "frontdoor.RulesEnginesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("frontdoor.RulesEnginesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// RulesEngineUpdateParameters rules Engine Configuration to apply to a Routing Rule.
+type RulesEngineUpdateParameters struct {
+	// Rules - A list of rules that define a particular Rules Engine Configuration.
+	Rules *[]RulesEngineRule `json:"rules,omitempty"`
 }
 
 // SubResource reference to another subresource.

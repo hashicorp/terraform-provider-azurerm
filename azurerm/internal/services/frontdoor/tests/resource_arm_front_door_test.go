@@ -555,6 +555,7 @@ resource "azurerm_frontdoor" "test" {
   name                                         = "acctest-FD-%d"
   resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
+  backend_pools_send_receive_timeout_seconds   = 45
 
   routing_rule {
     name               = "routing-rule"
