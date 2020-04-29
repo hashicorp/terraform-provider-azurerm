@@ -88,6 +88,12 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 		}
 	}
 
+	azureRMLockByName(eventHubName, eventHubResourceName)
+	defer azureRMUnlockByName(eventHubName, eventHubResourceName)
+
+	azureRMLockByName(namespaceName, eventHubNamespaceResourceName)
+	defer azureRMUnlockByName(namespaceName, eventHubNamespaceResourceName)
+
 	parameters := eventhub.AuthorizationRule{
 		Name: &name,
 		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{
@@ -176,6 +182,13 @@ func resourceArmEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta int
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 	eventHubName := id.Path["eventhubs"]
+
+	azureRMLockByName(eventHubName, eventHubResourceName)
+	defer azureRMUnlockByName(eventHubName, eventHubResourceName)
+
+	azureRMLockByName(namespaceName, eventHubNamespaceResourceName)
+	defer azureRMUnlockByName(namespaceName, eventHubNamespaceResourceName)
+
 
 	resp, err := eventhubClient.DeleteAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 

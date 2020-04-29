@@ -58,6 +58,46 @@ func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage 
 	})
 }
 
+func TestAccAzureRMEventHubAuthorizationRule_multi(t *testing.T, listen, send, manage bool) {
+	data1 := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test1")
+	data2 := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test2")
+	data3 := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test3")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMNotificationHubAuthorizationRule_multi(data, listen, send, manage),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNotificationHubAuthorizationRuleExists(data1.ResourceName),
+					resource.TestCheckResourceAttr(data1.ResourceName, "manage", "false"),
+					resource.TestCheckResourceAttr(data1.ResourceName, "send", "true"),
+					resource.TestCheckResourceAttr(data1.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttrSet(data1.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data1.ResourceName, "secondary_access_key"),
+					testCheckAzureRMNotificationHubAuthorizationRuleExists(data2.ResourceName),
+					resource.TestCheckResourceAttr(data2.ResourceName, "manage", "false"),
+					resource.TestCheckResourceAttr(data2.ResourceName, "send", "true"),
+					resource.TestCheckResourceAttr(data2.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttrSet(data2.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data2.ResourceName, "secondary_access_key"),
+					testCheckAzureRMNotificationHubAuthorizationRuleExists(data3.ResourceName),
+					resource.TestCheckResourceAttr(data3.ResourceName, "manage", "false"),
+					resource.TestCheckResourceAttr(data3.ResourceName, "send", "true"),
+					resource.TestCheckResourceAttr(data3.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttrSet(data3.ResourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(data3.ResourceName, "secondary_access_key"),
+				),
+			},
+			data1.ImportStep(),
+			data2.ImportStep(),
+			data3.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -218,6 +258,38 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   manage = %[5]t
 }
 `, data.RandomInteger, data.Locations.Primary, listen, send, manage)
+}
+
+func testAzureRMEventAuthorizationRule_multi(data acceptance.TestData, listen, send, manage bool) string {
+	template := testAccAzureRMEventHubAuthorizationRule_base(data, listen, send, manage)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_authorization_rule" "test1" {
+	name                  = "acctestruleone-%[2]d"
+	eventhub_name         = azurerm_eventhub.test.name
+	namespace_name        = azurerm_eventhub_namespace.test.name
+	resource_group_name   = azurerm_resource_group.test.name
+	send                  = true
+	listen                = true
+}
+resource "azurerm_eventhub_authorization_rule" "test2" {
+	name                  = "acctestruletwo-%[2]d"
+	eventhub_name         = azurerm_eventhub.test.name
+	namespace_name        = azurerm_eventhub_namespace.test.name
+	resource_group_name   = azurerm_resource_group.test.name
+	send                  = true
+	listen                = true
+}
+resource "azurerm_eventhub_authorization_rule" "test3" {
+	name                  = "acctestrulethree-%[2]d"
+	eventhub_name         = azurerm_eventhub.test.name
+	namespace_name        = azurerm_eventhub_namespace.test.name
+	resource_group_name   = azurerm_resource_group.test.name
+	send                  = true
+	listen                = true
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMEventHubAuthorizationRule_requiresImport(data acceptance.TestData, listen, send, manage bool) string {
