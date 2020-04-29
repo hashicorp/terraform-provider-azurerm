@@ -215,10 +215,9 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// before creating check to see if the key vault exists in the soft delete state
 	softDeletedKeyVault, err := client.GetDeleted(ctx, name, location)
-	deniedAtSubscription := utils.ResponseWasForbidden(softDeletedKeyVault.Response)
 	if err != nil {
-		// If Terraform lacks permission to read at the Subscription don't assume 404
-		if !(utils.ResponseWasNotFound(softDeletedKeyVault.Response) || deniedAtSubscription) {
+		// If Terraform lacks permission to read at the Subscription we'll get 409, not 404
+		if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) && !utils.ResponseWasForbidden(softDeletedKeyVault.Response) {
 			return fmt.Errorf("Error checking for the presence of an existing Soft-Deleted Key Vault %q (Location %q): %+v", name, location, err)
 		}
 	}
@@ -226,7 +225,7 @@ func resourceArmKeyVaultCreate(d *schema.ResourceData, meta interface{}) error {
 	// if so, does the user want us to recover it?
 
 	recoverSoftDeletedKeyVault := false
-	if !(utils.ResponseWasNotFound(softDeletedKeyVault.Response) || deniedAtSubscription) {
+	if !utils.ResponseWasNotFound(softDeletedKeyVault.Response) && !utils.ResponseWasForbidden(softDeletedKeyVault.Response) {
 		if !meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults {
 			// this exists but the users opted out so they must import this it out-of-band
 			return fmt.Errorf(optedOutOfRecoveringSoftDeletedKeyVaultErrorFmt(name, location))
