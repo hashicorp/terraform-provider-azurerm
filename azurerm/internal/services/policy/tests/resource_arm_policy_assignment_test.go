@@ -47,6 +47,25 @@ func TestAccAzureRMPolicyAssignment_basicBuiltin(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicyAssignment_basicBuiltInSet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyAssignment_basicBuiltInSet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMPolicyAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -204,6 +223,34 @@ resource "azurerm_policy_assignment" "test" {
   name                 = "acctestpa-%[1]d"
   scope                = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAzureRMPolicyAssignment_basicBuiltInSet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_policy_set_definition" "test" {
+  display_name = "Audit Windows VMs with a pending reboot"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_policy_assignment" "test" {
+  name                 = "acctestpa-%[1]d"
+  location             = azurerm_resource_group.test.location
+  scope                = azurerm_resource_group.test.id
+  policy_definition_id = data.azurerm_policy_set_definition.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
