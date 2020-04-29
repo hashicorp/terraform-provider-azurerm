@@ -55,13 +55,13 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"hub_to_vitual_network_traffic_allowed": {
+			"hub_to_virtual_network_traffic_allowed": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
 			},
 
-			"vitual_network_to_hub_gateways_traffic_allowed": {
+			"virtual_network_to_hub_gateways_traffic_allowed": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
@@ -123,8 +123,8 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 			RemoteVirtualNetwork: &network.SubResource{
 				ID: utils.String(d.Get("remote_virtual_network_id").(string)),
 			},
-			AllowHubToRemoteVnetTransit:         utils.Bool(d.Get("hub_to_vitual_network_traffic_allowed").(bool)),
-			AllowRemoteVnetToUseHubVnetGateways: utils.Bool(d.Get("vitual_network_to_hub_gateways_traffic_allowed").(bool)),
+			AllowHubToRemoteVnetTransit:         utils.Bool(d.Get("hub_to_virtual_network_traffic_allowed").(bool)),
+			AllowRemoteVnetToUseHubVnetGateways: utils.Bool(d.Get("virtual_network_to_hub_gateways_traffic_allowed").(bool)),
 			EnableInternetSecurity:              utils.Bool(d.Get("internet_security_enabled").(bool)),
 		},
 	}
@@ -198,8 +198,8 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 	d.Set("virtual_hub_id", virtualHub.ID)
 
 	if props := connection.HubVirtualNetworkConnectionProperties; props != nil {
-		d.Set("hub_to_vitual_network_traffic_allowed", props.AllowHubToRemoteVnetTransit)
-		d.Set("vitual_network_to_hub_gateways_traffic_allowed", props.AllowRemoteVnetToUseHubVnetGateways)
+		d.Set("hub_to_virtual_network_traffic_allowed", props.AllowHubToRemoteVnetTransit)
+		d.Set("virtual_network_to_hub_gateways_traffic_allowed", props.AllowRemoteVnetToUseHubVnetGateways)
 		d.Set("internet_security_enabled", props.EnableInternetSecurity)
 		remoteVirtualNetworkId := ""
 		if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.ID != nil {

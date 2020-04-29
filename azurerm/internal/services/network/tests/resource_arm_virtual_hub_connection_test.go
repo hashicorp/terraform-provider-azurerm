@@ -252,21 +252,21 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
 }
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                                           = "acctestvhubconn-%d"
-  virtual_hub_id                                 = azurerm_virtual_hub.test.id
-  remote_virtual_network_id                      = azurerm_virtual_network.test.id
-  hub_to_vitual_network_traffic_allowed          = true
-  vitual_network_to_hub_gateways_traffic_allowed = false
-  internet_security_enabled                      = false
+  name                                            = "acctestvhubconn-%d"
+  virtual_hub_id                                  = azurerm_virtual_hub.test.id
+  remote_virtual_network_id                       = azurerm_virtual_network.test.id
+  hub_to_virtual_network_traffic_allowed          = true
+  virtual_network_to_hub_gateways_traffic_allowed = false
+  internet_security_enabled                       = false
 }
 
 resource "azurerm_virtual_hub_connection" "test2" {
-  name                                           = "acctestvhubconn2-%d"
-  virtual_hub_id                                 = azurerm_virtual_hub.test.id
-  remote_virtual_network_id                      = azurerm_virtual_network.test2.id
-  hub_to_vitual_network_traffic_allowed          = false
-  vitual_network_to_hub_gateways_traffic_allowed = false
-  internet_security_enabled                      = true
+  name                                            = "acctestvhubconn2-%d"
+  virtual_hub_id                                  = azurerm_virtual_hub.test.id
+  remote_virtual_network_id                       = azurerm_virtual_network.test2.id
+  hub_to_virtual_network_traffic_allowed          = false
+  virtual_network_to_hub_gateways_traffic_allowed = false
+  internet_security_enabled                       = true
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
