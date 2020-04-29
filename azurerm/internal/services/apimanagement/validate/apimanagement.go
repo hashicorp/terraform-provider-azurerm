@@ -1,4 +1,4 @@
-package apimValidate
+package validate
 
 import (
 	"fmt"
