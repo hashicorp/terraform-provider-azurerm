@@ -43,8 +43,8 @@ func SharedImageName(v interface{}, k string) (warnings []string, errors []error
 func SharedImageVersionName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if !regexp.MustCompile(`^([0-9]{1,10}\.[0-9]{1,10}\.[0-9]{1,10})$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("Expected %s to be in the format `1.2.3` but got %q.", k, value))
+	if !regexp.MustCompile(`^([0-9]{1,10}\.[0-9]{1,10}\.[0-9]{1,10})$`).MatchString(value) && value != "latest" && value != "recent" {
+		errors = append(errors, fmt.Errorf("Expected %s to be in the format `1.2.3`, `latest`, or `recent` but got %q.", k, value))
 	}
 
 	return warnings, errors
