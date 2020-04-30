@@ -130,12 +130,12 @@ func testCheckAzureRMMaintenanceAssignmentDestroy(s *terraform.State) error {
 		}
 
 		var listResp maintenance.ListConfigurationAssignmentsResult
-		if id.HasParentResource {
-			listResp, err = conn.ListParent(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceParentType, id.ResourceParentName, id.ResourceType, id.ResourceName)
-		} else {
-			listResp, err = conn.List(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceType, id.ResourceName)
+		switch v := id.TargetResourceId.(type) {
+		case parse.ScopeResource:
+			listResp, err = conn.List(ctx, v.ResourceGroup, v.ResourceProvider, v.ResourceType, v.ResourceName)
+		case parse.ScopeInResource:
+			listResp, err = conn.ListParent(ctx, v.ResourceGroup, v.ResourceProvider, v.ResourceParentType, v.ResourceParentName, v.ResourceType, v.ResourceName)
 		}
-
 		if err != nil {
 			if !utils.ResponseWasNotFound(listResp.Response) {
 				return err
@@ -143,7 +143,7 @@ func testCheckAzureRMMaintenanceAssignmentDestroy(s *terraform.State) error {
 			return nil
 		}
 		if listResp.Value != nil && len(*listResp.Value) > 0 {
-			return fmt.Errorf("maintenance assignment (target resource id: %q) still exists", id.ResourceId)
+			return fmt.Errorf("maintenance assignment (target resource id: %q) still exists", id.TargetResourceId.ID())
 		}
 
 		return nil
@@ -169,17 +169,18 @@ func testCheckAzureRMMaintenanceAssignmentExists(resourceName string) resource.T
 		}
 
 		var listResp maintenance.ListConfigurationAssignmentsResult
-		if id.HasParentResource {
-			listResp, err = conn.ListParent(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceParentType, id.ResourceParentName, id.ResourceType, id.ResourceName)
-		} else {
-			listResp, err = conn.List(ctx, id.ResourceGroup, id.ResourceProvider, id.ResourceType, id.ResourceName)
+		switch v := id.TargetResourceId.(type) {
+		case parse.ScopeResource:
+			listResp, err = conn.List(ctx, v.ResourceGroup, v.ResourceProvider, v.ResourceType, v.ResourceName)
+		case parse.ScopeInResource:
+			listResp, err = conn.ListParent(ctx, v.ResourceGroup, v.ResourceProvider, v.ResourceParentType, v.ResourceParentName, v.ResourceType, v.ResourceName)
 		}
 
 		if err != nil {
 			return fmt.Errorf("bad: list on ConfigurationAssignmentsClient: %+v", err)
 		}
 		if listResp.Value == nil || len(*listResp.Value) == 0 {
-			return fmt.Errorf("could not find Maintenance Assignment (target resource id: %q)", id.ResourceId)
+			return fmt.Errorf("could not find Maintenance Assignment (target resource id: %q)", id.TargetResourceId.ID())
 		}
 
 		return nil

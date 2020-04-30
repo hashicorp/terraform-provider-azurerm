@@ -1,6 +1,7 @@
 package parse
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -51,15 +52,14 @@ func TestMaintenanceAssignmentID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualmachines/vm1/providers/Microsoft.Maintenance/configurationAssignments/assign1",
 			Error: false,
 			Expect: &MaintenanceAssignmentId{
-				TargetResourceId: &TargetResourceId{
-					HasParentResource: false,
-					ResourceGroup:     "resGroup1",
-					ResourceProvider:  "microsoft.compute",
-					ResourceType:      "virtualmachines",
-					ResourceName:      "vm1",
+				TargetResourceId: ScopeResource{
+					id:               "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualmachines/vm1",
+					ResourceGroup:    "resGroup1",
+					ResourceProvider: "microsoft.compute",
+					ResourceType:     "virtualmachines",
+					ResourceName:     "vm1",
 				},
-				ResourceId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualmachines/vm1",
-				Name:       "assign1",
+				Name: "assign1",
 			},
 		},
 		{
@@ -67,8 +67,8 @@ func TestMaintenanceAssignmentID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/hostGroups/group1/hosts/host1/providers/Microsoft.Maintenance/configurationAssignments/assign1",
 			Error: false,
 			Expect: &MaintenanceAssignmentId{
-				TargetResourceId: &TargetResourceId{
-					HasParentResource:  true,
+				TargetResourceId: ScopeInResource{
+					id:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/hostGroups/group1/hosts/host1",
 					ResourceGroup:      "resGroup1",
 					ResourceProvider:   "microsoft.compute",
 					ResourceParentType: "hostGroups",
@@ -76,8 +76,7 @@ func TestMaintenanceAssignmentID(t *testing.T) {
 					ResourceType:       "hosts",
 					ResourceName:       "host1",
 				},
-				ResourceId: "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualmachines/hostGroups/group1/hosts/host1",
-				Name:       "assign1",
+				Name: "assign1",
 			},
 		},
 		{
@@ -98,24 +97,12 @@ func TestMaintenanceAssignmentID(t *testing.T) {
 			t.Fatalf("Expected a value but got an error: %s", err)
 		}
 
-		if actual.ResourceGroup != v.Expect.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expect.ResourceGroup, actual.ResourceGroup)
-		}
-
-		if actual.ResourceProvider != v.Expect.ResourceProvider {
-			t.Fatalf("Expected %q but got %q for ResourceProvider", v.Expect.ResourceProvider, actual.ResourceProvider)
-		}
-
-		if actual.ResourceType != v.Expect.ResourceType {
-			t.Fatalf("Expected %q but got %q for ResourceType", v.Expect.ResourceType, actual.ResourceType)
-		}
-
-		if actual.ResourceName != v.Expect.ResourceName {
-			t.Fatalf("Expected %q but got %q for ResourceName", v.Expect.ResourceName, actual.ResourceName)
-		}
-
 		if actual.Name != v.Expect.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
+		}
+
+		if !reflect.DeepEqual(v.Expect.TargetResourceId, actual.TargetResourceId) {
+			t.Fatalf("Expected %+v but got %+v", v.Expect.TargetResourceId, actual.TargetResourceId)
 		}
 	}
 }

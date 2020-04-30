@@ -9,9 +9,8 @@ import (
 )
 
 type MaintenanceAssignmentId struct {
-	*TargetResourceId
-	ResourceId string
-	Name       string
+	TargetResourceId
+	Name string
 }
 
 func MaintenanceAssignmentID(input string) (*MaintenanceAssignmentId, error) {
@@ -20,7 +19,7 @@ func MaintenanceAssignmentID(input string) (*MaintenanceAssignmentId, error) {
 	// 2: /subscriptions/<sub1>/resourcegroups/<grp1>/providers/<provider1>/<resourceParentType1>/<resourceParentName1>/<resourceType1>/<resource1>/providers/Microsoft.Maintenance/configurationAssignments/<assignName>
 	groups := regexp.MustCompile(`^(.+)/providers/Microsoft\.Maintenance/configurationAssignments/([^/]+)$`).FindStringSubmatch(input)
 	if len(groups) != 3 {
-		return nil, fmt.Errorf("parsing Maintenance Assignment ID: %q", input)
+		return nil, fmt.Errorf("parsing Maintenance Assignment ID: %q: Expected 3 groups", input)
 	}
 
 	targetResourceId, name := groups[1], groups[2]
@@ -31,13 +30,28 @@ func MaintenanceAssignmentID(input string) (*MaintenanceAssignmentId, error) {
 
 	return &MaintenanceAssignmentId{
 		TargetResourceId: id,
-		ResourceId:       targetResourceId,
 		Name:             name,
 	}, nil
 }
 
-type TargetResourceId struct {
-	HasParentResource  bool
+type TargetResourceId interface {
+	ID() string
+}
+
+type ScopeResource struct {
+	id               string
+	ResourceGroup    string
+	ResourceProvider string
+	ResourceType     string
+	ResourceName     string
+}
+
+func (r ScopeResource) ID() string {
+	return r.id
+}
+
+type ScopeInResource struct {
+	id                 string
 	ResourceGroup      string
 	ResourceProvider   string
 	ResourceParentType string
@@ -46,7 +60,11 @@ type TargetResourceId struct {
 	ResourceName       string
 }
 
-func TargetResourceID(input string) (*TargetResourceId, error) {
+func (r ScopeInResource) ID() string {
+	return r.id
+}
+
+func TargetResourceID(input string) (TargetResourceId, error) {
 	// two types of ID:
 	// 1: /subscriptions/<sub1>/resourcegroups/<grp1>/providers/<provider1>/<resourceType1>/<resource1>
 	// 2: /subscriptions/<sub1>/resourcegroups/<grp1>/providers/<provider1>/<resourceParentType1>/<resourceParentName1>/<resourceType1>/<resource1>
@@ -56,41 +74,40 @@ func TargetResourceID(input string) (*TargetResourceId, error) {
 		return nil, fmt.Errorf("parsing target resource id %q: %+v", input, err)
 	}
 
-	var resourceParentType, resourceParentName, resourceType, resourceName string
-	var hasParentResource bool
 	if len(id.Path) != 1 && len(id.Path) != 2 {
 		return nil, fmt.Errorf("parsing target resource id %q", input)
 	}
 
 	if len(id.Path) == 1 {
+		var resourceType, resourceName string
 		// assume there is only one left key value pair
 		for k, v := range id.Path {
 			resourceType = k
 			resourceName = v
 		}
-	} else {
-		hasParentResource = true
-
-		input = strings.TrimPrefix(input, "/")
-		input = strings.TrimSuffix(input, "/")
-		groups := regexp.MustCompile(`^subscriptions/.+/resource[gG]roups/.+/providers/.+/(.+)/(.+)/(.+)/(.+)$`).FindStringSubmatch(input)
-		if len(groups) != 5 {
-			return nil, fmt.Errorf("parsing target resource id: %q", input)
-		}
-
-		resourceParentType = groups[1]
-		resourceParentName = groups[2]
-		resourceType = groups[3]
-		resourceName = groups[4]
+		return ScopeResource{
+			id:               input,
+			ResourceGroup:    id.ResourceGroup,
+			ResourceProvider: id.Provider,
+			ResourceType:     resourceType,
+			ResourceName:     resourceName,
+		}, nil
 	}
 
-	return &TargetResourceId{
+	resourceId := strings.TrimPrefix(input, "/")
+	resourceId = strings.TrimSuffix(resourceId, "/")
+	groups := regexp.MustCompile(`^subscriptions/.+/resource[gG]roups/.+/providers/.+/(.+)/(.+)/(.+)/(.+)$`).FindStringSubmatch(resourceId)
+	if len(groups) != 5 {
+		return nil, fmt.Errorf("parsing target resource id: %q", resourceId)
+	}
+
+	return ScopeInResource{
+		id:                 input,
 		ResourceGroup:      id.ResourceGroup,
 		ResourceProvider:   id.Provider,
-		ResourceParentType: resourceParentType,
-		ResourceParentName: resourceParentName,
-		ResourceType:       resourceType,
-		ResourceName:       resourceName,
-		HasParentResource:  hasParentResource,
+		ResourceParentType: groups[1],
+		ResourceParentName: groups[2],
+		ResourceType:       groups[3],
+		ResourceName:       groups[4],
 	}, nil
 }
