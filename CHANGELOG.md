@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_mssql_database` - support for the `extended_auditing_policy` block [GH-6402]
 * `azurerm_mssql_elasticpool` - support `license_type` [GH-6631]
 * `azurerm_subnet`: Support for multiple prefixes with `address_prefixes` [GH-6493]
+* `data.azurerm_shared_image_version` - `name` supports `latest` and `recent`  [GH-6707]
 
 BUG FIXES:
 
