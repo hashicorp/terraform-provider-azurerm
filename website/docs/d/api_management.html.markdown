@@ -79,6 +79,8 @@ A `hostname_configuration` block exports the following:
 
 * `portal` - One or more `portal` blocks as documented below.
 
+* `developer_portal` - One or more `developer_portal` blocks as documented below.
+
 * `proxy` - One or more `proxy` blocks as documented below.
 
 * `scm` - One or more `scm` blocks as documented below.
@@ -96,6 +98,16 @@ A `management` block exports the following:
 ---
 
 A `portal` block exports the following:
+
+* `host_name` - The Hostname used for the Portal.
+
+* `key_vault_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
+
+* `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
+
+---
+
+A `developer_portal` block exports the following:
 
 * `host_name` - The Hostname used for the Portal.
 

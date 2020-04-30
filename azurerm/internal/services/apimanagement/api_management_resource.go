@@ -278,6 +278,13 @@ func resourceArmApiManagementService() *schema.Resource {
 								Schema: apiManagementResourceHostnameSchema("portal"),
 							},
 						},
+						"developer_portal": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: apiManagementResourceHostnameSchema("developer_portal"),
+							},
+						},
 						"proxy": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -711,6 +718,13 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 			results = append(results, output)
 		}
 
+		developerPortalVs := hostnameV["developer_portal"].([]interface{})
+		for _, developerPortalV := range developerPortalVs {
+			v := developerPortalV.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeDeveloperPortal)
+			results = append(results, output)
+		}
+
 		proxyVs := hostnameV["proxy"].([]interface{})
 		for _, proxyV := range proxyVs {
 			v := proxyV.(map[string]interface{})
@@ -761,6 +775,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 	managementResults := make([]interface{}, 0)
 	portalResults := make([]interface{}, 0)
+	developerPortalResults := make([]interface{}, 0)
 	proxyResults := make([]interface{}, 0)
 	scmResults := make([]interface{}, 0)
 
@@ -813,6 +828,9 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
 
+		case strings.ToLower(string(apimanagement.HostnameTypeDeveloperPortal)):
+			developerPortalResults = append(developerPortalResults, output)
+
 		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
 		}
@@ -820,10 +838,11 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 	return []interface{}{
 		map[string]interface{}{
-			"management": managementResults,
-			"portal":     portalResults,
-			"proxy":      proxyResults,
-			"scm":        scmResults,
+			"management":       managementResults,
+			"portal":           portalResults,
+			"developer_portal": developerPortalResults,
+			"proxy":            proxyResults,
+			"scm":              scmResults,
 		},
 	}
 }
