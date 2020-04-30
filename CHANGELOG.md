@@ -1,38 +1,38 @@
-## 2.8.0 (Unreleased)
+## 2.8.0 (April 30, 2020)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_sentinel_alert_rule_ms_security_incident` [GH-6606]
-* **New Data Source:** `azurerm_shared_image_versions` [GH-6700]
-* **New Resource:** `azurerm_managed_application` [GH-6386]
-* **New Resource:** `azurerm_mssql_server` [GH-6677]
-* **New Resource:** `azurerm_sentinel_alert_rule_ms_security_incident` [GH-6606]
+* **New Data Source:** `azurerm_sentinel_alert_rule_ms_security_incident` ([#6606](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6606))
+* **New Data Source:** `azurerm_shared_image_versions` ([#6700](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6700))
+* **New Resource:** `azurerm_managed_application` ([#6386](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6386))
+* **New Resource:** `azurerm_mssql_server` ([#6677](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6677))
+* **New Resource:** `azurerm_sentinel_alert_rule_ms_security_incident` ([#6606](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6606))
 
 IMPROVEMENTS:
 
-* `azurerm_api_management` - `sku_name` supports the `Consumption` value for `sku` [GH-6602]
-* `azurerm_api_management_api` - support for openapi v3 content formats [GH-6618]
-* `azurerm_application_gateway` - support `host_names` property [GH-6630]
-* `azurerm_express_route_circuit_peering` - support for the `customer_asn` and `routing_registry_name` propeties [GH-6596]
-* `azurerm_frontdoor` - Add support for `backend_pools_send_receive_timeout_seconds` [GH-6604]
-* `azurerm_mssql_server` -support the `public_network_access_enabled` property [GH-6678]
-* `azurerm_mssql_database` - support for the `extended_auditing_policy` block [GH-6402]
-* `azurerm_mssql_elasticpool` - support `license_type` [GH-6631]
-* `azurerm_subnet`: Support for multiple prefixes with `address_prefixes` [GH-6493]
-* `data.azurerm_shared_image_version` - `name` supports `latest` and `recent`  [GH-6707]
+* `azurerm_api_management` - `sku_name` supports the `Consumption` value for `sku` ([#6602](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6602))
+* `azurerm_api_management_api` - support for openapi v3 content formats ([#6618](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6618))
+* `azurerm_application_gateway` - support `host_names` property ([#6630](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6630))
+* `azurerm_express_route_circuit_peering` - support for the `customer_asn` and `routing_registry_name` propeties ([#6596](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6596))
+* `azurerm_frontdoor` - Add support for `backend_pools_send_receive_timeout_seconds` ([#6604](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6604))
+* `azurerm_mssql_server` -support the `public_network_access_enabled` property ([#6678](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6678))
+* `azurerm_mssql_database` - support for the `extended_auditing_policy` block ([#6402](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6402))
+* `azurerm_mssql_elasticpool` - support `license_type` ([#6631](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6631))
+* `azurerm_subnet`: Support for multiple prefixes with `address_prefixes` ([#6493](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6493))
+* `data.azurerm_shared_image_version` - `name` supports `latest` and `recent`  ([#6707](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6707))
 
 BUG FIXES:
 
-* `azurerm_key_vault` - can now be created without subscription level permissions [GH-6260]
-* `azurerm_linux_virtual_machine` - fix validation for `name` to allow full length resource names [GH-6639]
-* `azurerm_linux_virtual_machine_scale_set` - fix validation for `name` to allow full length resource names [GH-6639]
-* `azurerm_monitor_diagnostic_setting` - make `retention_policy` and `retention_policy` optional [GH-6603]
-* `azurerm_redis_cache` - correctly build connection strings when SSL is disabled [GH-6635]
-* `azurerm_sql_database` - prevent extended auditing policy for secondary databases [GH-6402]
-* `azurerm_web_application_firewall_policy` - support for the `managed_rules` property which is required by the new API version [GH-6126]
-* `azurerm_windows_virtual_machine` - fix validation for `name` to allow full length resource names [GH-6639]
-* `azurerm_windows_virtual_machine_scale_set` - fix validation for `name` to allow full length resource names [GH-6639]
-* `azurerm_virtual_network_gateway_connection` - `shared_key` is now optional when `type` is `IPSec` [GH-6565]
+* `azurerm_key_vault` - can now be created without subscription level permissions ([#6260](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6260))
+* `azurerm_linux_virtual_machine` - fix validation for `name` to allow full length resource names ([#6639](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6639))
+* `azurerm_linux_virtual_machine_scale_set` - fix validation for `name` to allow full length resource names ([#6639](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6639))
+* `azurerm_monitor_diagnostic_setting` - make `retention_policy` and `retention_policy` optional ([#6603](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6603))
+* `azurerm_redis_cache` - correctly build connection strings when SSL is disabled ([#6635](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6635))
+* `azurerm_sql_database` - prevent extended auditing policy for secondary databases ([#6402](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6402))
+* `azurerm_web_application_firewall_policy` - support for the `managed_rules` property which is required by the new API version ([#6126](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6126))
+* `azurerm_windows_virtual_machine` - fix validation for `name` to allow full length resource names ([#6639](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6639))
+* `azurerm_windows_virtual_machine_scale_set` - fix validation for `name` to allow full length resource names ([#6639](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6639))
+* `azurerm_virtual_network_gateway_connection` - `shared_key` is now optional when `type` is `IPSec` ([#6565](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6565))
 
 ## 2.7.0 (April 23, 2020)
 
