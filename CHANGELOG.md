@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_sentinel_alert_rule_ms_security_incident` [GH-6606]
+* **New Data Source:** `azurerm_shared_image_versions` [GH-6700]
 * **New Resource:** `azurerm_managed_application` [GH-6386]
 * **New Resource:** `azurerm_mssql_server` [GH-6677]
 * **New Resource:** `azurerm_sentinel_alert_rule_ms_security_incident` [GH-6606]
