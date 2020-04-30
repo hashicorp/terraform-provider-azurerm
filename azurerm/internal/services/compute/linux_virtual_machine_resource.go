@@ -296,7 +296,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	} else {
 		_, errs := ValidateLinuxComputerNameFull(d.Get("name"), "computer_name")
 		if len(errs) > 0 {
-			return fmt.Errorf("unable to assume default computer name. %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
+			return fmt.Errorf("unable to assume default computer name %s Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
 		}
 		computerName = name
 	}

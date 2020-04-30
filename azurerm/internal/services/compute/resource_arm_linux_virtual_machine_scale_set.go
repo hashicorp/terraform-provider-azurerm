@@ -353,7 +353,7 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	} else {
 		_, errs := ValidateLinuxComputerNamePrefix(d.Get("name"), "computer_name_prefix")
 		if len(errs) > 0 {
-			return fmt.Errorf("unable to assume default computer name prefix. %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
+			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
 		}
 		computerNamePrefix = name
 	}
