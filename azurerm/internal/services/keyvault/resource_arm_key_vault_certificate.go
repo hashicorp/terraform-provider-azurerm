@@ -383,8 +383,32 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			CertificatePolicy: &policy,
 			Tags:              tags.Expand(t),
 		}
-		if _, err := client.CreateCertificate(ctx, keyVaultBaseUrl, name, parameters); err != nil {
-			return err
+		if resp, err := client.CreateCertificate(ctx, keyVaultBaseUrl, name, parameters); err != nil {
+			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
+				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, keyVaultBaseUrl, name)
+				if err != nil {
+					return err
+				}
+				log.Printf("[DEBUG] Recovering Secret %q with ID: %q", name, *recoveredCertificate.ID)
+				if certificate := recoveredCertificate.ID; certificate != nil {
+					stateConf := &resource.StateChangeConf{
+						Pending:                   []string{"pending"},
+						Target:                    []string{"available"},
+						Refresh:                   keyVaultChildItemRefreshFunc(*certificate),
+						Delay:                     30 * time.Second,
+						PollInterval:              10 * time.Second,
+						ContinuousTargetOccurence: 10,
+						Timeout:                   d.Timeout(schema.TimeoutCreate),
+					}
+
+					if _, err := stateConf.WaitForState(); err != nil {
+						return fmt.Errorf("Error waiting for Key Vault Secret %q to become available: %s", name, err)
+					}
+					log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredCertificate.ID)
+				}
+			} else {
+				return err
+			}
 		}
 
 		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, keyVaultBaseUrl)
