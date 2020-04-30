@@ -107,6 +107,12 @@ func resourceArmMsSqlServer() *schema.Resource {
 				},
 			},
 
+			"public_network_access_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
 
 			"fully_qualified_domain_name": {
@@ -148,26 +154,31 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	parameters := sql.Server{
+	props := sql.Server{
 		Location: utils.String(location),
 		Tags:     metadata,
 		ServerProperties: &sql.ServerProperties{
-			Version:            utils.String(version),
-			AdministratorLogin: utils.String(adminUsername),
+			Version:             utils.String(version),
+			AdministratorLogin:  utils.String(adminUsername),
+			PublicNetworkAccess: sql.ServerPublicNetworkAccessEnabled,
 		},
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
 		sqlServerIdentity := expandAzureRmSqlServerIdentity(d)
-		parameters.Identity = sqlServerIdentity
+		props.Identity = sqlServerIdentity
+	}
+
+	if v := d.Get("public_network_access_enabled"); !v.(bool) {
+		props.ServerProperties.PublicNetworkAccess = sql.ServerPublicNetworkAccessDisabled
 	}
 
 	if d.HasChange("administrator_login_password") {
 		adminPassword := d.Get("administrator_login_password").(string)
-		parameters.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
+		props.ServerProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, props)
 	if err != nil {
 		return fmt.Errorf("Error issuing create/update request for SQL Server %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -242,10 +253,11 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
-	if serverProperties := resp.ServerProperties; serverProperties != nil {
-		d.Set("version", serverProperties.Version)
-		d.Set("administrator_login", serverProperties.AdministratorLogin)
-		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
+	if props := resp.ServerProperties; props != nil {
+		d.Set("version", props.Version)
+		d.Set("administrator_login", props.AdministratorLogin)
+		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		d.Set("public_network_access_enabled", props.PublicNetworkAccess == sql.ServerPublicNetworkAccessEnabled)
 	}
 
 	connection, err := connectionClient.Get(ctx, resGroup, name)

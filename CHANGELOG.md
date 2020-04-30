@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_sentinel_alert_rule_ms_security_incident` [GH-6606]
+* **New Data Source:** `azurerm_shared_image_versions` [GH-6700]
 * **New Resource:** `azurerm_managed_application` [GH-6386]
 * **New Resource:** `azurerm_mssql_server` [GH-6677]
 * **New Resource:** `azurerm_sentinel_alert_rule_ms_security_incident` [GH-6606]
@@ -14,6 +15,7 @@ IMPROVEMENTS:
 * `azurerm_application_gateway` - support `host_names` property [GH-6630]
 * `azurerm_express_route_circuit_peering` - support for the `customer_asn` and `routing_registry_name` propeties [GH-6596]
 * `azurerm_frontdoor` - Add support for `backend_pools_send_receive_timeout_seconds` [GH-6604]
+* `azurerm_mssql_server` -support the `public_network_access_enabled` property [GH-6678]
 * `azurerm_mssql_database` - support for the `extended_auditing_policy` block [GH-6402]
 * `azurerm_mssql_elasticpool` - support `license_type` [GH-6631]
 * `azurerm_subnet`: Support for multiple prefixes with `address_prefixes` [GH-6493]

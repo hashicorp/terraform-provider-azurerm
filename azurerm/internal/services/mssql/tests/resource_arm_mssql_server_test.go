@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -26,15 +25,30 @@ func TestAccAzureRMMsSqlServer_basic(t *testing.T) {
 					testCheckAzureRMMsSqlServerExists(data.ResourceName),
 				),
 			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password"},
-			},
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
+
+func TestAccAzureRMMsSqlServer_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlServer_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+		},
+	})
+}
+
 func TestAccAzureRMMsSqlServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 
@@ -74,66 +88,7 @@ func TestAccAzureRMMsSqlServer_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMsSqlServer_withTags(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_withTags(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
-				),
-			},
-			{
-				Config: testAccAzureRMMsSqlServer_withTagsUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password"},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMMsSqlServer_withIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMsSqlServer_withIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
-				),
-			},
-			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password"},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMMsSqlServer_updateWithIdentityAdded(t *testing.T) {
+func TestAccAzureRMMsSqlServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -147,26 +102,33 @@ func TestAccAzureRMMsSqlServer_updateWithIdentityAdded(t *testing.T) {
 					testCheckAzureRMMsSqlServerExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("administrator_login_password"),
 			{
-				Config: testAccAzureRMMsSqlServer_withIdentity(data),
+				Config: testAccAzureRMMsSqlServer_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
-					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
+			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
 			{
-				ResourceName:            data.ResourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password"},
+				Config: testAccAzureRMMsSqlServer_complete2(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlServerExists(data.ResourceName),
+				),
 			},
+			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
+			{
+				Config: testAccAzureRMMsSqlServer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
 		},
 	})
 }
 
-func TestAccAzureRMMsSqlServer_updateWithBlobAuditingPolices(t *testing.T) {
+func TestAccAzureRMMsSqlServer_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -175,20 +137,9 @@ func TestAccAzureRMMsSqlServer_updateWithBlobAuditingPolices(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMsSqlServer_withBlobAuditingPolices(data),
+				Config: testAccAzureRMMsSqlServer_identity(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "extended_auditing_policy.0.storage_account_access_key_is_secondary", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "extended_auditing_policy.0.retention_in_days", "6"),
-				),
-			},
-			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
-			{
-				Config: testAccAzureRMMsSqlServer_withBlobAuditingPolicesUpdated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMsSqlServerExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "extended_auditing_policy.0.storage_account_access_key_is_secondary", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "extended_auditing_policy.0.retention_in_days", "11"),
 				),
 			},
 			data.ImportStep("administrator_login_password", "extended_auditing_policy.0.storage_account_access_key"),
@@ -283,7 +234,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-mssql-%d"
   location = "%s"
 }
 
@@ -292,8 +243,8 @@ resource "azurerm_mssql_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -313,106 +264,19 @@ resource "azurerm_mssql_server" "import" {
 `, testAccAzureRMMsSqlServer_basic(data))
 }
 
-func testAccAzureRMMsSqlServer_withTags(data acceptance.TestData) string {
+func testAccAzureRMMsSqlServer_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-
-  tags = {
-    environment = "staging"
-    database    = "test"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMMsSqlServer_withTagsUpdated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-
-  tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMMsSqlServer_withIdentity(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
-  version                      = "12.0"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func testAccAzureRMMsSqlServer_withBlobAuditingPolices(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-sql-%[1]d"
+  name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_account" "test2" {
-  name                     = "acctest2%[1]d"
+  name                     = "acctesta%[3]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -424,8 +288,10 @@ resource "azurerm_mssql_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  public_network_access_enabled = false
 
   extended_auditing_policy {
     storage_account_access_key              = azurerm_storage_account.test.primary_access_key
@@ -433,31 +299,28 @@ resource "azurerm_mssql_server" "test" {
     storage_account_access_key_is_secondary = true
     retention_in_days                       = 6
   }
+
+  tags = {
+    ENV      = "Staging"
+    database = "NotProd"
+  }
 }
-`, data.RandomIntOfLength(15), data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15))
 }
 
-func testAccAzureRMMsSqlServer_withBlobAuditingPolicesUpdated(data acceptance.TestData) string {
+func testAccAzureRMMsSqlServer_complete2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-sql-%[1]d"
+  name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
 }
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctest%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_account" "test2" {
-  name                     = "acctest2%[1]d"
+resource "azurerm_storage_account" "testb" {
+  name                     = "acctestb%[3]d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
@@ -469,15 +332,47 @@ resource "azurerm_mssql_server" "test" {
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  public_network_access_enabled = false
 
   extended_auditing_policy {
-    storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
-    storage_endpoint                        = azurerm_storage_account.test2.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.testb.primary_access_key
+    storage_endpoint                        = azurerm_storage_account.testb.primary_blob_endpoint
     storage_account_access_key_is_secondary = false
     retention_in_days                       = 11
   }
+
+  tags = {
+    DB = "NotProd"
+  }
 }
-`, data.RandomIntOfLength(15), data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15))
+}
+
+func testAccAzureRMMsSqlServer_identity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%d"
+  location = "%s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
