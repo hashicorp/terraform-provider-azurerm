@@ -103,7 +103,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Managed Application.
 
-* `managed_app_outputs` - The name and value pairs that define the managed application outputs.
+* `outputs` - The name and value pairs that define the managed application outputs.
 
 ## Timeouts
 

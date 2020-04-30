@@ -115,7 +115,7 @@ func resourceManagedApplication() *schema.Resource {
 
 			"tags": tags.Schema(),
 
-			"managed_app_outputs": {
+			"outputs": {
 				Type:     schema.TypeMap,
 				Computed: true,
 				Elem: &schema.Schema{
@@ -239,7 +239,7 @@ func resourceManagedApplicationRead(d *schema.ResourceData, meta interface{}) er
 			return err
 		}
 
-		if err = d.Set("managed_app_outputs", flattenManagedApplicationParametersOrOutputs(props.Outputs)); err != nil {
+		if err = d.Set("outputs", flattenManagedApplicationParametersOrOutputs(props.Outputs)); err != nil {
 			return err
 		}
 	}
