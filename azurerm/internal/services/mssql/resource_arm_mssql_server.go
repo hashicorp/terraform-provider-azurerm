@@ -158,8 +158,8 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 		Location: utils.String(location),
 		Tags:     metadata,
 		ServerProperties: &sql.ServerProperties{
-			Version:            utils.String(version),
-			AdministratorLogin: utils.String(adminUsername),
+			Version:             utils.String(version),
+			AdministratorLogin:  utils.String(adminUsername),
 			PublicNetworkAccess: sql.ServerPublicNetworkAccessEnabled,
 		},
 	}
