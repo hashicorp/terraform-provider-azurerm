@@ -309,6 +309,10 @@ A `ip_restriction` block supports the following:
 
 -> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
 
+* `name` - (Optional) The name for this IP Restriction.
+
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order.
+
 ---
 
 A `microsoft` block supports the following:
