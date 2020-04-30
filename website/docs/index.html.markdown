@@ -169,6 +169,8 @@ The `key_vault` block supports the following:
 
 ~> **Note:** When purge protection is enabled, a key vault or an object in the deleted state cannot be purged until the retention period(90 days) has passed.
 
+~> **Note:** When recovering soft deleted Key Vault items (Keys, Certificates, and Secrets) the Principal used by Terraform needs the `"recover"` permission.
+
 ---
 
 The `virtual_machine` block supports the following:
