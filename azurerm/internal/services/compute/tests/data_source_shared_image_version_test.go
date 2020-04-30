@@ -32,7 +32,6 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceSharedImageVersion_basic(data, username, password, hostname),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_region.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_region.0.storage_account_type", "Standard_LRS"),
@@ -66,7 +65,6 @@ func TestAccDataSourceAzureRMSharedImageVersion_latest(t *testing.T) {
 			{
 				Config: testAccDataSourceSharedImageVersion_customName(data, username, password, hostname, "latest"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_region.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_region.0.storage_account_type", "Standard_LRS"),
@@ -100,7 +98,6 @@ func TestAccDataSourceAzureRMSharedImageVersion_recent(t *testing.T) {
 			{
 				Config: testAccDataSourceSharedImageVersion_customName(data, username, password, hostname, "recent"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_region.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_region.0.storage_account_type", "Standard_LRS"),
@@ -129,7 +126,7 @@ func testAccDataSourceSharedImageVersion_customName(data acceptance.TestData, us
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_shared_image_version" "tes2" {
+resource "azurerm_shared_image_version" "test2" {
   name                = "0.0.2"
   gallery_name        = azurerm_shared_image_gallery.test.name
   image_name          = azurerm_shared_image.test.name
@@ -144,10 +141,10 @@ resource "azurerm_shared_image_version" "tes2" {
 }
 
 data "azurerm_shared_image_version" "test" {
-  name                = %s
-  gallery_name        = azurerm_shared_image_version.test.gallery_name
-  image_name          = azurerm_shared_image_version.test.image_name
-  resource_group_name = azurerm_shared_image_version.test.resource_group_name
+  name                = "%s"
+  gallery_name        = azurerm_shared_image_version.test2.gallery_name
+  image_name          = azurerm_shared_image_version.test2.image_name
+  resource_group_name = azurerm_shared_image_version.test2.resource_group_name
 }
 `, template, name)
 }
