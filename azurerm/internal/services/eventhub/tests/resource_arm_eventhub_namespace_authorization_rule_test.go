@@ -277,33 +277,33 @@ func testAzureRMEventHubNamespaceAuthorizationRule_multi(data acceptance.TestDat
 %s
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test1" {
-	name                  = "acctestruleone-%d"
-	namespace_name        = azurerm_eventhub_namespace.test.name
-	resource_group_name   = azurerm_resource_group.test.name
-  
-	send                  = true
-	listen                = true
-	manage                = false
+  name                = "acctestruleone-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  send   = true
+  listen = true
+  manage = false
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test2" {
-	name                  = "acctestruletwo-%d"
-	namespace_name        = azurerm_eventhub_namespace.test.name
-	resource_group_name   = azurerm_resource_group.test.name
-	
-	send                  = true
-	listen                = true
-	manage                = false
+  name                = "acctestruletwo-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  send   = true
+  listen = true
+  manage = false
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test3" {
-	name                  = "acctestrulethree-%d"
-	namespace_name        = azurerm_eventhub_namespace.test.name
-	resource_group_name   = azurerm_resource_group.test.name
-  
-	send                  = true
-	listen                = true
-	manage                = false
+  name                = "acctestrulethree-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  send   = true
+  listen = true
+  manage = false
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

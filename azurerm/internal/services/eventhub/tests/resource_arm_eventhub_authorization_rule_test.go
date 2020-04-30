@@ -274,30 +274,30 @@ func testAzureRMEventHubAuthorizationRule_multi(data acceptance.TestData, listen
 %s
 
 resource "azurerm_eventhub_authorization_rule" "test1" {
-	name                  = "acctestruleone-%d"
-	eventhub_name         = azurerm_eventhub.test.name
-	namespace_name        = azurerm_eventhub_namespace.test.name
-	resource_group_name   = azurerm_resource_group.test.name
-	send                  = true
-	listen                = true
+  name                = "acctestruleone-%d"
+  eventhub_name       = azurerm_eventhub.test.name
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  send                = true
+  listen              = true
 }
 
 resource "azurerm_eventhub_authorization_rule" "test2" {
-	name                  = "acctestruletwo-%d"
-	eventhub_name         = azurerm_eventhub.test.name
-	namespace_name        = azurerm_eventhub_namespace.test.name
-	resource_group_name   = azurerm_resource_group.test.name
-	send                  = true
-	listen                = true
+  name                = "acctestruletwo-%d"
+  eventhub_name       = azurerm_eventhub.test.name
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  send                = true
+  listen              = true
 }
 
 resource "azurerm_eventhub_authorization_rule" "test3" {
-	name                  = "acctestrulethree-%d"
-	eventhub_name         = azurerm_eventhub.test.name
-	namespace_name        = azurerm_eventhub_namespace.test.name
-	resource_group_name   = azurerm_resource_group.test.name
-	send                  = true
-	listen                = true
+  name                = "acctestrulethree-%d"
+  eventhub_name       = azurerm_eventhub.test.name
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  send                = true
+  listen              = true
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
