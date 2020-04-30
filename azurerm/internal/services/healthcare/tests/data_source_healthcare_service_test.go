@@ -23,7 +23,7 @@ func TestAccAzureRMDataSourceHealthCareService_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "kind"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "cosmosdb_throughput"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},

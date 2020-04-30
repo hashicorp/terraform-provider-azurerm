@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -64,7 +63,7 @@ func resourceArmApiManagementIdentityProviderTwitterCreateUpdate(d *schema.Resou
 	clientID := d.Get("api_key").(string)
 	clientSecret := d.Get("api_secret_key").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apimanagement.Twitter)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

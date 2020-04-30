@@ -43,8 +43,8 @@ resource "azurerm_function_app" "example" {
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
   app_service_plan_id        = azurerm_app_service_plan.example.id
-  storage_account_name       = azurerm_storage_account.test.id
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
 ## Example Usage (in a Consumption Plan)
@@ -80,8 +80,8 @@ resource "azurerm_function_app" "example" {
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
   app_service_plan_id        = azurerm_app_service_plan.example.id
-  storage_account_name       = azurerm_storage_account.test.id
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  storage_account_name       = azurerm_storage_account.example.name
+  storage_account_access_key = azurerm_storage_account.example.primary_access_key
 }
 ```
 
@@ -166,6 +166,8 @@ The following arguments are supported:
 * `cors` - (Optional) A `cors` block as defined below.
 
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
+-> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
 ---
 

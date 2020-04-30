@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -117,7 +116,7 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 		return fmt.Errorf("Error reading location of Virtual Machine %q", virtualMachineName)
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := vmExtensionClient.Get(ctx, resourceGroup, virtualMachineName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

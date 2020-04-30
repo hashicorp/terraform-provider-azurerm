@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -107,7 +106,7 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 		subscriptionId = uuid.NewV4().String()
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {

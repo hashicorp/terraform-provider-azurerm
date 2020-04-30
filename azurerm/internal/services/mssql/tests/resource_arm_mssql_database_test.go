@@ -327,7 +327,7 @@ func TestAccAzureRMMsSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlDatabase_withBlobAuditingPolices(t *testing.T) {
+func TestAccAzureRMMsSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

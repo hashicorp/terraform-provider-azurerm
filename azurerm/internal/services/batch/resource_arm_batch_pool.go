@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch/parse"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -494,7 +493,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	vmSize := d.Get("vm_size").(string)
 	maxTasksPerNode := int32(d.Get("max_tasks_per_node").(int))
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
