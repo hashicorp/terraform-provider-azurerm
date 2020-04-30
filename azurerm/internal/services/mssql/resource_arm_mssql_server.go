@@ -71,6 +71,40 @@ func resourceArmMsSqlServer() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"azuread_administrator": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"login": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc:validation.StringIsNotEmpty,
+						},
+						"administrator_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc:validation.StringIsNotEmpty,
+						},
+
+						"object_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc:validation.StringIsNotEmpty,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc:validation.StringIsNotEmpty,
+						},
+						"azuread_only_authentication": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"connection_policy": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -129,6 +163,7 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 	client := meta.(*clients.Client).MSSQL.ServersClient
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
+	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -197,6 +232,28 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(*resp.ID)
+
+	if d.HasChange("azuread_administrator"){
+		admin := make(map[string]sql.ServerAzureADAdministrator)
+		for adminIterator,err := adminClient.ListByServerComplete(ctx,resGroup,name); adminIterator.NotDone(); err = adminIterator.NextWithContext(ctx){
+			if err!=nil{
+				return fmt.Errorf("")
+			}
+			admin[*adminIterator.Value().Name] = adminIterator.Value()
+		}
+
+		adminsToCreate := expandAzureRmMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{}))
+		for n,v := range adminsToCreate{
+			adminClient.CreateOrUpdate(ctx,resGroup,name,v)
+			if _,ok :=admin[n];ok{
+				delete(admin,n)
+			}
+		}
+		for _,v := range admin{
+			adminClient.Delete(ctx,resGroup,name)
+		}
+
+	}
 
 	connection := sql.ServerConnectionPolicy{
 		ServerConnectionPolicyProperties: &sql.ServerConnectionPolicyProperties{
@@ -327,4 +384,19 @@ func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface
 	}
 
 	return []interface{}{result}
+}
+
+func expandAzureRmMsSqlServerAdministrator(input []interface{}) *sql.ServerAzureADAdministrator {
+	if len(input) == 0 {
+		return &sql.ServerAzureADAdministrator{}
+	}
+	admin := input[0].(map[string]interface{})
+	identityType := sql.IdentityType(identity["type"].(string))
+	return &sql.ServerAzureADAdministrator{
+		AdministratorType:,
+		Login:,
+		Sid:,
+		TenantID:,
+		AzureADOnlyAuthentication:,
+	}
 }
