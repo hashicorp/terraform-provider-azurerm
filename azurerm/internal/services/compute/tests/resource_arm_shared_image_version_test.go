@@ -278,6 +278,10 @@ resource "azurerm_shared_image_version" "test" {
     name                   = azurerm_resource_group.test.location
     regional_replica_count = 1
   }
+
+  tags = {
+    "foo" = "bar"
+  }
 }
 `, template)
 }
