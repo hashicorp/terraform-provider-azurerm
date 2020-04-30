@@ -135,7 +135,7 @@ func flattenSharedImageVersions(input []compute.GalleryImageVersion, filterTags 
 	results := make([]interface{}, 0)
 
 	for _, imageVersion := range input {
-		flattenedIPAddress := flattenSharedImageVersion(imageVersion, filterTags)
+		flattenedIPAddress := flattenSharedImageVersion(imageVersion)
 		found := true
 		// Loop through our filter tags and see if they match
 		for k, v := range filterTags {
@@ -155,7 +155,7 @@ func flattenSharedImageVersions(input []compute.GalleryImageVersion, filterTags 
 	return results
 }
 
-func flattenSharedImageVersion(input compute.GalleryImageVersion, filterTags map[string]*string) map[string]interface{} {
+func flattenSharedImageVersion(input compute.GalleryImageVersion) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	output["name"] = input.Name
