@@ -150,7 +150,7 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 				stateConf := &resource.StateChangeConf{
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
-					Refresh:                   keyVaultSecretRefreshFunc(*secret),
+					Refresh:                   keyVaultChildItemRefreshFunc(*secret),
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
@@ -374,7 +374,7 @@ func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) e
 	return err
 }
 
-func keyVaultSecretRefreshFunc(secretUri string) resource.StateRefreshFunc {
+func keyVaultChildItemRefreshFunc(secretUri string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if KeyVault Secret %q is available..", secretUri)
 
