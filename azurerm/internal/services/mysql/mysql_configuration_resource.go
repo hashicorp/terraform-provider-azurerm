@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/validate"
 	"log"
 	"time"
 
@@ -43,7 +44,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateMySqlServerName,
+				ValidateFunc: validate.MysqlServerServerName,
 			},
 
 			"value": {
