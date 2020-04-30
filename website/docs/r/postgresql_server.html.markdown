@@ -79,7 +79,7 @@ The following arguments are supported:
 
 * `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore` the point in time to restore from `creation_source_server_id`. 
 
-* `ssl_enforcement_enabled` - (Optional) Specifies if SSL should be enforced on connections.
+* `ssl_enforcement_enabled` - (Optional) Specifies if SSL should be enforced on connections. Possible values are `true` and `false`.
 
 * `ssl_minimal_tls_version_enforced` - (Optional) The mimimun TLS version to support on the sever. Possible values are `TLSEnforcementDisabled`, `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLSEnforcementDisabled`.
  
