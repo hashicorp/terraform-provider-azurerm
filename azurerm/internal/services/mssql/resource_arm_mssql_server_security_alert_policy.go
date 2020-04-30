@@ -14,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// todo 3.0 - this may want to be put into the mssql_server resource now that it exists.
+
 func resourceArmMssqlServerSecurityAlertPolicy() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmMssqlServerSecurityAlertPolicyCreateUpdate,

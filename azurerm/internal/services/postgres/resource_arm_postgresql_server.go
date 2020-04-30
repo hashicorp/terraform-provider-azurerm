@@ -277,6 +277,77 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+			// computed as when not set the API returns an empty zeroed out struct
+			"security_alert_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+
+						"disabled_alerts": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
+							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Sql_Injection",
+									"Sql_Injection_Vulnerability",
+									"Access_Anomaly",
+									"Data_Exfiltration",
+									"Unsafe_Action",
+								}, false),
+							},
+						},
+
+						"email_account_admins": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+
+						"email_addresses": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								// todo email validation in code
+							},
+							Set: schema.HashString,
+						},
+
+						"retention_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"storage_account_access_key": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"storage_endpoint": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -289,6 +360,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
+	securityClient := meta.(*clients.Client).Postgres.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -339,7 +411,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 		ssl = postgresql.SslEnforcementEnumDisabled
 	}
 
-	storage := expandAzureRmPostgreSQLStorageProfile(d)
+	storage := expandPostgreSQLStorageProfile(d)
 
 	var props postgresql.BasicServerPropertiesForCreate
 	switch mode {
@@ -440,11 +512,26 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
+	if v, ok := d.GetOk("security_alert_policy"); ok {
+		alert := expandSecurityAlertPolicy(v)
+		if alert != nil {
+			future, err := securityClient.CreateOrUpdate(ctx, resourceGroup, name, *alert)
+			if err != nil {
+				return fmt.Errorf("error updataing postgres server security alert policy: %v", err)
+			}
+
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("error waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", name, resourceGroup, err)
+			}
+		}
+	}
+
 	return resourceArmPostgreSQLServerRead(d, meta)
 }
 
 func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
+	securityClient := meta.(*clients.Client).Postgres.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -478,7 +565,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			PublicNetworkAccess:        publicAccess,
 			SslEnforcement:             ssl,
-			StorageProfile:             expandAzureRmPostgreSQLStorageProfile(d),
+			StorageProfile:             expandPostgreSQLStorageProfile(d),
 			Version:                    postgresql.ServerVersion(d.Get("version").(string)),
 		},
 		Sku:  sku,
@@ -494,21 +581,26 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("retrieving PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Server %s (resource group %s) ID", id.Name, id.ResourceGroup)
-	}
+	if v, ok := d.GetOk("security_alert_policy"); ok {
+		alert := expandSecurityAlertPolicy(v)
+		if alert != nil {
+			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
+			if err != nil {
+				return fmt.Errorf("error updataing mssql server security alert policy: %v", err)
+			}
 
-	d.SetId(*read.ID)
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("error waiting for creation/update of postgrest server security alert policy (server %q, resource group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+		}
+	}
 
 	return resourceArmPostgreSQLServerRead(d, meta)
 }
 
 func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Postgres.ServersClient
+	securityClient := meta.(*clients.Client).Postgres.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -563,6 +655,19 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		// Computed
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 	}
+
+	secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
+		return fmt.Errorf("error making read request to postgres server security alert policy: %+v", err)
+	}
+
+	if !utils.ResponseWasNotFound(secResp.Response) {
+		block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, d.Get("security_alert_policy.0.storage_account_access_key").(string))
+		if err := d.Set("security_alert_policy", block); err != nil {
+			return fmt.Errorf("setting `security_alert_policy`: %+v", err)
+		}
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -627,7 +732,7 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 	}, nil
 }
 
-func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageProfile {
+func expandPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageProfile {
 	storage := postgresql.StorageProfile{}
 	if v, ok := d.GetOk("storage_profile"); ok {
 		storageprofile := v.([]interface{})[0].(map[string]interface{})
@@ -681,4 +786,77 @@ func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interfac
 	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
 
 	return []interface{}{values}
+}
+
+func expandSecurityAlertPolicy(i interface{}) *postgresql.ServerSecurityAlertPolicy {
+	slice := i.([]interface{})
+	if len(slice) == 0 {
+		return nil
+	}
+
+	block := slice[0].(map[string]interface{})
+
+	state := postgresql.ServerSecurityAlertPolicyStateEnabled
+	if !block["enabled"].(bool) {
+		state = postgresql.ServerSecurityAlertPolicyStateDisabled
+	}
+
+	props := &postgresql.SecurityAlertPolicyProperties{
+		State: state,
+	}
+
+	if v, ok := block["disabled_alerts"]; ok {
+		props.DisabledAlerts = utils.ExpandStringSlice(v.(*schema.Set).List())
+	}
+
+	if v, ok := block["email_addresses"]; ok {
+		props.EmailAddresses = utils.ExpandStringSlice(v.(*schema.Set).List())
+	}
+
+	if v, ok := block["email_account_admins"]; ok {
+		props.EmailAccountAdmins = utils.Bool(v.(bool))
+	}
+
+	if v, ok := block["retention_days"]; ok {
+		props.RetentionDays = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := block["storage_account_access_key"]; ok {
+		props.StorageAccountAccessKey = utils.String(v.(string))
+	}
+
+	if v, ok := block["storage_endpoint"]; ok {
+		props.StorageEndpoint = utils.String(v.(string))
+	}
+
+	return &postgresql.ServerSecurityAlertPolicy{
+		SecurityAlertPolicyProperties: props,
+	}
+}
+
+func flattenSecurityAlertPolicy(props *postgresql.SecurityAlertPolicyProperties, accessKey string) interface{} {
+	if props == nil {
+		return nil
+	}
+
+	block := map[string]interface{}{}
+
+	block["enabled"] = props.State == postgresql.ServerSecurityAlertPolicyStateEnabled
+
+	block["disabled_alerts"] = utils.FlattenStringSlice(props.DisabledAlerts)
+	block["disabled_alerts"] = utils.FlattenStringSlice(props.EmailAddresses)
+
+	if v := props.EmailAccountAdmins; v != nil {
+		block["email_account_admins"] = *v
+	}
+	if v := props.RetentionDays; v != nil {
+		block["retention_days"] = *v
+	}
+	if v := props.StorageEndpoint; v != nil {
+		block["storage_endpoint"] = *v
+	}
+
+	block["storage_account_access_key"] = accessKey
+
+	return []interface{}{block}
 }

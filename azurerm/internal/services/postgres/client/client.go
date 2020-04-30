@@ -6,11 +6,12 @@ import (
 )
 
 type Client struct {
-	ConfigurationsClient      *postgresql.ConfigurationsClient
-	DatabasesClient           *postgresql.DatabasesClient
-	FirewallRulesClient       *postgresql.FirewallRulesClient
-	ServersClient             *postgresql.ServersClient
-	VirtualNetworkRulesClient *postgresql.VirtualNetworkRulesClient
+	ConfigurationsClient              *postgresql.ConfigurationsClient
+	DatabasesClient                   *postgresql.DatabasesClient
+	FirewallRulesClient               *postgresql.FirewallRulesClient
+	ServersClient                     *postgresql.ServersClient
+	ServerSecurityAlertPoliciesClient *postgresql.ServerSecurityAlertPoliciesClient
+	VirtualNetworkRulesClient         *postgresql.VirtualNetworkRulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -26,14 +27,18 @@ func NewClient(o *common.ClientOptions) *Client {
 	serversClient := postgresql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serversClient.Client, o.ResourceManagerAuthorizer)
 
+	serverSecurityAlertPoliciesClient := postgresql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	virtualNetworkRulesClient := postgresql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&virtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ConfigurationsClient:      &configurationsClient,
-		DatabasesClient:           &databasesClient,
-		FirewallRulesClient:       &firewallRulesClient,
-		ServersClient:             &serversClient,
-		VirtualNetworkRulesClient: &virtualNetworkRulesClient,
+		ConfigurationsClient:              &configurationsClient,
+		DatabasesClient:                   &databasesClient,
+		FirewallRulesClient:               &firewallRulesClient,
+		ServersClient:                     &serversClient,
+		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
+		VirtualNetworkRulesClient:         &virtualNetworkRulesClient,
 	}
 }
