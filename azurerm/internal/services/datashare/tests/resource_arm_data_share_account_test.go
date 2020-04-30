@@ -68,6 +68,36 @@ func TestAccAzureRMDataShareAccount_complete(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMDataShareAccount_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_share_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataShareAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataShareAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDataShareAccount_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+				),
+			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMDataShareAccount_update(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -76,6 +106,15 @@ func TestAccAzureRMDataShareAccount_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
 				),
 			},
+			{
+				Config: testAccAzureRMDataShareAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataShareAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.principal_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "identity.0.tenant_id"),
+				),
+			},
+			data.ImportStep(),
 			data.ImportStep(),
 		},
 	})
@@ -144,7 +183,7 @@ func testAccAzureRMDataShareAccount_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_data_share_account" "test" {
-  name                = "acctest-dsa-%d"
+  name                = "acctest-DSA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   identity {
@@ -176,7 +215,7 @@ func testAccAzureRMDataShareAccount_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_data_share_account" "test" {
-  name                = "acctest-dsa-%d"
+  name                = "acctest-DSA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   identity {
@@ -196,7 +235,7 @@ func testAccAzureRMDataShareAccount_update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_data_share_account" "test" {
-  name                = "acctest-dsa-%d"
+  name                = "acctest-DSA-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   identity {

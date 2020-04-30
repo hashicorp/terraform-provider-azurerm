@@ -41,7 +41,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Share Account.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - An `identity` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Data Share Account.
 

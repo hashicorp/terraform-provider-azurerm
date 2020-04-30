@@ -76,7 +76,7 @@ func dataSourceArmDataShareAccountRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading DataShare Account %q (Resource Group %q): ID is empty", name, resourceGroup)
+		return fmt.Errorf("reading DataShare Account %q (Resource Group %q): ID is empty or nil", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

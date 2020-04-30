@@ -77,14 +77,8 @@ func resourceArmDataShareAccount() *schema.Resource {
 			},
 
 			// the api will save and return the tag keys in lowercase, so an extra validation of the key is all in lowercase is added
-			"tags": {
-				Type:         schema.TypeMap,
-				Optional:     true,
-				ValidateFunc: validate.DatashareTags,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+			// issue has been created https://github.com/Azure/azure-rest-api-specs/issues/9280
+			"tags": tags.SchemaEnforceLowerCaseKeys(),
 		},
 	}
 }
@@ -128,7 +122,7 @@ func resourceArmDataShareAccountCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading DataShare Account %q (Resource Group %q): ID is empty", name, resourceGroup)
+		return fmt.Errorf("reading DataShare Account %q (Resource Group %q): ID is empty or nil", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

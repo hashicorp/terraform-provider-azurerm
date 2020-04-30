@@ -40,3 +40,15 @@ func Schema() *schema.Schema {
 		},
 	}
 }
+
+// Schema returns the Schema used for Tags
+func SchemaEnforceLowerCaseKeys() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeMap,
+		Optional:     true,
+		ValidateFunc: EnforceLowerCaseKeys,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+	}
+}

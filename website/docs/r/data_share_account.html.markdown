@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Data Share Account should exist. Changing this forces a new Data Share Account to be created.
 
-* `identity` - (Required) A `identity` block as defined below.
+* `identity` - (Required) An `identity` block as defined below.
 
 ---
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+An `identity` block supports the following:
 
 * `type` - (Required) Specifies the identity type of the Data Share Account. At this time the only allowed value is `SystemAssigned`.
 
