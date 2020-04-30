@@ -31,6 +31,8 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the Resource Group in which the Shared Image Gallery exists.
 
+* `tags_filter` - A mapping of tags to filter the list of images against.
+
 ## Attributes Reference
 
 The following attributes are exported:

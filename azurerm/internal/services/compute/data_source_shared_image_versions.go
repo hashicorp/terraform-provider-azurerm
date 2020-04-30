@@ -38,6 +38,8 @@ func dataSourceArmSharedImageVersions() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
+			"tags_filter": tags.Schema(),
+
 			"images": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -99,6 +101,7 @@ func dataSourceArmSharedImageVersionsRead(d *schema.ResourceData, meta interface
 	imageName := d.Get("image_name").(string)
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	filterTags := tags.Expand(d.Get("tags_filter").(map[string]interface{}))
 
 	resp, err := client.ListByGalleryImage(ctx, resourceGroup, galleryName, imageName)
 	if err != nil {
@@ -110,31 +113,49 @@ func dataSourceArmSharedImageVersionsRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("retrieving Shared Image Versions (Image %q / Gallery %q / Resource Group %q): %+v", imageName, galleryName, resourceGroup, err)
 	}
 
+	images := flattenSharedImageVersions(resp.Values(), filterTags)
+	if len(images) == 0 {
+		return fmt.Errorf("unable to find any images")
+	}
+
 	d.SetId(time.Now().UTC().String())
 
 	d.Set("image_name", imageName)
 	d.Set("gallery_name", galleryName)
 	d.Set("resource_group_name", resourceGroup)
 
-	if err := d.Set("images", flattenSharedImageVersions(resp.Values())); err != nil {
+	if err := d.Set("images", images); err != nil {
 		return fmt.Errorf("setting `images`: %+v", err)
 	}
 
 	return nil
 }
 
-func flattenSharedImageVersions(input []compute.GalleryImageVersion) []interface{} {
+func flattenSharedImageVersions(input []compute.GalleryImageVersion, filterTags map[string]*string) []interface{} {
 	results := make([]interface{}, 0)
 
 	for _, imageVersion := range input {
-		flattenedIPAddress := flattenSharedImageVersion(imageVersion)
-		results = append(results, flattenedIPAddress)
+		flattenedIPAddress := flattenSharedImageVersion(imageVersion, filterTags)
+		found := true
+		// Loop through our filter tags and see if they match
+		for k, v := range filterTags {
+			if v != nil {
+				// If the tags don't match, return false
+				if imageVersion.Tags[k] == nil || *v != *imageVersion.Tags[k] {
+					found = false
+				}
+			}
+		}
+
+		if found {
+			results = append(results, flattenedIPAddress)
+		}
 	}
 
 	return results
 }
 
-func flattenSharedImageVersion(input compute.GalleryImageVersion) map[string]interface{} {
+func flattenSharedImageVersion(input compute.GalleryImageVersion, filterTags map[string]*string) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	output["name"] = input.Name
@@ -154,8 +175,9 @@ func flattenSharedImageVersion(input compute.GalleryImageVersion) map[string]int
 				output["managed_image_id"] = source.ID
 			}
 		}
-		output["tags"] = tags.Flatten(input.Tags)
 	}
+
+	output["tags"] = tags.Flatten(input.Tags)
 
 	return output
 }
