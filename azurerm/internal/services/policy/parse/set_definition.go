@@ -13,7 +13,7 @@ type PolicySetDefinitionId struct {
 // TODO: This parsing function is currently suppressing case difference due to github issue: https://github.com/Azure/azure-rest-api-specs/issues/8353
 func PolicySetDefinitionID(input string) (*PolicySetDefinitionId, error) {
 	// in general, the id of a set definition should be (for custom policy set definition):
-	// {scope}/providers/Microsoft.Authorization/policySetDefinitions/set1
+	// {scope}/providers/Microsoft.Authorization/policySetDefinitions/{name}
 	// and for built-in policy-set-definition
 	// /providers/Microsoft.Authorization/policySetDefinitions/{name}
 	regex := regexp.MustCompile(`/providers/[Mm]icrosoft\.[Aa]uthorization/policy[Ss]et[Dd]efinitions/`)
