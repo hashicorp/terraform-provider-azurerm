@@ -222,8 +222,6 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.KeyAttributes.Expires = &expirationUnixTime
 	}
 
-	recovered := false
-
 	if resp, err := client.CreateKey(ctx, keyVaultBaseUri, name, parameters); err != nil {
 		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
 			recoveredKey, err := client.RecoverDeletedKey(ctx, keyVaultBaseUri, name)
@@ -247,23 +245,18 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 				}
 				log.Printf("[DEBUG] Key %q recovered with ID: %q", name, *kid)
 			}
-
-			recovered = true
-			d.SetId(*recoveredKey.Key.Kid)
 		} else {
 			return fmt.Errorf("Error Creating Key: %+v", err)
 		}
 	}
 
-	if !recovered {
-		// "" indicates the latest version
-		read, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
-		if err != nil {
-			return err
-		}
-
-		d.SetId(*read.Key.Kid)
+	// "" indicates the latest version
+	read, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
+	if err != nil {
+		return err
 	}
+
+	d.SetId(*read.Key.Kid)
 
 	return resourceArmKeyVaultKeyRead(d, meta)
 }

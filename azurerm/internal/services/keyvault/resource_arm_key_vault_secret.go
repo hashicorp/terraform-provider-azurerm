@@ -134,8 +134,6 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 		parameters.SecretAttributes.Expires = &expirationUnixTime
 	}
 
-	recovered := false
-
 	if resp, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters); err != nil {
 		// In the case that the Secret already exists in a Soft Deleted / Recoverable state we check if `recover_soft_deleted_key_vaults` is set
 		// and attempt recovery where appropriate
@@ -162,27 +160,23 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 				}
 				log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredSecret.ID)
 			}
-			recovered = true
-			d.SetId(*recoveredSecret.ID)
 		} else {
 			// If the error response was anything else, or `recover_soft_deleted_key_vaults` is `false` just return the error
 			return err
 		}
 	}
 
-	if !recovered {
-		// "" indicates the latest version
-		read, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
-		if err != nil {
-			return err
-		}
-
-		if read.ID == nil {
-			return fmt.Errorf("Cannot read KeyVault Secret '%s' (in key vault '%s')", name, keyVaultBaseUrl)
-		}
-
-		d.SetId(*read.ID)
+	// "" indicates the latest version
+	read, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
+	if err != nil {
+		return err
 	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read KeyVault Secret '%s' (in key vault '%s')", name, keyVaultBaseUrl)
+	}
+
+	d.SetId(*read.ID)
 
 	return resourceArmKeyVaultSecretRead(d, meta)
 }
