@@ -324,6 +324,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 							"priority": {
 								Type:         schema.TypeInt,
 								Optional:     true,
+								Computed:     true,
 								ValidateFunc: validation.IntAtLeast(1),
 							},
 						},
