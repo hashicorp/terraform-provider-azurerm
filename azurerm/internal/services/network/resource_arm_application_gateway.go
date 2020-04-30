@@ -401,6 +401,15 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Optional: true,
 						},
 
+						"host_names": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
+
 						"ssl_certificate_name": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -1170,19 +1179,16 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"rule_set_type": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "OWASP",
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      "OWASP",
+							ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetType,
 						},
 
 						"rule_set_version": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"2.2.9",
-								"3.0",
-								"3.1",
-							}, false),
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
 						},
 						"file_upload_limit_mb": {
 							Type:         schema.TypeInt,
@@ -1207,32 +1213,9 @@ func resourceArmApplicationGateway() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"rule_group_name": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"crs_20_protocol_violations",
-											"crs_21_protocol_anomalies",
-											"crs_23_request_limits",
-											"crs_30_http_policy",
-											"crs_35_bad_robots",
-											"crs_40_generic_attacks",
-											"crs_41_sql_injection_attacks",
-											"crs_41_xss_attacks",
-											"crs_42_tight_security",
-											"crs_45_trojans",
-											"General",
-											"REQUEST-911-METHOD-ENFORCEMENT",
-											"REQUEST-913-SCANNER-DETECTION",
-											"REQUEST-920-PROTOCOL-ENFORCEMENT",
-											"REQUEST-921-PROTOCOL-ATTACK",
-											"REQUEST-930-APPLICATION-ATTACK-LFI",
-											"REQUEST-931-APPLICATION-ATTACK-RFI",
-											"REQUEST-932-APPLICATION-ATTACK-RCE",
-											"REQUEST-933-APPLICATION-ATTACK-PHP",
-											"REQUEST-941-APPLICATION-ATTACK-XSS",
-											"REQUEST-942-APPLICATION-ATTACK-SQLI",
-											"REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION",
-										}, false),
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
 									},
 
 									"rules": {
@@ -1255,19 +1238,20 @@ func resourceArmApplicationGateway() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											"RequestHeaderNames",
-											"RequestArgNames",
-											"RequestCookieNames",
+											string(network.RequestArgNames),
+											string(network.RequestCookieNames),
+											string(network.RequestHeaderNames),
 										}, false),
 									},
 
 									"selector_match_operator": {
 										Type: schema.TypeString,
 										ValidateFunc: validation.StringInSlice([]string{
-											"Equals",
-											"StartsWith",
-											"EndsWith",
-											"Contains",
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorContains),
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorEndsWith),
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorEquals),
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorEqualsAny),
+											string(network.OwaspCrsExclusionEntrySelectorMatchOperatorStartsWith),
 										}, false),
 										Optional: true,
 									},
@@ -1373,6 +1357,11 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
 
+	httpListeners, err := expandApplicationGatewayHTTPListeners(d, gatewayID)
+	if err != nil {
+		return fmt.Errorf("fail to expand `http_listener`: %+v", err)
+	}
+
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
 		Zones:    azure.ExpandZones(d.Get("zones").([]interface{})),
@@ -1389,7 +1378,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
 			GatewayIPConfigurations:       gatewayIPConfigurations,
-			HTTPListeners:                 expandApplicationGatewayHTTPListeners(d, gatewayID),
+			HTTPListeners:                 httpListeners,
 			Probes:                        expandApplicationGatewayProbes(d),
 			RequestRoutingRules:           requestRoutingRules,
 			RedirectConfigurations:        redirectConfigurations,
@@ -2196,7 +2185,7 @@ func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPoli
 	return results
 }
 
-func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayHTTPListener {
+func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayHTTPListener, error) {
 	vs := d.Get("http_listener").([]interface{})
 	results := make([]network.ApplicationGatewayHTTPListener, 0)
 
@@ -2229,8 +2218,19 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 			},
 		}
 
-		if host := v["host_name"].(string); host != "" {
+		host := v["host_name"].(string)
+		hosts := v["host_names"].(*schema.Set).List()
+
+		if host != "" && len(hosts) > 0 {
+			return nil, fmt.Errorf("`host_name` and `host_names` cannot be specified together")
+		}
+
+		if host != "" {
 			listener.ApplicationGatewayHTTPListenerPropertiesFormat.HostName = &host
+		}
+
+		if len(hosts) > 0 {
+			listener.ApplicationGatewayHTTPListenerPropertiesFormat.Hostnames = utils.ExpandStringSlice(hosts)
 		}
 
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
@@ -2243,7 +2243,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 		results = append(results, listener)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayHTTPListener) ([]interface{}, error) {
@@ -2290,6 +2290,10 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if hostname := props.HostName; hostname != nil {
 				output["host_name"] = *hostname
+			}
+
+			if hostnames := props.Hostnames; hostnames != nil {
+				output["host_names"] = utils.FlattenStringSlice(hostnames)
 			}
 
 			output["protocol"] = string(props.Protocol)

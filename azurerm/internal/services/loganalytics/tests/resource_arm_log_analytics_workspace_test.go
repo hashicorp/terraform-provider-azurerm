@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/parse"
 )
 
 func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
@@ -123,10 +124,12 @@ func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.LogAnalyticsWorkspaceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 
 		if err != nil {
 			return nil
@@ -151,19 +154,18 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: '%s'", name)
+		id, err := parse.LogAnalyticsWorkspaceID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on Log Analytics Workspace Client: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Log Analytics Workspace '%s' (resource group: '%s') does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Log Analytics Workspace '%s' (resource group: '%s') does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil

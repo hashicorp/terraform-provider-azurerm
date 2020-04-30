@@ -32,7 +32,7 @@ github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces
 github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
 github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub
-github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor
+github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis
 github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral
@@ -68,6 +68,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/201
 github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security
+github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2017-08-01-preview/securityinsight
 github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql

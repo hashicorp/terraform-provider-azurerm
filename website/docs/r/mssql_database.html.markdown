@@ -22,6 +22,14 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
+resource "azurerm_storage_account" "example" {
+  name                     = "examplesa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_sql_server" "example" {
   name                         = "example-sqlserver"
   resource_group_name          = azurerm_resource_group.example.name
@@ -39,6 +47,14 @@ resource "azurerm_mssql_database" "test" {
   read_scale     = true
   sku_name       = "BC_Gen5_2"
   zone_redundant = true
+
+  extended_auditing_policy {
+    storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
+    storage_account_access_key              = azurerm_storage_account.example.primary_access_key
+    storage_account_access_key_is_secondary = true
+    retention_in_days                       = 6
+  }
+
 
   tags = {
     foo = "bar"
@@ -67,6 +83,8 @@ The following arguments are supported:
 
 * `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database. Changing this forces a new resource to be created.
 
+* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
+
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `max_size_gb` - (Optional) The max size of the database in gigabytes. 
@@ -91,6 +109,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+---
 a `threat_detection_policy` block supports the following:
 
 * `state` - (Required) The State of the Policy. Possible values are `Enabled`, `Disabled` or `New`.
@@ -102,6 +121,14 @@ a `threat_detection_policy` block supports the following:
 * `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
 * `use_server_default` - (Optional) Should the default server policy be used? Defaults to `Disabled`.
 
+---
+
+A `extended_auditing_policy` block supports the following:
+
+* `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
+* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
+* `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
+* `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.
 
 ## Attributes Reference
 

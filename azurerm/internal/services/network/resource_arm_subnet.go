@@ -54,7 +54,22 @@ func resourceArmSubnet() *schema.Resource {
 
 			"address_prefix": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
+				// TODO Remove this in the next major version release
+				Deprecated:   "Use the `address_prefixes` property instead.",
+				ExactlyOneOf: []string{"address_prefix", "address_prefixes"},
+			},
+
+			"address_prefixes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				ExactlyOneOf: []string{"address_prefix", "address_prefixes"},
 			},
 
 			"service_endpoints": {
@@ -162,24 +177,35 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	addressPrefix := d.Get("address_prefix").(string)
-
 	locks.ByName(vnetName, VirtualNetworkResourceName)
 	defer locks.UnlockByName(vnetName, VirtualNetworkResourceName)
 
+	properties := network.SubnetPropertiesFormat{}
+	if value, ok := d.GetOk("address_prefixes"); ok {
+		var addressPrefixes []string
+		for _, item := range value.([]interface{}) {
+			addressPrefixes = append(addressPrefixes, item.(string))
+		}
+		properties.AddressPrefixes = &addressPrefixes
+	}
+	if value, ok := d.GetOk("address_prefix"); ok {
+		addressPrefix := value.(string)
+		properties.AddressPrefix = &addressPrefix
+	}
+	if properties.AddressPrefixes != nil && len(*properties.AddressPrefixes) == 1 {
+		properties.AddressPrefix = &(*properties.AddressPrefixes)[0]
+		properties.AddressPrefixes = nil
+	}
+
+	// To enable private endpoints you must disable the network policies for the subnet because
+	// Network policies like network security groups are not supported by private endpoints.
 	privateEndpointNetworkPolicies := d.Get("enforce_private_link_endpoint_network_policies").(bool)
 	privateLinkServiceNetworkPolicies := d.Get("enforce_private_link_service_network_policies").(bool)
+	properties.PrivateEndpointNetworkPolicies = expandSubnetPrivateLinkNetworkPolicy(privateEndpointNetworkPolicies)
+	properties.PrivateLinkServiceNetworkPolicies = expandSubnetPrivateLinkNetworkPolicy(privateLinkServiceNetworkPolicies)
 
 	serviceEndpointsRaw := d.Get("service_endpoints").([]interface{})
-	properties := network.SubnetPropertiesFormat{
-		AddressPrefix:    &addressPrefix,
-		ServiceEndpoints: expandSubnetServiceEndpoints(serviceEndpointsRaw),
-
-		// To enable private endpoints you must disable the network policies for the subnet because
-		// Network policies like network security groups are not supported by private endpoints.
-		PrivateEndpointNetworkPolicies:    expandSubnetPrivateLinkNetworkPolicy(privateEndpointNetworkPolicies),
-		PrivateLinkServiceNetworkPolicies: expandSubnetPrivateLinkNetworkPolicy(privateLinkServiceNetworkPolicies),
-	}
+	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
 	delegationsRaw := d.Get("delegation").([]interface{})
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
@@ -239,6 +265,15 @@ func resourceArmSubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.HasChange("address_prefix") {
 		props.AddressPrefix = utils.String(d.Get("address_prefix").(string))
+	}
+
+	if d.HasChange("address_prefixes") {
+		addressPrefixesRaw := d.Get("address_prefixes").([]interface{})
+		props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
+		if props.AddressPrefixes != nil && len(*props.AddressPrefixes) == 1 {
+			props.AddressPrefix = &(*props.AddressPrefixes)[0]
+			props.AddressPrefixes = nil
+		}
 	}
 
 	if d.HasChange("delegation") {
@@ -307,6 +342,15 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
+		if props.AddressPrefixes == nil {
+			if props.AddressPrefix != nil && len(*props.AddressPrefix) > 0 {
+				d.Set("address_prefixes", []string{*props.AddressPrefix})
+			} else {
+				d.Set("address_prefixes", []string{})
+			}
+		} else {
+			d.Set("address_prefixes", props.AddressPrefixes)
+		}
 
 		delegation := flattenSubnetDelegation(props.Delegations)
 		if err := d.Set("delegation", delegation); err != nil {
