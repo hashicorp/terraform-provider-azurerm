@@ -10,7 +10,7 @@ description: |-
 
 Manages a Data Lake Gen2 File System within an Azure Storage Account.
 
-~> **NOTE:** This Resource requires using Azure Active Directory to connect to Azure Storage, which in turn requires the `Storage` specific roles - which are not granted by default.
+~> **NOTE:** This Resource requires using Azure Active Directory to connect to Azure Storage, which in turn requires the `Storage` specific roles (such as `Storage Blob Data Contributor` role) - which are not granted by default.
 
 ## Example Usage
 
