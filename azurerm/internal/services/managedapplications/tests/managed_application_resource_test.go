@@ -206,8 +206,10 @@ func testAccAzureRMManagedApplication_complete(data acceptance.TestData) string 
 
 resource "azurerm_marketplace_agreement" "test" {
   publisher = "cisco"
-  offer     = "meraki-vmx"
-  plan      = "meraki-vmx100"
+  product   = "meraki-vmx"
+  name      = "meraki-vmx100"
+
+  ignore_existing_agreement = true
 }
 
 resource "azurerm_managed_application" "test" {
@@ -215,11 +217,11 @@ resource "azurerm_managed_application" "test" {
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   kind                        = "MarketPlace"
-  managed_resource_group_name = "completeInfraGroup%d"
+  managed_resource_group_name = "acctestRG-mapp-%d-managed"
 
   plan {
     name      = azurerm_marketplace_agreement.test.plan
-    product   = azurerm_marketplace_agreement.test.offer
+    product   = azurerm_marketplace_agreement.test.product
     publisher = azurerm_marketplace_agreement.test.publisher
     version   = "1.0.44"
   }
@@ -240,6 +242,54 @@ resource "azurerm_managed_application" "test" {
 
   tags = {
     ENV = "Test"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMManagedApplication_hcs(data acceptance.TestData) string {
+	template := testAccAzureRMManagedApplication_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_marketplace_agreement" "test" {
+  publisher = "hashicorp-4665790"
+  product   = "hcs-production"
+  name      = "public-beta"
+
+  ignore_existing_agreement = true
+}
+
+resource "azurerm_managed_application" "test" {
+  name                        = "acctesHCSManagedApp%d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  kind                        = "MarketPlace"
+  managed_resource_group_name = "acctestRG-mapp-%d-managed"
+
+  plan {
+    name      = azurerm_marketplace_agreement.test.plan
+    product   = azurerm_marketplace_agreement.test.product
+    publisher = azurerm_marketplace_agreement.test.publisher
+    version   = "1.0.44"
+  }
+
+  parameters = {
+	"initialConsulVersion" = "v1.7.2"
+    "storageAccountName" = ""
+    "blobContainerNam" = ""
+    "clus" = ""
+    "clus" = ""
+    "consulDataCent" = ""
+    "nu" = ""
+    "numServersDevelopment":" = "" 
+    "automaticUpgrade" = ""
+    "consulCo" = ""
+    "externalEndpoi" = ""
+    "snapshotInterv" = ""
+    "snapshotRetentio" = ""
+    "consulVnet" = ""
+    "providerBaseURL" = ""
   }
 }
 `, template, data.RandomInteger, data.RandomInteger)
