@@ -76,7 +76,7 @@ func resourceArmApiManagementService() *schema.Resource {
 					string(apimanagement.SkuTypeBasic),
 					string(apimanagement.SkuTypeStandard),
 					string(apimanagement.SkuTypePremium),
-				}, 1, false),
+				}, 0, false),
 			},
 
 			"identity": {
