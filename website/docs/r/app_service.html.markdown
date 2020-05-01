@@ -311,7 +311,7 @@ A `ip_restriction` block supports the following:
 
 * `name` - (Optional) The name for this IP Restriction.
 
-* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order.
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
 
 ---
 

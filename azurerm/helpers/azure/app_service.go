@@ -325,7 +325,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 								Type:         schema.TypeInt,
 								Optional:     true,
 								Computed:     true,
-								ValidateFunc: validation.IntAtLeast(1),
+								ValidateFunc: validation.IntBetween(1, 65000),
 							},
 						},
 					},
