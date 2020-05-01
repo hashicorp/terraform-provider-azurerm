@@ -385,7 +385,7 @@ func TestAccAzureRMKeyVault_purgeProtectionEnabled(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"), // API rejects false if purge protection is enabled
 				),
 			},
 			data.ImportStep(),
@@ -436,7 +436,7 @@ func TestAccAzureRMKeyVault_purgeProtectionViaUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"), // API rejects false if purge protection is enabled
 				),
 			},
 			data.ImportStep(),
@@ -1084,9 +1084,10 @@ resource "azurerm_key_vault" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
   sku_name                 = "premium"
-  purge_protection_enabled = %t
+  soft_delete_enabled      = "%t"
+  purge_protection_enabled = "%t"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled, enabled)
 }
 
 func testAccAzureRMKeyVault_softDelete(data acceptance.TestData, enabled bool) string {
