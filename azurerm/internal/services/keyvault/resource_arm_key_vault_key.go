@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -221,8 +222,32 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.KeyAttributes.Expires = &expirationUnixTime
 	}
 
-	if _, err := client.CreateKey(ctx, keyVaultBaseUri, name, parameters); err != nil {
-		return fmt.Errorf("Error Creating Key: %+v", err)
+	if resp, err := client.CreateKey(ctx, keyVaultBaseUri, name, parameters); err != nil {
+		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
+			recoveredKey, err := client.RecoverDeletedKey(ctx, keyVaultBaseUri, name)
+			if err != nil {
+				return err
+			}
+			log.Printf("[DEBUG] Recovering Key %q with ID: %q", name, *recoveredKey.Key.Kid)
+			if kid := recoveredKey.Key.Kid; kid != nil {
+				stateConf := &resource.StateChangeConf{
+					Pending:                   []string{"pending"},
+					Target:                    []string{"available"},
+					Refresh:                   keyVaultChildItemRefreshFunc(*kid),
+					Delay:                     30 * time.Second,
+					PollInterval:              10 * time.Second,
+					ContinuousTargetOccurence: 10,
+					Timeout:                   d.Timeout(schema.TimeoutCreate),
+				}
+
+				if _, err := stateConf.WaitForState(); err != nil {
+					return fmt.Errorf("Error waiting for Key Vault Secret %q to become available: %s", name, err)
+				}
+				log.Printf("[DEBUG] Key %q recovered with ID: %q", name, *kid)
+			}
+		} else {
+			return fmt.Errorf("Error Creating Key: %+v", err)
+		}
 	}
 
 	// "" indicates the latest version
