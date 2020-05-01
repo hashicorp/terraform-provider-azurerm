@@ -1,4 +1,9 @@
 ## 2.9.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_key_vault_secret` `azurerm_key_vault_key` `azurerm_key_vault_certificate` - will now attempt to recover items in soft-deleted state if `recover_soft_deleted_key_vaults = true` [GH-6716]
+
 ## 2.8.0 (April 30, 2020)
 
 FEATURES:
