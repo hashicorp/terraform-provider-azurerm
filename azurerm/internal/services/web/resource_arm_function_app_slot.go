@@ -14,7 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
+	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -28,7 +30,7 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 		Update: resourceArmFunctionAppSlotUpdate,
 		Delete: resourceArmFunctionAppSlotDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseFunctionAppSlotID(id)
+			_, err := parse.FunctionAppSlotID(id)
 			return err
 		}),
 
@@ -53,20 +55,17 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 			"identity": azure.SchemaAppServiceIdentity(),
 
 			"function_app_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"kind": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: webValidate.AppServiceName,
 			},
 
 			"app_service_plan_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: ValidateAppServicePlanID,
 			},
 
 			"version": {
@@ -75,11 +74,18 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 				Default:  "~1",
 			},
 
-			"storage_connection_string": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				Sensitive: true,
+			"storage_account_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: storage.ValidateArmStorageAccountName,
+			},
+
+			"storage_account_access_key": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"app_settings": {
@@ -90,16 +96,27 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 				},
 			},
 
+			"daily_memory_time_quota": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"enable_builtin_logging": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"client_affinity_enabled": {
+			"https_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  false,
 			},
 
 			"os_type": {
@@ -111,21 +128,10 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 				}, false),
 			},
 
-			"https_only": {
+			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
-			},
-
-			"enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"daily_memory_time_quota": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Computed: true,
 			},
 
 			"connection_string": {
@@ -166,6 +172,11 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 			},
 
 			"default_hostname": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"kind": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -284,14 +295,17 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 
 func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Function App Slot creation.")
 
 	slot := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	functionAppName := d.Get("function_app_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.GetSlot(ctx, resourceGroup, functionAppName, slot)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -313,18 +327,22 @@ func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	appServicePlanId := d.Get("app_service_plan_id").(string)
+	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
-	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanId, meta)
+	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
 	if err != nil {
 		return err
 	}
 
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+	basicAppSettings, err := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return err
+	}
+
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for Function App Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
@@ -337,7 +355,7 @@ func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanId),
+			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
@@ -354,19 +372,18 @@ func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) 
 
 	createFuture, err := client.CreateOrUpdateSlot(ctx, resourceGroup, functionAppName, siteEnvelope, slot)
 	if err != nil {
-		return fmt.Errorf("Error creating Slot %q (Function App %q / Resource Group %q): %s", slot, functionAppName, resourceGroup, err)
+		return err
 	}
 
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for creation of Slot %q (Function App %q / Resource Group %q): %s", slot, functionAppName, resourceGroup, err)
+		return err
 	}
 
 	read, err := client.GetSlot(ctx, resourceGroup, functionAppName, slot)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Slot %q (Function App %q / Resource Group %q): %s", slot, functionAppName, resourceGroup, err)
+		return err
 	}
-
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read ID for Slot %q (Function App %q / Resource Group %q) ID", slot, functionAppName, resourceGroup)
 	}
@@ -389,10 +406,11 @@ func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseFunctionAppSlotID(d.Id())
+	id, err := parse.FunctionAppSlotID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -405,19 +423,23 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 			kind = "functionapp,linux"
 		}
 	}
-	appServicePlanId := d.Get("app_service_plan_id").(string)
+	appServicePlanID := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
 
-	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanId, meta)
-
+	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
 	if err != nil {
 		return err
 	}
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+
+	basicAppSettings, err := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return err
+	}
+
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
@@ -430,7 +452,7 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanId),
+			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
 			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
@@ -455,7 +477,10 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error waiting for update of Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
 
-	appSettings := expandFunctionAppAppSettings(d, appServiceTier)
+	appSettings, err := expandFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return err
+	}
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -510,7 +535,7 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseFunctionAppSlotID(d.Id())
+	id, err := parse.FunctionAppSlotID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -518,27 +543,26 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.GetSlot(ctx, id.ResourceGroup, id.FunctionAppName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Slot %q (Function App %q / Resource Group %q) were not found - removing from state!", id.Name, id.FunctionAppName, id.ResourceGroup)
+			log.Printf("[DEBUG] Function App Slot %q (Function App %q / Resource Group %q) was not found - removing from state", id.Name, id.FunctionAppName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("Error reading Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
+		return fmt.Errorf("Error makeing read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
 
 	appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, id.ResourceGroup, id.FunctionAppName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(appSettingsResp.Response) {
-			log.Printf("[DEBUG] Application Settings of Slot %q (Function App %q / Resource Group %q) were not found", id.Name, id.FunctionAppName, id.ResourceGroup)
+			log.Printf("[DEBUG] Application Settings of AzureRM Function App Slot %q (Function App %q / Resource Group %q) were not found", id.Name, id.FunctionAppName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Slot %q (Function App %q / Resource Group %q) AppSettings: %+v", id.Name, id.FunctionAppName, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) AppSettings: %+v", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
 
 	connectionStringsResp, err := client.ListConnectionStringsSlot(ctx, id.ResourceGroup, id.FunctionAppName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Slot %q (Function App %q / Resource Group %q) ConnectionStrings: %+v", id.Name, id.FunctionAppName, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) ConnectionStrings: %+v", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
 
 	siteCredFuture, err := client.ListPublishingCredentialsSlot(ctx, id.ResourceGroup, id.FunctionAppName, id.Name)
@@ -551,11 +575,11 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 	}
 	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on Slot %q (Function App %q / Resource Group %q) Site Credentials: %+v", id.Name, id.FunctionAppName, id.ResourceGroup, err)
+		return fmt.Errorf("Error making Read request on AzureRM Function App Slot %q (Function App %q / Resource Group %q) Site Credentials: %+v", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
 	authResp, err := client.GetAuthSettingsSlot(ctx, id.ResourceGroup, id.FunctionAppName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving the AuthSettings for Slot %q (Function App %q / Resource Group %q): %+v", id.Name, id.FunctionAppName, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving the AuthSettings for AzureRM Function App Slot %q (Function App %q / Resource Group %q): %+v", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -585,7 +609,25 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
-	d.Set("storage_connection_string", appSettings["AzureWebJobsStorage"])
+	connectionString := appSettings["AzureWebJobsStorage"]
+
+	// This teases out the necessary attributes from the storage connection string
+	connectionStringParts := strings.Split(connectionString, ";")
+	for _, part := range connectionStringParts {
+		if strings.HasPrefix(part, "AccountName") {
+			accountNameParts := strings.Split(part, "AccountName=")
+			if len(accountNameParts) > 1 {
+				d.Set("storage_account_name", accountNameParts[1])
+			}
+		}
+		if strings.HasPrefix(part, "AccountKey") {
+			accountKeyParts := strings.Split(part, "AccountKey=")
+			if len(accountKeyParts) > 1 {
+				d.Set("storage_account_access_key", accountKeyParts[1])
+			}
+		}
+	}
+
 	d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
 
 	dashboard, ok := appSettings["AzureWebJobsDashboard"]
@@ -637,21 +679,74 @@ func resourceArmFunctionAppSlotDelete(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseFunctionAppSlotID(d.Id())
+	id, err := parse.FunctionAppSlotID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting Slot %q (Function App %q / Resource Group %q)", id.Name, id.FunctionAppName, id.ResourceGroup)
+	log.Printf("[DEBUG] Deleting Function App Slot %q (Function App %q / Resource Group %q)", id.Name, id.FunctionAppName, id.ResourceGroup)
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
 	resp, err := client.DeleteSlot(ctx, id.ResourceGroup, id.FunctionAppName, id.Name, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
+			return err
 		}
 	}
 
 	return nil
+}
+
+func getBasicFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
+	// TODO: This is a workaround since there are no public Functions API
+	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
+	dashboardPropName := "AzureWebJobsDashboard"
+	storagePropName := "AzureWebJobsStorage"
+	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
+	contentSharePropName := "WEBSITE_CONTENTSHARE"
+	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
+
+	storageAccount := ""
+	if v, ok := d.GetOk("storage_account_name"); ok {
+		storageAccount = v.(string)
+	}
+
+	connectionString := ""
+	if v, ok := d.GetOk("storage_account_access_key"); ok {
+		connectionString = v.(string)
+	}
+
+	if storageAccount == "" && connectionString == "" {
+		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
+	}
+
+	storageConnection := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
+
+	functionVersion := d.Get("version").(string)
+	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
+
+	basicSettings := []web.NameValuePair{
+		{Name: &storagePropName, Value: &storageConnection},
+		{Name: &functionVersionPropName, Value: &functionVersion},
+	}
+
+	if d.Get("enable_builtin_logging").(bool) {
+		basicSettings = append(basicSettings, web.NameValuePair{
+			Name:  &dashboardPropName,
+			Value: &storageConnection,
+		})
+	}
+
+	consumptionSettings := []web.NameValuePair{
+		{Name: &contentSharePropName, Value: &contentShare},
+		{Name: &contentFileConnStringPropName, Value: &storageConnection},
+	}
+
+	// On consumption and premium plans include WEBSITE_CONTENT components
+	if strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") {
+		return append(basicSettings, consumptionSettings...), nil
+	}
+
+	return basicSettings, nil
 }

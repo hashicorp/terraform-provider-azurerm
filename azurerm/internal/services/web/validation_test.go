@@ -1,6 +1,10 @@
 package web
 
-import "testing"
+import (
+	"testing"
+
+	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
+)
 
 func TestAzureRMAppServicePlanName_validation(t *testing.T) {
 	cases := []struct {
@@ -74,7 +78,7 @@ func TestAzureRMAppServiceName_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := validateAppServiceName(tc.Value, "azurerm_app_service")
+		_, errors := webValidate.AppServiceName(tc.Value, "azurerm_app_service")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the App Service Name to trigger a validation error for '%s'", tc.Value)

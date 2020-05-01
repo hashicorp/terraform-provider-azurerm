@@ -76,11 +76,11 @@ The following arguments are supported:
 
 ~> **Note:**  When using an App Service Plan in the `Free` or `Shared` Tiers `use_32_bit_worker_process` must be set to `true`.
 
-* `auth_settings` - (Optional) A `auth_settings` block as defined below.
+* `auth_settings` - (Optional) An `auth_settings` block as defined below.
 
 * `enable_builtin_logging` - (Optional) Should the built-in logging of this Function App be enabled? Defaults to `true`.
 
-* `connection_string` - (Optional) An `connection_string` block as defined below.
+* `connection_string` - (Optional) A `connection_string` block as defined below.
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
@@ -158,7 +158,7 @@ An `auth_settings` block supports the following:
 
 * `enabled` - (Required) Is Authentication enabled?
 
-* `active_directory` - (Optional) A `active_directory` block as defined below.
+* `active_directory` - (Optional) An `active_directory` block as defined below.
 
 * `additional_login_params` - (Optional) Login parameters to send to the OpenID Connect authorization endpoint when a user logs in. Each parameter must be in the form "key=value".
 

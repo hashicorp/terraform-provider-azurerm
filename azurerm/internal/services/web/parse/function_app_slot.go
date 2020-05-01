@@ -1,4 +1,4 @@
-package web
+package parse
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ type FunctionAppSlotResourceID struct {
 	Name            string
 }
 
-func ParseFunctionAppSlotID(input string) (*FunctionAppSlotResourceID, error) {
+func FunctionAppSlotID(input string) (*FunctionAppSlotResourceID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Slot ID %q: %+v", input, err)

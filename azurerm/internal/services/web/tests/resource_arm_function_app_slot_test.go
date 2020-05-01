@@ -151,6 +151,7 @@ func TestAccAzureRMFunctionAppSlot_clientAffinityEnabledUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "client_affinity_enabled", "true"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMFunctionAppSlot_clientAffinityEnabled(data, false),
 				Check: resource.ComposeTestCheckFunc(
@@ -182,6 +183,7 @@ func TestAccAzureRMFunctionAppSlot_connectionStrings(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.2442860602.type", "PostgreSQL"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMFunctionAppSlot_connectionStringsUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -714,20 +716,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
@@ -738,12 +742,13 @@ func testAccAzureRMFunctionAppSlot_requiresImport(data acceptance.TestData) stri
 %s
 
 resource "azurerm_function_app_slot" "import" {
-  name                      = azurerm_function_app_slot.test.name
-  location                  = azurerm_function_app_slot.test.location
-  resource_group_name       = azurerm_function_app_slot.test.resource_group_name
-  app_service_plan_id       = azurerm_function_app_slot.test.app_service_plan_id
-  function_app_name         = azurerm_function_app_slot.test.function_app_name
-  storage_connection_string = azurerm_function_app_slot.test.storage_connection_string
+  name                       = azurerm_function_app_slot.test.name
+  location                   = azurerm_function_app_slot.test.location
+  resource_group_name        = azurerm_function_app_slot.test.resource_group_name
+  app_service_plan_id        = azurerm_function_app_slot.test.app_service_plan_id
+  function_app_name          = azurerm_function_app_slot.test.function_app_name
+  storage_account_name       = azurerm_function_app_slot.test.name
+  storage_account_access_key = azurerm_function_app_slot.test.primary_access_key
 }
 `, template)
 }
@@ -779,20 +784,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     use_32_bit_worker_process = true
@@ -832,20 +839,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     always_on = true
@@ -885,20 +894,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   app_settings = {
     "foo" = "bar"
@@ -938,21 +949,23 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
-  client_affinity_enabled   = %t
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  client_affinity_enabled    = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, clientAffinityEnabled)
 }
@@ -988,20 +1001,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   connection_string {
     name  = "First"
@@ -1049,20 +1064,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   connection_string {
     name  = "Second"
@@ -1110,20 +1127,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     cors {
@@ -1170,20 +1189,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctest-%d-func"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   auth_settings {
     enabled                       = true
@@ -1245,21 +1266,23 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
-  enabled                   = %t
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  enabled                    = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, enabled)
 }
@@ -1295,21 +1318,23 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
-  https_only                = %t
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  https_only                 = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, httpsOnly)
 }
@@ -1345,20 +1370,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     http2_enabled = true
@@ -1398,20 +1425,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     ip_restriction {
@@ -1467,20 +1496,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     ip_restriction {
@@ -1522,20 +1553,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     ip_restriction = []
@@ -1575,20 +1608,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     ip_restriction {
@@ -1642,20 +1677,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   tags = {
     Hello = "World"
@@ -1695,20 +1732,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   tags = {
     "Hello"     = "World"
@@ -1749,20 +1788,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     websockets_enabled = true
@@ -1802,20 +1843,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   identity {
     type = "SystemAssigned"
@@ -1855,21 +1898,23 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
-  version                   = "%s"
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  version                    = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, version)
 }
@@ -1911,20 +1956,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   identity {
     type         = "UserAssigned"
@@ -1965,20 +2012,22 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-  name                      = "acctestFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test" {
-  name                      = "acctestFASlot-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  app_service_plan_id       = azurerm_app_service_plan.test.id
-  function_app_name         = azurerm_function_app.test.name
-  storage_connection_string = azurerm_storage_account.test.primary_connection_string
+  name                       = "acctestFASlot-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  function_app_name          = azurerm_function_app.test.name
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
     min_tls_version = "%s"
