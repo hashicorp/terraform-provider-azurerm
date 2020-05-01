@@ -457,7 +457,7 @@ func TestAccAzureRMKeyVault_purgeProtectionAttemptToDisable(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "purge_protection_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "soft_delete_enabled", "true"),
 				),
 			},
 			data.ImportStep(),
