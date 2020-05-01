@@ -313,7 +313,7 @@ PARAMETERS
     ]
 POLICY_DEFINITIONS
 
-    metadata = <<METADATA
+  metadata = <<METADATA
     {
         "foo": "bar"
     }
