@@ -730,6 +730,16 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 					}, false),
 				},
 
+				"create_option": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.DiskCreateOptionTypesEmpty),
+						string(compute.DiskCreateOptionTypesFromImage),
+					}, false),
+					Default: string(compute.DiskCreateOptionTypesEmpty),
+				},
+
 				"disk_encryption_set_id": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -787,9 +797,7 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.Virtua
 				StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 			},
 			WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
-
-			// AFAIK this is required to be Empty
-			CreateOption: compute.DiskCreateOptionTypesEmpty,
+			CreateOption:            compute.DiskCreateOptionTypes(raw["create_option"].(string)),
 		}
 
 		if id := raw["disk_encryption_set_id"].(string); id != "" {
@@ -838,6 +846,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 
 		output = append(output, map[string]interface{}{
 			"caching":                   string(v.Caching),
+			"create_option":             string(v.CreateOption),
 			"lun":                       lun,
 			"disk_encryption_set_id":    diskEncryptionSetId,
 			"disk_size_gb":              diskSizeGb,
