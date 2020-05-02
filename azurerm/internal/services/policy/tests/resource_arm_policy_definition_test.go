@@ -90,6 +90,24 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicyDefinition_metadata(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyDefinition_metadata(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
@@ -341,4 +359,52 @@ POLICY_RULE
 PARAMETERS
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAzureRMPolicyDefinition_metadata(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+
+  metadata = <<METADATA
+  {
+  		"foo": "bar"
+  }
+METADATA
+}
+`, data.RandomInteger, data.RandomInteger)
 }
