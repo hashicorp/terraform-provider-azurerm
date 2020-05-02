@@ -574,22 +574,22 @@ func TestAccAzureRMApplicationGateway_sslCertificate_keyvault(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationGateway_sslCertificate_EmptyPassword(t *testing.T) {
-  data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 
-  resource.ParallelTest(t, resource.TestCase{
-    PreCheck:     func() { acceptance.PreCheck(t) },
-    Providers:    acceptance.SupportedProviders,
-    CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
-    Steps: []resource.TestStep{
-      {
-        Config: testAccAzureRMApplicationGateway_sslCertificateEmptyPassword(data),
-        Check: resource.ComposeTestCheckFunc(
-          testCheckAzureRMApplicationGatewayExists(data.ResourceName),
-        ),
-      },
-      data.ImportStep(),
-    },
-  })
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_sslCertificateEmptyPassword(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
 }
 
 func TestAccAzureRMApplicationGateway_sslCertificate(t *testing.T) {
