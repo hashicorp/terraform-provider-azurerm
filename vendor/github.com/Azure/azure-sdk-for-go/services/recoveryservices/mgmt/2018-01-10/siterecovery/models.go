@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-07-10/siterecovery"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
 
 // A2ARpRecoveryPointType enumerates the values for a2a rp recovery point type.
 type A2ARpRecoveryPointType string
@@ -205,21 +205,6 @@ func PossibleHealthErrorCategoryValues() []HealthErrorCategory {
 	return []HealthErrorCategory{AgentAutoUpdate, Configuration, FabricInfrastructure, None, Replication, TestFailover, VersionExpiry}
 }
 
-// HealthErrorCustomerResolvability enumerates the values for health error customer resolvability.
-type HealthErrorCustomerResolvability string
-
-const (
-	// Allowed ...
-	Allowed HealthErrorCustomerResolvability = "Allowed"
-	// NotAllowed ...
-	NotAllowed HealthErrorCustomerResolvability = "NotAllowed"
-)
-
-// PossibleHealthErrorCustomerResolvabilityValues returns an array of possible values for the HealthErrorCustomerResolvability const type.
-func PossibleHealthErrorCustomerResolvabilityValues() []HealthErrorCustomerResolvability {
-	return []HealthErrorCustomerResolvability{Allowed, NotAllowed}
-}
-
 // HyperVReplicaAzureRpRecoveryPointType enumerates the values for hyper v replica azure rp recovery point
 // type.
 type HyperVReplicaAzureRpRecoveryPointType string
@@ -263,33 +248,17 @@ type InstanceType string
 const (
 	// InstanceTypeA2A ...
 	InstanceTypeA2A InstanceType = "A2A"
-	// InstanceTypeAddDisksProviderSpecificInput ...
-	InstanceTypeAddDisksProviderSpecificInput InstanceType = "AddDisksProviderSpecificInput"
+	// InstanceTypeApplyRecoveryPointProviderSpecificInput ...
+	InstanceTypeApplyRecoveryPointProviderSpecificInput InstanceType = "ApplyRecoveryPointProviderSpecificInput"
+	// InstanceTypeHyperVReplicaAzure ...
+	InstanceTypeHyperVReplicaAzure InstanceType = "HyperVReplicaAzure"
+	// InstanceTypeInMageAzureV2 ...
+	InstanceTypeInMageAzureV2 InstanceType = "InMageAzureV2"
 )
 
 // PossibleInstanceTypeValues returns an array of possible values for the InstanceType const type.
 func PossibleInstanceTypeValues() []InstanceType {
-	return []InstanceType{InstanceTypeA2A, InstanceTypeAddDisksProviderSpecificInput}
-}
-
-// InstanceTypeBasicApplyRecoveryPointProviderSpecificInput enumerates the values for instance type basic apply
-// recovery point provider specific input.
-type InstanceTypeBasicApplyRecoveryPointProviderSpecificInput string
-
-const (
-	// InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeA2A ...
-	InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeA2A InstanceTypeBasicApplyRecoveryPointProviderSpecificInput = "A2A"
-	// InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeApplyRecoveryPointProviderSpecificInput ...
-	InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeApplyRecoveryPointProviderSpecificInput InstanceTypeBasicApplyRecoveryPointProviderSpecificInput = "ApplyRecoveryPointProviderSpecificInput"
-	// InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeHyperVReplicaAzure ...
-	InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeHyperVReplicaAzure InstanceTypeBasicApplyRecoveryPointProviderSpecificInput = "HyperVReplicaAzure"
-	// InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeInMageAzureV2 ...
-	InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeInMageAzureV2 InstanceTypeBasicApplyRecoveryPointProviderSpecificInput = "InMageAzureV2"
-)
-
-// PossibleInstanceTypeBasicApplyRecoveryPointProviderSpecificInputValues returns an array of possible values for the InstanceTypeBasicApplyRecoveryPointProviderSpecificInput const type.
-func PossibleInstanceTypeBasicApplyRecoveryPointProviderSpecificInputValues() []InstanceTypeBasicApplyRecoveryPointProviderSpecificInput {
-	return []InstanceTypeBasicApplyRecoveryPointProviderSpecificInput{InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeA2A, InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeApplyRecoveryPointProviderSpecificInput, InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeHyperVReplicaAzure, InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeInMageAzureV2}
+	return []InstanceType{InstanceTypeA2A, InstanceTypeApplyRecoveryPointProviderSpecificInput, InstanceTypeHyperVReplicaAzure, InstanceTypeInMageAzureV2}
 }
 
 // InstanceTypeBasicConfigurationSettings enumerates the values for instance type basic configuration settings.
@@ -752,22 +721,6 @@ const (
 // PossibleInstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputValues returns an array of possible values for the InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInput const type.
 func PossibleInstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputValues() []InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInput {
 	return []InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInput{InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeA2A, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeHyperVReplicaAzure, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeHyperVReplicaAzureFailback, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeInMage, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeInMageAzureV2, InstanceTypeBasicRecoveryPlanProviderSpecificFailoverInputInstanceTypeRecoveryPlanProviderSpecificFailoverInput}
-}
-
-// InstanceTypeBasicRemoveDisksProviderSpecificInput enumerates the values for instance type basic remove disks
-// provider specific input.
-type InstanceTypeBasicRemoveDisksProviderSpecificInput string
-
-const (
-	// InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeA2A ...
-	InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeA2A InstanceTypeBasicRemoveDisksProviderSpecificInput = "A2A"
-	// InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeRemoveDisksProviderSpecificInput ...
-	InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeRemoveDisksProviderSpecificInput InstanceTypeBasicRemoveDisksProviderSpecificInput = "RemoveDisksProviderSpecificInput"
-)
-
-// PossibleInstanceTypeBasicRemoveDisksProviderSpecificInputValues returns an array of possible values for the InstanceTypeBasicRemoveDisksProviderSpecificInput const type.
-func PossibleInstanceTypeBasicRemoveDisksProviderSpecificInputValues() []InstanceTypeBasicRemoveDisksProviderSpecificInput {
-	return []InstanceTypeBasicRemoveDisksProviderSpecificInput{InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeA2A, InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeRemoveDisksProviderSpecificInput}
 }
 
 // InstanceTypeBasicReplicationProviderSpecificContainerCreationInput enumerates the values for instance type
@@ -1374,73 +1327,15 @@ func PossibleTestMigrationStateValues() []TestMigrationState {
 	return []TestMigrationState{TestMigrationStateNone, TestMigrationStateTestMigrationCleanupInProgress, TestMigrationStateTestMigrationFailed, TestMigrationStateTestMigrationInProgress, TestMigrationStateTestMigrationSucceeded}
 }
 
-// VMEncryptionType enumerates the values for vm encryption type.
-type VMEncryptionType string
-
-const (
-	// NotEncrypted ...
-	NotEncrypted VMEncryptionType = "NotEncrypted"
-	// OnePassEncrypted ...
-	OnePassEncrypted VMEncryptionType = "OnePassEncrypted"
-	// TwoPassEncrypted ...
-	TwoPassEncrypted VMEncryptionType = "TwoPassEncrypted"
-)
-
-// PossibleVMEncryptionTypeValues returns an array of possible values for the VMEncryptionType const type.
-func PossibleVMEncryptionTypeValues() []VMEncryptionType {
-	return []VMEncryptionType{NotEncrypted, OnePassEncrypted, TwoPassEncrypted}
-}
-
-// A2AAddDisksInput a2A add disk(s) input.
-type A2AAddDisksInput struct {
-	// VMDisks - The list of vm disk details.
-	VMDisks *[]A2AVMDiskInputDetails `json:"vmDisks,omitempty"`
-	// VMManagedDisks - The list of vm managed disk details.
-	VMManagedDisks *[]A2AVMManagedDiskInputDetails `json:"vmManagedDisks,omitempty"`
-	// InstanceType - Possible values include: 'InstanceTypeAddDisksProviderSpecificInput', 'InstanceTypeA2A'
-	InstanceType InstanceType `json:"instanceType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for A2AAddDisksInput.
-func (aadi A2AAddDisksInput) MarshalJSON() ([]byte, error) {
-	aadi.InstanceType = InstanceTypeA2A
-	objectMap := make(map[string]interface{})
-	if aadi.VMDisks != nil {
-		objectMap["vmDisks"] = aadi.VMDisks
-	}
-	if aadi.VMManagedDisks != nil {
-		objectMap["vmManagedDisks"] = aadi.VMManagedDisks
-	}
-	if aadi.InstanceType != "" {
-		objectMap["instanceType"] = aadi.InstanceType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsA2AAddDisksInput is the BasicAddDisksProviderSpecificInput implementation for A2AAddDisksInput.
-func (aadi A2AAddDisksInput) AsA2AAddDisksInput() (*A2AAddDisksInput, bool) {
-	return &aadi, true
-}
-
-// AsAddDisksProviderSpecificInput is the BasicAddDisksProviderSpecificInput implementation for A2AAddDisksInput.
-func (aadi A2AAddDisksInput) AsAddDisksProviderSpecificInput() (*AddDisksProviderSpecificInput, bool) {
-	return nil, false
-}
-
-// AsBasicAddDisksProviderSpecificInput is the BasicAddDisksProviderSpecificInput implementation for A2AAddDisksInput.
-func (aadi A2AAddDisksInput) AsBasicAddDisksProviderSpecificInput() (BasicAddDisksProviderSpecificInput, bool) {
-	return &aadi, true
-}
-
 // A2AApplyRecoveryPointInput applyRecoveryPoint input specific to A2A provider.
 type A2AApplyRecoveryPointInput struct {
-	// InstanceType - Possible values include: 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeApplyRecoveryPointProviderSpecificInput', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeA2A', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeInMageAzureV2'
-	InstanceType InstanceTypeBasicApplyRecoveryPointProviderSpecificInput `json:"instanceType,omitempty"`
+	// InstanceType - Possible values include: 'InstanceTypeApplyRecoveryPointProviderSpecificInput', 'InstanceTypeA2A', 'InstanceTypeHyperVReplicaAzure', 'InstanceTypeInMageAzureV2'
+	InstanceType InstanceType `json:"instanceType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for A2AApplyRecoveryPointInput.
 func (aarpi A2AApplyRecoveryPointInput) MarshalJSON() ([]byte, error) {
-	aarpi.InstanceType = InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeA2A
+	aarpi.InstanceType = InstanceTypeA2A
 	objectMap := make(map[string]interface{})
 	if aarpi.InstanceType != "" {
 		objectMap["instanceType"] = aarpi.InstanceType
@@ -1577,12 +1472,6 @@ type A2AEnableProtectionInput struct {
 	RecoveryBootDiagStorageAccountID *string `json:"recoveryBootDiagStorageAccountId,omitempty"`
 	// DiskEncryptionInfo - The recovery disk encryption information.
 	DiskEncryptionInfo *DiskEncryptionInfo `json:"diskEncryptionInfo,omitempty"`
-	// RecoveryAvailabilityZone - The recovery availability zone.
-	RecoveryAvailabilityZone *string `json:"recoveryAvailabilityZone,omitempty"`
-	// RecoveryAzureNetworkID - The recovery Azure virtual network ARM id.
-	RecoveryAzureNetworkID *string `json:"recoveryAzureNetworkId,omitempty"`
-	// RecoverySubnetName - The recovery subnet name.
-	RecoverySubnetName *string `json:"recoverySubnetName,omitempty"`
 	// InstanceType - Possible values include: 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeEnableProtectionProviderSpecificInput', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeA2A', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeInMageAzureV2', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeInMage', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeSan'
 	InstanceType InstanceTypeBasicEnableProtectionProviderSpecificInput `json:"instanceType,omitempty"`
 }
@@ -1620,15 +1509,6 @@ func (aepi A2AEnableProtectionInput) MarshalJSON() ([]byte, error) {
 	}
 	if aepi.DiskEncryptionInfo != nil {
 		objectMap["diskEncryptionInfo"] = aepi.DiskEncryptionInfo
-	}
-	if aepi.RecoveryAvailabilityZone != nil {
-		objectMap["recoveryAvailabilityZone"] = aepi.RecoveryAvailabilityZone
-	}
-	if aepi.RecoveryAzureNetworkID != nil {
-		objectMap["recoveryAzureNetworkId"] = aepi.RecoveryAzureNetworkID
-	}
-	if aepi.RecoverySubnetName != nil {
-		objectMap["recoverySubnetName"] = aepi.RecoverySubnetName
 	}
 	if aepi.InstanceType != "" {
 		objectMap["instanceType"] = aepi.InstanceType
@@ -2033,10 +1913,6 @@ type A2AProtectedDiskDetails struct {
 	DataPendingInStagingStorageAccountInMB *float64 `json:"dataPendingInStagingStorageAccountInMB,omitempty"`
 	// DataPendingAtSourceAgentInMB - The data pending at source virtual machine in MB.
 	DataPendingAtSourceAgentInMB *float64 `json:"dataPendingAtSourceAgentInMB,omitempty"`
-	// DiskState - The disk state.
-	DiskState *string `json:"diskState,omitempty"`
-	// AllowedDiskLevelOperation - The disk level operations list.
-	AllowedDiskLevelOperation *[]string `json:"allowedDiskLevelOperation,omitempty"`
 	// IsDiskEncrypted - A value indicating whether vm has encrypted os disk or not.
 	IsDiskEncrypted *bool `json:"isDiskEncrypted,omitempty"`
 	// SecretIdentifier - The secret URL / identifier (BEK).
@@ -2065,8 +1941,6 @@ type A2AProtectedManagedDiskDetails struct {
 	RecoveryReplicaDiskAccountType *string `json:"recoveryReplicaDiskAccountType,omitempty"`
 	// RecoveryTargetDiskAccountType - The target disk type after failover. Its an optional value and will be same as source disk type if not user provided.
 	RecoveryTargetDiskAccountType *string `json:"recoveryTargetDiskAccountType,omitempty"`
-	// RecoveryDiskEncryptionSetID - The recovery disk encryption set Id.
-	RecoveryDiskEncryptionSetID *string `json:"recoveryDiskEncryptionSetId,omitempty"`
 	// DiskName - The disk name.
 	DiskName *string `json:"diskName,omitempty"`
 	// DiskCapacityInBytes - The disk capacity in bytes.
@@ -2085,10 +1959,6 @@ type A2AProtectedManagedDiskDetails struct {
 	DataPendingInStagingStorageAccountInMB *float64 `json:"dataPendingInStagingStorageAccountInMB,omitempty"`
 	// DataPendingAtSourceAgentInMB - The data pending at source virtual machine in MB.
 	DataPendingAtSourceAgentInMB *float64 `json:"dataPendingAtSourceAgentInMB,omitempty"`
-	// DiskState - The disk state.
-	DiskState *string `json:"diskState,omitempty"`
-	// AllowedDiskLevelOperation - The disk level operations list.
-	AllowedDiskLevelOperation *[]string `json:"allowedDiskLevelOperation,omitempty"`
 	// IsDiskEncrypted - A value indicating whether vm has encrypted os disk or not.
 	IsDiskEncrypted *bool `json:"isDiskEncrypted,omitempty"`
 	// SecretIdentifier - The secret URL / identifier (BEK).
@@ -2163,8 +2033,6 @@ func (apcmd A2AProtectionContainerMappingDetails) AsBasicProtectionContainerMapp
 type A2ARecoveryPointDetails struct {
 	// RecoveryPointSyncType - A value indicating whether the recovery point is multi VM consistent. Possible values include: 'MultiVMSyncRecoveryPoint', 'PerVMRecoveryPoint'
 	RecoveryPointSyncType RecoveryPointSyncType `json:"recoveryPointSyncType,omitempty"`
-	// Disks - List of disk ids representing a recovery point.
-	Disks *[]string `json:"disks,omitempty"`
 	// InstanceType - Possible values include: 'InstanceTypeBasicProviderSpecificRecoveryPointDetailsInstanceTypeProviderSpecificRecoveryPointDetails', 'InstanceTypeBasicProviderSpecificRecoveryPointDetailsInstanceTypeA2A', 'InstanceTypeBasicProviderSpecificRecoveryPointDetailsInstanceTypeInMageAzureV2'
 	InstanceType InstanceTypeBasicProviderSpecificRecoveryPointDetails `json:"instanceType,omitempty"`
 }
@@ -2175,9 +2043,6 @@ func (arpd A2ARecoveryPointDetails) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if arpd.RecoveryPointSyncType != "" {
 		objectMap["recoveryPointSyncType"] = arpd.RecoveryPointSyncType
-	}
-	if arpd.Disks != nil {
-		objectMap["disks"] = arpd.Disks
 	}
 	if arpd.InstanceType != "" {
 		objectMap["instanceType"] = arpd.InstanceType
@@ -2205,55 +2070,10 @@ func (arpd A2ARecoveryPointDetails) AsBasicProviderSpecificRecoveryPointDetails(
 	return &arpd, true
 }
 
-// A2ARemoveDisksInput a2A remove disk(s) input.
-type A2ARemoveDisksInput struct {
-	// VMDisksUris - The list of vm disk vhd URIs.
-	VMDisksUris *[]string `json:"vmDisksUris,omitempty"`
-	// VMManagedDisksIds - The list of vm managed disk Ids.
-	VMManagedDisksIds *[]string `json:"vmManagedDisksIds,omitempty"`
-	// InstanceType - Possible values include: 'InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeRemoveDisksProviderSpecificInput', 'InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeA2A'
-	InstanceType InstanceTypeBasicRemoveDisksProviderSpecificInput `json:"instanceType,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for A2ARemoveDisksInput.
-func (ardi A2ARemoveDisksInput) MarshalJSON() ([]byte, error) {
-	ardi.InstanceType = InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeA2A
-	objectMap := make(map[string]interface{})
-	if ardi.VMDisksUris != nil {
-		objectMap["vmDisksUris"] = ardi.VMDisksUris
-	}
-	if ardi.VMManagedDisksIds != nil {
-		objectMap["vmManagedDisksIds"] = ardi.VMManagedDisksIds
-	}
-	if ardi.InstanceType != "" {
-		objectMap["instanceType"] = ardi.InstanceType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsA2ARemoveDisksInput is the BasicRemoveDisksProviderSpecificInput implementation for A2ARemoveDisksInput.
-func (ardi A2ARemoveDisksInput) AsA2ARemoveDisksInput() (*A2ARemoveDisksInput, bool) {
-	return &ardi, true
-}
-
-// AsRemoveDisksProviderSpecificInput is the BasicRemoveDisksProviderSpecificInput implementation for A2ARemoveDisksInput.
-func (ardi A2ARemoveDisksInput) AsRemoveDisksProviderSpecificInput() (*RemoveDisksProviderSpecificInput, bool) {
-	return nil, false
-}
-
-// AsBasicRemoveDisksProviderSpecificInput is the BasicRemoveDisksProviderSpecificInput implementation for A2ARemoveDisksInput.
-func (ardi A2ARemoveDisksInput) AsBasicRemoveDisksProviderSpecificInput() (BasicRemoveDisksProviderSpecificInput, bool) {
-	return &ardi, true
-}
-
 // A2AReplicationDetails a2A provider specific settings.
 type A2AReplicationDetails struct {
 	// FabricObjectID - The fabric specific object Id of the virtual machine.
 	FabricObjectID *string `json:"fabricObjectId,omitempty"`
-	// InitialPrimaryFabricLocation - READ-ONLY; The initial primary fabric location.
-	InitialPrimaryFabricLocation *string `json:"initialPrimaryFabricLocation,omitempty"`
-	// InitialRecoveryFabricLocation - READ-ONLY; The initial recovery fabric location.
-	InitialRecoveryFabricLocation *string `json:"initialRecoveryFabricLocation,omitempty"`
 	// MultiVMGroupID - The multi vm group Id.
 	MultiVMGroupID *string `json:"multiVmGroupId,omitempty"`
 	// MultiVMGroupName - The multi vm group name.
@@ -2264,8 +2084,6 @@ type A2AReplicationDetails struct {
 	ManagementID *string `json:"managementId,omitempty"`
 	// ProtectedDisks - The list of protected disks.
 	ProtectedDisks *[]A2AProtectedDiskDetails `json:"protectedDisks,omitempty"`
-	// UnprotectedDisks - The list of unprotected disks.
-	UnprotectedDisks *[]A2AUnprotectedDiskDetails `json:"unprotectedDisks,omitempty"`
 	// ProtectedManagedDisks - The list of protected managed disks.
 	ProtectedManagedDisks *[]A2AProtectedManagedDiskDetails `json:"protectedManagedDisks,omitempty"`
 	// RecoveryBootDiagStorageAccountID - The recovery boot diagnostic storage account Arm Id.
@@ -2316,10 +2134,6 @@ type A2AReplicationDetails struct {
 	RpoInSeconds *int64 `json:"rpoInSeconds,omitempty"`
 	// LastRpoCalculatedTime - The time (in UTC) when the last RPO value was calculated by Protection Service.
 	LastRpoCalculatedTime *date.Time `json:"lastRpoCalculatedTime,omitempty"`
-	// RecoveryAvailabilityZone - The recovery availability zone.
-	RecoveryAvailabilityZone *string `json:"recoveryAvailabilityZone,omitempty"`
-	// VMEncryptionType - READ-ONLY; The encryption type of the VM. Possible values include: 'NotEncrypted', 'OnePassEncrypted', 'TwoPassEncrypted'
-	VMEncryptionType VMEncryptionType `json:"vmEncryptionType,omitempty"`
 	// InstanceType - Possible values include: 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeReplicationProviderSpecificSettings', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeA2A', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplicaBaseReplicationDetails', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplica2012R2', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplica2012', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeInMageAzureV2', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeInMage'
 	InstanceType InstanceTypeBasicReplicationProviderSpecificSettings `json:"instanceType,omitempty"`
 }
@@ -2345,9 +2159,6 @@ func (ard A2AReplicationDetails) MarshalJSON() ([]byte, error) {
 	}
 	if ard.ProtectedDisks != nil {
 		objectMap["protectedDisks"] = ard.ProtectedDisks
-	}
-	if ard.UnprotectedDisks != nil {
-		objectMap["unprotectedDisks"] = ard.UnprotectedDisks
 	}
 	if ard.ProtectedManagedDisks != nil {
 		objectMap["protectedManagedDisks"] = ard.ProtectedManagedDisks
@@ -2423,9 +2234,6 @@ func (ard A2AReplicationDetails) MarshalJSON() ([]byte, error) {
 	}
 	if ard.LastRpoCalculatedTime != nil {
 		objectMap["lastRpoCalculatedTime"] = ard.LastRpoCalculatedTime
-	}
-	if ard.RecoveryAvailabilityZone != nil {
-		objectMap["recoveryAvailabilityZone"] = ard.RecoveryAvailabilityZone
 	}
 	if ard.InstanceType != "" {
 		objectMap["instanceType"] = ard.InstanceType
@@ -2630,12 +2438,6 @@ func (aspi A2ASwitchProtectionInput) AsBasicSwitchProtectionProviderSpecificInpu
 	return &aspi, true
 }
 
-// A2AUnprotectedDiskDetails a2A unprotected disk details.
-type A2AUnprotectedDiskDetails struct {
-	// DiskLunID - The source lun Id for the data disk.
-	DiskLunID *int32 `json:"diskLunId,omitempty"`
-}
-
 // A2AUpdateContainerMappingInput a2A update protection container mapping.
 type A2AUpdateContainerMappingInput struct {
 	// AgentAutoUpdateStatus - A value indicating whether the auto update is enabled. Possible values include: 'Disabled', 'Enabled'
@@ -2765,10 +2567,6 @@ type A2AVMManagedDiskInputDetails struct {
 	RecoveryReplicaDiskAccountType *string `json:"recoveryReplicaDiskAccountType,omitempty"`
 	// RecoveryTargetDiskAccountType - The target disk type after failover. Its an optional value and will be same as source disk type if not user provided.
 	RecoveryTargetDiskAccountType *string `json:"recoveryTargetDiskAccountType,omitempty"`
-	// RecoveryDiskEncryptionSetID - The recovery disk encryption set Id.
-	RecoveryDiskEncryptionSetID *string `json:"recoveryDiskEncryptionSetId,omitempty"`
-	// DiskEncryptionInfo - The recovery disk encryption information (for one / single pass flows).
-	DiskEncryptionInfo *DiskEncryptionInfo `json:"diskEncryptionInfo,omitempty"`
 }
 
 // A2AVMManagedDiskUpdateDetails azure VM managed disk update input details.
@@ -2779,117 +2577,6 @@ type A2AVMManagedDiskUpdateDetails struct {
 	RecoveryTargetDiskAccountType *string `json:"recoveryTargetDiskAccountType,omitempty"`
 	// RecoveryReplicaDiskAccountType - The replica disk type before failover.
 	RecoveryReplicaDiskAccountType *string `json:"recoveryReplicaDiskAccountType,omitempty"`
-	// DiskEncryptionInfo - The recovery disk encryption information (for one / single pass flows).
-	DiskEncryptionInfo *DiskEncryptionInfo `json:"diskEncryptionInfo,omitempty"`
-}
-
-// AddDisksInput input for add disk(s) operation.
-type AddDisksInput struct {
-	// Properties - Add disks input properties.
-	Properties *AddDisksInputProperties `json:"properties,omitempty"`
-}
-
-// AddDisksInputProperties add Disks input properties.
-type AddDisksInputProperties struct {
-	// ProviderSpecificDetails - The ReplicationProviderInput. For HyperVReplicaAzure provider, it will be AzureEnableProtectionInput object. For San provider, it will be SanEnableProtectionInput object. For HyperVReplicaAzure provider, it can be null.
-	ProviderSpecificDetails BasicAddDisksProviderSpecificInput `json:"providerSpecificDetails,omitempty"`
-}
-
-// UnmarshalJSON is the custom unmarshaler for AddDisksInputProperties struct.
-func (adip *AddDisksInputProperties) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "providerSpecificDetails":
-			if v != nil {
-				providerSpecificDetails, err := unmarshalBasicAddDisksProviderSpecificInput(*v)
-				if err != nil {
-					return err
-				}
-				adip.ProviderSpecificDetails = providerSpecificDetails
-			}
-		}
-	}
-
-	return nil
-}
-
-// BasicAddDisksProviderSpecificInput add Disks provider specific input.
-type BasicAddDisksProviderSpecificInput interface {
-	AsA2AAddDisksInput() (*A2AAddDisksInput, bool)
-	AsAddDisksProviderSpecificInput() (*AddDisksProviderSpecificInput, bool)
-}
-
-// AddDisksProviderSpecificInput add Disks provider specific input.
-type AddDisksProviderSpecificInput struct {
-	// InstanceType - Possible values include: 'InstanceTypeAddDisksProviderSpecificInput', 'InstanceTypeA2A'
-	InstanceType InstanceType `json:"instanceType,omitempty"`
-}
-
-func unmarshalBasicAddDisksProviderSpecificInput(body []byte) (BasicAddDisksProviderSpecificInput, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["instanceType"] {
-	case string(InstanceTypeA2A):
-		var aadi A2AAddDisksInput
-		err := json.Unmarshal(body, &aadi)
-		return aadi, err
-	default:
-		var adpsi AddDisksProviderSpecificInput
-		err := json.Unmarshal(body, &adpsi)
-		return adpsi, err
-	}
-}
-func unmarshalBasicAddDisksProviderSpecificInputArray(body []byte) ([]BasicAddDisksProviderSpecificInput, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	adpsiArray := make([]BasicAddDisksProviderSpecificInput, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		adpsi, err := unmarshalBasicAddDisksProviderSpecificInput(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		adpsiArray[index] = adpsi
-	}
-	return adpsiArray, nil
-}
-
-// MarshalJSON is the custom marshaler for AddDisksProviderSpecificInput.
-func (adpsi AddDisksProviderSpecificInput) MarshalJSON() ([]byte, error) {
-	adpsi.InstanceType = InstanceTypeAddDisksProviderSpecificInput
-	objectMap := make(map[string]interface{})
-	if adpsi.InstanceType != "" {
-		objectMap["instanceType"] = adpsi.InstanceType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsA2AAddDisksInput is the BasicAddDisksProviderSpecificInput implementation for AddDisksProviderSpecificInput.
-func (adpsi AddDisksProviderSpecificInput) AsA2AAddDisksInput() (*A2AAddDisksInput, bool) {
-	return nil, false
-}
-
-// AsAddDisksProviderSpecificInput is the BasicAddDisksProviderSpecificInput implementation for AddDisksProviderSpecificInput.
-func (adpsi AddDisksProviderSpecificInput) AsAddDisksProviderSpecificInput() (*AddDisksProviderSpecificInput, bool) {
-	return &adpsi, true
-}
-
-// AsBasicAddDisksProviderSpecificInput is the BasicAddDisksProviderSpecificInput implementation for AddDisksProviderSpecificInput.
-func (adpsi AddDisksProviderSpecificInput) AsBasicAddDisksProviderSpecificInput() (BasicAddDisksProviderSpecificInput, bool) {
-	return &adpsi, true
 }
 
 // AddRecoveryServicesProviderInput input required to add a provider.
@@ -3155,8 +2842,8 @@ type BasicApplyRecoveryPointProviderSpecificInput interface {
 
 // ApplyRecoveryPointProviderSpecificInput provider specific input for apply recovery point.
 type ApplyRecoveryPointProviderSpecificInput struct {
-	// InstanceType - Possible values include: 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeApplyRecoveryPointProviderSpecificInput', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeA2A', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeInMageAzureV2'
-	InstanceType InstanceTypeBasicApplyRecoveryPointProviderSpecificInput `json:"instanceType,omitempty"`
+	// InstanceType - Possible values include: 'InstanceTypeApplyRecoveryPointProviderSpecificInput', 'InstanceTypeA2A', 'InstanceTypeHyperVReplicaAzure', 'InstanceTypeInMageAzureV2'
+	InstanceType InstanceType `json:"instanceType,omitempty"`
 }
 
 func unmarshalBasicApplyRecoveryPointProviderSpecificInput(body []byte) (BasicApplyRecoveryPointProviderSpecificInput, error) {
@@ -3167,15 +2854,15 @@ func unmarshalBasicApplyRecoveryPointProviderSpecificInput(body []byte) (BasicAp
 	}
 
 	switch m["instanceType"] {
-	case string(InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeA2A):
+	case string(InstanceTypeA2A):
 		var aarpi A2AApplyRecoveryPointInput
 		err := json.Unmarshal(body, &aarpi)
 		return aarpi, err
-	case string(InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeHyperVReplicaAzure):
+	case string(InstanceTypeHyperVReplicaAzure):
 		var hvraarpi HyperVReplicaAzureApplyRecoveryPointInput
 		err := json.Unmarshal(body, &hvraarpi)
 		return hvraarpi, err
-	case string(InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeInMageAzureV2):
+	case string(InstanceTypeInMageAzureV2):
 		var imavarpi InMageAzureV2ApplyRecoveryPointInput
 		err := json.Unmarshal(body, &imavarpi)
 		return imavarpi, err
@@ -3206,7 +2893,7 @@ func unmarshalBasicApplyRecoveryPointProviderSpecificInputArray(body []byte) ([]
 
 // MarshalJSON is the custom marshaler for ApplyRecoveryPointProviderSpecificInput.
 func (arppsi ApplyRecoveryPointProviderSpecificInput) MarshalJSON() ([]byte, error) {
-	arppsi.InstanceType = InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeApplyRecoveryPointProviderSpecificInput
+	arppsi.InstanceType = InstanceTypeApplyRecoveryPointProviderSpecificInput
 	objectMap := make(map[string]interface{})
 	if arppsi.InstanceType != "" {
 		objectMap["instanceType"] = arppsi.InstanceType
@@ -3805,6 +3492,8 @@ func (ataunmi AzureToAzureUpdateNetworkMappingInput) AsBasicFabricSpecificUpdate
 type AzureToAzureVMSyncedConfigDetails struct {
 	// Tags - The Azure VM tags.
 	Tags map[string]*string `json:"tags"`
+	// RoleAssignments - The Azure role assignments.
+	RoleAssignments *[]RoleAssignment `json:"roleAssignments,omitempty"`
 	// InputEndpoints - The Azure VM input endpoints.
 	InputEndpoints *[]InputEndpoint `json:"inputEndpoints,omitempty"`
 }
@@ -3814,6 +3503,9 @@ func (atavscd AzureToAzureVMSyncedConfigDetails) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if atavscd.Tags != nil {
 		objectMap["tags"] = atavscd.Tags
+	}
+	if atavscd.RoleAssignments != nil {
+		objectMap["roleAssignments"] = atavscd.RoleAssignments
 	}
 	if atavscd.InputEndpoints != nil {
 		objectMap["inputEndpoints"] = atavscd.InputEndpoints
@@ -3827,8 +3519,6 @@ type AzureVMDiskDetails struct {
 	VhdType *string `json:"vhdType,omitempty"`
 	// VhdID - The VHD id.
 	VhdID *string `json:"vhdId,omitempty"`
-	// DiskID - The disk resource id.
-	DiskID *string `json:"diskId,omitempty"`
 	// VhdName - VHD name.
 	VhdName *string `json:"vhdName,omitempty"`
 	// MaxSizeMB - Max side in MB.
@@ -3839,8 +3529,6 @@ type AzureVMDiskDetails struct {
 	TargetDiskName *string `json:"targetDiskName,omitempty"`
 	// LunID - Ordinal\LunId of the disk for the Azure VM.
 	LunID *string `json:"lunId,omitempty"`
-	// DiskEncryptionSetID - The DiskEncryptionSet ARM ID.
-	DiskEncryptionSetID *string `json:"diskEncryptionSetId,omitempty"`
 }
 
 // ComputeSizeErrorDetails represents the error used to indicate why the target compute size is not
@@ -6361,10 +6049,6 @@ type HealthError struct {
 	RecoveryProviderErrorMessage *string `json:"recoveryProviderErrorMessage,omitempty"`
 	// EntityID - ID of the entity.
 	EntityID *string `json:"entityId,omitempty"`
-	// ErrorID - The health error unique id.
-	ErrorID *string `json:"errorId,omitempty"`
-	// CustomerResolvability - Value indicating whether the health error is customer resolvable. Possible values include: 'Allowed', 'NotAllowed'
-	CustomerResolvability HealthErrorCustomerResolvability `json:"customerResolvability,omitempty"`
 }
 
 // HealthErrorSummary class to define the summary of the health error details.
@@ -6556,13 +6240,13 @@ type HyperVReplicaAzureApplyRecoveryPointInput struct {
 	PrimaryKekCertificatePfx *string `json:"primaryKekCertificatePfx,omitempty"`
 	// SecondaryKekCertificatePfx - The secondary kek certificate pfx.
 	SecondaryKekCertificatePfx *string `json:"secondaryKekCertificatePfx,omitempty"`
-	// InstanceType - Possible values include: 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeApplyRecoveryPointProviderSpecificInput', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeA2A', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeInMageAzureV2'
-	InstanceType InstanceTypeBasicApplyRecoveryPointProviderSpecificInput `json:"instanceType,omitempty"`
+	// InstanceType - Possible values include: 'InstanceTypeApplyRecoveryPointProviderSpecificInput', 'InstanceTypeA2A', 'InstanceTypeHyperVReplicaAzure', 'InstanceTypeInMageAzureV2'
+	InstanceType InstanceType `json:"instanceType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for HyperVReplicaAzureApplyRecoveryPointInput.
 func (hvraarpi HyperVReplicaAzureApplyRecoveryPointInput) MarshalJSON() ([]byte, error) {
-	hvraarpi.InstanceType = InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeHyperVReplicaAzure
+	hvraarpi.InstanceType = InstanceTypeHyperVReplicaAzure
 	objectMap := make(map[string]interface{})
 	if hvraarpi.VaultLocation != nil {
 		objectMap["vaultLocation"] = hvraarpi.VaultLocation
@@ -7396,8 +7080,6 @@ type HyperVReplicaAzureUpdateReplicationProtectedItemInput struct {
 	RecoveryAzureV2ResourceGroupID *string `json:"recoveryAzureV2ResourceGroupId,omitempty"`
 	// UseManagedDisks - A value indicating whether managed disks should be used during failover.
 	UseManagedDisks *string `json:"useManagedDisks,omitempty"`
-	// DiskIDToDiskEncryptionMap - The dictionary of disk resource Id to disk encryption set ARM Id.
-	DiskIDToDiskEncryptionMap map[string]*string `json:"diskIdToDiskEncryptionMap"`
 	// InstanceType - Possible values include: 'InstanceTypeBasicUpdateReplicationProtectedItemProviderInputInstanceTypeUpdateReplicationProtectedItemProviderInput', 'InstanceTypeBasicUpdateReplicationProtectedItemProviderInputInstanceTypeA2A', 'InstanceTypeBasicUpdateReplicationProtectedItemProviderInputInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicUpdateReplicationProtectedItemProviderInputInstanceTypeInMageAzureV2'
 	InstanceType InstanceTypeBasicUpdateReplicationProtectedItemProviderInput `json:"instanceType,omitempty"`
 }
@@ -7414,9 +7096,6 @@ func (hvraurpii HyperVReplicaAzureUpdateReplicationProtectedItemInput) MarshalJS
 	}
 	if hvraurpii.UseManagedDisks != nil {
 		objectMap["useManagedDisks"] = hvraurpii.UseManagedDisks
-	}
-	if hvraurpii.DiskIDToDiskEncryptionMap != nil {
-		objectMap["diskIdToDiskEncryptionMap"] = hvraurpii.DiskIDToDiskEncryptionMap
 	}
 	if hvraurpii.InstanceType != "" {
 		objectMap["instanceType"] = hvraurpii.InstanceType
@@ -8688,13 +8367,13 @@ type InMageAgentVersionDetails struct {
 type InMageAzureV2ApplyRecoveryPointInput struct {
 	// VaultLocation - The vault location where the recovery Vm resides.
 	VaultLocation *string `json:"vaultLocation,omitempty"`
-	// InstanceType - Possible values include: 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeApplyRecoveryPointProviderSpecificInput', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeA2A', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeInMageAzureV2'
-	InstanceType InstanceTypeBasicApplyRecoveryPointProviderSpecificInput `json:"instanceType,omitempty"`
+	// InstanceType - Possible values include: 'InstanceTypeApplyRecoveryPointProviderSpecificInput', 'InstanceTypeA2A', 'InstanceTypeHyperVReplicaAzure', 'InstanceTypeInMageAzureV2'
+	InstanceType InstanceType `json:"instanceType,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for InMageAzureV2ApplyRecoveryPointInput.
 func (imavarpi InMageAzureV2ApplyRecoveryPointInput) MarshalJSON() ([]byte, error) {
-	imavarpi.InstanceType = InstanceTypeBasicApplyRecoveryPointProviderSpecificInputInstanceTypeInMageAzureV2
+	imavarpi.InstanceType = InstanceTypeInMageAzureV2
 	objectMap := make(map[string]interface{})
 	if imavarpi.VaultLocation != nil {
 		objectMap["vaultLocation"] = imavarpi.VaultLocation
@@ -8730,18 +8409,6 @@ func (imavarpi InMageAzureV2ApplyRecoveryPointInput) AsBasicApplyRecoveryPointPr
 	return &imavarpi, true
 }
 
-// InMageAzureV2DiskInputDetails disk input details.
-type InMageAzureV2DiskInputDetails struct {
-	// DiskID - The DiskId.
-	DiskID *string `json:"diskId,omitempty"`
-	// LogStorageAccountID - The LogStorageAccountId.
-	LogStorageAccountID *string `json:"logStorageAccountId,omitempty"`
-	// DiskType - The DiskType. Possible values include: 'StandardLRS', 'PremiumLRS', 'StandardSSDLRS'
-	DiskType DiskAccountType `json:"diskType,omitempty"`
-	// DiskEncryptionSetID - The DiskEncryptionSet ARM ID.
-	DiskEncryptionSetID *string `json:"diskEncryptionSetId,omitempty"`
-}
-
 // InMageAzureV2EnableProtectionInput vMware Azure specific enable protection input.
 type InMageAzureV2EnableProtectionInput struct {
 	// MasterTargetID - The Master target Id.
@@ -8757,7 +8424,7 @@ type InMageAzureV2EnableProtectionInput struct {
 	// MultiVMGroupName - The multi vm group name.
 	MultiVMGroupName *string `json:"multiVmGroupName,omitempty"`
 	// DisksToInclude - The disks to include list.
-	DisksToInclude *[]InMageAzureV2DiskInputDetails `json:"disksToInclude,omitempty"`
+	DisksToInclude *[]string `json:"disksToInclude,omitempty"`
 	// TargetAzureNetworkID - The selected target Azure network Id.
 	TargetAzureNetworkID *string `json:"targetAzureNetworkId,omitempty"`
 	// TargetAzureSubnetID - The selected target Azure subnet Id.
@@ -8772,10 +8439,8 @@ type InMageAzureV2EnableProtectionInput struct {
 	TargetAzureV1ResourceGroupID *string `json:"targetAzureV1ResourceGroupId,omitempty"`
 	// TargetAzureV2ResourceGroupID - The Id of the target resource group (for resource manager deployment) in which the failover VM is to be created.
 	TargetAzureV2ResourceGroupID *string `json:"targetAzureV2ResourceGroupId,omitempty"`
-	// DiskType - The DiskType. Possible values include: 'StandardLRS', 'PremiumLRS', 'StandardSSDLRS'
-	DiskType DiskAccountType `json:"diskType,omitempty"`
-	// DiskEncryptionSetID - The DiskEncryptionSet ARM ID.
-	DiskEncryptionSetID *string `json:"diskEncryptionSetId,omitempty"`
+	// UseManagedDisks - A value indicating whether managed disks should be used during failover.
+	UseManagedDisks *string `json:"useManagedDisks,omitempty"`
 	// InstanceType - Possible values include: 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeEnableProtectionProviderSpecificInput', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeA2A', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeInMageAzureV2', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeInMage', 'InstanceTypeBasicEnableProtectionProviderSpecificInputInstanceTypeSan'
 	InstanceType InstanceTypeBasicEnableProtectionProviderSpecificInput `json:"instanceType,omitempty"`
 }
@@ -8826,11 +8491,8 @@ func (imavepi InMageAzureV2EnableProtectionInput) MarshalJSON() ([]byte, error) 
 	if imavepi.TargetAzureV2ResourceGroupID != nil {
 		objectMap["targetAzureV2ResourceGroupId"] = imavepi.TargetAzureV2ResourceGroupID
 	}
-	if imavepi.DiskType != "" {
-		objectMap["diskType"] = imavepi.DiskType
-	}
-	if imavepi.DiskEncryptionSetID != nil {
-		objectMap["diskEncryptionSetId"] = imavepi.DiskEncryptionSetID
+	if imavepi.UseManagedDisks != nil {
+		objectMap["useManagedDisks"] = imavepi.UseManagedDisks
 	}
 	if imavepi.InstanceType != "" {
 		objectMap["instanceType"] = imavepi.InstanceType
@@ -9028,16 +8690,6 @@ func (imavfpi InMageAzureV2FailoverProviderInput) AsProviderSpecificFailoverInpu
 // AsBasicProviderSpecificFailoverInput is the BasicProviderSpecificFailoverInput implementation for InMageAzureV2FailoverProviderInput.
 func (imavfpi InMageAzureV2FailoverProviderInput) AsBasicProviderSpecificFailoverInput() (BasicProviderSpecificFailoverInput, bool) {
 	return &imavfpi, true
-}
-
-// InMageAzureV2ManagedDiskDetails inMageAzureV2 Managed disk details.
-type InMageAzureV2ManagedDiskDetails struct {
-	// DiskID - The disk id.
-	DiskID *string `json:"diskId,omitempty"`
-	// SeedManagedDiskID - Seed managed disk Id.
-	SeedManagedDiskID *string `json:"seedManagedDiskId,omitempty"`
-	// ReplicaDiskType - The replica disk type.
-	ReplicaDiskType *string `json:"replicaDiskType,omitempty"`
 }
 
 // InMageAzureV2PolicyDetails inMage Azure v2 specific protection profile details.
@@ -9402,8 +9054,6 @@ type InMageAzureV2ReplicationDetails struct {
 	ReplicaID *string `json:"replicaId,omitempty"`
 	// OsVersion - The OS Version of the protected item.
 	OsVersion *string `json:"osVersion,omitempty"`
-	// ProtectedManagedDisks - The list of protected managed disks.
-	ProtectedManagedDisks *[]InMageAzureV2ManagedDiskDetails `json:"protectedManagedDisks,omitempty"`
 	// InstanceType - Possible values include: 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeReplicationProviderSpecificSettings', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeA2A', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplicaAzure', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplicaBaseReplicationDetails', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplica2012R2', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeHyperVReplica2012', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeInMageAzureV2', 'InstanceTypeBasicReplicationProviderSpecificSettingsInstanceTypeInMage'
 	InstanceType InstanceTypeBasicReplicationProviderSpecificSettings `json:"instanceType,omitempty"`
 }
@@ -9558,9 +9208,6 @@ func (imavrd InMageAzureV2ReplicationDetails) MarshalJSON() ([]byte, error) {
 	}
 	if imavrd.OsVersion != nil {
 		objectMap["osVersion"] = imavrd.OsVersion
-	}
-	if imavrd.ProtectedManagedDisks != nil {
-		objectMap["protectedManagedDisks"] = imavrd.ProtectedManagedDisks
 	}
 	if imavrd.InstanceType != "" {
 		objectMap["instanceType"] = imavrd.InstanceType
@@ -13045,14 +12692,6 @@ type OSDiskDetails struct {
 	VhdName *string `json:"vhdName,omitempty"`
 }
 
-// OSVersionWrapper wrapper model for OSVersion to include version and service pack info.
-type OSVersionWrapper struct {
-	// Version - The version.
-	Version *string `json:"version,omitempty"`
-	// ServicePack - Service pack.
-	ServicePack *string `json:"servicePack,omitempty"`
-}
-
 // PlannedFailoverInput input definition for planned failover.
 type PlannedFailoverInput struct {
 	// Properties - Planned failover input properties
@@ -16508,115 +16147,6 @@ type RecoveryServicesProviderProperties struct {
 	ProviderVersionDetails *VersionDetails `json:"providerVersionDetails,omitempty"`
 }
 
-// RemoveDisksInput input for remove disk(s) operation.
-type RemoveDisksInput struct {
-	// Properties - Remove disk input properties.
-	Properties *RemoveDisksInputProperties `json:"properties,omitempty"`
-}
-
-// RemoveDisksInputProperties remove Disk input properties.
-type RemoveDisksInputProperties struct {
-	// ProviderSpecificDetails - The ReplicationProviderInput. For HyperVReplicaAzure provider, it will be AzureEnableProtectionInput object. For San provider, it will be SanEnableProtectionInput object. For HyperVReplicaAzure provider, it can be null.
-	ProviderSpecificDetails BasicRemoveDisksProviderSpecificInput `json:"providerSpecificDetails,omitempty"`
-}
-
-// UnmarshalJSON is the custom unmarshaler for RemoveDisksInputProperties struct.
-func (rdip *RemoveDisksInputProperties) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "providerSpecificDetails":
-			if v != nil {
-				providerSpecificDetails, err := unmarshalBasicRemoveDisksProviderSpecificInput(*v)
-				if err != nil {
-					return err
-				}
-				rdip.ProviderSpecificDetails = providerSpecificDetails
-			}
-		}
-	}
-
-	return nil
-}
-
-// BasicRemoveDisksProviderSpecificInput remove Disk provider specific input.
-type BasicRemoveDisksProviderSpecificInput interface {
-	AsA2ARemoveDisksInput() (*A2ARemoveDisksInput, bool)
-	AsRemoveDisksProviderSpecificInput() (*RemoveDisksProviderSpecificInput, bool)
-}
-
-// RemoveDisksProviderSpecificInput remove Disk provider specific input.
-type RemoveDisksProviderSpecificInput struct {
-	// InstanceType - Possible values include: 'InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeRemoveDisksProviderSpecificInput', 'InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeA2A'
-	InstanceType InstanceTypeBasicRemoveDisksProviderSpecificInput `json:"instanceType,omitempty"`
-}
-
-func unmarshalBasicRemoveDisksProviderSpecificInput(body []byte) (BasicRemoveDisksProviderSpecificInput, error) {
-	var m map[string]interface{}
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return nil, err
-	}
-
-	switch m["instanceType"] {
-	case string(InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeA2A):
-		var ardi A2ARemoveDisksInput
-		err := json.Unmarshal(body, &ardi)
-		return ardi, err
-	default:
-		var rdpsi RemoveDisksProviderSpecificInput
-		err := json.Unmarshal(body, &rdpsi)
-		return rdpsi, err
-	}
-}
-func unmarshalBasicRemoveDisksProviderSpecificInputArray(body []byte) ([]BasicRemoveDisksProviderSpecificInput, error) {
-	var rawMessages []*json.RawMessage
-	err := json.Unmarshal(body, &rawMessages)
-	if err != nil {
-		return nil, err
-	}
-
-	rdpsiArray := make([]BasicRemoveDisksProviderSpecificInput, len(rawMessages))
-
-	for index, rawMessage := range rawMessages {
-		rdpsi, err := unmarshalBasicRemoveDisksProviderSpecificInput(*rawMessage)
-		if err != nil {
-			return nil, err
-		}
-		rdpsiArray[index] = rdpsi
-	}
-	return rdpsiArray, nil
-}
-
-// MarshalJSON is the custom marshaler for RemoveDisksProviderSpecificInput.
-func (rdpsi RemoveDisksProviderSpecificInput) MarshalJSON() ([]byte, error) {
-	rdpsi.InstanceType = InstanceTypeBasicRemoveDisksProviderSpecificInputInstanceTypeRemoveDisksProviderSpecificInput
-	objectMap := make(map[string]interface{})
-	if rdpsi.InstanceType != "" {
-		objectMap["instanceType"] = rdpsi.InstanceType
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsA2ARemoveDisksInput is the BasicRemoveDisksProviderSpecificInput implementation for RemoveDisksProviderSpecificInput.
-func (rdpsi RemoveDisksProviderSpecificInput) AsA2ARemoveDisksInput() (*A2ARemoveDisksInput, bool) {
-	return nil, false
-}
-
-// AsRemoveDisksProviderSpecificInput is the BasicRemoveDisksProviderSpecificInput implementation for RemoveDisksProviderSpecificInput.
-func (rdpsi RemoveDisksProviderSpecificInput) AsRemoveDisksProviderSpecificInput() (*RemoveDisksProviderSpecificInput, bool) {
-	return &rdpsi, true
-}
-
-// AsBasicRemoveDisksProviderSpecificInput is the BasicRemoveDisksProviderSpecificInput implementation for RemoveDisksProviderSpecificInput.
-func (rdpsi RemoveDisksProviderSpecificInput) AsBasicRemoveDisksProviderSpecificInput() (BasicRemoveDisksProviderSpecificInput, bool) {
-	return &rdpsi, true
-}
-
 // RemoveProtectionContainerMappingInput container unpairing input.
 type RemoveProtectionContainerMappingInput struct {
 	// Properties - Configure protection input properties.
@@ -16639,106 +16169,6 @@ type RenewCertificateInput struct {
 type RenewCertificateInputProperties struct {
 	// RenewCertificateType - Renew certificate type.
 	RenewCertificateType *string `json:"renewCertificateType,omitempty"`
-}
-
-// ReplicationEligibilityResults replication eligibility results response model.
-type ReplicationEligibilityResults struct {
-	autorest.Response `json:"-"`
-	// Name - READ-ONLY; Gets the name of this object.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Gets the object type.
-	Type *string `json:"type,omitempty"`
-	// ID - READ-ONLY; Gets Unique ARM identifier for this object.
-	ID *string `json:"id,omitempty"`
-	// Properties - READ-ONLY; Gets properties model for replication eligibility results API.
-	Properties *ReplicationEligibilityResultsProperties `json:"properties,omitempty"`
-}
-
-// ReplicationEligibilityResultsCollection replication eligibility results collection response model.
-type ReplicationEligibilityResultsCollection struct {
-	autorest.Response `json:"-"`
-	// Value - The replication eligibility results details.
-	Value *[]ReplicationEligibilityResults `json:"value,omitempty"`
-}
-
-// ReplicationEligibilityResultsErrorInfo error model that can be exposed to the user.
-type ReplicationEligibilityResultsErrorInfo struct {
-	// Code - READ-ONLY; The error code.
-	Code *string `json:"code,omitempty"`
-	// Message - READ-ONLY; The error message.
-	Message *string `json:"message,omitempty"`
-	// PossibleCauses - READ-ONLY; The possible causes.
-	PossibleCauses *string `json:"possibleCauses,omitempty"`
-	// RecommendedAction - READ-ONLY; The recommended action.
-	RecommendedAction *string `json:"recommendedAction,omitempty"`
-	// Status - READ-ONLY; The error status.
-	Status *string `json:"status,omitempty"`
-}
-
-// ReplicationEligibilityResultsGetFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type ReplicationEligibilityResultsGetFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationEligibilityResultsGetFuture) Result(client ReplicationEligibilityResultsClient) (rer ReplicationEligibilityResults, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEligibilityResultsGetFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationEligibilityResultsGetFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rer.Response.Response, err = future.GetResult(sender); err == nil && rer.Response.Response.StatusCode != http.StatusNoContent {
-		rer, err = client.GetResponder(rer.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEligibilityResultsGetFuture", "Result", rer.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ReplicationEligibilityResultsListFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type ReplicationEligibilityResultsListFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationEligibilityResultsListFuture) Result(client ReplicationEligibilityResultsClient) (rerc ReplicationEligibilityResultsCollection, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEligibilityResultsListFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationEligibilityResultsListFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rerc.Response.Response, err = future.GetResult(sender); err == nil && rerc.Response.Response.StatusCode != http.StatusNoContent {
-		rerc, err = client.ListResponder(rerc.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationEligibilityResultsListFuture", "Result", rerc.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ReplicationEligibilityResultsProperties properties model for replication eligibility results API.
-type ReplicationEligibilityResultsProperties struct {
-	// ClientRequestID - READ-ONLY; The client request Id.
-	ClientRequestID *string `json:"clientRequestId,omitempty"`
-	// Errors - The error details.
-	Errors *[]ReplicationEligibilityResultsErrorInfo `json:"errors,omitempty"`
 }
 
 // ReplicationFabricsCheckConsistencyFuture an abstraction for monitoring and retrieving the results of a
@@ -17924,35 +17354,6 @@ func (rpip *ReplicationProtectedItemProperties) UnmarshalJSON(body []byte) error
 	return nil
 }
 
-// ReplicationProtectedItemsAddDisksFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type ReplicationProtectedItemsAddDisksFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsAddDisksFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsAddDisksFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsAddDisksFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.AddDisksResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsAddDisksFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
 // ReplicationProtectedItemsApplyRecoveryPointFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectedItemsApplyRecoveryPointFuture struct {
@@ -18115,35 +17516,6 @@ func (future *ReplicationProtectedItemsPurgeFuture) Result(client ReplicationPro
 	return
 }
 
-// ReplicationProtectedItemsRemoveDisksFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
-type ReplicationProtectedItemsRemoveDisksFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsRemoveDisksFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsRemoveDisksFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsRemoveDisksFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.RemoveDisksResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsRemoveDisksFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
 // ReplicationProtectedItemsRepairReplicationFuture an abstraction for monitoring and retrieving the
 // results of a long-running operation.
 type ReplicationProtectedItemsRepairReplicationFuture struct {
@@ -18197,35 +17569,6 @@ func (future *ReplicationProtectedItemsReprotectFuture) Result(client Replicatio
 		rpi, err = client.ReprotectResponder(rpi.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsReprotectFuture", "Result", rpi.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ReplicationProtectedItemsResolveHealthErrorsFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
-type ReplicationProtectedItemsResolveHealthErrorsFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ReplicationProtectedItemsResolveHealthErrorsFuture) Result(client ReplicationProtectedItemsClient) (rpi ReplicationProtectedItem, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsResolveHealthErrorsFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("siterecovery.ReplicationProtectedItemsResolveHealthErrorsFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if rpi.Response.Response, err = future.GetResult(sender); err == nil && rpi.Response.Response.StatusCode != http.StatusNoContent {
-		rpi, err = client.ResolveHealthErrorsResponder(rpi.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsResolveHealthErrorsFuture", "Result", rpi.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -19494,24 +18837,6 @@ func (future *ReplicationvCentersUpdateFuture) Result(client ReplicationvCenters
 	return
 }
 
-// ResolveHealthError resolve health errors input properties.
-type ResolveHealthError struct {
-	// HealthErrorID - Health error id.
-	HealthErrorID *string `json:"healthErrorId,omitempty"`
-}
-
-// ResolveHealthInput resolve health input.
-type ResolveHealthInput struct {
-	// Properties - Disable resolve health input properties.
-	Properties *ResolveHealthInputProperties `json:"properties,omitempty"`
-}
-
-// ResolveHealthInputProperties resolve health input properties.
-type ResolveHealthInputProperties struct {
-	// HealthErrors - Health errors.
-	HealthErrors *[]ResolveHealthError `json:"healthErrors,omitempty"`
-}
-
 // Resource azure resource.
 type Resource struct {
 	// ID - READ-ONLY; Resource Id
@@ -20362,45 +19687,6 @@ type Subnet struct {
 	FriendlyName *string `json:"friendlyName,omitempty"`
 	// AddressList - The list of addresses for the subnet.
 	AddressList *[]string `json:"addressList,omitempty"`
-}
-
-// SupportedOperatingSystems response object for supported operating systems API.
-type SupportedOperatingSystems struct {
-	autorest.Response `json:"-"`
-	// Properties - Properties model for supported OS API.
-	Properties *SupportedOSProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource Type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource Location
-	Location *string `json:"location,omitempty"`
-}
-
-// SupportedOSDetails supported Operating system details.
-type SupportedOSDetails struct {
-	// OsName - The name.
-	OsName *string `json:"osName,omitempty"`
-	// OsType - The type.
-	OsType *string `json:"osType,omitempty"`
-	// OsVersions - List of version for OS.
-	OsVersions *[]OSVersionWrapper `json:"osVersions,omitempty"`
-}
-
-// SupportedOSProperties properties model for supported OS API.
-type SupportedOSProperties struct {
-	// SupportedOsList - The supported OS List.
-	SupportedOsList *[]SupportedOSProperty `json:"supportedOsList,omitempty"`
-}
-
-// SupportedOSProperty property object for supported OS api.
-type SupportedOSProperty struct {
-	// InstanceType - READ-ONLY; Gets the replication provider type.
-	InstanceType *string `json:"instanceType,omitempty"`
-	// SupportedOs - List of supported OS.
-	SupportedOs *[]SupportedOSDetails `json:"supportedOs,omitempty"`
 }
 
 // SwitchProtectionInput switch protection input.
@@ -21785,185 +21071,6 @@ type VaultHealthProperties struct {
 	ContainersHealth *ResourceHealthSummary `json:"containersHealth,omitempty"`
 }
 
-// VaultSetting vault setting.
-type VaultSetting struct {
-	autorest.Response `json:"-"`
-	// Properties - The vault setting properties.
-	Properties *VaultSettingProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource Name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource Type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource Location
-	Location *string `json:"location,omitempty"`
-}
-
-// VaultSettingCollection vault setting collection.
-type VaultSettingCollection struct {
-	autorest.Response `json:"-"`
-	// Value - The list of vault setting.
-	Value *[]VaultSetting `json:"value,omitempty"`
-	// NextLink - The value of next link.
-	NextLink *string `json:"nextLink,omitempty"`
-}
-
-// VaultSettingCollectionIterator provides access to a complete listing of VaultSetting values.
-type VaultSettingCollectionIterator struct {
-	i    int
-	page VaultSettingCollectionPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *VaultSettingCollectionIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/VaultSettingCollectionIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *VaultSettingCollectionIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter VaultSettingCollectionIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter VaultSettingCollectionIterator) Response() VaultSettingCollection {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter VaultSettingCollectionIterator) Value() VaultSetting {
-	if !iter.page.NotDone() {
-		return VaultSetting{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the VaultSettingCollectionIterator type.
-func NewVaultSettingCollectionIterator(page VaultSettingCollectionPage) VaultSettingCollectionIterator {
-	return VaultSettingCollectionIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (vsc VaultSettingCollection) IsEmpty() bool {
-	return vsc.Value == nil || len(*vsc.Value) == 0
-}
-
-// vaultSettingCollectionPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (vsc VaultSettingCollection) vaultSettingCollectionPreparer(ctx context.Context) (*http.Request, error) {
-	if vsc.NextLink == nil || len(to.String(vsc.NextLink)) < 1 {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(vsc.NextLink)))
-}
-
-// VaultSettingCollectionPage contains a page of VaultSetting values.
-type VaultSettingCollectionPage struct {
-	fn  func(context.Context, VaultSettingCollection) (VaultSettingCollection, error)
-	vsc VaultSettingCollection
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *VaultSettingCollectionPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/VaultSettingCollectionPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	next, err := page.fn(ctx, page.vsc)
-	if err != nil {
-		return err
-	}
-	page.vsc = next
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *VaultSettingCollectionPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page VaultSettingCollectionPage) NotDone() bool {
-	return !page.vsc.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page VaultSettingCollectionPage) Response() VaultSettingCollection {
-	return page.vsc
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page VaultSettingCollectionPage) Values() []VaultSetting {
-	if page.vsc.IsEmpty() {
-		return nil
-	}
-	return *page.vsc.Value
-}
-
-// Creates a new instance of the VaultSettingCollectionPage type.
-func NewVaultSettingCollectionPage(getNextPage func(context.Context, VaultSettingCollection) (VaultSettingCollection, error)) VaultSettingCollectionPage {
-	return VaultSettingCollectionPage{fn: getNextPage}
-}
-
-// VaultSettingCreationInput input to create vault setting.
-type VaultSettingCreationInput struct {
-	// Properties - Vault setting creation input properties.
-	Properties *VaultSettingCreationInputProperties `json:"properties,omitempty"`
-}
-
-// VaultSettingCreationInputProperties input to create vault setting.
-type VaultSettingCreationInputProperties struct {
-	// MigrationSolutionID - The migration solution Id.
-	MigrationSolutionID *string `json:"migrationSolutionId,omitempty"`
-}
-
-// VaultSettingProperties vault setting properties.
-type VaultSettingProperties struct {
-	// MigrationSolutionID - The migration solution ARM Id.
-	MigrationSolutionID *string `json:"migrationSolutionId,omitempty"`
-}
-
 // VCenter vCenter definition.
 type VCenter struct {
 	autorest.Response `json:"-"`
@@ -22650,12 +21757,6 @@ type VMNicDetails struct {
 	SelectionType *string `json:"selectionType,omitempty"`
 	// RecoveryNicIPAddressType - IP allocation type for recovery VM.
 	RecoveryNicIPAddressType *string `json:"recoveryNicIpAddressType,omitempty"`
-	// RecoveryPublicIPAddressID - The id of the public IP address resource associated with the NIC.
-	RecoveryPublicIPAddressID *string `json:"recoveryPublicIpAddressId,omitempty"`
-	// RecoveryNetworkSecurityGroupID - The id of the NSG associated with the NIC.
-	RecoveryNetworkSecurityGroupID *string `json:"recoveryNetworkSecurityGroupId,omitempty"`
-	// RecoveryLBBackendAddressPoolIds - The target backend address pools for the NIC.
-	RecoveryLBBackendAddressPoolIds *[]string `json:"recoveryLBBackendAddressPoolIds,omitempty"`
 	// EnableAcceleratedNetworkingOnRecovery - A value indicating whether the NIC has accelerated networking enabled.
 	EnableAcceleratedNetworkingOnRecovery *bool `json:"enableAcceleratedNetworkingOnRecovery,omitempty"`
 }
@@ -22670,12 +21771,6 @@ type VMNicInputDetails struct {
 	ReplicaNicStaticIPAddress *string `json:"replicaNicStaticIPAddress,omitempty"`
 	// SelectionType - Selection type for failover.
 	SelectionType *string `json:"selectionType,omitempty"`
-	// RecoveryPublicIPAddressID - The id of the public IP address resource associated with the NIC.
-	RecoveryPublicIPAddressID *string `json:"recoveryPublicIpAddressId,omitempty"`
-	// RecoveryNetworkSecurityGroupID - The id of the NSG associated with the NIC.
-	RecoveryNetworkSecurityGroupID *string `json:"recoveryNetworkSecurityGroupId,omitempty"`
-	// RecoveryLBBackendAddressPoolIds - The target backend address pools for the NIC.
-	RecoveryLBBackendAddressPoolIds *[]string `json:"recoveryLBBackendAddressPoolIds,omitempty"`
 	// EnableAcceleratedNetworkingOnRecovery - Whether the NIC has accelerated networking enabled.
 	EnableAcceleratedNetworkingOnRecovery *bool `json:"enableAcceleratedNetworkingOnRecovery,omitempty"`
 }

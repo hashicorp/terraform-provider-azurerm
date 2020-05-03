@@ -80,7 +80,7 @@ func (client ReplicationFabricsClient) CheckConsistencyPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -157,7 +157,7 @@ func (client ReplicationFabricsClient) CreatePreparer(ctx context.Context, fabri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -235,7 +235,7 @@ func (client ReplicationFabricsClient) DeletePreparer(ctx context.Context, fabri
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -316,7 +316,7 @@ func (client ReplicationFabricsClient) GetPreparer(ctx context.Context, fabricNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -390,7 +390,7 @@ func (client ReplicationFabricsClient) ListPreparer(ctx context.Context) (*http.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -497,7 +497,7 @@ func (client ReplicationFabricsClient) MigrateToAadPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -572,7 +572,7 @@ func (client ReplicationFabricsClient) PurgePreparer(ctx context.Context, fabric
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -648,7 +648,7 @@ func (client ReplicationFabricsClient) ReassociateGatewayPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -727,7 +727,7 @@ func (client ReplicationFabricsClient) RenewCertificatePreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

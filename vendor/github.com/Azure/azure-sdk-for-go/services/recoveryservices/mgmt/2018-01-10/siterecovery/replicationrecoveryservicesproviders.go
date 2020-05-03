@@ -108,7 +108,7 @@ func (client ReplicationRecoveryServicesProvidersClient) CreatePreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -188,7 +188,7 @@ func (client ReplicationRecoveryServicesProvidersClient) DeletePreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -271,7 +271,7 @@ func (client ReplicationRecoveryServicesProvidersClient) GetPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -345,7 +345,7 @@ func (client ReplicationRecoveryServicesProvidersClient) ListPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -459,7 +459,7 @@ func (client ReplicationRecoveryServicesProvidersClient) ListByReplicationFabric
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -568,7 +568,7 @@ func (client ReplicationRecoveryServicesProvidersClient) PurgePreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -645,7 +645,7 @@ func (client ReplicationRecoveryServicesProvidersClient) RefreshProviderPreparer
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

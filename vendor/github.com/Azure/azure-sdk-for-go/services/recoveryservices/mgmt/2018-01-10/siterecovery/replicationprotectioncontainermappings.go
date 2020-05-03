@@ -87,7 +87,7 @@ func (client ReplicationProtectionContainerMappingsClient) CreatePreparer(ctx co
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -170,7 +170,7 @@ func (client ReplicationProtectionContainerMappingsClient) DeletePreparer(ctx co
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -257,7 +257,7 @@ func (client ReplicationProtectionContainerMappingsClient) GetPreparer(ctx conte
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -331,7 +331,7 @@ func (client ReplicationProtectionContainerMappingsClient) ListPreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -447,7 +447,7 @@ func (client ReplicationProtectionContainerMappingsClient) ListByReplicationProt
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -558,7 +558,7 @@ func (client ReplicationProtectionContainerMappingsClient) PurgePreparer(ctx con
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -638,7 +638,7 @@ func (client ReplicationProtectionContainerMappingsClient) UpdatePreparer(ctx co
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

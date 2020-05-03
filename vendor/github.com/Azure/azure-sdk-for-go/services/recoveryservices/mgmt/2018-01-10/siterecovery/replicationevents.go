@@ -86,7 +86,7 @@ func (client ReplicationEventsClient) GetPreparer(ctx context.Context, eventName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -162,7 +162,7 @@ func (client ReplicationEventsClient) ListPreparer(ctx context.Context, filter s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -84,7 +84,7 @@ func (client ReplicationProtectionContainersClient) CreatePreparer(ctx context.C
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -164,7 +164,7 @@ func (client ReplicationProtectionContainersClient) DeletePreparer(ctx context.C
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -242,7 +242,7 @@ func (client ReplicationProtectionContainersClient) DiscoverProtectableItemPrepa
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -328,7 +328,7 @@ func (client ReplicationProtectionContainersClient) GetPreparer(ctx context.Cont
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -402,7 +402,7 @@ func (client ReplicationProtectionContainersClient) ListPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -516,7 +516,7 @@ func (client ReplicationProtectionContainersClient) ListByReplicationFabricsPrep
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -627,7 +627,7 @@ func (client ReplicationProtectionContainersClient) SwitchProtectionPreparer(ctx
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

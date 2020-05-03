@@ -83,7 +83,7 @@ func (client ReplicationVaultHealthClient) GetPreparer(ctx context.Context) (*ht
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -150,7 +150,7 @@ func (client ReplicationVaultHealthClient) RefreshPreparer(ctx context.Context) 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

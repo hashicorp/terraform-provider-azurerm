@@ -83,7 +83,7 @@ func (client ReplicationvCentersClient) CreatePreparer(ctx context.Context, fabr
 		"vCenterName":       autorest.Encode("path", vCenterName),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -163,7 +163,7 @@ func (client ReplicationvCentersClient) DeletePreparer(ctx context.Context, fabr
 		"vCenterName":       autorest.Encode("path", vCenterName),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -246,7 +246,7 @@ func (client ReplicationvCentersClient) GetPreparer(ctx context.Context, fabricN
 		"vCenterName":       autorest.Encode("path", vCenterName),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -320,7 +320,7 @@ func (client ReplicationvCentersClient) ListPreparer(ctx context.Context) (*http
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -434,7 +434,7 @@ func (client ReplicationvCentersClient) ListByReplicationFabricsPreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -544,7 +544,7 @@ func (client ReplicationvCentersClient) UpdatePreparer(ctx context.Context, fabr
 		"vCenterName":       autorest.Encode("path", vCenterName),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -1,4 +1,4 @@
-// Package siterecovery implements the Azure ARM Siterecovery service API version 2018-07-10.
+// Package siterecovery implements the Azure ARM Siterecovery service API version 2018-01-10.
 //
 //
 package siterecovery

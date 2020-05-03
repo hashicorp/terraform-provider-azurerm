@@ -43,90 +43,6 @@ func NewReplicationProtectedItemsClientWithBaseURI(baseURI string, subscriptionI
 	return ReplicationProtectedItemsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
 
-// AddDisks operation to add disks(s) to the replication protected item.
-// Parameters:
-// fabricName - unique fabric name.
-// protectionContainerName - protection container name.
-// replicatedProtectedItemName - replication protected item name.
-// addDisksInput - add disks input.
-func (client ReplicationProtectedItemsClient) AddDisks(ctx context.Context, fabricName string, protectionContainerName string, replicatedProtectedItemName string, addDisksInput AddDisksInput) (result ReplicationProtectedItemsAddDisksFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.AddDisks")
-		defer func() {
-			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.AddDisksPreparer(ctx, fabricName, protectionContainerName, replicatedProtectedItemName, addDisksInput)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "AddDisks", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.AddDisksSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "AddDisks", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// AddDisksPreparer prepares the AddDisks request.
-func (client ReplicationProtectedItemsClient) AddDisksPreparer(ctx context.Context, fabricName string, protectionContainerName string, replicatedProtectedItemName string, addDisksInput AddDisksInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"fabricName":                  autorest.Encode("path", fabricName),
-		"protectionContainerName":     autorest.Encode("path", protectionContainerName),
-		"replicatedProtectedItemName": autorest.Encode("path", replicatedProtectedItemName),
-		"resourceGroupName":           autorest.Encode("path", client.ResourceGroupName),
-		"resourceName":                autorest.Encode("path", client.ResourceName),
-		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-07-10"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/Subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.RecoveryServices/vaults/{resourceName}/replicationFabrics/{fabricName}/replicationProtectionContainers/{protectionContainerName}/replicationProtectedItems/{replicatedProtectedItemName}/addDisks", pathParameters),
-		autorest.WithJSON(addDisksInput),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// AddDisksSender sends the AddDisks request. The method will close the
-// http.Response Body if it receives an error.
-func (client ReplicationProtectedItemsClient) AddDisksSender(req *http.Request) (future ReplicationProtectedItemsAddDisksFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// AddDisksResponder handles the response to the AddDisks request. The method always
-// closes the http.Response Body.
-func (client ReplicationProtectedItemsClient) AddDisksResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
 // ApplyRecoveryPoint the operation to change the recovery point of a failed over replication protected item.
 // Parameters:
 // fabricName - the ARM fabric name.
@@ -170,7 +86,7 @@ func (client ReplicationProtectedItemsClient) ApplyRecoveryPointPreparer(ctx con
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -253,7 +169,7 @@ func (client ReplicationProtectedItemsClient) CreatePreparer(ctx context.Context
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -336,7 +252,7 @@ func (client ReplicationProtectedItemsClient) DeletePreparer(ctx context.Context
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -417,7 +333,7 @@ func (client ReplicationProtectedItemsClient) FailoverCommitPreparer(ctx context
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -503,7 +419,7 @@ func (client ReplicationProtectedItemsClient) GetPreparer(ctx context.Context, f
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -580,7 +496,7 @@ func (client ReplicationProtectedItemsClient) ListPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -702,7 +618,7 @@ func (client ReplicationProtectedItemsClient) ListByReplicationProtectionContain
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -814,7 +730,7 @@ func (client ReplicationProtectedItemsClient) PlannedFailoverPreparer(ctx contex
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -898,7 +814,7 @@ func (client ReplicationProtectedItemsClient) PurgePreparer(ctx context.Context,
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -932,90 +848,6 @@ func (client ReplicationProtectedItemsClient) PurgeResponder(resp *http.Response
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
-	return
-}
-
-// RemoveDisks operation to remove disk(s) from the replication protected item.
-// Parameters:
-// fabricName - unique fabric name.
-// protectionContainerName - protection container name.
-// replicatedProtectedItemName - replication protected item name.
-// removeDisksInput - remove disks input.
-func (client ReplicationProtectedItemsClient) RemoveDisks(ctx context.Context, fabricName string, protectionContainerName string, replicatedProtectedItemName string, removeDisksInput RemoveDisksInput) (result ReplicationProtectedItemsRemoveDisksFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.RemoveDisks")
-		defer func() {
-			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.RemoveDisksPreparer(ctx, fabricName, protectionContainerName, replicatedProtectedItemName, removeDisksInput)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "RemoveDisks", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.RemoveDisksSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "RemoveDisks", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// RemoveDisksPreparer prepares the RemoveDisks request.
-func (client ReplicationProtectedItemsClient) RemoveDisksPreparer(ctx context.Context, fabricName string, protectionContainerName string, replicatedProtectedItemName string, removeDisksInput RemoveDisksInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"fabricName":                  autorest.Encode("path", fabricName),
-		"protectionContainerName":     autorest.Encode("path", protectionContainerName),
-		"replicatedProtectedItemName": autorest.Encode("path", replicatedProtectedItemName),
-		"resourceGroupName":           autorest.Encode("path", client.ResourceGroupName),
-		"resourceName":                autorest.Encode("path", client.ResourceName),
-		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-07-10"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/Subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.RecoveryServices/vaults/{resourceName}/replicationFabrics/{fabricName}/replicationProtectionContainers/{protectionContainerName}/replicationProtectedItems/{replicatedProtectedItemName}/removeDisks", pathParameters),
-		autorest.WithJSON(removeDisksInput),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// RemoveDisksSender sends the RemoveDisks request. The method will close the
-// http.Response Body if it receives an error.
-func (client ReplicationProtectedItemsClient) RemoveDisksSender(req *http.Request) (future ReplicationProtectedItemsRemoveDisksFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// RemoveDisksResponder handles the response to the RemoveDisks request. The method always
-// closes the http.Response Body.
-func (client ReplicationProtectedItemsClient) RemoveDisksResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -1062,7 +894,7 @@ func (client ReplicationProtectedItemsClient) RepairReplicationPreparer(ctx cont
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1143,7 +975,7 @@ func (client ReplicationProtectedItemsClient) ReprotectPreparer(ctx context.Cont
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1173,90 +1005,6 @@ func (client ReplicationProtectedItemsClient) ReprotectSender(req *http.Request)
 // ReprotectResponder handles the response to the Reprotect request. The method always
 // closes the http.Response Body.
 func (client ReplicationProtectedItemsClient) ReprotectResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// ResolveHealthErrors operation to resolve health issues of the replication protected item.
-// Parameters:
-// fabricName - unique fabric name.
-// protectionContainerName - protection container name.
-// replicatedProtectedItemName - replication protected item name.
-// resolveHealthInput - health issue input object.
-func (client ReplicationProtectedItemsClient) ResolveHealthErrors(ctx context.Context, fabricName string, protectionContainerName string, replicatedProtectedItemName string, resolveHealthInput ResolveHealthInput) (result ReplicationProtectedItemsResolveHealthErrorsFuture, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ReplicationProtectedItemsClient.ResolveHealthErrors")
-		defer func() {
-			sc := -1
-			if result.Response() != nil {
-				sc = result.Response().StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.ResolveHealthErrorsPreparer(ctx, fabricName, protectionContainerName, replicatedProtectedItemName, resolveHealthInput)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "ResolveHealthErrors", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.ResolveHealthErrorsSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "siterecovery.ReplicationProtectedItemsClient", "ResolveHealthErrors", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// ResolveHealthErrorsPreparer prepares the ResolveHealthErrors request.
-func (client ReplicationProtectedItemsClient) ResolveHealthErrorsPreparer(ctx context.Context, fabricName string, protectionContainerName string, replicatedProtectedItemName string, resolveHealthInput ResolveHealthInput) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"fabricName":                  autorest.Encode("path", fabricName),
-		"protectionContainerName":     autorest.Encode("path", protectionContainerName),
-		"replicatedProtectedItemName": autorest.Encode("path", replicatedProtectedItemName),
-		"resourceGroupName":           autorest.Encode("path", client.ResourceGroupName),
-		"resourceName":                autorest.Encode("path", client.ResourceName),
-		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2018-07-10"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
-		autorest.AsPost(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/Subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.RecoveryServices/vaults/{resourceName}/replicationFabrics/{fabricName}/replicationProtectionContainers/{protectionContainerName}/replicationProtectedItems/{replicatedProtectedItemName}/ResolveHealthErrors", pathParameters),
-		autorest.WithJSON(resolveHealthInput),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ResolveHealthErrorsSender sends the ResolveHealthErrors request. The method will close the
-// http.Response Body if it receives an error.
-func (client ReplicationProtectedItemsClient) ResolveHealthErrorsSender(req *http.Request) (future ReplicationProtectedItemsResolveHealthErrorsFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
-	if err != nil {
-		return
-	}
-	future.Future, err = azure.NewFutureFromResponse(resp)
-	return
-}
-
-// ResolveHealthErrorsResponder handles the response to the ResolveHealthErrors request. The method always
-// closes the http.Response Body.
-func (client ReplicationProtectedItemsClient) ResolveHealthErrorsResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -1310,7 +1058,7 @@ func (client ReplicationProtectedItemsClient) TestFailoverPreparer(ctx context.C
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1399,7 +1147,7 @@ func (client ReplicationProtectedItemsClient) TestFailoverCleanupPreparer(ctx co
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1482,7 +1230,7 @@ func (client ReplicationProtectedItemsClient) UnplannedFailoverPreparer(ctx cont
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1565,7 +1313,7 @@ func (client ReplicationProtectedItemsClient) UpdatePreparer(ctx context.Context
 		"subscriptionId":              autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1649,7 +1397,7 @@ func (client ReplicationProtectedItemsClient) UpdateMobilityServicePreparer(ctx 
 		"subscriptionId":               autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-07-10"
+	const APIVersion = "2018-01-10"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
