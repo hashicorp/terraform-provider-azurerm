@@ -2,6 +2,7 @@ package recoveryservices
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
@@ -106,8 +107,9 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, sourceNetworkName, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+			if !utils.ResponseWasNotFound(existing.Response) &&
+				!utils.ResponseWasStatusCode(existing.Response, http.StatusBadRequest) { // API incorrectly returns 400 instead of 404
+				return fmt.Errorf("hej Error checking for presence of existing site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
