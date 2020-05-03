@@ -8,7 +8,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -35,11 +34,6 @@ func TestAccAzureRMKeyVaultKey_basicEC(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultKey_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -155,6 +149,43 @@ func TestAccAzureRMKeyVaultKey_complete(t *testing.T) {
 				),
 			},
 			data.ImportStep("key_size"),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultKey_softDeleteRecovery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultKeyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultKey_softDeleteRecovery(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "not_before_date", "2020-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "expiration_date", "2021-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
+				),
+			},
+			data.ImportStep("key_size"),
+			{
+				Config:  testAccAzureRMKeyVaultKey_softDeleteRecovery(data, false),
+				Destroy: true,
+			},
+			{
+				Config: testAccAzureRMKeyVaultKey_softDeleteRecovery(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "not_before_date", "2020-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "expiration_date", "2021-01-01T01:02:03Z"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.hello", "world"),
+				),
+			},
 		},
 	})
 }
@@ -796,4 +827,79 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultKey_softDeleteRecovery(data acceptance.TestData, purge bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = "%t"
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-kvk-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  soft_delete_enabled = true
+
+  sku_name = "premium"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "create",
+      "recover",
+      "delete",
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name            = "key-%s"
+  key_vault_id    = azurerm_key_vault.test.id
+  key_type        = "RSA"
+  key_size        = 2048
+  not_before_date = "2020-01-01T01:02:03Z"
+  expiration_date = "2021-01-01T01:02:03Z"
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  tags = {
+    "hello" = "world"
+  }
+}
+`, purge, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

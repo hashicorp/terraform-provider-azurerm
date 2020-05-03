@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMMonitorAutoScaleSetting_basic(t *testing.T) {
@@ -38,11 +37,6 @@ func TestAccAzureRMMonitorAutoScaleSetting_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorAutoScaleSetting_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_monitor_autoscale_setting", "test")
 
 	resource.ParallelTest(t, resource.TestCase{

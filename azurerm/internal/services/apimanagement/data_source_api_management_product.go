@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -79,7 +79,7 @@ func dataSourceApiManagementProductRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Product %q was not found in API Management Service %q / Resource Group %q", productId, serviceName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error making Read request on Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

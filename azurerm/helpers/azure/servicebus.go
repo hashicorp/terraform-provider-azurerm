@@ -12,13 +12,6 @@ import (
 )
 
 // validation
-func ValidateServiceBusNamespaceName() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
-		"The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
-	)
-}
-
 func ValidateServiceBusQueueName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile(`^[a-zA-Z0-9][\w-./~]{0,258}([a-zA-Z0-9])?$`),

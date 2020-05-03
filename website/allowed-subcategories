@@ -33,6 +33,7 @@ Load Balancer
 Log Analytics
 Logic App
 Machine Learning
+Maintenance
 Managed Applications
 Management
 Maps
@@ -50,6 +51,7 @@ Recovery Services
 Redis
 Search
 Security Center
+Sentinel
 Service Fabric
 Spring Cloud
 Storage

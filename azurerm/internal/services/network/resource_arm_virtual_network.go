@@ -99,9 +99,10 @@ func resourceArmVirtualNetwork() *schema.Resource {
 			},
 
 			"subnet": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -442,8 +443,9 @@ func resourceAzureSubnetHash(v interface{}) int {
 
 	if m, ok := v.(map[string]interface{}); ok {
 		buf.WriteString(m["name"].(string))
-		buf.WriteString(m["address_prefix"].(string))
-
+		if v, ok := m["address_prefix"]; ok {
+			buf.WriteString(v.(string))
+		}
 		if v, ok := m["security_group"]; ok {
 			buf.WriteString(v.(string))
 		}

@@ -44,6 +44,11 @@ func dataSourceArmSharedImage() *schema.Resource {
 				Computed: true,
 			},
 
+			"hyper_v_generation": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"identifier": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -120,6 +125,7 @@ func dataSourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
+		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)
 

@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -98,11 +97,11 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 	subscriptionsLimit := d.Get("subscriptions_limit").(int)
 	published := d.Get("published").(bool)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Product %q (API Management Service %q / Resource Group %q): %s", productId, serviceName, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Product %q (API Management Service %q / Resource Group %q): %s", productId, serviceName, resourceGroup, err)
 			}
 		}
 
@@ -135,12 +134,12 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, properties, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
+		return fmt.Errorf("creating/updating Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serviceName, productId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
+		return fmt.Errorf("retrieving Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -174,7 +173,7 @@ func resourceArmApiManagementProductRead(d *schema.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
+		return fmt.Errorf("making Read request on Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
 	}
 
 	d.Set("product_id", productId)
@@ -212,7 +211,7 @@ func resourceArmApiManagementProductDelete(d *schema.ResourceData, meta interfac
 	resp, err := client.Delete(ctx, resourceGroup, serviceName, productId, "", utils.Bool(deleteSubscriptions))
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
+			return fmt.Errorf("deleting Product %q (API Management Service %q / Resource Group %q): %+v", productId, serviceName, resourceGroup, err)
 		}
 	}
 

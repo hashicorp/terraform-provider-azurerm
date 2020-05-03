@@ -95,6 +95,16 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
+						"customer_asn": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+						"routing_registry_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "NONE",
+						},
 					},
 				},
 			},
@@ -276,12 +286,17 @@ func expandExpressRouteCircuitPeeringMicrosoftConfig(input []interface{}) *netwo
 
 	prefixes := make([]string, 0)
 	inputPrefixes := peering["advertised_public_prefixes"].([]interface{})
+	inputCustomerASN := int32(peering["customer_asn"].(int))
+	inputRoutingRegistryName := peering["routing_registry_name"].(string)
+
 	for _, v := range inputPrefixes {
 		prefixes = append(prefixes, v.(string))
 	}
 
 	return &network.ExpressRouteCircuitPeeringConfig{
 		AdvertisedPublicPrefixes: &prefixes,
+		CustomerASN:              &inputCustomerASN,
+		RoutingRegistryName:      &inputRoutingRegistryName,
 	}
 }
 
@@ -292,10 +307,15 @@ func flattenExpressRouteCircuitPeeringMicrosoftConfig(input *network.ExpressRout
 
 	config := make(map[string]interface{})
 	prefixes := make([]string, 0)
+	if customerASN := input.CustomerASN; customerASN != nil {
+		config["customer_asn"] = *customerASN
+	}
+	if routingRegistryName := input.RoutingRegistryName; routingRegistryName != nil {
+		config["routing_registry_name"] = *routingRegistryName
+	}
 	if ps := input.AdvertisedPublicPrefixes; ps != nil {
 		prefixes = *ps
 	}
-
 	config["advertised_public_prefixes"] = prefixes
 
 	return []interface{}{config}

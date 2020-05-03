@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
@@ -82,11 +81,6 @@ func TestAccAzureRMVirtualNetwork_basicUpdated(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetwork_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -178,6 +172,33 @@ func TestAccAzureRMVirtualNetwork_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
 				),
 			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualNetwork_deleteSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMVirtualNetwork_noSubnet(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "0"),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -435,6 +456,27 @@ resource "azurerm_virtual_network" "test" {
   tags = {
     environment = "staging"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMVirtualNetwork_noSubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  subnet              = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

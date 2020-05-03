@@ -16,9 +16,27 @@ func TestAccDataSourceAzureRMSharedImage_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSharedImage_basic(data),
+				Config: testAccDataSourceSharedImage_basic(data, ""),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMSharedImage_basic_hyperVGeneration_V2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_shared_image", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSharedImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceSharedImage_basic(data, "V2"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V2"),
 				),
 			},
 		},
@@ -33,17 +51,18 @@ func TestAccDataSourceAzureRMSharedImage_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMSharedImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceSharedImage_complete(data),
+				Config: testAccDataSourceSharedImage_complete(data, "V1"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "hyper_v_generation", "V1"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceSharedImage_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSharedImage_basic(data)
+func testAccDataSourceSharedImage_basic(data acceptance.TestData, hyperVGen string) string {
+	template := testAccAzureRMSharedImage_basic(data, hyperVGen)
 	return fmt.Sprintf(`
 %s
 
@@ -55,8 +74,8 @@ data "azurerm_shared_image" "test" {
 `, template)
 }
 
-func testAccDataSourceSharedImage_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSharedImage_complete(data)
+func testAccDataSourceSharedImage_complete(data acceptance.TestData, hyperVGen string) string {
+	template := testAccAzureRMSharedImage_complete(data, hyperVGen)
 	return fmt.Sprintf(`
 %s
 

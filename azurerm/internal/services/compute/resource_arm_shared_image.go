@@ -1,19 +1,19 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -61,6 +61,17 @@ func resourceArmSharedImage() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Linux),
 					string(compute.Windows),
+				}, false),
+			},
+
+			"hyper_v_generation": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.HyperVGenerationTypesV1),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.V1),
+					string(compute.V2),
 				}, false),
 			},
 
@@ -123,6 +134,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	description := d.Get("description").(string)
+	hyperVGeneration := d.Get("hyper_v_generation").(string)
 
 	eula := d.Get("eula").(string)
 	privacyStatementUri := d.Get("privacy_statement_uri").(string)
@@ -131,7 +143,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 	osType := d.Get("os_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, galleryName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -156,6 +168,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 			ReleaseNoteURI:      utils.String(releaseNoteURI),
 			OsType:              compute.OperatingSystemTypes(osType),
 			OsState:             compute.Generalized,
+			HyperVGeneration:    compute.HyperVGeneration(hyperVGeneration),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -219,6 +232,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
+		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)
 
@@ -247,21 +261,48 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 
 	future, err := client.Delete(ctx, resourceGroup, galleryName, name)
 	if err != nil {
-		// deleted outside of Terraform
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-
-		return fmt.Errorf("Error deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
-		}
+		return fmt.Errorf("failed to wait for deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", name, galleryName, resourceGroup, err)
+	}
+
+	log.Printf("[DEBUG] Waiting for Shared Image %q (Gallery %q / Resource Group %q) to be eventually deleted", name, galleryName, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Exists"},
+		Target:                    []string{"NotFound"},
+		Refresh:                   sharedImageDeleteStateRefreshFunc(ctx, client, resourceGroup, name, galleryName),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 10,
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("failed to wait for Shared Image %q (Gallery %q / Resource Group %q) to be deleted: %+v", name, galleryName, resourceGroup, err)
 	}
 
 	return nil
+}
+
+func sharedImageDeleteStateRefreshFunc(ctx context.Context, client *compute.GalleryImagesClient, resourceGroupName string, imageName string, galleryName string) resource.StateRefreshFunc {
+	// The resource Shared Image depends on the resource Shared Image Gallery.
+	// Although the delete API returns 404 which means the Shared Image resource has been deleted.
+	// Then it tries to immediately delete Shared Image Gallery but it still throws error `Can not delete resource before nested resources are deleted.`
+	// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
+	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/8314
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, galleryName, imageName)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("failed to poll to check if the Shared Image has been deleted: %+v", err)
+		}
+
+		return res, "Exists", nil
+	}
 }
 
 func expandGalleryImageIdentifier(d *schema.ResourceData) *compute.GalleryImageIdentifier {

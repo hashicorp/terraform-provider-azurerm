@@ -66,14 +66,14 @@ func dataSourceApiManagementApiVersionSetRead(d *schema.ResourceData, meta inter
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: API Version Set %q (API Management Service %q / Resource Group %q) does not exist!", name, serviceName, resourceGroup)
+			return fmt.Errorf(": API Version Set %q (API Management Service %q / Resource Group %q) does not exist!", name, serviceName, resourceGroup)
 		}
 
-		return fmt.Errorf("Error reading API Version Set %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+		return fmt.Errorf("reading API Version Set %q (API Management Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("Error retrieving API Version Set %q (API Management Service %q /Resource Group %q): ID was nil or empty", name, serviceName, resourceGroup)
+		return fmt.Errorf("retrieving API Version Set %q (API Management Service %q /Resource Group %q): ID was nil or empty", name, serviceName, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

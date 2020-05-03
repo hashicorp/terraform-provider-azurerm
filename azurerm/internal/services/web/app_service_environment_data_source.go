@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -27,6 +28,8 @@ func dataSourceArmAppServiceEnvironment() *schema.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"location": azure.SchemaLocationForDataSource(),
 
 			"front_end_scale_factor": {
 				Type:     schema.TypeInt,
@@ -63,6 +66,7 @@ func dataSourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interfa
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
 
 	if props := resp.AppServiceEnvironment; props != nil {
 		frontendScaleFactor := 0

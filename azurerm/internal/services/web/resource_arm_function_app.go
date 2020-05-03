@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -76,11 +77,35 @@ func resourceArmFunctionApp() *schema.Resource {
 				Default:  "~1",
 			},
 
+			// TODO remove this in 3.0
 			"storage_connection_string": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				Sensitive: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				Sensitive:     true,
+				Deprecated:    "Deprecated in favor of `storage_account_name` and `storage_account_access_key`",
+				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
+			},
+
+			"storage_account_name": {
+				Type: schema.TypeString,
+				// Required: true, // Uncomment this in 3.0
+				Optional:      true,
+				Computed:      true, // Remove this in 3.0
+				ForceNew:      true,
+				ValidateFunc:  storage.ValidateArmStorageAccountName,
+				ConflictsWith: []string{"storage_connection_string"},
+			},
+
+			"storage_account_access_key": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true, // Remove this in 3.0
+				// Required: true, // Uncomment this in 3.0
+				Sensitive:     true,
+				ValidateFunc:  validation.NoZeroValues,
+				ConflictsWith: []string{"storage_connection_string"},
 			},
 
 			"app_settings": {
@@ -286,6 +311,7 @@ func resourceArmFunctionApp() *schema.Resource {
 
 func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -340,7 +366,10 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return err
+	}
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
@@ -405,6 +434,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -429,11 +459,15 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	t := d.Get("tags").(map[string]interface{})
 
 	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
-
 	if err != nil {
 		return err
 	}
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return err
+	}
+
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
@@ -470,7 +504,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error waiting for update of Function App %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	appSettings := expandFunctionAppAppSettings(d, appServiceTier)
+	appSettings, err := expandFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return err
+	}
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -598,7 +635,26 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
-	d.Set("storage_connection_string", appSettings["AzureWebJobsStorage"])
+	connectionString := appSettings["AzureWebJobsStorage"]
+	d.Set("storage_connection_string", connectionString)
+
+	// This teases out the necessary attributes from the storage connection string
+	connectionStringParts := strings.Split(connectionString, ";")
+	for _, part := range connectionStringParts {
+		if strings.HasPrefix(part, "AccountName") {
+			accountNameParts := strings.Split(part, "AccountName=")
+			if len(accountNameParts) > 1 {
+				d.Set("storage_account_name", accountNameParts[1])
+			}
+		}
+		if strings.HasPrefix(part, "AccountKey") {
+			accountKeyParts := strings.Split(part, "AccountKey=")
+			if len(accountKeyParts) > 1 {
+				d.Set("storage_account_access_key", accountKeyParts[1])
+			}
+		}
+	}
+
 	d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
 
 	dashboard, ok := appSettings["AzureWebJobsDashboard"]
@@ -669,7 +725,7 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) []web.NameValuePair {
+func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
@@ -678,7 +734,34 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
-	storageConnection := d.Get("storage_connection_string").(string)
+	// TODO 3.0 - remove this logic for determining which storage account connection string to use
+	storageConnection := ""
+	if v, ok := d.GetOk("storage_connection_string"); ok {
+		storageConnection = v.(string)
+	}
+
+	storageAccount := ""
+	if v, ok := d.GetOk("storage_account_name"); ok {
+		storageAccount = v.(string)
+	}
+
+	connectionString := ""
+	if v, ok := d.GetOk("storage_account_access_key"); ok {
+		connectionString = v.(string)
+	}
+
+	if storageConnection == "" && storageAccount == "" && connectionString == "" {
+		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified")
+	}
+
+	if (storageAccount == "" && connectionString != "") || (storageAccount != "" && connectionString == "") {
+		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
+	}
+
+	if connectionString != "" && storageAccount != "" {
+		storageConnection = fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
+	}
+
 	functionVersion := d.Get("version").(string)
 	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
 
@@ -701,10 +784,10 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 
 	// On consumption and premium plans include WEBSITE_CONTENT components
 	if strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") {
-		return append(basicSettings, consumptionSettings...)
+		return append(basicSettings, consumptionSettings...), nil
 	}
 
-	return basicSettings
+	return basicSettings, nil
 }
 
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
@@ -729,15 +812,18 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
-func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) map[string]*string {
+func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
 	output := expandAppServiceAppSettings(d)
 
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return nil, err
+	}
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
 
-	return output
+	return output, nil
 }
 
 func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error) {
