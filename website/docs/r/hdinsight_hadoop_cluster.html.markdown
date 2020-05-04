@@ -259,46 +259,46 @@ A `metastores` block supports the following:
 
 * `hive` - (Optional) A `hive` block as defined below.
 
-* `oozie` - (Optional) A `oozie` block as defined below.
+* `oozie` - (Optional) An `oozie` block as defined below.
 
-* `ambari` - (Optional) A `ambari` block as defined below.
+* `ambari` - (Optional) An `ambari` block as defined below.
 
 ---
 
 A `hive` block supports the following:
 
-* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore.
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore.  Changing this forces a new resource to be created.
 
-* `database_name` - (Required) The external Hive metastore's existing SQL database.
+* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
 
-* `username` - (Required) The external Hive metastore's existing SQL server admin username.
+* `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
 
-* `password` - (Required) The external Hive metastore's existing SQL server admin password.
+* `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
 
-
----
-
-A `oozie` block supports the following:
-
-* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore.
-
-* `database_name` - (Required) The external Oozie metastore's existing SQL database.
-
-* `username` - (Required) The external Oozie metastore's existing SQL server admin username.
-
-* `password` - (Required) The external Oozie metastore's existing SQL server admin password.
 
 ---
 
-A `ambari` block supports the following:
+An `oozie` block supports the following:
 
-* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore.
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore.  Changing this forces a new resource to be created.
 
-* `database_name` - (Required) The external Hive metastore's existing SQL database.
+* `database_name` - (Required) The external Oozie metastore's existing SQL database.  Changing this forces a new resource to be created.
 
-* `username` - (Required) The external Ambari metastore's existing SQL server admin username.
+* `username` - (Required) The external Oozie metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
 
-* `password` - (Required) The external Ambari metastore's existing SQL server admin password.
+* `password` - (Required) The external Oozie metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
+---
+
+An `ambari` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Ambari metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Ambari metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
 
 
 ## Attributes Reference
