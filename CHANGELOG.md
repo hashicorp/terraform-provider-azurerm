@@ -2,7 +2,9 @@
 
 IMPROVEMENTS:
 
-* `azurerm_key_vault_secret` `azurerm_key_vault_key` `azurerm_key_vault_certificate` - will now attempt to recover items in soft-deleted state if `recover_soft_deleted_key_vaults = true` [GH-6716]
+* `azurerm_key_vault_certificate` - support for recovering a soft-deleted certificate if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
+* `azurerm_key_vault_key` - support for recovering a soft-deleted key if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
+* `azurerm_key_vault_secret` - support for recovering a soft-deleted secret if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
 * `azurerm_linux_virtual_machine_scale_set - support for configuring `create_mode` for data disks [GH-6744]
 * `azurerm_windows_virtual_machine_scale_set - support for configuring `create_mode` for data disks [GH-6744]
 
