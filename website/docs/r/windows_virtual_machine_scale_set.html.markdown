@@ -238,6 +238,8 @@ A `data_disk` block supports the following:
 
 * `caching` - (Required) The type of Caching which should be used for this Data Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
+* `create_option` - (Optional) The create option which should be used for this Data Disk. Possible values are `Empty` and `FromImage`. Defaults to `Empty`. (`FromImage` should only be used if the source image includes data disks).
+
 * `disk_size_gb` - (Required) The size of the Data Disk which should be created.
 
 * `lun` - (Required) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine.
