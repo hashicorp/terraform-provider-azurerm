@@ -108,8 +108,10 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 		existing, err := client.Get(ctx, fabricName, sourceNetworkName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) &&
-				!utils.ResponseWasStatusCode(existing.Response, http.StatusBadRequest) { // API incorrectly returns 400 instead of 404
-				return fmt.Errorf("hej Error checking for presence of existing site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+				// todo this workaround can be removed when this bug is fixed
+				// https://github.com/Azure/azure-sdk-for-go/issues/8705
+				!utils.ResponseWasStatusCode(existing.Response, http.StatusBadRequest) {
+				return fmt.Errorf("Error checking for presence of existing site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
