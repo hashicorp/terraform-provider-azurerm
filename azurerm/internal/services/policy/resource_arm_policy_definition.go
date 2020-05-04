@@ -2,8 +2,10 @@ package policy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -114,10 +116,33 @@ func resourceArmPolicyDefinition() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: policyDefinitionsMetadataDiffSuppressFunc,
 			},
 		},
 	}
+}
+
+func policyDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+	var oldPolicyDefinitionsMetadata map[string]interface{}
+	errOld := json.Unmarshal([]byte(old), &oldPolicyDefinitionsMetadata)
+	if errOld != nil {
+		return false
+	}
+
+	var newPolicyDefinitionsMetadata map[string]interface{}
+	errNew := json.Unmarshal([]byte(new), &newPolicyDefinitionsMetadata)
+	if errNew != nil {
+		return false
+	}
+
+	// Ignore the following keys if they're found in the metadata JSON
+	ignoreKeys := [4]string{"createdBy", "createdOn", "updatedBy", "updatedOn"}
+	for _, key := range ignoreKeys {
+		delete(oldPolicyDefinitionsMetadata, key)
+		delete(newPolicyDefinitionsMetadata, key)
+	}
+
+	return reflect.DeepEqual(oldPolicyDefinitionsMetadata, newPolicyDefinitionsMetadata)
 }
 
 func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {

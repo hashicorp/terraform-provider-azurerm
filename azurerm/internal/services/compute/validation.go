@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func ValidateLinuxName(i interface{}, k string) (warnings []string, errors []error) {
+func ValidateVmName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("Expected %q to be a string but it wasn't!", k))
@@ -21,8 +21,55 @@ func ValidateLinuxName(i interface{}, k string) (warnings []string, errors []err
 		return
 	}
 
-	const maxLength = 64
-	// The value must be between 1 and 64 (Linux) characters long.
+	const maxLength = 80
+	// VM name can be 1-80 characters in length
+	if len(v) > maxLength {
+		errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
+	}
+
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9._-]+$`).Match([]byte(v)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dots, dashes and underscores", k))
+	}
+
+	if matched := regexp.MustCompile(`^[a-zA-Z0-9]`).Match([]byte(v)); !matched {
+		errors = append(errors, fmt.Errorf("%q must begin with an alphanumeric character", k))
+	}
+
+	if matched := regexp.MustCompile(`[a-z0-9_]$`).Match([]byte(v)); !matched {
+		errors = append(errors, fmt.Errorf("%q must end with an alphanumeric character or underscore", k))
+	}
+
+	// Portal: Virtual machine name cannot contain only numbers.
+	if matched := regexp.MustCompile(`^\d+$`).Match([]byte(v)); matched {
+		errors = append(errors, fmt.Errorf("%q cannot contain only numbers", k))
+	}
+
+	return warnings, errors
+}
+
+func ValidateLinuxComputerNameFull(i interface{}, k string) (warnings []string, errors []error) {
+	// Linux host name cannot exceed 64 characters in length
+	return ValidateLinuxComputerName(i, k, 64)
+}
+
+func ValidateLinuxComputerNamePrefix(i interface{}, k string) (warnings []string, errors []error) {
+	// Linux host name prefix cannot exceed 58 characters in length
+	return ValidateLinuxComputerName(i, k, 58)
+}
+
+func ValidateLinuxComputerName(i interface{}, k string, maxLength int) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't!", k))
+		return
+	}
+
+	// The value must not be empty.
+	if strings.TrimSpace(v) == "" {
+		errors = append(errors, fmt.Errorf("%q must not be empty", k))
+		return
+	}
+
 	if len(v) > maxLength {
 		errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
 	}
@@ -35,29 +82,29 @@ func ValidateLinuxName(i interface{}, k string) (warnings []string, errors []err
 		errors = append(errors, fmt.Errorf("%q cannot end with an period or dash", k))
 	}
 
-	// Azure resource names cannot contain special characters \/""[]:|<>+=;,?*@& or begin with '_' or end with '.' or '-'
-	specialCharacters := `\/""[]:|<>+=;,?*@&`
+	// Linux host name cannot contain the following characters
+	specialCharacters := `\/"[]:|<>+=;,?*@&~!#$%^()_{}'`
 	if strings.ContainsAny(v, specialCharacters) {
 		errors = append(errors, fmt.Errorf("%q cannot contain the special characters: `%s`", k, specialCharacters))
-	}
-
-	// The value can only contain alphanumeric characters and can start with a number.
-	if matched := regexp.MustCompile(`^[a-zA-Z0-9-_.]+$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dashes and underscores", k))
-	}
-
-	// Portal: Virtual machine name cannot contain only numbers.
-	if matched := regexp.MustCompile(`^\d+$`).Match([]byte(v)); matched {
-		errors = append(errors, fmt.Errorf("%q cannot contain only numbers", k))
 	}
 
 	return warnings, errors
 }
 
-func ValidateWindowsName(i interface{}, k string) (warnings []string, errors []error) {
+func ValidateWindowsComputerNameFull(i interface{}, k string) (warnings []string, errors []error) {
+	// Windows computer name cannot be more than 15 characters long
+	return ValidateWindowsComputerName(i, k, 15)
+}
+
+func ValidateWindowsComputerNamePrefix(i interface{}, k string) (warnings []string, errors []error) {
+	// Windows computer name prefix cannot be more than 9 characters long
+	return ValidateWindowsComputerName(i, k, 9)
+}
+
+func ValidateWindowsComputerName(i interface{}, k string, maxLength int) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("Expected %q to be a string but it wasn't!", k))
+		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't!", k))
 		return
 	}
 
@@ -67,8 +114,6 @@ func ValidateWindowsName(i interface{}, k string) (warnings []string, errors []e
 		return
 	}
 
-	const maxLength = 15
-	// The value must be between 1 and 15 (Windows) characters long.
 	if len(v) > maxLength {
 		errors = append(errors, fmt.Errorf("%q can be at most %d characters, got %d", k, maxLength, len(v)))
 	}
@@ -82,7 +127,7 @@ func ValidateWindowsName(i interface{}, k string) (warnings []string, errors []e
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes", k))
 	}
 
-	// Portal: Virtual machine name cannot contain only numbers.
+	// Windows computer name cannot contain only numbers
 	if matched := regexp.MustCompile(`^\d+$`).Match([]byte(v)); matched {
 		errors = append(errors, fmt.Errorf("%q cannot contain only numbers", k))
 	}

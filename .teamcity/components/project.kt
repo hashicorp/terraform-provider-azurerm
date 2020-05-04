@@ -22,6 +22,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
     var locationsForEnv = locations.get(environment)!!
 
     services.forEach { (serviceName, displayName) ->
+        // TODO: overriding locations
         var defaultTestConfig = testConfiguration(defaultParallelism, defaultStartHour)
         var testConfig = serviceTestConfigurationOverrides.getOrDefault(serviceName, defaultTestConfig)
         var runNightly = runNightly.getOrDefault(environment, false)

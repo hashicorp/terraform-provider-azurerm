@@ -621,7 +621,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_networkApplicationGateway(data acceptance.TestData) string {
-	name := testAccAzureRMWindowsVirtualMachineScaleSet_vmName(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -718,7 +717,7 @@ resource "azurerm_application_gateway" "test" {
 }
 
 locals {
-  vm_name = "%s"
+  vm_name = "acctestVM-%d"
 }
 
 resource "azurerm_subnet" "other" {
@@ -761,7 +760,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, name)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_networkApplicationSecurityGroup(data acceptance.TestData) string {

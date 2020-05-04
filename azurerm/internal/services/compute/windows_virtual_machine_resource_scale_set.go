@@ -49,7 +49,7 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateWindowsName,
+				ValidateFunc: ValidateVmName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -107,9 +107,8 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 				// Computed since we reuse the VM name if one's not specified
 				Computed: true,
 				ForceNew: true,
-				// note: whilst the portal says 1-15 characters it seems to mirror the rules for the vm name
-				// (e.g. 1-15 for Windows, 1-63 for Windows)
-				ValidateFunc: ValidateWindowsName,
+
+				ValidateFunc: ValidateWindowsComputerNamePrefix,
 			},
 
 			"custom_data": base64.OptionalSchema(false),
@@ -371,6 +370,10 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
 		computerNamePrefix = v.(string)
 	} else {
+		_, errs := ValidateWindowsComputerNamePrefix(d.Get("name"), "computer_name_prefix")
+		if len(errs) > 0 {
+			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
+		}
 		computerNamePrefix = name
 	}
 
