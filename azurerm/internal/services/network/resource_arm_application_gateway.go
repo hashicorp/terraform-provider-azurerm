@@ -3209,10 +3209,6 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network
 			// data must be base64 encoded
 			output.ApplicationGatewaySslCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
 
-			if password == "" {
-				return nil, fmt.Errorf("'password' is required if `data` is specified for the `ssl_certificate` block %q", name)
-			}
-
 			output.ApplicationGatewaySslCertificatePropertiesFormat.Password = utils.String(password)
 		} else if kvsid != "" {
 			if password != "" {
