@@ -6,14 +6,14 @@ import (
 )
 
 type Client struct {
-	ApplicationClient *servicefabric.ClustersClient
+	ApplicationClient *servicefabricmesh.ApplicationClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	clustersClient := servicefabric.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&clustersClient.Client, o.ResourceManagerAuthorizer)
+	applicationsClient := servicefabricmesh.NewApplicationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&applicationsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ClustersClient: &clustersClient,
+		ApplicationClient: &applicationsClient,
 	}
 }
