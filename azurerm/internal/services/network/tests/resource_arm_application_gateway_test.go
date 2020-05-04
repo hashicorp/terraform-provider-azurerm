@@ -587,7 +587,11 @@ func TestAccAzureRMApplicationGateway_sslCertificate_EmptyPassword(t *testing.T)
 					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			// since these are read from the existing state
+			data.ImportStep(
+				"ssl_certificate.0.data",
+				"ssl_certificate.0.password",
+			),
 		},
 	})
 }
