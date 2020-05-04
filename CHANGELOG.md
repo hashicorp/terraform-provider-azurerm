@@ -4,6 +4,10 @@ IMPROVEMENTS:
 
 * `azurerm_key_vault_secret` `azurerm_key_vault_key` `azurerm_key_vault_certificate` - will now attempt to recover items in soft-deleted state if `recover_soft_deleted_key_vaults = true` [GH-6716]
 
+BUG FIXES:
+
+* `azurerm_policy_definition` - changes to the dynamic fields (`createdBy`, `createdOn`, `updatedBy`, `updatedOn`) keys in the `metadata` field are excluded from diff's [GH-6734]
+
 ## 2.8.0 (April 30, 2020)
 
 FEATURES:
