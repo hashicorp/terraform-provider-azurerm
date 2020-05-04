@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_application_gateway` - support for SSL Certificates without passwords [GH-6742]
 * `azurerm_key_vault_certificate` - support for recovering a soft-deleted certificate if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
 * `azurerm_key_vault_key` - support for recovering a soft-deleted key if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
 * `azurerm_key_vault_secret` - support for recovering a soft-deleted secret if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
