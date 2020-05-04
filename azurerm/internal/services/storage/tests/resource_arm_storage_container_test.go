@@ -319,27 +319,27 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
-  }
-  
-  resource "azurerm_storage_account" "test" {
-	name                     = "acctestacc%s"
-	resource_group_name      = azurerm_resource_group.test.name
-	location                 = azurerm_resource_group.test.location
-	account_tier             = "Standard"
-	account_replication_type = "LRS"
-  
-	tags = {
-	  environment = "staging"
-	}
-  }
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  resource "azurerm_storage_container" "test" {
-	name                  = "vhds"
-	storage_account_name  = azurerm_storage_account.test.name
-	container_access_type = "private"
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
   }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
