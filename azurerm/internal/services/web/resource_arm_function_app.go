@@ -879,7 +879,9 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
-	siteConfig.PreWarmedInstanceCount = utils.Int32(int32(config["pre_warmed_instance_count"].(int)))
+	if v, ok := config["pre_warmed_instance_count"]; ok {
+		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
+	}
 
 	return siteConfig, nil
 }
