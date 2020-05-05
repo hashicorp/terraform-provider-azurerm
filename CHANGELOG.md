@@ -1,5 +1,10 @@
 ## 2.9.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_data_share_account` [GH-6575]
+* **New Resource:** `azurerm_data_share_account` [GH-6575]
+
 IMPROVEMENTS:
 
 * `azurerm_application_gateway` - support for SSL Certificates without passwords [GH-6742]
