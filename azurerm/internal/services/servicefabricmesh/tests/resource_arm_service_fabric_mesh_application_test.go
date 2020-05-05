@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMServiceFabricMeshApplication_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_service_fabric_mesh_application_test", "test")
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_mesh_application", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -26,7 +26,7 @@ func TestAccAzureRMServiceFabricMeshApplication_basic(t *testing.T) {
 					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("service"),
 		},
 	})
 }
@@ -109,7 +109,15 @@ resource "azurerm_service_fabric_mesh_application" "test" {
     os_type = "Linux"
 
     code_package {
-      name = "testcodepackage1"
+      name       = "testcodepackage1"
+      image_name = "seabreeze/sbz-helloworld:1.0-alpine"
+
+      resources {
+        requests {
+          memory = 1
+          cpu    = 1
+        }
+      }
     }
   }
 }

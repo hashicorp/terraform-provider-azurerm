@@ -1,21 +1,22 @@
 package servicefabricmesh
 
 import (
+	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-09-01-preview/servicefabricmesh"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh/parse"
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicefabricmesh/mgmt/2018-09-01-preview/servicefabricmesh"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabricmesh/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -45,10 +46,10 @@ func resourceArmServiceFabricMeshApplication() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"location": azure.SchemaLocation(),
 
@@ -60,7 +61,7 @@ func resourceArmServiceFabricMeshApplication() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"os_type": {
 							Type:     schema.TypeString,
@@ -78,19 +79,65 @@ func resourceArmServiceFabricMeshApplication() *schema.Resource {
 									"name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"image_name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"resources": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"requests": {
+													Type:     schema.TypeList,
+													Required: true,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"memory": {
+																Type:         schema.TypeFloat,
+																Required:     true,
+																ValidateFunc: validation.FloatAtLeast(0),
+															},
+															"cpu": {
+																Type:         schema.TypeFloat,
+																Required:     true,
+																ValidateFunc: validation.FloatAtLeast(0),
+															},
+														},
+													},
+												},
+												"limits": {
+													Type:     schema.TypeList,
+													Optional: true,
+													MaxItems: 1,
+													Elem: &schema.Resource{
+														Schema: map[string]*schema.Schema{
+															"memory": {
+																Type:         schema.TypeFloat,
+																Required:     true,
+																ValidateFunc: validation.FloatAtLeast(0),
+															},
+															"cpu": {
+																Type:         schema.TypeFloat,
+																Required:     true,
+																ValidateFunc: validation.FloatAtLeast(0),
+															},
+														},
+													},
+												},
+											},
+										},
 									},
 								},
 							},
 						},
 					},
 				},
-			},
-
-			"description": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"tags": tags.Schema(),
@@ -123,7 +170,6 @@ func resourceArmServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData,
 
 	parameters := servicefabricmesh.ApplicationResourceDescription{
 		ApplicationResourceProperties: &servicefabricmesh.ApplicationResourceProperties{
-			Description: utils.String(d.Get("description").(string)),
 			Services:    expandServiceFabricMeshApplicationServices(d.Get("service").(*schema.Set).List()),
 		},
 		Location: utils.String(location),
@@ -132,6 +178,20 @@ func resourceArmServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData,
 
 	if _, err := client.Create(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("creating Service Fabric Mesh Application %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	log.Printf("[DEBUG] Waiting for Service Fabric Mesh Application %q (Resource Group %q) to finish creating", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{string(servicefabricmesh.Creating)},
+		Target:                    []string{string(servicefabricmesh.Ready)},
+		Refresh:                   serviceFabricMeshApplicationCreateRefreshFunc(ctx, client, resourceGroup, name),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 10,
+		Timeout:                   d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for Service Fabric Mesh Application %q (Resource Group %q) to become available: %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -169,9 +229,10 @@ func resourceArmServiceFabricMeshApplicationRead(d *schema.ResourceData, meta in
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
+	/* This does not currently return from the api
 	if err := d.Set("service", flattenServiceFabricMeshApplicationServices(resp.Services)); err != nil {
 		return fmt.Errorf("setting `service`: %+v", err)
-	}
+	}*/
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -226,11 +287,49 @@ func expandServiceFabricMeshCodePackages(input []interface{}) *[]servicefabricme
 		config := codePackageConfig.(map[string]interface{})
 
 		codePackages = append(codePackages, servicefabricmesh.ContainerCodePackageProperties{
-			Name: utils.String(config["name"].(string)),
+			Name:      utils.String(config["name"].(string)),
+			Image:     utils.String(config["image_name"].(string)),
+			Resources: expandServiceFabricMeshCodePackageResources(config["resources"].([]interface{})),
 		})
 	}
 
 	return &codePackages
+}
+
+func expandServiceFabricMeshCodePackageResources(input []interface{}) *servicefabricmesh.ResourceRequirements {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	attr := input[0].(map[string]interface{})
+
+	return &servicefabricmesh.ResourceRequirements{
+		Limits:   expandServiceFabricMeshCodePackageResourceLimits(attr["limits"].([]interface{})),
+		Requests: expandServiceFabricMeshCodePackageResourceRequests(attr["requests"].([]interface{})),
+	}
+}
+
+func expandServiceFabricMeshCodePackageResourceLimits(input []interface{}) *servicefabricmesh.ResourceLimits {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	attr := input[0].(map[string]interface{})
+
+	return &servicefabricmesh.ResourceLimits{
+		MemoryInGB: utils.Float(attr["memory"].(float64)),
+		CPU:        utils.Float(attr["cpu"].(float64)),
+	}
+}
+
+func expandServiceFabricMeshCodePackageResourceRequests(input []interface{}) *servicefabricmesh.ResourceRequests {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	attr := input[0].(map[string]interface{})
+
+	return &servicefabricmesh.ResourceRequests{
+		MemoryInGB: utils.Float(attr["memory"].(float64)),
+		CPU:        utils.Float(attr["cpu"].(float64)),
+	}
 }
 
 func flattenServiceFabricMeshApplicationServices(input *[]servicefabricmesh.ServiceResourceDescription) []map[string]interface{} {
@@ -244,9 +343,7 @@ func flattenServiceFabricMeshApplicationServices(input *[]servicefabricmesh.Serv
 		if service.Name != nil {
 			attr["name"] = *service.Name
 		}
-
 		attr["os_type"] = string(service.OsType)
-
 		attr["code_package"] = flattenServiceFabricMeshApplicationCodePackage(service.CodePackages)
 
 		result = append(result, attr)
@@ -266,7 +363,72 @@ func flattenServiceFabricMeshApplicationCodePackage(input *[]servicefabricmesh.C
 		if codePackage.Name != nil {
 			attr["name"] = *codePackage.Name
 		}
+		if codePackage.Image != nil {
+			attr["image_name"] = *codePackage.Image
+		}
+		attr["resources"] = flattenServiceFabricMeshApplicationCodePackageResources(codePackage.Resources)
+
+		result = append(result, attr)
 	}
 
 	return result
+}
+
+func flattenServiceFabricMeshApplicationCodePackageResources(input *servicefabricmesh.ResourceRequirements) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	attr := make(map[string]interface{}, 0)
+	attr["requests"] = flattenServiceFabricMeshApplicationCodePackageResourceRequests(input.Requests)
+	attr["limits"] = flattenServiceFabricMeshApplicationCodePackageResourceLimits(input.Limits)
+
+	result = append(result, attr)
+
+	return result
+}
+
+func flattenServiceFabricMeshApplicationCodePackageResourceRequests(input *servicefabricmesh.ResourceRequests) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	attr := make(map[string]interface{}, 0)
+	if input.MemoryInGB != nil {
+		attr["memory"] = *input.MemoryInGB
+	}
+	if input.CPU != nil {
+		attr["cpu"] = *input.CPU
+	}
+	result = append(result, attr)
+
+	return result
+}
+
+func flattenServiceFabricMeshApplicationCodePackageResourceLimits(input *servicefabricmesh.ResourceLimits) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	attr := make(map[string]interface{}, 0)
+	if input.MemoryInGB != nil {
+		attr["memory"] = *input.MemoryInGB
+	}
+	if input.CPU != nil {
+		attr["cpu"] = *input.CPU
+	}
+	result = append(result, attr)
+
+	return result
+}
+
+func serviceFabricMeshApplicationCreateRefreshFunc(ctx context.Context, client *servicefabricmesh.ApplicationClient, resourceGroup string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return nil, "Error", fmt.Errorf("issuing read request in serviceFabricMeshApplicationCreateRefreshFunc %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
+
+		return res, string(res.Status), nil
+	}
 }
