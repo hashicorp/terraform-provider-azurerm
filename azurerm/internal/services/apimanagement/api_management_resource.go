@@ -88,8 +88,11 @@ func resourceArmApiManagementService() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
+							Default:  string(apimanagement.None),
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(apimanagement.SystemAssigned),
+								string(apimanagement.UserAssigned),
+								string(apimanagement.SystemAssignedUserAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -99,6 +102,15 @@ func resourceArmApiManagementService() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
 						},
 					},
 				},
@@ -907,9 +919,20 @@ func expandAzureRmApiManagementIdentity(d *schema.ResourceData) *apimanagement.S
 
 	v := vs[0].(map[string]interface{})
 	identityType := v["type"].(string)
-	return &apimanagement.ServiceIdentity{
+
+	identityIds := make(map[string]*apimanagement.UserIdentityProperties)
+	for _, id := range v["identity_ids"].([]interface{}) {
+		identityIds[id.(string)] = &apimanagement.UserIdentityProperties{}
+	}
+	managedServiceIdentity := apimanagement.ServiceIdentity{
 		Type: apimanagement.ApimIdentityType(identityType),
 	}
+
+	if managedServiceIdentity.Type == apimanagement.UserAssigned || managedServiceIdentity.Type == apimanagement.SystemAssignedUserAssigned {
+		managedServiceIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &managedServiceIdentity
 }
 
 func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
@@ -927,6 +950,14 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 
 	if identity.TenantID != nil {
 		result["tenant_id"] = identity.TenantID.String()
+	}
+
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+		result["identity_ids"] = identityIds
 	}
 
 	return []interface{}{result}
