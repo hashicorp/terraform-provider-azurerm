@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -333,17 +334,14 @@ func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) 
 	httpsOnly := d.Get("https_only").(bool)
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
-	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
+	appServiceTier, err := getFunctionAppSlotServiceTier(ctx, appServicePlanID, meta)
 	if err != nil {
 		return err
 	}
 
-	basicAppSettings, err := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return err
-	}
+	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
 
-	siteConfig, err := expandFunctionAppSiteConfig(d)
+	siteConfig, err := expandFunctionAppSlotSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for Function App Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
 	}
@@ -430,17 +428,14 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 	dailyMemoryTimeQuota := d.Get("daily_memory_time_quota").(int)
 	t := d.Get("tags").(map[string]interface{})
 
-	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
+	appServiceTier, err := getFunctionAppSlotServiceTier(ctx, appServicePlanID, meta)
 	if err != nil {
 		return err
 	}
 
-	basicAppSettings, err := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
-	if err != nil {
-		return err
-	}
+	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
 
-	siteConfig, err := expandFunctionAppSiteConfig(d)
+	siteConfig, err := expandFunctionAppSlotSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
@@ -477,7 +472,7 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error waiting for update of Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
 
-	appSettings, err := expandFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	appSettings, err := expandFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
 	if err != nil {
 		return err
 	}
@@ -490,7 +485,7 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("site_config") {
-		siteConfig, err := expandFunctionAppSiteConfig(d)
+		siteConfig, err := expandFunctionAppSlotSiteConfig(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 		}
@@ -517,7 +512,7 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 
 	if d.HasChange("connection_string") {
 		// update the ConnectionStrings
-		connectionStrings := expandFunctionAppConnectionStrings(d)
+		connectionStrings := expandFunctionAppSlotConnectionStrings(d)
 		properties := web.ConnectionStringDictionary{
 			Properties: connectionStrings,
 		}
@@ -642,7 +637,7 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 	if err = d.Set("app_settings", appSettings); err != nil {
 		return err
 	}
-	if err = d.Set("connection_string", flattenFunctionAppConnectionStrings(connectionStringsResp.Properties)); err != nil {
+	if err = d.Set("connection_string", flattenFunctionAppSlotConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return err
 	}
 
@@ -656,7 +651,7 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", id.Name, err)
 	}
 
-	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
+	siteConfig := flattenFunctionAppSlotSiteConfig(configResp.SiteConfig)
 	if err = d.Set("site_config", siteConfig); err != nil {
 		return err
 	}
@@ -666,7 +661,7 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting `auth_settings`: %s", err)
 	}
 
-	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
+	siteCred := flattenFunctionAppSlotSiteCredential(siteCredResp.UserProperties)
 	if err = d.Set("site_credential", siteCred); err != nil {
 		return err
 	}
@@ -698,7 +693,7 @@ func resourceArmFunctionAppSlotDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func getBasicFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
+func getBasicFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) []web.NameValuePair {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
@@ -707,20 +702,8 @@ func getBasicFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, 
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
-	storageAccount := ""
-	if v, ok := d.GetOk("storage_account_name"); ok {
-		storageAccount = v.(string)
-	}
-
-	connectionString := ""
-	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		connectionString = v.(string)
-	}
-
-	if storageAccount == "" && connectionString == "" {
-		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
-	}
-
+	storageAccount := d.Get("storage_account_name").(string)
+	connectionString := d.Get("storage_account_access_key").(string)
 	storageConnection := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
 
 	functionVersion := d.Get("version").(string)
@@ -745,8 +728,264 @@ func getBasicFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, 
 
 	// On consumption and premium plans include WEBSITE_CONTENT components
 	if strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") {
-		return append(basicSettings, consumptionSettings...), nil
+		return append(basicSettings, consumptionSettings...)
 	}
 
-	return basicSettings, nil
+	return basicSettings
+}
+
+func getFunctionAppSlotServiceTier(ctx context.Context, appServicePlanID string, meta interface{}) (string, error) {
+	id, err := ParseAppServicePlanID(appServicePlanID)
+	if err != nil {
+		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanID, err)
+	}
+
+	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.Name, id.ResourceGroup)
+
+	appServicePlansClient := meta.(*clients.Client).Web.AppServicePlansClient
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanID, err)
+	}
+
+	if sku := appServicePlan.Sku; sku != nil {
+		if tier := sku.Tier; tier != nil {
+			return *tier, nil
+		}
+	}
+	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanID)
+}
+
+func expandFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
+	output := expandAppServiceAppSettings(d)
+
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range basicAppSettings {
+		output[*p.Name] = p.Value
+	}
+
+	return output, nil
+}
+
+func expandFunctionAppSlotSiteConfig(d *schema.ResourceData) (web.SiteConfig, error) {
+	configs := d.Get("site_config").([]interface{})
+	siteConfig := web.SiteConfig{}
+
+	if len(configs) == 0 {
+		return siteConfig, nil
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["always_on"]; ok {
+		siteConfig.AlwaysOn = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["use_32_bit_worker_process"]; ok {
+		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["websockets_enabled"]; ok {
+		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["linux_fx_version"]; ok {
+		siteConfig.LinuxFxVersion = utils.String(v.(string))
+	}
+
+	if v, ok := config["cors"]; ok {
+		corsSettings := v.(interface{})
+		expand := azure.ExpandWebCorsSettings(corsSettings)
+		siteConfig.Cors = &expand
+	}
+
+	if v, ok := config["http2_enabled"]; ok {
+		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["ip_restriction"]; ok {
+		ipSecurityRestrictions := v.(interface{})
+		restrictions, err := expandFunctionAppSlotIPRestriction(ipSecurityRestrictions)
+		if err != nil {
+			return siteConfig, err
+		}
+		siteConfig.IPSecurityRestrictions = &restrictions
+	}
+
+	if v, ok := config["min_tls_version"]; ok {
+		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
+	}
+
+	if v, ok := config["ftps_state"]; ok {
+		siteConfig.FtpsState = web.FtpsState(v.(string))
+	}
+
+	return siteConfig, nil
+}
+
+func flattenFunctionAppSlotSiteConfig(input *web.SiteConfig) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if input == nil {
+		log.Printf("[DEBUG] SiteConfig is nil")
+		return results
+	}
+
+	if input.AlwaysOn != nil {
+		result["always_on"] = *input.AlwaysOn
+	}
+
+	if input.Use32BitWorkerProcess != nil {
+		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
+	}
+
+	if input.WebSocketsEnabled != nil {
+		result["websockets_enabled"] = *input.WebSocketsEnabled
+	}
+
+	if input.LinuxFxVersion != nil {
+		result["linux_fx_version"] = *input.LinuxFxVersion
+	}
+
+	if input.HTTP20Enabled != nil {
+		result["http2_enabled"] = *input.HTTP20Enabled
+	}
+
+	result["ip_restriction"] = flattenFunctionAppSlotIPRestriction(input.IPSecurityRestrictions)
+
+	result["min_tls_version"] = string(input.MinTLSVersion)
+	result["ftps_state"] = string(input.FtpsState)
+
+	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
+
+	results = append(results, result)
+	return results
+}
+
+func expandFunctionAppSlotConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
+	input := d.Get("connection_string").(*schema.Set).List()
+	output := make(map[string]*web.ConnStringValueTypePair, len(input))
+
+	for _, v := range input {
+		vals := v.(map[string]interface{})
+
+		csName := vals["name"].(string)
+		csType := vals["type"].(string)
+		csValue := vals["value"].(string)
+
+		output[csName] = &web.ConnStringValueTypePair{
+			Value: utils.String(csValue),
+			Type:  web.ConnectionStringType(csType),
+		}
+	}
+
+	return output
+}
+
+func expandFunctionAppSlotIPRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
+	restrictions := make([]web.IPSecurityRestriction, 0)
+
+	for i, r := range input.([]interface{}) {
+		if r == nil {
+			continue
+		}
+
+		restriction := r.(map[string]interface{})
+
+		ipAddress := restriction["ip_address"].(string)
+		vNetSubnetID := restriction["subnet_id"].(string)
+
+		if vNetSubnetID != "" && ipAddress != "" {
+			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
+		}
+
+		if vNetSubnetID == "" && ipAddress == "" {
+			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
+		}
+
+		ipSecurityRestriction := web.IPSecurityRestriction{}
+		if ipAddress == "Any" {
+			continue
+		}
+
+		if ipAddress != "" {
+			ipSecurityRestriction.IPAddress = &ipAddress
+		}
+
+		if vNetSubnetID != "" {
+			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+		}
+
+		restrictions = append(restrictions, ipSecurityRestriction)
+	}
+
+	return restrictions, nil
+}
+
+func flattenFunctionAppSlotConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
+	results := make([]interface{}, 0)
+
+	for k, v := range input {
+		result := make(map[string]interface{})
+		result["name"] = k
+		result["type"] = string(v.Type)
+		result["value"] = *v.Value
+		results = append(results, result)
+	}
+
+	return results
+}
+
+func flattenFunctionAppSlotSiteCredential(input *web.UserProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if input == nil {
+		log.Printf("[DEBUG] UserProperties is nil")
+		return results
+	}
+
+	if input.PublishingUserName != nil {
+		result["username"] = *input.PublishingUserName
+	}
+
+	if input.PublishingPassword != nil {
+		result["password"] = *input.PublishingPassword
+	}
+
+	return append(results, result)
+}
+
+func flattenFunctionAppSlotIPRestriction(input *[]web.IPSecurityRestriction) []interface{} {
+	restrictions := make([]interface{}, 0)
+
+	if input == nil {
+		return restrictions
+	}
+
+	for _, v := range *input {
+		ipAddress := ""
+		if v.IPAddress != nil {
+			ipAddress = *v.IPAddress
+			if ipAddress == "Any" {
+				continue
+			}
+		}
+
+		subnetID := ""
+		if v.VnetSubnetResourceID != nil {
+			subnetID = *v.VnetSubnetResourceID
+		}
+
+		restrictions = append(restrictions, map[string]interface{}{
+			"ip_address": ipAddress,
+			"subnet_id":  subnetID,
+		})
+	}
+
+	return restrictions
 }
