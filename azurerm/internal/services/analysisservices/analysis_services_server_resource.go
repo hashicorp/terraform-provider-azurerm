@@ -1,9 +1,12 @@
 package analysisservices
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
@@ -99,6 +102,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 						},
 					},
 				},
+				Set: hashAnalysisServicesServerIpv4FirewallRule,
 			},
 
 			"querypool_connection_mode": {
@@ -383,19 +387,19 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 	return &firewallSettings
 }
 
-func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (enablePowerBi *bool, fwRules []interface{}) {
+func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (*bool, *schema.Set) {
 	if serverProperties == nil || serverProperties.IPV4FirewallSettings == nil {
-		return utils.Bool(false), make([]interface{}, 0)
+		return utils.Bool(false), schema.NewSet(hashAnalysisServicesServerIpv4FirewallRule, make([]interface{}, 0))
 	}
 
 	firewallSettings := serverProperties.IPV4FirewallSettings
 
-	enablePowerBi = utils.Bool(false)
+	enablePowerBi := utils.Bool(false)
 	if firewallSettings.EnablePowerBIService != nil {
 		enablePowerBi = firewallSettings.EnablePowerBIService
 	}
 
-	fwRules = make([]interface{}, 0)
+	fwRules := make([]interface{}, 0)
 	if firewallSettings.FirewallRules != nil {
 		for _, fwRule := range *firewallSettings.FirewallRules {
 			output := make(map[string]interface{})
@@ -415,5 +419,16 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 		}
 	}
 
-	return enablePowerBi, fwRules
+	return enablePowerBi, schema.NewSet(hashAnalysisServicesServerIpv4FirewallRule, fwRules)
+}
+
+func hashAnalysisServicesServerIpv4FirewallRule(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+
+	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["name"].(string))))
+	buf.WriteString(fmt.Sprintf("%s-", m["range_start"].(string)))
+	buf.WriteString(fmt.Sprintf("%s", m["range_end"].(string)))
+
+	return hashcode.String(buf.String())
 }
