@@ -105,7 +105,12 @@ resource "azurerm_service_fabric_mesh_application" "test" {
   location            = azurerm_resource_group.test.location
 
   service {
-    name = "testservice1"
+    name    = "testservice1"
+    os_type = "Linux"
+
+    code_package {
+      name = "testcodepackage1"
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

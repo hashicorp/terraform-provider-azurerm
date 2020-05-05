@@ -63,12 +63,25 @@ func resourceArmServiceFabricMeshApplication() *schema.Resource {
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"os_type": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(servicefabricmesh.Linux),
 								string(servicefabricmesh.Windows),
 							}, false),
+						},
+						"code_package": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -183,7 +196,7 @@ func resourceArmServiceFabricMeshApplicationDelete(d *schema.ResourceData, meta 
 }
 
 func expandServiceFabricMeshApplicationServices(input []interface{}) *[]servicefabricmesh.ServiceResourceDescription {
-	services := make([]servicefabricmesh.ServiceResourceDescription, 0, len(input))
+	services := make([]servicefabricmesh.ServiceResourceDescription, 0)
 
 	for _, serviceConfig := range input {
 		if serviceConfig == nil {
@@ -193,10 +206,31 @@ func expandServiceFabricMeshApplicationServices(input []interface{}) *[]servicef
 
 		services = append(services, servicefabricmesh.ServiceResourceDescription{
 			Name: utils.String(config["name"].(string)),
+			ServiceResourceProperties: &servicefabricmesh.ServiceResourceProperties{
+				OsType:       servicefabricmesh.OperatingSystemType(config["os_type"].(string)),
+				CodePackages: expandServiceFabricMeshCodePackages(config["code_package"].(*schema.Set).List()),
+			},
 		})
 	}
 
 	return &services
+}
+
+func expandServiceFabricMeshCodePackages(input []interface{}) *[]servicefabricmesh.ContainerCodePackageProperties {
+	codePackages := make([]servicefabricmesh.ContainerCodePackageProperties, 0, len(input))
+
+	for _, codePackageConfig := range input {
+		if codePackageConfig == nil {
+			continue
+		}
+		config := codePackageConfig.(map[string]interface{})
+
+		codePackages = append(codePackages, servicefabricmesh.ContainerCodePackageProperties{
+			Name: utils.String(config["name"].(string)),
+		})
+	}
+
+	return &codePackages
 }
 
 func flattenServiceFabricMeshApplicationServices(input *[]servicefabricmesh.ServiceResourceDescription) []map[string]interface{} {
@@ -211,7 +245,27 @@ func flattenServiceFabricMeshApplicationServices(input *[]servicefabricmesh.Serv
 			attr["name"] = *service.Name
 		}
 
+		attr["os_type"] = string(service.OsType)
+
+		attr["code_package"] = flattenServiceFabricMeshApplicationCodePackage(service.CodePackages)
+
 		result = append(result, attr)
+	}
+
+	return result
+}
+
+func flattenServiceFabricMeshApplicationCodePackage(input *[]servicefabricmesh.ContainerCodePackageProperties) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, codePackage := range *input {
+		attr := make(map[string]interface{}, 0)
+		if codePackage.Name != nil {
+			attr["name"] = *codePackage.Name
+		}
 	}
 
 	return result
