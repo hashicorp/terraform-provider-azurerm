@@ -319,12 +319,13 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 							"name": {
 								Type:         schema.TypeString,
 								Optional:     true,
+								Computed:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"priority": {
 								Type:         schema.TypeInt,
 								Optional:     true,
-								Default:      65000,
+								Computed:     true,
 								ValidateFunc: validation.IntBetween(1, 2147483647),
 							},
 						},
