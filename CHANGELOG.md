@@ -17,6 +17,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_analysis_services_server` - ip restriction name field no longer case sensitive [GH-6774]
 * `azurerm_network_interface` - changes to dns servers no longer use incremental update [GH-6624]
 * `azurerm_policy_definition` - changes to the dynamic fields (`createdBy`, `createdOn`, `updatedBy`, `updatedOn`) keys in the `metadata` field are excluded from diff's [GH-6734]
 
