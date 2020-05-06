@@ -252,6 +252,32 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 		return err
 	}
 
+	serverResp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(serverResp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error retrieving Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if serverResp.State != analysisservices.StateSucceeded && serverResp.State != analysisservices.StatePaused {
+		return fmt.Errorf("Error updating Analysis Services Server %q (Resource Group %q): State must be either Succeeded or Paused", id.Name, id.ResourceGroup)
+	}
+
+	isPaused := serverResp.State == analysisservices.StatePaused
+
+	if isPaused {
+		resumeFuture, err := client.Resume(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("Error starting Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err = resumeFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for Analysis Services Server starting completion %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+	}
+
 	serverProperties := expandAnalysisServicesServerMutableProperties(d)
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -269,6 +295,17 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if isPaused {
+		suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("Error pausing Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err = suspendFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for Analysis Services Server pausing completion %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	return resourceArmAnalysisServicesServerRead(d, meta)
