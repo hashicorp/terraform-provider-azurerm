@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -111,11 +112,14 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 	}
 
 	// KeyVault may be in another subscription - e.g. Shared Services pattern
+	keyVault := keyvault.Vault{}
 	if keyVaultId.Subscription != vaultsClient.SubscriptionID {
-		vaultsClient.SubscriptionID = keyVaultId.Subscription
+		remoteVaultsClient := keyvault.NewVaultsClientWithBaseURI(vaultsClient.BaseURI, keyVaultId.Subscription)
+		keyVault, err = remoteVaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+	} else {
+		keyVault, err = vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	}
 
-	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", keyVaultId.Name, keyVaultId.ResourceGroup, err)
 	}
