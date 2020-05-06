@@ -12,11 +12,12 @@ IMPROVEMENTS:
 * `azurerm_key_vault_certificate` - support for recovering a soft-deleted certificate if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
 * `azurerm_key_vault_key` - support for recovering a soft-deleted key if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
 * `azurerm_key_vault_secret` - support for recovering a soft-deleted secret if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
-* `azurerm_linux_virtual_machine_scale_set - support for configuring `create_mode` for data disks [GH-6744]
-* `azurerm_windows_virtual_machine_scale_set - support for configuring `create_mode` for data disks [GH-6744]
+* `azurerm_linux_virtual_machine_scale_set` - support for configuring `create_mode` for data disks [GH-6744]
+* `azurerm_windows_virtual_machine_scale_set` - support for configuring `create_mode` for data disks [GH-6744]
 
 BUG FIXES:
 
+* `azurerm_network_interface` - changes to dns servers no longer use incremental update [GH-6624]
 * `azurerm_policy_definition` - changes to the dynamic fields (`createdBy`, `createdOn`, `updatedBy`, `updatedOn`) keys in the `metadata` field are excluded from diff's [GH-6734]
 
 ## 2.8.0 (April 30, 2020)
