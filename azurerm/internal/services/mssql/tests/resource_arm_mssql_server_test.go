@@ -310,11 +310,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%d"
   location = "%s"
-  lifecycle {
-    ignore_changes = [
-      tags,
-    ]
-  }
 }
 
 resource "azurerm_mssql_server" "test" {
@@ -465,11 +460,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
-  lifecycle {
-    ignore_changes = [
-      tags,
-    ]
-  }
 }
 
 data "azuread_service_principal" "test" {
@@ -501,11 +491,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
-  lifecycle {
-    ignore_changes = [
-      tags,
-    ]
-  }
 }
 
 data "azuread_service_principal" "test" {
@@ -537,11 +522,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
   location = "%[2]s"
-  lifecycle {
-    ignore_changes = [
-      tags,
-    ]
-  }
 }
 
 resource "azurerm_virtual_network" "test" {
