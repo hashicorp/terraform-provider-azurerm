@@ -35,7 +35,8 @@ func NewDomainTopicsClient(subscriptionID string) DomainTopicsClient {
 	return NewDomainTopicsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDomainTopicsClientWithBaseURI creates an instance of the DomainTopicsClient client.
+// NewDomainTopicsClientWithBaseURI creates an instance of the DomainTopicsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDomainTopicsClientWithBaseURI(baseURI string, subscriptionID string) DomainTopicsClient {
 	return DomainTopicsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -96,9 +97,8 @@ func (client DomainTopicsClient) CreateOrUpdatePreparer(ctx context.Context, res
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client DomainTopicsClient) CreateOrUpdateSender(req *http.Request) (future DomainTopicsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -175,9 +175,8 @@ func (client DomainTopicsClient) DeletePreparer(ctx context.Context, resourceGro
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client DomainTopicsClient) DeleteSender(req *http.Request) (future DomainTopicsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -259,8 +258,7 @@ func (client DomainTopicsClient) GetPreparer(ctx context.Context, resourceGroupN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DomainTopicsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -351,8 +349,7 @@ func (client DomainTopicsClient) ListByDomainPreparer(ctx context.Context, resou
 // ListByDomainSender sends the ListByDomain request. The method will close the
 // http.Response Body if it receives an error.
 func (client DomainTopicsClient) ListByDomainSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByDomainResponder handles the response to the ListByDomain request. The method always
