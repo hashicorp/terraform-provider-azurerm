@@ -254,15 +254,11 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	serverResp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		if utils.ResponseWasNotFound(serverResp.Response) {
-			d.SetId("")
-			return nil
-		}
 		return fmt.Errorf("Error retrieving Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if serverResp.State != analysisservices.StateSucceeded && serverResp.State != analysisservices.StatePaused {
-		return fmt.Errorf("Error updating Analysis Services Server %q (Resource Group %q): State must be either Succeeded or Paused", id.Name, id.ResourceGroup)
+		return fmt.Errorf("Error updating Analysis Services Server %q (Resource Group %q): State must be either Succeeded or Paused but got %q", id.Name, id.ResourceGroup, serverResp.State)
 	}
 
 	isPaused := serverResp.State == analysisservices.StatePaused
@@ -300,7 +296,7 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 	if isPaused {
 		suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error pausing Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("Error re-pausing Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err = suspendFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
