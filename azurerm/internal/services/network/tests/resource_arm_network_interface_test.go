@@ -513,7 +513,7 @@ resource "azurerm_network_interface" "test" {
 
   dns_servers = [
     "10.0.0.5",
-    "10.0.0.6"
+    "10.0.0.7"
   ]
 
   ip_configuration {
