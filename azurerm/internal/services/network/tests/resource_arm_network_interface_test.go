@@ -345,6 +345,31 @@ func TestAccAzureRMNetworkInterface_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkInterface_updateMultipleParameters(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetworkInterfaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkInterface_withMultipleParameters(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNetworkInterface_updateMultipleParameters(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkInterfaceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMNetworkInterfaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.InterfacesClient
@@ -442,6 +467,66 @@ resource "azurerm_network_interface" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMNetworkInterface_withMultipleParameters(data acceptance.TestData) string {
+	template := testAccAzureRMNetworkInterface_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                    = "acctestni-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  enable_ip_forwarding    = true
+  internal_dns_name_label = "acctestni-%s"
+
+  dns_servers = [
+    "10.0.0.5",
+    "10.0.0.6"
+  ]
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = {
+    env = "Test"
+  }
+}
+`, template, data.RandomInteger, data.RandomString)
+}
+
+func testAccAzureRMNetworkInterface_updateMultipleParameters(data acceptance.TestData) string {
+	template := testAccAzureRMNetworkInterface_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                    = "acctestni-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  enable_ip_forwarding    = true
+  internal_dns_name_label = "acctestni-%s"
+
+  dns_servers = [
+    "10.0.0.5",
+    "10.0.0.7"
+  ]
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+  tags = {
+    env = "Test2"
+  }
+}
+`, template, data.RandomInteger, data.RandomString)
 }
 
 func testAccAzureRMNetworkInterface_dnsServers(data acceptance.TestData) string {
