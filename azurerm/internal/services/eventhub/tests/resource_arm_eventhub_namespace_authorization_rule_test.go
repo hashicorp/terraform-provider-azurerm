@@ -115,6 +115,54 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 	})
 }
 
+func TestAccAzureRMEventHubNamespaceAuthorizationRule_multi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace_authorization_rule", "test1")
+	resourceTwoName := "azurerm_eventhub_namespace_authorization_rule.test2"
+	resourceThreeName := "azurerm_eventhub_namespace_authorization_rule.test3"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMEventHubNamespaceAuthorizationRule_multi(data, true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "manage", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "send", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
+					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceTwoName),
+					resource.TestCheckResourceAttr(resourceTwoName, "manage", "false"),
+					resource.TestCheckResourceAttr(resourceTwoName, "send", "true"),
+					resource.TestCheckResourceAttr(resourceTwoName, "listen", "true"),
+					resource.TestCheckResourceAttrSet(resourceTwoName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceTwoName, "secondary_connection_string"),
+					testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceThreeName),
+					resource.TestCheckResourceAttr(resourceThreeName, "manage", "false"),
+					resource.TestCheckResourceAttr(resourceThreeName, "send", "true"),
+					resource.TestCheckResourceAttr(resourceThreeName, "listen", "true"),
+					resource.TestCheckResourceAttrSet(resourceThreeName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceThreeName, "secondary_connection_string"),
+				),
+			},
+			data.ImportStep(),
+			{
+				ResourceName:      resourceTwoName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceThreeName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.NamespacesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -215,4 +263,41 @@ resource "azurerm_eventhub_namespace_authorization_rule" "import" {
   manage              = azurerm_eventhub_namespace_authorization_rule.test.manage
 }
 `, template)
+}
+
+func testAzureRMEventHubNamespaceAuthorizationRule_multi(data acceptance.TestData, listen, send, manage bool) string {
+	template := testAccAzureRMEventHubNamespaceAuthorizationRule_base(data, listen, send, manage)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test1" {
+  name                = "acctestruleone-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  send   = true
+  listen = true
+  manage = false
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test2" {
+  name                = "acctestruletwo-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  send   = true
+  listen = true
+  manage = false
+}
+
+resource "azurerm_eventhub_namespace_authorization_rule" "test3" {
+  name                = "acctestrulethree-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  send   = true
+  listen = true
+  manage = false
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

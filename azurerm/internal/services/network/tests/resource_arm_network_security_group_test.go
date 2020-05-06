@@ -225,6 +225,32 @@ func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNetworkSecurityGroup_deleteRule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_group", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMNetworkSecurityGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkSecurityGroup_singleRule(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNetworkSecurityGroup_deleteRule(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkSecurityGroupExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "security_rule.#", "0"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.SecurityGroupClient
@@ -578,4 +604,24 @@ resource "azurerm_network_security_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMNetworkSecurityGroup_deleteRule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acceptanceTestSecurityGroup1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  security_rule       = []
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

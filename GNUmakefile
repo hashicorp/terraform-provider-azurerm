@@ -3,7 +3,6 @@ WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
 TESTTIMEOUT=180m
 
-
 .EXPORT_ALL_VARIABLES:
   TF_SCHEMA_PANIC_ON_ERROR=1
   GO111MODULE=on

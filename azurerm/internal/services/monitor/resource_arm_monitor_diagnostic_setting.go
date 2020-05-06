@@ -83,10 +83,13 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 			},
 
 			"log_analytics_destination_type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     false,
-				ValidateFunc: validation.StringInSlice([]string{"Dedicated"}, false),
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: false,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Dedicated",
+					"AzureDiagnostics", // Not documented in azure API, but some resource has skew. See: https://github.com/Azure/azure-rest-api-specs/issues/9281
+				}, false),
 			},
 
 			"log": {
