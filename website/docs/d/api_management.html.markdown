@@ -41,6 +41,8 @@ output "api_management_id" {
 
 * `gateway_regional_url` - The URL for the Gateway in the Default Region.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `hostname_configuration` - A `hostname_configuration` block as defined below.
 
 * `management_api_url` - The URL for the Management API.
@@ -70,6 +72,16 @@ A `additional_location` block exports the following:
 * `gateway_regional_url` - Gateway URL of the API Management service in the Region.
 
 * `public_ip_addresses` - Public Static Load Balanced IP addresses of the API Management service in the additional location. Available only for Basic, Standard and Premium SKU.
+
+---
+
+A `identity` block exports the following:
+
+~> **Note:** User Assigned Managed Identities are in Preview
+
+* `type` - Specifies the type of Managed Service Identity that is configured on this API Management Service.
+
+* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
 
 ---
 
