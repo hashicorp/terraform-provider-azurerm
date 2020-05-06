@@ -2,11 +2,11 @@ package validate
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
 	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
 )
 
 func DataShareAccountName() schema.SchemaValidateFunc {

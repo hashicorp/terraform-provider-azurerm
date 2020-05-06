@@ -230,6 +230,7 @@ func testAccAzureRMDataShare_requiresImport(data acceptance.TestData) string {
 	config := testAccAzureRMDataShare_basic(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_data_share" "import" {
   name       = azurerm_data_share.test.name
   account_id = azurerm_data_share_account.test.id
@@ -242,6 +243,7 @@ func testAccAzureRMDataShare_complete(data acceptance.TestData) string {
 	template := testAccAzureRMDataShare_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_data_share" "test" {
   name        = "acctest_ds_%d"
   account_id  = azurerm_data_share_account.test.id
@@ -256,6 +258,7 @@ func testAccAzureRMDataShare_update(data acceptance.TestData) string {
 	template := testAccAzureRMDataShare_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_data_share" "test" {
   name        = "acctest_ds_%d"
   account_id  = azurerm_data_share_account.test.id
