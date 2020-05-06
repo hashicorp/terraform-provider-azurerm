@@ -3,6 +3,7 @@ package hdinsight
 import (
 	"fmt"
 	"log"
+
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
@@ -89,45 +90,45 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 
 			"gateway": azure.SchemaHDInsightsGateway(),
 
-			"server.properties": {
+			"server_properties": {
 				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Optional: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"ssl.key.password": {
+						"ssl_key_password": {
 							Type:     schema.TypeString,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 						},
-						"ssl.keystore.location": {
+						"ssl_keystore_location": {
 							Type:     schema.TypeString,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 						},
-						"ssl.keystore.password": {
+						"ssl_keystore_password": {
 							Type:     schema.TypeString,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 						},
-						"ssl.truststore.location": {
+						"ssl_truststore_location": {
 							Type:     schema.TypeString,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 						},
-						"ssl.truststore.password": {
+						"ssl_truststore_password": {
 							Type:     schema.TypeString,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 						},
 						"listeners": {
 							Type:     schema.TypeString,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 						},
-						"security.inter.broker.protocol": {
+						"security_inter_broker_protocol": {
 							Type:     schema.TypeString,
-							Required: false,
+							Optional: true,
 							ForceNew: true,
 						},
 					},
