@@ -493,17 +493,17 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 		}
 		if serviceBusQueueEndpoint, ok := props.Destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_queue_endpoint", flattenEventGridEventSubscriptionServiceBusQueueEndpoint(serviceBusQueueEndpoint)); err != nil {
-				return fmt.Errorf("Error setting `service_bus_queue_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `service_bus_queue_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 		if serviceBusTopicEndpoint, ok := props.Destination.AsServiceBusTopicEventSubscriptionDestination(); ok {
 			if err := d.Set("service_bus_topic_endpoint", flattenEventGridEventSubscriptionServiceBusTopicEndpoint(serviceBusTopicEndpoint)); err != nil {
-				return fmt.Errorf("Error setting `service_bus_topic_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `service_bus_topic_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 		if azureFunctionEndpoint, ok := props.Destination.AsAzureFunctionEventSubscriptionDestination(); ok {
 			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {
-				return fmt.Errorf("Error setting `azure_function_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `azure_function_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 		if _, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
@@ -523,7 +523,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			}
 
 			if err := d.Set("advanced_filter", flattenEventGridEventSubscriptionAdvancedFilter(filter.AdvancedFilters)); err != nil {
-				return fmt.Errorf("Error setting `advanced_filter` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `advanced_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 
