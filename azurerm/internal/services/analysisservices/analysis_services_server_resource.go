@@ -428,7 +428,7 @@ func hashAnalysisServicesServerIpv4FirewallRule(v interface{}) int {
 
 	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["name"].(string))))
 	buf.WriteString(fmt.Sprintf("%s-", m["range_start"].(string)))
-	buf.WriteString(fmt.Sprintf("%s", m["range_end"].(string)))
+	buf.WriteString(m["range_end"].(string))
 
 	return hashcode.String(buf.String())
 }
