@@ -89,6 +89,51 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 
 			"gateway": azure.SchemaHDInsightsGateway(),
 
+			"server.properties": {
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ssl.key.password": {
+							Type:     schema.TypeString,
+							Required: false,
+							ForceNew: true,
+						},
+						"ssl.keystore.location": {
+							Type:     schema.TypeString,
+							Required: false,
+							ForceNew: true,
+						},
+						"ssl.keystore.password": {
+							Type:     schema.TypeString,
+							Required: false,
+							ForceNew: true,
+						},
+						"ssl.truststore.location": {
+							Type:     schema.TypeString,
+							Required: false,
+							ForceNew: true,
+						},
+						"ssl.truststore.password": {
+							Type:     schema.TypeString,
+							Required: false,
+							ForceNew: true,
+						},
+						"listeners": {
+							Type:     schema.TypeString,
+							Required: false,
+							ForceNew: true,
+						},
+						"security.inter.broker.protocol": {
+							Type:     schema.TypeString,
+							Required: false,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
@@ -142,6 +187,9 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 	gatewayRaw := d.Get("gateway").([]interface{})
 	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
+	serverPropertiesRaw := d.Get("server.properties").([]interface{})
+	serverProperties := expandHDInsightsServerProperties(serverPropertiesRaw)
+
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
 	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
@@ -183,7 +231,7 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Kafka"),
 				ComponentVersion: componentVersions,
-				Configurations:   gateway,
+				Configurations:   Merge(gateway, serverProperties),
 			},
 			StorageProfile: &hdinsight.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -248,6 +296,11 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error retrieving Configuration for HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	serverProperties, err := configurationsClient.Get(ctx, resourceGroup, name, "server.properties")
+	if err != nil {
+		return fmt.Errorf("Error retrieving server.properties for HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
@@ -267,6 +320,10 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 
 			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
+			}
+
+			if err := d.Set("server.properties", flattenHDInsightsServerProperties(serverProperties.Value)); err != nil {
+				return fmt.Errorf("Error flattening `server.properties`: %+v", err)
 			}
 		}
 
@@ -308,4 +365,80 @@ func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface
 			"kafka": kafkaVersion,
 		},
 	}
+}
+
+func expandHDInsightsServerProperties(input []interface{}) map[string]interface{} {
+	vs := input[0].(map[string]interface{})
+	// TODO: This probably doesn't work if not all props are set
+	return map[string]interface{}{
+		"server.properties": map[string]interface{}{
+			"ssl.key.password":               vs["ssl.key.password"].(string),
+			"ssl.keystore.location":          vs["ssl.keystore.location"].(string),
+			"ssl.keystore.password":          vs["ssl.keystore.password"].(string),
+			"ssl.truststore.location":        vs["ssl.truststore.location"].(string),
+			"ssl.truststore.password":        vs["ssl.truststore.password"].(string),
+			"listeners":                      vs["listeners"].(string),
+			"security.inter.broker.protocol": vs["security.inter.broker.protocol"].(string),
+		},
+	}
+}
+
+func flattenHDInsightsServerProperties(input map[string]*string) []interface{} {
+	sslKeyPassword := ""
+	if v, exists := input["ssl.key.password"]; exists && v != nil {
+		sslKeyPassword = *v
+	}
+
+	sslKeyStoreLocation := ""
+	if v, exists := input["ssl.keystore.location"]; exists && v != nil {
+		sslKeyStoreLocation = *v
+	}
+
+	sslKeyStorePassword := ""
+	if v, exists := input["ssl.keystore.password"]; exists && v != nil {
+		sslKeyStorePassword = *v
+	}
+
+	sslTrustStoreLocation := ""
+	if v, exists := input["ssl.truststore.location"]; exists && v != nil {
+		sslTrustStoreLocation = *v
+	}
+
+	sslTrustStorePassword := ""
+	if v, exists := input["sslTrustStorePassword"]; exists && v != nil {
+		sslTrustStorePassword = *v
+	}
+
+	listeners := ""
+	if v, exists := input["listeners"]; exists && v != nil {
+		listeners = *v
+	}
+
+	securityInterBrokerProtocol := ""
+	if v, exists := input["security.inter.broker.protocol"]; exists && v != nil {
+		securityInterBrokerProtocol = *v
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"ssl.key.password":               sslKeyPassword,
+			"ssl.keystore.location":          sslKeyStoreLocation,
+			"ssl.keystore.password":          sslKeyStorePassword,
+			"ssl.truststore.location":        sslTrustStoreLocation,
+			"ssl.truststore.password":        sslTrustStorePassword,
+			"listeners":                      listeners,
+			"security.inter.broker.protocol": securityInterBrokerProtocol,
+		},
+	}
+}
+
+func Merge(first map[string]interface{}, second map[string]interface{}) map[string]interface{} {
+	merged := make(map[string]interface{})
+	for key, value := range first {
+		merged[key] = value
+	}
+	for key, value := range second {
+		merged[key] = value
+	}
+	return merged
 }

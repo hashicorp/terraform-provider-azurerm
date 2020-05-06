@@ -86,6 +86,53 @@ func hdinsightClusterVersionDiffSuppressFunc(_, old, new string, _ *schema.Resou
 	return false
 }
 
+func SchemaHDInsightKafkaServerProperties() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"ssl.key.password": {
+					Type:     schema.TypeString,
+					Required: false,
+					ForceNew: true,
+				},
+				"ssl.keystore.location": {
+					Type:     schema.TypeString,
+					Required: false,
+					ForceNew: true,
+				},
+				"ssl.keystore.password": {
+					Type:     schema.TypeString,
+					Required: false,
+					ForceNew: true,
+				},
+				"ssl.truststore.location": {
+					Type:     schema.TypeString,
+					Required: false,
+					ForceNew: true,
+				},
+				"ssl.truststore.password": {
+					Type:     schema.TypeString,
+					Required: false,
+					ForceNew: true,
+				},
+				"listeners": {
+					Type:     schema.TypeString,
+					Required: false,
+					ForceNew: true,
+				},
+				"security.inter.broker.protocol": {
+					Type:     schema.TypeString,
+					Required: false,
+					ForceNew: true,
+				},
+			},
+		},
+	}
+}
+
 func SchemaHDInsightsGateway() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
