@@ -323,8 +323,8 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
 
-			if err := d.Set("server.properties", flattenHDInsightsServerProperties(serverProperties.Value)); err != nil {
-				return fmt.Errorf("Error flattening `server.properties`: %+v", err)
+			if err := d.Set("server_properties", flattenHDInsightsServerProperties(serverProperties.Value)); err != nil {
+				return fmt.Errorf("Error flattening `server_properties`: %+v", err)
 			}
 		}
 
@@ -373,13 +373,13 @@ func expandHDInsightsServerProperties(input []interface{}) map[string]interface{
 	// TODO: This probably doesn't work if not all props are set
 	return map[string]interface{}{
 		"server.properties": map[string]interface{}{
-			"ssl.key.password":               vs["ssl.key.password"].(string),
-			"ssl.keystore.location":          vs["ssl.keystore.location"].(string),
-			"ssl.keystore.password":          vs["ssl.keystore.password"].(string),
-			"ssl.truststore.location":        vs["ssl.truststore.location"].(string),
-			"ssl.truststore.password":        vs["ssl.truststore.password"].(string),
+			"ssl.key.password":               vs["ssl_key_password"].(string),
+			"ssl.keystore.location":          vs["ssl_keystore_location"].(string),
+			"ssl.keystore.password":          vs["ssl_keystore_password"].(string),
+			"ssl.truststore.location":        vs["ssl_truststore_location"].(string),
+			"ssl.truststore.password":        vs["ssl_truststore_password"].(string),
 			"listeners":                      vs["listeners"].(string),
-			"security.inter.broker.protocol": vs["security.inter.broker.protocol"].(string),
+			"security.inter.broker.protocol": vs["security_inter_broker_protocol"].(string),
 		},
 	}
 }
@@ -422,13 +422,13 @@ func flattenHDInsightsServerProperties(input map[string]*string) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"ssl.key.password":               sslKeyPassword,
-			"ssl.keystore.location":          sslKeyStoreLocation,
-			"ssl.keystore.password":          sslKeyStorePassword,
-			"ssl.truststore.location":        sslTrustStoreLocation,
-			"ssl.truststore.password":        sslTrustStorePassword,
+			"ssl_key_password":               sslKeyPassword,
+			"ssl_keystore_location":          sslKeyStoreLocation,
+			"ssl_keystore_password":          sslKeyStorePassword,
+			"ssl_truststore_location":        sslTrustStoreLocation,
+			"ssl_truststore_password":        sslTrustStorePassword,
 			"listeners":                      listeners,
-			"security.inter.broker.protocol": securityInterBrokerProtocol,
+			"security_inter_broker_protocol": securityInterBrokerProtocol,
 		},
 	}
 }
