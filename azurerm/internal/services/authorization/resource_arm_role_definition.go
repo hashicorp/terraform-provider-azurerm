@@ -221,6 +221,15 @@ func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
+	// fix bugs when scope is management group
+	// in this case, the id format is `/providers/Microsoft.Authorization/roleDefinitions/{id}`
+	// after func `parseRoleDefinitionId`, the scope is empty string
+	// read the real scope from state
+	if id.scope == "" {
+		scope := d.Get("scope").(string)
+		id.scope = strings.TrimPrefix(scope, "/")
+	}
+
 	resp, err := client.Delete(ctx, id.scope, id.roleDefinitionId)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
