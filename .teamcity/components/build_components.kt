@@ -7,7 +7,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
 // unfortunately TeamCity's Go Test Json parser appears to be broken
 // as such for the moment let's use the old method with a feature-flag
-const val useTeamCityGoTest = false
+const val useTeamCityGoTest = true
 
 fun BuildFeatures.Golang() {
     if (useTeamCityGoTest) {
@@ -34,7 +34,7 @@ fun BuildSteps.RunAcceptanceTests(providerName : String, packageName: String) {
     } else {
         step(ScriptBuildStep {
             name = "Install tombuildsstuff/teamcity-go-test-json"
-            scriptContent = "wget https://github.com/tombuildsstuff/teamcity-go-test-json/releases/download/v0.1.0/teamcity-go-test-json_linux_amd64 && chmod +x teamcity-go-test-json_linux_amd64"
+            scriptContent = "wget https://github.com/tombuildsstuff/teamcity-go-test-json/releases/download/v0.2.0/teamcity-go-test-json_linux_amd64 && chmod +x teamcity-go-test-json_linux_amd64"
         })
 
         var servicePath = "./%s/internal/services/%s/...".format(providerName, packageName)

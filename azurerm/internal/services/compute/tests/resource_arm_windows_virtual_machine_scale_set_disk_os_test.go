@@ -302,10 +302,9 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetDe
 	// TODO: switch back to default location
 	location := "westus2"
 
-	name := testAccAzureRMWindowsVirtualMachineScaleSet_vmName(data)
 	return fmt.Sprintf(`
 locals {
-  vm_name = "%s"
+  vm_name = "acctestVM-%d"
 }
 data "azurerm_client_config" "current" {}
 
@@ -373,7 +372,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
-`, name, data.RandomInteger, location, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, location, data.RandomString, data.RandomInteger)
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetResource(data acceptance.TestData) string {

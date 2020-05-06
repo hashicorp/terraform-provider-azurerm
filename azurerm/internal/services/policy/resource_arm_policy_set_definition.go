@@ -85,7 +85,7 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: policySetDefinitionsMetadataDiffSuppressFunc,
 			},
 
 			"parameters": {
@@ -103,6 +103,29 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			},
 		},
 	}
+}
+
+func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+	var oldPolicySetDefinitionsMetadata map[string]interface{}
+	errOld := json.Unmarshal([]byte(old), &oldPolicySetDefinitionsMetadata)
+	if errOld != nil {
+		return false
+	}
+
+	var newPolicySetDefinitionsMetadata map[string]interface{}
+	errNew := json.Unmarshal([]byte(new), &newPolicySetDefinitionsMetadata)
+	if errNew != nil {
+		return false
+	}
+
+	// Ignore the following keys if they're found in the metadata JSON
+	ignoreKeys := [4]string{"createdBy", "createdOn", "updatedBy", "updatedOn"}
+	for _, key := range ignoreKeys {
+		delete(oldPolicySetDefinitionsMetadata, key)
+		delete(newPolicySetDefinitionsMetadata, key)
+	}
+
+	return reflect.DeepEqual(oldPolicySetDefinitionsMetadata, newPolicySetDefinitionsMetadata)
 }
 
 func policyDefinitionsDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {

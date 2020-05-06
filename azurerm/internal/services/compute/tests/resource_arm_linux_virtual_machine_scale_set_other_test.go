@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -67,6 +68,22 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefix(t *testin
 			data.ImportStep(
 				"admin_password",
 			),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefixInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefixInvalid(data),
+				ExpectError: regexp.MustCompile("unable to assume default computer name prefix"),
+			},
 		},
 	})
 }
@@ -629,7 +646,49 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances            = 1
   admin_username       = "adminuser"
   admin_password       = "P@ssword1234!"
-  computer_name_prefix = "morty"
+  computer_name_prefix = "my-linux-computer-name-prefix"
+
+  disable_password_authentication = false
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachineScaleSet_otherComputerNamePrefixInvalid(data acceptance.TestData) string {
+	template := testAccAzureRMLinuxVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d-too-long-to-be-a-computer-name-but-not-vmss-name"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   disable_password_authentication = false
 

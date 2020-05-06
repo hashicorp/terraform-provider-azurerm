@@ -146,6 +146,37 @@ func TestAccAzureRMKeyVaultSecret_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultSecret_recovery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultSecretDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultSecret_softDeleteRecovery(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
+				),
+			},
+			{
+				Config:  testAccAzureRMKeyVaultSecret_softDeleteRecovery(data, false),
+				Destroy: true,
+			},
+			{
+				// purge true here to make sure when we end the test there's no soft-deleted items left behind
+				Config: testAccAzureRMKeyVaultSecret_softDeleteRecovery(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultSecretExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "value", "rick-and-morty"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.ManagementClient
 	vaultClient := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
@@ -436,4 +467,61 @@ resource "azurerm_key_vault_secret" "test" {
   key_vault_id = azurerm_key_vault.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultSecret_softDeleteRecovery(data acceptance.TestData, purge bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = "%t"
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-kvs-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  soft_delete_enabled = true
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "get",
+    ]
+
+    secret_permissions = [
+      "get",
+      "recover",
+      "delete",
+      "set",
+    ]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_secret" "test" {
+  name         = "secret-%s"
+  value        = "rick-and-morty"
+  key_vault_id = azurerm_key_vault.test.id
+}
+`, purge, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
