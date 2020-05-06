@@ -245,7 +245,7 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
+	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server update.")
 
 	id, err := parse.AnalysisServicesServerID(d.Id())
 	if err != nil {
