@@ -2659,9 +2659,9 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     ip_restriction {
-	  ip_address = "10.10.10.10/32"
-	  name       = "test-restriction"
-	  priority   = 123
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
 	}
   }
 }
@@ -2698,15 +2698,15 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     ip_restriction {
-	  ip_address = "10.10.10.10/32"
-	  name       = "test-restriction"
-	  priority   = 123
+      ip_address = "10.10.10.10/32"
+      name       = "test-restriction"
+      priority   = 123
 	}
 
     ip_restriction {
-	  ip_address = "20.20.20.0/24"
-	  name       = "test-restriction-2"
-	  priority   = 1234
+      ip_address = "20.20.20.0/24"
+      name       = "test-restriction-2"
+      priority   = 1234
 	}
   }
 }
