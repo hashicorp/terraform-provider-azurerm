@@ -37,9 +37,9 @@ The following attributes are exported:
 
 * `id` - The EventHub ID.
 
-* `alias_primary_connection_string` - The alias of the Primary Connection String for the Event Hubs Authorization Rule.
+* `primary_connection_string_alias` - The alias of the Primary Connection String for the Event Hubs Authorization Rule.
 
-* `alias_secondary_connection_string` - The alias of the Secondary Connection String for the Event Hubs Authorization Rule.
+* `secondary_connection_string_alias` - The alias of the Secondary Connection String for the Event Hubs Authorization Rule.
 
 * `primary_connection_string` - The Primary Connection String for the Event Hubs Authorization Rule.
 

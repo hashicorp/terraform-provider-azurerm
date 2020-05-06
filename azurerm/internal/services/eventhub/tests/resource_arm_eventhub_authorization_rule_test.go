@@ -128,8 +128,8 @@ func TestAccAzureRMEventHubAuthorizationRule_withAliasConnectionString(t *testin
 				Config: testAccAzureRMEventHubAuthorizationRule_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_secondary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string_alias"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string_alias"),
 				),
 			},
 			data.ImportStep(),

@@ -34,13 +34,13 @@ func dataSourceEventHubNamespaceAuthorizationRule() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"alias_primary_connection_string": {
+			"primary_connection_string_alias": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"alias_secondary_connection_string": {
+			"secondary_connection_string_alias": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -130,8 +130,8 @@ func dataSourceEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, me
 	d.Set("secondary_key", keysResp.SecondaryKey)
 	d.Set("primary_connection_string", keysResp.PrimaryConnectionString)
 	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
-	d.Set("alias_primary_connection_string", keysResp.AliasPrimaryConnectionString)
-	d.Set("alias_secondary_connection_string", keysResp.AliasSecondaryConnectionString)
+	d.Set("primary_connection_string_alias", keysResp.AliasPrimaryConnectionString)
+	d.Set("secondary_connection_string_alias", keysResp.AliasSecondaryConnectionString)
 
 	return nil
 }
