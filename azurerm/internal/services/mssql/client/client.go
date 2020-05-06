@@ -7,7 +7,6 @@ import (
 )
 
 type Client struct {
-
 	DatabasesClient                                    *sql.DatabasesClient
 	DatabaseExtendedBlobAuditingPoliciesClient         *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 	DatabaseThreatDetectionPoliciesClient              *sql.DatabaseThreatDetectionPoliciesClient
