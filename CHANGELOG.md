@@ -20,6 +20,7 @@ BUG FIXES:
 * `azurerm_analysis_services_server` - ip restriction name field no longer case sensitive [GH-6774]
 * `azurerm_network_interface` - changes to dns servers no longer use incremental update [GH-6624]
 * `azurerm_policy_definition` - changes to the dynamic fields (`createdBy`, `createdOn`, `updatedBy`, `updatedOn`) keys in the `metadata` field are excluded from diff's [GH-6734]
+* `azurerm_site_recovery_network_mapping` - handling an API Error when checking for the presence of an existing Network Mapping [GH-6747]
 
 ## 2.8.0 (April 30, 2020)
 
