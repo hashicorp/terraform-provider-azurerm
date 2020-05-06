@@ -774,7 +774,7 @@ func expandAdvancedFilter(config map[string]interface{}) (eventgrid.BasicAdvance
 		if values != nil && len(*values) > 0 {
 			return nil, fmt.Errorf("Conflicting field for `advanced_filter` (key=%s, operator_type=%s): values", key, operatorType)
 		}
-		if &value == nil || len(value) == 0 {
+		if len(value) == 0 {
 			return nil, fmt.Errorf("Missing value for`advanced_filter` (key=%s, operator_type=%s, value=%q)", key, operatorType, value)
 		}
 		return expandScalarAdvancedFilter(key, operatorType, value)
@@ -787,10 +787,10 @@ func expandAdvancedFilter(config map[string]interface{}) (eventgrid.BasicAdvance
 		string(eventgrid.OperatorTypeStringIn),
 		string(eventgrid.OperatorTypeStringNotIn):
 		// Workaround as long as nested schema validation is not working as expected (see https://github.com/hashicorp/terraform-plugin-sdk/issues/71)
-		if &value != nil && len(value) > 0 {
+		if len(value) > 0 {
 			return nil, fmt.Errorf("Conflicting field for `advanced_filter` (key=%s, operator_type=%s): value", key, operatorType)
 		}
-		if len(*values) == 0 {
+		if values != nil && len(*values) == 0 {
 			return nil, fmt.Errorf("Missing values for `advanced_filter` (key=%s, operator_type=%s, values=%q)", key, operatorType, values)
 		}
 		return expandArrayAdvancedFilter(key, operatorType, *values)
