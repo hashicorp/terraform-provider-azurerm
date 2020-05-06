@@ -2659,10 +2659,10 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "10.10.10.10/32"
-      name       = "test-restriction"
-      priority   = 123
-    }
+	  ip_address = "10.10.10.10/32"
+	  name       = "test-restriction"
+	  priority   = 123
+	}
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -2698,16 +2698,16 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     ip_restriction {
-      ip_address = "10.10.10.10/32"
-      name       = "test-restriction"
-      priority   = 123
+	  ip_address = "10.10.10.10/32"
+	  name       = "test-restriction"
+	  priority   = 123
 	}
 
     ip_restriction {
 	  ip_address = "20.20.20.0/24"
-      name       = "test-restriction-2"
-      priority   = 1234
-    }
+	  name       = "test-restriction-2"
+	  priority   = 1234
+	}
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
