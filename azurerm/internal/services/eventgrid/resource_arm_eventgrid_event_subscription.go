@@ -167,7 +167,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: RemoveFromStringArray(getEnpointTypes(), "hybrid_connection_endpoint"),
+				ConflictsWith: RemoveFromStringArray(getEnpointTypes(), "webhook_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"url": {
@@ -523,7 +523,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			}
 
 			if err := d.Set("advanced_filter", flattenEventGridEventSubscriptionAdvancedFilter(filter.AdvancedFilters)); err != nil {
-				return fmt.Errorf("Error setting `advanced_filter_scalar` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
+				return fmt.Errorf("Error setting `advanced_filter` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 			}
 		}
 
@@ -713,13 +713,13 @@ func expandEventGridEventSubscriptionAzureFunctionEndpoint(d *schema.ResourceDat
 	props := d.Get("azure_function_endpoint").([]interface{})[0].(map[string]interface{})
 	azureFunctionResourceID := props["azure_function_id"].(string)
 
-	storageQueueEndpoint := eventgrid.AzureFunctionEventSubscriptionDestination{
+	azureFunctionEndpoint := eventgrid.AzureFunctionEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeAzureFunction,
 		AzureFunctionEventSubscriptionDestinationProperties: &eventgrid.AzureFunctionEventSubscriptionDestinationProperties{
 			ResourceID: &azureFunctionResourceID,
 		},
 	}
-	return storageQueueEndpoint
+	return azureFunctionEndpoint
 }
 
 func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) (*eventgrid.EventSubscriptionFilter, error) {
@@ -770,6 +770,7 @@ func expandAdvancedFilter(config map[string]interface{}) (eventgrid.BasicAdvance
 		string(eventgrid.OperatorTypeNumberGreaterThanOrEquals),
 		string(eventgrid.OperatorTypeNumberLessThan),
 		string(eventgrid.OperatorTypeNumberLessThanOrEquals):
+		// Workaround as long as nested schema validation is not working as expected (see https://github.com/hashicorp/terraform-plugin-sdk/issues/71)
 		if values != nil && len(*values) > 0 {
 			return nil, fmt.Errorf("Conflicting field for `advanced_filter` (key=%s, operator_type=%s): values", key, operatorType)
 		}
@@ -785,6 +786,7 @@ func expandAdvancedFilter(config map[string]interface{}) (eventgrid.BasicAdvance
 		string(eventgrid.OperatorTypeStringEndsWith),
 		string(eventgrid.OperatorTypeStringIn),
 		string(eventgrid.OperatorTypeStringNotIn):
+		// Workaround as long as nested schema validation is not working as expected (see https://github.com/hashicorp/terraform-plugin-sdk/issues/71)
 		if &value != nil && len(value) > 0 {
 			return nil, fmt.Errorf("Conflicting field for `advanced_filter` (key=%s, operator_type=%s): value", key, operatorType)
 		}
