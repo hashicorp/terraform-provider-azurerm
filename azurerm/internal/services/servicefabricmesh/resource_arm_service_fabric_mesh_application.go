@@ -49,6 +49,7 @@ func resourceArmServiceFabricMeshApplication() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// Follow casing issue here https://github.com/Azure/azure-rest-api-specs/issues/9330
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"location": azure.SchemaLocation(),
@@ -170,7 +171,7 @@ func resourceArmServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData,
 
 	parameters := servicefabricmesh.ApplicationResourceDescription{
 		ApplicationResourceProperties: &servicefabricmesh.ApplicationResourceProperties{
-			Services:    expandServiceFabricMeshApplicationServices(d.Get("service").(*schema.Set).List()),
+			Services: expandServiceFabricMeshApplicationServices(d.Get("service").(*schema.Set).List()),
 		},
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
@@ -182,7 +183,7 @@ func resourceArmServiceFabricMeshApplicationCreateUpdate(d *schema.ResourceData,
 
 	log.Printf("[DEBUG] Waiting for Service Fabric Mesh Application %q (Resource Group %q) to finish creating", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
-		Pending:                   []string{string(servicefabricmesh.Creating)},
+		Pending:                   []string{string(servicefabricmesh.Creating), string(servicefabricmesh.Upgrading), string(servicefabricmesh.Deleting)},
 		Target:                    []string{string(servicefabricmesh.Ready)},
 		Refresh:                   serviceFabricMeshApplicationCreateRefreshFunc(ctx, client, resourceGroup, name),
 		MinTimeout:                10 * time.Second,
