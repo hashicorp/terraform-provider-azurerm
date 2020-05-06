@@ -85,6 +85,24 @@ func TestAccAzureRMPolicySetDefinition_ManagementGroup(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicySetDefinition_metadata(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_set_definition", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicySetDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicySetDefinition_metadata(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicySetDefinitionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAzureRMPolicySetDefinition_builtIn(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -256,6 +274,52 @@ PARAMETERS
 POLICY_DEFINITIONS
 }
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAzureRMPolicySetDefinition_metadata(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestpolset-%d"
+  policy_type  = "Custom"
+  display_name = "acctestpolset-%d"
+
+  parameters = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definitions = <<POLICY_DEFINITIONS
+    [
+        {
+            "parameters": {
+                "listOfAllowedLocations": {
+                    "value": "[parameters('allowedLocations')]"
+                }
+            },
+            "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
+        }
+    ]
+POLICY_DEFINITIONS
+
+  metadata = <<METADATA
+    {
+        "foo": "bar"
+    }
+METADATA
+}
+`, data.RandomInteger, data.RandomInteger)
 }
 
 func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.TestCheckFunc {

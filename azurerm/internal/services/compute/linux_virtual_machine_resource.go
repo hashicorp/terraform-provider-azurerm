@@ -51,7 +51,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateLinuxName,
+				ValidateFunc: ValidateVmName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -128,9 +128,8 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				// Computed since we reuse the VM name if one's not specified
 				Computed: true,
 				ForceNew: true,
-				// note: whilst the portal says 1-15 characters it seems to mirror the rules for the vm name
-				// (e.g. 1-15 for Windows, 1-63 for Linux)
-				ValidateFunc: ValidateLinuxName,
+
+				ValidateFunc: ValidateLinuxComputerNameFull,
 			},
 
 			"custom_data": base64.OptionalSchema(true),
@@ -295,6 +294,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
 	} else {
+		_, errs := ValidateLinuxComputerNameFull(d.Get("name"), "computer_name")
+		if len(errs) > 0 {
+			return fmt.Errorf("unable to assume default computer name %s Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
+		}
 		computerName = name
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
