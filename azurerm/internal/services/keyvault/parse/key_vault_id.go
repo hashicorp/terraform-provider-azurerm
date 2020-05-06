@@ -7,6 +7,7 @@ import (
 type KeyVaultId struct {
 	Name          string
 	ResourceGroup string
+	Subscription  string
 }
 
 func KeyVaultID(input string) (*KeyVaultId, error) {
@@ -16,6 +17,7 @@ func KeyVaultID(input string) (*KeyVaultId, error) {
 	}
 
 	account := KeyVaultId{
+		Subscription:  id.SubscriptionID,
 		ResourceGroup: id.ResourceGroup,
 	}
 

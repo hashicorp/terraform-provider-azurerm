@@ -110,6 +110,11 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 		return err
 	}
 
+	// KeyVault may be in another subscription - e.g. Shared Services pattern
+	if keyVaultId.Subscription != vaultsClient.SubscriptionID {
+		vaultsClient.SubscriptionID = keyVaultId.Subscription
+	}
+
 	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", keyVaultId.Name, keyVaultId.ResourceGroup, err)

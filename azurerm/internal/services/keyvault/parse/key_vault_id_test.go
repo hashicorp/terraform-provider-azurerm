@@ -41,6 +41,7 @@ func TestKeyVaultID(t *testing.T) {
 			Expected: &KeyVaultId{
 				Name:          "vault1",
 				ResourceGroup: "resGroup1",
+				Subscription:  "00000000-0000-0000-0000-0000000000000",
 			},
 		},
 		{
