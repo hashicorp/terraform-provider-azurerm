@@ -49,7 +49,7 @@ func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.A
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, eventhub.Send)
+		rights = append(rights, eventhub.SendEnumValue)
 	}
 
 	if d.Get("manage").(bool) {
@@ -67,7 +67,7 @@ func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (li
 			switch right {
 			case eventhub.Listen:
 				listen = true
-			case eventhub.Send:
+			case eventhub.SendEnumValue:
 				send = true
 			case eventhub.Manage:
 				manage = true

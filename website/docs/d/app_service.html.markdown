@@ -85,6 +85,10 @@ A `ip_restriction` block exports the following:
 
 * `subnet_mask` - The Subnet mask used for this IP Restriction.
 
+* `name` - The name for this IP Restriction.
+
+* `priority` - The priority for this IP Restriction.
+
 ---
 
 `site_config` supports the following:
@@ -102,6 +106,8 @@ A `ip_restriction` block exports the following:
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
 
 * `ftps_state` - State of FTP / FTPS service for this AppService.
+
+* `health_check_path` - The health check path to be pinged by App Service.
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 

@@ -46,6 +46,10 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this Cognitive Service Account. Possible values are `F0`, `F1`, `S0`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1`, and `P2`.
 
+* `qna_runtime_endpoint` - (Optional) A URL to link a QnAMaker cognitive account to a QnA runtime.
+
+-> **NOTE:** This URL is mandatory if the `kind` is set to `QnAMaker`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 

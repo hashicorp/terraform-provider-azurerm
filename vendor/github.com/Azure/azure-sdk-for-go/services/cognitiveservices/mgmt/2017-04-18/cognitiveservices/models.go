@@ -29,6 +29,23 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 
+// IdentityType enumerates the values for identity type.
+type IdentityType string
+
+const (
+	// None ...
+	None IdentityType = "None"
+	// SystemAssigned ...
+	SystemAssigned IdentityType = "SystemAssigned"
+	// UserAssigned ...
+	UserAssigned IdentityType = "UserAssigned"
+)
+
+// PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
+func PossibleIdentityTypeValues() []IdentityType {
+	return []IdentityType{None, SystemAssigned, UserAssigned}
+}
+
 // KeyName enumerates the values for key name.
 type KeyName string
 
@@ -42,6 +59,21 @@ const (
 // PossibleKeyNameValues returns an array of possible values for the KeyName const type.
 func PossibleKeyNameValues() []KeyName {
 	return []KeyName{Key1, Key2}
+}
+
+// KeySource enumerates the values for key source.
+type KeySource string
+
+const (
+	// MicrosoftCognitiveServices ...
+	MicrosoftCognitiveServices KeySource = "Microsoft.CognitiveServices"
+	// MicrosoftKeyVault ...
+	MicrosoftKeyVault KeySource = "Microsoft.KeyVault"
+)
+
+// PossibleKeySourceValues returns an array of possible values for the KeySource const type.
+func PossibleKeySourceValues() []KeySource {
+	return []KeySource{MicrosoftCognitiveServices, MicrosoftKeyVault}
 }
 
 // NetworkRuleAction enumerates the values for network rule action.
@@ -195,6 +227,8 @@ type Account struct {
 	Tags map[string]*string `json:"tags"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
+	// Identity - The identity of Cognitive Services account.
+	Identity *Identity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Account.
@@ -214,6 +248,9 @@ func (a Account) MarshalJSON() ([]byte, error) {
 	}
 	if a.Tags != nil {
 		objectMap["tags"] = a.Tags
+	}
+	if a.Identity != nil {
+		objectMap["identity"] = a.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -404,6 +441,10 @@ type AccountProperties struct {
 	CustomSubDomainName *string `json:"customSubDomainName,omitempty"`
 	// NetworkAcls - A collection of rules governing the accessibility from specific network locations.
 	NetworkAcls *NetworkRuleSet `json:"networkAcls,omitempty"`
+	// Encryption - The encryption properties for this resource.
+	Encryption *Encryption `json:"encryption,omitempty"`
+	// UserOwnedStorage - The storage accounts for this resource.
+	UserOwnedStorage *[]UserOwnedStorage `json:"userOwnedStorage,omitempty"`
 	// APIProperties - The api properties for special APIs.
 	APIProperties *AccountAPIProperties `json:"apiProperties,omitempty"`
 }
@@ -462,6 +503,14 @@ type CheckSkuAvailabilityResultList struct {
 	Value *[]CheckSkuAvailabilityResult `json:"value,omitempty"`
 }
 
+// Encryption properties to configure Encryption
+type Encryption struct {
+	// KeyVaultProperties - Properties of KeyVault
+	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
+	// KeySource - Enumerates the possible value of keySource for Encryption. Possible values include: 'MicrosoftCognitiveServices', 'MicrosoftKeyVault'
+	KeySource KeySource `json:"keySource,omitempty"`
+}
+
 // Error cognitive Services error object.
 type Error struct {
 	// Error - The error body.
@@ -476,10 +525,44 @@ type ErrorBody struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// Identity managed service identity.
+type Identity struct {
+	// Type - Type of managed service identity. Possible values include: 'None', 'SystemAssigned', 'UserAssigned'
+	Type IdentityType `json:"type,omitempty"`
+	// TenantID - READ-ONLY; Tenant of managed service identity.
+	TenantID *string `json:"tenantId,omitempty"`
+	// PrincipalID - READ-ONLY; Principal Id of managed service identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// UserAssignedIdentities - The list of user assigned identities associated with the resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}
+	UserAssignedIdentities map[string]*UserAssignedIdentity `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
+	if i.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = i.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
+}
+
 // IPRule a rule governing the accessibility from a specific ip address or ip range.
 type IPRule struct {
 	// Value - An IPv4 address range in CIDR notation, such as '124.56.78.91' (simple IP address) or '124.56.78.0/24' (all addresses that start with 124.56.78).
 	Value *string `json:"value,omitempty"`
+}
+
+// KeyVaultProperties properties to configure keyVault Properties
+type KeyVaultProperties struct {
+	// KeyName - Name of the Key from KeyVault
+	KeyName *string `json:"keyName,omitempty"`
+	// KeyVersion - Version of the Key from KeyVault
+	KeyVersion *string `json:"keyVersion,omitempty"`
+	// KeyVaultURI - Uri of KeyVault
+	KeyVaultURI *string `json:"keyVaultUri,omitempty"`
 }
 
 // MetricName a metric name.
@@ -897,6 +980,20 @@ type UsagesResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The list of usages for Cognitive Service account.
 	Value *[]Usage `json:"value,omitempty"`
+}
+
+// UserAssignedIdentity user-assigned managed identity.
+type UserAssignedIdentity struct {
+	// PrincipalID - Azure Active Directory principal ID associated with this Identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - Client App Id associated with this identity.
+	ClientID *string `json:"clientId,omitempty"`
+}
+
+// UserOwnedStorage the user owned storage for Cognitive Services account.
+type UserOwnedStorage struct {
+	// ResourceID - Full resource id of a Microsoft.Storage resource.
+	ResourceID *string `json:"resourceId,omitempty"`
 }
 
 // VirtualNetworkRule a rule governing the accessibility from a specific virtual network.

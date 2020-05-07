@@ -29,7 +29,7 @@ resource "azurerm_mariadb_server" "example" {
     storage_mb            = 5120
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
-    storage_autogrow      = "Disabled"
+    auto_grow             = "Disabled"
   }
 
   administrator_login          = "mariadbadmin"

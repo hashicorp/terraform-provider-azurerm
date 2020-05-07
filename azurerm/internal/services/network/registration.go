@@ -39,6 +39,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_public_ips":                                dataSourceArmPublicIPs(),
 		"azurerm_public_ip_prefix":                          dataSourceArmPublicIpPrefix(),
 		"azurerm_route_table":                               dataSourceArmRouteTable(),
+		"azurerm_network_service_tags":                      dataSourceNetworkServiceTags(),
 		"azurerm_subnet":                                    dataSourceArmSubnet(),
 		"azurerm_virtual_hub":                               dataSourceArmVirtualHub(),
 		"azurerm_virtual_network_gateway":                   dataSourceArmVirtualNetworkGateway(),

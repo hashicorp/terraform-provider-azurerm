@@ -31,6 +31,8 @@ output "sql_server_id" {
 
 ## Attributes Reference
 
+* `id` - The id of the SQL Server resource.
+
 * `location` - The location of the Resource Group in which the SQL Server exists.
 
 * `fqdn` - The fully qualified domain name of the SQL Server.

@@ -57,7 +57,7 @@ The following arguments are supported:
 
 A `network_rulesets` block supports the following:
 
-* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
+* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
 * `virtual_network_rule` - (Optional) One or more `virtual_network_rule` blocks as defined below.
 

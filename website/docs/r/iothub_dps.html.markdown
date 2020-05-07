@@ -62,7 +62,7 @@ A `linked_hub` block supports the following:
 
 * `location` - (Required) The location of the IoT hub. Changing this forces a new resource.
 
-* `apply_application_policy` - (Optional) Determines whether to apply application policies to the IoT Hub. Defaults to false.
+* `apply_allocation_policy` - (Optional) Determines whether to apply allocation policies to the IoT Hub. Defaults to false.
 
 * `allocation_weight` - (Optional) The weight applied to the IoT Hub. Defaults to 0.
 

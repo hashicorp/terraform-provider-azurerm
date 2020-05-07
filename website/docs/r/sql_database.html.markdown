@@ -25,6 +25,10 @@ resource "azurerm_sql_server" "example" {
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+
+  tags = {
+    environment = "production"
+  }
 }
 
 resource "azurerm_storage_account" "example" {
@@ -47,6 +51,8 @@ resource "azurerm_sql_database" "example" {
     storage_account_access_key_is_secondary = true
     retention_in_days                       = 6
   }
+
+
 
   tags = {
     environment = "production"
@@ -124,7 +130,7 @@ The following arguments are supported:
 
 A `extended_auditing_policy` block supports the following:
 
-* `storage_account_access_key` - (Required) Specifies the access key to use for the auditing storage account.
+* `storage_account_access_key` - (Required)  Specifies the access key to use for the auditing storage account.
 * `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net).
 * `storage_account_access_key_is_secondary` - (Optional) Specifies whether `storage_account_access_key` value is the storage's secondary key.
 * `retention_in_days` - (Optional) Specifies the number of days to retain logs for in the storage account.

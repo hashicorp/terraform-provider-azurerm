@@ -16,6 +16,7 @@ Use this data source to access information about an Authorization Rule for an Ev
 data "azurerm_eventhub_namespace_authorization_rule" "example" {
   name                = "navi"
   resource_group_name = "example-resources"
+  namespace_name      = "example-ns"
 }
 
 output "eventhub_authorization_rule_id" {
@@ -31,13 +32,13 @@ The following arguments are supported:
 
 * `resource_group_name` - The name of the resource group in which the EventHub Namespace exists.
 
+* `namespace_name` - Specifies the name of the EventHub Namespace.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The EventHub ID.
-
-* `namespace_name` - The name of the EventHub Namespace. 
 
 * `listen` - Does this Authorization Rule have permissions to Listen to the Event Hub?
 
