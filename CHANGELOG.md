@@ -5,10 +5,13 @@ FEATURES:
 * **New Data Source:** `azurerm_data_share_account` [GH-6575]
 * **New Resource:** `azurerm_data_share_account` [GH-6575]
 * **New Resource:** `azurerm_function_app_slot` [GH-6435]
-* **New resource:** `azurerm_sentinel_alert_rule_scheduled` [GH-6650]
+* **New Resource:** `azurerm_sentinel_alert_rule_scheduled` [GH-6650]
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_eventhub_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* Data Source: `azurerm_eventhub_namespace_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* Data Source: `azurerm_eventhub_namespace` - support for the `default_primary_connection_string_alias` an `_defaultsecondary_connection_string_alias` propeties  [GH-6708]
 * `azurerm_analysis_services_server` - support updating when the Server is paused [GH-6786]
 * `azurerm_app_service` - support for health_check_path preview feature added [GH-6661]
 * `azurerm_app_service` - support for `name` and `priority` on `ip_restrictions` [GH-6705]
@@ -23,12 +26,10 @@ IMPROVEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - support for configuring `create_mode` for data disks [GH-6744]
 * `azurerm_monitor_diagnostic_setting` - `log_analytics_destination_type` supports `AzureDiagnostics` [GH-6769]
 * `azurerm_windows_virtual_machine_scale_set` - support for configuring `create_mode` for data disks [GH-6744]
-* `data.azurerm_eventhub_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
-* `data.azurerm_eventhub_namespace_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
-* `data.azurerm_eventhub_namespace` - support for the `default_primary_connection_string_alias` an `_defaultsecondary_connection_string_alias` propeties  [GH-6708]
 
 BUG FIXES:
 
+* provider: raising an error when the environment is set to `AZURESTACKCLOUD` [GH-6817]
 * `azurerm_analysis_services_server` - ip restriction name field no longer case sensitive [GH-6774]
 * `azurerm_eventhub_namespace_authorization_rule` - lock to prevent multiple resources won't clash [GH-6701]
 * `azurerm_network_interface` - changes to dns servers no longer use incremental update [GH-6624]
