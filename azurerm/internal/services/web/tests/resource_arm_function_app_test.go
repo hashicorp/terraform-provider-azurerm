@@ -262,6 +262,7 @@ func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	})
 }
 
+// TODO - Refactor this into more granular tests - currently fails due to race condition in a `ForceNew` step when changed to `kind = linux`
 func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 
