@@ -586,12 +586,12 @@ resource "azurerm_postgresql_server" "test" {
   ssl_minimal_tls_version_enforced  = "TLS1_2"
 
   security_alert_policy {
-	enabled = true
-	disabled_alerts = ["Sql_Injection", "Data_Exfiltration"]
-  	email_account_admins = true
-	email_addresses = ["kt@example.com", "admin@example.com"]
+    enabled              = true
+    disabled_alerts      = ["Sql_Injection", "Data_Exfiltration"]
+    email_account_admins = true
+    email_addresses      = ["kt@example.com", "admin@example.com"]
 
-  	retention_days       = 7
+    retention_days = 7
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
@@ -638,15 +638,15 @@ resource "azurerm_postgresql_server" "test" {
   ssl_minimal_tls_version_enforced  = "TLS1_1"
 
   security_alert_policy {
-	enabled = true
-	disabled_alerts = ["Sql_Injection"]
-  	email_account_admins = true
-	email_addresses = ["kt@example.com"]
+    enabled              = true
+    disabled_alerts      = ["Sql_Injection"]
+    email_account_admins = true
+    email_addresses      = ["kt@example.com"]
 
-  	retention_days       = 7
+    retention_days = 7
 
-	storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
-  	storage_account_access_key = azurerm_storage_account.test.primary_access_key
+    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key = azurerm_storage_account.test.primary_access_key
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
