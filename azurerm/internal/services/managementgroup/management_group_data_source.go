@@ -1,6 +1,7 @@
 package managementgroup
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -25,7 +26,7 @@ func dataSourceArmManagementGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ExactlyOneOf: []string{"name", "group_id"},
+				ExactlyOneOf: []string{"name", "group_id", "display_name"},
 				Deprecated:   "Deprecated in favour of `name`",
 				ValidateFunc: validate.ManagementGroupName,
 			},
@@ -34,13 +35,14 @@ func dataSourceArmManagementGroup() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true, // TODO -- change back to required after the deprecation
 				Computed:     true, // TODO -- remove computed after the deprecation
-				ExactlyOneOf: []string{"name", "group_id"},
+				ExactlyOneOf: []string{"name", "group_id", "display_name"},
 				ValidateFunc: validate.ManagementGroupName,
 			},
 
 			"display_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ExactlyOneOf: []string{"name", "group_id", "display_name"},
 			},
 
 			"parent_management_group_id": {
@@ -58,6 +60,41 @@ func dataSourceArmManagementGroup() *schema.Resource {
 	}
 }
 
+func getManagementGroupNameByDisplayName(ctx context.Context, client *managementgroups.Client, displayName string) (string, error) {
+	iterator, err := client.ListComplete(ctx, managementGroupCacheControl, "")
+	if err != nil {
+		return "", fmt.Errorf("Error listing Management Groups: %+v", err)
+	}
+
+	var results []string
+	for iterator.NotDone() {
+		group := iterator.Value()
+		if group.DisplayName != nil && *group.DisplayName == displayName && group.Name != nil {
+			results = append(results, *group.Name)
+		}
+
+		if err := iterator.NextWithContext(ctx); err != nil {
+			return "", fmt.Errorf("Error listing Management Groups: %+v", err)
+		}
+	}
+
+	// we found none
+	if len(results) == 0 {
+		return "", fmt.Errorf("do not find Management Group (Display Name %q)", displayName)
+	}
+
+	// we found more than one
+	if len(results) > 1 {
+		return "", fmt.Errorf("found more than one Management Group with display name %q", displayName)
+	}
+
+	if results[0] == "" {
+		return "", fmt.Errorf("cannot find the Management Group with display name %q", displayName)
+	}
+
+	return results[0], nil
+}
+
 func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -70,7 +107,17 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("group_id"); ok {
 		groupName = v.(string)
 	}
+	displayName := d.Get("display_name").(string)
 
+	// one of displayName and groupName must be non-empty, this is guaranteed by schema
+	// if the user is retrieving the mgmt group by display name, use the list api to get the group name first
+	var err error
+	if displayName != "" {
+		groupName, err = getManagementGroupNameByDisplayName(ctx, client, displayName)
+		if err != nil {
+			return fmt.Errorf("Error reading Management Group (Display Name %q): %+v", displayName, err)
+		}
+	}
 	recurse := true
 	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
@@ -78,7 +125,7 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Management Group %q was not found", groupName)
 		}
 
-		return fmt.Errorf("Error reading Management Group %q: %+v", d.Id(), err)
+		return fmt.Errorf("Error reading Management Group %q: %+v", groupName, err)
 	}
 
 	if resp.ID == nil {

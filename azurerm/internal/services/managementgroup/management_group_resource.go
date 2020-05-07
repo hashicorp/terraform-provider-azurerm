@@ -91,7 +91,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	armTenantID := meta.(*clients.Client).Account.TenantId
 
 	groupName := uuid.New().String()
-	if v, ok := d.GetOk("group_name"); ok {
+	if v, ok := d.GetOk("name"); ok {
 		groupName = v.(string)
 	}
 	if v, ok := d.GetOk("group_id"); ok {
