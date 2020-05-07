@@ -33,6 +33,7 @@ BUG FIXES:
 * `azurerm_analysis_services_server` - ip restriction name field no longer case sensitive [GH-6774]
 * `azurerm_eventhub_namespace_authorization_rule` - lock to prevent multiple resources won't clash [GH-6701]
 * `azurerm_network_interface` - changes to dns servers no longer use incremental update [GH-6624]
+* `azurerm_policy_assignment` - allow polices with scopes without `subscription/<id>` (built-in policies) [GH-6792]
 * `azurerm_policy_definition` - changes to the dynamic fields (`createdBy`, `createdOn`, `updatedBy`, `updatedOn`) keys in the `metadata` field are excluded from diff's [GH-6734]
 * `azurerm_site_recovery_network_mapping` - handling an API Error when checking for the presence of an existing Network Mapping [GH-6747]
 
