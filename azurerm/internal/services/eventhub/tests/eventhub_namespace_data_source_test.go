@@ -53,15 +53,15 @@ func TestAccDataSourceAzureRMEventHubNamespace_withAliasConnectionString(t *test
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				// `alias_default_primary_connection_string` and `alias_default_secondary_connection_string` are still `nil` while `data.azurerm_eventhub_namespace` is retrieving resource. since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
+				// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` while `data.azurerm_eventhub_namespace` is retrieving resource. since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
 				// So these two properties should be checked in the second run.
 				Config: testAccAzureRMEventHubNamespace_withAliasConnectionString(data),
 			},
 			{
 				Config: testAccDataSourceEventHubNamespace_withAliasConnectionString(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_default_primary_connection_string"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "alias_default_secondary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "default_primary_connection_string_alias"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "default_secondary_connection_string_alias"),
 				),
 			},
 		},

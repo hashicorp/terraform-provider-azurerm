@@ -47,18 +47,18 @@ output "eventhub_namespace_id" {
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.
 
-* `alias_default_primary_connection_string` - The alias of the primary connection string for the authorization
+* `default_primary_connection_string` - The primary connection string for the authorization
     rule `RootManageSharedAccessKey`.
 
-* `alias_default_secondary_connection_string` - The alias of the secondary connection string for the
-    authorization rule `RootManageSharedAccessKey`.
-
-* `default_primary_connection_string` - The primary connection string for the authorization
+* `default_primary_connection_string_alias` - The alias of the primary connection string for the authorization
     rule `RootManageSharedAccessKey`.
 
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_connection_string` - The secondary connection string for the
+    authorization rule `RootManageSharedAccessKey`.
+
+* `default_secondary_connection_string_alias` - The alias of the secondary connection string for the
     authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
