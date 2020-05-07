@@ -167,6 +167,8 @@ The following arguments are supported:
 
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
 
+-> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
+
 ---
 
 A `cors` block supports the following:
