@@ -33,8 +33,8 @@ func dataSourceArmManagementGroup() *schema.Resource {
 
 			"name": {
 				Type:         schema.TypeString,
-				Optional:     true, // TODO -- change back to required after the deprecation
-				Computed:     true, // TODO -- remove computed after the deprecation
+				Optional:     true,
+				Computed:     true,
 				ExactlyOneOf: []string{"name", "group_id", "display_name"},
 				ValidateFunc: validate.ManagementGroupName,
 			},
@@ -42,6 +42,7 @@ func dataSourceArmManagementGroup() *schema.Resource {
 			"display_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ExactlyOneOf: []string{"name", "group_id", "display_name"},
 			},
 
