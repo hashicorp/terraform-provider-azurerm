@@ -306,7 +306,7 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 }
 
 func expandContentLink(inputs []interface{}) *automation.ContentLink {
-	if len(inputs) == 0 {
+	if len(inputs) == 0 || inputs[0] == nil {
 		return nil
 	}
 
