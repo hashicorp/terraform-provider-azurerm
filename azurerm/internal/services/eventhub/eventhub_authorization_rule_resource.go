@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -87,6 +88,12 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 			return tf.ImportAsExistsError("azurerm_eventhub_authorization_rule", *existing.ID)
 		}
 	}
+
+	locks.ByName(eventHubName, eventHubResourceName)
+	defer locks.UnlockByName(eventHubName, eventHubResourceName)
+
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
 
 	parameters := eventhub.AuthorizationRule{
 		Name: &name,
@@ -176,6 +183,12 @@ func resourceArmEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta int
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 	eventHubName := id.Path["eventhubs"]
+
+	locks.ByName(eventHubName, eventHubResourceName)
+	defer locks.UnlockByName(eventHubName, eventHubResourceName)
+
+	locks.ByName(namespaceName, eventHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
 
 	resp, err := eventhubClient.DeleteAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name)
 
