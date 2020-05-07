@@ -406,7 +406,7 @@ func flattenHDInsightsServerProperties(input map[string]*string) []interface{} {
 	}
 
 	sslTrustStorePassword := ""
-	if v, exists := input["sslTrustStorePassword"]; exists && v != nil {
+	if v, exists := input["ssl.truststore.password"]; exists && v != nil {
 		sslTrustStorePassword = *v
 	}
 
