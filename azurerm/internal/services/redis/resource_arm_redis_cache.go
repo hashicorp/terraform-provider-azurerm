@@ -674,7 +674,7 @@ func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
 		backupEnabled := v.(bool)
 		if backupEnabled == true {
-			if v, ok := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); !ok || v.(string) != "" {
+			if connStr, connOk := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); !connOk || connStr.(string) == "" {
 				return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
 			}
 		}
