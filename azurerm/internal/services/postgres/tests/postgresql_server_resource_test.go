@@ -508,7 +508,7 @@ resource "azurerm_postgresql_server" "import" {
 
   sku_name   = azurerm_postgresql_server.test.sku_name
   version    = azurerm_postgresql_server.test.version
-  storage_mb = azurerm_postgresql_server.test.storage_profile.storage_mb
+  storage_mb = azurerm_postgresql_server.test.storage_mb
 
   ssl_enforcement_enabled = azurerm_postgresql_server.test.ssl_enforcement_enabled
 }

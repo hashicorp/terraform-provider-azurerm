@@ -281,20 +281,17 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"security_alert_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 
 						"disabled_alerts": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Computed: true,
 							Set:      schema.HashString,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -311,13 +308,11 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"email_account_admins": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
 						},
 
 						"email_addresses": {
 							Type:     schema.TypeSet,
 							Optional: true,
-							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								// todo email validation in code
@@ -328,7 +323,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 						"retention_days": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							Computed:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 
