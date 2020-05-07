@@ -75,6 +75,7 @@ func resourceArmMsSqlServer() *schema.Resource {
 			"azuread_administrator": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"login_username": {
@@ -230,15 +231,11 @@ func resourceArmMsSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("azuread_administrator") {
 		adminDelFuture, err := adminClient.Delete(ctx, resGroup, name)
 		if err != nil {
-			if !response.WasNotFound(adminDelFuture.Response()) {
-				return fmt.Errorf("deleting SQL Server %q AAD admin (Resource Group %q): %+v", name, resGroup, err)
-			}
+			return fmt.Errorf("deleting SQL Server %q AAD admin (Resource Group %q): %+v", name, resGroup, err)
 		}
 
 		if err = adminDelFuture.WaitForCompletionRef(ctx, adminClient.Client); err != nil {
-			if !response.WasNotFound(future.Response()) {
-				return fmt.Errorf("waiting for SQL Server %q AAD admin (Resource Group %q) to be deleted: %+v", name, resGroup, err)
-			}
+			return fmt.Errorf("waiting for SQL Server %q AAD admin (Resource Group %q) to be deleted: %+v", name, resGroup, err)
 		}
 
 		if adminParams := expandAzureRmMsSqlServerAdministrator(d.Get("azuread_administrator").([]interface{})); adminParams != nil {
@@ -328,8 +325,7 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 			return fmt.Errorf("Error reading SQL Server %s AAD admin: %v", name, err)
 		}
 	} else {
-		flattenAdmin := flatternAzureRmMsSqlServerAdministrator(adminResp)
-		if err := d.Set("azuread_administrator", flattenAdmin); err != nil {
+		if err := d.Set("azuread_administrator", flatternAzureRmMsSqlServerAdministrator(adminResp)); err != nil {
 			return fmt.Errorf("setting `azuread_administrator`: %+v", err)
 		}
 	}
