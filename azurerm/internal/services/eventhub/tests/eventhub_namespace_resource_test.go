@@ -153,6 +153,34 @@ func TestAccAzureRMEventHubNamespace_readDefaultKeys(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventHubNamespace_withAliasConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				// `default_primary_connection_string_alias` and `default_secondary_connection_string_alias` are still `nil` in `azurerm_eventhub_namespace` after created `azurerm_eventhub_namespace` successfully since `azurerm_eventhub_namespace_disaster_recovery_config` hasn't been created.
+				// So these two properties should be checked in the second run.
+				Config: testAccAzureRMEventHubNamespace_withAliasConnectionString(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMEventHubNamespace_withAliasConnectionString(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestMatchResourceAttr(data.ResourceName, "default_primary_connection_string_alias", regexp.MustCompile("Endpoint=.+")),
+					resource.TestMatchResourceAttr(data.ResourceName, "default_secondary_connection_string_alias", regexp.MustCompile("Endpoint=.+")),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMEventHubNamespace_maximumThroughputUnits(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_namespace", "test")
 
@@ -412,6 +440,47 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMEventHubNamespace_withAliasConnectionString(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ehn-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-ehn-%[1]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku = "Standard"
+}
+
+resource "azurerm_eventhub_namespace" "test2" {
+  name                = "acctesteventhubnamespace2-%[1]d"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+
+  sku = "Standard"
+}
+
+resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
+  name                 = "acctest-EHN-DRC-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  namespace_name       = azurerm_eventhub_namespace.test.name
+  partner_namespace_id = azurerm_eventhub_namespace.test2.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func testAccAzureRMEventHubNamespace_requiresImport(data acceptance.TestData) string {

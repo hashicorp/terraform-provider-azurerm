@@ -158,19 +158,31 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				},
 			},
 
+			"default_primary_connection_string_alias": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"default_secondary_connection_string_alias": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"default_primary_connection_string": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"default_secondary_connection_string": {
+			"default_primary_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
-			"default_primary_key": {
+			"default_secondary_connection_string": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -326,6 +338,8 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", name, err)
 	} else {
+		d.Set("default_primary_connection_string_alias", keys.AliasPrimaryConnectionString)
+		d.Set("default_secondary_connection_string_alias", keys.AliasSecondaryConnectionString)
 		d.Set("default_primary_connection_string", keys.PrimaryConnectionString)
 		d.Set("default_secondary_connection_string", keys.SecondaryConnectionString)
 		d.Set("default_primary_key", keys.PrimaryKey)
