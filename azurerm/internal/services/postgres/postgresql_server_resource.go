@@ -815,11 +815,11 @@ func expandSecurityAlertPolicy(i interface{}) *postgresql.ServerSecurityAlertPol
 		props.RetentionDays = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := block["storage_account_access_key"]; ok {
+	if v, ok := block["storage_account_access_key"]; ok && v.(string) != "" {
 		props.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
-	if v, ok := block["storage_endpoint"]; ok {
+	if v, ok := block["storage_endpoint"]; ok && v.(string) != "" {
 		props.StorageEndpoint = utils.String(v.(string))
 	}
 
@@ -832,6 +832,19 @@ func flattenSecurityAlertPolicy(props *postgresql.SecurityAlertPolicyProperties,
 	if props == nil {
 		return nil
 	}
+
+	// if they have no been set an empty struct is returned - so ignore it
+	/*if props.StorageAccountAccessKey == "" && props.StorageEndpoint == ""
+
+	cy.#:                            "1" => "0"
+	security_alert_policy.0.disabled_alerts.#:          "1" => ""
+	security_alert_policy.0.disabled_alerts.0:          "" => ""
+	security_alert_policy.0.email_account_admins:       "false" => ""
+	security_alert_policy.0.email_addresses.#:          "0" => ""
+	security_alert_policy.0.enabled:                    "false" => ""
+	security_alert_policy.0.retention_days:             "0" => ""
+	security_alert_policy.0.storage_account_access_key: "" => ""
+	security_alert_policy.0.storage_endpoint:           "" => ""*/
 
 	block := map[string]interface{}{}
 
