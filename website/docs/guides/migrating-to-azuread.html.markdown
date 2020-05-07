@@ -24,7 +24,7 @@ As the AzureAD and AzureRM Provider support the same authentication methods - it
 
 ```hcl
 provider "azurerm" {
-  version = "=1.38.0"
+  version = "=1.44.0"
 }
 ```
 
@@ -63,11 +63,11 @@ resource "azurerm_azuread_application" "example" {
 }
 
 resource "azurerm_azuread_service_principal" "example" {
-  application_id = "${azurerm_azuread_application.example.application_id}"
+  application_id = azurerm_azuread_application.example.application_id
 }
 
 resource "azurerm_azuread_service_principal_password" "example" {
-  service_principal_id = "${azurerm_azuread_service_principal.example.id}"
+  service_principal_id = azurerm_azuread_service_principal.example.id
   value                = "bd018069-622d-4b46-bcb9-2bbee49fe7d9"
   end_date             = "2020-01-01T01:02:03Z"
 }
@@ -81,11 +81,11 @@ resource "azuread_application" "example" {
 }
 
 resource "azuread_service_principal" "example" {
-  application_id = "${azuread_application.example.application_id}"
+  application_id = azuread_application.example.application_id
 }
 
 resource "azuread_service_principal_password" "example" {
-  service_principal_id = "${azuread_service_principal.example.id}"
+  service_principal_id = azuread_service_principal.example.id
   value                = "bd018069-622d-4b46-bcb9-2bbee49fe7d9"
   end_date             = "2020-01-01T01:02:03Z"
 }

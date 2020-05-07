@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(t *testing.T) {
@@ -95,11 +94,6 @@ func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_iothub", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -181,12 +175,12 @@ func testAccAzureRMStreamAnalyticsStreamInputIoTHub_avro(data acceptance.TestDat
 
 resource "azurerm_stream_analytics_stream_input_iothub" "test" {
   name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
+  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
   endpoint                     = "messages/events"
-  iothub_namespace             = "${azurerm_iothub.test.name}"
+  iothub_namespace             = azurerm_iothub.test.name
   eventhub_consumer_group_name = "$Default"
-  shared_access_policy_key     = "${azurerm_iothub.test.shared_access_policy.0.primary_key}"
+  shared_access_policy_key     = azurerm_iothub.test.shared_access_policy[0].primary_key
   shared_access_policy_name    = "iothubowner"
 
   serialization {
@@ -203,12 +197,12 @@ func testAccAzureRMStreamAnalyticsStreamInputIoTHub_csv(data acceptance.TestData
 
 resource "azurerm_stream_analytics_stream_input_iothub" "test" {
   name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
+  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
   endpoint                     = "messages/events"
-  iothub_namespace             = "${azurerm_iothub.test.name}"
+  iothub_namespace             = azurerm_iothub.test.name
   eventhub_consumer_group_name = "$Default"
-  shared_access_policy_key     = "${azurerm_iothub.test.shared_access_policy.0.primary_key}"
+  shared_access_policy_key     = azurerm_iothub.test.shared_access_policy[0].primary_key
   shared_access_policy_name    = "iothubowner"
 
   serialization {
@@ -227,12 +221,12 @@ func testAccAzureRMStreamAnalyticsStreamInputIoTHub_json(data acceptance.TestDat
 
 resource "azurerm_stream_analytics_stream_input_iothub" "test" {
   name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
+  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
   endpoint                     = "messages/events"
-  iothub_namespace             = "${azurerm_iothub.test.name}"
+  iothub_namespace             = azurerm_iothub.test.name
   eventhub_consumer_group_name = "$Default"
-  shared_access_policy_key     = "${azurerm_iothub.test.shared_access_policy.0.primary_key}"
+  shared_access_policy_key     = azurerm_iothub.test.shared_access_policy[0].primary_key
   shared_access_policy_name    = "iothubowner"
 
   serialization {
@@ -250,8 +244,8 @@ func testAccAzureRMStreamAnalyticsStreamInputIoTHub_updated(data acceptance.Test
 
 resource "azurerm_iothub" "updated" {
   name                = "acctestiot2-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -261,12 +255,12 @@ resource "azurerm_iothub" "updated" {
 
 resource "azurerm_stream_analytics_stream_input_iothub" "test" {
   name                         = "acctestinput-%d"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name          = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name    = azurerm_stream_analytics_job.test.name
+  resource_group_name          = azurerm_stream_analytics_job.test.resource_group_name
   endpoint                     = "messages/events"
   eventhub_consumer_group_name = "$Default"
-  iothub_namespace             = "${azurerm_iothub.updated.name}"
-  shared_access_policy_key     = "${azurerm_iothub.updated.shared_access_policy.0.primary_key}"
+  iothub_namespace             = azurerm_iothub.updated.name
+  shared_access_policy_key     = azurerm_iothub.updated.shared_access_policy[0].primary_key
   shared_access_policy_name    = "iothubowner"
 
   serialization {
@@ -297,6 +291,10 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "import" {
 
 func testAccAzureRMStreamAnalyticsStreamInputIoTHub_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -304,8 +302,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_iothub" "test" {
   name                = "acctestiothub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   sku {
     name     = "S1"
@@ -315,8 +313,8 @@ resource "azurerm_iothub" "test" {
 
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
@@ -330,6 +328,7 @@ resource "azurerm_stream_analytics_job" "test" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

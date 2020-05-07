@@ -27,9 +27,9 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Dedicated Host Group.
+* `name` - Specifies the name of the Dedicated Host Group.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Dedicated Host Group is located in.
+* `resource_group_name` - Specifies the name of the resource group the Dedicated Host Group is located in.
 
 
 ## Attributes Reference
@@ -45,3 +45,9 @@ The following attributes are exported:
 * `zones` - The Availability Zones in which this Dedicated Host Group is located.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dedicated Host Group.

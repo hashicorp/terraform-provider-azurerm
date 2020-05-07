@@ -87,7 +87,7 @@ func resourceArmBackupProtectionPolicyFileShare() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), //time must be on the hour or half past
+								regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
 								"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
 							),
 						},
@@ -124,7 +124,7 @@ func resourceArmBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceDa
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Protection Policy %s (resource group %q)", policyName, resourceGroup)
 
-	//getting this ready now because its shared between *everything*, time is... complicated for this resource
+	// getting this ready now because its shared between *everything*, time is... complicated for this resource
 	timeOfDay := d.Get("backup.0.time").(string)
 	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("2018-07-30T%s:00Z", timeOfDay))
 	if err != nil {
@@ -151,7 +151,7 @@ func resourceArmBackupProtectionPolicyFileShareCreateUpdate(d *schema.ResourceDa
 			BackupManagementType: backup.BackupManagementTypeAzureStorage,
 			WorkLoadType:         backup.WorkloadTypeAzureFileShare,
 			SchedulePolicy:       expandArmBackupProtectionPolicyFileShareSchedule(d, times),
-			RetentionPolicy: &backup.LongTermRetentionPolicy{ //SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
+			RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 				RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
 				DailySchedule:       expandArmBackupProtectionPolicyFileShareRetentionDaily(d, times),
 			},
@@ -259,7 +259,7 @@ func expandArmBackupProtectionPolicyFileShareSchedule(d *schema.ResourceData, ti
 	if bb, ok := d.Get("backup").([]interface{}); ok && len(bb) > 0 {
 		block := bb[0].(map[string]interface{})
 
-		schedule := backup.SimpleSchedulePolicy{ //LongTermSchedulePolicy has no properties
+		schedule := backup.SimpleSchedulePolicy{ // LongTermSchedulePolicy has no properties
 			SchedulePolicyType: backup.SchedulePolicyTypeSimpleSchedulePolicy,
 			ScheduleRunTimes:   &times,
 		}
@@ -323,14 +323,10 @@ func resourceArmBackupProtectionPolicyFileShareWaitForUpdate(ctx context.Context
 		Refresh:    resourceArmBackupProtectionPolicyFileShareRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
 	}
 
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			state.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			state.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		state.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		state.Timeout = 30 * time.Minute
+		state.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	resp, err := state.WaitForState()
@@ -348,12 +344,7 @@ func resourceArmBackupProtectionPolicyFileShareWaitForDeletion(ctx context.Conte
 		Pending:    []string{"Found"},
 		Target:     []string{"NotFound"},
 		Refresh:    resourceArmBackupProtectionPolicyFileShareRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
-	}
-
-	if features.SupportsCustomTimeouts() {
-		state.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		state.Timeout = 30 * time.Minute
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
 	resp, err := state.WaitForState()

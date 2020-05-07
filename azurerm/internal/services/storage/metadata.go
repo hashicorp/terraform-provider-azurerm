@@ -65,8 +65,7 @@ func ValidateMetaDataKeys(value interface{}, _ string) (warnings []string, error
 
 		// must begin with a letter, underscore
 		// the rest: letters, digits and underscores
-		r, _ := regexp.Compile(`^([a-z_]{1}[a-z0-9_]{1,})$`)
-		if !r.MatchString(k) {
+		if !regexp.MustCompile(`^([a-z_]{1}[a-z0-9_]{1,})$`).MatchString(k) {
 			errors = append(errors, fmt.Errorf("MetaData must start with letters or an underscores. Got %q.", k))
 		}
 	}

@@ -2,7 +2,6 @@ package compute
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 type Registration struct{}
@@ -10,6 +9,13 @@ type Registration struct{}
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "Compute"
+}
+
+// WebsiteCategories returns a list of categories which can be used for the sidebar
+func (r Registration) WebsiteCategories() []string {
+	return []string{
+		"Compute",
+	}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
@@ -25,6 +31,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_proximity_placement_group": dataSourceArmProximityPlacementGroup(),
 		"azurerm_shared_image_gallery":      dataSourceArmSharedImageGallery(),
 		"azurerm_shared_image_version":      dataSourceArmSharedImageVersion(),
+		"azurerm_shared_image_versions":     dataSourceArmSharedImageVersions(),
 		"azurerm_shared_image":              dataSourceArmSharedImage(),
 		"azurerm_snapshot":                  dataSourceArmSnapshot(),
 		"azurerm_virtual_machine":           dataSourceArmVirtualMachine(),
@@ -50,13 +57,11 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_virtual_machine_extension":            resourceArmVirtualMachineExtension(),
 		"azurerm_virtual_machine_scale_set":            resourceArmVirtualMachineScaleSet(),
 		"azurerm_virtual_machine":                      resourceArmVirtualMachine(),
-	}
-
-	// 2.0 resources
-	if features.SupportsTwoPointZeroResources() {
-		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
-		resources["azurerm_virtual_machine_scale_set_extension"] = resourceArmVirtualMachineScaleSetExtension()
-		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
+		"azurerm_linux_virtual_machine":                resourceLinuxVirtualMachine(),
+		"azurerm_linux_virtual_machine_scale_set":      resourceArmLinuxVirtualMachineScaleSet(),
+		"azurerm_virtual_machine_scale_set_extension":  resourceArmVirtualMachineScaleSetExtension(),
+		"azurerm_windows_virtual_machine":              resourceWindowsVirtualMachine(),
+		"azurerm_windows_virtual_machine_scale_set":    resourceArmWindowsVirtualMachineScaleSet(),
 	}
 
 	return resources

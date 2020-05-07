@@ -4,12 +4,20 @@ import (
 	"os"
 )
 
-type ClientData struct {
+type ClientAuthDetails struct {
 	// ClientID is the UUID of the Service Principal being used to connect to Azure
 	ClientID string
 
 	// ClientSecret is the Client Secret being used to connect to Azure
 	ClientSecret string
+}
+
+type ClientData struct {
+	// Default is the Default Credentials being used to connect to Azure
+	Default ClientAuthDetails
+
+	// Alternate is an alternate set of Credentials being used to connect to Azure
+	Alternate ClientAuthDetails
 
 	// SubscriptionID is the UUID of the Azure Subscription where tests are being run
 	SubscriptionID string
@@ -27,8 +35,14 @@ type ClientData struct {
 // used to connect to Azure
 func (td TestData) Client() ClientData {
 	return ClientData{
-		ClientID:           os.Getenv("ARM_CLIENT_ID"),
-		ClientSecret:       os.Getenv("ARM_CLIENT_SECRET"),
+		Default: ClientAuthDetails{
+			ClientID:     os.Getenv("ARM_CLIENT_ID"),
+			ClientSecret: os.Getenv("ARM_CLIENT_SECRET"),
+		},
+		Alternate: ClientAuthDetails{
+			ClientID:     os.Getenv("ARM_CLIENT_ID_ALT"),
+			ClientSecret: os.Getenv("ARM_CLIENT_SECRET_ALT"),
+		},
 		IsServicePrincipal: true,
 		SubscriptionID:     os.Getenv("ARM_SUBSCRIPTION_ID"),
 		TenantID:           os.Getenv("ARM_TENANT_ID"),

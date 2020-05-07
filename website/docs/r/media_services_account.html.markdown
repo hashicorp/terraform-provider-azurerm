@@ -20,19 +20,19 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "examplestoracc"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
 
 resource "azurerm_media_services_account" "example" {
   name                = "examplemediaacc"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   storage_account {
-    id         = "${azurerm_storage_account.example.id}"
+    id         = azurerm_storage_account.example.id
     is_primary = true
   }
 }
@@ -64,7 +64,16 @@ A `storage_account` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Media Services Account.
+* `id` - The ID of the Media Services Account.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Media Services Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Media Services Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Media Services Account.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Media Services Account.
 
 ## Import
 

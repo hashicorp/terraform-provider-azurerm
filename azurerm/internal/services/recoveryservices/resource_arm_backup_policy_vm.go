@@ -17,7 +17,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -87,23 +86,23 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 							}, true),
 						},
 
-						"time": { //applies to all backup schedules & retention times (they all must be the same)
+						"time": { // applies to all backup schedules & retention times (they all must be the same)
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringMatch(
-								regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), //time must be on the hour or half past
+								regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
 								"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
 							),
 						},
 
-						"weekdays": { //only for weekly
+						"weekdays": { // only for weekly
 							Type:     schema.TypeSet,
 							Optional: true,
 							Set:      set.HashStringIgnoreCase,
 							Elem: &schema.Schema{
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validate.DayOfTheWeek(true),
+								ValidateFunc:     validation.IsDayOfTheWeek(true),
 							},
 						},
 					},
@@ -144,7 +143,7 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 							Elem: &schema.Schema{
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validate.DayOfTheWeek(true),
+								ValidateFunc:     validation.IsDayOfTheWeek(true),
 							},
 						},
 					},
@@ -187,7 +186,7 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 							Elem: &schema.Schema{
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validate.DayOfTheWeek(true),
+								ValidateFunc:     validation.IsDayOfTheWeek(true),
 							},
 						},
 					},
@@ -213,7 +212,7 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 							Elem: &schema.Schema{
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validate.Month(true),
+								ValidateFunc:     validation.IsMonth(true),
 							},
 						},
 
@@ -241,7 +240,7 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 							Elem: &schema.Schema{
 								Type:             schema.TypeString,
 								DiffSuppressFunc: suppress.CaseDifference,
-								ValidateFunc:     validate.DayOfTheWeek(true),
+								ValidateFunc:     validation.IsDayOfTheWeek(true),
 							},
 						},
 					},
@@ -251,15 +250,15 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		//if daily, we need daily retention
-		//if weekly daily cannot be set, and we need weekly
+		// if daily, we need daily retention
+		// if weekly daily cannot be set, and we need weekly
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			_, hasDaily := diff.GetOk("retention_daily")
 			_, hasWeekly := diff.GetOk("retention_weekly")
 
 			frequencyI, _ := diff.GetOk("backup.0.frequency")
-			frequency := strings.ToLower(frequencyI.(string))
-			if frequency == "daily" {
+			switch strings.ToLower(frequencyI.(string)) {
+			case "daily":
 				if !hasDaily {
 					return fmt.Errorf("`retention_daily` must be set when backup.0.frequency is daily")
 				}
@@ -267,17 +266,16 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 				if _, ok := diff.GetOk("backup.0.weekdays"); ok {
 					return fmt.Errorf("`backup.0.weekdays` should be not set when backup.0.frequency is daily")
 				}
-			} else if frequency == "weekly" {
+			case "weekly":
 				if hasDaily {
 					return fmt.Errorf("`retention_daily` must be not set when backup.0.frequency is weekly")
 				}
 				if !hasWeekly {
 					return fmt.Errorf("`retention_weekly` must be set when backup.0.frequency is weekly")
 				}
-			} else {
+			default:
 				return fmt.Errorf("Unrecognized value for backup.0.frequency")
 			}
-
 			return nil
 		},
 	}
@@ -295,7 +293,7 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 
 	log.Printf("[DEBUG] Creating/updating Azure Backup Protection Policy %s (resource group %q)", policyName, resourceGroup)
 
-	//getting this ready now because its shared between *everything*, time is... complicated for this resource
+	// getting this ready now because its shared between *everything*, time is... complicated for this resource
 	timeOfDay := d.Get("backup.0.time").(string)
 	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("2018-07-30T%s:00Z", timeOfDay))
 	if err != nil {
@@ -322,7 +320,7 @@ func resourceArmBackupProtectionPolicyVMCreateUpdate(d *schema.ResourceData, met
 			TimeZone:             utils.String(d.Get("timezone").(string)),
 			BackupManagementType: backup.BackupManagementTypeAzureIaasVM,
 			SchedulePolicy:       expandArmBackupProtectionPolicyVMSchedule(d, times),
-			RetentionPolicy: &backup.LongTermRetentionPolicy{ //SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
+			RetentionPolicy: &backup.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
 				RetentionPolicyType: backup.RetentionPolicyTypeLongTermRetentionPolicy,
 				DailySchedule:       expandArmBackupProtectionPolicyVMRetentionDaily(d, times),
 				WeeklySchedule:      expandArmBackupProtectionPolicyVMRetentionWeekly(d, times),
@@ -457,7 +455,7 @@ func expandArmBackupProtectionPolicyVMSchedule(d *schema.ResourceData, times []d
 	if bb, ok := d.Get("backup").([]interface{}); ok && len(bb) > 0 {
 		block := bb[0].(map[string]interface{})
 
-		schedule := backup.SimpleSchedulePolicy{ //LongTermSchedulePolicy has no properties
+		schedule := backup.SimpleSchedulePolicy{ // LongTermSchedulePolicy has no properties
 			SchedulePolicyType: backup.SchedulePolicyTypeSimpleSchedulePolicy,
 			ScheduleRunTimes:   &times,
 		}
@@ -527,8 +525,8 @@ func expandArmBackupProtectionPolicyVMRetentionMonthly(d *schema.ResourceData, t
 		block := rb[0].(map[string]interface{})
 
 		retention := backup.MonthlyRetentionSchedule{
-			RetentionScheduleFormatType: backup.RetentionScheduleFormatWeekly, //this is always weekly ¯\_(ツ)_/¯
-			RetentionScheduleDaily:      nil,                                  //and this is always nil..
+			RetentionScheduleFormatType: backup.RetentionScheduleFormatWeekly, // this is always weekly ¯\_(ツ)_/¯
+			RetentionScheduleDaily:      nil,                                  // and this is always nil..
 			RetentionScheduleWeekly:     expandArmBackupProtectionPolicyVMRetentionWeeklyFormat(block),
 			RetentionTimes:              &times,
 			RetentionDuration: &backup.RetentionDuration{
@@ -548,8 +546,8 @@ func expandArmBackupProtectionPolicyVMRetentionYearly(d *schema.ResourceData, ti
 		block := rb[0].(map[string]interface{})
 
 		retention := backup.YearlyRetentionSchedule{
-			RetentionScheduleFormatType: backup.RetentionScheduleFormatWeekly, //this is always weekly ¯\_(ツ)_/¯
-			RetentionScheduleDaily:      nil,                                  //and this is always nil..
+			RetentionScheduleFormatType: backup.RetentionScheduleFormatWeekly, // this is always weekly ¯\_(ツ)_/¯
+			RetentionScheduleDaily:      nil,                                  // and this is always nil..
 			RetentionScheduleWeekly:     expandArmBackupProtectionPolicyVMRetentionWeeklyFormat(block),
 			RetentionTimes:              &times,
 			RetentionDuration: &backup.RetentionDuration{
@@ -715,14 +713,10 @@ func resourceArmBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, clien
 		Refresh:    resourceArmBackupProtectionPolicyVMRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
 	}
 
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			state.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			state.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		state.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		state.Timeout = 30 * time.Minute
+		state.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	resp, err := state.WaitForState()
@@ -740,12 +734,7 @@ func resourceArmBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, cli
 		Pending:    []string{"Found"},
 		Target:     []string{"NotFound"},
 		Refresh:    resourceArmBackupProtectionPolicyVMRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
-	}
-
-	if features.SupportsCustomTimeouts() {
-		state.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		state.Timeout = 30 * time.Minute
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
 	resp, err := state.WaitForState()

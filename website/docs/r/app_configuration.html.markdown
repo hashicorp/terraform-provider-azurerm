@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_app_configuration" "appconf" {
   name                = "appConf1"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  location            = "${azurerm_resource_group.rg.location}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
 }
 ```
 
@@ -51,23 +51,62 @@ The following attributes are exported:
 
 * `endpoint` - The URL of the App Configuration.
 
-* `primary_write_key` - An `access_key` block as defined below containing the primary write access key.
+* `primary_read_key` - A `primary_read_key` block as defined below containing the primary read access key.
 
-* `secondary_write_key` - An `access_key` block as defined below containing the secondary write access key.
+* `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
 
-* `primary_read_key` - An `access_key` block as defined below containing the primary read access key.
+* `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
 
-* `secondary_read_key` - An `access_key` block as defined below containing the secondary read access key.
+* `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
 
 ---
 
-A `access_key` block exports the following:
+A `primary_read_key` block exports the following:
 
-* `id` - The ID of the access key.
+* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
 
-* `secret` - The secret of the access key.
+* `id` - The ID of the Access Key.
 
-* `connection_string` - The connection string including the endpoint, id and secret.
+* `secret` - The Secret of the Access Key.
+
+---
+
+A `primary_write_key` block exports the following:
+
+* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
+
+* `id` - The ID of the Access Key.
+
+* `secret` - The Secret of the Access Key.
+
+---
+
+A `secondary_read_key` block exports the following:
+
+* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
+
+* `id` - The ID of the Access Key.
+
+* `secret` - The Secret of the Access Key.
+
+---
+
+A `secondary_write_key` block exports the following:
+
+* `connection_string` - The Connection String for this Access Key - comprising of the Endpoint, ID and Secret.
+
+* `id` - The ID of the Access Key.
+
+* `secret` - The Secret of the Access Key.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the App Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Configuration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Configuration.
 
 ## Import
 

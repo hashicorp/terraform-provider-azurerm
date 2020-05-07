@@ -3,12 +3,12 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_endpoint"
 description: |-
-  Manages an Private Endpoint.
+  Manages a Private Endpoint.
 ---
 
 # azurerm_private_endpoint
 
-Manages an Private Endpoint.
+Manages a Private Endpoint.
 
 -> **NOTE** Private Endpoint is currently in Public Preview.
 
@@ -35,7 +35,7 @@ resource "azurerm_subnet" "service" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.1.0/24"
 
-  disable_private_link_service_network_policy_enforcement = true
+  enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_subnet" "endpoint" {
@@ -44,7 +44,7 @@ resource "azurerm_subnet" "endpoint" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 
-  disable_private_link_endpoint_network_policy_enforcement = true
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_public_ip" "example" {
@@ -88,6 +88,12 @@ resource "azurerm_private_endpoint" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = "example-privateserviceconnection"
+    private_connection_resource_id = azurerm_private_link_service.example.id
+    is_manual_connection           = false
+  }
 }
 ```
 
@@ -105,6 +111,8 @@ The following arguments are supported:
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `private_service_connection` supports the following:
@@ -117,7 +125,7 @@ A `private_service_connection` supports the following:
 
 * `private_connection_resource_id` - (Required) The ID of the Private Link Enabled Remote Resource which this Private Endpoint should be connected to. Changing this forces a new resource to be created.
 
-* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. Changing this forces a new resource to be created.
+* `subresource_names` - (Optional) A list of subresource names which the Private Endpoint is able to connect to. `subresource_names` corresponds to `group_id`. Changing this forces a new resource to be created.
 
 -> Several possible values for this field are shown below, however this is not extensive:
 
@@ -135,11 +143,22 @@ See the product [documentation](https://docs.microsoft.com/en-us/azure/private-l
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
+* `private_ip_address` - (Computed) The private IP address associated with the private endpoint, note that you will have a private IP address assigned to the private endpoint even if the connection request was `Rejected`.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Azure resource ID of the Private Endpoint.
+* `id` - The ID of the Private Endpoint.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Private Endpoint.
+* `update` - (Defaults to 60 minutes) Used when updating the Private Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Endpoint.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Private Endpoint.
 
 ## Import
 

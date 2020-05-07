@@ -8,12 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMSecurityCenter_contact(t *testing.T) {
-	//there is only *one* read contact, if tests will conflict if run at the same time
+	// there is only *one* read contact, if tests will conflict if run at the same time
 	testCases := map[string]map[string]func(t *testing.T){
 		"contact": {
 			"basic":          testAccAzureRMSecurityCenterContact_basic,
@@ -60,11 +59,6 @@ func testAccAzureRMSecurityCenterContact_basic(t *testing.T) {
 }
 
 func testAccAzureRMSecurityCenterContact_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_security_center_contact", "test")
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -190,6 +184,10 @@ func testCheckAzureRMSecurityCenterContactDestroy(s *terraform.State) error {
 
 func testAccAzureRMSecurityCenterContact_template(email, phone string, notifications, adminAlerts bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_security_center_contact" "test" {
   email = "%s"
   phone = "%s"
@@ -202,6 +200,10 @@ resource "azurerm_security_center_contact" "test" {
 
 func testAccAzureRMSecurityCenterContact_templateWithoutPhone(email string, notifications, adminAlerts bool) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_security_center_contact" "test" {
   email = "%s"
 
@@ -217,11 +219,11 @@ func testAccAzureRMSecurityCenterContact_requiresImportCfg(email, phone string, 
 %s
 
 resource "azurerm_security_center_contact" "import" {
-  email = "${azurerm_security_center_contact.test.email}"
-  phone = "${azurerm_security_center_contact.test.phone}"
+  email = azurerm_security_center_contact.test.email
+  phone = azurerm_security_center_contact.test.phone
 
-  alert_notifications = "${azurerm_security_center_contact.test.alert_notifications}"
-  alerts_to_admins    = "${azurerm_security_center_contact.test.alerts_to_admins}"
+  alert_notifications = azurerm_security_center_contact.test.alert_notifications
+  alerts_to_admins    = azurerm_security_center_contact.test.alerts_to_admins
 }
 `, template)
 }

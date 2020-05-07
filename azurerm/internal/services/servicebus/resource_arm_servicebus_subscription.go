@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -44,7 +45,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
+				ValidateFunc: validate.ServiceBusNamespaceName,
 			},
 
 			"topic_name": {
@@ -53,8 +54,6 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
-
-			"location": azure.SchemaLocationDeprecated(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -106,13 +105,6 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 			"forward_dead_lettered_messages_to": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-
-			// TODO: remove in the next major version
-			"dead_lettering_on_filter_evaluation_exceptions": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "This field has been deprecated by Azure",
 			},
 		},
 	}

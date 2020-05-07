@@ -21,9 +21,9 @@ data "azurerm_snapshot" "example" {
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the Snapshot.
+* `name` - Specifies the name of the Snapshot.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the Snapshot is located in.
+* `resource_group_name` - Specifies the name of the resource group the Snapshot is located in.
 
 ## Attributes Reference
 
@@ -38,3 +38,9 @@ data "azurerm_snapshot" "example" {
 * `storage_account_id` - The ID of an storage account.
 
 * `disk_size_gb` - The size of the Snapshotted Disk in GB.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Snapshot.

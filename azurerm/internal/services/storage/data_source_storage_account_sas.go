@@ -30,7 +30,6 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			"connection_string": {
 				Type:      schema.TypeString,
 				Required:  true,
-				ForceNew:  true,
 				Sensitive: true,
 			},
 
@@ -38,32 +37,27 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
 			"resource_types": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"service": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"container": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"object": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
@@ -72,32 +66,27 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			"services": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"blob": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"queue": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"table": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"file": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
@@ -107,7 +96,6 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			"start": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.ISO8601DateTime,
 			},
 
@@ -115,63 +103,53 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			"expiry": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			"permissions": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"read": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"write": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"delete": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"list": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"add": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"create": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"update": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"process": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},

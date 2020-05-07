@@ -34,7 +34,7 @@ func SchemaContainerGroupProbe() *schema.Schema {
 								Type:         schema.TypeString,
 								Optional:     true,
 								ForceNew:     true,
-								ValidateFunc: validate.NoEmptyStrings,
+								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"port": {
 								Type:         schema.TypeInt,

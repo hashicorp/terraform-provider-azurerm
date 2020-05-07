@@ -50,13 +50,13 @@ func resourceServicePrincipal() *schema.Resource {
 				Computed: true,
 			},
 
-			"oauth2_permissions": graph.SchemaOauth2Permissions(),
+			"oauth2_permissions": graph.SchemaOauth2PermissionsComputed(),
 
 			"tags": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Set:      schema.HashString,
 				ForceNew: true,
+				Set:      schema.HashString,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -95,7 +95,7 @@ func resourceServicePrincipalCreate(d *schema.ResourceData, meta interface{}) er
 	}
 	d.SetId(*sp.ObjectID)
 
-	_, err = graph.WaitForReplication(func() (interface{}, error) {
+	_, err = graph.WaitForCreationReplication(func() (interface{}, error) {
 		return client.Get(ctx, *sp.ObjectID)
 	})
 	if err != nil {

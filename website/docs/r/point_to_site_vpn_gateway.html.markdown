@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub where this Point-to-Site VPN Gateway should exist. Changing this forces a new resource to be created.
 
-* `vpn_server_configuration_id` - (Required) The ID of the VPN Server Configuration which this Point-to-Site VPN Gateway should use. Changing this forces a new resource to be created. 
+* `vpn_server_configuration_id` - (Required) The ID of the VPN Server Configuration which this Point-to-Site VPN Gateway should use. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Point-to-Site VPN Gateway.
 
@@ -64,6 +64,15 @@ The following attributes are exported:
 
 * `id` - The ID of the Point-to-Site VPN Gateway.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 90 minutes) Used when creating the Point-to-Site VPN Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the Point-to-Site VPN Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Point-to-Site VPN Gateway.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Point-to-Site VPN Gateway.
+
 ## Import
 
 Point-to-Site VPN Gateway's can be imported using the `resource id`, e.g.
@@ -71,4 +80,3 @@ Point-to-Site VPN Gateway's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_point_to_site_vpn_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/p2svpnGateways/gateway1
 ```
-

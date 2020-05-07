@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,10 +29,6 @@ func TestAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(t *testing.T) {
 	})
 }
 func TestAccAzureRMServiceBusSubscriptionRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -223,10 +218,10 @@ func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data acceptance.Tes
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "SqlFilter"
   sql_filter          = "2=2"
 }
@@ -238,13 +233,13 @@ func testAccAzureRMServiceBusSubscriptionRule_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_servicebus_subscription_rule" "import" {
-  name                = "${azurerm_servicebus_subscription_rule.test.name}"
-  namespace_name      = "${azurerm_servicebus_subscription_rule.test.namespace_name}"
-  topic_name          = "${azurerm_servicebus_subscription_rule.test.topic_name}"
-  subscription_name   = "${azurerm_servicebus_subscription_rule.test.subscription_name}"
-  resource_group_name = "${azurerm_servicebus_subscription_rule.test.resource_group_name}"
-  filter_type         = "${azurerm_servicebus_subscription_rule.test.filter_type}"
-  sql_filter          = "${azurerm_servicebus_subscription_rule.test.sql_filter}"
+  name                = azurerm_servicebus_subscription_rule.test.name
+  namespace_name      = azurerm_servicebus_subscription_rule.test.namespace_name
+  topic_name          = azurerm_servicebus_subscription_rule.test.topic_name
+  subscription_name   = azurerm_servicebus_subscription_rule.test.subscription_name
+  resource_group_name = azurerm_servicebus_subscription_rule.test.resource_group_name
+  filter_type         = azurerm_servicebus_subscription_rule.test.filter_type
+  sql_filter          = azurerm_servicebus_subscription_rule.test.sql_filter
 }
 `, testAccAzureRMServiceBusSubscriptionRule_basicSqlFilter(data))
 }
@@ -256,10 +251,10 @@ func testAccAzureRMServiceBusSubscriptionRule_basicSqlFilterUpdated(data accepta
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "SqlFilter"
   sql_filter          = "3=3"
 }
@@ -273,10 +268,10 @@ func testAccAzureRMServiceBusSubscriptionRule_sqlFilterWithAction(data acceptanc
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "SqlFilter"
   sql_filter          = "2=2"
   action              = "SET Test='true'"
@@ -291,10 +286,10 @@ func testAccAzureRMServiceBusSubscriptionRule_basicCorrelationFilter(data accept
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "CorrelationFilter"
 
   correlation_filter {
@@ -318,10 +313,10 @@ func testAccAzureRMServiceBusSubscriptionRule_correlationFilter(data acceptance.
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "CorrelationFilter"
 
   correlation_filter {
@@ -339,10 +334,10 @@ func testAccAzureRMServiceBusSubscriptionRule_correlationFilterUpdated(data acce
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   filter_type         = "CorrelationFilter"
 
   correlation_filter {
@@ -361,10 +356,10 @@ func testAccAzureRMServiceBusSubscriptionRule_correlationFilterWithAction(data a
 
 resource "azurerm_servicebus_subscription_rule" "test" {
   name                = "acctestservicebusrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  subscription_name   = "${azurerm_servicebus_subscription.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  subscription_name   = azurerm_servicebus_subscription.test.name
+  resource_group_name = azurerm_resource_group.test.name
   action              = "SET Test='true'"
   filter_type         = "CorrelationFilter"
 
@@ -378,6 +373,10 @@ resource "azurerm_servicebus_subscription_rule" "test" {
 
 func testAccAzureRMServiceBusSubscriptionRule_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -385,22 +384,22 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
   name                = "acctestservicebustopic-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_servicebus_subscription" "test" {
   name                = "acctestservicebussubscription-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name          = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  topic_name          = azurerm_servicebus_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
   max_delivery_count  = 10
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

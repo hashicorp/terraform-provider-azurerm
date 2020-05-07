@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,10 +32,6 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -155,7 +150,7 @@ func testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(data acceptance.
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "import" {
   name               = azurerm_storage_data_lake_gen2_filesystem.test.name
-  storage_account_id = azurerm_storage_data_lake_gen2_filesystem.storage_account_id
+  storage_account_id = azurerm_storage_data_lake_gen2_filesystem.test.storage_account_id
 }
 `, template)
 }
@@ -178,6 +173,10 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
 
 func testAccAzureRMStorageDataLakeGen2FileSystem_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -185,8 +184,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"

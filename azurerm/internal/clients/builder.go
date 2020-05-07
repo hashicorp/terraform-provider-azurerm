@@ -3,11 +3,11 @@ package clients
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 type ClientBuilder struct {
@@ -16,7 +16,9 @@ type ClientBuilder struct {
 	DisableTerraformPartnerID   bool
 	PartnerId                   string
 	SkipProviderRegistration    bool
+	StorageUseAzureAD           bool
 	TerraformVersion            string
+	Features                    features.UserFeatures
 }
 
 func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
@@ -81,11 +83,12 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
-		PollingDuration:             180 * time.Minute,
 		SkipProviderReg:             builder.SkipProviderRegistration,
 		DisableCorrelationRequestID: builder.DisableCorrelationRequestID,
 		DisableTerraformPartnerID:   builder.DisableTerraformPartnerID,
 		Environment:                 *env,
+		Features:                    builder.Features,
+		StorageUseAzureAD:           builder.StorageUseAzureAD,
 	}
 
 	if err := client.Build(ctx, o); err != nil {

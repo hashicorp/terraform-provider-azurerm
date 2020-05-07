@@ -13,7 +13,7 @@ Manages a Diagnostic Setting for an existing Resource.
 
 ## Example Usage
 
-```
+```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -99,7 +99,7 @@ A `log` block supports the following:
 
 -> **NOTE:** The Log Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) to identify which categories are available for a given Resource.
 
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
 
@@ -111,7 +111,7 @@ A `metric` block supports the following:
 
 -> **NOTE:** The Metric Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) to identify which categories are available for a given Resource.
 
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Metric enabled? Defaults to `true`.
 
@@ -131,6 +131,15 @@ A `retention_policy` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Diagnostic Setting.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Diagnostics Setting.
+* `update` - (Defaults to 30 minutes) Used when updating the Diagnostics Setting.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Diagnostics Setting.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Diagnostics Setting.
 
 ## Import
 

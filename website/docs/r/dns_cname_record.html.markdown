@@ -20,13 +20,13 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_dns_cname_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
   record              = "contoso.com"
 }
@@ -42,23 +42,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_dns_cname_record" "target" {
   name                = "target"
-  zone_name           = "${azurerm_dns_zone.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
   record              = "contoso.com"
 }
 
 resource "azurerm_dns_cname_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
-  target_resource_id  = "${azurerm_dns_cname_record.target.id}"
+  target_resource_id  = azurerm_dns_cname_record.target.id
 }
 ```
 
@@ -88,6 +88,17 @@ The following attributes are exported:
 
 * `id` - The DNS CName Record ID.
 * `fqdn` - The FQDN of the DNS CName Record.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DNS CName Record.
+* `update` - (Defaults to 30 minutes) Used when updating the DNS CName Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS CName Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DNS CName Record.
 
 ## Import
 

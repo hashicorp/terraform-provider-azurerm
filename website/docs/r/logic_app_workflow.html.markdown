@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_logic_app_workflow" "example" {
   name                = "workflow1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 
@@ -51,7 +51,24 @@ The following attributes are exported:
 
 * `id` - The Logic App Workflow ID.
 
-* `access_endpoint` - The Access Endpoint for the Logic App Workflow
+* `access_endpoint` - The Access Endpoint for the Logic App Workflow.
+
+* `connector_endpoint_ip_addresses` - The list of access endpoint ip addresses of connector.
+
+* `connector_outbound_ip_addresses` - The list of outgoing ip addresses of connector.
+
+* `workflow_endpoint_ip_addresses` - The list of access endpoint ip addresses of workflow.
+
+* `workflow_outbound_ip_addresses` - The list of outgoing ip addresses of workflow.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Logic App Workflow.
+* `update` - (Defaults to 30 minutes) Used when updating the Logic App Workflow.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Workflow.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Logic App Workflow.
 
 ## Import
 

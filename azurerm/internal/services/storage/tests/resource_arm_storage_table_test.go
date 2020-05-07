@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,10 +34,6 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -258,6 +253,10 @@ func TestValidateArmStorageTableName(t *testing.T) {
 
 func testAccAzureRMStorageTable_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -265,8 +264,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -277,8 +276,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
@@ -289,15 +287,18 @@ func testAccAzureRMStorageTable_requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_storage_table" "import" {
-  name                 = "${azurerm_storage_table.test.name}"
-  resource_group_name  = "${azurerm_storage_table.test.resource_group_name}"
-  storage_account_name = "${azurerm_storage_table.test.storage_account_name}"
+  name                 = azurerm_storage_table.test.name
+  storage_account_name = azurerm_storage_table.test.storage_account_name
 }
 `, template)
 }
 
 func testAccAzureRMStorageTable_acl(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -305,8 +306,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -317,8 +318,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
   acl {
     id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
 
@@ -334,6 +334,10 @@ resource "azurerm_storage_table" "test" {
 
 func testAccAzureRMStorageTable_aclUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -341,8 +345,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -353,8 +357,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 
   acl {
     id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"

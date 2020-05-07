@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_log_analytics_workspace" "example" {
   name                = "acctest-01"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
   retention_in_days   = 30
 }
@@ -59,6 +59,14 @@ The following attributes are exported:
 
 * `portal_url` - The Portal URL for the Log Analytics Workspace.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Workspace.
 
 ## Import
 

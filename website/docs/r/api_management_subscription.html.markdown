@@ -21,21 +21,21 @@ data "azurerm_api_management" "example" {
 
 data "azurerm_api_management_product" "example" {
   product_id          = "00000000-0000-0000-0000-000000000000"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
 }
 
 data "azurerm_api_management_user" "example" {
   user_id             = "11111111-1111-1111-1111-111111111111"
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
 }
 
 resource "azurerm_api_management_subscription" "example" {
-  api_management_name = "${data.azurerm_api_management.example.name}"
-  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
-  user_id             = "${data.azurerm_api_management_user.example.id}"
-  product_id          = "${data.azurerm_api_management_product.example.id}"
+  api_management_name = data.azurerm_api_management.example.name
+  resource_group_name = data.azurerm_api_management.example.resource_group_name
+  user_id             = data.azurerm_api_management_user.example.id
+  product_id          = data.azurerm_api_management_product.example.id
   display_name        = "Parser API"
 }
 ```
@@ -66,6 +66,15 @@ The following arguments are supported:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management Subscription.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Subscription.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Subscription.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Subscription.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Subscription.
 
 ## Import
 

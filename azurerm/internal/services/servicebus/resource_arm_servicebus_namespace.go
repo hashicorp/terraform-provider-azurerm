@@ -3,7 +3,6 @@ package servicebus
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -14,10 +13,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,9 +34,10 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 		Update: resourceArmServiceBusNamespaceCreateUpdate,
 		Delete: resourceArmServiceBusNamespaceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ServiceBusNamespaceID(id)
+			return err
+		}),
 
 		MigrateState:  ResourceAzureRMServiceBusNamespaceMigrateState,
 		SchemaVersion: 1,
@@ -49,13 +51,10 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,100}[a-zA-Z0-9]$"),
-					"The namespace can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.",
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ServiceBusNamespaceName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -78,7 +77,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      0,
-				ValidateFunc: validate.IntInSlice([]int{0, 1, 2, 4, 8}),
+				ValidateFunc: validation.IntInSlice([]int{0, 1, 2, 4, 8}),
 			},
 
 			"default_primary_connection_string": {

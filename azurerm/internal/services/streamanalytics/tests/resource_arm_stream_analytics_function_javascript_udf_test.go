@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
@@ -32,11 +31,6 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -140,14 +134,15 @@ func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(data acceptance.Te
 
 resource "azurerm_stream_analytics_function_javascript_udf" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
 function getRandomNumber(in) {
   return in;
 }
 SCRIPT
+
 
   input {
     type = "bigint"
@@ -183,14 +178,15 @@ func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_inputs(data acceptance.T
 
 resource "azurerm_stream_analytics_function_javascript_udf" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
   script = <<SCRIPT
 function getRandomNumber(first, second) {
   return first * second;
 }
 SCRIPT
+
 
   input {
     type = "bigint"
@@ -209,6 +205,10 @@ SCRIPT
 
 func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -216,8 +216,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
@@ -231,6 +231,7 @@ resource "azurerm_stream_analytics_job" "test" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

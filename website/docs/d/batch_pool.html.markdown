@@ -81,7 +81,7 @@ A `start_task` block exports the following:
 
 * `user_identity` - A `user_identity` block that describes the user identity under which the start task runs.
 
-* `resource_file` - (Optional) One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
+* `resource_file` - One or more `resource_file` blocks that describe the files to be downloaded to a compute node.
 
 ---
 
@@ -153,9 +153,9 @@ A `container_registries` block exports the following:
 
 A `network_configuration` block exports the following:
 
-* `subnet_id` - (Optional) The ARM resource identifier of the virtual network subnet which the compute nodes of the pool are joined too.
+* `subnet_id` - The ARM resource identifier of the virtual network subnet which the compute nodes of the pool are joined too.
 
-* `endpoint_configuration` - (Optional) The inbound NAT pools that are used to address specific ports on the individual compute node externally.
+* `endpoint_configuration` - The inbound NAT pools that are used to address specific ports on the individual compute node externally.
 
 ---
 
@@ -169,7 +169,7 @@ A `endpoint_configuration` block exports the following:
 
 * `frontend_port_range` - The range of external ports that are used to provide inbound access to the backendPort on the individual compute nodes in the format of `1000-1100`.
 
-* `network_security_group_rules` - (Optional) The list of network security group rules that are applied to the endpoint.
+* `network_security_group_rules` - The list of network security group rules that are applied to the endpoint.
 
 ---
 
@@ -180,3 +180,9 @@ A `network_security_group_rules` block exports the following:
 * `priority` - The priority for this rule.
 
 * `source_address_prefix` - The source address prefix or tag to match for the rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.

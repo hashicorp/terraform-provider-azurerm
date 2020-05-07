@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specify the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) Specify the sku name of the Dedicated Host. Possible values are `DSv3-Type1`, `ESv3-Type1`, `FSv2-Type2`. Changing this forces a new resource to be created.
+* `sku_name` - (Required) Specify the sku name of the Dedicated Host. Possible values are `DSv3-Type1`, `DSv3-Type2`, `ESv3-Type1`, `ESv3-Type2`,`FSv2-Type2`. Changing this forces a new resource to be created.
 
 * `platform_fault_domain` - (Required) Specify the fault domain of the Dedicated Host Group in which to create the Dedicated Host. Changing this forces a new resource to be created.
 
@@ -61,6 +61,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Dedicated Host.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Dedicated Host.
+* `update` - (Defaults to 30 minutes) Used when updating the Dedicated Host.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dedicated Host.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dedicated Host.
 
 ## Import
 

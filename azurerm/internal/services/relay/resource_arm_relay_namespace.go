@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -53,32 +52,9 @@ func resourceArmRelayNamespace() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"sku": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				Computed:      true,
-				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
-				ConflictsWith: []string{"sku_name"},
-				MaxItems:      1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(relay.Standard),
-							}, true),
-						},
-					},
-				},
-			},
-
 			"sku_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"sku"},
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(relay.Standard),
 				}, false),
@@ -123,27 +99,9 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// Remove in 2.0
-	var sku relay.Sku
-
-	if inputs := d.Get("sku").([]interface{}); len(inputs) != 0 {
-		input := inputs[0].(map[string]interface{})
-		v := input["name"].(string)
-
-		sku = relay.Sku{
-			Name: utils.String(v),
-			Tier: relay.SkuTier(v),
-		}
-	} else {
-		// Keep in 2.0
-		sku = relay.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
-			Tier: relay.SkuTier(d.Get("sku_name").(string)),
-		}
-	}
-
-	if *sku.Name == "" {
-		return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
+	sku := relay.Sku{
+		Name: utils.String(d.Get("sku_name").(string)),
+		Tier: relay.SkuTier(d.Get("sku_name").(string)),
 	}
 
 	log.Printf("[INFO] preparing arguments for Relay Namespace creation.")
@@ -226,11 +184,6 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if sku := resp.Sku; sku != nil {
-		// Remove in 2.0
-		if err := d.Set("sku", flattenRelayNamespaceSku(sku)); err != nil {
-			return fmt.Errorf("Error setting 'sku': %+v", err)
-		}
-
 		if err := d.Set("sku_name", sku.Name); err != nil {
 			return fmt.Errorf("Error setting 'sku_name': %+v", err)
 		}
@@ -283,12 +236,7 @@ func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) e
 		Target:     []string{"Deleted"},
 		Refresh:    relayNamespaceDeleteRefreshFunc(ctx, client, resourceGroup, name),
 		MinTimeout: 15 * time.Second,
-	}
-
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
-	} else {
-		stateConf.Timeout = 60 * time.Minute
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -311,17 +259,4 @@ func relayNamespaceDeleteRefreshFunc(ctx context.Context, client *relay.Namespac
 
 		return res, "Pending", nil
 	}
-}
-
-// Remove in 2.0
-func flattenRelayNamespaceSku(input *relay.Sku) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	output := make(map[string]interface{})
-	if name := input.Name; name != nil {
-		output["name"] = *name
-	}
-	return []interface{}{output}
 }

@@ -6,12 +6,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -43,7 +42,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -55,7 +54,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ForceNew:     true,
-				ValidateFunc: validate.Base64String(),
+				ValidateFunc: validation.StringIsBase64,
 			},
 
 			"password": {
@@ -213,21 +212,18 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Certificate %q (Resource Group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] App Service Certificate %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on App Service Certificate %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on App Service Certificate %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -256,15 +252,12 @@ func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
+	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", id.Name, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", name, resourceGroup)
-
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Certificate %q (Resource Group %q): %s)", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting App Service Certificate %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
 		}
 	}
 

@@ -3,7 +3,7 @@ subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory"
 description: |-
-  Manages an Azure Data Factory (Version 2).
+  Gets information about an existing Azure Data Factory (Version 2).
 ---
 
 # Data Source: azurerm_data_factory
@@ -13,25 +13,23 @@ Use this data source to access information about an existing Azure Data Factory 
 ## Example Usage
 
 ```hcl
-
 data "azurerm_data_factory" "example" {
-  name                = "${azurerm_data_factory.example.name}"
-  resource_group_name = "${azurerm_data_factory.example.resource_group_name}"
+  name                = azurerm_data_factory.example.name
+  resource_group_name = azurerm_data_factory.example.resource_group_name
 }
 
 output "data_factory_id" {
-  value = "${azurerm_data_factory.example.id}"
+  value = azurerm_data_factory.example.id
 }
-
 ```
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory to retrieve information about. 
+* `name` - Specifies the name of the Data Factory to retrieve information about. 
 
-* `resource_group_name` - (Required) The name of the resource group where the Data Factory exists.
+* `resource_group_name` - The name of the resource group where the Data Factory exists.
 
 ## Attributes Reference
 
@@ -87,3 +85,9 @@ A `vsts_configuration` block exports the following:
 * `root_folder` - The root folder within the repository.
 
 * `tenant_id` - The Tenant ID associated with the VSTS account.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory.

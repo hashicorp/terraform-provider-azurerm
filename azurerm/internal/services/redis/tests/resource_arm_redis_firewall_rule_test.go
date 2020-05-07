@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,11 +58,6 @@ func TestAccAzureRMRedisFirewallRule_multi(t *testing.T) {
 }
 
 func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_redis_firewall_rule", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -158,6 +152,10 @@ func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
 
 func testAccAzureRMRedisFirewallRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -165,8 +163,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -181,8 +179,8 @@ resource "azurerm_redis_cache" "test" {
 
 resource "azurerm_redis_firewall_rule" "test" {
   name                = "fwrule%d"
-  redis_cache_name    = "${azurerm_redis_cache.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  redis_cache_name    = azurerm_redis_cache.test.name
+  resource_group_name = azurerm_resource_group.test.name
   start_ip            = "1.2.3.4"
   end_ip              = "2.3.4.5"
 }
@@ -196,8 +194,8 @@ func testAccAzureRMRedisFirewallRule_multi(data acceptance.TestData) string {
 
 resource "azurerm_redis_firewall_rule" "double" {
   name                = "fwruletwo%d"
-  redis_cache_name    = "${azurerm_redis_cache.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  redis_cache_name    = azurerm_redis_cache.test.name
+  resource_group_name = azurerm_resource_group.test.name
   start_ip            = "4.5.6.7"
   end_ip              = "8.9.0.1"
 }
@@ -210,17 +208,21 @@ func testAccAzureRMRedisFirewallRule_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_redis_firewall_rule" "import" {
-  name                = "${azurerm_redis_firewall_rule.test.name}"
-  redis_cache_name    = "${azurerm_redis_firewall_rule.test.redis_cache_name}"
-  resource_group_name = "${azurerm_redis_firewall_rule.test.resource_group_name}"
-  start_ip            = "${azurerm_redis_firewall_rule.test.start_ip}"
-  end_ip              = "${azurerm_redis_firewall_rule.test.end_ip}"
+  name                = azurerm_redis_firewall_rule.test.name
+  redis_cache_name    = azurerm_redis_firewall_rule.test.redis_cache_name
+  resource_group_name = azurerm_redis_firewall_rule.test.resource_group_name
+  start_ip            = azurerm_redis_firewall_rule.test.start_ip
+  end_ip              = azurerm_redis_firewall_rule.test.end_ip
 }
 `, template)
 }
 
 func testAccAzureRMRedisFirewallRule_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -228,8 +230,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_redis_cache" "test" {
   name                = "acctestRedis-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -244,8 +246,8 @@ resource "azurerm_redis_cache" "test" {
 
 resource "azurerm_redis_firewall_rule" "test" {
   name                = "fwrule%d"
-  redis_cache_name    = "${azurerm_redis_cache.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  redis_cache_name    = azurerm_redis_cache.test.name
+  resource_group_name = azurerm_resource_group.test.name
   start_ip            = "2.3.4.5"
   end_ip              = "6.7.8.9"
 }

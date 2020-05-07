@@ -50,13 +50,22 @@ The following arguments are supported:
 
 ~> **NOTE:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `is_hns_enabled` has to be set to `true`.
 
-* `properties` - (Optional) A mapping of Key to Base64-Encoded Values which should be assigned to this Data Lake Gen2 File System. 
+* `properties` - (Optional) A mapping of Key to Base64-Encoded Values which should be assigned to this Data Lake Gen2 File System.
 
 ## Attributes Reference
 
 The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Data Lake Gen2 File System.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Data Lake Gen2 File System.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Lake Gen2 File System.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Data Lake Gen2 File System.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Data Lake Gen2 File System.
 
 ## Import
 

@@ -11,7 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 )
 
-//validation
+// validation
 func ValidateEventHubNamespaceName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
@@ -40,7 +40,7 @@ func ValidateEventHubAuthorizationRuleName() schema.SchemaValidateFunc {
 	)
 }
 
-//schema
+// schema
 func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.AccessRights {
 	rights := make([]eventhub.AccessRights, 0)
 
@@ -49,7 +49,7 @@ func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.A
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, eventhub.Send)
+		rights = append(rights, eventhub.SendEnumValue)
 	}
 
 	if d.Get("manage").(bool) {
@@ -60,14 +60,14 @@ func ExpandEventHubAuthorizationRuleRights(d *schema.ResourceData) *[]eventhub.A
 }
 
 func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (listen, send, manage bool) {
-	//zero (initial) value for a bool in go is false
+	// zero (initial) value for a bool in go is false
 
 	if rights != nil {
 		for _, right := range *rights {
 			switch right {
 			case eventhub.Listen:
 				listen = true
-			case eventhub.Send:
+			case eventhub.SendEnumValue:
 				send = true
 			case eventhub.Manage:
 				manage = true

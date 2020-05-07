@@ -25,8 +25,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_network_security_group" "example" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_network_security_rule" "example" {
@@ -39,8 +39,8 @@ resource "azurerm_network_security_rule" "example" {
   destination_port_range      = "*"
   source_address_prefix       = "*"
   destination_address_prefix  = "*"
-  resource_group_name         = "${azurerm_resource_group.example.name}"
-  network_security_group_name = "${azurerm_network_security_group.example.name}"
+  resource_group_name         = azurerm_resource_group.example.name
+  network_security_group_name = azurerm_network_security_group.example.name
 }
 ```
 
@@ -88,8 +88,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Network Security Rule ID.
+* `id` - The ID of the Network Security Rule.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Security Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Security Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Security Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Security Rule.
 
 ## Import
 

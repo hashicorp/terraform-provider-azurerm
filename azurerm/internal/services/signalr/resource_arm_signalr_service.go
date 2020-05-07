@@ -11,10 +11,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -26,16 +27,17 @@ func resourceArmSignalRService() *schema.Resource {
 		Update: resourceArmSignalRServiceCreateUpdate,
 		Delete: resourceArmSignalRServiceDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SignalRServiceID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -67,7 +69,7 @@ func resourceArmSignalRService() *schema.Resource {
 						"capacity": {
 							Type:         schema.TypeInt,
 							Required:     true,
-							ValidateFunc: validate.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
+							ValidateFunc: validation.IntInSlice([]int{1, 2, 5, 10, 20, 50, 100}),
 						},
 					},
 				},
@@ -225,30 +227,28 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SignalRServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["SignalR"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] SignalR %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+			log.Printf("[DEBUG] SignalR %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error getting SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error getting SignalR %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name)
+	keys, err := client.ListKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error getting keys of SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error getting keys of SignalR %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -286,23 +286,21 @@ func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.SignalRServiceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["SignalR"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting SignalR %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 		return nil
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for the deletion of SignalR %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for the deletion of SignalR %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

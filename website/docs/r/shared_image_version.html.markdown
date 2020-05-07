@@ -27,14 +27,14 @@ data "azurerm_shared_image" "existing" {
 
 resource "azurerm_shared_image_version" "example" {
   name                = "0.0.1"
-  gallery_name        = "${data.azurerm_shared_image.existing.gallery_name}"
-  image_name          = "${data.azurerm_shared_image.existing.name}"
-  resource_group_name = "${data.azurerm_shared_image.existing.resource_group_name}"
-  location            = "${data.azurerm_shared_image.existing.location}"
-  managed_image_id    = "${data.azurerm_image.existing.id}"
+  gallery_name        = data.azurerm_shared_image.existing.gallery_name
+  image_name          = data.azurerm_shared_image.existing.name
+  resource_group_name = data.azurerm_shared_image.existing.resource_group_name
+  location            = data.azurerm_shared_image.existing.location
+  managed_image_id    = data.azurerm_image.existing.id
 
   target_region {
-    name                   = "${data.azurerm_shared_image.existing.location}"
+    name                   = data.azurerm_shared_image.existing.location
     regional_replica_count = "5"
     storage_account_type   = "Standard_LRS"
   }
@@ -80,6 +80,15 @@ The `target_region` block exports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Shared Image Version.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Shared Image Version.
+* `update` - (Defaults to 30 minutes) Used when updating the Shared Image Version.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image Version.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Shared Image Version.
 
 ## Import
 

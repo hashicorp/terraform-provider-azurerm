@@ -14,6 +14,7 @@ type Client struct {
 	DDOSProtectionPlansClient            *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient              *network.ExpressRouteCircuitAuthorizationsClient
 	ExpressRouteCircuitsClient           *network.ExpressRouteCircuitsClient
+	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
 	InterfacesClient                     *network.InterfacesClient
 	LoadBalancersClient                  *network.LoadBalancersClient
@@ -28,6 +29,7 @@ type Client struct {
 	RouteTablesClient                    *network.RouteTablesClient
 	SecurityGroupClient                  *network.SecurityGroupsClient
 	SecurityRuleClient                   *network.SecurityRulesClient
+	ServiceTagsClient                    *network.ServiceTagsClient
 	SubnetsClient                        *network.SubnetsClient
 	NatGatewayClient                     *network.NatGatewaysClient
 	VnetGatewayConnectionsClient         *network.VirtualNetworkGatewayConnectionsClient
@@ -67,6 +69,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ExpressRouteCircuitsClient := network.NewExpressRouteCircuitsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRouteCircuitsClient.Client, o.ResourceManagerAuthorizer)
+
+	ExpressRouteGatewaysClient := network.NewExpressRouteGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ExpressRouteGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
 	ExpressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePeeringsClient.Client, o.ResourceManagerAuthorizer)
@@ -122,6 +127,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	SecurityRuleClient := network.NewSecurityRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SecurityRuleClient.Client, o.ResourceManagerAuthorizer)
 
+	ServiceTagsClient := network.NewServiceTagsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServiceTagsClient.Client, o.ResourceManagerAuthorizer)
+
 	SubnetsClient := network.NewSubnetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SubnetsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -158,6 +166,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DDOSProtectionPlansClient:            &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:              &ExpressRouteAuthsClient,
 		ExpressRouteCircuitsClient:           &ExpressRouteCircuitsClient,
+		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
 		InterfacesClient:                     &InterfacesClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
@@ -172,6 +181,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		RouteTablesClient:                    &RouteTablesClient,
 		SecurityGroupClient:                  &SecurityGroupClient,
 		SecurityRuleClient:                   &SecurityRuleClient,
+		ServiceTagsClient:                    &ServiceTagsClient,
 		SubnetsClient:                        &SubnetsClient,
 		NatGatewayClient:                     &NatGatewayClient,
 		VnetGatewayConnectionsClient:         &VnetGatewayConnectionsClient,

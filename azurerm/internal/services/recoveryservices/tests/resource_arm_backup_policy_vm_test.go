@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,11 +34,6 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -351,17 +345,23 @@ func testCheckAzureRMBackupProtectionPolicyVmExists(resourceName string) resourc
 }
 
 func testAccAzureRMBackupProtectionPolicyVM_template(data acceptance.TestData) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-backup-%d"
   location = "%s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
+
+  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -373,8 +373,8 @@ func testAccAzureRMBackupProtectionPolicyVM_basicDaily(data acceptance.TestData)
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Daily"
@@ -394,9 +394,9 @@ func testAccAzureRMBackupProtectionPolicyVM_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_backup_policy_vm" "import" {
-  name                = "${azurerm_backup_policy_vm.test.name}"
-  resource_group_name = "${azurerm_backup_policy_vm.test.resource_group_name}"
-  recovery_vault_name = "${azurerm_backup_policy_vm.test.recovery_vault_name}"
+  name                = azurerm_backup_policy_vm.test.name
+  resource_group_name = azurerm_backup_policy_vm.test.resource_group_name
+  recovery_vault_name = azurerm_backup_policy_vm.test.recovery_vault_name
 
   backup {
     frequency = "Daily"
@@ -417,8 +417,8 @@ func testAccAzureRMBackupProtectionPolicyVM_basicWeekly(data acceptance.TestData
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Weekly"
@@ -441,8 +441,8 @@ func testAccAzureRMBackupProtectionPolicyVM_completeDaily(data acceptance.TestDa
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Daily"
@@ -481,8 +481,8 @@ func testAccAzureRMBackupProtectionPolicyVM_completeWeekly(data acceptance.TestD
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Weekly"
@@ -518,8 +518,8 @@ func testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data acceptanc
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Weekly"

@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,10 +38,6 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_sql_active_directory_administrator", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -153,7 +148,12 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 
 func testAccAzureRMSqlAdministrator_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -162,19 +162,19 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name         = "${azurerm_sql_server.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = azurerm_sql_server.test.name
+  resource_group_name = azurerm_resource_group.test.name
   login               = "sqladmin"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  object_id           = "${data.azurerm_client_config.current.client_id}"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  object_id           = data.azurerm_client_config.current.client_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -184,18 +184,23 @@ func testAccAzureRMSqlAdministrator_requiresImport(data acceptance.TestData) str
 %s
 
 resource "azurerm_sql_active_directory_administrator" "import" {
-  server_name         = "${azurerm_sql_active_directory_administrator.test.server_name}"
-  resource_group_name = "${azurerm_sql_active_directory_administrator.test.resource_group_name}"
-  login               = "${azurerm_sql_active_directory_administrator.test.login}"
-  tenant_id           = "${azurerm_sql_active_directory_administrator.test.tenant_id}"
-  object_id           = "${azurerm_sql_active_directory_administrator.test.object_id}"
+  server_name         = azurerm_sql_active_directory_administrator.test.server_name
+  resource_group_name = azurerm_sql_active_directory_administrator.test.resource_group_name
+  login               = azurerm_sql_active_directory_administrator.test.login
+  tenant_id           = azurerm_sql_active_directory_administrator.test.tenant_id
+  object_id           = azurerm_sql_active_directory_administrator.test.object_id
 }
 `, testAccAzureRMSqlAdministrator_basic(data))
 }
 
 func testAccAzureRMSqlAdministrator_withUpdates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {}
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -204,19 +209,19 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_sql_server" "test" {
   name                         = "acctestsqlserver%d"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
 
 resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name         = "${azurerm_sql_server.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = azurerm_sql_server.test.name
+  resource_group_name = azurerm_resource_group.test.name
   login               = "sqladmin2"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  object_id           = "${data.azurerm_client_config.current.client_id}"
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  object_id           = data.azurerm_client_config.current.client_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

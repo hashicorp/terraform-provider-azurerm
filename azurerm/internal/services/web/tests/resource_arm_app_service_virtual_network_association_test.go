@@ -177,6 +177,10 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy(s *terraform
 
 func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-appservice-%d"
   location = "%s"
@@ -185,17 +189,17 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-VNET-%d"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   lifecycle {
-    ignore_changes = ["ddos_protection_plan"]
+    ignore_changes = [ddos_protection_plan]
   }
 }
 
 resource "azurerm_subnet" "test1" {
   name                 = "acctestSubnet1"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.1.0/24"
 
   delegation {
@@ -210,8 +214,8 @@ resource "azurerm_subnet" "test1" {
 
 resource "azurerm_subnet" "test2" {
   name                 = "acctestSubnet2"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 
   delegation {
@@ -226,8 +230,8 @@ resource "azurerm_subnet" "test2" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctest-ASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -237,9 +241,9 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_app_service" "test" {
   name                = "acctest-AS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -250,8 +254,8 @@ func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data acceptance
 %s
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = "${azurerm_app_service.test.id}"
-  subnet_id      = "${azurerm_subnet.test1.id}"
+  app_service_id = azurerm_app_service.test.id
+  subnet_id      = azurerm_subnet.test1.id
 }
 `, template)
 }
@@ -262,8 +266,8 @@ func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(data acceptanc
 %s
 
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
-  app_service_id = "${azurerm_app_service.test.id}"
-  subnet_id      = "${azurerm_subnet.test2.id}"
+  app_service_id = azurerm_app_service.test.id
+  subnet_id      = azurerm_subnet.test2.id
 }
 `, template)
 }

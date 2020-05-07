@@ -22,8 +22,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_sql_server" "example" {
   name                         = "my-sql-server" # NOTE: needs to be globally unique
-  resource_group_name          = "${azurerm_resource_group.example.name}"
-  location                     = "${azurerm_resource_group.example.location}"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
@@ -31,9 +31,9 @@ resource "azurerm_sql_server" "example" {
 
 resource "azurerm_sql_elasticpool" "example" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  server_name         = "${azurerm_sql_server.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  server_name         = azurerm_sql_server.example.name
   edition             = "Basic"
   dtu                 = 50
   db_dtu_min          = 0
@@ -75,3 +75,20 @@ The following attributes are exported:
 * `id` - The SQL Elastic Pool ID.
 
 * `creation_date` - The creation date of the SQL Elastic Pool.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the SQL Elastic Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the SQL Elastic Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL Elastic Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the SQL Elastic Pool.
+
+## Import
+
+SQL Elastic Pool's can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_sql_elasticpool.pool1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/elasticPools/pool1
+```

@@ -8,9 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -64,9 +62,6 @@ func resourceArmStorageTable() *schema.Resource {
 				ValidateFunc: ValidateArmStorageAccountName,
 			},
 
-			// TODO: deprecate this in the docs
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
-
 			"acl": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -85,17 +80,17 @@ func resourceArmStorageTable() *schema.Resource {
 									"start": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"expiry": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"permissions": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 								},
 							},
@@ -200,7 +195,6 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", id.TableName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", account.ResourceGroup)
 
 	if err := d.Set("acl", flattenStorageTableACLs(acls)); err != nil {
 		return fmt.Errorf("Error flattening `acl`: %+v", err)

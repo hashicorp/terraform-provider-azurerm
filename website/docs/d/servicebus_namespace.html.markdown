@@ -19,15 +19,15 @@ data "azurerm_servicebus_namespace" "example" {
 }
 
 output "location" {
-  value = "${data.azurerm_servicebus_namespace.example.location}"
+  value = data.azurerm_servicebus_namespace.example.location
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the name of the ServiceBus Namespace.
+* `name` - Specifies the name of the ServiceBus Namespace.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace exists.
+* `resource_group_name` - Specifies the name of the Resource Group where the ServiceBus Namespace exists.
 
 ## Attributes Reference
 
@@ -53,3 +53,9 @@ The following attributes are exported only if there is an authorization rule nam
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace.

@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_image" "example" {
   name                = "acctest"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
   os_disk {
     os_type  = "Linux"
@@ -43,7 +43,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_image" "example" {
   name                      = "acctest"
   location                  = "West US"
-  resource_group_name       = "${azurerm_resource_group.example.name}"
+  resource_group_name       = azurerm_resource_group.example.name
   source_virtual_machine_id = "{vm_id}"
 }
 ```
@@ -88,11 +88,22 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The managed image ID.
+* `id` - The ID of the Image.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 90 minutes) Used when creating the Image.
+* `update` - (Defaults to 90 minutes) Used when updating the Image.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Image.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Image.
 
 ## Import
 
-Image can be imported using the `resource id`, e.g.
+Images can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_image.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/images/image1

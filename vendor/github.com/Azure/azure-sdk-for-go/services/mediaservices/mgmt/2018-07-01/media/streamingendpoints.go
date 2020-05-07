@@ -36,7 +36,9 @@ func NewStreamingEndpointsClient(subscriptionID string) StreamingEndpointsClient
 	return NewStreamingEndpointsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStreamingEndpointsClientWithBaseURI creates an instance of the StreamingEndpointsClient client.
+// NewStreamingEndpointsClientWithBaseURI creates an instance of the StreamingEndpointsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewStreamingEndpointsClientWithBaseURI(baseURI string, subscriptionID string) StreamingEndpointsClient {
 	return StreamingEndpointsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -115,9 +117,8 @@ func (client StreamingEndpointsClient) CreatePreparer(ctx context.Context, resou
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingEndpointsClient) CreateSender(req *http.Request) (future StreamingEndpointsCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -202,9 +203,8 @@ func (client StreamingEndpointsClient) DeletePreparer(ctx context.Context, resou
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingEndpointsClient) DeleteSender(req *http.Request) (future StreamingEndpointsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -294,8 +294,7 @@ func (client StreamingEndpointsClient) GetPreparer(ctx context.Context, resource
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingEndpointsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -372,8 +371,7 @@ func (client StreamingEndpointsClient) ListPreparer(ctx context.Context, resourc
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingEndpointsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -493,9 +491,8 @@ func (client StreamingEndpointsClient) ScalePreparer(ctx context.Context, resour
 // ScaleSender sends the Scale request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingEndpointsClient) ScaleSender(req *http.Request) (future StreamingEndpointsScaleFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -579,9 +576,8 @@ func (client StreamingEndpointsClient) StartPreparer(ctx context.Context, resour
 // StartSender sends the Start request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingEndpointsClient) StartSender(req *http.Request) (future StreamingEndpointsStartFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -665,9 +661,8 @@ func (client StreamingEndpointsClient) StopPreparer(ctx context.Context, resourc
 // StopSender sends the Stop request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingEndpointsClient) StopSender(req *http.Request) (future StreamingEndpointsStopFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -754,9 +749,8 @@ func (client StreamingEndpointsClient) UpdatePreparer(ctx context.Context, resou
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingEndpointsClient) UpdateSender(req *http.Request) (future StreamingEndpointsUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

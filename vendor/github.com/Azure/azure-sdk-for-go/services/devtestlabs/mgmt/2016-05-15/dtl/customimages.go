@@ -36,7 +36,8 @@ func NewCustomImagesClient(subscriptionID string) CustomImagesClient {
 	return NewCustomImagesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewCustomImagesClientWithBaseURI creates an instance of the CustomImagesClient client.
+// NewCustomImagesClientWithBaseURI creates an instance of the CustomImagesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewCustomImagesClientWithBaseURI(baseURI string, subscriptionID string) CustomImagesClient {
 	return CustomImagesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -106,9 +107,8 @@ func (client CustomImagesClient) CreateOrUpdatePreparer(ctx context.Context, res
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomImagesClient) CreateOrUpdateSender(req *http.Request) (future CustomImagesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -185,9 +185,8 @@ func (client CustomImagesClient) DeletePreparer(ctx context.Context, resourceGro
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomImagesClient) DeleteSender(req *http.Request) (future CustomImagesDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -273,8 +272,7 @@ func (client CustomImagesClient) GetPreparer(ctx context.Context, resourceGroupN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomImagesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -367,8 +365,7 @@ func (client CustomImagesClient) ListPreparer(ctx context.Context, resourceGroup
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomImagesClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always

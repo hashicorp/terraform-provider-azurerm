@@ -23,22 +23,22 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_virtual_network" "example" {
   name                = "example-vnet"
   address_space       = ["10.7.29.0/29"]
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_subnet" "internal" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.7.29.0/29"
   service_endpoints    = ["Microsoft.Sql"]
 }
 
 resource "azurerm_mysql_server" "example" {
   name                         = "mysql-server-1"
-  location                     = "${azurerm_resource_group.example.location}"
-  resource_group_name          = "${azurerm_resource_group.example.name}"
+  location                     = azurerm_resource_group.example.location
+  resource_group_name          = azurerm_resource_group.example.name
   administrator_login          = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
@@ -55,9 +55,9 @@ resource "azurerm_mysql_server" "example" {
 
 resource "azurerm_mysql_virtual_network_rule" "example" {
   name                = "mysql-vnet-rule"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  server_name         = "${azurerm_mysql_server.example.name}"
-  subnet_id           = "${azurerm_subnet.internal.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mysql_server.example.name
+  subnet_id           = azurerm_subnet.internal.id
 }
 ```
 
@@ -85,6 +85,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the MySQL Virtual Network Rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the MySQL Virtual Network Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the MySQL Virtual Network Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Virtual Network Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MySQL Virtual Network Rule.
 
 ## Import
 

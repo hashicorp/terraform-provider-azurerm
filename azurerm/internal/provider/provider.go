@@ -8,14 +8,21 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func AzureProvider() terraform.ResourceProvider {
+	return azureProvider(false)
+}
+
+func TestAzureProvider() terraform.ResourceProvider {
+	return azureProvider(true)
+}
+
+func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 	// avoids this showing up in test output
 	var debugLog = func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
@@ -48,14 +55,6 @@ func AzureProvider() terraform.ResourceProvider {
 			}
 
 			resources[k] = v
-		}
-	}
-
-	// TODO: remove all of this in 2.0 once Custom Timeouts are supported
-	if !features.SupportsCustomTimeouts() {
-		// ensure any timeouts configured on the resources are removed until 2.0
-		for _, v := range resources {
-			v.Timeouts = nil
 		}
 	}
 
@@ -139,16 +138,15 @@ func AzureProvider() terraform.ResourceProvider {
 			"partner_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.UUIDOrEmpty,
+				ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
 				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
 				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 			},
 
 			"disable_correlation_request_id": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				// TODO: add an ARM_ prefix in 2.0w
-				DefaultFunc: schema.EnvDefaultFunc("DISABLE_CORRELATION_REQUEST_ID", false),
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_CORRELATION_REQUEST_ID", false),
 				Description: "This will disable the x-ms-correlation-request-id header.",
 			},
 
@@ -158,6 +156,8 @@ func AzureProvider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_TERRAFORM_PARTNER_ID", false),
 				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 			},
+
+			"features": schemaFeatures(supportLegacyTestSuite),
 
 			// Advanced feature flags
 			"skip_credentials_validation": {
@@ -172,6 +172,13 @@ func AzureProvider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
 				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
+			},
+
+			"storage_use_azuread": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
+				Description: "Should the AzureRM Provider use AzureAD to access the Storage Data Plane API's?",
 			},
 		},
 
@@ -189,10 +196,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)
-		} else {
-			if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
-				auxTenants = strings.Split(v, ";")
-			}
+		} else if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
+			auxTenants = strings.Split(v, ";")
 		}
 
 		if len(auxTenants) > 3 {
@@ -241,6 +246,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			PartnerId:                   d.Get("partner_id").(string),
 			DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 			DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+			Features:                    expandFeatures(d.Get("features").([]interface{})),
+			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
 		}
 		client, err := clients.Build(p.StopContext(), clientBuilder)
 		if err != nil {

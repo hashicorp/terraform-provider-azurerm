@@ -35,7 +35,8 @@ func NewSecurityPINsClient(subscriptionID string) SecurityPINsClient {
 	return NewSecurityPINsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewSecurityPINsClientWithBaseURI creates an instance of the SecurityPINsClient client.
+// NewSecurityPINsClientWithBaseURI creates an instance of the SecurityPINsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewSecurityPINsClientWithBaseURI(baseURI string, subscriptionID string) SecurityPINsClient {
 	return SecurityPINsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -100,8 +101,7 @@ func (client SecurityPINsClient) GetPreparer(ctx context.Context, vaultName stri
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SecurityPINsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always

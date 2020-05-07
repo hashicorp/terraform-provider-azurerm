@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -43,7 +42,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -104,6 +103,24 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validateTrafficManagerProfileStatusCodeRange,
+							},
+						},
+
+						"custom_header": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"value": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+								},
 							},
 						},
 
@@ -288,8 +305,11 @@ func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanage
 	monitorSets := d.Get("monitor_config").([]interface{})
 	monitor := monitorSets[0].(map[string]interface{})
 
+	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]interface{}))
+
 	cfg := trafficmanager.MonitorConfig{
 		Protocol:                  trafficmanager.MonitorProtocol(monitor["protocol"].(string)),
+		CustomHeaders:             customHeaders,
 		Port:                      utils.Int64(int64(monitor["port"].(int))),
 		Path:                      utils.String(monitor["path"].(string)),
 		IntervalInSeconds:         utils.Int64(int64(monitor["interval_in_seconds"].(int))),
@@ -312,6 +332,45 @@ func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanage
 	}
 
 	return &cfg
+}
+
+func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]trafficmanager.MonitorConfigCustomHeadersItem {
+	if len(d) == 0 || d[0] == nil {
+		return nil
+	}
+
+	customHeaders := make([]trafficmanager.MonitorConfigCustomHeadersItem, len(d))
+
+	for i, v := range d {
+		ch := v.(map[string]interface{})
+		customHeaders[i] = trafficmanager.MonitorConfigCustomHeadersItem{
+			Name:  utils.String(ch["name"].(string)),
+			Value: utils.String(ch["value"].(string)),
+		}
+	}
+
+	return &customHeaders
+}
+
+func flattenArmTrafficManagerCustomHeadersConfig(input *[]trafficmanager.MonitorConfigCustomHeadersItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	headers := *input
+	if len(headers) == 0 {
+		return result
+	}
+
+	for _, v := range headers {
+		header := make(map[string]string, 2)
+		header["name"] = *v.Name
+		header["value"] = *v.Value
+		result = append(result, header)
+	}
+
+	return result
 }
 
 func expandArmTrafficManagerDNSConfig(d *schema.ResourceData) *trafficmanager.DNSConfig {
@@ -341,6 +400,7 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 
 	result["protocol"] = string(cfg.Protocol)
 	result["port"] = int(*cfg.Port)
+	result["custom_header"] = flattenArmTrafficManagerCustomHeadersConfig(cfg.CustomHeaders)
 
 	if cfg.Path != nil {
 		result["path"] = *cfg.Path

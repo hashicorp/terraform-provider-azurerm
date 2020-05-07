@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_public_ip" "example" {
   name                = "acceptanceTestPublicIp1"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
 
   tags = {
@@ -79,6 +79,14 @@ The following attributes are exported:
 
 * `fqdn` - Fully qualified domain name of the A DNS record associated with the public IP. `domain_name_label` must be specified to get the `fqdn`. This is the concatenation of the `domain_name_label` and the regionalized DNS zone
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Public IP.
+* `update` - (Defaults to 30 minutes) Used when updating the Public IP.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Public IP.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Public IP.
 
 ## Import
 

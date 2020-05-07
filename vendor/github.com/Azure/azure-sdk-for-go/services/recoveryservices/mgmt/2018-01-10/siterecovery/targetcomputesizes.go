@@ -35,7 +35,9 @@ func NewTargetComputeSizesClient(subscriptionID string, resourceGroupName string
 	return NewTargetComputeSizesClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewTargetComputeSizesClientWithBaseURI creates an instance of the TargetComputeSizesClient client.
+// NewTargetComputeSizesClientWithBaseURI creates an instance of the TargetComputeSizesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewTargetComputeSizesClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) TargetComputeSizesClient {
 	return TargetComputeSizesClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -105,8 +107,7 @@ func (client TargetComputeSizesClient) ListByReplicationProtectedItemsPreparer(c
 // ListByReplicationProtectedItemsSender sends the ListByReplicationProtectedItems request. The method will close the
 // http.Response Body if it receives an error.
 func (client TargetComputeSizesClient) ListByReplicationProtectedItemsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationProtectedItemsResponder handles the response to the ListByReplicationProtectedItems request. The method always

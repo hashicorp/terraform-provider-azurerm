@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dev_test_lab" "example" {
   name                = "example-devtestlab"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   tags = {
     "Sydney" = "Australia"
@@ -31,8 +31,8 @@ resource "azurerm_dev_test_lab" "example" {
 resource "azurerm_dev_test_policy" "example" {
   name                = "LabVmCount"
   policy_set_name     = "default"
-  lab_name            = "${azurerm_dev_test_lab.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  lab_name            = azurerm_dev_test_lab.example.name
+  resource_group_name = azurerm_resource_group.example.name
   fact_data           = ""
   threshold           = "999"
   evaluator_type      = "MaxValuePolicy"
@@ -72,6 +72,17 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Dev Test Policy.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DevTest Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Policy.
 
 ## Import
 

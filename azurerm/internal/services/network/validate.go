@@ -78,10 +78,8 @@ func ValidatePrivateLinkName(i interface{}, k string) (_ []string, errors []erro
 		if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z\d])`); !m {
 			errors = append(errors, fmt.Errorf("%s must begin with a letter or number", k))
 		}
-	} else {
-		if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z\d])([a-zA-Z\d-\_\.]{0,78})([a-zA-Z\d\_])$`); !m {
-			errors = append(errors, fmt.Errorf("%s must be between 1 - 80 characters long, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, periods, hyphens or underscores", k))
-		}
+	} else if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z\d])([a-zA-Z\d-\_\.]{0,78})([a-zA-Z\d\_])$`); !m {
+		errors = append(errors, fmt.Errorf("%s must be between 1 - 80 characters long, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, periods, hyphens or underscores", k))
 	}
 
 	return nil, errors
@@ -92,6 +90,16 @@ func ValidateVirtualHubName(v interface{}, k string) (warnings []string, errors 
 
 	if !regexp.MustCompile(`^.{1,256}$`).MatchString(value) {
 		errors = append(errors, fmt.Errorf("%q must be between 1 and 256 characters in length.", k))
+	}
+
+	return warnings, errors
+}
+
+func ValidateVirtualHubConnectionName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[\da-zA-Z][-_.\da-zA-Z]{0,78}[_\da-zA-Z]$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q must be between 1 and 80 characters and begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens.", k))
 	}
 
 	return warnings, errors
@@ -116,10 +124,8 @@ func ValidateNatGatewayName(i interface{}, k string) (warnings []string, errors 
 		if matched := regexp.MustCompile(`^([a-zA-Z\d])`).Match([]byte(v)); !matched {
 			errors = append(errors, fmt.Errorf("%s must begin with a letter or number", k))
 		}
-	} else {
-		if matched := regexp.MustCompile(`^([a-zA-Z\d])([a-zA-Z\d-\_\.]{0,78})([a-zA-Z\d\_])$`).Match([]byte(v)); !matched {
-			errors = append(errors, fmt.Errorf("%s must be between 1 - 80 characters long, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens", k))
-		}
+	} else if matched := regexp.MustCompile(`^([a-zA-Z\d])([a-zA-Z\d-_.]{0,78})([a-zA-Z\d_])$`).Match([]byte(v)); !matched {
+		errors = append(errors, fmt.Errorf("%s must be between 1 - 80 characters long, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens", k))
 	}
 
 	return warnings, errors
@@ -140,4 +146,21 @@ func ValidatePrivateLinkSubResourceName(i interface{}, k string) (_ []string, er
 	}
 
 	return nil, errors
+}
+
+func ValidateRouteTableName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]?$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q should be between 1 and 80 characters, start with an alphanumeric, end with an alphanumeric or underscore and can contain alphanumerics, underscores, periods, and hyphens", k))
+	}
+
+	return warnings, errors
+}
+
+func ValidateRouteName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]?$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q should be between 1 and 80 characters, start with an alphanumeric, end with an alphanumeric or underscore and can contain alphanumerics, underscores, periods, and hyphens", k))
+	}
+	return warnings, errors
 }

@@ -19,15 +19,15 @@ data "azurerm_app_service" "example" {
 }
 
 output "app_service_id" {
-  value = "${data.azurerm_app_service.example.id}"
+  value = data.azurerm_app_service.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the App Service.
+* `name` - The name of the App Service.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service exists.
+* `resource_group_name` - The Name of the Resource Group where the App Service exists.
 
 ## Attributes Reference
 
@@ -85,6 +85,10 @@ A `ip_restriction` block exports the following:
 
 * `subnet_mask` - The Subnet mask used for this IP Restriction.
 
+* `name` - The name for this IP Restriction.
+
+* `priority` - The priority for this IP Restriction.
+
 ---
 
 `site_config` supports the following:
@@ -102,6 +106,8 @@ A `ip_restriction` block exports the following:
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
 
 * `ftps_state` - State of FTP / FTPS service for this AppService.
+
+* `health_check_path` - The health check path to be pinged by App Service.
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
@@ -135,4 +141,8 @@ A `ip_restriction` block exports the following:
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
-* `virtual_network_name` - The name of the Virtual Network which this App Service is attached to.
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service.

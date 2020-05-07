@@ -21,7 +21,7 @@ data "azurerm_private_link_service" "example" {
 }
 
 output "private_link_service_id" {
-  value = "${data.azurerm_private_link_service.example.id}"
+  value = data.azurerm_private_link_service.example.id
 }
 ```
 
@@ -29,9 +29,9 @@ output "private_link_service_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the private link service.
+* `name` - The name of the private link service.
 
-* `resource_group_name` - (Required) The name of the resource group in which the private link service resides.
+* `resource_group_name` - The name of the resource group in which the private link service resides.
 
 ## Attributes Reference
 
@@ -69,3 +69,9 @@ The `nat_ip_configuration` block exports the following:
 
 * `primary` - Value that indicates if the IP configuration is the primary configuration or not.
 
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Service.

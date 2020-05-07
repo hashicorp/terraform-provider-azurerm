@@ -77,9 +77,18 @@ The following attributes are exported:
 
 * `thumbprint` - The thumbprint for the certificate.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Certificate.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Certificate.
+
 ## Import
 
-App Service certificates can be imported using the `resource id`, e.g.
+App Service Certificates can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_app_service_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/certificates/certificate1

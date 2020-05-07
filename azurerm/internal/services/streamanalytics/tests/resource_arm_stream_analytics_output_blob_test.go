@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsOutputBlob_avro(t *testing.T) {
@@ -94,11 +93,6 @@ func TestAccAzureRMStreamAnalyticsOutputBlob_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsOutputBlob_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -177,11 +171,11 @@ func testAccAzureRMStreamAnalyticsOutputBlob_avro(data acceptance.TestData) stri
 
 resource "azurerm_stream_analytics_output_blob" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name      = "${azurerm_storage_account.test.name}"
-  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name    = "${azurerm_storage_container.test.name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.test.name
+  storage_account_key       = azurerm_storage_account.test.primary_access_key
+  storage_container_name    = azurerm_storage_container.test.name
   path_pattern              = "some-other-pattern"
   date_format               = "yyyy-MM-dd"
   time_format               = "HH"
@@ -200,11 +194,11 @@ func testAccAzureRMStreamAnalyticsOutputBlob_csv(data acceptance.TestData) strin
 
 resource "azurerm_stream_analytics_output_blob" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name      = "${azurerm_storage_account.test.name}"
-  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name    = "${azurerm_storage_container.test.name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.test.name
+  storage_account_key       = azurerm_storage_account.test.primary_access_key
+  storage_container_name    = azurerm_storage_container.test.name
   path_pattern              = "some-pattern"
   date_format               = "yyyy-MM-dd"
   time_format               = "HH"
@@ -225,11 +219,11 @@ func testAccAzureRMStreamAnalyticsOutputBlob_json(data acceptance.TestData) stri
 
 resource "azurerm_stream_analytics_output_blob" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name      = "${azurerm_storage_account.test.name}"
-  storage_account_key       = "${azurerm_storage_account.test.primary_access_key}"
-  storage_container_name    = "${azurerm_storage_container.test.name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.test.name
+  storage_account_key       = azurerm_storage_account.test.primary_access_key
+  storage_container_name    = azurerm_storage_container.test.name
   path_pattern              = "some-pattern"
   date_format               = "yyyy-MM-dd"
   time_format               = "HH"
@@ -250,26 +244,25 @@ func testAccAzureRMStreamAnalyticsOutputBlob_updated(data acceptance.TestData) s
 
 resource "azurerm_storage_account" "updated" {
   name                     = "acctestsa2%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "updated" {
   name                  = "example"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.updated.name}"
+  storage_account_name  = azurerm_storage_account.updated.name
   container_access_type = "private"
 }
 
 resource "azurerm_stream_analytics_output_blob" "test" {
   name                      = "acctestinput-%d"
-  stream_analytics_job_name = "${azurerm_stream_analytics_job.test.name}"
-  resource_group_name       = "${azurerm_stream_analytics_job.test.resource_group_name}"
-  storage_account_name      = "${azurerm_storage_account.updated.name}"
-  storage_account_key       = "${azurerm_storage_account.updated.primary_access_key}"
-  storage_container_name    = "${azurerm_storage_container.updated.name}"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.updated.name
+  storage_account_key       = azurerm_storage_account.updated.primary_access_key
+  storage_container_name    = azurerm_storage_container.updated.name
   path_pattern              = "some-other-pattern"
   date_format               = "yyyy-MM-dd"
   time_format               = "HH"
@@ -287,22 +280,34 @@ func testAccAzureRMStreamAnalyticsOutputBlob_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_stream_analytics_output_blob" "import" {
-  name                      = "${azurerm_stream_analytics_output_blob.test.name}"
-  stream_analytics_job_name = "${azurerm_stream_analytics_output_blob.test.stream_analytics_job_name}"
-  resource_group_name       = "${azurerm_stream_analytics_output_blob.test.resource_group_name}"
-  storage_account_name      = "${azurerm_stream_analytics_output_blob.test.storage_account_name}"
-  storage_account_key       = "${azurerm_stream_analytics_output_blob.test.storage_account_key}"
-  storage_container_name    = "${azurerm_stream_analytics_output_blob.test.storage_container_name}"
-  path_pattern              = "${azurerm_stream_analytics_output_blob.test.path_pattern}"
-  date_format               = "${azurerm_stream_analytics_output_blob.test.date_format}"
-  time_format               = "${azurerm_stream_analytics_output_blob.test.time_format}"
-  serialization             = "${azurerm_stream_analytics_output_blob.test.serialization}"
+  name                      = azurerm_stream_analytics_output_blob.test.name
+  stream_analytics_job_name = azurerm_stream_analytics_output_blob.test.stream_analytics_job_name
+  resource_group_name       = azurerm_stream_analytics_output_blob.test.resource_group_name
+  storage_account_name      = azurerm_stream_analytics_output_blob.test.storage_account_name
+  storage_account_key       = azurerm_stream_analytics_output_blob.test.storage_account_key
+  storage_container_name    = azurerm_stream_analytics_output_blob.test.storage_container_name
+  path_pattern              = azurerm_stream_analytics_output_blob.test.path_pattern
+  date_format               = azurerm_stream_analytics_output_blob.test.date_format
+  time_format               = azurerm_stream_analytics_output_blob.test.time_format
+  dynamic "serialization" {
+    for_each = azurerm_stream_analytics_output_blob.test.serialization
+    content {
+      encoding        = lookup(serialization.value, "encoding", null)
+      field_delimiter = lookup(serialization.value, "field_delimiter", null)
+      format          = lookup(serialization.value, "format", null)
+      type            = serialization.value.type
+    }
+  }
 }
 `, template)
 }
 
 func testAccAzureRMStreamAnalyticsOutputBlob_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -310,23 +315,22 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "example"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 
 resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
+  resource_group_name                      = azurerm_resource_group.test.name
+  location                                 = azurerm_resource_group.test.location
   compatibility_level                      = "1.0"
   data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
@@ -340,6 +344,7 @@ resource "azurerm_stream_analytics_job" "test" {
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

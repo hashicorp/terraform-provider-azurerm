@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -46,10 +47,8 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
+				ValidateFunc: azValidate.ServiceBusNamespaceName,
 			},
-
-			"location": azure.SchemaLocationDeprecated(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -119,20 +118,6 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Optional: true,
 			},
 
-			// TODO: remove this in 2.0
-			"enable_batched_operations": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "This field has been removed by Azure.",
-			},
-
-			// TODO: remove this in 2.0
-			"support_ordering": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "This field has been removed by Azure.",
-			},
-
 			"max_delivery_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -170,7 +155,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_service_fabric_cluster", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_servicebus_queue", *existing.ID)
 		}
 	}
 

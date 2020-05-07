@@ -5,12 +5,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -67,7 +66,7 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"virtual_ip": {
@@ -156,23 +155,19 @@ func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	appServiceName := id.AppServiceName
-	hostname := id.Name
-
-	resp, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
+	resp, err := client.GetHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Hostname Binding %q (App Service %q / Resource Group %q) was not found - removing from state", hostname, appServiceName, resourceGroup)
+			log.Printf("[DEBUG] App Service Hostname Binding %q (App Service %q / Resource Group %q) was not found - removing from state", id.Name, id.AppServiceName, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
 	}
 
-	d.Set("hostname", hostname)
-	d.Set("app_service_name", appServiceName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("hostname", id.Name)
+	d.Set("app_service_name", id.AppServiceName)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.HostNameBindingProperties; props != nil {
 		d.Set("ssl_state", props.SslState)
@@ -193,19 +188,15 @@ func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, me
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	appServiceName := id.AppServiceName
-	hostname := id.Name
+	locks.ByName(id.AppServiceName, appServiceCustomHostnameBindingResourceName)
+	defer locks.UnlockByName(id.AppServiceName, appServiceCustomHostnameBindingResourceName)
 
-	locks.ByName(appServiceName, appServiceCustomHostnameBindingResourceName)
-	defer locks.UnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", id.Name, id.AppServiceName, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", hostname, appServiceName, resourceGroup)
-
-	resp, err := client.DeleteHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
+	resp, err := client.DeleteHostNameBinding(ctx, id.ResourceGroup, id.AppServiceName, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.Name, id.AppServiceName, id.ResourceGroup, err)
 		}
 	}
 

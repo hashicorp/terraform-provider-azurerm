@@ -62,6 +62,10 @@ func TestAccDataSourceAzureRMStorageAccount_withWriteLock(t *testing.T) {
 
 func testAccDataSourceAzureRMStorageAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -69,9 +73,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "acctestsads%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -89,7 +93,7 @@ func testAccDataSourceAzureRMStorageAccount_basicWriteLock(data acceptance.TestD
 
 resource "azurerm_management_lock" "test" {
   name       = "acctestlock-%d"
-  scope      = "${azurerm_storage_account.test.id}"
+  scope      = azurerm_storage_account.test.id
   lock_level = "ReadOnly"
 }
 `, template, data.RandomInteger)
@@ -101,8 +105,8 @@ func testAccDataSourceAzureRMStorageAccount_basicWithDataSource(data acceptance.
 %s
 
 data "azurerm_storage_account" "test" {
-  name                = "${azurerm_storage_account.test.name}"
-  resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
 }
 `, config)
 }
@@ -113,8 +117,8 @@ func testAccDataSourceAzureRMStorageAccount_basicWriteLockWithDataSource(data ac
 %s
 
 data "azurerm_storage_account" "test" {
-  name                = "${azurerm_storage_account.test.name}"
-  resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
 }
 `, config)
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
@@ -32,11 +31,6 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -186,6 +180,10 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 
 func testAccAzureRMResourceGroup_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -199,14 +197,18 @@ func testAccAzureRMResourceGroup_requiresImport(data acceptance.TestData) string
 %s
 
 resource "azurerm_resource_group" "import" {
-  name     = "${azurerm_resource_group.test.name}"
-  location = "${azurerm_resource_group.test.location}"
+  name     = azurerm_resource_group.test.name
+  location = azurerm_resource_group.test.location
 }
 `, template)
 }
 
 func testAccAzureRMResourceGroup_withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -221,6 +223,10 @@ resource "azurerm_resource_group" "test" {
 
 func testAccAzureRMResourceGroup_withTagsUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

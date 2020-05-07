@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_eventhub_namespace" "example" {
   name                = "acceptanceTestEventHubNamespace"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Basic"
   capacity            = 2
 
@@ -32,17 +32,17 @@ resource "azurerm_eventhub_namespace" "example" {
 
 resource "azurerm_eventhub" "example" {
   name                = "acceptanceTestEventHub"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  resource_group_name = azurerm_resource_group.example.name
   partition_count     = 2
   message_retention   = 2
 }
 
 resource "azurerm_eventhub_authorization_rule" "example" {
   name                = "navi"
-  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
-  eventhub_name       = "${azurerm_eventhub.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  eventhub_name       = azurerm_eventhub.example.name
+  resource_group_name = azurerm_resource_group.example.name
   listen              = true
   send                = false
   manage              = false
@@ -79,13 +79,24 @@ The following attributes are exported:
 
 * `primary_connection_string` - The Primary Connection String for the Event Hubs authorization Rule.
 
-* `secondary_key` - The Secondary Key for the Event Hubs authorization Rule.
+* `secondary_key` - The Secondary Key for the Event Hubs Authorization Rule.
 
-* `secondary_connection_string` - The Secondary Connection String for the Event Hubs authorization Rule.
+* `secondary_connection_string` - The Secondary Connection String for the Event Hubs Authorization Rule.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the EventHub Authorization Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub Authorization Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Authorization Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the EventHub Authorization Rule.
 
 ## Import
 
-EventHubs can be imported using the `resource id`, e.g.
+EventHub Authorization Rules can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_eventhub_authorization_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/eventhubs/eventhub1/authorizationRules/rule1

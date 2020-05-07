@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -98,12 +97,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 					Target:     []string{"Running"},
 					Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
 					MinTimeout: 15 * time.Second,
-				}
-
-				if features.SupportsCustomTimeouts() {
-					stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-				} else {
-					stateConf.Timeout = 60 * time.Minute
+					Timeout:    d.Timeout(schema.TimeoutUpdate),
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {
@@ -277,4 +271,57 @@ func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 	}
 
 	return nil
+}
+
+func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
+	v := input[0].(map[string]interface{})
+
+	config := map[string]interface{}{}
+
+	if hiveRaw, ok := v["hive"]; ok {
+		for k, val := range azure.ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})) {
+			config[k] = val
+		}
+	}
+
+	if oozieRaw, ok := v["oozie"]; ok {
+		for k, val := range azure.ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})) {
+			config[k] = val
+		}
+	}
+
+	if ambariRaw, ok := v["ambari"]; ok {
+		for k, val := range azure.ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})) {
+			config[k] = val
+		}
+	}
+
+	return config
+}
+
+func flattenHDInsightsMetastores(d *schema.ResourceData, configurations map[string]map[string]*string) {
+	result := map[string]interface{}{}
+
+	hiveEnv, envExists := configurations["hive-env"]
+	hiveSite, siteExists := configurations["hive-site"]
+	if envExists && siteExists {
+		result["hive"] = azure.FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite)
+	}
+
+	oozieEnv, envExists := configurations["oozie-env"]
+	oozieSite, siteExists := configurations["oozie-site"]
+	if envExists && siteExists {
+		result["oozie"] = azure.FlattenHDInsightsOozieMetastore(oozieEnv, oozieSite)
+	}
+
+	ambari, ambariExists := configurations["ambari-conf"]
+	if ambariExists {
+		result["ambari"] = azure.FlattenHDInsightsAmbariMetastore(ambari)
+	}
+
+	if len(result) > 0 {
+		d.Set("metastores", []interface{}{
+			result,
+		})
+	}
 }

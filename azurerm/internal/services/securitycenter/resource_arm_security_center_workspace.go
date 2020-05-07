@@ -8,16 +8,16 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-//only valid name is default
+// only valid name is default
 // Message="Invalid workspace settings name 'kttest' , only default is allowed "
 const securityCenterWorkspaceName = "default"
 
@@ -43,7 +43,7 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 			"scope": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"workspace_id": {
@@ -76,8 +76,8 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	//get pricing tier, workspace can only be configured when tier is not Free.
-	//API does not error, it just doesn't set the workspace scope
+	// get pricing tier, workspace can only be configured when tier is not Free.
+	// API does not error, it just doesn't set the workspace scope
 	price, err := priceClient.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)
 	if err != nil {
 		return fmt.Errorf("Error reading Security Center Subscription pricing: %+v", err)
@@ -101,13 +101,11 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		if _, err = client.Create(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error creating Security Center Workspace: %+v", err)
 		}
-	} else {
-		if _, err = client.Update(ctx, name, contact); err != nil {
-			return fmt.Errorf("Error updating Security Center Workspace: %+v", err)
-		}
+	} else if _, err = client.Update(ctx, name, contact); err != nil {
+		return fmt.Errorf("Error updating Security Center Workspace: %+v", err)
 	}
 
-	//api returns "" for workspace id after an create/update and eventually the new value
+	// api returns "" for workspace id after an create/update and eventually the new value
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Waiting"},
 		Target:     []string{"Populated"},
@@ -128,14 +126,10 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		},
 	}
 
-	if features.SupportsCustomTimeouts() {
-		if d.IsNewResource() {
-			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
-		} else {
-			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-		}
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
 	} else {
-		stateConf.Timeout = 30 * time.Minute
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 	}
 
 	resp, err := stateConf.WaitForState()

@@ -14,7 +14,7 @@ import (
 func testAccAzureRMSecurityCenterSubscriptionPricing_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 
-	//lintignore:AT001
+	// lintignore:AT001
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -66,6 +66,10 @@ func testCheckAzureRMSecurityCenterSubscriptionPricingExists(resourceName string
 
 func testAccAzureRMSecurityCenterSubscriptionPricing_tier(tier string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_security_center_subscription_pricing" "test" {
   tier = "%s"
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMRelayHybridConnection_basic(t *testing.T) {
@@ -80,11 +79,6 @@ func TestAccAzureRMRelayHybridConnection_update(t *testing.T) {
 }
 
 func TestAccAzureRMRelayHybridConnection_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_relay_hybrid_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -106,6 +100,10 @@ func TestAccAzureRMRelayHybridConnection_requiresImport(t *testing.T) {
 
 func testAccAzureRMRelayHybridConnection_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -113,22 +111,26 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_relay_namespace" "test" {
   name                = "acctestrn-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Standard"
 }
 
 resource "azurerm_relay_hybrid_connection" "test" {
   name                 = "acctestrnhc-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  relay_namespace_name = "${azurerm_relay_namespace.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  relay_namespace_name = azurerm_relay_namespace.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMRelayHybridConnection_full(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -136,16 +138,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_relay_namespace" "test" {
   name                = "acctestrn-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Standard"
 }
 
 resource "azurerm_relay_hybrid_connection" "test" {
   name                 = "acctestrnhc-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  relay_namespace_name = "${azurerm_relay_namespace.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  relay_namespace_name = azurerm_relay_namespace.test.name
   user_metadata        = "metadatatest"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -153,6 +155,10 @@ resource "azurerm_relay_hybrid_connection" "test" {
 
 func testAccAzureRMRelayHybridConnection_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -160,16 +166,16 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_relay_namespace" "test" {
   name                = "acctestrn-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name = "Standard"
 }
 
 resource "azurerm_relay_hybrid_connection" "test" {
   name                          = "acctestrnhc-%d"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
-  relay_namespace_name          = "${azurerm_relay_namespace.test.name}"
+  resource_group_name           = azurerm_resource_group.test.name
+  relay_namespace_name          = azurerm_relay_namespace.test.name
   requires_client_authorization = false
   user_metadata                 = "metadataupdated"
 }
@@ -181,12 +187,12 @@ func testAccAzureRMRelayHybridConnection_requiresImport(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_relay_namespace" "import" {
-  name                 = "acctestrnhc-%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  relay_namespace_name = "${azurerm_relay_namespace.test.name}"
+resource "azurerm_relay_hybrid_connection" "import" {
+  name                 = azurerm_relay_hybrid_connection.test.name
+  resource_group_name  = azurerm_relay_hybrid_connection.test.resource_group_name
+  relay_namespace_name = azurerm_relay_hybrid_connection.test.relay_namespace_name
 }
-`, template, data.RandomInteger)
+`, template)
 }
 
 func testCheckAzureRMRelayHybridConnectionExists(resourceName string) resource.TestCheckFunc {

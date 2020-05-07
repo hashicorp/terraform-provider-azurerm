@@ -20,29 +20,29 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-network"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.254.0.0/16"]
 }
 
 resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.254.0.0/24"
 }
 
 resource "azurerm_subnet" "backend" {
   name                 = "backend"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.254.2.0/24"
 }
 
 resource "azurerm_public_ip" "example" {
   name                = "example-pip"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   allocation_method   = "Dynamic"
 }
 
@@ -59,8 +59,8 @@ locals {
 
 resource "azurerm_application_gateway" "network" {
   name                = "example-appgateway"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "Standard_Small"
@@ -70,25 +70,25 @@ resource "azurerm_application_gateway" "network" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = "${azurerm_subnet.frontend.id}"
+    subnet_id = azurerm_subnet.frontend.id
   }
 
   frontend_port {
-    name = "${local.frontend_port_name}"
+    name = local.frontend_port_name
     port = 80
   }
 
   frontend_ip_configuration {
-    name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.example.id}"
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 
   backend_address_pool {
-    name = "${local.backend_address_pool_name}"
+    name = local.backend_address_pool_name
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}"
+    name                  = local.http_setting_name
     cookie_based_affinity = "Disabled"
     path                  = "/path1/"
     port                  = 80
@@ -97,18 +97,18 @@ resource "azurerm_application_gateway" "network" {
   }
 
   http_listener {
-    name                           = "${local.listener_name}"
-    frontend_ip_configuration_name = "${local.frontend_ip_configuration_name}"
-    frontend_port_name             = "${local.frontend_port_name}"
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
   }
 
   request_routing_rule {
-    name                       = "${local.request_routing_rule_name}"
+    name                       = local.request_routing_rule_name
     rule_type                  = "Basic"
-    http_listener_name         = "${local.listener_name}"
-    backend_address_pool_name  = "${local.backend_address_pool_name}"
-    backend_http_settings_name = "${local.http_setting_name}"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
   }
 }
 ```
@@ -150,9 +150,6 @@ The following arguments are supported:
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
-
-* `disabled_ssl_protocols` - (Optional / **Deprecated**) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
-~> **NOTE:** `disabled_ssl_protocols ` has been deprecated in favour of `disabled_protocols` in the `ssl_policy` block.
 
 * `ssl_policy` (Optional) a `ssl policy` block as defined below.
 
@@ -206,11 +203,7 @@ A `backend_address_pool` block supports the following:
 
 * `fqdns` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
 
-* `fqdn_list` - (Optional **Deprecated**) A list of FQDN's which should be part of the Backend Address Pool. This field has been deprecated in favour of `fqdns` and will be removed in v2.0 of the AzureRM Provider.
-
 * `ip_addresses` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
-
-* `ip_address_list` - (Optional **Deprecated**) A list of IP Addresses which should be part of the Backend Address Pool. This field has been deprecated in favour of `ip_addresses` and will be removed in v2.0 of the AzureRM Provider.
 
 ---
 
@@ -226,7 +219,7 @@ A `backend_http_settings` block supports the following:
 
 * `port`- (Required) The port which should be used for this Backend HTTP Settings Collection.
 
-* `probe_name` - (Required) The name of an associated HTTP Probe.
+* `probe_name` - (Optional) The name of an associated HTTP Probe.
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
@@ -252,7 +245,7 @@ A `connection_draining` block supports the following:
 
 ---
 
-      
+
 A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
@@ -295,6 +288,10 @@ A `http_listener` block supports the following:
 
 * `host_name` - (Optional) The Hostname which should be used for this HTTP Listener.
 
+* `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
+
+-> **NOTE** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
+
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
 * `require_sni` - (Optional) Should Server Name Indication be Required? Defaults to `false`.
@@ -315,7 +312,7 @@ A `identity` block supports the following:
 
 A `match` block supports the following:
 
-* `body` - (Optional) A snippet from the Response Body which must be present in the Response. Defaults to `*`.
+* `body` - (Optional) A snippet from the Response Body which must be present in the Response..
 
 * `status_code` - (Optional) A list of allowed status codes for this Health Probe.
 
@@ -387,7 +384,7 @@ A `sku` block supports the following:
 
 * `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
 
-* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway - which must be between 1 and 10, optional if `autoscale_configuration` is set
+* `capacity` - (Required) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between 1 and 32, and 1 to 125 for a V2 SKU. This property is optional if `autoscale_configuration` is set.
 
 ---
 
@@ -395,9 +392,15 @@ A `ssl_certificate` block supports the following:
 
 * `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
 
-* `data` - (Required) PFX certificate.
+* `data` - (Optional) PFX certificate. Required if `key_vault_secret_id` is not set.
 
-* `password` - (Required) Password for the pfx file specified in data.
+* `password` - (Optional) Password for the pfx file specified in data.  Required if `data` is set.
+
+* `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
+
+-> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs).
+
+-> **NOTE:** For TLS termination with Key Vault certificates to work properly existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 
@@ -429,7 +432,7 @@ A `ssl_policy` block supports the following:
 
 When using a `policy_type` of `Predefined` the following fields are supported:
 
-* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and 
+* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and
 are published here https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`.
 
 When using a `policy_type` of `Custom` the following fields are supported:
@@ -729,6 +732,15 @@ A `redirect_configuration` block exports the following:
 A `rewrite_rule_set` block exports the following:
 
 * `id` - The ID of the Rewrite Rule Set
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 90 minutes) Used when creating the Application Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.
+* `delete` - (Defaults to 90 minutes) Used when deleting the Application Gateway.
 
 ## Import
 

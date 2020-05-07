@@ -11,9 +11,18 @@ func (r Registration) Name() string {
 	return "App Configuration"
 }
 
+// WebsiteCategories returns a list of categories which can be used for the sidebar
+func (r Registration) WebsiteCategories() []string {
+	return []string{
+		"App Configuration",
+	}
+}
+
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
-	return map[string]*schema.Resource{}
+	return map[string]*schema.Resource{
+		"azurerm_app_configuration": dataSourceAppConfiguration(),
+	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service

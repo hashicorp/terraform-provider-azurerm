@@ -3,9 +3,12 @@ package recoveryservices
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
+	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2019-05-13/backup"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -59,12 +62,19 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 					string(recoveryservices.Standard),
 				}, true),
 			},
+
+			"soft_delete_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 		},
 	}
 }
 
 func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
+	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -88,7 +98,6 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	//build vault struct
 	vault := recoveryservices.Vault{
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
@@ -98,10 +107,56 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 		Properties: &recoveryservices.VaultProperties{},
 	}
 
-	//create recovery services vault
 	vault, err := client.CreateOrUpdate(ctx, resourceGroup, name, vault)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	cfg := backup.ResourceVaultConfigResource{
+		Properties: &backup.ResourceVaultConfig{
+			EnhancedSecurityState: backup.EnhancedSecurityStateEnabled, // always enabled
+		},
+	}
+
+	if sd := d.Get("soft_delete_enabled").(bool); sd {
+		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateEnabled
+	} else {
+		cfg.Properties.SoftDeleteFeatureState = backup.SoftDeleteFeatureStateDisabled
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"syncing"},
+		Target:     []string{"success"},
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := cfgsClient.Update(ctx, name, resourceGroup, cfg)
+			if err != nil {
+				if strings.Contains(err.Error(), "ResourceNotYetSynced") {
+					return resp, "syncing", nil
+				}
+				return resp, "error", fmt.Errorf("Error updating Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			return resp, "success", nil
+		},
+	}
+
+	if d.IsNewResource() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+	} else {
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for on update for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error issuing read request for Recovery Service Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if read.ID == nil {
+		return fmt.Errorf("Error Recovery Service Vault %q (Resource Group %q): read returned nil", name, resourceGroup)
 	}
 
 	d.SetId(*vault.ID)
@@ -111,6 +166,7 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 
 func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
+	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -142,6 +198,15 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
+	}
+
+	cfg, err := cfgsClient.Get(ctx, name, resourceGroup)
+	if err != nil {
+		return fmt.Errorf("Error reading Recovery Service Vault Cfg %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if props := cfg.Properties; props != nil {
+		d.Set("soft_delete_enabled", props.SoftDeleteFeatureState == backup.SoftDeleteFeatureStateEnabled)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

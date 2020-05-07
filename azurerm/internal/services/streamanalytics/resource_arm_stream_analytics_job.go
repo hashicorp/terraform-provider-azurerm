@@ -40,7 +40,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -57,7 +57,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 					"1.1",
 					// TODO: support for 1.2 when this is fixed:
 					// https://github.com/Azure/azure-rest-api-specs/issues/5604
-					//"1.2",
+					// "1.2",
 				}, false),
 			},
 
@@ -65,7 +65,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"events_late_arrival_max_delay_in_seconds": {
@@ -113,7 +113,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 			"transformation_query": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"job_id": {
@@ -162,7 +162,7 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 
 	// needs to be defined inline for a Create but via a separate API for Update
 	transformation := streamanalytics.Transformation{
-		Name: utils.String("Transformation"),
+		Name: utils.String("main"),
 		TransformationProperties: &streamanalytics.TransformationProperties{
 			StreamingUnits: utils.Int32(int32(streamingUnits)),
 			Query:          utils.String(transformationQuery),
@@ -215,8 +215,15 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 			return fmt.Errorf("Error Updating Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		if _, err := transformationsClient.Update(ctx, transformation, resourceGroup, name, "Transformation", ""); err != nil {
-			return fmt.Errorf("Error Updating Transformation for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+		job, err := client.Get(ctx, resourceGroup, name, "transformation")
+		if err != nil {
+			return err
+		}
+
+		if readTransformation := job.Transformation; readTransformation != nil {
+			if _, err := transformationsClient.Update(ctx, transformation, resourceGroup, name, *readTransformation.Name, ""); err != nil {
+				return fmt.Errorf("Error Updating Transformation for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
 		}
 	}
 
@@ -225,7 +232,6 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
-	transformationsClient := meta.(*clients.Client).StreamAnalytics.TransformationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -236,7 +242,7 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 	resourceGroup := id.ResourceGroup
 	name := id.Path["streamingjobs"]
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, resourceGroup, name, "transformation")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Stream Analytics Job %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
@@ -245,17 +251,6 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 		}
 
 		return fmt.Errorf("Error retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	transformation, err := transformationsClient.Get(ctx, resourceGroup, name, "Transformation")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Transformation for Stream Analytics Job %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Error retrieving Transformation for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -281,11 +276,11 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 		d.Set("job_id", props.JobID)
 	}
 
-	if props := transformation.TransformationProperties; props != nil {
-		if units := props.StreamingUnits; units != nil {
+	if transformation := resp.StreamingJobProperties.Transformation; transformation != nil {
+		if units := transformation.StreamingUnits; units != nil {
 			d.Set("streaming_units", int(*units))
 		}
-		d.Set("transformation_query", props.Query)
+		d.Set("transformation_query", transformation.Query)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
