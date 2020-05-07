@@ -10,6 +10,7 @@ IMPROVEMENTS:
 
 * `azurerm_analysis_services_server` - support updating when the Server is paused [GH-6786]
 * `azurerm_app_service` - support for health_check_path preview feature added [GH-6661]
+* `azurerm_app_service` - support for `name` and `priority` on `ip_restrictions` [GH-6705]
 * `azurerm_application_gateway` - support for SSL Certificates without passwords [GH-6742]
 * `azurerm_hdinsight_hadoop_cluster` - support for metastores on cluster creation [GH-6145]
 * `azurerm_key_vault_certificate` - support for recovering a soft-deleted certificate if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
