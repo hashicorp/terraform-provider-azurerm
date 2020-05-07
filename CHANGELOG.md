@@ -31,6 +31,7 @@ BUG FIXES:
 
 * provider: raising an error when the environment is set to `AZURESTACKCLOUD` [GH-6817]
 * `azurerm_analysis_services_server` - ip restriction name field no longer case sensitive [GH-6774]
+* `azurerm_automation_runbook` - the `publish_content_link` property is now optional [GH-6813]
 * `azurerm_eventhub_namespace_authorization_rule` - lock to prevent multiple resources won't clash [GH-6701]
 * `azurerm_network_interface` - changes to dns servers no longer use incremental update [GH-6624]
 * `azurerm_policy_assignment` - allow polices with scopes without `subscription/<id>` (built-in policies) [GH-6792]
