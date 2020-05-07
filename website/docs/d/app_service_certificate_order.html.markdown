@@ -19,15 +19,15 @@ data "azurerm_app_service_certificate_order" "example" {
 }
 
 output "certificate_order_id" {
-  value = "${data.azurerm_app_service_certificate_order.example.id}"
+  value = data.azurerm_app_service_certificate_order.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the App Service.
+* `name` - The name of the App Service.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service exists.
+* `resource_group_name` - The Name of the Resource Group where the App Service exists.
 
 ## Attributes Reference
 
@@ -76,3 +76,9 @@ output "certificate_order_id" {
 * `key_vault_secret_name` - Key Vault secret name.
 
 * `provisioning_state` - Status of the Key Vault secret.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate Order.

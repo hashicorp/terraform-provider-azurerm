@@ -196,6 +196,18 @@ func dataSourceArmRedisCache() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -233,7 +245,8 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("sku_name", sku.Name)
 	}
 
-	if props := resp.Properties; props != nil {
+	props := resp.Properties
+	if props != nil {
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
 		d.Set("minimum_tls_version", string(props.MinimumTLSVersion))
@@ -274,6 +287,12 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("primary_access_key", keys.PrimaryKey)
 	d.Set("secondary_access_key", keys.SecondaryKey)
+
+	if props != nil {
+		enableSslPort := !*props.EnableNonSslPort
+		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.PrimaryKey, enableSslPort))
+		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keys.SecondaryKey, enableSslPort))
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

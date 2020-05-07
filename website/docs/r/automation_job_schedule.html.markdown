@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `parameters` -  (Optional) A map of key/value pairs corresponding to the arguments that can be passed to the Runbook. Changing this forces a new resource to be created.
 
--> **NOTE:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation. 
+-> **NOTE:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation.
 
 * `run_on` -  (Optional) Name of a Hybrid Worker Group the Runbook will be executed on. Changing this forces a new resource to be created.
 
@@ -48,13 +48,22 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Automation Job Schedule's full ID.
+* `id` - The ID of the Automation Job Schedule.
 
 * `job_schedule_id` - The UUID identifying the Automation Job Schedule.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Automation Job Schedule.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Job Schedule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation Job Schedule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation Job Schedule.
+
 ## Import
 
-Automation Job Schedule can be imported using the `resource id`, e.g.
+Automation Job Schedules can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_automation_job_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/jobSchedules/10000000-1001-1001-1001-000000000001

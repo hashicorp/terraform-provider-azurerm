@@ -99,6 +99,8 @@ func PossibleEntityStatusValues() []EntityStatus {
 type SkuNameEnum string
 
 const (
+	// CapacityReservation ...
+	CapacityReservation SkuNameEnum = "CapacityReservation"
 	// Free ...
 	Free SkuNameEnum = "Free"
 	// PerGB2018 ...
@@ -115,7 +117,7 @@ const (
 
 // PossibleSkuNameEnumValues returns an array of possible values for the SkuNameEnum const type.
 func PossibleSkuNameEnumValues() []SkuNameEnum {
-	return []SkuNameEnum{Free, PerGB2018, PerNode, Premium, Standalone, Standard}
+	return []SkuNameEnum{CapacityReservation, Free, PerGB2018, PerNode, Premium, Standalone, Standard}
 }
 
 // DataSource datasources under OMS Workspace.
@@ -305,6 +307,14 @@ func (page DataSourceListResultPage) Values() []DataSource {
 // Creates a new instance of the DataSourceListResultPage type.
 func NewDataSourceListResultPage(getNextPage func(context.Context, DataSourceListResult) (DataSourceListResult, error)) DataSourceListResultPage {
 	return DataSourceListResultPage{fn: getNextPage}
+}
+
+// ErrorResponse describes the format of Error response.
+type ErrorResponse struct {
+	// Code - Error code
+	Code *string `json:"code,omitempty"`
+	// Message - Error message indicating why the operation failed.
+	Message *string `json:"message,omitempty"`
 }
 
 // IntelligencePack intelligence Pack containing a string name and boolean indicating if it's enabled.
@@ -654,6 +664,23 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 	return OperationListResultPage{fn: getNextPage}
 }
 
+// OperationStatus the status of operation.
+type OperationStatus struct {
+	autorest.Response `json:"-"`
+	// ID - The operation Id.
+	ID *string `json:"id,omitempty"`
+	// Name - The operation name.
+	Name *string `json:"name,omitempty"`
+	// StartTime - The start time of the operation.
+	StartTime *string `json:"startTime,omitempty"`
+	// EndTime - The end time of the operation.
+	EndTime *string `json:"endTime,omitempty"`
+	// Status - The status of the operation.
+	Status *string `json:"status,omitempty"`
+	// Error - The error detail of the operation if any.
+	Error *ErrorResponse `json:"error,omitempty"`
+}
+
 // ProxyResource common properties of proxy resource.
 type ProxyResource struct {
 	// ID - READ-ONLY; Resource ID.
@@ -712,7 +739,7 @@ type SharedKeys struct {
 
 // Sku the SKU (tier) of a workspace.
 type Sku struct {
-	// Name - The name of the SKU. Possible values include: 'Free', 'Standard', 'Premium', 'PerNode', 'PerGB2018', 'Standalone'
+	// Name - The name of the SKU. Possible values include: 'Free', 'Standard', 'Premium', 'PerNode', 'PerGB2018', 'Standalone', 'CapacityReservation'
 	Name SkuNameEnum `json:"name,omitempty"`
 }
 

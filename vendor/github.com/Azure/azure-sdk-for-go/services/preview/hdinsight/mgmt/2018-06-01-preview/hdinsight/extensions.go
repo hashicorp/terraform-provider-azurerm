@@ -35,7 +35,8 @@ func NewExtensionsClient(subscriptionID string) ExtensionsClient {
 	return NewExtensionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewExtensionsClientWithBaseURI creates an instance of the ExtensionsClient client.
+// NewExtensionsClientWithBaseURI creates an instance of the ExtensionsClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewExtensionsClientWithBaseURI(baseURI string, subscriptionID string) ExtensionsClient {
 	return ExtensionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -99,9 +100,8 @@ func (client ExtensionsClient) CreatePreparer(ctx context.Context, resourceGroup
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) CreateSender(req *http.Request) (future ExtensionsCreateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -177,9 +177,8 @@ func (client ExtensionsClient) DeletePreparer(ctx context.Context, resourceGroup
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) DeleteSender(req *http.Request) (future ExtensionsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -253,9 +252,8 @@ func (client ExtensionsClient) DisableMonitoringPreparer(ctx context.Context, re
 // DisableMonitoringSender sends the DisableMonitoring request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) DisableMonitoringSender(req *http.Request) (future ExtensionsDisableMonitoringFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -332,9 +330,8 @@ func (client ExtensionsClient) EnableMonitoringPreparer(ctx context.Context, res
 // EnableMonitoringSender sends the EnableMonitoring request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) EnableMonitoringSender(req *http.Request) (future ExtensionsEnableMonitoringFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -416,8 +413,7 @@ func (client ExtensionsClient) GetPreparer(ctx context.Context, resourceGroupNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -493,8 +489,7 @@ func (client ExtensionsClient) GetMonitoringStatusPreparer(ctx context.Context, 
 // GetMonitoringStatusSender sends the GetMonitoringStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExtensionsClient) GetMonitoringStatusSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetMonitoringStatusResponder handles the response to the GetMonitoringStatus request. The method always

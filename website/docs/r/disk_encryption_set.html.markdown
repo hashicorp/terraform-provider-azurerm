@@ -10,13 +10,17 @@ description: |-
 
 Manages a Disk Encryption Set.
 
--> **NOTE**: Disk Encryption Sets are in Public Preview and at this time is only available in `Canada Central`, `North Europe` and `West Central US` regions - [more information can be found in the preview documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption). 
+-> **NOTE**: Disk Encryption Sets are in Public Preview and at this time is only available in `Canada Central`, `North Europe` and `West Central US` regions - [more information can be found in the preview documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
 
 -> **NOTE:** At this time the Key Vault used to store the Active Key for this Disk Encryption Set must have both Soft Delete & Purge Protection enabled - which are not yet supported by Terraform - instead you can configure this using [a provisioner](https://www.terraform.io/docs/provisioners/local-exec.html) or [the `azurerm_template_deployment` resource](https://www.terraform.io/docs/providers/azurerm/r/template_deployment.html).
 
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "example" {
@@ -33,7 +37,7 @@ resource "azurerm_key_vault" "example" {
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.service_principal_object_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -91,7 +95,7 @@ The following arguments are supported:
 
 -> **NOTE** Access to the KeyVault must be granted for this Disk Encryption Set, if you want to further use this Disk Encryption Set in a Managed Disk or Virtual Machine, or Virtual Machine Scale Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/en-us/azure/virtual-machines/linux/disk-encryption).
 
-* `identity` - (Optional) A `identity` block defined below.
+* `identity` - (Required) A `identity` block defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Disk Encryption Set.
 
@@ -114,6 +118,17 @@ A `identity` block exports the following:
 * `principal_id` - The (Client) ID of the Service Principal.
 
 * `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Disk Encryption Set.
+* `update` - (Defaults to 60 minutes) Used when updating the Disk Encryption Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Disk Encryption Set.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Disk Encryption Set.
 
 ## Import
 

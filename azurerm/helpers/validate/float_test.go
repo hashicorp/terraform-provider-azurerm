@@ -1,83 +1,50 @@
 package validate
 
-import "testing"
+import (
+	"testing"
 
-func TestAzureFloatAtLeast(t *testing.T) {
-	cases := []struct {
-		Name        string
-		MinValue    float64
-		ActualValue float64
-		Errors      int
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+)
+
+func TestValidateFloatInSlice(t *testing.T) {
+	cases := map[string]struct {
+		Value                  interface{}
+		ValidateFunc           schema.SchemaValidateFunc
+		ExpectValidationErrors bool
 	}{
-		{
-			Name:        "Min_Full_Stop_Zero_Greater",
-			MinValue:    0.0,
-			ActualValue: 1.0,
-			Errors:      0,
+		"accept valid value": {
+			Value:                  1.5,
+			ValidateFunc:           FloatInSlice([]float64{1.0, 1.5, 2.0}),
+			ExpectValidationErrors: false,
 		},
-		{
-			Name:        "Min_One_Full_Stop_Zero_Lesser",
-			MinValue:    1.0,
-			ActualValue: 0.0,
-			Errors:      1,
+		"accept valid negative value ": {
+			Value:                  -1.0,
+			ValidateFunc:           FloatInSlice([]float64{-1.0, 2.0}),
+			ExpectValidationErrors: false,
 		},
-		{
-			Name:        "Min_Full_Stop_Two_Five_Greater",
-			MinValue:    0.25,
-			ActualValue: 0.26,
-			Errors:      0,
+		"accept zero": {
+			Value:                  0.0,
+			ValidateFunc:           FloatInSlice([]float64{0.0, 2.0}),
+			ExpectValidationErrors: false,
 		},
-		{
-			Name:        "Min_Full_Stop_Two_Five_Equal",
-			MinValue:    0.25,
-			ActualValue: 0.25,
-			Errors:      0,
+		"reject out of range value": {
+			Value:                  -1.0,
+			ValidateFunc:           FloatInSlice([]float64{0.0, 2.0}),
+			ExpectValidationErrors: true,
 		},
-		{
-			Name:        "Min_Full_Stop_Two_Five_Lesser",
-			MinValue:    0.25,
-			ActualValue: 0.24,
-			Errors:      1,
-		},
-		{
-			Name:        "Min_Full_Stop_Long_Zero_Lesser",
-			MinValue:    0.0000000000000000000000000000000000000001,
-			ActualValue: 0,
-			Errors:      1,
-		},
-		{
-			Name:        "Min_Full_Stop_Long_Greater",
-			MinValue:    0.0000000000000000000000000000000000000001,
-			ActualValue: -0,
-			Errors:      1,
-		},
-		{
-			Name:        "Min_Negative_Full_Stop_Two_Five_Greater",
-			MinValue:    -0.25,
-			ActualValue: 1,
-			Errors:      0,
-		},
-		{
-			Name:        "Min_Zero_No_Full_Stop_Equal",
-			MinValue:    0,
-			ActualValue: -0,
-			Errors:      0,
-		},
-		{
-			Name:        "Min_Negative_Full_Stop_Two_Five_Lesser",
-			MinValue:    -0.25,
-			ActualValue: -0.26,
-			Errors:      1,
+		"reject incorrectly typed value": {
+			Value:                  1,
+			ValidateFunc:           FloatInSlice([]float64{0, 1, 2}),
+			ExpectValidationErrors: true,
 		},
 	}
 
-	for _, tc := range cases {
-		t.Run(tc.Name, func(t *testing.T) {
-			_, errors := FloatAtLeast(tc.MinValue)(tc.ActualValue, "floatValue")
-
-			if len(errors) < tc.Errors {
-				t.Fatalf("Expected FloatAtLeast to have %d not %d errors for %q", tc.Errors, len(errors), tc.Name)
-			}
-		})
+	for tn, tc := range cases {
+		_, errors := tc.ValidateFunc(tc.Value, tn)
+		if len(errors) > 0 && !tc.ExpectValidationErrors {
+			t.Errorf("%s: unexpected errors %s", tn, errors)
+		} else if len(errors) == 0 && tc.ExpectValidationErrors {
+			t.Errorf("%s: expected errors but got none", tn)
+		}
 	}
 }

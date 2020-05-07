@@ -54,15 +54,9 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
-			"account_encryption_source": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"custom_domain": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -71,16 +65,6 @@ func dataSourceArmStorageAccount() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"enable_blob_encryption": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-
-			"enable_file_encryption": {
-				Type:     schema.TypeBool,
-				Computed: true,
 			},
 
 			"enable_https_traffic_only": {
@@ -328,18 +312,6 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
 				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
 			}
-		}
-
-		if encryption := props.Encryption; encryption != nil {
-			if services := encryption.Services; services != nil {
-				if blob := services.Blob; blob != nil {
-					d.Set("enable_blob_encryption", blob.Enabled)
-				}
-				if file := services.File; file != nil {
-					d.Set("enable_file_encryption", file.Enabled)
-				}
-			}
-			d.Set("account_encryption_source", string(encryption.KeySource))
 		}
 
 		// Computed

@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 resource "random_id" "workspace" {
   keepers = {
     # Generate a new id each time we switch to a new resource group
-    group_name = "${azurerm_resource_group.example.name}"
+    group_name = azurerm_resource_group.example.name
   }
 
   byte_length = 8
@@ -29,17 +29,17 @@ resource "random_id" "workspace" {
 
 resource "azurerm_log_analytics_workspace" "example" {
   name                = "k8s-workspace-${random_id.workspace.hex}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "example" {
   solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.example.location}"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.example.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.example.name}"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  workspace_resource_id = azurerm_log_analytics_workspace.example.id
+  workspace_name        = azurerm_log_analytics_workspace.example.name
 
   plan {
     publisher = "Microsoft"
@@ -73,6 +73,15 @@ A `plan` block includes:
 * `product` - (Required) The product name of the solution. For example `OMSGallery/Containers`. Changing this forces a new resource to be created.
 
 * `promotion_code` - (Optional) A promotion code to be used with the solution.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Solution.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Solution.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Solution.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Solution.
 
 ## Import
 

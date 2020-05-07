@@ -22,23 +22,23 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_recovery_services_vault" "vault" {
   name                = "example-recovery-vault"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
   sku                 = "Standard"
 }
 
 resource "azurerm_storage_account" "sa" {
   name                     = "examplesa"
-  location                 = "${azurerm_resource_group.rg.location}"
-  resource_group_name      = "${azurerm_resource_group.rg.name}"
+  location                 = azurerm_resource_group.rg.location
+  resource_group_name      = azurerm_resource_group.rg.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_backup_container_storage_account" "container" {
-  resource_group_name = "${azurerm_resource_group.rg.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
-  storage_account_id  = "${azurerm_storage_account.sa.id}"
+  resource_group_name = azurerm_resource_group.rg.name
+  recovery_vault_name = azurerm_recovery_services_vault.vault.name
+  storage_account_id  = azurerm_storage_account.sa.id
 }
 ```
 
@@ -58,11 +58,20 @@ The following arguments are supported:
 
 In addition to the arguments above, the following attributes are exported:
 
-* `id` - The resource ID.
+* `id` - The ID of the Backup Storage Account Container.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Backup Storage Account Container.
+* `update` - (Defaults to 30 minutes) Used when updating the Backup Storage Account Container.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Backup Storage Account Container.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Backup Storage Account Container.
 
 ## Import
 
-Azure Backup Storage Account Containers can be imported using the `resource id`, e.g.
+Backup Storage Account Containers can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_backup_container_storage_account.mycontainer "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/backupFabrics/Azure/protectionContainers/StorageContainer;storage;storage-rg-name;storage-account"

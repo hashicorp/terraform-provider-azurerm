@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -48,10 +49,8 @@ func resourceArmServiceBusTopic() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
+				ValidateFunc: azValidate.ServiceBusNamespaceName,
 			},
-
-			"location": azure.SchemaLocationDeprecated(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -118,13 +117,6 @@ func resourceArmServiceBusTopic() *schema.Resource {
 			"support_ordering": {
 				Type:     schema.TypeBool,
 				Optional: true,
-			},
-
-			// TODO: remove in the next major version
-			"enable_filtering_messages_before_publishing": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "This field has been removed by Azure",
 			},
 		},
 	}

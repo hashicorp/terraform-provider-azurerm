@@ -20,8 +20,8 @@ data "azurerm_cosmosdb_account" "example" {
 
 resource "azurerm_cosmosdb_mongo_database" "example" {
   name                = "tfex-cosmos-mongo-db"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
   throughput          = 400
 }
 ```
@@ -43,7 +43,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - the Cosmos DB Mongo Database ID.
+* `id` - The ID of the Cosmos DB Mongo Database.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Mongo Database.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Mongo Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Mongo Database.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Mongo Database.
 
 ## Import
 

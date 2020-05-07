@@ -22,9 +22,9 @@ data "azurerm_api_management_api" "example" {
 
 resource "azurerm_api_management_api_operation" "example" {
   operation_id        = "user-delete"
-  api_name            = "${data.azurerm_api_management_api.example.name}"
-  api_management_name = "${data.azurerm_api_management_api.example.api_management_name}"
-  resource_group_name = "${data.azurerm_api_management_api.example.resource_group_name}"
+  api_name            = data.azurerm_api_management_api.example.name
+  api_management_name = data.azurerm_api_management_api.example.api_management_name
+  resource_group_name = data.azurerm_api_management_api.example.resource_group_name
   display_name        = "Delete User Operation"
   method              = "DELETE"
   url_template        = "/users/{id}/delete"
@@ -180,6 +180,15 @@ A `template_parameter` block supports the following:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the API Management API Operation.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the API Management API Operation.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Operation.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Operation.
 
 ## Import
 

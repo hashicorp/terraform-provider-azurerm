@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 )
 
-func WaitForReplication(f func() (interface{}, error)) (interface{}, error) {
+func WaitForCreationReplication(f func() (interface{}, error)) (interface{}, error) {
 	return (&resource.StateChangeConf{
 		Pending:                   []string{"404", "BadCast"},
 		Target:                    []string{"Found"},

@@ -35,7 +35,8 @@ func NewTopicTypesClient(subscriptionID string) TopicTypesClient {
 	return NewTopicTypesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTopicTypesClientWithBaseURI creates an instance of the TopicTypesClient client.
+// NewTopicTypesClientWithBaseURI creates an instance of the TopicTypesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTopicTypesClientWithBaseURI(baseURI string, subscriptionID string) TopicTypesClient {
 	return TopicTypesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -97,8 +98,7 @@ func (client TopicTypesClient) GetPreparer(ctx context.Context, topicTypeName st
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicTypesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -165,8 +165,7 @@ func (client TopicTypesClient) ListPreparer(ctx context.Context) (*http.Request,
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicTypesClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -239,8 +238,7 @@ func (client TopicTypesClient) ListEventTypesPreparer(ctx context.Context, topic
 // ListEventTypesSender sends the ListEventTypes request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicTypesClient) ListEventTypesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListEventTypesResponder handles the response to the ListEventTypes request. The method always

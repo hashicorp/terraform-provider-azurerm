@@ -20,13 +20,13 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_logic_app_workflow" "example" {
   name                = "workflow1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_logic_app_action_http" "example" {
   name         = "webhook"
-  logic_app_id = "${azurerm_logic_app_workflow.example.id}"
+  logic_app_id = azurerm_logic_app_workflow.example.id
   method       = "GET"
   uri          = "http://example.com/some-webhook"
 }
@@ -55,6 +55,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the HTTP Action within the Logic App Workflow.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Logic App HTTP Action.
+* `update` - (Defaults to 30 minutes) Used when updating the Logic App HTTP Action.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Logic App HTTP Action.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Logic App HTTP Action.
 
 ## Import
 

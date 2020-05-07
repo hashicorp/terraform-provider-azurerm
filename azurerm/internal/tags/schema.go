@@ -21,9 +21,11 @@ func ForceNewSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeMap,
 		Optional:     true,
-		Computed:     true,
 		ForceNew:     true,
 		ValidateFunc: Validate,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }
 
@@ -32,7 +34,21 @@ func Schema() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeMap,
 		Optional:     true,
-		Computed:     true,
 		ValidateFunc: Validate,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+	}
+}
+
+// Schema returns the Schema used for Tags
+func SchemaEnforceLowerCaseKeys() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeMap,
+		Optional:     true,
+		ValidateFunc: EnforceLowerCaseKeys,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }

@@ -29,8 +29,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_redis_cache" "example" {
   name                = "redis${random_id.server.hex}"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -46,8 +46,8 @@ resource "azurerm_redis_cache" "example" {
 
 resource "azurerm_redis_firewall_rule" "example" {
   name                = "someIPrange"
-  redis_cache_name    = "${azurerm_redis_cache.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  redis_cache_name    = azurerm_redis_cache.example.name
+  resource_group_name = azurerm_resource_group.example.name
   start_ip            = "1.2.3.4"
   end_ip              = "2.3.4.5"
 }
@@ -72,7 +72,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Redis Firewall Rule ID.
+* `id` - The ID of the Redis Firewall Rule.
+
+## Timeouts
+
+ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+ * `create` - (Defaults to 30 minutes) Used when creating the Redis Firewall Rule.
+ * `update` - (Defaults to 30 minutes) Used when updating the Redis Firewall Rule.
+ * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Firewall Rule.
+ * `delete` - (Defaults to 30 minutes) Used when deleting the Redis Firewall Rule.
 
 ## Import
 

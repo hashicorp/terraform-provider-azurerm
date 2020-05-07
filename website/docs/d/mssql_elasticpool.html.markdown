@@ -20,19 +20,21 @@ data "azurerm_mssql_elasticpool" "example" {
 }
 
 output "elasticpool_id" {
-  value = "${data.azurerm_mssql_elasticpool.example.id}"
+  value = data.azurerm_mssql_elasticpool.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the elastic pool.
+* `name` - The name of the elastic pool.
 
-* `resource_group_name` - (Required) The name of the resource group which contains the elastic pool.
+* `resource_group_name` - The name of the resource group which contains the elastic pool.
 
-* `server_name` - (Required) The name of the SQL Server which contains the elastic pool.
+* `server_name` - The name of the SQL Server which contains the elastic pool.
 
 ## Attributes Reference
+
+* `license_type` - The license type to apply for this database.
 
 * `location` - Specifies the supported Azure location where the resource exists.
 
@@ -47,3 +49,9 @@ output "elasticpool_id" {
 * `tags` - A mapping of tags to assign to the resource.
 
 * `zone_redundant` - Whether or not this elastic pool is zone redundant.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the SQL elastic pool.

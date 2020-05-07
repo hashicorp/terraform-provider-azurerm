@@ -28,22 +28,18 @@ matrix:
     - go: tip
   include:
     - name: "make lintrest"
-      script: GOGC=5 make lintrest
-    # results in a OOM error
-    #- name: "make lintunused"
-    #  script: GOGC=5 make lintunused
+      script:
+      - TRAVIS=ci GOGC=5 make lintrest
+      # results in a OOM error
+      #- name: "make lintunused"
+      #  script: GOGC=5 make lintunused
     - name: "make tflint"
-      script: make tflint
+      script: TRAVIS=ci make tflint
     - name: "make test"
-      script: make test
+      script: TRAVIS=ci make test
     - name: "make depscheck"
       script: make depscheck
     - name: "make website-lint"
-      script:
-      - curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.18/terraform_0.12.18_linux_amd64.zip
-      - unzip /tmp/terraform.zip -d /tmp
-      - mv /tmp/terraform ~/bin
-      - export PATH="~/bin:$PATH"
-      - make website-lint
+      script: make website-lint
     - name: "make website-test"
       script: make website-test

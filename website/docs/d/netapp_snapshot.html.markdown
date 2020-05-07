@@ -22,7 +22,7 @@ data "azurerm_netapp_snapshot" "test" {
 }
 
 output "netapp_snapshot_id" {
-  value = "${data.azurerm_netapp_snapshot.example.id}"
+  value = data.azurerm_netapp_snapshot.example.id
 }
 ```
 
@@ -30,18 +30,24 @@ output "netapp_snapshot_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the NetApp Snapshot.
+* `name` - The name of the NetApp Snapshot.
 
-* `account_name` - (Required) The name of the NetApp Account where the NetApp Pool exists.
+* `account_name` - The name of the NetApp Account where the NetApp Pool exists.
 
-* `pool_name` - (Required) The name of the NetApp Pool where the NetApp Volume exists.
+* `pool_name` - The name of the NetApp Pool where the NetApp Volume exists.
 
-* `volume_name` - (Required) The name of the NetApp Volume where the NetApp Snapshot exists.
+* `volume_name` - The name of the NetApp Volume where the NetApp Snapshot exists.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the NetApp Snapshot exists.
+* `resource_group_name` - The Name of the Resource Group where the NetApp Snapshot exists.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Snapshot exists.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Snapshot.

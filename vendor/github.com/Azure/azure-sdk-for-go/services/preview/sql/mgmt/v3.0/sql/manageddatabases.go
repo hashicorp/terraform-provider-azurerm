@@ -38,7 +38,9 @@ func NewManagedDatabasesClient(subscriptionID string) ManagedDatabasesClient {
 	return NewManagedDatabasesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewManagedDatabasesClientWithBaseURI creates an instance of the ManagedDatabasesClient client.
+// NewManagedDatabasesClientWithBaseURI creates an instance of the ManagedDatabasesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewManagedDatabasesClientWithBaseURI(baseURI string, subscriptionID string) ManagedDatabasesClient {
 	return ManagedDatabasesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -91,7 +93,7 @@ func (client ManagedDatabasesClient) CompleteRestorePreparer(ctx context.Context
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -109,9 +111,8 @@ func (client ManagedDatabasesClient) CompleteRestorePreparer(ctx context.Context
 // CompleteRestoreSender sends the CompleteRestore request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) CompleteRestoreSender(req *http.Request) (future ManagedDatabasesCompleteRestoreFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -173,7 +174,7 @@ func (client ManagedDatabasesClient) CreateOrUpdatePreparer(ctx context.Context,
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -191,9 +192,8 @@ func (client ManagedDatabasesClient) CreateOrUpdatePreparer(ctx context.Context,
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) CreateOrUpdateSender(req *http.Request) (future ManagedDatabasesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -255,7 +255,7 @@ func (client ManagedDatabasesClient) DeletePreparer(ctx context.Context, resourc
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -271,9 +271,8 @@ func (client ManagedDatabasesClient) DeletePreparer(ctx context.Context, resourc
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) DeleteSender(req *http.Request) (future ManagedDatabasesDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -340,7 +339,7 @@ func (client ManagedDatabasesClient) GetPreparer(ctx context.Context, resourceGr
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -356,8 +355,7 @@ func (client ManagedDatabasesClient) GetPreparer(ctx context.Context, resourceGr
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -419,7 +417,7 @@ func (client ManagedDatabasesClient) ListByInstancePreparer(ctx context.Context,
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -435,8 +433,7 @@ func (client ManagedDatabasesClient) ListByInstancePreparer(ctx context.Context,
 // ListByInstanceSender sends the ListByInstance request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) ListByInstanceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByInstanceResponder handles the response to the ListByInstance request. The method always
@@ -489,6 +486,121 @@ func (client ManagedDatabasesClient) ListByInstanceComplete(ctx context.Context,
 	return
 }
 
+// ListInaccessibleByInstance gets a list of inaccessible managed databases in a managed instance
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// managedInstanceName - the name of the managed instance.
+func (client ManagedDatabasesClient) ListInaccessibleByInstance(ctx context.Context, resourceGroupName string, managedInstanceName string) (result ManagedDatabaseListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedDatabasesClient.ListInaccessibleByInstance")
+		defer func() {
+			sc := -1
+			if result.mdlr.Response.Response != nil {
+				sc = result.mdlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listInaccessibleByInstanceNextResults
+	req, err := client.ListInaccessibleByInstancePreparer(ctx, resourceGroupName, managedInstanceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "ListInaccessibleByInstance", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListInaccessibleByInstanceSender(req)
+	if err != nil {
+		result.mdlr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "ListInaccessibleByInstance", resp, "Failure sending request")
+		return
+	}
+
+	result.mdlr, err = client.ListInaccessibleByInstanceResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "ListInaccessibleByInstance", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListInaccessibleByInstancePreparer prepares the ListInaccessibleByInstance request.
+func (client ManagedDatabasesClient) ListInaccessibleByInstancePreparer(ctx context.Context, resourceGroupName string, managedInstanceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"managedInstanceName": autorest.Encode("path", managedInstanceName),
+		"resourceGroupName":   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/managedInstances/{managedInstanceName}/inaccessibleManagedDatabases", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListInaccessibleByInstanceSender sends the ListInaccessibleByInstance request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagedDatabasesClient) ListInaccessibleByInstanceSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListInaccessibleByInstanceResponder handles the response to the ListInaccessibleByInstance request. The method always
+// closes the http.Response Body.
+func (client ManagedDatabasesClient) ListInaccessibleByInstanceResponder(resp *http.Response) (result ManagedDatabaseListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listInaccessibleByInstanceNextResults retrieves the next set of results, if any.
+func (client ManagedDatabasesClient) listInaccessibleByInstanceNextResults(ctx context.Context, lastResults ManagedDatabaseListResult) (result ManagedDatabaseListResult, err error) {
+	req, err := lastResults.managedDatabaseListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "listInaccessibleByInstanceNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListInaccessibleByInstanceSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "listInaccessibleByInstanceNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListInaccessibleByInstanceResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedDatabasesClient", "listInaccessibleByInstanceNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListInaccessibleByInstanceComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ManagedDatabasesClient) ListInaccessibleByInstanceComplete(ctx context.Context, resourceGroupName string, managedInstanceName string) (result ManagedDatabaseListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedDatabasesClient.ListInaccessibleByInstance")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListInaccessibleByInstance(ctx, resourceGroupName, managedInstanceName)
+	return
+}
+
 // Update updates an existing database.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
@@ -531,7 +643,7 @@ func (client ManagedDatabasesClient) UpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -549,9 +661,8 @@ func (client ManagedDatabasesClient) UpdatePreparer(ctx context.Context, resourc
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedDatabasesClient) UpdateSender(req *http.Request) (future ManagedDatabasesUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

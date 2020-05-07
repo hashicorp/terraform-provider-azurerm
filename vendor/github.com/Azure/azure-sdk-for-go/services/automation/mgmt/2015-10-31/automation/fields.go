@@ -36,7 +36,8 @@ func NewFieldsClient(subscriptionID string) FieldsClient {
 	return NewFieldsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFieldsClientWithBaseURI creates an instance of the FieldsClient client.
+// NewFieldsClientWithBaseURI creates an instance of the FieldsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewFieldsClientWithBaseURI(baseURI string, subscriptionID string) FieldsClient {
 	return FieldsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -113,8 +114,7 @@ func (client FieldsClient) ListByTypePreparer(ctx context.Context, resourceGroup
 // ListByTypeSender sends the ListByType request. The method will close the
 // http.Response Body if it receives an error.
 func (client FieldsClient) ListByTypeSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByTypeResponder handles the response to the ListByType request. The method always

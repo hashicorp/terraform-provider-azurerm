@@ -10,6 +10,7 @@ type Client struct {
 	APIKeysClient        *insights.APIKeysClient
 	ComponentsClient     *insights.ComponentsClient
 	WebTestsClient       *insights.WebTestsClient
+	BillingClient        *insights.ComponentCurrentBillingFeaturesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -25,10 +26,14 @@ func NewClient(o *common.ClientOptions) *Client {
 	webTestsClient := insights.NewWebTestsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&webTestsClient.Client, o.ResourceManagerAuthorizer)
 
+	billingClient := insights.NewComponentCurrentBillingFeaturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&billingClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AnalyticsItemsClient: &analyticsItemsClient,
 		APIKeysClient:        &apiKeysClient,
 		ComponentsClient:     &componentsClient,
 		WebTestsClient:       &webTestsClient,
+		BillingClient:        &billingClient,
 	}
 }

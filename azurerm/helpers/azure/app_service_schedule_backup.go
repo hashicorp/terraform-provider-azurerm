@@ -9,9 +9,8 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func SchemaAppServiceBackup() *schema.Schema {
@@ -24,14 +23,14 @@ func SchemaAppServiceBackup() *schema.Schema {
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
 				"storage_account_url": {
 					Type:         schema.TypeString,
 					Required:     true,
 					Sensitive:    true,
-					ValidateFunc: validate.URLIsHTTPS,
+					ValidateFunc: validation.IsURLWithHTTPS,
 				},
 
 				"enabled": {
@@ -78,7 +77,7 @@ func SchemaAppServiceBackup() *schema.Schema {
 								Type:             schema.TypeString,
 								Optional:         true,
 								DiffSuppressFunc: suppress.RFC3339Time,
-								ValidateFunc:     validate.RFC3339Time,
+								ValidateFunc:     validation.IsRFC3339Time,
 							},
 						},
 					},
@@ -129,7 +128,7 @@ func ExpandAppServiceBackup(input []interface{}) *web.BackupRequest {
 		}
 
 		if v, ok := schedule["start_time"].(string); ok {
-			dateTimeToStart, _ := time.Parse(time.RFC3339, v) //validated by schema
+			dateTimeToStart, _ := time.Parse(time.RFC3339, v) // validated by schema
 			backupSchedule.StartTime = &date.Time{Time: dateTimeToStart}
 		}
 

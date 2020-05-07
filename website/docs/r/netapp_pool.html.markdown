@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `4` and `500`.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 ## Attributes Reference
@@ -57,6 +59,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the NetApp Pool.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the NetApp Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the NetApp Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Pool.
 
 ## Import
 

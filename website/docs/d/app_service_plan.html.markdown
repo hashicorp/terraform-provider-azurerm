@@ -19,14 +19,14 @@ data "azurerm_app_service_plan" "example" {
 }
 
 output "app_service_plan_id" {
-  value = "${data.azurerm_app_service_plan.example.id}"
+  value = data.azurerm_app_service_plan.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the App Service Plan.
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service Plan exists.
+* `name` - The name of the App Service Plan.
+* `resource_group_name` - The Name of the Resource Group where the App Service Plan exists.
 
 ## Attributes Reference
 
@@ -38,7 +38,13 @@ output "app_service_plan_id" {
 
 * `sku` - A `sku` block as documented below.
 
-* `properties` - A `properties` block as documented below.
+* `app_service_environment_id` - The ID of the App Service Environment where the App Service Plan is located.
+
+* `maximum_number_of_workers` - Maximum number of instances that can be assigned to this App Service plan.
+
+* `reserved` - Is this App Service Plan `Reserved`?
+
+* `per_site_scaling` - Can Apps assigned to this App Service Plan be scaled independently?
 
 * `tags` - A mapping of tags assigned to the resource.
 
@@ -58,13 +64,8 @@ A `sku` block supports the following:
 
 * `capacity` - Specifies the number of workers associated with this App Service Plan.
 
+## Timeouts
 
-A `properties` block supports the following:
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `app_service_environment_id` - The ID of the App Service Environment where the App Service Plan is located.
-
-* `maximum_number_of_workers` - Maximum number of instances that can be assigned to this App Service plan.
-
-* `reserved` - Is this App Service Plan `Reserved`?
-
-* `per_site_scaling` - Can Apps assigned to this App Service Plan be scaled independently?
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Plan.

@@ -26,7 +26,9 @@ import (
 	"net/http"
 )
 
-// VirtualNetworkRulesClient is the mariaDB Client
+// VirtualNetworkRulesClient is the the Microsoft Azure management API provides create, read, update, and delete
+// functionality for Azure MariaDB resources including servers, databases, firewall rules, VNET rules, log files and
+// configurations with new business model.
 type VirtualNetworkRulesClient struct {
 	BaseClient
 }
@@ -36,15 +38,16 @@ func NewVirtualNetworkRulesClient(subscriptionID string) VirtualNetworkRulesClie
 	return NewVirtualNetworkRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVirtualNetworkRulesClientWithBaseURI creates an instance of the VirtualNetworkRulesClient client.
+// NewVirtualNetworkRulesClientWithBaseURI creates an instance of the VirtualNetworkRulesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewVirtualNetworkRulesClientWithBaseURI(baseURI string, subscriptionID string) VirtualNetworkRulesClient {
 	return VirtualNetworkRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate creates or updates an existing virtual network rule.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 // virtualNetworkRuleName - the name of the virtual network rule.
 // parameters - the requested virtual Network Rule Resource state.
@@ -60,6 +63,12 @@ func (client VirtualNetworkRulesClient) CreateOrUpdate(ctx context.Context, reso
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.VirtualNetworkRuleProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.VirtualNetworkRuleProperties.VirtualNetworkSubnetID", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
@@ -108,9 +117,8 @@ func (client VirtualNetworkRulesClient) CreateOrUpdatePreparer(ctx context.Conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualNetworkRulesClient) CreateOrUpdateSender(req *http.Request) (future VirtualNetworkRulesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -133,8 +141,7 @@ func (client VirtualNetworkRulesClient) CreateOrUpdateResponder(resp *http.Respo
 
 // Delete deletes the virtual network rule with the given name.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 // virtualNetworkRuleName - the name of the virtual network rule.
 func (client VirtualNetworkRulesClient) Delete(ctx context.Context, resourceGroupName string, serverName string, virtualNetworkRuleName string) (result VirtualNetworkRulesDeleteFuture, err error) {
@@ -148,6 +155,16 @@ func (client VirtualNetworkRulesClient) Delete(ctx context.Context, resourceGrou
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.VirtualNetworkRulesClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, serverName, virtualNetworkRuleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.VirtualNetworkRulesClient", "Delete", nil, "Failure preparing request")
@@ -188,9 +205,8 @@ func (client VirtualNetworkRulesClient) DeletePreparer(ctx context.Context, reso
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualNetworkRulesClient) DeleteSender(req *http.Request) (future VirtualNetworkRulesDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -212,8 +228,7 @@ func (client VirtualNetworkRulesClient) DeleteResponder(resp *http.Response) (re
 
 // Get gets a virtual network rule.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 // virtualNetworkRuleName - the name of the virtual network rule.
 func (client VirtualNetworkRulesClient) Get(ctx context.Context, resourceGroupName string, serverName string, virtualNetworkRuleName string) (result VirtualNetworkRule, err error) {
@@ -227,6 +242,16 @@ func (client VirtualNetworkRulesClient) Get(ctx context.Context, resourceGroupNa
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.VirtualNetworkRulesClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName, virtualNetworkRuleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mariadb.VirtualNetworkRulesClient", "Get", nil, "Failure preparing request")
@@ -273,8 +298,7 @@ func (client VirtualNetworkRulesClient) GetPreparer(ctx context.Context, resourc
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualNetworkRulesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -292,8 +316,7 @@ func (client VirtualNetworkRulesClient) GetResponder(resp *http.Response) (resul
 
 // ListByServer gets a list of virtual network rules in a server.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 func (client VirtualNetworkRulesClient) ListByServer(ctx context.Context, resourceGroupName string, serverName string) (result VirtualNetworkRuleListResultPage, err error) {
 	if tracing.IsEnabled() {
@@ -306,6 +329,16 @@ func (client VirtualNetworkRulesClient) ListByServer(ctx context.Context, resour
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mariadb.VirtualNetworkRulesClient", "ListByServer", err.Error())
+	}
+
 	result.fn = client.listByServerNextResults
 	req, err := client.ListByServerPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
@@ -352,8 +385,7 @@ func (client VirtualNetworkRulesClient) ListByServerPreparer(ctx context.Context
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client VirtualNetworkRulesClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always

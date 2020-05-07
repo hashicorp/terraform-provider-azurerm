@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -69,11 +68,6 @@ func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
 		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
@@ -231,6 +225,10 @@ func testCheckAzureRMAppServiceCertificateOrderExists(resourceName string) resou
 
 func testAccAzureRMAppServiceCertificateOrder_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -239,7 +237,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "acctestASCO-%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=example.com"
   product_type        = "Standard"
 }
@@ -248,6 +246,10 @@ resource "azurerm_app_service_certificate_order" "test" {
 
 func testAccAzureRMAppServiceCertificateOrder_wildcard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -256,7 +258,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "acctestASCO-%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=*.example.com"
   product_type        = "WildCard"
 }
@@ -269,17 +271,21 @@ func testAccAzureRMAppServiceCertificateOrder_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_app_service_certificate_order" "import" {
-  name                = "${azurerm_app_service_certificate_order.test.name}"
-  location            = "${azurerm_app_service_certificate_order.test.location}"
-  resource_group_name = "${azurerm_app_service_certificate_order.test.resource_group_name}"
-  distinguished_name  = "${azurerm_app_service_certificate_order.test.distinguished_name}"
-  product_type        = "${azurerm_app_service_certificate_order.test.product_type}"
+  name                = azurerm_app_service_certificate_order.test.name
+  location            = azurerm_app_service_certificate_order.test.location
+  resource_group_name = azurerm_app_service_certificate_order.test.resource_group_name
+  distinguished_name  = azurerm_app_service_certificate_order.test.distinguished_name
+  product_type        = azurerm_app_service_certificate_order.test.product_type
 }
 `, template)
 }
 
 func testAccAzureRMAppServiceCertificateOrder_complete(data acceptance.TestData, keySize int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -288,7 +294,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_app_service_certificate_order" "test" {
   name                = "acctestASCO-%d"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=example.com"
   product_type        = "Standard"
   auto_renew          = false

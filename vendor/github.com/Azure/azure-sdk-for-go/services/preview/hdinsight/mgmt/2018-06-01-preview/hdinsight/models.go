@@ -702,6 +702,8 @@ type ClusterCreateProperties struct {
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// DiskEncryptionProperties - The disk encryption properties.
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
+	// MinSupportedTLSVersion - The minimal supported tls version.
+	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
 }
 
 // ClusterDefinition the cluster definition.
@@ -774,6 +776,8 @@ type ClusterGetProperties struct {
 	ConnectivityEndpoints *[]ConnectivityEndpoint `json:"connectivityEndpoints,omitempty"`
 	// DiskEncryptionProperties - The disk encryption properties.
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
+	// MinSupportedTLSVersion - The minimal supported tls version.
+	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
 }
 
 // ClusterIdentity identity for the cluster.

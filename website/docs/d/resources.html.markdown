@@ -50,7 +50,7 @@ resource "azurerm_virtual_network_peering" "spoke_peers" {
 
 ## Argument Reference
 
-~> **NOTE:** At least one of `name`, `resource_group_name` or `type` must be specified.
+~> **Note:** At least one of `name`, `resource_group_name` or `type` must be specified.
 
 * `name` - (Optional) The name of the Resource.
 
@@ -77,3 +77,9 @@ The `resource` block exports the following:
 * `location` - The Azure Region in which this Resource exists.
 
 * `tags` - A map of tags assigned to this Resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Resources.

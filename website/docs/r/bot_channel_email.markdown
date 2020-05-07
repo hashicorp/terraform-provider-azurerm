@@ -6,7 +6,7 @@ description: |-
   Manages a Email integration for a Bot Channel
 ---
 
-# azurerm_bot_connection
+# azurerm_bot_channel_email
 
 Manages a Email integration for a Bot Channel
 
@@ -27,7 +27,7 @@ resource "azurerm_bot_channels_registration" "example" {
   location            = "global"
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "F0"
-  microsoft_app_id    = "${data.azurerm_client_config.current.service_principal_application_id}"
+  microsoft_app_id    = "${data.azurerm_client_config.current.client_id}"
 }
 
 resource "azurerm_bot_channel_Email" "example" {
@@ -59,11 +59,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Bot Channel ID.
+* `id` - The ID of the Email Integration for a Bot Channel.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Email Integration for a Bot Channel.
+* `update` - (Defaults to 30 minutes) Used when updating the Email Integration for a Bot Channel.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Email Integration for a Bot Channel.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Email Integration for a Bot Channel.
 
 ## Import
 
-The Email Channel for a Bot can be imported using the `resource id`, e.g.
+The Email Integration for a Bot Channel can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_bot_channel_email.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.BotService/botServices/example/channels/EmailChannel

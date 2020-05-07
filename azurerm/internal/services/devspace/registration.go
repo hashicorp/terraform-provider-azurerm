@@ -4,11 +4,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+// TODO: this can be moved into Container
+
 type Registration struct{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
 	return "DevSpaces"
+}
+
+// WebsiteCategories returns a list of categories which can be used for the sidebar
+func (r Registration) WebsiteCategories() []string {
+	return []string{
+		"DevSpace",
+	}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service

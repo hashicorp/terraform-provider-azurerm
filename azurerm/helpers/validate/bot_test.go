@@ -32,7 +32,7 @@ func TestValidateBotMSTeamsCallingWebHook(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.webhook, func(t *testing.T) {
-			_, err := ValidateBotMSTeamsCallingWebHook()(tt.webhook, "")
+			_, err := BotMSTeamsCallingWebHook()(tt.webhook, "")
 			valid := err == nil
 			if valid != tt.valid {
 				t.Errorf("Expected valid status %t but got %t for input %s", tt.valid, valid, tt.webhook)

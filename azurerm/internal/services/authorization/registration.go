@@ -11,12 +11,18 @@ func (r Registration) Name() string {
 	return "Authorization"
 }
 
+// WebsiteCategories returns a list of categories which can be used for the sidebar
+func (r Registration) WebsiteCategories() []string {
+	return []string{
+		"Authorization",
+	}
+}
+
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_builtin_role_definition": dataSourceArmBuiltInRoleDefinition(),
-		"azurerm_client_config":           dataSourceArmClientConfig(),
-		"azurerm_role_definition":         dataSourceArmRoleDefinition(),
+		"azurerm_client_config":   dataSourceArmClientConfig(),
+		"azurerm_role_definition": dataSourceArmRoleDefinition(),
 	}
 }
 

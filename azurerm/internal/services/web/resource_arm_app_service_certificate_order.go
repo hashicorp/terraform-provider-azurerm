@@ -5,13 +5,12 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -43,7 +42,7 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -210,12 +209,12 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 		ValidityInYears:   utils.Int32(int32(validityInYears)),
 	}
 
-	productType := d.Get("product_type").(string)
-	if productType == "Standard" {
+	switch d.Get("product_type").(string) {
+	case "Standard":
 		properties.ProductType = web.StandardDomainValidatedSsl
-	} else if productType == "WildCard" {
+	case "WildCard":
 		properties.ProductType = web.StandardDomainValidatedWildCardSsl
-	} else {
+	default:
 		return fmt.Errorf("Error setting `product_type` for App Service Certificate Order %q (Resource Group %q), either `Standard` or `WildCard`.", name, resourceGroup)
 	}
 
@@ -258,22 +257,19 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Certificate Order %q (resource group %q) was not found - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] App Service Certificate Order %q (resource group %q) was not found - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on AzureRM App Service Certificate Order %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on AzureRM App Service Certificate Order %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -327,15 +323,12 @@ func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta in
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Name
+	log.Printf("[DEBUG] Deleting App Service Certificate Order %q (Resource Group %q)", id.Name, id.ResourceGroup)
 
-	log.Printf("[DEBUG] Deleting App Service Certificate Order %q (Resource Group %q)", name, resourceGroup)
-
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("Error deleting App Service Certificate Order %q (Resource Group %q): %s)", name, resourceGroup, err)
+			return fmt.Errorf("Error deleting App Service Certificate Order %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
 		}
 	}
 

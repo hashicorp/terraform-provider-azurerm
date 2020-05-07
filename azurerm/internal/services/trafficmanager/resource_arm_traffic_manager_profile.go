@@ -1,14 +1,13 @@
 package trafficmanager
 
 import (
-	"bytes"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -40,9 +39,10 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
@@ -72,8 +72,9 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 			},
 
 			"dns_config": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"relative_name": {
@@ -88,20 +89,41 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMTrafficManagerDNSConfigHash,
-			},
-
-			// inlined from dns_config for ease of use
-			"fqdn": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"monitor_config": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"expected_status_code_ranges": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validateTrafficManagerProfileStatusCodeRange,
+							},
+						},
+
+						"custom_header": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"value": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+								},
+							},
+						},
+
 						"protocol": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -112,27 +134,32 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+
 						"port": {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 65535),
 						},
+
 						"path": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+
 						"interval_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntInSlice([]int{10, 30}),
 							Default:      30,
 						},
+
 						"timeout_in_seconds": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							ValidateFunc: validation.IntBetween(5, 10),
 							Default:      10,
 						},
+
 						"tolerated_number_of_failures": {
 							Type:         schema.TypeInt,
 							Optional:     true,
@@ -141,7 +168,11 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceAzureRMTrafficManagerMonitorConfigHash,
+			},
+
+			"fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -157,16 +188,13 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 	log.Printf("[INFO] preparing arguments for TrafficManager Profile creation.")
 
 	name := d.Get("name").(string)
-	// must be provided in request
-	location := "global"
-	resGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing TrafficManager profile %s (resource group %s) ID", name, resGroup)
+				return fmt.Errorf("Error checking for presence of existing TrafficManager profile %s (resource group %s) ID", name, resourceGroup)
 			}
 		}
 
@@ -175,29 +203,36 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	props, err := getArmTrafficManagerProfileProperties(d)
-	if err != nil {
-		// There isn't any additional messaging needed for this error
-		return err
-	}
-
 	profile := trafficmanager.Profile{
-		Name:              &name,
-		Location:          &location,
-		ProfileProperties: props,
-		Tags:              tags.Expand(t),
+		Name:     &name,
+		Location: utils.String("global"), // must be provided in request
+		ProfileProperties: &trafficmanager.ProfileProperties{
+			TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string)),
+			DNSConfig:            expandArmTrafficManagerDNSConfig(d),
+			MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, profile); err != nil {
+	if status, ok := d.GetOk("profile_status"); ok {
+		profile.ProfileStatus = trafficmanager.ProfileStatus(status.(string))
+	}
+
+	if *profile.ProfileProperties.MonitorConfig.IntervalInSeconds == int64(10) &&
+		*profile.ProfileProperties.MonitorConfig.TimeoutInSeconds == int64(10) {
+		return fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, profile); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error reading TrafficManager profile %s (resource group %s): %v", name, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read TrafficManager profile %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read TrafficManager profile %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -214,10 +249,10 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -226,23 +261,21 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error making Read request on Traffic Manager Profile %s: %+v", name, err)
 	}
 
-	profile := *resp.ProfileProperties
-
-	// update appropriate values
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	d.Set("name", resp.Name)
-	d.Set("profile_status", profile.ProfileStatus)
-	d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
 
-	dnsFlat := flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig)
-	d.Set("dns_config", schema.NewSet(resourceAzureRMTrafficManagerDNSConfigHash, dnsFlat))
+	if profile := resp.ProfileProperties; profile != nil {
+		d.Set("profile_status", profile.ProfileStatus)
+		d.Set("traffic_routing_method", profile.TrafficRoutingMethod)
 
-	// fqdn is actually inside DNSConfig, inlined for simpler reference
-	d.Set("fqdn", profile.DNSConfig.Fqdn)
+		d.Set("dns_config", flattenAzureRMTrafficManagerProfileDNSConfig(profile.DNSConfig))
+		d.Set("monitor_config", flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig))
 
-	monitorFlat := flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig)
-	d.Set("monitor_config", schema.NewSet(resourceAzureRMTrafficManagerMonitorConfigHash, monitorFlat))
-
+		// fqdn is actually inside DNSConfig, inlined for simpler reference
+		if dns := profile.DNSConfig; dns != nil {
+			d.Set("fqdn", dns.Fqdn)
+		}
+	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -255,10 +288,10 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	resp, err := client.Delete(ctx, resGroup, name)
+	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return err
@@ -268,54 +301,80 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func getArmTrafficManagerProfileProperties(d *schema.ResourceData) (*trafficmanager.ProfileProperties, error) {
-	routingMethod := d.Get("traffic_routing_method").(string)
-
-	montiorConfig, err := expandArmTrafficManagerMonitorConfig(d)
-	if err != nil {
-		return nil, fmt.Errorf("Error expanding `montior_config`: %+v", err)
-	}
-	props := &trafficmanager.ProfileProperties{
-		TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(routingMethod),
-		DNSConfig:            expandArmTrafficManagerDNSConfig(d),
-		MonitorConfig:        montiorConfig,
-	}
-
-	if status, ok := d.GetOk("profile_status"); ok {
-		s := status.(string)
-		props.ProfileStatus = trafficmanager.ProfileStatus(s)
-	}
-
-	return props, nil
-}
-
-func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) (*trafficmanager.MonitorConfig, error) {
-	monitorSets := d.Get("monitor_config").(*schema.Set).List()
+func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanager.MonitorConfig {
+	monitorSets := d.Get("monitor_config").([]interface{})
 	monitor := monitorSets[0].(map[string]interface{})
 
-	proto := monitor["protocol"].(string)
-	port := int64(monitor["port"].(int))
-	path := monitor["path"].(string)
-	interval := int64(monitor["interval_in_seconds"].(int))
-	timeout := int64(monitor["timeout_in_seconds"].(int))
-	tolerated := int64(monitor["tolerated_number_of_failures"].(int))
+	customHeaders := expandArmTrafficManagerCustomHeadersConfig(monitor["custom_header"].([]interface{}))
 
-	if interval == int64(10) && timeout == int64(10) {
-		return nil, fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
+	cfg := trafficmanager.MonitorConfig{
+		Protocol:                  trafficmanager.MonitorProtocol(monitor["protocol"].(string)),
+		CustomHeaders:             customHeaders,
+		Port:                      utils.Int64(int64(monitor["port"].(int))),
+		Path:                      utils.String(monitor["path"].(string)),
+		IntervalInSeconds:         utils.Int64(int64(monitor["interval_in_seconds"].(int))),
+		TimeoutInSeconds:          utils.Int64(int64(monitor["timeout_in_seconds"].(int))),
+		ToleratedNumberOfFailures: utils.Int64(int64(monitor["tolerated_number_of_failures"].(int))),
 	}
 
-	return &trafficmanager.MonitorConfig{
-		Protocol:                  trafficmanager.MonitorProtocol(proto),
-		Port:                      &port,
-		Path:                      &path,
-		IntervalInSeconds:         &interval,
-		TimeoutInSeconds:          &timeout,
-		ToleratedNumberOfFailures: &tolerated,
-	}, nil
+	if v, ok := monitor["expected_status_code_ranges"].([]interface{}); ok {
+		ranges := make([]trafficmanager.MonitorConfigExpectedStatusCodeRangesItem, 0)
+		for _, r := range v {
+			parts := strings.Split(r.(string), "-")
+			min, _ := strconv.Atoi(parts[0])
+			max, _ := strconv.Atoi(parts[1])
+			ranges = append(ranges, trafficmanager.MonitorConfigExpectedStatusCodeRangesItem{
+				Min: utils.Int32(int32(min)),
+				Max: utils.Int32(int32(max)),
+			})
+		}
+		cfg.ExpectedStatusCodeRanges = &ranges
+	}
+
+	return &cfg
+}
+
+func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]trafficmanager.MonitorConfigCustomHeadersItem {
+	if len(d) == 0 || d[0] == nil {
+		return nil
+	}
+
+	customHeaders := make([]trafficmanager.MonitorConfigCustomHeadersItem, len(d))
+
+	for i, v := range d {
+		ch := v.(map[string]interface{})
+		customHeaders[i] = trafficmanager.MonitorConfigCustomHeadersItem{
+			Name:  utils.String(ch["name"].(string)),
+			Value: utils.String(ch["value"].(string)),
+		}
+	}
+
+	return &customHeaders
+}
+
+func flattenArmTrafficManagerCustomHeadersConfig(input *[]trafficmanager.MonitorConfigCustomHeadersItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	headers := *input
+	if len(headers) == 0 {
+		return result
+	}
+
+	for _, v := range headers {
+		header := make(map[string]string, 2)
+		header["name"] = *v.Name
+		header["value"] = *v.Value
+		result = append(result, header)
+	}
+
+	return result
 }
 
 func expandArmTrafficManagerDNSConfig(d *schema.ResourceData) *trafficmanager.DNSConfig {
-	dnsSets := d.Get("dns_config").(*schema.Set).List()
+	dnsSets := d.Get("dns_config").([]interface{})
 	dns := dnsSets[0].(map[string]interface{})
 
 	name := dns["relative_name"].(string)
@@ -341,6 +400,7 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 
 	result["protocol"] = string(cfg.Protocol)
 	result["port"] = int(*cfg.Port)
+	result["custom_header"] = flattenArmTrafficManagerCustomHeadersConfig(cfg.CustomHeaders)
 
 	if cfg.Path != nil {
 		result["path"] = *cfg.Path
@@ -350,43 +410,45 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 	result["timeout_in_seconds"] = int(*cfg.TimeoutInSeconds)
 	result["tolerated_number_of_failures"] = int(*cfg.ToleratedNumberOfFailures)
 
+	if v := cfg.ExpectedStatusCodeRanges; v != nil {
+		ranges := make([]string, 0)
+		for _, r := range *v {
+			if r.Min == nil || r.Max == nil {
+				continue
+			}
+
+			ranges = append(ranges, fmt.Sprintf("%d-%d", *r.Min, *r.Max))
+		}
+		result["expected_status_code_ranges"] = ranges
+	}
+
 	return []interface{}{result}
 }
 
-func resourceAzureRMTrafficManagerDNSConfigHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["relative_name"].(string)))
-		buf.WriteString(fmt.Sprintf("%d-", m["ttl"].(int)))
+func validateTrafficManagerProfileStatusCodeRange(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return warnings, errors
 	}
 
-	return hashcode.String(buf.String())
-}
-
-func resourceAzureRMTrafficManagerMonitorConfigHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["protocol"].(string))))
-		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-
-		if v, ok := m["path"]; ok && v != "" {
-			buf.WriteString(fmt.Sprintf("%s-", m["path"].(string)))
-		}
-
-		if v, ok := m["interval_in_seconds"]; ok && v != "" {
-			buf.WriteString(fmt.Sprintf("%d-", m["interval_in_seconds"].(int)))
-		}
-
-		if v, ok := m["timeout_in_seconds"]; ok && v != "" {
-			buf.WriteString(fmt.Sprintf("%d-", m["timeout_in_seconds"].(int)))
-		}
-
-		if v, ok := m["tolerated_number_of_failures"]; ok && v != "" {
-			buf.WriteString(fmt.Sprintf("%d-", m["tolerated_number_of_failures"].(int)))
-		}
+	parts := strings.Split(v, "-")
+	if len(parts) != 2 {
+		errors = append(errors, fmt.Errorf("expected %s to contain a single '-', got %v", k, i))
+		return warnings, errors
 	}
 
-	return hashcode.String(buf.String())
+	_, err := strconv.Atoi(parts[0])
+	if err != nil {
+		errors = append(errors, fmt.Errorf("expected %s on the left of - to be an integer, got %v: %v", k, i, err))
+		return warnings, errors
+	}
+
+	_, err = strconv.Atoi(parts[1])
+	if err != nil {
+		errors = append(errors, fmt.Errorf("expected %s on the right of - to be an integer, got %v: %v", k, i, err))
+		return warnings, errors
+	}
+
+	return warnings, errors
 }

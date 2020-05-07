@@ -29,7 +29,7 @@ resource "azurerm_mariadb_server" "example" {
     storage_mb            = 5120
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
-    storage_autogrow      = "Disabled"
+    auto_grow             = "Disabled"
   }
 
   administrator_login          = "mariadbadmin"
@@ -71,11 +71,11 @@ A `storage_profile` block supports the following:
 
 * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 
-* `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`.
+* `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`. Changing this forces a new resource to be created.
+
+-> **NOTE:** Geo Redundant Backups cannot be configured when using the `Basic` tier, and is only allowed during server create.
 
 * `auto_grow` - (Optional) Defines whether autogrow is enabled or disabled for the storage. Valid values are `Enabled` or `Disabled`.
-
--> **NOTE:** Geo Redundant Backups cannot be configured when using the `Basic` tier.
 
 ## Attributes Reference
 
@@ -84,6 +84,15 @@ The following attributes are exported:
 * `id` - The ID of the MariaDB Server.
 
 * `fqdn` - The FQDN of the MariaDB Server.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the MariaDB Server.
+* `update` - (Defaults to 60 minutes) Used when updating the MariaDB Server.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MariaDB Server.
+* `delete` - (Defaults to 60 minutes) Used when deleting the MariaDB Server.
 
 ## Import
 

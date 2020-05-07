@@ -36,7 +36,8 @@ func NewWatchersClient(subscriptionID string) WatchersClient {
 	return NewWatchersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWatchersClientWithBaseURI creates an instance of the WatchersClient client.
+// NewWatchersClientWithBaseURI creates an instance of the WatchersClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWatchersClientWithBaseURI(baseURI string, subscriptionID string) WatchersClient {
 	return WatchersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -107,9 +108,8 @@ func (client WatchersClient) CheckConnectivityPreparer(ctx context.Context, reso
 // CheckConnectivitySender sends the CheckConnectivity request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) CheckConnectivitySender(req *http.Request) (future WatchersCheckConnectivityFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -194,8 +194,7 @@ func (client WatchersClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -265,9 +264,8 @@ func (client WatchersClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) DeleteSender(req *http.Request) (future WatchersDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -347,8 +345,7 @@ func (client WatchersClient) GetPreparer(ctx context.Context, resourceGroupName 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -431,9 +428,8 @@ func (client WatchersClient) GetAzureReachabilityReportPreparer(ctx context.Cont
 // GetAzureReachabilityReportSender sends the GetAzureReachabilityReport request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) GetAzureReachabilityReportSender(req *http.Request) (future WatchersGetAzureReachabilityReportFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -517,9 +513,8 @@ func (client WatchersClient) GetFlowLogStatusPreparer(ctx context.Context, resou
 // GetFlowLogStatusSender sends the GetFlowLogStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) GetFlowLogStatusSender(req *http.Request) (future WatchersGetFlowLogStatusFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -608,9 +603,8 @@ func (client WatchersClient) GetNetworkConfigurationDiagnosticPreparer(ctx conte
 // GetNetworkConfigurationDiagnosticSender sends the GetNetworkConfigurationDiagnostic request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) GetNetworkConfigurationDiagnosticSender(req *http.Request) (future WatchersGetNetworkConfigurationDiagnosticFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -696,9 +690,8 @@ func (client WatchersClient) GetNextHopPreparer(ctx context.Context, resourceGro
 // GetNextHopSender sends the GetNextHop request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) GetNextHopSender(req *http.Request) (future WatchersGetNextHopFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -782,8 +775,7 @@ func (client WatchersClient) GetTopologyPreparer(ctx context.Context, resourceGr
 // GetTopologySender sends the GetTopology request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) GetTopologySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetTopologyResponder handles the response to the GetTopology request. The method always
@@ -866,9 +858,8 @@ func (client WatchersClient) GetTroubleshootingPreparer(ctx context.Context, res
 // GetTroubleshootingSender sends the GetTroubleshooting request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) GetTroubleshootingSender(req *http.Request) (future WatchersGetTroubleshootingFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -952,9 +943,8 @@ func (client WatchersClient) GetTroubleshootingResultPreparer(ctx context.Contex
 // GetTroubleshootingResultSender sends the GetTroubleshootingResult request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) GetTroubleshootingResultSender(req *http.Request) (future WatchersGetTroubleshootingResultFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1038,9 +1028,8 @@ func (client WatchersClient) GetVMSecurityRulesPreparer(ctx context.Context, res
 // GetVMSecurityRulesSender sends the GetVMSecurityRules request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) GetVMSecurityRulesSender(req *http.Request) (future WatchersGetVMSecurityRulesFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1119,8 +1108,7 @@ func (client WatchersClient) ListPreparer(ctx context.Context, resourceGroupName
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -1191,8 +1179,7 @@ func (client WatchersClient) ListAllPreparer(ctx context.Context) (*http.Request
 // ListAllSender sends the ListAll request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) ListAllSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListAllResponder handles the response to the ListAll request. The method always
@@ -1265,9 +1252,8 @@ func (client WatchersClient) ListAvailableProvidersPreparer(ctx context.Context,
 // ListAvailableProvidersSender sends the ListAvailableProviders request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) ListAvailableProvidersSender(req *http.Request) (future WatchersListAvailableProvidersFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1359,9 +1345,8 @@ func (client WatchersClient) SetFlowLogConfigurationPreparer(ctx context.Context
 // SetFlowLogConfigurationSender sends the SetFlowLogConfiguration request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) SetFlowLogConfigurationSender(req *http.Request) (future WatchersSetFlowLogConfigurationFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -1445,8 +1430,7 @@ func (client WatchersClient) UpdateTagsPreparer(ctx context.Context, resourceGro
 // UpdateTagsSender sends the UpdateTags request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) UpdateTagsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateTagsResponder handles the response to the UpdateTags request. The method always
@@ -1529,9 +1513,8 @@ func (client WatchersClient) VerifyIPFlowPreparer(ctx context.Context, resourceG
 // VerifyIPFlowSender sends the VerifyIPFlow request. The method will close the
 // http.Response Body if it receives an error.
 func (client WatchersClient) VerifyIPFlowSender(req *http.Request) (future WatchersVerifyIPFlowFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

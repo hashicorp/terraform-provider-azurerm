@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 
-* `backup` - (Required) Configures the Policy backup frequency and times as documented in the `backup` block below. 
+* `backup` - (Required) Configures the Policy backup frequency and times as documented in the `backup` block below.
 
 * `timezone` - (Optional) Specifies the timezone. Defaults to `UTC`
 
@@ -84,6 +84,15 @@ The `retention_daily` block supports:
 The following attributes are exported:
 
 * `id` - The ID of the Azure File Share Backup Policy.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the File Share Backup Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the File Share Backup Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the File Share Backup Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the File Share Backup Policy.
 
 ## Import
 

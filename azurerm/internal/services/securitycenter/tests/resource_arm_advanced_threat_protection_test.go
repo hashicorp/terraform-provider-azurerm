@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
@@ -86,11 +85,6 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 }
 
 func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "import")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -197,8 +191,8 @@ func testAccAzureRMAdvancedThreatProtection_requiresImport(data acceptance.TestD
 %s
 
 resource "azurerm_advanced_threat_protection" "import" {
-  target_resource_id = "${azurerm_advanced_threat_protection.test.target_resource_id}"
-  enabled            = "${azurerm_advanced_threat_protection.test.enabled}"
+  target_resource_id = azurerm_advanced_threat_protection.test.target_resource_id
+  enabled            = azurerm_advanced_threat_protection.test.enabled
 }
 `, template)
 }
@@ -215,6 +209,10 @@ resource "azurerm_advanced_threat_protection" "test" {
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ATP-%d"
   location = "%s"
@@ -222,9 +220,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "acctest%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -237,6 +235,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, atp)
 }
 
+// nolint unused - mistakenly marked as unused
 func testAccAzureRMAdvancedThreatProtection_cosmosAccount(data acceptance.TestData, hasResource, enabled bool) string {
 	atp := ""
 	if hasResource {
@@ -249,6 +248,10 @@ resource "azurerm_advanced_threat_protection" "test" {
 	}
 
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-ATP-%d"
   location = "%s"
@@ -256,8 +259,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_cosmosdb_account" "test" {
   name                = "acctest-%s"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
 
   consistency_policy {
@@ -265,7 +268,7 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    location          = "${azurerm_resource_group.test.location}"
+    location          = azurerm_resource_group.test.location
     failover_priority = 0
   }
 }

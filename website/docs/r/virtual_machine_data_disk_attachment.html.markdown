@@ -33,34 +33,34 @@ resource "azurerm_resource_group" "main" {
 resource "azurerm_virtual_network" "main" {
   name                = "${var.prefix}-network"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 }
 
 resource "azurerm_subnet" "internal" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.main.name}"
-  virtual_network_name = "${azurerm_virtual_network.main.name}"
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "main" {
   name                = "${var.prefix}-nic"
-  location            = "${azurerm_resource_group.main.location}"
-  resource_group_name = "${azurerm_resource_group.main.name}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = "${azurerm_subnet.internal.id}"
+    subnet_id                     = azurerm_subnet.internal.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "example" {
-  name                  = "${local.vm_name}"
-  location              = "${azurerm_resource_group.main.location}"
-  resource_group_name   = "${azurerm_resource_group.main.name}"
-  network_interface_ids = ["${azurerm_network_interface.main.id}"]
+  name                  = local.vm_name
+  location              = azurerm_resource_group.main.location
+  resource_group_name   = azurerm_resource_group.main.name
+  network_interface_ids = [azurerm_network_interface.main.id]
   vm_size               = "Standard_F2"
 
   storage_image_reference {
@@ -78,7 +78,7 @@ resource "azurerm_virtual_machine" "example" {
   }
 
   os_profile {
-    computer_name  = "${local.vm_name}"
+    computer_name  = local.vm_name
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -90,16 +90,16 @@ resource "azurerm_virtual_machine" "example" {
 
 resource "azurerm_managed_disk" "example" {
   name                 = "${local.vm_name}-disk1"
-  location             = "${azurerm_resource_group.main.location}"
-  resource_group_name  = "${azurerm_resource_group.main.name}"
+  location             = azurerm_resource_group.main.location
+  resource_group_name  = azurerm_resource_group.main.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = 10
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "example" {
-  managed_disk_id    = "${azurerm_managed_disk.example.id}"
-  virtual_machine_id = "${azurerm_virtual_machine.example.id}"
+  managed_disk_id    = azurerm_managed_disk.example.id
+  virtual_machine_id = azurerm_virtual_machine.example.id
   lun                = "10"
   caching            = "ReadWrite"
 }
@@ -126,6 +126,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Machine Data Disk attachment.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Data Disk Attachment.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Data Disk Attachment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Data Disk Attachment.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Data Disk Attachment.
 
 ## Import
 

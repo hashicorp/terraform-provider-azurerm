@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/parse"
 )
 
 func TestAccAzureRMSignalRService_basic(t *testing.T) {
@@ -42,10 +42,6 @@ func TestAccAzureRMSignalRService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSignalRService_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -324,7 +320,6 @@ func TestAccAzureRMSignalRService_serviceMode(t *testing.T) {
 				Config: testAccAzureRMSignalRService_withServiceMode(data, "Serverless"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "features.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "features.0.flag", "ServiceMode"),
 					resource.TestCheckResourceAttr(data.ResourceName, "features.0.value", "Serverless"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "hostname"),
@@ -373,6 +368,10 @@ func TestAccAzureRMSignalRService_cors(t *testing.T) {
 
 func testAccAzureRMSignalRService_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -380,8 +379,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Free_F1"
@@ -396,9 +395,9 @@ func testAccAzureRMSignalRService_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_signalr_service" "import" {
-  name                = "${azurerm_signalr_service.test.name}"
-  location            = "${azurerm_signalr_service.test.location}"
-  resource_group_name = "${azurerm_signalr_service.test.resource_group_name}"
+  name                = azurerm_signalr_service.test.name
+  location            = azurerm_signalr_service.test.location
+  resource_group_name = azurerm_signalr_service.test.resource_group_name
 
   sku {
     name     = "Free_F1"
@@ -410,6 +409,10 @@ resource "azurerm_signalr_service" "import" {
 
 func testAccAzureRMSignalRService_standardWithCapacity(data acceptance.TestData, capacity int) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -417,8 +420,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Standard_S1"
@@ -430,6 +433,10 @@ resource "azurerm_signalr_service" "test" {
 
 func testAccAzureRMSignalRService_withCors(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -437,8 +444,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Free_F1"
@@ -457,6 +464,10 @@ resource "azurerm_signalr_service" "test" {
 
 func testAccAzureRMSignalRService_withServiceMode(data acceptance.TestData, serviceMode string) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -464,8 +475,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name     = "Free_F1"
@@ -488,10 +499,12 @@ func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.SignalRServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return nil
 		}
@@ -513,18 +526,17 @@ func testCheckAzureRMSignalRServiceExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for SignalR service: %s", name)
+		id, err := parse.SignalRServiceID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on signalRClient: %+v", err)
 		}
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: SignalR service %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil

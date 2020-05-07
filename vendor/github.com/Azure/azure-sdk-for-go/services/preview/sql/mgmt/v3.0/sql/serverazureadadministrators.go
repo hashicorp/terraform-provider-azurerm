@@ -38,13 +38,14 @@ func NewServerAzureADAdministratorsClient(subscriptionID string) ServerAzureADAd
 	return NewServerAzureADAdministratorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerAzureADAdministratorsClientWithBaseURI creates an instance of the ServerAzureADAdministratorsClient client.
+// NewServerAzureADAdministratorsClientWithBaseURI creates an instance of the ServerAzureADAdministratorsClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewServerAzureADAdministratorsClientWithBaseURI(baseURI string, subscriptionID string) ServerAzureADAdministratorsClient {
 	return ServerAzureADAdministratorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// CreateOrUpdate creates a new Server Active Directory Administrator or updates an existing server Active Directory
-// Administrator.
+// CreateOrUpdate creates or updates an existing Azure Active Directory administrator.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
@@ -95,7 +96,7 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdatePreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -113,9 +114,8 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdatePreparer(ctx conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerAzureADAdministratorsClient) CreateOrUpdateSender(req *http.Request) (future ServerAzureADAdministratorsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -136,7 +136,7 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdateResponder(resp *ht
 	return
 }
 
-// Delete deletes an existing server Active Directory Administrator.
+// Delete deletes the Azure Active Directory administrator with the given name.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
@@ -176,7 +176,7 @@ func (client ServerAzureADAdministratorsClient) DeletePreparer(ctx context.Conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -192,9 +192,8 @@ func (client ServerAzureADAdministratorsClient) DeletePreparer(ctx context.Conte
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerAzureADAdministratorsClient) DeleteSender(req *http.Request) (future ServerAzureADAdministratorsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -214,7 +213,84 @@ func (client ServerAzureADAdministratorsClient) DeleteResponder(resp *http.Respo
 	return
 }
 
-// Get gets a server Administrator.
+// DisableAzureADOnlyAuthentication disables Azure Active Directory only authentication on logical Server.
+// Parameters:
+// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
+// from the Azure Resource Manager API or the portal.
+// serverName - the name of the server.
+func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthentication(ctx context.Context, resourceGroupName string, serverName string) (result ServerAzureADAdministratorsDisableAzureADOnlyAuthenticationFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServerAzureADAdministratorsClient.DisableAzureADOnlyAuthentication")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.DisableAzureADOnlyAuthenticationPreparer(ctx, resourceGroupName, serverName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "DisableAzureADOnlyAuthentication", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DisableAzureADOnlyAuthenticationSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ServerAzureADAdministratorsClient", "DisableAzureADOnlyAuthentication", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DisableAzureADOnlyAuthenticationPreparer prepares the DisableAzureADOnlyAuthentication request.
+func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthenticationPreparer(ctx context.Context, resourceGroupName string, serverName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"serverName":        autorest.Encode("path", serverName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/servers/{serverName}/disableAzureADOnlyAuthentication", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DisableAzureADOnlyAuthenticationSender sends the DisableAzureADOnlyAuthentication request. The method will close the
+// http.Response Body if it receives an error.
+func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthenticationSender(req *http.Request) (future ServerAzureADAdministratorsDisableAzureADOnlyAuthenticationFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// DisableAzureADOnlyAuthenticationResponder handles the response to the DisableAzureADOnlyAuthentication request. The method always
+// closes the http.Response Body.
+func (client ServerAzureADAdministratorsClient) DisableAzureADOnlyAuthenticationResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// Get gets a Azure Active Directory administrator.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
@@ -260,7 +336,7 @@ func (client ServerAzureADAdministratorsClient) GetPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -276,8 +352,7 @@ func (client ServerAzureADAdministratorsClient) GetPreparer(ctx context.Context,
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerAzureADAdministratorsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -293,7 +368,7 @@ func (client ServerAzureADAdministratorsClient) GetResponder(resp *http.Response
 	return
 }
 
-// ListByServer gets a list of server Administrators.
+// ListByServer gets a list of Azure Active Directory administrators in a server.
 // Parameters:
 // resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
 // from the Azure Resource Manager API or the portal.
@@ -339,7 +414,7 @@ func (client ServerAzureADAdministratorsClient) ListByServerPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -355,8 +430,7 @@ func (client ServerAzureADAdministratorsClient) ListByServerPreparer(ctx context
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerAzureADAdministratorsClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always

@@ -20,15 +20,15 @@ data "azurerm_cosmosdb_account" "example" {
 
 resource "azurerm_cosmosdb_gremlin_database" "example" {
   name                = "tfex-cosmos-gremlin-db"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = data.azurerm_cosmosdb_account.example.name
 }
 
 resource "azurerm_cosmosdb_gremlin_graph" "example" {
   name                = "tfex-cosmos-gremlin-graph"
-  resource_group_name = "${azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${azurerm_cosmosdb_account.example.name}"
-  database_name       = "${azurerm_cosmosdb_gremlin_database.example.name}"
+  resource_group_name = azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
+  database_name       = azurerm_cosmosdb_gremlin_database.example.name
   partition_key_path  = "/Example"
   throughput          = 400
 
@@ -80,7 +80,7 @@ An `index_policy` block supports the following:
 
 * `indexing_mode` - (Required) Indicates the indexing mode. Possible values include: `Consistent`, `Lazy`, `None`.
 
-* `included_paths` - (Optional) List of paths to include in the indexing. Required if `indexing_mode` is `Consistent` or `Lazy`. 
+* `included_paths` - (Optional) List of paths to include in the indexing. Required if `indexing_mode` is `Consistent` or `Lazy`.
 
 * `excluded_paths` - (Optional) List of paths to exclude from indexing. Required if `indexing_mode` is `Consistent` or `Lazy`.
 
@@ -100,11 +100,20 @@ An `unique_key` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Cosmos DB Gremlin Graph ID.
+* `id` - The ID of the CosmosDB Gremlin Graph.
+``
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Gremlin Graph.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Gremlin Graph.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Gremlin Graph.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Gremlin Graph.
 
 ## Import
 
-Cosmos Gremlin Graph can be imported using the `resource id`, e.g.
+Cosmos Gremlin Graphs can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_cosmosdb_gremlin_graph.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/gremlin/databases/db1/graphs/graphs1

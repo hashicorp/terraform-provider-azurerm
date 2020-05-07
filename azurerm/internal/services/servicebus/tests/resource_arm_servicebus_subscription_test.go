@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,10 +32,6 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -276,15 +271,14 @@ func testAccAzureRMServiceBusSubscription_basic(data acceptance.TestData) string
 
 func testAccAzureRMServiceBusSubscription_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
 %s
 
 resource "azurerm_servicebus_subscription" "import" {
-  name                = "${azurerm_servicebus_subscription.test.name}"
-  namespace_name      = "${azurerm_servicebus_subscription.test.namespace_name}"
-  topic_name          = "${azurerm_servicebus_subscription.test.topic_name}"
-  resource_group_name = "${azurerm_servicebus_subscription.test.resource_group_name}"
-  max_delivery_count  = "${azurerm_servicebus_subscription.test.max_delivery_count}"
+  name                = azurerm_servicebus_subscription.test.name
+  namespace_name      = azurerm_servicebus_subscription.test.namespace_name
+  topic_name          = azurerm_servicebus_subscription.test.topic_name
+  resource_group_name = azurerm_servicebus_subscription.test.resource_group_name
+  max_delivery_count  = azurerm_servicebus_subscription.test.max_delivery_count
 }
 `, testAccAzureRMServiceBusSubscription_basic(data))
 }

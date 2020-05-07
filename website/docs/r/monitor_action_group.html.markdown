@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_monitor_action_group" "example" {
   name                = "CriticalAlertsAction"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   short_name          = "p0action"
 
   arm_role_receiver {
@@ -212,6 +212,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Action Group.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Action Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Action Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Action Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Action Group.
 
 ## Import
 

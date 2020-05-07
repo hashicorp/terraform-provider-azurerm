@@ -15,6 +15,13 @@ func (client Client) GetResourceID(accountName, containerName string) string {
 	return fmt.Sprintf("%s/%s", domain, containerName)
 }
 
+// GetResourceManagerResourceID returns the Resource Manager specific
+// ResourceID for a specific Storage Container
+func (client Client) GetResourceManagerResourceID(subscriptionID, resourceGroup, accountName, containerName string) string {
+	fmtStr := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/blobServices/default/containers/%s"
+	return fmt.Sprintf(fmtStr, subscriptionID, resourceGroup, accountName, containerName)
+}
+
 type ResourceID struct {
 	AccountName   string
 	ContainerName string

@@ -36,8 +36,8 @@ func testAccDataSourceAzureRMAppServiceCertificate_basic(data acceptance.TestDat
 %s
 
 data "azurerm_app_service_certificate" "test" {
-  name                = "${azurerm_app_service_certificate.test.name}"
-  resource_group_name = "${azurerm_app_service_certificate.test.resource_group_name}"
+  name                = azurerm_app_service_certificate.test.name
+  resource_group_name = azurerm_app_service_certificate.test.resource_group_name
 }
 `, template)
 }

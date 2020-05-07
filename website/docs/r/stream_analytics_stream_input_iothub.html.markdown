@@ -19,13 +19,13 @@ data "azurerm_resource_group" "example" {
 
 data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_iothub" "example" {
   name                = "example-iothub"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
@@ -35,12 +35,12 @@ resource "azurerm_iothub" "example" {
 
 resource "azurerm_stream_analytics_stream_input_iothub" "example" {
   name                         = "example-iothub-input"
-  stream_analytics_job_name    = "${data.azurerm_stream_analytics_job.example.name}"
-  resource_group_name          = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
+  stream_analytics_job_name    = data.azurerm_stream_analytics_job.example.name
+  resource_group_name          = data.azurerm_stream_analytics_job.example.resource_group_name
   endpoint                     = "messages/events"
   eventhub_consumer_group_name = "$Default"
-  iothub_namespace             = "${azurerm_iothub.example.name}"
-  shared_access_policy_key     = "${azurerm_iothub.example.shared_access_policy.0.primary_key}"
+  iothub_namespace             = azurerm_iothub.example.name
+  shared_access_policy_key     = azurerm_iothub.example.shared_access_policy[0].primary_key
   shared_access_policy_name    = "iothubowner"
 
   serialization {
@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Stream Analytics Job exists. Changing this forces a new resource to be created.
 
-* `stream_analytics_job_name` - (Required) The name of the Stream Analytics Job. Changing this forces a new resource to be created. 
+* `stream_analytics_job_name` - (Required) The name of the Stream Analytics Job. Changing this forces a new resource to be created.
 
 * `eventhub_consumer_group_name` - (Required) The name of an Event Hub Consumer Group that should be used to read events from the Event Hub. Specifying distinct consumer group names for multiple inputs allows each of those inputs to receive the same events from the Event Hub.
 
@@ -91,6 +91,15 @@ A `serialization` block supports the following:
 The following attributes are exported in addition to the arguments listed above:
 
 * `id` - The ID of the Stream Analytics Stream Input IoTHub.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Stream Input IoTHub.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Stream Input IoTHub.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Stream Input IoTHub.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Stream Input IoTHub.
 
 ## Import
 

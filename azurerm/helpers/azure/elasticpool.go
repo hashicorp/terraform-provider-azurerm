@@ -230,7 +230,7 @@ func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
 		return fmt.Errorf("Mismatch between SKU name '%s' and family '%s', expected '%s'", s.Name, s.Family, getFamilyFromName(s))
 	}
 
-	//get max GB and do validation based on SKU type
+	// get max GB and do validation based on SKU type
 	if s.SkuType == DTU {
 		s.MaxAllowedGB = getDTUMaxGB[strings.ToLower(s.Tier)][s.Capacity]
 		return doDTUSKUValidation(s)

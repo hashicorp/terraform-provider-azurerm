@@ -87,7 +87,7 @@ func ParseKubeConfig(config string) (*KubeConfig, error) {
 	if err := yaml.Unmarshal([]byte(config), &kubeConfig); err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)
 	}
-	if len(kubeConfig.Clusters) <= 0 || len(kubeConfig.Users) <= 0 {
+	if len(kubeConfig.Clusters) == 0 || len(kubeConfig.Users) == 0 {
 		return nil, fmt.Errorf("Config %+v contains no valid clusters or users", kubeConfig)
 	}
 	u := kubeConfig.Users[0].User
@@ -111,7 +111,7 @@ func ParseKubeConfigAAD(config string) (*KubeConfigAAD, error) {
 	if err := yaml.Unmarshal([]byte(config), &kubeConfig); err != nil {
 		return nil, fmt.Errorf("Failed to unmarshal YAML config with error %+v", err)
 	}
-	if len(kubeConfig.Clusters) <= 0 || len(kubeConfig.Users) <= 0 {
+	if len(kubeConfig.Clusters) == 0 || len(kubeConfig.Users) == 0 {
 		return nil, fmt.Errorf("Config %+v contains no valid clusters or users", kubeConfig)
 	}
 

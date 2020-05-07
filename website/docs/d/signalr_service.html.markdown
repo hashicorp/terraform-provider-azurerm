@@ -23,9 +23,9 @@ data "azurerm_signalr_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the SignalR service.
+* `name` - Specifies the name of the SignalR service.
 
-* `resource_group_name` - (Required) Specifies the name of the resource group the SignalR service is located in.
+* `resource_group_name` - Specifies the name of the resource group the SignalR service is located in.
 
 ## Attributes Reference
 
@@ -50,3 +50,9 @@ The following attributes are exported:
 * `secondary_access_key` - The secondary access key of the SignalR service.
 
 * `secondary_connection_string` - The secondary connection string of the SignalR service.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the SignalR service.

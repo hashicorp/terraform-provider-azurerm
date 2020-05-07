@@ -67,9 +67,9 @@ The following arguments are supported:
 
 * `type` - (Required) Specifies the type of object the principal is. Valid values include `App`, `Group`, `User`. Changing this forces a new resource to be created.
 
-* `object_id` - (Required) An Object ID of a User, Group, or App. Changing this forces a new resource to be created. 
+* `object_id` - (Required) An Object ID of a User, Group, or App. Changing this forces a new resource to be created.
 
-* `client_id` - (Required) The Client ID that owns the specified `object_id`. Changing this forces a new resource to be created. 
+* `client_id` - (Required) The Client ID that owns the specified `object_id`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -85,7 +85,16 @@ The following attributes are exported:
 
 * `name` - The name of the Kusto Database Principal.
 
----
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Kusto Database Principal.
+* `update` - (Defaults to 60 minutes) Used when updating the Kusto Database Principal.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Database Principal.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Database Principal.
 
 ## Import
 

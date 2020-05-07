@@ -5,9 +5,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
 
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 )
 
@@ -25,6 +25,11 @@ func dataGroup() *schema.Resource {
 				Computed:      true,
 				ValidateFunc:  validate.UUID,
 				ConflictsWith: []string{"name"},
+			},
+
+			"description": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"name": {
@@ -85,6 +90,10 @@ func dataSourceActiveDirectoryGroupRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("object_id", group.ObjectID)
 	d.Set("name", group.DisplayName)
+
+	if v, ok := group.AdditionalProperties["description"]; ok {
+		d.Set("description", v.(string))
+	}
 
 	members, err := graph.GroupAllMembers(client, ctx, d.Id())
 	if err != nil {

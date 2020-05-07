@@ -39,7 +39,9 @@ func NewJobStepExecutionsClient(subscriptionID string) JobStepExecutionsClient {
 	return NewJobStepExecutionsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewJobStepExecutionsClientWithBaseURI creates an instance of the JobStepExecutionsClient client.
+// NewJobStepExecutionsClientWithBaseURI creates an instance of the JobStepExecutionsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewJobStepExecutionsClientWithBaseURI(baseURI string, subscriptionID string) JobStepExecutionsClient {
 	return JobStepExecutionsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -113,8 +115,7 @@ func (client JobStepExecutionsClient) GetPreparer(ctx context.Context, resourceG
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobStepExecutionsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -226,8 +227,7 @@ func (client JobStepExecutionsClient) ListByJobExecutionPreparer(ctx context.Con
 // ListByJobExecutionSender sends the ListByJobExecution request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobStepExecutionsClient) ListByJobExecutionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByJobExecutionResponder handles the response to the ListByJobExecution request. The method always

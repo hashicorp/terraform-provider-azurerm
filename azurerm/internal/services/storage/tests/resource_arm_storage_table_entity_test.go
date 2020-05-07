@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
 )
 
@@ -33,10 +32,6 @@ func TestAccAzureRMTableEntity_basic(t *testing.T) {
 }
 
 func TestAccAzureRMTableEntity_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table_entity", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -183,8 +178,8 @@ func testAccAzureRMTableEntity_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  table_name           = "${azurerm_storage_table.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
+  table_name           = azurerm_storage_table.test.name
 
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
@@ -200,9 +195,9 @@ func testAccAzureRMTableEntity_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  table_name           = "${azurerm_storage_table.test.name}"
+resource "azurerm_storage_table_entity" "import" {
+  storage_account_name = azurerm_storage_account.test.name
+  table_name           = azurerm_storage_table.test.name
 
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
@@ -219,8 +214,8 @@ func testAccAzureRMTableEntity_updated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = "${azurerm_storage_account.test.name}"
-  table_name           = "${azurerm_storage_table.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
+  table_name           = azurerm_storage_table.test.name
 
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
@@ -234,6 +229,10 @@ resource "azurerm_storage_table_entity" "test" {
 
 func testAccAzureRMTableEntity_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -241,16 +240,15 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

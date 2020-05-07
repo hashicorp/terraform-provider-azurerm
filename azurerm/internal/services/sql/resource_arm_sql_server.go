@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -70,9 +71,15 @@ func resourceArmSqlServer() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"fully_qualified_domain_name": {
+			"connection_policy": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
+				Default:  string(sql.ServerConnectionTypeDefault),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(sql.ServerConnectionTypeDefault),
+					string(sql.ServerConnectionTypeProxy),
+					string(sql.ServerConnectionTypeRedirect),
+				}, false),
 			},
 
 			"identity": {
@@ -100,6 +107,13 @@ func resourceArmSqlServer() *schema.Resource {
 				},
 			},
 
+			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
+
+			"fully_qualified_domain_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -107,6 +121,8 @@ func resourceArmSqlServer() *schema.Resource {
 
 func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
+	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
+	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -171,11 +187,29 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*resp.ID)
 
+	connection := sql.ServerConnectionPolicy{
+		ServerConnectionPolicyProperties: &sql.ServerConnectionPolicyProperties{
+			ConnectionType: sql.ServerConnectionType(d.Get("connection_policy").(string)),
+		},
+	}
+	if _, err = connectionClient.CreateOrUpdate(ctx, resGroup, name, connection); err != nil {
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Connection Policy (Resource Group %q): %+v", name, resGroup, err)
+	}
+
+	auditingProps := sql.ExtendedServerBlobAuditingPolicy{
+		ExtendedServerBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlServerBlobAuditingPolicies(d.Get("extended_auditing_policy").([]interface{})),
+	}
+	if _, err = auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingProps); err != nil {
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+	}
+
 	return resourceArmSqlServerRead(d, meta)
 }
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.ServersClient
+	auditingClient := meta.(*clients.Client).Sql.ServerExtendedBlobAuditingPoliciesClient
+	connectionClient := meta.(*clients.Client).Sql.ServerConnectionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -212,6 +246,24 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("version", serverProperties.Version)
 		d.Set("administrator_login", serverProperties.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
+	}
+
+	connection, err := connectionClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error reading SQL Server %s Blob Connection Policy: %v ", name, err)
+	}
+
+	if props := connection.ServerConnectionPolicyProperties; props != nil {
+		d.Set("connection_policy", string(props.ConnectionType))
+	}
+
+	auditingResp, err := auditingClient.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error reading SQL Server %s Blob Auditing Policies: %v ", name, err)
+	}
+
+	if err := d.Set("extended_auditing_policy", helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
+		return fmt.Errorf("Error setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

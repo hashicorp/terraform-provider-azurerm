@@ -20,15 +20,15 @@ data "azurerm_batch_account" "example" {
 }
 
 output "pool_allocation_mode" {
-  value = "${data.azurerm_batch_account.example.pool_allocation_mode}"
+  value = data.azurerm_batch_account.example.pool_allocation_mode
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the Batch account.
+* `name` - The name of the Batch account.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where this Batch account exists.
+* `resource_group_name` - The Name of the Resource Group where this Batch account exists.
 
 ## Attributes Reference
 
@@ -54,7 +54,7 @@ The following attributes are exported:
 
 * `tags` - A map of tags assigned to the Batch account.
 
-~> **NOTE:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.
+~> **Note:** Primary and secondary access keys are only available when `pool_allocation_mode` is set to `BatchService`. See [documentation](https://docs.microsoft.com/en-us/azure/batch/batch-api-basics) for more information.
 
 ---
 
@@ -65,3 +65,9 @@ A `key_vault_reference` block have the following properties:
 * `url` - The HTTPS URL of the Azure KeyVault reference.
 
 ---
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Batch Account.

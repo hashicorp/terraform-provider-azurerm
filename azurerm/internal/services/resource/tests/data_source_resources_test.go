@@ -94,7 +94,7 @@ func testAccDataSourceAzureRMResources_ByName(data acceptance.TestData) string {
 %s
 
 data "azurerm_resources" "test" {
-  name = "${azurerm_storage_account.test.name}"
+  name = azurerm_storage_account.test.name
 }
 `, r)
 }
@@ -105,7 +105,7 @@ func testAccDataSourceAzureRMResources_ByResourceGroup(data acceptance.TestData)
 %s
 
 data "azurerm_resources" "test" {
-  resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
+  resource_group_name = azurerm_storage_account.test.resource_group_name
 }
 `, r)
 }
@@ -116,7 +116,7 @@ func testAccDataSourceAzureRMResources_ByResourceType(data acceptance.TestData) 
 %s
 
 data "azurerm_resources" "test" {
-  resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
+  resource_group_name = azurerm_storage_account.test.resource_group_name
   type                = "Microsoft.Storage/storageAccounts"
 }
 `, r)
@@ -128,8 +128,8 @@ func testAccDataSourceAzureRMResources_FilteredByTags(data acceptance.TestData) 
 %s
 
 data "azurerm_resources" "test" {
-  name                = "${azurerm_storage_account.test.name}"
-  resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
+  name                = azurerm_storage_account.test.name
+  resource_group_name = azurerm_storage_account.test.resource_group_name
 
   required_tags = {
     environment = "production"
@@ -140,6 +140,10 @@ data "azurerm_resources" "test" {
 
 func testAccDataSourceAzureRMResources_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-storage-%d"
   location = "%s"
@@ -147,9 +151,9 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                = "acctestsads%s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 
-  location                 = "${azurerm_resource_group.test.location}"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 

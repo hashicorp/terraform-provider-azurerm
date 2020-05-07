@@ -15,8 +15,8 @@ Use this data source to access information about an existing IotHub Shared Acces
 ```hcl
 data "azurerm_iothub_shared_access_policy" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  iothub_name         = "${azurerm_iothub.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  iothub_name         = azurerm_iothub.example.name
 }
 ```
 
@@ -24,11 +24,11 @@ data "azurerm_iothub_shared_access_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the IotHub Shared Access Policy resource.
+* `name` - Specifies the name of the IotHub Shared Access Policy resource.
 
-* `resource_group_name` - (Required) The name of the resource group under which the IotHub Shared Access Policy resource has to be created.
+* `resource_group_name` - The name of the resource group under which the IotHub Shared Access Policy resource has to be created.
 
-* `iothub_name` - (Required) The name of the IoTHub to which this Shared Access Policy belongs.
+* `iothub_name` - The name of the IoTHub to which this Shared Access Policy belongs.
 
 ## Attributes Reference
 
@@ -43,3 +43,9 @@ The following attributes are exported:
 * `secondary_key` - The secondary key used to create the authentication token.
 
 * `secondary_connection_string` - The secondary connection string of the Shared Access Policy.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Shared Access Policy.

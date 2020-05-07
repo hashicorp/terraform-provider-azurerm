@@ -8,10 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/response"
@@ -21,17 +17,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
 
-const blobStorageAccountDefaultAccessTier = "Hot"
+var storageAccountResourceName = "azurerm_storage_account"
 
 func resourceArmStorageAccount() *schema.Resource {
 	return &schema.Resource{
@@ -77,16 +74,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
-				Default: string(storage.Storage),
-			},
-
-			"account_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				Deprecated:       "This field has been split into `account_tier` and `account_replication_type`",
-				ValidateFunc:     ValidateArmStorageAccountType,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Default: string(storage.StorageV2),
 			},
 
 			"account_tier": {
@@ -123,17 +111,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				}, true),
 			},
 
-			"account_encryption_source": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(storage.MicrosoftStorage),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(storage.MicrosoftKeyvault),
-					string(storage.MicrosoftStorage),
-				}, true),
-				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
 			"custom_domain": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -154,21 +131,10 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"enable_blob_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"enable_file_encryption": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
 			"enable_https_traffic_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"is_hns_enabled": {
@@ -176,14 +142,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional: true,
 				Default:  false,
 				ForceNew: true,
-			},
-
-			// TODO remove this in 2.0 for the dedicated resource
-			"enable_advanced_threat_protection": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "This property has been deprecated in favour of the new 'azurerm_advanced_threat_protection' resource and will be removed in version 2.0 of the provider",
 			},
 
 			"network_rules": {
@@ -264,16 +222,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"tags": {
-				Type:         schema.TypeMap,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateAzureRMStorageAccountTags,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
 			"blob_properties": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -281,6 +229,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"cors_rule": azure.SchemaStorageAccountCorsRule(),
 						"delete_retention_policy": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -307,66 +256,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cors_rule": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 5,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"allowed_origins": {
-										Type:     schema.TypeList,
-										Required: true,
-										MaxItems: 64,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
-										},
-									},
-									"exposed_headers": {
-										Type:     schema.TypeList,
-										Required: true,
-										MaxItems: 64,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
-										},
-									},
-									"allowed_headers": {
-										Type:     schema.TypeList,
-										Required: true,
-										MaxItems: 64,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
-										},
-									},
-									"allowed_methods": {
-										Type:     schema.TypeList,
-										Required: true,
-										MaxItems: 64,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-											Elem: &schema.Schema{
-												Type: schema.TypeString,
-												ValidateFunc: validation.StringInSlice([]string{
-													"DELETE",
-													"GET",
-													"HEAD",
-													"MERGE",
-													"POST",
-													"OPTIONS",
-													"PUT"}, false),
-											},
-										},
-									},
-									"max_age_in_seconds": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 2000000000),
-									},
-								},
-							},
-						},
+						"cors_rule": azure.SchemaStorageAccountCorsRule(),
 						"logging": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -376,7 +266,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"delete": {
 										Type:     schema.TypeBool,
@@ -407,7 +297,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"enabled": {
 										Type:     schema.TypeBool,
@@ -434,7 +324,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									"version": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"enabled": {
 										Type:     schema.TypeBool,
@@ -451,6 +341,26 @@ func resourceArmStorageAccount() *schema.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+
+			"static_website": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"index_document": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"error_404_document": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
 				},
@@ -621,6 +531,15 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				ValidateFunc: validateAzureRMStorageAccountTags,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -628,8 +547,8 @@ func resourceArmStorageAccount() *schema.Resource {
 func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []string, errors []error) {
 	tagsMap := v.(map[string]interface{})
 
-	if len(tagsMap) > 15 {
-		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to storage account ARM resource"))
+	if len(tagsMap) > 50 {
+		errors = append(errors, fmt.Errorf("a maximum of 50 tags can be applied to storage account ARM resource"))
 	}
 
 	for k, v := range tagsMap {
@@ -650,7 +569,6 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
-	advancedThreatProtectionClient := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -676,15 +594,12 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	accountKind := d.Get("account_kind").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
-	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
-	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -694,16 +609,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
-			Encryption: &storage.Encryption{
-				Services: &storage.EncryptionServices{
-					Blob: &storage.EncryptionService{
-						Enabled: utils.Bool(enableBlobEncryption),
-					},
-					File: &storage.EncryptionService{
-						Enabled: utils.Bool(enableFileEncryption),
-					}},
-				KeySource: storage.KeySource(storageAccountEncryptionSource),
-			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
@@ -731,14 +636,12 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
-			accessTier = blobStorageAccountDefaultAccessTier
+			accessTier = string(storage.Hot)
 		}
 
 		parameters.AccountPropertiesCreateParameters.AccessTier = storage.AccessTier(accessTier.(string))
-	} else {
-		if isHnsEnabled {
-			return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2` and `BlobStorage`")
-		}
+	} else if isHnsEnabled {
+		return fmt.Errorf("`is_hns_enabled` can only be used with account kinds `StorageV2` and `BlobStorage`")
 	}
 
 	// AccountTier must be Premium for FileStorage
@@ -769,22 +672,6 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
 	d.SetId(*account.ID)
-
-	// TODO: deprecate & split this out into it's own resource in 2.0
-	// as this is not available in all regions, and presumably off by default
-	// lets only try to set this value when true
-	// TODO in 2.0 switch to guarding this with d.GetOkExists() ?
-	if v := d.Get("enable_advanced_threat_protection").(bool); v {
-		advancedThreatProtectionSetting := security.AdvancedThreatProtectionSetting{
-			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-				IsEnabled: utils.Bool(v),
-			},
-		}
-
-		if _, err = advancedThreatProtectionClient.Create(ctx, d.Id(), advancedThreatProtectionSetting); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
-		}
-	}
 
 	if val, ok := d.GetOk("blob_properties"); ok {
 		// FileStorage does not support blob settings
@@ -826,15 +713,38 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if val, ok := d.GetOk("static_website"); ok {
+		// static website only supported on Storage V2
+		if accountKind != string(storage.StorageV2) {
+			return fmt.Errorf("`static_website` is only supported for Storage V2.")
+		}
+		storageClient := meta.(*clients.Client).Storage
+
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
+		}
+
+		staticWebsiteProps := expandStaticWebsiteProperties(val.([]interface{}))
+
+		if _, err = accountsClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `static_website` %q: %+v", storageAccountName, err)
+		}
+	}
+
 	return resourceArmStorageAccountRead(d, meta)
 }
 
-// resourceArmStorageAccountUpdate is unusual in the ARM API where most resources have a combined
-// and idempotent operation for CreateOrUpdate. In particular updating all of the parameters
-// available requires a call to Update per parameter...
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
-	advancedThreatProtectionClient := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -845,8 +755,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
 
-	locks.ByName(storageAccountName, iothub.IothubResourceName)
-	defer locks.UnlockByName(storageAccountName, iothub.IothubResourceName)
+	locks.ByName(storageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -907,40 +817,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("tags")
 	}
 
-	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
-		encryptionSource := d.Get("account_encryption_source").(string)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				Encryption: &storage.Encryption{
-					Services:  &storage.EncryptionServices{},
-					KeySource: storage.KeySource(encryptionSource),
-				},
-			},
-		}
-
-		if d.HasChange("enable_blob_encryption") {
-			enableEncryption := d.Get("enable_blob_encryption").(bool)
-			opts.Encryption.Services.Blob = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-
-			d.SetPartial("enable_blob_encryption")
-		}
-
-		if d.HasChange("enable_file_encryption") {
-			enableEncryption := d.Get("enable_file_encryption").(bool)
-			opts.Encryption.Services.File = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-			d.SetPartial("enable_file_encryption")
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
-		}
-	}
-
 	if d.HasChange("custom_domain") {
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -993,20 +869,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("network_rules")
 	}
 
-	if d.HasChange("enable_advanced_threat_protection") {
-		opts := security.AdvancedThreatProtectionSetting{
-			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-				IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
-			},
-		}
-
-		if _, err := advancedThreatProtectionClient.Create(ctx, d.Id(), opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("enable_advanced_threat_protection")
-	}
-
 	if d.HasChange("blob_properties") {
 		// FileStorage does not support blob settings
 		if accountKind != string(storage.FileStorage) {
@@ -1050,13 +912,41 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("queue_properties")
 	}
 
+	if d.HasChange("static_website") {
+		// static website only supported on Storage V2
+		if accountKind != string(storage.StorageV2) {
+			return fmt.Errorf("`static_website` is only supported for Storage V2.")
+		}
+		storageClient := meta.(*clients.Client).Storage
+
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
+		}
+
+		staticWebsiteProps := expandStaticWebsiteProperties(d.Get("static_website").([]interface{}))
+
+		if _, err = accountsClient.SetServiceProperties(ctx, storageAccountName, staticWebsiteProps); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `static_website` %q: %+v", storageAccountName, err)
+		}
+
+		d.SetPartial("static_website")
+	}
+
 	d.Partial(false)
 	return resourceArmStorageAccountRead(d, meta)
 }
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.AccountsClient
-	advancedThreatProtectionClient := meta.(*clients.Client).SecurityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1110,7 +1000,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("account_kind", resp.Kind)
 
 	if sku := resp.Sku; sku != nil {
-		d.Set("account_type", sku.Name)
 		d.Set("account_tier", sku.Tier)
 		d.Set("account_replication_type", strings.Split(fmt.Sprintf("%v", sku.Name), "_")[1])
 	}
@@ -1124,18 +1013,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
 				return fmt.Errorf("Error setting `custom_domain`: %+v", err)
 			}
-		}
-
-		if encryption := props.Encryption; encryption != nil {
-			if services := encryption.Services; services != nil {
-				if blob := services.Blob; blob != nil {
-					d.Set("enable_blob_encryption", blob.Enabled)
-				}
-				if file := services.File; file != nil {
-					d.Set("enable_file_encryption", file.Enabled)
-				}
-			}
-			d.Set("account_encryption_source", string(encryption.KeySource))
 		}
 
 		// Computed
@@ -1197,23 +1074,6 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	// TODO in 2.0 switch to guarding this with d.GetOkExists()
-	atp, err := advancedThreatProtectionClient.Get(ctx, d.Id())
-	if err != nil {
-		msg := err.Error()
-		if !strings.Contains(msg, "The resource namespace 'Microsoft.Security' is invalid.") {
-			if !strings.Contains(msg, "No registered resource provider found for location '") {
-				if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
-					return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
-				}
-			}
-		}
-	} else {
-		if atpp := atp.AdvancedThreatProtectionProperties; atpp != nil {
-			d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
-		}
-	}
-
 	storageClient := meta.(*clients.Client).Storage
 	account, err := storageClient.FindAccount(ctx, name)
 	if err != nil {
@@ -1262,6 +1122,36 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 				return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
 			}
 		}
+	}
+
+	var staticWebsite []interface{}
+
+	// static website only supported on Storage V2
+	if resp.Kind == storage.StorageV2 {
+		storageClient := meta.(*clients.Client).Storage
+
+		account, err := storageClient.FindAccount(ctx, name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", name, err)
+		}
+
+		accountsClient, err := storageClient.AccountsDataPlaneClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Accounts Data Plane Client: %s", err)
+		}
+
+		staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, name)
+		if err != nil {
+			if staticWebsiteProps.Response.Response != nil && !utils.ResponseWasNotFound(staticWebsiteProps.Response) {
+				return fmt.Errorf("Error reading static website for AzureRM Storage Account %q: %+v", name, err)
+			}
+		}
+
+		staticWebsite = flattenStaticWebsiteProperties(staticWebsiteProps)
+	}
+
+	if err := d.Set("static_website", staticWebsite); err != nil {
+		return fmt.Errorf("Error setting `static_website `for AzureRM Storage Account %q: %+v", name, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1428,32 +1318,94 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 }
 
 func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
-	properties := storage.BlobServiceProperties{
+	props := storage.BlobServiceProperties{
 		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+			Cors: &storage.CorsRules{
+				CorsRules: &[]storage.CorsRule{},
+			},
 			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
 				Enabled: utils.Bool(false),
 			},
 		},
 	}
+
 	if len(input) == 0 || input[0] == nil {
-		return properties
+		return props
 	}
 
-	blobAttr := input[0].(map[string]interface{})
-	deletePolicy := blobAttr["delete_retention_policy"].([]interface{})
-	if len(deletePolicy) > 0 {
-		policy := deletePolicy[0].(map[string]interface{})
-		days := policy["days"].(int)
-		properties.BlobServicePropertiesProperties.DeleteRetentionPolicy.Enabled = utils.Bool(true)
-		properties.BlobServicePropertiesProperties.DeleteRetentionPolicy.Days = utils.Int32(int32(days))
+	v := input[0].(map[string]interface{})
+
+	deletePolicyRaw := v["delete_retention_policy"].([]interface{})
+	props.BlobServicePropertiesProperties.DeleteRetentionPolicy = expandBlobPropertiesDeleteRetentionPolicy(deletePolicyRaw)
+
+	corsRaw := v["cors_rule"].([]interface{})
+	props.BlobServicePropertiesProperties.Cors = expandBlobPropertiesCors(corsRaw)
+
+	return props
+}
+
+func expandBlobPropertiesDeleteRetentionPolicy(input []interface{}) *storage.DeleteRetentionPolicy {
+	deleteRetentionPolicy := storage.DeleteRetentionPolicy{
+		Enabled: utils.Bool(false),
 	}
 
-	return properties
+	if len(input) == 0 {
+		return &deleteRetentionPolicy
+	}
+
+	policy := input[0].(map[string]interface{})
+	days := policy["days"].(int)
+	deleteRetentionPolicy.Enabled = utils.Bool(true)
+	deleteRetentionPolicy.Days = utils.Int32(int32(days))
+
+	return &deleteRetentionPolicy
+}
+
+func expandBlobPropertiesCors(input []interface{}) *storage.CorsRules {
+	blobCorsRules := storage.CorsRules{}
+
+	if len(input) == 0 {
+		return &blobCorsRules
+	}
+
+	corsRules := make([]storage.CorsRule, 0)
+	for _, attr := range input {
+		corsRuleAttr := attr.(map[string]interface{})
+		corsRule := storage.CorsRule{}
+
+		allowedOrigins := *utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{}))
+		allowedHeaders := *utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{}))
+		allowedMethods := *utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{}))
+		exposedHeaders := *utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{}))
+		maxAgeInSeconds := int32(corsRuleAttr["max_age_in_seconds"].(int))
+
+		corsRule.AllowedOrigins = &allowedOrigins
+		corsRule.AllowedHeaders = &allowedHeaders
+		corsRule.AllowedMethods = &allowedMethods
+		corsRule.ExposedHeaders = &exposedHeaders
+		corsRule.MaxAgeInSeconds = &maxAgeInSeconds
+
+		corsRules = append(corsRules, corsRule)
+	}
+
+	blobCorsRules.CorsRules = &corsRules
+
+	return &blobCorsRules
 }
 
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
 	var err error
-	properties := queues.StorageServiceProperties{}
+	properties := queues.StorageServiceProperties{
+		Cors: &queues.Cors{
+			CorsRule: []queues.CorsRule{},
+		},
+		HourMetrics: &queues.MetricsConfig{
+			Enabled: false,
+		},
+		MinuteMetrics: &queues.MetricsConfig{
+			Enabled: false,
+		},
+	}
 	if len(input) == 0 {
 		return properties, nil
 	}
@@ -1557,6 +1509,37 @@ func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
 	return cors
 }
 
+func expandStaticWebsiteProperties(input []interface{}) accounts.StorageServiceProperties {
+	properties := accounts.StorageServiceProperties{
+		StaticWebsite: &accounts.StaticWebsite{
+			Enabled: false,
+		},
+	}
+	if len(input) == 0 {
+		return properties
+	}
+
+	properties.StaticWebsite.Enabled = true
+
+	// @tombuildsstuff: this looks weird, doesn't it?
+	// Since the presence of this block signifies the website's enabled however all fields within it are optional
+	// TF Core returns a nil object when there's no keys defined within the block, rather than an empty map. As
+	// such this hack allows us to have a Static Website block with only Enabled configured, without the optional
+	// inner properties.
+	if val := input[0]; val != nil {
+		attr := val.(map[string]interface{})
+		if v, ok := attr["index_document"]; ok {
+			properties.StaticWebsite.IndexDocument = v.(string)
+		}
+
+		if v, ok := attr["error_404_document"]; ok {
+			properties.StaticWebsite.ErrorDocument404Path = v.(string)
+		}
+	}
+
+	return properties
+}
+
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
 	if input == nil {
 		return []interface{}{}
@@ -1611,26 +1594,92 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		return []interface{}{}
 	}
 
-	deleteRetentionPolicies := make([]interface{}, 0)
+	flattenedCorsRules := make([]interface{}, 0)
+	if corsRules := input.BlobServicePropertiesProperties.Cors; corsRules != nil {
+		flattenedCorsRules = flattenBlobPropertiesCorsRule(corsRules)
+	}
 
+	flattenedDeletePolicy := make([]interface{}, 0)
 	if deletePolicy := input.BlobServicePropertiesProperties.DeleteRetentionPolicy; deletePolicy != nil {
-		if enabled := deletePolicy.Enabled; enabled != nil && *enabled {
-			days := 0
-			if deletePolicy.Days != nil {
-				days = int(*deletePolicy.Days)
-			}
+		flattenedDeletePolicy = flattenBlobPropertiesDeleteRetentionPolicy(deletePolicy)
+	}
 
-			deleteRetentionPolicies = append(deleteRetentionPolicies, map[string]interface{}{
-				"days": days,
-			})
-		}
+	if len(flattenedCorsRules) == 0 && len(flattenedDeletePolicy) == 0 {
+		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"delete_retention_policy": deleteRetentionPolicies,
+			"cors_rule":               flattenedCorsRules,
+			"delete_retention_policy": flattenedDeletePolicy,
 		},
 	}
+}
+
+func flattenBlobPropertiesCorsRule(input *storage.CorsRules) []interface{} {
+	corsRules := make([]interface{}, 0)
+
+	if input == nil || input.CorsRules == nil {
+		return corsRules
+	}
+
+	for _, corsRule := range *input.CorsRules {
+		allowedOrigins := make([]string, 0)
+		if corsRule.AllowedOrigins != nil {
+			allowedOrigins = *corsRule.AllowedOrigins
+		}
+
+		allowedMethods := make([]string, 0)
+		if corsRule.AllowedMethods != nil {
+			allowedMethods = *corsRule.AllowedMethods
+		}
+
+		allowedHeaders := make([]string, 0)
+		if corsRule.AllowedHeaders != nil {
+			allowedHeaders = *corsRule.AllowedHeaders
+		}
+
+		exposedHeaders := make([]string, 0)
+		if corsRule.ExposedHeaders != nil {
+			exposedHeaders = *corsRule.ExposedHeaders
+		}
+
+		maxAgeInSeconds := 0
+		if corsRule.MaxAgeInSeconds != nil {
+			maxAgeInSeconds = int(*corsRule.MaxAgeInSeconds)
+		}
+
+		corsRules = append(corsRules, map[string]interface{}{
+			"allowed_headers":    allowedHeaders,
+			"allowed_origins":    allowedOrigins,
+			"allowed_methods":    allowedMethods,
+			"exposed_headers":    exposedHeaders,
+			"max_age_in_seconds": maxAgeInSeconds,
+		})
+	}
+
+	return corsRules
+}
+
+func flattenBlobPropertiesDeleteRetentionPolicy(input *storage.DeleteRetentionPolicy) []interface{} {
+	deleteRetentionPolicy := make([]interface{}, 0)
+
+	if input == nil {
+		return deleteRetentionPolicy
+	}
+
+	if enabled := input.Enabled; enabled != nil && *enabled {
+		days := 0
+		if input.Days != nil {
+			days = int(*input.Days)
+		}
+
+		deleteRetentionPolicy = append(deleteRetentionPolicy, map[string]interface{}{
+			"days": days,
+		})
+	}
+
+	return deleteRetentionPolicy
 }
 
 func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []interface{} {
@@ -1733,6 +1782,24 @@ func flattenCorsProperty(input string) []interface{} {
 	return results
 }
 
+func flattenStaticWebsiteProperties(input accounts.GetServicePropertiesResult) []interface{} {
+	if storageServiceProps := input.StorageServiceProperties; storageServiceProps != nil {
+		if staticWebsite := storageServiceProps.StaticWebsite; staticWebsite != nil {
+			if !staticWebsite.Enabled {
+				return []interface{}{}
+			}
+
+			return []interface{}{
+				map[string]interface{}{
+					"index_document":     staticWebsite.IndexDocument,
+					"error_404_document": staticWebsite.ErrorDocument404Path,
+				},
+			}
+		}
+	}
+	return []interface{}{}
+}
+
 func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
 	bypassValues := strings.Split(string(input), ", ")
 	bypass := make([]interface{}, len(bypassValues))
@@ -1751,22 +1818,6 @@ func ValidateArmStorageAccountName(v interface{}, _ string) (warnings []string, 
 		errors = append(errors, fmt.Errorf("name (%q) can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long", input))
 	}
 
-	return warnings, errors
-}
-
-func ValidateArmStorageAccountType(v interface{}, _ string) (warnings []string, errors []error) {
-	validAccountTypes := []string{"standard_lrs", "standard_zrs",
-		"standard_grs", "standard_ragrs", "premium_lrs"}
-
-	input := strings.ToLower(v.(string))
-
-	for _, valid := range validAccountTypes {
-		if valid == input {
-			return
-		}
-	}
-
-	errors = append(errors, fmt.Errorf("Invalid storage account type %q", input))
 	return warnings, errors
 }
 

@@ -11,14 +11,22 @@ func (r Registration) Name() string {
 	return "API Management"
 }
 
+// WebsiteCategories returns a list of categories which can be used for the sidebar
+func (r Registration) WebsiteCategories() []string {
+	return []string{
+		"API Management",
+	}
+}
+
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_api_management":         dataSourceApiManagementService(),
-		"azurerm_api_management_api":     dataSourceApiManagementApi(),
-		"azurerm_api_management_group":   dataSourceApiManagementGroup(),
-		"azurerm_api_management_product": dataSourceApiManagementProduct(),
-		"azurerm_api_management_user":    dataSourceArmApiManagementUser(),
+		"azurerm_api_management":                 dataSourceApiManagementService(),
+		"azurerm_api_management_api":             dataSourceApiManagementApi(),
+		"azurerm_api_management_api_version_set": dataSourceApiManagementApiVersionSet(),
+		"azurerm_api_management_group":           dataSourceApiManagementGroup(),
+		"azurerm_api_management_product":         dataSourceApiManagementProduct(),
+		"azurerm_api_management_user":            dataSourceArmApiManagementUser(),
 	}
 }
 
@@ -44,6 +52,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_identity_provider_microsoft": resourceArmApiManagementIdentityProviderMicrosoft(),
 		"azurerm_api_management_identity_provider_twitter":   resourceArmApiManagementIdentityProviderTwitter(),
 		"azurerm_api_management_logger":                      resourceArmApiManagementLogger(),
+		"azurerm_api_management_named_value":                 resourceArmApiManagementNamedValue(),
 		"azurerm_api_management_openid_connect_provider":     resourceArmApiManagementOpenIDConnectProvider(),
 		"azurerm_api_management_product":                     resourceArmApiManagementProduct(),
 		"azurerm_api_management_product_api":                 resourceArmApiManagementProductApi(),

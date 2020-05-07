@@ -96,9 +96,10 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 					Pending:    []string{"AzureVMConfiguration", "Accepted", "HdInsightConfiguration"},
 					Target:     []string{"Running"},
 					Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
-					Timeout:    60 * time.Minute,
 					MinTimeout: 15 * time.Second,
+					Timeout:    d.Timeout(schema.TimeoutUpdate),
 				}
+
 				if _, err := stateConf.WaitForState(); err != nil {
 					return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 				}
@@ -270,4 +271,57 @@ func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 	}
 
 	return nil
+}
+
+func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
+	v := input[0].(map[string]interface{})
+
+	config := map[string]interface{}{}
+
+	if hiveRaw, ok := v["hive"]; ok {
+		for k, val := range azure.ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})) {
+			config[k] = val
+		}
+	}
+
+	if oozieRaw, ok := v["oozie"]; ok {
+		for k, val := range azure.ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})) {
+			config[k] = val
+		}
+	}
+
+	if ambariRaw, ok := v["ambari"]; ok {
+		for k, val := range azure.ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})) {
+			config[k] = val
+		}
+	}
+
+	return config
+}
+
+func flattenHDInsightsMetastores(d *schema.ResourceData, configurations map[string]map[string]*string) {
+	result := map[string]interface{}{}
+
+	hiveEnv, envExists := configurations["hive-env"]
+	hiveSite, siteExists := configurations["hive-site"]
+	if envExists && siteExists {
+		result["hive"] = azure.FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite)
+	}
+
+	oozieEnv, envExists := configurations["oozie-env"]
+	oozieSite, siteExists := configurations["oozie-site"]
+	if envExists && siteExists {
+		result["oozie"] = azure.FlattenHDInsightsOozieMetastore(oozieEnv, oozieSite)
+	}
+
+	ambari, ambariExists := configurations["ambari-conf"]
+	if ambariExists {
+		result["ambari"] = azure.FlattenHDInsightsAmbariMetastore(ambari)
+	}
+
+	if len(result) > 0 {
+		d.Set("metastores", []interface{}{
+			result,
+		})
+	}
 }

@@ -24,9 +24,9 @@ data "azurerm_eventgrid_topic" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the EventGrid Topic resource.
+* `name` - The name of the EventGrid Topic resource.
 
-* `resource_group_name` - (Required) The name of the resource group in which the EventGrid Topic exists.
+* `resource_group_name` - The name of the resource group in which the EventGrid Topic exists.
 
 ## Attributes Reference
 
@@ -39,3 +39,9 @@ The following attributes are exported:
 * `primary_access_key` - The Primary Shared Access Key associated with the EventGrid Topic.
 
 * `secondary_access_key` - The Secondary Shared Access Key associated with the EventGrid Topic.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the EventGrid Topic.
