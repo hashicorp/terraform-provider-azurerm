@@ -293,7 +293,9 @@ func resourceArmSentinelAlertRuleScheduledRead(d *schema.ResourceData, meta inte
 	if prop := rule.ScheduledAlertRuleProperties; prop != nil {
 		d.Set("description", prop.Description)
 		d.Set("display_name", prop.DisplayName)
-		d.Set("tactics", flattenAlertRuleScheduledTactics(prop.Tactics))
+		if err := d.Set("tactics", flattenAlertRuleScheduledTactics(prop.Tactics)); err != nil {
+			return fmt.Errorf("setting `tactics`: %+v", err)
+		}
 		d.Set("severity", string(prop.Severity))
 		d.Set("enabled", prop.Enabled)
 		d.Set("query", prop.Query)
