@@ -18,6 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var eventHubResourceName = "azurerm_eventhub"
+
 func resourceArmEventHub() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmEventHubCreateUpdate,

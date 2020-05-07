@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_data_share_account` [GH-6575]
 * **New Resource:** `azurerm_data_share_account` [GH-6575]
+* **New Resource:** `azurerm_function_app_slot` [GH-6435]
 
 IMPROVEMENTS:
 
@@ -12,12 +13,17 @@ IMPROVEMENTS:
 * `azurerm_key_vault_certificate` - support for recovering a soft-deleted certificate if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
 * `azurerm_key_vault_key` - support for recovering a soft-deleted key if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
 * `azurerm_key_vault_secret` - support for recovering a soft-deleted secret if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
-* `azurerm_linux_virtual_machine_scale_set - support for configuring `create_mode` for data disks [GH-6744]
-* `azurerm_windows_virtual_machine_scale_set - support for configuring `create_mode` for data disks [GH-6744]
+* `azurerm_linux_virtual_machine_scale_set` - support for configuring `create_mode` for data disks [GH-6744]
+* `azurerm_monitor_diagnostic_setting` - `log_analytics_destination_type` supports `AzureDiagnostics` [GH-6769]
+* `azurerm_windows_virtual_machine_scale_set` - support for configuring `create_mode` for data disks [GH-6744]
 
 BUG FIXES:
 
+* `azurerm_analysis_services_server` - ip restriction name field no longer case sensitive [GH-6774]
+* `azurerm_eventhub_namespace_authorization_rule` - lock to prevent multiple resources won't clash [GH-6701]
+* `azurerm_network_interface` - changes to dns servers no longer use incremental update [GH-6624]
 * `azurerm_policy_definition` - changes to the dynamic fields (`createdBy`, `createdOn`, `updatedBy`, `updatedOn`) keys in the `metadata` field are excluded from diff's [GH-6734]
+* `azurerm_site_recovery_network_mapping` - handling an API Error when checking for the presence of an existing Network Mapping [GH-6747]
 
 ## 2.8.0 (April 30, 2020)
 

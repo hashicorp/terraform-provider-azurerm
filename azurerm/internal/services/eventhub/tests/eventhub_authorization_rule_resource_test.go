@@ -57,6 +57,54 @@ func testAccAzureRMEventHubAuthorizationRule(t *testing.T, listen, send, manage 
 	})
 }
 
+func TestAccAzureRMEventHubAuthorizationRule_multi(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test1")
+	resourceTwoName := "azurerm_eventhub_authorization_rule.test2"
+	resourceThreeName := "azurerm_eventhub_authorization_rule.test3"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventHubAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMEventHubAuthorizationRule_multi(data, true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubAuthorizationRuleExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "manage", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "send", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "listen", "true"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_connection_string"),
+					testCheckAzureRMEventHubAuthorizationRuleExists(resourceTwoName),
+					resource.TestCheckResourceAttr(resourceTwoName, "manage", "false"),
+					resource.TestCheckResourceAttr(resourceTwoName, "send", "true"),
+					resource.TestCheckResourceAttr(resourceTwoName, "listen", "true"),
+					resource.TestCheckResourceAttrSet(resourceTwoName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceTwoName, "secondary_connection_string"),
+					testCheckAzureRMEventHubAuthorizationRuleExists(resourceThreeName),
+					resource.TestCheckResourceAttr(resourceThreeName, "manage", "false"),
+					resource.TestCheckResourceAttr(resourceThreeName, "send", "true"),
+					resource.TestCheckResourceAttr(resourceThreeName, "listen", "true"),
+					resource.TestCheckResourceAttrSet(resourceThreeName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceThreeName, "secondary_connection_string"),
+				),
+			},
+			data.ImportStep(),
+			{
+				ResourceName:      resourceTwoName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceThreeName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMEventHubAuthorizationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventhub_authorization_rule", "test")
 
@@ -212,6 +260,40 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   manage = %[5]t
 }
 `, data.RandomInteger, data.Locations.Primary, listen, send, manage)
+}
+
+func testAzureRMEventHubAuthorizationRule_multi(data acceptance.TestData, listen, send, manage bool) string {
+	template := testAccAzureRMEventHubAuthorizationRule_base(data, listen, send, manage)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventhub_authorization_rule" "test1" {
+  name                = "acctestruleone-%d"
+  eventhub_name       = azurerm_eventhub.test.name
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  send                = true
+  listen              = true
+}
+
+resource "azurerm_eventhub_authorization_rule" "test2" {
+  name                = "acctestruletwo-%d"
+  eventhub_name       = azurerm_eventhub.test.name
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  send                = true
+  listen              = true
+}
+
+resource "azurerm_eventhub_authorization_rule" "test3" {
+  name                = "acctestrulethree-%d"
+  eventhub_name       = azurerm_eventhub.test.name
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  send                = true
+  listen              = true
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMEventHubAuthorizationRule_requiresImport(data acceptance.TestData, listen, send, manage bool) string {

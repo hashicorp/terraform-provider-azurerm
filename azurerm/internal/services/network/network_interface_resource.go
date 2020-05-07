@@ -313,30 +313,29 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 		Location: utils.String(location),
 		InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 			EnableAcceleratedNetworking: utils.Bool(d.Get("enable_accelerated_networking").(bool)),
+			DNSSettings:                 &network.InterfaceDNSSettings{},
 		},
 	}
 
 	if d.HasChange("dns_servers") {
-		if update.InterfacePropertiesFormat.DNSSettings == nil {
-			update.InterfacePropertiesFormat.DNSSettings = &network.InterfaceDNSSettings{}
-		}
-
 		dnsServersRaw := d.Get("dns_servers").([]interface{})
 		dnsServers := expandNetworkInterfaceDnsServers(dnsServersRaw)
 
 		update.InterfacePropertiesFormat.DNSSettings.DNSServers = &dnsServers
+	} else {
+		update.InterfacePropertiesFormat.DNSSettings.DNSServers = existing.InterfacePropertiesFormat.DNSSettings.DNSServers
 	}
 
 	if d.HasChange("enable_ip_forwarding") {
 		update.InterfacePropertiesFormat.EnableIPForwarding = utils.Bool(d.Get("enable_ip_forwarding").(bool))
+	} else {
+		update.InterfacePropertiesFormat.EnableIPForwarding = existing.InterfacePropertiesFormat.EnableIPForwarding
 	}
 
 	if d.HasChange("internal_dns_name_label") {
-		if update.InterfacePropertiesFormat.DNSSettings == nil {
-			update.InterfacePropertiesFormat.DNSSettings = &network.InterfaceDNSSettings{}
-		}
-
 		update.InterfacePropertiesFormat.DNSSettings.InternalDNSNameLabel = utils.String(d.Get("internal_dns_name_label").(string))
+	} else {
+		update.InterfacePropertiesFormat.DNSSettings.InternalDNSNameLabel = existing.InterfacePropertiesFormat.DNSSettings.InternalDNSNameLabel
 	}
 
 	if d.HasChange("ip_configuration") {
@@ -364,6 +363,8 @@ func resourceArmNetworkInterfaceUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("tags") {
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
+	} else {
+		update.Tags = existing.Tags
 	}
 
 	// this can be managed in another resource, so just port it over
