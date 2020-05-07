@@ -5,14 +5,20 @@ FEATURES:
 * **New Data Source:** `azurerm_data_share_account` [GH-6575]
 * **New Resource:** `azurerm_data_share_account` [GH-6575]
 * **New Resource:** `azurerm_function_app_slot` [GH-6435]
-* **New resource:** `azurerm_sentinel_alert_rule_scheduled` [GH-6650]
+* **New Resource:** `azurerm_sentinel_alert_rule_scheduled` [GH-6650]
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_eventhub_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* Data Source: `azurerm_eventhub_namespace_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* Data Source: `azurerm_eventhub_namespace` - support for the `default_primary_connection_string_alias` an `_defaultsecondary_connection_string_alias` propeties  [GH-6708]
 * `azurerm_analysis_services_server` - support updating when the Server is paused [GH-6786]
 * `azurerm_app_service` - support for health_check_path preview feature added [GH-6661]
 * `azurerm_app_service` - support for `name` and `priority` on `ip_restrictions` [GH-6705]
 * `azurerm_application_gateway` - support for SSL Certificates without passwords [GH-6742]
+* `azurerm_eventhub_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* `azurerm_eventhub_namespace_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* `azurerm_eventhub_namespace` - support for the `default_primary_connection_string_alias` an `_defaultsecondary_connection_string_alias` propeties  [GH-6708]
 * `azurerm_hdinsight_hadoop_cluster` - support for metastores on cluster creation [GH-6145]
 * `azurerm_key_vault_certificate` - support for recovering a soft-deleted certificate if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
 * `azurerm_key_vault_key` - support for recovering a soft-deleted key if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
@@ -23,6 +29,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* provider: raising an error when the environment is set to `AZURESTACKCLOUD` [GH-6817]
 * `azurerm_analysis_services_server` - ip restriction name field no longer case sensitive [GH-6774]
 * `azurerm_eventhub_namespace_authorization_rule` - lock to prevent multiple resources won't clash [GH-6701]
 * `azurerm_network_interface` - changes to dns servers no longer use incremental update [GH-6624]
