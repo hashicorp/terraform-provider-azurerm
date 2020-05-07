@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -204,6 +205,33 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "backup_blob_container_uri"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAnalysisServicesServer_suspended(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAnalysisServicesServer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(data.ResourceName),
+					testSuspendAzureRMAnalysisServicesServer(data.ResourceName),
+					testCheckAzureRMAnalysisServicesServerState(data.ResourceName, analysisservices.StatePaused),
+				),
+			},
+			{
+				Config: testAccAzureRMAnalysisServicesServer_scale(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "sku", "S1"),
+					testCheckAzureRMAnalysisServicesServerState(data.ResourceName, analysisservices.StatePaused),
 				),
 			},
 		},
@@ -477,6 +505,26 @@ resource "azurerm_analysis_services_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
+func testAccAzureRMAnalysisServicesServer_scale(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                = "acctestass%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "S1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -528,6 +576,63 @@ func testCheckAzureRMAnalysisServicesServerExists(resourceName string) resource.
 			}
 
 			return fmt.Errorf("Bad: Get on analysisServicesServerClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testSuspendAzureRMAnalysisServicesServer(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		id, err := parse.AnalysisServicesServerID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("Bad: Suspend on analysisServicesServerClient: %+v", err)
+		}
+
+		err = suspendFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("Bad: Wait for Suspend completion on analysisServicesServerClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMAnalysisServicesServerState(resourceName string, state analysisservices.State) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).AnalysisServices.ServerClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		id, err := parse.AnalysisServicesServerID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		resp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on analysisServicesServerClient: %+v", err)
+		}
+
+		if resp.State != state {
+			return fmt.Errorf("Unexpected state. Expected %s but is %s", state, resp.State)
 		}
 
 		return nil

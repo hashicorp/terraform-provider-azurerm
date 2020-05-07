@@ -52,7 +52,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateWindowsName,
+				ValidateFunc: ValidateVmName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -129,9 +129,8 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				// Computed since we reuse the VM name if one's not specified
 				Computed: true,
 				ForceNew: true,
-				// note: whilst the portal says 1-15 characters it seems to mirror the rules for the vm name
-				// (e.g. 1-15 for Windows, 1-63 for Windows)
-				ValidateFunc: ValidateWindowsName,
+
+				ValidateFunc: ValidateWindowsComputerNameFull,
 			},
 
 			"custom_data": base64.OptionalSchema(true),
@@ -295,7 +294,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -319,6 +318,10 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
 	} else {
+		_, errs := ValidateWindowsComputerNameFull(d.Get("name"), "computer_name")
+		if len(errs) > 0 {
+			return fmt.Errorf("unable to assume default computer name %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
+		}
 		computerName = name
 	}
 	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
@@ -326,7 +329,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := expandVirtualMachineIdentity(identityRaw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `identity`: %+v", err)
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 	planRaw := d.Get("plan").([]interface{})
 	plan := expandPlan(planRaw)
@@ -466,20 +469,20 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("Error creating Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
+		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -507,7 +510,7 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -517,20 +520,20 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if err := d.Set("identity", flattenVirtualMachineIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("Error setting `identity`: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 
 	if err := d.Set("plan", flattenPlan(resp.Plan)); err != nil {
-		return fmt.Errorf("Error setting `plan`: %+v", err)
+		return fmt.Errorf("setting `plan`: %+v", err)
 	}
 
 	if resp.VirtualMachineProperties == nil {
-		return fmt.Errorf("Error retrieving Windows Virtual Machine %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
+		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 
 	props := *resp.VirtualMachineProperties
 	if err := d.Set("additional_capabilities", flattenVirtualMachineAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
-		return fmt.Errorf("Error setting `additional_capabilities`: %+v", err)
+		return fmt.Errorf("setting `additional_capabilities`: %+v", err)
 	}
 
 	availabilitySetId := ""
@@ -540,7 +543,7 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 	d.Set("availability_set_id", availabilitySetId)
 
 	if err := d.Set("boot_diagnostics", flattenBootDiagnostics(props.DiagnosticsProfile)); err != nil {
-		return fmt.Errorf("Error setting `boot_diagnostics`: %+v", err)
+		return fmt.Errorf("setting `boot_diagnostics`: %+v", err)
 	}
 
 	d.Set("eviction_policy", string(props.EvictionPolicy))
@@ -558,7 +561,7 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 
 	if profile := props.NetworkProfile; profile != nil {
 		if err := d.Set("network_interface_ids", flattenVirtualMachineNetworkInterfaceIDs(props.NetworkProfile.NetworkInterfaces)); err != nil {
-			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
+			return fmt.Errorf("setting `network_interface_ids`: %+v", err)
 		}
 	}
 
@@ -575,7 +578,7 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 
 		if config := profile.WindowsConfiguration; config != nil {
 			if err := d.Set("additional_unattend_content", flattenAdditionalUnattendContent(config.AdditionalUnattendContent, d)); err != nil {
-				return fmt.Errorf("Error setting `additional_unattend_content`: %+v", err)
+				return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
 			}
 
 			d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
@@ -584,12 +587,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 			d.Set("timezone", config.TimeZone)
 
 			if err := d.Set("winrm_listener", flattenWinRMListener(config.WinRM)); err != nil {
-				return fmt.Errorf("Error setting `winrm_listener`: %+v", err)
+				return fmt.Errorf("setting `winrm_listener`: %+v", err)
 			}
 		}
 
 		if err := d.Set("secret", flattenWindowsSecrets(profile.Secrets)); err != nil {
-			return fmt.Errorf("Error setting `secret`: %+v", err)
+			return fmt.Errorf("setting `secret`: %+v", err)
 		}
 	}
 	// Resources created with azurerm_virtual_machine have priority set to ""
@@ -609,10 +612,10 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		// the storage_account_type isn't returned so we need to look it up
 		flattenedOSDisk, err := flattenVirtualMachineOSDisk(ctx, disksClient, profile.OsDisk)
 		if err != nil {
-			return fmt.Errorf("Error flattening `os_disk`: %+v", err)
+			return fmt.Errorf("flattening `os_disk`: %+v", err)
 		}
 		if err := d.Set("os_disk", flattenedOSDisk); err != nil {
-			return fmt.Errorf("Error settings `os_disk`: %+v", err)
+			return fmt.Errorf("settings `os_disk`: %+v", err)
 		}
 
 		var storageImageId string
@@ -622,7 +625,7 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		d.Set("source_image_id", storageImageId)
 
 		if err := d.Set("source_image_reference", flattenSourceImageReference(profile.ImageReference)); err != nil {
-			return fmt.Errorf("Error setting `source_image_reference`: %+v", err)
+			return fmt.Errorf("setting `source_image_reference`: %+v", err)
 		}
 	}
 
@@ -667,13 +670,13 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	log.Printf("[DEBUG] Retrieving InstanceView for Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	instanceView, err := client.InstanceView(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving InstanceView for Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving InstanceView for Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView)
@@ -722,7 +725,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		identityRaw := d.Get("identity").([]interface{})
 		identity, err := expandVirtualMachineIdentity(identityRaw)
 		if err != nil {
-			return fmt.Errorf("Error expanding `identity`: %+v", err)
+			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		update.Identity = identity
 	}
@@ -789,7 +792,7 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		availableOnThisHost := false
 		sizes, err := client.ListAvailableSizes(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error retrieving available sizes for Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("retrieving available sizes for Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if sizes.Value != nil {
@@ -831,11 +834,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		forceShutdown := false
 		future, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(forceShutdown))
 		if err != nil {
-			return fmt.Errorf("Error sending Power Off to Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("sending Power Off to Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for Power Off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for Power Off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Shut Down Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
@@ -846,11 +849,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 			log.Printf("[DEBUG] Deallocating Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 			future, err := client.Deallocate(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
-				return fmt.Errorf("Error Deallocating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("Deallocating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for Deallocation of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("waiting for Deallocation of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Deallocated Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
@@ -878,11 +881,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 
 		future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
 		if err != nil {
-			return fmt.Errorf("Error resizing OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("resizing OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for resize of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for resize of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Resized OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.Name, id.ResourceGroup, newSize)
@@ -892,11 +895,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		log.Printf("[DEBUG] Updating Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
 		if err != nil {
-			return fmt.Errorf("Error updating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("updating Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for update of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for update of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Updated Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
@@ -907,11 +910,11 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		log.Printf("[DEBUG] Starting Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := client.Start(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
-			return fmt.Errorf("Error starting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("starting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for start of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("waiting for start of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 
 		log.Printf("[DEBUG] Started Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
@@ -940,7 +943,7 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	// ISSUE: XXX
@@ -952,20 +955,20 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 	skipShutdown := true
 	powerOffFuture, err := client.PowerOff(ctx, id.ResourceGroup, id.Name, utils.Bool(skipShutdown))
 	if err != nil {
-		return fmt.Errorf("Error powering off Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("powering off Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err := powerOffFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for power off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for power off of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	log.Printf("[DEBUG] Powered Off Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
 	log.Printf("[DEBUG] Deleting Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	if err := deleteFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Windows Virtual Machine %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	log.Printf("[DEBUG] Deleted Windows Virtual Machine %q (Resource Group %q).", id.Name, id.ResourceGroup)
 
@@ -989,12 +992,12 @@ func resourceWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{
 			diskDeleteFuture, err := disksClient.Delete(ctx, diskId.ResourceGroup, diskId.Name)
 			if err != nil {
 				if !response.WasNotFound(diskDeleteFuture.Response()) {
-					return fmt.Errorf("Error deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("deleting OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 			if !response.WasNotFound(diskDeleteFuture.Response()) {
 				if err := diskDeleteFuture.WaitForCompletionRef(ctx, disksClient.Client); err != nil {
-					return fmt.Errorf("Error OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
+					return fmt.Errorf("OS Disk %q (Resource Group %q) for Windows Virtual Machine %q (Resource Group %q): %+v", diskId.Name, diskId.ResourceGroup, id.Name, id.ResourceGroup, err)
 				}
 			}
 

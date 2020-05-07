@@ -251,9 +251,10 @@ func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 				Config: testAccAzureRMFunctionApp_connectionStrings(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.0.name", "Example"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.0.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.0.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.name", "Example"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.value", "some-postgresql-connection-string"),
 				),
 			},
 			data.ImportStep(),
@@ -261,6 +262,7 @@ func TestAccAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	})
 }
 
+// TODO - Refactor this into more granular tests - currently fails due to race condition in a `ForceNew` step when changed to `kind = linux`
 func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 
@@ -313,9 +315,9 @@ func TestAccAzureRMFunctionApp_siteConfigMulti(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.hello", "world"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.always_on", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.0.name", "Example"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.0.value", "some-postgresql-connection-string"),
-					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.0.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.name", "Example"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.type", "PostgreSQL"),
+					resource.TestCheckResourceAttr(data.ResourceName, "connection_string.163594034.value", "some-postgresql-connection-string"),
 				),
 			},
 		},

@@ -22,6 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
@@ -98,6 +99,7 @@ func SupportedServices() []common.ServiceRegistration {
 		datafactory.Registration{},
 		datalake.Registration{},
 		databasemigration.Registration{},
+		datashare.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
 		dns.Registration{},
