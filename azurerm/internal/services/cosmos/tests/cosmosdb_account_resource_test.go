@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"net/http"
+	`regexp`
 	"strconv"
 	"testing"
 
@@ -342,6 +343,57 @@ func TestAccAzureRMCosmosDBAccount_capabilitiesUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_multiMaster_geoReplicated_zoned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_multiMaster_geoReplicated_zoned(data),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "write_endpoints.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_multiple_write_locations", "true"),
+					testCheckZoneRedundantCount(data.ResourceName, 1, 1),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func testCheckZoneRedundantCount(resourceName string, enabledCount int, disabledCount int) func(*terraform.State) error {
+	return func(state *terraform.State) error {
+		r := regexp.MustCompile(`(geo_location)(.)\\d+(.)(zone_redundant)`)
+		root := state.RootModule().Resources[resourceName].Primary
+
+		foundEnabled := 0
+		foundDisabled := 0
+
+		for k, v := range root.Attributes {
+			if r.MatchString(k) {
+				switch v {
+				case "true":
+					foundEnabled++
+				case "false":
+					foundDisabled++
+				default:
+					return fmt.Errorf("unexpected boolean value found: %s", v)
+				}
+			}
+		}
+
+		if foundEnabled != enabledCount || foundDisabled != disabledCount {
+			return fmt.Errorf("unexpected number of enabled(%d) and disabled(%d) `zone_redudant` flags", foundEnabled, foundDisabled)
+		}
+
+		return nil
+	}
+}
+
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -642,6 +694,36 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), capeTf)
+}
+
+func testAccAzureRMCosmosDBAccount_multiMaster_geoReplicated_zoned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+  consistency_policy {
+    consistency_level = "Eventual"
+  }
+  enable_multiple_write_locations = true
+  geo_location {
+    location          = "%s"
+    failover_priority = 0
+    zone_redundant    = true
+  }
+  geo_location {
+    location          = "%s"
+    failover_priority = 1
+    zone_redundant    = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func checkAccAzureRMCosmosDBAccount_basic(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel, locationCount int) resource.TestCheckFunc {
