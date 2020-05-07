@@ -12,7 +12,10 @@ func MetaDataSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeMap,
 		Optional:     true,
-		ValidateFunc: validateMetaDataKeys,
+		ValidateFunc: ValidateMetaDataKeys,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }
 
@@ -21,7 +24,10 @@ func MetaDataComputedSchema() *schema.Schema {
 		Type:         schema.TypeMap,
 		Optional:     true,
 		Computed:     true,
-		ValidateFunc: validateMetaDataKeys,
+		ValidateFunc: ValidateMetaDataKeys,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }
 
@@ -45,7 +51,7 @@ func FlattenMetaData(input map[string]string) map[string]interface{} {
 	return output
 }
 
-func validateMetaDataKeys(value interface{}, _ string) (warnings []string, errors []error) {
+func ValidateMetaDataKeys(value interface{}, _ string) (warnings []string, errors []error) {
 	v, ok := value.(map[string]interface{})
 	if !ok {
 		return
@@ -59,8 +65,7 @@ func validateMetaDataKeys(value interface{}, _ string) (warnings []string, error
 
 		// must begin with a letter, underscore
 		// the rest: letters, digits and underscores
-		r, _ := regexp.Compile(`^([a-z_]{1}[a-z0-9_]{1,})$`)
-		if !r.MatchString(k) {
+		if !regexp.MustCompile(`^([a-z_]{1}[a-z0-9_]{1,})$`).MatchString(k) {
 			errors = append(errors, fmt.Errorf("MetaData must start with letters or an underscores. Got %q.", k))
 		}
 	}

@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
-sidebar_current: "docs-azurerm-resource-messaging-servicebus-namespace-x"
 description: |-
   Manages a ServiceBus Namespace.
 ---
@@ -14,15 +13,19 @@ Manages a ServiceBus Namespace.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "terraform-servicebus"
   location = "West Europe"
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_sevicebus_namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  name                = "tfex-servicebus-namespace"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
   tags = {
@@ -43,7 +46,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Defines which tier to use. Options are basic, standard or premium.
+* `sku` - (Required) Defines which tier to use. Options are basic, standard or premium. Changing this forces a new resource to be created.
 
 * `capacity` - (Optional) Specifies the capacity. When `sku` is `Premium`, capacity can be `1`, `2`, `4` or `8`. When `sku` is `Basic` or `Standard`, capacity can be `0` only.
 
@@ -69,6 +72,15 @@ The following attributes are exported only if there is an authorization rule nam
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Namespace.
 
 ## Import
 

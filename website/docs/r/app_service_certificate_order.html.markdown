@@ -2,7 +2,6 @@
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_certificate_order"
-sidebar_current: "docs-azurerm-resource-app-service-certificate-order"
 description: |-
   Manages an App Service Certificate Order.
 
@@ -22,10 +21,10 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_app_service_certificate_order" "example" {
   name                = "example-cert-order"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   location            = "global"
   distinguished_name  = "CN=example.com"
-  product_type        = "standard"
+  product_type        = "Standard"
 }
 ```
 
@@ -37,9 +36,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the certificate. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created. Currently the only valid value is `global`.
 
-* `auto_renew` - (Optional) true if the certificate should be automatically renewed when it expires; otherwise, false.
+* `auto_renew` - (Optional) true if the certificate should be automatically renewed when it expires; otherwise, false. Defaults to true.
 
 * `csr` - (Optional) Last CSR that was created for this order.
 
@@ -47,11 +46,11 @@ The following arguments are supported:
 
 -> **NOTE:** Either `csr` or `distinguished_name` must be set - but not both.
 
-* `key_size` - (Optional) Certificate key size.
+* `key_size` - (Optional) Certificate key size.  Defaults to 2048.
 
 * `product_type` - (Optional) Certificate product type, such as `Standard` or `WildCard`.
 
-* `validity_in_years` - (Optional) Duration in years (must be between 1 and 3).
+* `validity_in_years` - (Optional) Duration in years (must be between `1` and `3`).  Defaults to `1`.
 
 ## Attributes Reference
 
@@ -91,9 +90,18 @@ The following attributes are exported:
 
 * `provisioning_state` - Status of the Key Vault secret.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate Order.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Certificate Order.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate Order.
+* `delete` - (Defaults to 30 minutes) Used when deleting the App Service Certificate Order.
+
 ## Import
 
-App Service certificate order can be imported using the `resource id`, e.g.
+App Service Certificate Orders can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_app_certificate_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1

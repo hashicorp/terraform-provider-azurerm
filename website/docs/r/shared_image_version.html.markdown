@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_version"
-sidebar_current: "docs-azurerm-resource-compute-shared-image-version"
 description: |-
   Manages a Version of a Shared Image within a Shared Image Gallery.
 
@@ -28,15 +27,16 @@ data "azurerm_shared_image" "existing" {
 
 resource "azurerm_shared_image_version" "example" {
   name                = "0.0.1"
-  gallery_name        = "${data.azurerm_shared_image.existing.gallery_name}"
-  image_name          = "${data.azurerm_shared_image.existing.name}"
-  resource_group_name = "${data.azurerm_shared_image.existing.resource_group_name}"
-  location            = "${data.azurerm_shared_image.existing.location}"
-  managed_image_id    = "${data.azurerm_image.existing.id}"
+  gallery_name        = data.azurerm_shared_image.existing.gallery_name
+  image_name          = data.azurerm_shared_image.existing.name
+  resource_group_name = data.azurerm_shared_image.existing.resource_group_name
+  location            = data.azurerm_shared_image.existing.location
+  managed_image_id    = data.azurerm_image.existing.id
 
   target_region {
-    name                   = "${data.azurerm_shared_image.existing.location}"
+    name                   = data.azurerm_shared_image.existing.location
     regional_replica_count = "5"
+    storage_account_type   = "Standard_LRS"
   }
 }
 ```
@@ -73,11 +73,22 @@ The `target_region` block exports the following:
 
 * `regional_replica_count` - (Required) The number of replicas of the Image Version to be created per region.
 
+* `storage_account_type` - (Optional) The storage account type for the image version, which defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Shared Image Version.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Shared Image Version.
+* `update` - (Defaults to 30 minutes) Used when updating the Shared Image Version.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image Version.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Shared Image Version.
 
 ## Import
 

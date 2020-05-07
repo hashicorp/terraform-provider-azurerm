@@ -2,7 +2,6 @@
 subcategory: "Analysis Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_analysis_services_server"
-sidebar_current: "docs-azurerm-resource-analysis_services_server-x"
 description: |-
   Manages an Analysis Services Server.
 ---
@@ -22,7 +21,7 @@ resource "azurerm_resource_group" "rg" {
 resource "azurerm_analysis_services_server" "server" {
   name                    = "analysisservicesserver"
   location                = "northeurope"
-  resource_group_name     = "${azurerm_resource_group.rg.name}"
+  resource_group_name     = azurerm_resource_group.rg.name
   sku                     = "S0"
   admin_users             = ["myuser@domain.tld"]
   enable_power_bi_service = true
@@ -39,6 +38,8 @@ resource "azurerm_analysis_services_server" "server" {
 }
 ```
 
+-> **NOTE:** The server resource will automatically be started and stopped during an update if it is in `paused` state.
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -53,7 +54,7 @@ The following arguments are supported:
 
 * `admin_users` - (Optional) List of email addresses of admin users.
 
-* `querypool_connection_mode` - (Optional) Controls how the read-write server is used in the query pool. If this values is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` these servers do not participate in query operations.
+* `querypool_connection_mode` - (Optional) Controls how the read-write server is used in the query pool. If this value is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` these servers do not participate in query operations.
 
 * `backup_blob_container_uri` - (Optional) URI and SAS token for a blob container to store backups.
 
@@ -79,6 +80,15 @@ In addition to all arguments above, the following attributes are exported:
 * `id` - The ID of the Analysis Services Server.
 
 * `server_full_name` - The full name of the Analysis Services Server.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Analysis Services Server.
+* `update` - (Defaults to 30 minutes) Used when updating the Analysis Services Server.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Analysis Services Server.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Analysis Services Server.
 
 ## Import
 

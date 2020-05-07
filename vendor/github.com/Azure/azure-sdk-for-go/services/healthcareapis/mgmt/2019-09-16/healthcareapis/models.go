@@ -47,6 +47,21 @@ func PossibleKindValues() []Kind {
 	return []Kind{Fhir, FhirR4, FhirStu3}
 }
 
+// ManagedServiceIdentityType enumerates the values for managed service identity type.
+type ManagedServiceIdentityType string
+
+const (
+	// None ...
+	None ManagedServiceIdentityType = "None"
+	// SystemAssigned ...
+	SystemAssigned ManagedServiceIdentityType = "SystemAssigned"
+)
+
+// PossibleManagedServiceIdentityTypeValues returns an array of possible values for the ManagedServiceIdentityType const type.
+func PossibleManagedServiceIdentityTypeValues() []ManagedServiceIdentityType {
+	return []ManagedServiceIdentityType{None, SystemAssigned}
+}
+
 // OperationResultStatus enumerates the values for operation result status.
 type OperationResultStatus string
 
@@ -335,6 +350,8 @@ type Resource struct {
 	Tags map[string]*string `json:"tags"`
 	// Etag - An etag associated with the resource, used for optimistic concurrency when editing it.
 	Etag *string `json:"etag,omitempty"`
+	// Identity - Setting indicating whether the service has a managed identity associated with it.
+	Identity *ResourceIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
@@ -352,7 +369,16 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	if r.Etag != nil {
 		objectMap["etag"] = r.Etag
 	}
+	if r.Identity != nil {
+		objectMap["identity"] = r.Identity
+	}
 	return json.Marshal(objectMap)
+}
+
+// ResourceIdentity setting indicating whether the service has a managed identity associated with it.
+type ResourceIdentity struct {
+	// Type - Type of identity being specified, currently SystemAssigned and None are allowed. Possible values include: 'SystemAssigned', 'None'
+	Type ManagedServiceIdentityType `json:"type,omitempty"`
 }
 
 // ServiceAccessPolicyEntry an access policy entry.
@@ -462,6 +488,8 @@ type ServicesDescription struct {
 	Tags map[string]*string `json:"tags"`
 	// Etag - An etag associated with the resource, used for optimistic concurrency when editing it.
 	Etag *string `json:"etag,omitempty"`
+	// Identity - Setting indicating whether the service has a managed identity associated with it.
+	Identity *ResourceIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ServicesDescription.
@@ -481,6 +509,9 @@ func (sd ServicesDescription) MarshalJSON() ([]byte, error) {
 	}
 	if sd.Etag != nil {
 		objectMap["etag"] = sd.Etag
+	}
+	if sd.Identity != nil {
+		objectMap["identity"] = sd.Identity
 	}
 	return json.Marshal(objectMap)
 }

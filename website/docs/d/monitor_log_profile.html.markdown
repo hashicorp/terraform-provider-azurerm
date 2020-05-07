@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_log_profile"
-sidebar_current: "docs-azurerm-datasource-monitor-log-profile"
 description: |-
   Get information about the specified Log Profile.
 ---
@@ -19,13 +18,13 @@ data "azurerm_monitor_log_profile" "example" {
 }
 
 output "log_profile_storage_account_id" {
-  value = "${data.azurerm_monitor_log_profile.example.storage_account_id}"
+  value = data.azurerm_monitor_log_profile.example.storage_account_id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) Specifies the Name of the Log Profile.
+* `name` - Specifies the Name of the Log Profile.
 
 
 ## Attributes Reference
@@ -49,3 +48,9 @@ The `retention_policy` block supports:
 * `enabled` - A boolean value indicating whether the retention policy is enabled.
 
 * `days` - The number of days for the retention policy.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Log Profile.

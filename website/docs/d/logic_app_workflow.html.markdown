@@ -1,8 +1,7 @@
 ---
-subcategory: ""
+subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_workflow"
-sidebar_current: "docs-azurerm-data-source-logic-app-workflow"
 description: |-
   Gets information about an existing Logic App Workflow.
 ---
@@ -20,7 +19,7 @@ data "azurerm_logic_app_workflow" "example" {
 }
 
 output "access_endpoint" {
-  value = "${data.azurerm_logic_app_workflow.example.access_endpoint}"
+  value = data.azurerm_logic_app_workflow.example.access_endpoint
 }
 ```
 
@@ -28,9 +27,9 @@ output "access_endpoint" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Logic App Workflow.
+* `name` - The name of the Logic App Workflow.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Logic App Workflow exists.
+* `resource_group_name` - The name of the Resource Group in which the Logic App Workflow exists.
 
 ## Attributes Reference
 
@@ -49,3 +48,17 @@ The following attributes are exported:
 * `tags` - A mapping of tags assigned to the resource.
 
 * `access_endpoint` - The Access Endpoint for the Logic App Workflow
+
+* `connector_endpoint_ip_addresses` - The list of access endpoint ip addresses of connector.
+
+* `connector_outbound_ip_addresses` - The list of outgoing ip addresses of connector.
+
+* `workflow_endpoint_ip_addresses` - The list of access endpoint ip addresses of workflow.
+
+* `workflow_outbound_ip_addresses` - The list of outgoing ip addresses of workflow.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Workflow.

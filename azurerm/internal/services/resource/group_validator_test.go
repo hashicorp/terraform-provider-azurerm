@@ -73,7 +73,7 @@ func TestValidateResourceGroupIDOrEmpty(t *testing.T) {
 			ID:     "nonsense",
 			Errors: 1,
 		},
-		//as this function just calls TestAzureResourceGroupId lets not be as comprehensive
+		// as this function just calls TestAzureResourceGroupId lets not be as comprehensive
 		{
 			ID:     "/providers/provider.name/",
 			Errors: 0,

@@ -35,7 +35,9 @@ func NewProximityPlacementGroupsClient(subscriptionID string) ProximityPlacement
 	return NewProximityPlacementGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProximityPlacementGroupsClientWithBaseURI creates an instance of the ProximityPlacementGroupsClient client.
+// NewProximityPlacementGroupsClientWithBaseURI creates an instance of the ProximityPlacementGroupsClient client using
+// a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewProximityPlacementGroupsClientWithBaseURI(baseURI string, subscriptionID string) ProximityPlacementGroupsClient {
 	return ProximityPlacementGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -103,8 +105,7 @@ func (client ProximityPlacementGroupsClient) CreateOrUpdatePreparer(ctx context.
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProximityPlacementGroupsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -180,8 +181,7 @@ func (client ProximityPlacementGroupsClient) DeletePreparer(ctx context.Context,
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProximityPlacementGroupsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -200,7 +200,9 @@ func (client ProximityPlacementGroupsClient) DeleteResponder(resp *http.Response
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // proximityPlacementGroupName - the name of the proximity placement group.
-func (client ProximityPlacementGroupsClient) Get(ctx context.Context, resourceGroupName string, proximityPlacementGroupName string) (result ProximityPlacementGroup, err error) {
+// includeColocationStatus - includeColocationStatus=true enables fetching the colocation status of all the
+// resources in the proximity placement group.
+func (client ProximityPlacementGroupsClient) Get(ctx context.Context, resourceGroupName string, proximityPlacementGroupName string, includeColocationStatus string) (result ProximityPlacementGroup, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ProximityPlacementGroupsClient.Get")
 		defer func() {
@@ -211,7 +213,7 @@ func (client ProximityPlacementGroupsClient) Get(ctx context.Context, resourceGr
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetPreparer(ctx, resourceGroupName, proximityPlacementGroupName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, proximityPlacementGroupName, includeColocationStatus)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.ProximityPlacementGroupsClient", "Get", nil, "Failure preparing request")
 		return
@@ -233,7 +235,7 @@ func (client ProximityPlacementGroupsClient) Get(ctx context.Context, resourceGr
 }
 
 // GetPreparer prepares the Get request.
-func (client ProximityPlacementGroupsClient) GetPreparer(ctx context.Context, resourceGroupName string, proximityPlacementGroupName string) (*http.Request, error) {
+func (client ProximityPlacementGroupsClient) GetPreparer(ctx context.Context, resourceGroupName string, proximityPlacementGroupName string, includeColocationStatus string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"proximityPlacementGroupName": autorest.Encode("path", proximityPlacementGroupName),
 		"resourceGroupName":           autorest.Encode("path", resourceGroupName),
@@ -243,6 +245,9 @@ func (client ProximityPlacementGroupsClient) GetPreparer(ctx context.Context, re
 	const APIVersion = "2019-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(includeColocationStatus) > 0 {
+		queryParameters["includeColocationStatus"] = autorest.Encode("query", includeColocationStatus)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -256,8 +261,7 @@ func (client ProximityPlacementGroupsClient) GetPreparer(ctx context.Context, re
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProximityPlacementGroupsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -332,8 +336,7 @@ func (client ProximityPlacementGroupsClient) ListByResourceGroupPreparer(ctx con
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProximityPlacementGroupsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -442,8 +445,7 @@ func (client ProximityPlacementGroupsClient) ListBySubscriptionPreparer(ctx cont
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProximityPlacementGroupsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySubscriptionResponder handles the response to the ListBySubscription request. The method always
@@ -559,8 +561,7 @@ func (client ProximityPlacementGroupsClient) UpdatePreparer(ctx context.Context,
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProximityPlacementGroupsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

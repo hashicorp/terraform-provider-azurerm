@@ -12,5 +12,6 @@ func main() {
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
 	plugin.Serve(&plugin.ServeOpts{
-		ProviderFunc: azurerm.Provider})
+		ProviderFunc: azurerm.Provider,
+	})
 }

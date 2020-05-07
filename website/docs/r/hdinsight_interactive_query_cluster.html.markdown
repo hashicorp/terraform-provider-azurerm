@@ -2,7 +2,6 @@
 subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_interactive_query_cluster"
-sidebar_current: "docs-azurerm-resource-hdinsight-interactive-query-cluster"
 description: |-
   Manages a HDInsight Interactive Query Cluster.
 ---
@@ -21,23 +20,22 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "hdinsightstor"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "hdinsight"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_hdinsight_interactive_query_cluster" "example" {
   name                = "example-hdicluster"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_version     = "3.6"
   tier                = "Standard"
 
@@ -52,8 +50,8 @@ resource "azurerm_hdinsight_interactive_query_cluster" "example" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.example.id}"
-    storage_account_key  = "${azurerm_storage_account.example.primary_access_key}"
+    storage_container_id = azurerm_storage_container.example.id
+    storage_account_key  = azurerm_storage_account.example.primary_access_key
     is_default           = true
   }
 
@@ -104,6 +102,9 @@ The following arguments are supported:
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Interactive Query Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
+* `min_tls_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
+
+~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
 ---
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight Interactive Query Cluster.
@@ -243,6 +244,17 @@ The following attributes are exported:
 * `https_endpoint` - The HTTPS Connectivity Endpoint for this HDInsight Interactive Query Cluster.
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight Interactive Query Cluster.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Interactive Query HDInsight Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the Interactive Query HDInsight Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Interactive Query HDInsight Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Interactive Query HDInsight Cluster.
 
 ## Import
 

@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -37,15 +38,16 @@ func NewServerSecurityAlertPoliciesClient(subscriptionID string) ServerSecurityA
 	return NewServerSecurityAlertPoliciesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServerSecurityAlertPoliciesClientWithBaseURI creates an instance of the ServerSecurityAlertPoliciesClient client.
+// NewServerSecurityAlertPoliciesClientWithBaseURI creates an instance of the ServerSecurityAlertPoliciesClient client
+// using a custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign
+// clouds, Azure stack).
 func NewServerSecurityAlertPoliciesClientWithBaseURI(baseURI string, subscriptionID string) ServerSecurityAlertPoliciesClient {
 	return ServerSecurityAlertPoliciesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // CreateOrUpdate creates or updates a threat detection policy.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 // parameters - the server security alert policy.
 func (client ServerSecurityAlertPoliciesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, serverName string, parameters ServerSecurityAlertPolicy) (result ServerSecurityAlertPoliciesCreateOrUpdateFuture, err error) {
@@ -59,6 +61,16 @@ func (client ServerSecurityAlertPoliciesClient) CreateOrUpdate(ctx context.Conte
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mysql.ServerSecurityAlertPoliciesClient", "CreateOrUpdate", err.Error())
+	}
+
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, serverName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.ServerSecurityAlertPoliciesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -101,9 +113,8 @@ func (client ServerSecurityAlertPoliciesClient) CreateOrUpdatePreparer(ctx conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerSecurityAlertPoliciesClient) CreateOrUpdateSender(req *http.Request) (future ServerSecurityAlertPoliciesCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -126,8 +137,7 @@ func (client ServerSecurityAlertPoliciesClient) CreateOrUpdateResponder(resp *ht
 
 // Get get a server's security alert policy.
 // Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // serverName - the name of the server.
 func (client ServerSecurityAlertPoliciesClient) Get(ctx context.Context, resourceGroupName string, serverName string) (result ServerSecurityAlertPolicy, err error) {
 	if tracing.IsEnabled() {
@@ -140,6 +150,16 @@ func (client ServerSecurityAlertPoliciesClient) Get(ctx context.Context, resourc
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("mysql.ServerSecurityAlertPoliciesClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, serverName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "mysql.ServerSecurityAlertPoliciesClient", "Get", nil, "Failure preparing request")
@@ -186,8 +206,7 @@ func (client ServerSecurityAlertPoliciesClient) GetPreparer(ctx context.Context,
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerSecurityAlertPoliciesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always

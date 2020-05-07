@@ -2,20 +2,23 @@
 subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_definition"
-sidebar_current: "docs-azurerm-resource-policy-definition"
 description: |-
   Manages a policy rule definition. Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 ---
 
 # azurerm_policy_definition
 
-Manages a policy rule definition on a management group or your provider subscription. 
+Manages a policy rule definition on a management group or your provider subscription.
 
 Policy definitions do not take effect until they are assigned to a scope using a Policy Assignment.
 
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_definition" "policy" {
   name         = "accTestPolicy"
   policy_type  = "Custom"
@@ -26,7 +29,9 @@ resource "azurerm_policy_definition" "policy" {
     {
     "category": "General"
     }
-  METADATA
+  
+METADATA
+
 
   policy_rule = <<POLICY_RULE
 	{
@@ -42,6 +47,7 @@ resource "azurerm_policy_definition" "policy" {
   }
 POLICY_RULE
 
+
   parameters = <<PARAMETERS
 	{
     "allowedLocations": {
@@ -54,6 +60,7 @@ POLICY_RULE
     }
   }
 PARAMETERS
+
 }
 ```
 
@@ -64,8 +71,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the policy definition. Changing this forces a
     new resource to be created.
 
-* `policy_type` - (Required) The policy type.  The value can be "BuiltIn", "Custom"
-    or "NotSpecified". Changing this forces a new resource to be created.
+* `policy_type` - (Required) The policy type. Possible values are `BuiltIn`, `Custom` and `NotSpecified`. Changing this forces a new resource to be created.
 
 * `mode` - (Required) The policy mode that allows you to specify which resource
     types will be evaluated.  The value can be "All", "Indexed" or
@@ -76,9 +82,7 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy definition.
 
-* `management_group_id` - (Optional) The ID of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
-
-~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `.group_id` and not `.id`.
+* `management_group_name` - (Optional) The name of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
 
 * `policy_rule` - (Optional) The policy rule for the policy definition. This
     is a json object representing the rule that contains an if and
@@ -95,7 +99,16 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The policy definition id.
+* `id` - The ID of the Policy Definition.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Policy Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Definition.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Policy Definition.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Policy Definition.
 
 ## Import
 

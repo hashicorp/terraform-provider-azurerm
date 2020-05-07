@@ -2,7 +2,6 @@
 subcategory: "Template"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_template_deployment"
-sidebar_current: "docs-azurerm-resource-template-deployment"
 description: |-
   Manages a template deployment of resources.
 ---
@@ -21,13 +20,13 @@ One workaround for this is to use a unique Resource Group for each ARM Template 
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG-01"
+  name     = "example-resources"
   location = "West US"
 }
 
 resource "azurerm_template_deployment" "example" {
   name                = "acctesttemplate-01"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 
   template_body = <<DEPLOY
 {
@@ -87,6 +86,7 @@ resource "azurerm_template_deployment" "example" {
 }
 DEPLOY
 
+
   # these key-value pairs are passed into the ARM Template's `parameters` block
   parameters = {
     "storageAccountType" = "Standard_GRS"
@@ -96,7 +96,7 @@ DEPLOY
 }
 
 output "storageAccountName" {
-  value = "${lookup(azurerm_template_deployment.example.outputs, "storageAccountName")}"
+  value = azurerm_template_deployment.example.outputs["storageAccountName"]
 }
 ```
 
@@ -132,3 +132,12 @@ The following attributes are exported:
 ## Note
 
 Terraform does not know about the individual resources created by Azure using a deployment template and therefore cannot delete these resources during a destroy. Destroying a template deployment removes the associated deployment operations, but will not delete the Azure resources created by the deployment. In order to delete these resources, the containing resource group must also be destroyed. [More information](https://docs.microsoft.com/en-us/rest/api/resources/deployments#Deployments_Delete).
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 3 hours) Used when creating the Template Deployment.
+* `update` - (Defaults to 3 hours) Used when updating the Template Deployment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Template Deployment.
+* `delete` - (Defaults to 3 hours) Used when deleting the Template Deployment.

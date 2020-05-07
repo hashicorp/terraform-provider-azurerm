@@ -2,7 +2,6 @@
 subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_marketplace_agreement"
-sidebar_current: "docs-azurerm-resource-compute-marketplace-agreement"
 description: |-
   Allows accepting the Legal Terms for a Marketplace Image.
 ---
@@ -36,6 +35,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Resource ID of the Marketplace Agreement.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Marketplace Agreement.
+* `update` - (Defaults to 30 minutes) Used when updating the Marketplace Agreement.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Marketplace Agreement.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Marketplace Agreement.
 
 ## Import
 

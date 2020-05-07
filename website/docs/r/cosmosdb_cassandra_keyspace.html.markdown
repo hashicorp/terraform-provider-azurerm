@@ -2,7 +2,6 @@
 subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_cassandra_keyspace"
-sidebar_current: "docs-azurerm-resource-cosmosdb-cassandra-keyspace"
 description: |-
   Manages a Cassandra KeySpace within a Cosmos DB Account.
 ---
@@ -42,6 +41,7 @@ resource "azurerm_cosmosdb_cassandra_keyspace" "example" {
   name                = "tfex-cosmos-cassandra-keyspace"
   resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
   account_name        = azurerm_cosmosdb_account.example.name
+  throughput          = 400
 }
 ```
 
@@ -55,12 +55,23 @@ The following arguments are supported:
 
 * `account_name` - (Required) The name of the Cosmos DB Cassandra KeySpace to create the table within. Changing this forces a new resource to be created.
 
+* `throughput` - (Optional) The throughput of Cassandra keyspace (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
+
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - the Cosmos DB Cassandra KeySpace ID.
+* `id` - the ID of the CosmosDB Cassandra KeySpace.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Cassandra KeySpace.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Cassandra KeySpace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Cassandra KeySpace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Cassandra KeySpace.
 
 ## Import
 

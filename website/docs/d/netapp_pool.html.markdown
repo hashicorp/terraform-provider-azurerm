@@ -2,9 +2,8 @@
 subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_pool"
-sidebar_current: "docs-azurerm-datasource-netapp-pool"
 description: |-
-Gets information about an existing NetApp Pool
+  Gets information about an existing NetApp Pool
 ---
 
 # Data Source: azurerm_netapp_pool
@@ -22,7 +21,7 @@ data "azurerm_netapp_pool" "example" {
 }
 
 output "netapp_pool_id" {
-  value = "${data.azurerm_netapp_pool.example.id}"
+  value = data.azurerm_netapp_pool.example.id
 }
 ```
 
@@ -31,11 +30,11 @@ output "netapp_pool_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the NetApp Pool.
+* `name` - The name of the NetApp Pool.
 
-* `account_name` - (Required) The name of the NetApp account where the NetApp pool exists.
+* `account_name` - The name of the NetApp account where the NetApp pool exists.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the NetApp Pool exists.
+* `resource_group_name` - The Name of the Resource Group where the NetApp Pool exists.
 
 
 ## Attributes Reference
@@ -49,3 +48,9 @@ The following attributes are exported:
 * `size_in_tb` - Provisioned size of the pool in TB.
 
 ---
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Pool.

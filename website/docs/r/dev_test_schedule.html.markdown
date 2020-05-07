@@ -2,7 +2,6 @@
 subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_schedule"
-sidebar_current: "docs-azurerm-dev-test-schedule"
 description: |-
     Manages automated startup and shutdown schedules for Azure Dev Test Lab.
 ---
@@ -16,22 +15,21 @@ Manages automated startup and shutdown schedules for Azure Dev Test Lab.
 
 ```hcl
 resource "azurerm_resource_group" "sample" {
-  name     = "acctestRG"
+  name     = "example-resources"
   location = "West US"
 }
 
 resource "azurerm_dev_test_lab" "sample" {
   name                = "YourDevTestLab"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_dev_test_schedule" "sample" {
   name                = "LabVmAutoStart"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  lab_name            = "${azurerm_dev_test_lab.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  lab_name            = azurerm_dev_test_lab.example.name
 
   weekly_recurrence {
     time      = "1100"
@@ -48,7 +46,6 @@ resource "azurerm_dev_test_schedule" "sample" {
     environment = "Production"
   }
 }
-
 ```
 
 ## Argument Reference
@@ -99,11 +96,22 @@ A `notification_settings` - (Required)  - block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Dev Test Lab Schedule ID.
+* `id` - The ID of the DevTest Schedule.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DevTest Schedule.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Schedule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Schedule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Schedule.
 
 ## Import
 
-Dev Test Schedule can be imported using the `resource id`, e.g.
+DevTest Schedule's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_dev_test_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DevTestLab/labs/myDevTestLab/schedules/labvmautostart

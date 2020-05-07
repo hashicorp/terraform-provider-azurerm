@@ -2,8 +2,6 @@ package resource
 
 import (
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestParseResourceGroup(t *testing.T) {
@@ -32,9 +30,6 @@ func TestParseResourceGroup(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
 			Expected: &ResourceGroupResourceID{
 				Name: "foo",
-				Base: azure.ResourceID{
-					ResourceGroup: "foo",
-				},
 			},
 		},
 		{

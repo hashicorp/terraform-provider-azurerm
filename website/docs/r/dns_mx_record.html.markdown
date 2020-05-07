@@ -2,7 +2,6 @@
 subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_mx_record"
-sidebar_current: "docs-azurerm-resource-dns-mx-record"
 description: |-
   Manages a DNS MX Record.
 ---
@@ -21,13 +20,13 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_dns_mx_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.example.name}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_resource_group.example.name
   ttl                 = 300
 
   record {
@@ -49,7 +48,7 @@ resource "azurerm_dns_mx_record" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the DNS MX Record.
+* `name` - (Optional) The name of the DNS MX Record. Defaults to `@` (root). Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
@@ -73,6 +72,17 @@ The following attributes are exported:
 
 * `id` - The DNS MX Record ID.
 * `fqdn` - The FQDN of the DNS MX Record.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the DNS MX Record.
+* `update` - (Defaults to 30 minutes) Used when updating the DNS MX Record.
+* `read` - (Defaults to 5 minutes) Used when retrieving the DNS MX Record.
+* `delete` - (Defaults to 30 minutes) Used when deleting the DNS MX Record.
 
 ## Import
 

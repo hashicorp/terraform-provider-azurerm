@@ -2,7 +2,6 @@
 subcategory: "Data Explorer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kusto_cluster"
-sidebar_current: "docs-azurerm-resource-kusto-cluster"
 description: |-
   Manages Kusto (also known as Azure Data Explorer) Cluster
 ---
@@ -21,8 +20,8 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_kusto_cluster" "example" {
   name                = "kustocluster"
-  location            = "${azurerm_resource_group.rg.location}"
-  resource_group_name = "${azurerm_resource_group.rg.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
   sku {
     name     = "Standard_D13_v2"
@@ -47,6 +46,10 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
+
+* `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -68,7 +71,16 @@ The following attributes are exported:
 
 * `data_ingestion_uri` - The Kusto Cluster URI to be used for data ingestion.
 
----
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Kusto Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the Kusto Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Cluster.
 
 ## Import
 

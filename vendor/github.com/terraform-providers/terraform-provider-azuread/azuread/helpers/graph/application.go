@@ -1,14 +1,17 @@
 package graph
 
 import (
+	"context"
+	"fmt"
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func SchemaAppRoles() *schema.Schema {
+func SchemaAppRolesComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Optional: true,
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -49,7 +52,7 @@ func SchemaAppRoles() *schema.Schema {
 	}
 }
 
-func SchemaOauth2Permissions() *schema.Schema {
+func SchemaOauth2PermissionsComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -169,4 +172,47 @@ func FlattenOauth2Permissions(in *[]graphrbac.OAuth2Permission) []map[string]int
 	}
 
 	return result
+}
+
+func ApplicationAllOwners(client graphrbac.ApplicationsClient, ctx context.Context, groupId string) ([]string, error) {
+	owners, err := client.ListOwnersComplete(ctx, groupId)
+
+	if err != nil {
+		return nil, fmt.Errorf("Error listing existing applications owners from Azure AD Group with ID %q: %+v", groupId, err)
+	}
+
+	existingMembers, err := DirectoryObjectListToIDs(owners, ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting applications IDs of group owners for Azure AD Group with ID %q: %+v", groupId, err)
+	}
+
+	log.Printf("[DEBUG] %d members in Azure AD applications with ID: %q", len(existingMembers), groupId)
+	return existingMembers, nil
+}
+
+func ApplicationAddOwner(client graphrbac.ApplicationsClient, ctx context.Context, groupId string, owner string) error {
+	ownerGraphURL := fmt.Sprintf("https://graph.windows.net/%s/directoryObjects/%s", client.TenantID, owner)
+
+	properties := graphrbac.AddOwnerParameters{
+		URL: &ownerGraphURL,
+	}
+
+	log.Printf("[DEBUG] Adding owner with id %q to Azure AD applications with id %q", owner, groupId)
+	if _, err := client.AddOwner(ctx, groupId, properties); err != nil {
+		return fmt.Errorf("Error adding owner %q to Azure AD applications with ID %q: %+v", owner, groupId, err)
+	}
+
+	return nil
+}
+
+func ApplicationAddOwners(client graphrbac.ApplicationsClient, ctx context.Context, groupId string, owner []string) error {
+	for _, ownerUuid := range owner {
+		err := ApplicationAddOwner(client, ctx, groupId, ownerUuid)
+
+		if err != nil {
+			return fmt.Errorf("Error while adding owners to Azure AD applications with ID %q: %+v", groupId, err)
+		}
+	}
+
+	return nil
 }

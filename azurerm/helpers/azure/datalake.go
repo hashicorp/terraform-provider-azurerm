@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-//store and analytic account names are the same
+// store and analytic account names are the same
 func ValidateDataLakeAccountName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile(`\A([a-z0-9]{3,24})\z`),

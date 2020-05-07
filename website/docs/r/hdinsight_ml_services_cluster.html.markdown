@@ -2,7 +2,6 @@
 subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_ml_services_cluster"
-sidebar_current: "docs-azurerm-resource-hdinsight-ml-services-cluster"
 description: |-
   Manages a HDInsight ML Services Cluster.
 ---
@@ -21,23 +20,23 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_storage_account" "example" {
   name                     = "hdinsightstor"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
   name                  = "hdinsight"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  resource_group_name   = azurerm_resource_group.example.name
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
 resource "azurerm_hdinsight_ml_services_cluster" "example" {
   name                = "example-hdicluster"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   cluster_version     = "3.6"
   tier                = "Standard"
   rstudio             = true
@@ -49,8 +48,8 @@ resource "azurerm_hdinsight_ml_services_cluster" "example" {
   }
 
   storage_account {
-    storage_container_id = "${azurerm_storage_container.example.id}"
-    storage_account_key  = "${azurerm_storage_account.example.primary_access_key}"
+    storage_container_id = azurerm_storage_container.example.id
+    storage_account_key  = azurerm_storage_account.example.primary_access_key
     is_default           = true
   }
 
@@ -104,6 +103,10 @@ The following arguments are supported:
 * `storage_account` - (Required) One or more `storage_account` block as defined below.
 
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight ML Services Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
+
+* `min_tls_version` - (Optional) The minimal supported TLS version. Possible values are 1.0, 1.1 or 1.2. Changing this forces a new resource to be created.
+
+~> **NOTE:** Starting on June 30, 2020, Azure HDInsight will enforce TLS 1.2 or later versions for all HTTPS connections. For more information, see [Azure HDInsight TLS 1.2 Enforcement](https://azure.microsoft.com/en-us/updates/azure-hdinsight-tls-12-enforcement/).
 
 ---
 
@@ -240,6 +243,17 @@ The following attributes are exported:
 * `https_endpoint` - The HTTPS Connectivity Endpoint for this HDInsight ML Services Cluster.
 
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight ML Services Cluster.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the MLServices HDInsight Cluster.
+* `update` - (Defaults to 60 minutes) Used when updating the MLServices HDInsight Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MLServices HDInsight Cluster.
+* `delete` - (Defaults to 60 minutes) Used when deleting the MLServices HDInsight Cluster.
 
 ## Import
 

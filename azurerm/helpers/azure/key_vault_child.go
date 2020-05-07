@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 type KeyVaultChildID struct {
@@ -55,7 +55,7 @@ func ValidateKeyVaultChildName(v interface{}, k string) (warnings []string, erro
 // Unfortunately this can't (easily) go in the Validate package
 // since there's a circular reference on this package
 func ValidateKeyVaultChildId(i interface{}, k string) (warnings []string, errors []error) {
-	if warnings, errors = validate.NoEmptyStrings(i, k); len(errors) > 0 {
+	if warnings, errors = validation.StringIsNotEmpty(i, k); len(errors) > 0 {
 		return warnings, errors
 	}
 

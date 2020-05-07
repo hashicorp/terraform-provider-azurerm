@@ -15,6 +15,13 @@ func (client Client) GetResourceID(accountName, shareName string) string {
 	return fmt.Sprintf("%s/%s", domain, shareName)
 }
 
+// GetResourceManagerResourceID returns the Resource Manager specific
+// ResourceID for a specific Storage Share
+func (client Client) GetResourceManagerResourceID(subscriptionID, resourceGroup, accountName, shareName string) string {
+	fmtStr := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Storage/storageAccounts/%s/fileServices/default/shares/%s"
+	return fmt.Sprintf(fmtStr, subscriptionID, resourceGroup, accountName, shareName)
+}
+
 type ResourceID struct {
 	AccountName string
 	ShareName   string

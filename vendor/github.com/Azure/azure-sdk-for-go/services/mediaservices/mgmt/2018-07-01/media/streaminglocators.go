@@ -36,7 +36,9 @@ func NewStreamingLocatorsClient(subscriptionID string) StreamingLocatorsClient {
 	return NewStreamingLocatorsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStreamingLocatorsClientWithBaseURI creates an instance of the StreamingLocatorsClient client.
+// NewStreamingLocatorsClientWithBaseURI creates an instance of the StreamingLocatorsClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewStreamingLocatorsClientWithBaseURI(baseURI string, subscriptionID string) StreamingLocatorsClient {
 	return StreamingLocatorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -115,8 +117,7 @@ func (client StreamingLocatorsClient) CreatePreparer(ctx context.Context, resour
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -194,8 +195,7 @@ func (client StreamingLocatorsClient) DeletePreparer(ctx context.Context, resour
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -272,8 +272,7 @@ func (client StreamingLocatorsClient) GetPreparer(ctx context.Context, resourceG
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -363,8 +362,7 @@ func (client StreamingLocatorsClient) ListPreparer(ctx context.Context, resource
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -479,8 +477,7 @@ func (client StreamingLocatorsClient) ListContentKeysPreparer(ctx context.Contex
 // ListContentKeysSender sends the ListContentKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) ListContentKeysSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListContentKeysResponder handles the response to the ListContentKeys request. The method always
@@ -558,8 +555,7 @@ func (client StreamingLocatorsClient) ListPathsPreparer(ctx context.Context, res
 // ListPathsSender sends the ListPaths request. The method will close the
 // http.Response Body if it receives an error.
 func (client StreamingLocatorsClient) ListPathsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListPathsResponder handles the response to the ListPaths request. The method always

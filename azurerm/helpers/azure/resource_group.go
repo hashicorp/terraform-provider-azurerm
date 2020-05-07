@@ -18,15 +18,6 @@ func SchemaResourceGroupName() *schema.Schema {
 	}
 }
 
-func SchemaResourceGroupNameDeprecated() *schema.Schema {
-	return &schema.Schema{
-		Type:       schema.TypeString,
-		Optional:   true,
-		Computed:   true,
-		Deprecated: "This field has been deprecated and is no longer used - will be removed in 2.0 of the Azure Provider",
-	}
-}
-
 func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
@@ -56,7 +47,7 @@ func validateResourceGroupName(v interface{}, k string) (warnings []string, erro
 	}
 
 	// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
-	if matched := regexp.MustCompile(`^[-\w\._\(\)]+$`).Match([]byte(value)); !matched {
+	if matched := regexp.MustCompile(`^[-\w._()]+$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
 	}
 

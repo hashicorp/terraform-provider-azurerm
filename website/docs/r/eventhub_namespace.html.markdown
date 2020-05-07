@@ -2,7 +2,6 @@
 subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace"
-sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace-x"
 description: |-
   Manages an EventHub Namespace.
 ---
@@ -21,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_eventhub_namespace" "example" {
   name                = "example-namespace"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
   capacity            = 2
 
@@ -50,10 +49,6 @@ The following arguments are supported:
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
-* `kafka_enabled` - (Optional / **Deprecated**) Is Kafka enabled for the EventHub Namespace? Defaults to `false`.
-
--> **NOTE:** `kafka_enabled` is now configured depending on the `sku` being provisioned, where this is Disabled for a `Basic` sku and Enabled for a Standard sku.  
-
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `network_rulesets` - (Optional) A `network_rulesets` block as defined below.
@@ -62,14 +57,14 @@ The following arguments are supported:
 
 A `network_rulesets` block supports the following:
 
-* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
+* `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`. Defaults to `Deny`.
 
 * `virtual_network_rule` - (Optional) One or more `virtual_network_rule` blocks as defined below.
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
 ---
-    
+
 A `virtual_network_rule` block supports the following:
 
 * `subnet_id` - (Required) The id of the subnet to match on.
@@ -102,6 +97,17 @@ The following attributes are exported only if there is an authorization rule nam
 * `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the EventHub Namespace.
 
 ## Import
 

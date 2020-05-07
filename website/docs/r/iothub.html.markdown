@@ -2,7 +2,6 @@
 subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub"
-sidebar_current: "docs-azurerm-iothub-x"
 description: |-
   Manages an IotHub
 ---
@@ -13,7 +12,7 @@ Manages an IotHub
 
 ~> **NOTE:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_*` resources - but the two ways of defining the endpoints cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_*` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
 
-~> **NOTE:** Routes can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_route` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
+~> **NOTE:** Routes can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
 ~> **NOTE:** Fallback route can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_fallback_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
@@ -21,45 +20,72 @@ Manages an IotHub
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "Canada Central"
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "teststa"
-  resource_group_name      = "${azurerm_resource_group.example.name}"
-  location                 = "${azurerm_resource_group.example.location}"
+  name                     = "examplestorage"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "example" {
-  name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.example.name}"
-  storage_account_name  = "${azurerm_storage_account.example.name}"
+  name                  = "examplecontainer"
+  storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
 
+resource "azurerm_eventhub_namespace" "example" {
+  name                = "example-namesapce"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "example" {
+  name                = "example-eventhub"
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventhub_authorization_rule" "example" {
+  resource_group_name = azurerm_resource_group.example.name
+  namespace_name      = azurerm_eventhub_namespace.example.name
+  eventhub_name       = azurerm_eventhub.example.name
+  name                = "acctest"
+  send                = true
+}
+
 resource "azurerm_iothub" "example" {
-  name                = "test"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  name                = "Example-IoTHub"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 
   sku {
     name     = "S1"
-    tier     = "Standard"
     capacity = "1"
   }
 
   endpoint {
     type                       = "AzureIotHub.StorageContainer"
-    connection_string          = "${azurerm_storage_account.example.primary_blob_connection_string}"
+    connection_string          = azurerm_storage_account.example.primary_blob_connection_string
     name                       = "export"
     batch_frequency_in_seconds = 60
     max_chunk_size_in_bytes    = 10485760
-    container_name             = "test"
+    container_name             = azurerm_storage_container.example.name
     encoding                   = "Avro"
     file_name_format           = "{iothub}/{partition}_{YYYY}_{MM}_{DD}_{HH}_{mm}"
+  }
+
+  endpoint {
+    type              = "AzureIotHub.EventHub"
+    connection_string = azurerm_eventhub_authorization_rule.example.primary_connection_string
+    name              = "export2"
   }
 
   route {
@@ -70,18 +96,12 @@ resource "azurerm_iothub" "example" {
     enabled        = true
   }
 
-  fallback_route {
-    enabled = true
-  }
-
-  file_upload {
-    connection_string  = "${azurerm_storage_account.example.primary_blob_connection_string}"
-    container_name     = "${azurerm_storage_container.example.name}"
-    sas_ttl            = "PT1H"
-    notifications      = true
-    lock_duration      = "PT1M"
-    default_ttl        = "PT1H"
-    max_delivery_count = 10
+  route {
+    name           = "export2"
+    source         = "DeviceMessages"
+    condition      = "true"
+    endpoint_names = ["export2"]
+    enabled        = true
   }
 
   tags = {
@@ -102,15 +122,20 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `event_hub_partition_count` - (Optional) The number of device-to-cloud partitions used by backing event hubs. Must be between `2` and `128`.
+
+* `event_hub_retention_in_days` - (Optional) The event hub retention to use in days. Must be between `1` and `7`.
+
 * `endpoint` - (Optional) An `endpoint` block as defined below.
 
-* `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
-
-* `route` - (Optional) A `route` block as defined below.
 
 * `fallback_route` - (Optional) A `fallback_route` block as defined below. If the fallback route is enabled, messages that don't match any of the supplied routes are automatically sent to this route. Defaults to messages/events.
 
 * `file_upload` - (Optional) A `file_upload` block as defined below.
+
+* `ip_filter_rule` - (Optional) One or more `ip_filter_rule` blocks as defined below.
+
+* `route` - (Optional) A `route` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -120,11 +145,9 @@ A `sku` block supports the following:
 
 * `name` - (Required) The name of the sku. Possible values are `B1`, `B2`, `B3`, `F1`, `S1`, `S2`, and `S3`.
 
-* `tier` - (Required) The billing tier for the IoT Hub. Possible values are `Basic`, `Free` or `Standard`.
+* `capacity` - (Required) The number of provisioned IoT Hub units.
 
 ~> **NOTE:** Only one IotHub can be on the `Free` tier per subscription.
-
-* `capacity` - (Required) The number of provisioned IoT Hub units.
 
 ---
 
@@ -229,6 +252,17 @@ A `shared access policy` block contains the following:
 * `secondary_key` - The secondary key.
 
 * `permissions` - The permissions assigned to the shared access policy.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the IotHub.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub.
+* `read` - (Defaults to 5 minutes) Used when retrieving the IotHub.
+* `delete` - (Defaults to 30 minutes) Used when deleting the IotHub.
 
 ## Import
 
