@@ -85,6 +85,10 @@ A `ip_restriction` block exports the following:
 
 * `subnet_mask` - The Subnet mask used for this IP Restriction.
 
+* `name` - The name for this IP Restriction.
+
+* `priority` - The priority for this IP Restriction.
+
 ---
 
 `site_config` supports the following:
