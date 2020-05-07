@@ -5,6 +5,7 @@ FEATURES:
 * **New Data Source:** `azurerm_data_share_account` [GH-6575]
 * **New Resource:** `azurerm_data_share_account` [GH-6575]
 * **New Resource:** `azurerm_function_app_slot` [GH-6435]
+* **New resource:** `azurerm_sentinel_alert_rule_scheduled` [GH-6650]
 
 IMPROVEMENTS:
 
