@@ -13,6 +13,9 @@ IMPROVEMENTS:
 * `azurerm_app_service` - support for health_check_path preview feature added [GH-6661]
 * `azurerm_app_service` - support for `name` and `priority` on `ip_restrictions` [GH-6705]
 * `azurerm_application_gateway` - support for SSL Certificates without passwords [GH-6742]
+* `azurerm_eventhub_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* `azurerm_eventhub_namespace_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* `azurerm_eventhub_namespace` - support for the `default_primary_connection_string_alias` an `_defaultsecondary_connection_string_alias` propeties  [GH-6708]
 * `azurerm_hdinsight_hadoop_cluster` - support for metastores on cluster creation [GH-6145]
 * `azurerm_key_vault_certificate` - support for recovering a soft-deleted certificate if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
 * `azurerm_key_vault_key` - support for recovering a soft-deleted key if the `features` flag `recover_soft_deleted_key_vaults` is set to `true` [GH-6716]
@@ -20,6 +23,9 @@ IMPROVEMENTS:
 * `azurerm_linux_virtual_machine_scale_set` - support for configuring `create_mode` for data disks [GH-6744]
 * `azurerm_monitor_diagnostic_setting` - `log_analytics_destination_type` supports `AzureDiagnostics` [GH-6769]
 * `azurerm_windows_virtual_machine_scale_set` - support for configuring `create_mode` for data disks [GH-6744]
+* `data.azurerm_eventhub_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* `data.azurerm_eventhub_namespace_authorization_rule` - support for the `primary_connection_string_alias` an `secondary_connection_string_alias` propeties  [GH-6708]
+* `data.azurerm_eventhub_namespace` - support for the `default_primary_connection_string_alias` an `_defaultsecondary_connection_string_alias` propeties  [GH-6708]
 
 BUG FIXES:
 
