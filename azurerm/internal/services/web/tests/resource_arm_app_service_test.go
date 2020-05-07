@@ -806,7 +806,7 @@ func TestAccAzureRMAppService_remoteDebugging(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_version", "VS2015"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_version", "VS2019"),
 				),
 			},
 			data.ImportStep(),
@@ -1201,6 +1201,8 @@ func TestAccAzureRMAppService_ftpsState(t *testing.T) {
 	})
 }
 
+// todo - linuxFxVersion seems to reject all supplied values - needs more detailed investigation.
+// error message simply reads: Original Error: Code="BadRequest" Message="The parameter LinuxFxVersion has an invalid value."
 func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -2490,8 +2492,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     tier = "Standard"
@@ -2501,44 +2503,43 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acct%d"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                 = "acctestcontainer"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_storage_share" "test" {
   name                 = "acctestshare"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = azurerm_storage_account.test.name
 }
 
 resource "azurerm_app_service" "test" {
   name                = "acctestAS-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
 
   storage_account {
     name         = "blobs"
     type         = "AzureBlob"
-    account_name = "${azurerm_storage_account.test.name}"
-    share_name   = "${azurerm_storage_container.test.name}"
-    access_key   = "${azurerm_storage_account.test.primary_access_key}"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_container.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
     mount_path   = "/blobs"
   }
 
   storage_account {
     name         = "files"
     type         = "AzureFiles"
-    account_name = "${azurerm_storage_account.test.name}"
-    share_name   = "${azurerm_storage_share.test.name}"
-    access_key   = "${azurerm_storage_account.test.primary_access_key}"
+    account_name = azurerm_storage_account.test.name
+    share_name   = azurerm_storage_share.test.name
+    access_key   = azurerm_storage_account.test.primary_access_key
     mount_path   = "/files"
   }
 }
@@ -3062,7 +3063,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     remote_debugging_enabled = true
-    remote_debugging_version = "VS2015"
+    remote_debugging_version = "VS2019"
   }
 
   tags = {
