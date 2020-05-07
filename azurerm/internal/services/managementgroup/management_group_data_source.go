@@ -61,41 +61,6 @@ func dataSourceArmManagementGroup() *schema.Resource {
 	}
 }
 
-func getManagementGroupNameByDisplayName(ctx context.Context, client *managementgroups.Client, displayName string) (string, error) {
-	iterator, err := client.ListComplete(ctx, managementGroupCacheControl, "")
-	if err != nil {
-		return "", fmt.Errorf("Error listing Management Groups: %+v", err)
-	}
-
-	var results []string
-	for iterator.NotDone() {
-		group := iterator.Value()
-		if group.DisplayName != nil && *group.DisplayName == displayName && group.Name != nil {
-			results = append(results, *group.Name)
-		}
-
-		if err := iterator.NextWithContext(ctx); err != nil {
-			return "", fmt.Errorf("Error listing Management Groups: %+v", err)
-		}
-	}
-
-	// we found none
-	if len(results) == 0 {
-		return "", fmt.Errorf("do not find Management Group (Display Name %q)", displayName)
-	}
-
-	// we found more than one
-	if len(results) > 1 {
-		return "", fmt.Errorf("found more than one Management Group with display name %q", displayName)
-	}
-
-	if results[0] == "" {
-		return "", fmt.Errorf("cannot find the Management Group with display name %q", displayName)
-	}
-
-	return results[0], nil
-}
-
 func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ManagementGroups.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -158,6 +123,41 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+
+func getManagementGroupNameByDisplayName(ctx context.Context, client *managementgroups.Client, displayName string) (string, error) {
+	iterator, err := client.ListComplete(ctx, managementGroupCacheControl, "")
+	if err != nil {
+		return "", fmt.Errorf("Error listing Management Groups: %+v", err)
+	}
+
+	var results []string
+	for iterator.NotDone() {
+		group := iterator.Value()
+		if group.DisplayName != nil && *group.DisplayName == displayName && group.Name != nil {
+			results = append(results, *group.Name)
+		}
+
+		if err := iterator.NextWithContext(ctx); err != nil {
+			return "", fmt.Errorf("Error listing Management Groups: %+v", err)
+		}
+	}
+
+	// we found none
+	if len(results) == 0 {
+		return "", fmt.Errorf("do not find Management Group (Display Name %q)", displayName)
+	}
+
+	// we found more than one
+	if len(results) > 1 {
+		return "", fmt.Errorf("found more than one Management Group with display name %q", displayName)
+	}
+
+	if results[0] == "" {
+		return "", fmt.Errorf("cannot find the Management Group with display name %q", displayName)
+	}
+
+	return results[0], nil
 }
 
 func flattenArmManagementGroupDataSourceSubscriptionIds(input *[]managementgroups.ChildInfo) (*schema.Set, error) {
