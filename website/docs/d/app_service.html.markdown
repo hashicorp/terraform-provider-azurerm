@@ -103,6 +103,8 @@ A `ip_restriction` block exports the following:
 
 * `ftps_state` - State of FTP / FTPS service for this AppService.
 
+* `health_check_path` - The health check path to be pinged by App Service.
+
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
 
 * `java_version` - The version of Java in use.
