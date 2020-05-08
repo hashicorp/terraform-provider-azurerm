@@ -6,7 +6,7 @@ description: |-
   Manages an MS Teams integration for a Bot Channel
 ---
 
-# azurerm_bot_connection
+# azurerm_bot_channel_ms_teams
 
 Manages a MS Teams integration for a Bot Channel
 

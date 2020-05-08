@@ -34,7 +34,7 @@ resource "azurerm_subnet" "example" {
   name                 = "testsubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 
   delegation {
     name = "acctestdelegation"
@@ -57,7 +57,11 @@ The following arguments are supported:
 
 * `virtual_network_name` - (Required) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
 
-* `address_prefix` - (Required) The address prefix to use for the subnet.
+* `address_prefix` - (Optional / **Deprecated in favour of `address_prefixes`**) The address prefix to use for the subnet.
+
+* `address_prefixes` - (Optional) The address prefixes to use for the subnet.
+
+-> **NOTE:** One of `address_prefix` or `address_prefixes` is required.
 
 ---
 
@@ -101,7 +105,8 @@ The following attributes are exported:
 * `name` - The name of the subnet.
 * `resource_group_name` - The name of the resource group in which the subnet is created in.
 * `virtual_network_name` - The name of the virtual network in which the subnet is created in
-* `address_prefix` - The address prefix for the subnet
+* `address_prefix` - (Deprecated) The address prefix for the subnet
+* `address_prefixes` - The address prefixes for the subnet
 
 ## Timeouts
 

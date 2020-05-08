@@ -31,6 +31,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_proximity_placement_group": dataSourceArmProximityPlacementGroup(),
 		"azurerm_shared_image_gallery":      dataSourceArmSharedImageGallery(),
 		"azurerm_shared_image_version":      dataSourceArmSharedImageVersion(),
+		"azurerm_shared_image_versions":     dataSourceArmSharedImageVersions(),
 		"azurerm_shared_image":              dataSourceArmSharedImage(),
 		"azurerm_snapshot":                  dataSourceArmSnapshot(),
 		"azurerm_virtual_machine":           dataSourceArmVirtualMachine(),

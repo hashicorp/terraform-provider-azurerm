@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
@@ -21,7 +22,21 @@ type ClientBuilder struct {
 	Features                    features.UserFeatures
 }
 
+const azureStackEnvironmentError = `
+The AzureRM Provider supports the different Azure Public Clouds - including China, Germany,
+Public and US Government - however it does not support Azure Stack due to differences in
+API and feature availability.
+
+Terraform instead offers a separate "azurestack" provider which supports the functionality
+and API's available in Azure Stack via Azure Stack Profiles.
+`
+
 func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
+	// point folks towards the separate Azure Stack Provider when using Azure Stack
+	if strings.EqualFold(builder.AuthConfig.Environment, "AZURESTACKCLOUD") {
+		return nil, fmt.Errorf(azureStackEnvironmentError)
+	}
+
 	env, err := authentication.DetermineEnvironment(builder.AuthConfig.Environment)
 	if err != nil {
 		return nil, err
