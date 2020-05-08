@@ -1,4 +1,9 @@
 ## 2.10.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_mssql_server`  - Add support for `azuread_administrator` [GH-6822]
+
 ## 2.9.0 (May 07, 2020)
 
 FEATURES:
