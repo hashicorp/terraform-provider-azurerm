@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled` - (Optional) Whether or not infrastructure is encrypted for this server. Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **Note:** This property is currently in development. It is suggested to leave as `false` as not doing so can lead to failure or timeout error messages.
+~> **Note:** This property is currently still in development by Microsoft. It is suggested to leave as `false` as not doing so can lead to unclear error messages.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
