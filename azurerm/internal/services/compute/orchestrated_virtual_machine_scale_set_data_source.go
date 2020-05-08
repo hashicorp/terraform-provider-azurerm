@@ -15,7 +15,7 @@ import (
 
 func dataSourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmVirtualMachineScaleSetOrchestratorVMRead,
+		Read: dataSourceArmOrchestratedVirtualMachineScaleSetRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -25,7 +25,7 @@ func dataSourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: ValidateVMSSOrchestratorVMName,
+				ValidateFunc: ValidateVmName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -42,7 +42,7 @@ func dataSourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
 	}
 }
 
-func dataSourceArmVirtualMachineScaleSetOrchestratorVMRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmOrchestratedVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -53,17 +53,17 @@ func dataSourceArmVirtualMachineScaleSetOrchestratorVMRead(d *schema.ResourceDat
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("not found: Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q)", name, resourceGroup)
+			return fmt.Errorf("not found: Orchestrated Virtual Machine Scale Set %q (Resource Group %q)", name, resourceGroup)
 		}
-		return fmt.Errorf("reading Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("reading Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err := assertVirtualMachineScaleSetOrchestratorVM(resp); err != nil {
-		return fmt.Errorf("reading Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err := assertOrchestratedVirtualMachineScaleSet(resp); err != nil {
+		return fmt.Errorf("reading Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("reading Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): empty ID", name, resourceGroup)
+		return fmt.Errorf("reading Orchestrated Virtual Machine Scale Set %q (Resource Group %q): empty ID", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

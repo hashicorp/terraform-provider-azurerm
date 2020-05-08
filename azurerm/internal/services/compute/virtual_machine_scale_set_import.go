@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func importVirtualMachineScaleSetOrchestratorVM(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
+func importOrchestratedVirtualMachineScaleSet(d *schema.ResourceData, meta interface{}) (data []*schema.ResourceData, err error) {
 	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return []*schema.ResourceData{}, err
@@ -25,14 +25,14 @@ func importVirtualMachineScaleSetOrchestratorVM(d *schema.ResourceData, meta int
 		return []*schema.ResourceData{}, fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if err := assertVirtualMachineScaleSetOrchestratorVM(vm); err != nil {
+	if err := assertOrchestratedVirtualMachineScaleSet(vm); err != nil {
 		return []*schema.ResourceData{}, fmt.Errorf("importing Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return []*schema.ResourceData{d}, nil
 }
 
-func assertVirtualMachineScaleSetOrchestratorVM(resp compute.VirtualMachineScaleSet) error {
+func assertOrchestratedVirtualMachineScaleSet(resp compute.VirtualMachineScaleSet) error {
 	if resp.VirtualMachineScaleSetProperties == nil {
 		return fmt.Errorf("`properties` is nil")
 	}

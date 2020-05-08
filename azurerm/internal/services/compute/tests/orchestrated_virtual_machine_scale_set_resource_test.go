@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinux(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_orchestrator_vm", "test")
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMDestroy,
+		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinux(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(data.ResourceName),
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,18 +31,18 @@ func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinux(t *tes
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_multipleLinux(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_orchestrator_vm", "test")
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_multipleLinux(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMDestroy,
+		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_multipleLinux(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_multipleLinux(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(data.ResourceName),
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -50,18 +50,18 @@ func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_multipleLinux(t *
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicWindows(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_orchestrator_vm", "test")
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicWindows(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMDestroy,
+		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicWindows(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicWindows(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(data.ResourceName),
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -69,18 +69,18 @@ func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicWindows(t *t
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_multipleWindows(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_orchestrator_vm", "test")
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_multipleWindows(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMDestroy,
+		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_multipleWindows(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_multipleWindows(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(data.ResourceName),
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -88,32 +88,32 @@ func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_multipleWindows(t
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinuxUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_orchestrator_vm", "test")
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinuxUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMDestroy,
+		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinux(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(data.ResourceName),
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinuxUpdate(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinuxUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(data.ResourceName),
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinux(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(data.ResourceName),
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -121,31 +121,31 @@ func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinuxUpdate(
 	})
 }
 
-func TestAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_scale_set_orchestrator_vm", "test")
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMDestroy,
+		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinux(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(data.ResourceName),
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport),
 		},
 	})
 }
 
-func testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMDestroy(s *terraform.State) error {
+func testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_virtual_machine_scale_set_orchestrator_vm" {
+		if rs.Type != "azurerm_orchestrated_virtual_machine_scale_set" {
 			continue
 		}
 
@@ -167,7 +167,7 @@ func testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMDestroy(s *terra
 	return nil
 }
 
-func testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.VMScaleSetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -196,8 +196,8 @@ func testCheckAzureRMWindowsVirtualMachineScaleSetOrchestratorVMExists(resourceN
 	}
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinux(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_template(data)
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data acceptance.TestData) string {
+	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -213,7 +213,7 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine_scale_set_orchestrator_vm" "test" {
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestVMO-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -252,33 +252,33 @@ resource "azurerm_linux_virtual_machine" "test" {
     caching              = "ReadWrite"
   }
 
-  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_orchestrator_vm.test.id
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinux(data)
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_machine_scale_set_orchestrator_vm" "import" {
-  name                = azurerm_virtual_machine_scale_set_orchestrator_vm.test.name
-  location            = azurerm_virtual_machine_scale_set_orchestrator_vm.test.location
-  resource_group_name = azurerm_virtual_machine_scale_set_orchestrator_vm.test.resource_group_name
+resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
+  name                = azurerm_orchestrated_virtual_machine_scale_set.test.name
+  location            = azurerm_orchestrated_virtual_machine_scale_set.test.location
+  resource_group_name = azurerm_orchestrated_virtual_machine_scale_set.test.resource_group_name
 
-  platform_fault_domain_count = azurerm_virtual_machine_scale_set_orchestrator_vm.test.platform_fault_domain_count
-  single_placement_group      = azurerm_virtual_machine_scale_set_orchestrator_vm.test.single_placement_group
+  platform_fault_domain_count = azurerm_orchestrated_virtual_machine_scale_set.test.platform_fault_domain_count
+  single_placement_group      = azurerm_orchestrated_virtual_machine_scale_set.test.single_placement_group
 }
 `, template)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_multipleLinux(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_template(data)
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_multipleLinux(data acceptance.TestData) string {
+	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_virtual_machine_scale_set_orchestrator_vm" "test" {
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestVMO-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -329,7 +329,7 @@ resource "azurerm_linux_virtual_machine" "first" {
     caching              = "ReadWrite"
   }
 
-  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_orchestrator_vm.test.id
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
 
 resource "azurerm_network_interface" "second" {
@@ -368,13 +368,13 @@ resource "azurerm_linux_virtual_machine" "second" {
     caching              = "ReadWrite"
   }
 
-  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_orchestrator_vm.test.id
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicWindows(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_template(data)
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_basicWindows(data acceptance.TestData) string {
+	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -390,7 +390,7 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine_scale_set_orchestrator_vm" "test" {
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestVMO-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -428,17 +428,17 @@ resource "azurerm_windows_virtual_machine" "test" {
     caching              = "ReadWrite"
   }
 
-  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_orchestrator_vm.test.id
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_multipleWindows(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_template(data)
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_multipleWindows(data acceptance.TestData) string {
+	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_virtual_machine_scale_set_orchestrator_vm" "test" {
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestVMO-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -488,7 +488,7 @@ resource "azurerm_windows_virtual_machine" "first" {
     caching              = "ReadWrite"
   }
 
-  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_orchestrator_vm.test.id
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
 
 resource "azurerm_network_interface" "second" {
@@ -526,14 +526,14 @@ resource "azurerm_windows_virtual_machine" "second" {
     caching              = "ReadWrite"
   }
 
-  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_orchestrator_vm.test.id
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
 `, template, data.RandomInteger, data.RandomIntOfLength(8))
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_template(data acceptance.TestData) string {
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data acceptance.TestData) string {
 	// in VMSS VMO mode, the `platform_fault_domain_count` has different acceptable values for different locations,
-	// therefore this location is fixed to EastUS2 to make sure the acceptance test have no issues about this value
+	// therefore this location is fixed to EastUS2 to make sure the acceptance test has no issues about this value
 	location := "EastUS2"
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -561,8 +561,8 @@ resource "azurerm_subnet" "test" {
 `, data.RandomInteger, location)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_basicLinuxUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMWindowsVirtualMachineScaleSetOrchestratorVM_template(data)
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinuxUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -578,7 +578,7 @@ resource "azurerm_network_interface" "test" {
   }
 }
 
-resource "azurerm_virtual_machine_scale_set_orchestrator_vm" "test" {
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestVMO-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -618,7 +618,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     caching              = "ReadWrite"
   }
 
-  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_orchestrator_vm.test.id
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
 `, template, data.RandomInteger)
 }

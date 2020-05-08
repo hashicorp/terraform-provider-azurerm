@@ -19,17 +19,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
+func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate,
-		Read:   resourceArmVirtualMachineScaleSetOrchestratorVMRead,
-		Update: resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate,
-		Delete: resourceArmVirtualMachineScaleSetOrchestratorVMDelete,
+		Create: resourceArmOrchestratedVirtualMachineScaleSetCreateUpdate,
+		Read:   resourceArmOrchestratedVirtualMachineScaleSetRead,
+		Update: resourceArmOrchestratedVirtualMachineScaleSetCreateUpdate,
+		Delete: resourceArmOrchestratedVirtualMachineScaleSetDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.VirtualMachineScaleSetID(id)
 			return err
-		}, importVirtualMachineScaleSetOrchestratorVM),
+		}, importOrchestratedVirtualMachineScaleSet),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -43,7 +43,7 @@ func resourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVMSSOrchestratorVMName,
+				ValidateFunc: ValidateVmName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -77,7 +77,7 @@ func resourceArmVirtualMachineScaleSetOrchestratorVM() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmOrchestratedVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -86,15 +86,15 @@ func resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate(d *schema.Resou
 	name := d.Get("name").(string)
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for existing Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_orchestrator_vm", *resp.ID)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_orchestrated_virtual_machine_scale_set", *existing.ID)
 		}
 	}
 
@@ -110,27 +110,27 @@ func resourceArmVirtualMachineScaleSetOrchestratorVMCreateUpdate(d *schema.Resou
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
 	if err != nil {
-		return fmt.Errorf("creating Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("retrieving Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): ID was empty", name, resourceGroup)
+		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): ID was empty", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmVirtualMachineScaleSetOrchestratorVMRead(d, meta)
+	return resourceArmOrchestratedVirtualMachineScaleSetRead(d, meta)
 }
 
-func resourceArmVirtualMachineScaleSetOrchestratorVMRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmOrchestratedVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -143,12 +143,12 @@ func resourceArmVirtualMachineScaleSetOrchestratorVMRead(d *schema.ResourceData,
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Virtual Machine Scale Set Orchestrator VM %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Orchestrated Virtual Machine Scale Set %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -168,7 +168,7 @@ func resourceArmVirtualMachineScaleSetOrchestratorVMRead(d *schema.ResourceData,
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmVirtualMachineScaleSetOrchestratorVMDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmOrchestratedVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -184,16 +184,16 @@ func resourceArmVirtualMachineScaleSetOrchestratorVMDelete(d *schema.ResourceDat
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Virtual Machine Scale Set Orchestrator VM %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for deletion of Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

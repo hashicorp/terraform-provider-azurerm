@@ -1,14 +1,14 @@
 ---
 subcategory: "Compute"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set_orchestrator_vm"
+page_title: "Azure Resource Manager: azurerm_orchestrated_virtual_machine_scale_set"
 description: |-
-  Manages a Virtual Machine Scale Set Orchestrator VM.
+  Manages an Orchestrated Virtual Machine Scale Set.
 ---
 
-# azurerm_virtual_machine_scale_set_orchestrator_vm
+# azurerm_orchestrated_virtual_machine_scale_set
 
-Manages a Virtual Machine Scale Set Orchestrator VM.
+Manages an Orchestrated Virtual Machine Scale Set.
 
 ~> **NOTE:** This resource is part of the public preview feature of virtual machine scale set orchestration mode, which manages a virtual machine scale set in VM orchestration mode. You can find more information about the orchestration mode [here](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
 
@@ -50,7 +50,7 @@ resource "azurerm_network_interface" "example" {
   }
 }
 
-resource "azurerm_virtual_machine_scale_set_orchestrator_vm" "eample" {
+resource "azurerm_orchestrated_virtual_machine_scale_set" "eample" {
   name                = "example-VMSS"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -85,7 +85,7 @@ resource "azurerm_linux_virtual_machine" "linux" {
     caching              = "ReadWrite"
   }
 
-  virtual_machine_scale_set_id = azurerm_virtual_machine_scale_set_orchestrator_vm.example.id
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.example.id
 }
 ```
 
@@ -93,45 +93,45 @@ resource "azurerm_linux_virtual_machine" "linux" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Virtual Machine Scale Set Orchestrator VM. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Orchestrated Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where the Virtual Machine Scale Set Orchestrator VM should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure location where the Orchestrated Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Virtual Machine Scale Set Orchestrator VM should be exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the Resource Group in which the Orchestrated Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
 
-* `platform_fault_domain_count` - (Required) Specifies the number of fault domains that are used by this Virtual Machine Scale Set Orchestrator VM. Changing this forces a new resource to be created.
+* `platform_fault_domain_count` - (Required) Specifies the number of fault domains that are used by this Orchestrated Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
-* `single_placement_group` - (Required) Should the Virtual Machine Scale Set Orchestrator VM use single placement group? Changing this forces a new resource to be created.
+* `single_placement_group` - (Required) Should the Orchestrated Virtual Machine Scale Set use single placement group? Changing this forces a new resource to be created.
 
 ~> **NOTE:** You cannot assign `single_placement_group` to `true` unless you have opted-in the private preview program of the orchestration mode of virtual machine scale sets.
 
-* `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in. Changing this forces a new resource to be created.
+* `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in, currently the maximum count of availability zones is 1. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
+* `tags` - (Optional) A mapping of tags which should be assigned to this Orchestrated Virtual Machine Scale Set.
 
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:
 
-* `id` - The ID of the Virtual Machine Scale Set Orchestrator VM.
+* `id` - The ID of the Orchestrated Virtual Machine Scale Set.
 
-* `unique_id` - The Unique ID for this Virtual Machine Scale Set Orchestrator VM.
+* `unique_id` - The Unique ID for the Orchestrated Virtual Machine Scale Set.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Scale Set Orchestrator VM.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Scale Set Orchestrator VM.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set Orchestrator VM.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Scale Set Orchestrator VM.
+* `create` - (Defaults to 30 minutes) Used when creating the Orchestrated Virtual Machine Scale Set.
+* `update` - (Defaults to 30 minutes) Used when updating the Orchestrated Virtual Machine Scale Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Orchestrated Virtual Machine Scale Set.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Orchestrated Virtual Machine Scale Set.
 
 ## Import
 
-A Virtual Machine Scale Set Orchestrator VM can be imported using the `resource id`, e.g.
+An Orchestrated Virtual Machine Scale Set can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_machine_scale_set_orchestrator_vm.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachineScaleSets/scaleset1
+terraform import azurerm_orchestrated_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/Microsoft.Compute/virtualMachineScaleSets/scaleset1
 ```
