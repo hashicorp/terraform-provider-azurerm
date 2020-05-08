@@ -93,6 +93,8 @@ The following arguments are supported:
 * `subnet` - (Optional) Can be specified multiple times to define multiple
     subnets. Each `subnet` block supports fields documented below.
 
+-> **NOTE** Since `subnet` can be configured both inline and via the separate `azurerm_subnet` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---

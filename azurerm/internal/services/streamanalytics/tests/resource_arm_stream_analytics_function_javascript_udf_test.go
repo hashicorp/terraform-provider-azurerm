@@ -144,11 +144,11 @@ function getRandomNumber(in) {
 SCRIPT
 
 
-  input = {
+  input {
     type = "bigint"
   }
 
-  output = {
+  output {
     type = "bigint"
   }
 }
