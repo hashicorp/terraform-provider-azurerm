@@ -25,7 +25,7 @@ func TestAccAzureRMAPIManagementNamedValue_basic(t *testing.T) {
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("value"),
+			data.ImportStep(),
 		},
 	})
 }

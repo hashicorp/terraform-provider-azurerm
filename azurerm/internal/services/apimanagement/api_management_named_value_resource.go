@@ -149,6 +149,10 @@ func resourceArmApiManagementNamedValueRead(d *schema.ResourceData, meta interfa
 	if properties := resp.NamedValueContractProperties; properties != nil {
 		d.Set("display_name", properties.DisplayName)
 		d.Set("secret", properties.Secret)
+		//API while not return "value" if secret = true, issue : #6688
+		if *properties.Secret == false {
+			d.Set("value", properties.Value)
+		}
 		d.Set("tags", properties.Tags)
 	}
 
