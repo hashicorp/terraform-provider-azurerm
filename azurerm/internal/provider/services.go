@@ -22,6 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
@@ -62,6 +63,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
@@ -73,7 +75,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
-//go:generate go run ../tools/website-categories/main.go -path=../../../website/allowed-subcategories
+//go:generate go run ../tools/generator-services/main.go -path=../../../
 
 func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
@@ -97,6 +99,7 @@ func SupportedServices() []common.ServiceRegistration {
 		datafactory.Registration{},
 		datalake.Registration{},
 		databasemigration.Registration{},
+		datashare.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
 		dns.Registration{},
@@ -137,6 +140,7 @@ func SupportedServices() []common.ServiceRegistration {
 		resource.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
+		sentinel.Registration{},
 		servicebus.Registration{},
 		servicefabric.Registration{},
 		signalr.Registration{},

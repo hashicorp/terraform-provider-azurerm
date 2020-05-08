@@ -50,10 +50,16 @@ The following attributes are exported only if there is an authorization rule nam
 * `default_primary_connection_string` - The primary connection string for the authorization
     rule `RootManageSharedAccessKey`.
 
+* `default_primary_connection_string_alias` - The alias of the primary connection string for the authorization
+    rule `RootManageSharedAccessKey`.
+
+* `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
+
 * `default_secondary_connection_string` - The secondary connection string for the
     authorization rule `RootManageSharedAccessKey`.
 
-* `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
+* `default_secondary_connection_string_alias` - The alias of the secondary connection string for the
+    authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
 

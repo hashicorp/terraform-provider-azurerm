@@ -31,8 +31,6 @@ resource "azurerm_cdn_endpoint" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  origin_host_header = "www.example.com"
-
   origin {
     name      = "example"
     host_name = "www.example.com"
@@ -68,7 +66,7 @@ The following arguments are supported:
 
 * `origin` - (Required) The set of origins of the CDN endpoint. When multiple origins exist, the first origin will be used as primary and rest will be used as failover options. Each `origin` block supports fields documented below.
 
-* `origin_host_header` - (Required) The host header CDN provider will send along with content requests to origins. Defaults to the host name of the origin.
+* `origin_host_header` - (Optional) The host header CDN provider will send along with content requests to origins. Defaults to the host name of the origin.
 
 * `origin_path` - (Optional) The path used at for origin requests.
 

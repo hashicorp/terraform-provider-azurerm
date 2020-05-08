@@ -26,6 +26,7 @@ import (
 	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
 	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
+	datashare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/client"
 	devspace "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/client"
 	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
@@ -66,6 +67,7 @@ import (
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	search "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/client"
 	securityCenter "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/client"
+	sentinel "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/client"
 	serviceBus "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/client"
 	serviceFabric "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/client"
 	signalr "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/client"
@@ -104,6 +106,7 @@ type Client struct {
 	DataBricks         *databricks.Client
 	DataFactory        *datafactory.Client
 	Datalake           *datalake.Client
+	DataShare          *datashare.Client
 	DevSpace           *devspace.Client
 	DevTestLabs        *devtestlabs.Client
 	Dns                *dns.Client
@@ -144,6 +147,7 @@ type Client struct {
 	Resource           *resource.Client
 	Search             *search.Client
 	SecurityCenter     *securityCenter.Client
+	Sentinel           *sentinel.Client
 	ServiceBus         *serviceBus.Client
 	ServiceFabric      *serviceFabric.Client
 	SignalR            *signalr.Client
@@ -183,6 +187,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.DataBricks = databricks.NewClient(o)
 	client.DataFactory = datafactory.NewClient(o)
 	client.Datalake = datalake.NewClient(o)
+	client.DataShare = datashare.NewClient(o)
 	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.Dns = dns.NewClient(o)
@@ -223,6 +228,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Resource = resource.NewClient(o)
 	client.Search = search.NewClient(o)
 	client.SecurityCenter = securityCenter.NewClient(o)
+	client.Sentinel = sentinel.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.SignalR = signalr.NewClient(o)

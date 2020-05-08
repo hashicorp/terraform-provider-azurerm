@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `publisher_email` - (Required) The email of publisher/company.
 
-* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The fist part is the `name`, valid values include: `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
+* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The fist part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
 ---
 
@@ -78,6 +78,10 @@ The following arguments are supported:
 * `sign_in` - (Optional) A `sign_in` block as defined below.
 
 * `sign_up` - (Optional) A `sign_up` block as defined below.
+
+* `virtual_network_type` - (Optional) The type of virtual network you want to use, valid values include: `None`, `External`, `Internal`.
+
+* `virtual_network_configuration` - (Optional) A `virtual_network_configuration` block as defined below. Required when `virtual_network_type` is `External` or `Internal`.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
@@ -241,6 +245,12 @@ A `sign_up` block supports the following:
 * `enabled` - (Required) Can users sign up on the development portal?
 
 * `terms_of_service` - (Optional) A `terms_of_service` block as defined below.
+
+---
+
+A `virtual_network_configuration` block supports the following:
+
+* `subnet_id` - (Required) The id of the subnet that will be used for the API Management.
 
 ---
 

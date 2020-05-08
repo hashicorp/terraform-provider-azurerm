@@ -9,7 +9,7 @@ cloud.google.com/go/storage
 # github.com/Azure/azure-sdk-for-go v41.2.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
-github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement
+github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration
 github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights
 github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation
@@ -28,11 +28,12 @@ github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/ac
 github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem
 github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account
 github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration
+github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare
 github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces
 github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
 github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub
-github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor
+github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis
 github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral
@@ -68,6 +69,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/201
 github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security
+github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2017-08-01-preview/securityinsight
 github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql
@@ -323,6 +325,10 @@ github.com/posener/complete
 github.com/posener/complete/cmd
 github.com/posener/complete/cmd/install
 github.com/posener/complete/match
+# github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
+github.com/rickb777/date/period
+# github.com/rickb777/plural v1.2.0
+github.com/rickb777/plural
 # github.com/satori/go.uuid v1.2.0
 github.com/satori/go.uuid
 # github.com/satori/uuid v0.0.0-20160927100844-b061729afc07

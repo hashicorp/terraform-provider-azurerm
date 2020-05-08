@@ -33,7 +33,8 @@ output "subnet_id" {
 ## Attributes Reference
 
 * `id` - The ID of the Subnet.
-* `address_prefix` - The address prefix used for the subnet.
+* `address_prefix` - (Deprecated) The address prefix used for the subnet.
+* `address_prefixes` - The address prefixes for the subnet.
 * `enforce_private_link_service_network_policies` - Enable or Disable network policies on private link service in the subnet.
 * `network_security_group_id` - The ID of the Network Security Group associated with the subnet.
 * `route_table_id` - The ID of the Route Table associated with this subnet.

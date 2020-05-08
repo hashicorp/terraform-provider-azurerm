@@ -67,6 +67,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.Resources":               {},
 		"Microsoft.Search":                  {},
 		"Microsoft.Security":                {},
+		"Microsoft.SecurityInsights":        {},
 		"Microsoft.ServiceBus":              {},
 		"Microsoft.ServiceFabric":           {},
 		"Microsoft.Sql":                     {},
