@@ -109,6 +109,7 @@ resource "azurerm_application_insights" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  retention_in_days   = 90
 }
 
 resource "azurerm_monitor_action_group" "test" {
@@ -156,6 +157,7 @@ resource "azurerm_application_insights" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  retention_in_days   = 90
 }
 
 resource "azurerm_monitor_action_group" "test" {
@@ -208,6 +210,7 @@ resource "azurerm_application_insights" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   application_type    = "web"
+  retention_in_days   = 90
 }
 
 resource "azurerm_monitor_action_group" "test" {
@@ -263,6 +266,7 @@ resource "azurerm_application_insights" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   application_type    = "web"
+  retention_in_days   = 90
 }
 
 resource "azurerm_log_analytics_workspace" "test" {

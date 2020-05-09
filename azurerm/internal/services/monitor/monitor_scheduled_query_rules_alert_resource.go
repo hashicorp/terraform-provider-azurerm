@@ -75,7 +75,6 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 						"custom_webhook_payload": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      "{}",
 							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {
@@ -418,7 +417,9 @@ func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *insights.
 		actionGroups := v["action_group"].(*schema.Set).List()
 		result.ActionGroup = utils.ExpandStringSlice(actionGroups)
 		result.EmailSubject = utils.String(v["email_subject"].(string))
-		result.CustomWebhookPayload = utils.String(v["custom_webhook_payload"].(string))
+		if p := v["custom_webhook_payload"].(string); p != "" {
+			result.CustomWebhookPayload = utils.String(p)
+		}
 	}
 
 	return &result

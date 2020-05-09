@@ -16,7 +16,11 @@ func flattenAzureRmScheduledQueryRulesAlertAction(input *insights.AzNsActionGrou
 			v["action_group"] = *input.ActionGroup
 		}
 		v["email_subject"] = input.EmailSubject
-		v["custom_webhook_payload"] = input.CustomWebhookPayload
+		p := ""
+		if input.CustomWebhookPayload != nil {
+			p = *input.CustomWebhookPayload
+		}
+		v["custom_webhook_payload"] = p
 	}
 	return []interface{}{v}
 }
