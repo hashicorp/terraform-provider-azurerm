@@ -36,10 +36,10 @@ func TestValidateMysqlServerServerID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Valid",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMySQL/servers/test-mysql",
+			Name:  "Valid",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMySQL/servers/test-mysql",
 			Expected: &MysqlServerServerId{
-				Name: "test-mysql",
+				Name:          "test-mysql",
 				ResourceGroup: "test-rg",
 			},
 		},
@@ -66,4 +66,3 @@ func TestValidateMysqlServerServerID(t *testing.T) {
 		}
 	}
 }
-

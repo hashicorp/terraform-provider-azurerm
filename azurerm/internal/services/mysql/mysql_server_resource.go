@@ -75,10 +75,10 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 
 			"auto_grow_enabled": {
-				Type:             schema.TypeBool,
-				Optional:         true,
-				Computed:         true, // TODO: remove in 3.0 and default to true
-				ConflictsWith:    []string{"storage_profile", "storage_profile.0.auto_grow"},
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true, // TODO: remove in 3.0 and default to true
+				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
 			},
 
 			"backup_retention_days": {
@@ -86,11 +86,11 @@ func resourceArmMySqlServer() *schema.Resource {
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.backup_retention_days"},
-				ValidateFunc: validation.IntBetween(7, 35),
+				ValidateFunc:  validation.IntBetween(7, 35),
 			},
 
 			"create_mode": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(mysql.CreateModeDefault),
 				ValidateFunc: validation.StringInSlice([]string{
@@ -113,10 +113,10 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 
 			"geo_redundant_backup_enabled": {
-				Type:             schema.TypeBool,
-				Optional:         true,
-				Computed:         true,
-				ConflictsWith:    []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 
 			"infrastructure_encryption_enabled": {
@@ -201,9 +201,9 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 
 			"storage_mb": {
-				Type: schema.TypeInt,
-				Optional: true,
-				Computed: true,
+				Type:          schema.TypeInt,
+				Optional:      true,
+				Computed:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.storage_mb"},
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 4194304),
@@ -237,7 +237,7 @@ func resourceArmMySqlServer() *schema.Resource {
 							Computed:      true,
 							ConflictsWith: []string{"backup_retention_days"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
-							ValidateFunc: validation.IntBetween(7, 35),
+							ValidateFunc:  validation.IntBetween(7, 35),
 						},
 						"geo_redundant_backup": {
 							Type:             schema.TypeString,
@@ -246,7 +246,7 @@ func resourceArmMySqlServer() *schema.Resource {
 							ConflictsWith:    []string{"geo_redundant_backup_enabled"},
 							Deprecated:       "this has been moved to the top level boolean attribute `geo_redundant_backup_enabled` and will be removed in version 3.0 of the provider.",
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:  validation.StringInSlice([]string{
+							ValidateFunc: validation.StringInSlice([]string{
 								"Enabled",
 								"Disabled",
 							}, true),
@@ -426,10 +426,10 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	server := mysql.ServerForCreate{
-		Location: &location,
+		Location:   &location,
 		Properties: props,
-		Sku:  sku,
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku:        sku,
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, server)
@@ -650,7 +650,6 @@ func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
 		storage.StorageAutogrow = mysql.StorageAutogrow(storageprofile["auto_grow"].(string))
 		storage.StorageMB = utils.Int32(int32(storageprofile["storage_mb"].(int)))
 	}
-
 
 	// now override whatever we may have from the block with the top level properties
 	if v, ok := d.GetOk("auto_grow_enabled"); ok {
