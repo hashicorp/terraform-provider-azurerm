@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceVirtualMachine_basicLinux(t *testing.T) {
+func TestAccDataSourceAzureRMVirtualMachine_basicLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -67,7 +67,7 @@ func testAccDataSourceAzureRMVirtualMachine_basicWindows(data acceptance.TestDat
 %s
 
 data "azurerm_virtual_machine" "test" {
-  name                = azurerm_linux_virtual_machine.test.name
+  name                = azurerm_windows_virtual_machine.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
