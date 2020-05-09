@@ -134,7 +134,7 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 	var results []string
 	for iterator.NotDone() {
 		group := iterator.Value()
-		if group.DisplayName != nil && *group.DisplayName == displayName && group.Name != nil {
+		if group.DisplayName != nil && *group.DisplayName == displayName && group.Name != nil && *group.Name != "" {
 			results = append(results, *group.Name)
 		}
 
@@ -151,10 +151,6 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 	// we found more than one
 	if len(results) > 1 {
 		return "", fmt.Errorf("found more than one Management Group with display name %q", displayName)
-	}
-
-	if results[0] == "" {
-		return "", fmt.Errorf("cannot find the Management Group with display name %q", displayName)
 	}
 
 	return results[0], nil
