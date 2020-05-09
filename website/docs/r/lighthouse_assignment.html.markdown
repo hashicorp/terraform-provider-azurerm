@@ -1,13 +1,13 @@
 ---
 subcategory: "Managed Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_registration_assignment"
+page_title: "Azure Resource Manager: azurerm_lighthouse_assignment"
 description: |-
     Assigns a given Registration Definition to a subscription or a resource group.
 
 ---
 
-# azurerm_registration_assignment
+# azurerm_lighthouse_assignment
 
 Assigns a given Registration Definition to a subscription or a resource group.
 
@@ -17,7 +17,7 @@ Assigns a given Registration Definition to a subscription or a resource group.
 data "azurerm_subscription" "primary" {
 }
 
-resource "azurerm_registration_definition" "example" {
+resource "azurerm_lighthouse_definition" "example" {
   registration_definition_name = "Sample registration"
   description                  = "This is a registration definition created via Terraform"
   managed_by_tenant_id         = "00000000-0000-0000-0000-000000000000"
@@ -28,10 +28,10 @@ resource "azurerm_registration_definition" "example" {
   }
 }
 
-resource "azurerm_registration_assignment" "example" {
+resource "azurerm_lighthouse_assignment" "example" {
   registration_assignment_id = "%s"
   scope                      = data.azurerm_subscription.primary.id
-  registration_definition_id = azurerm_registration_definition.example.id
+  registration_definition_id = azurerm_lighthouse_definition.example.id
 }
 ```
 
@@ -65,5 +65,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Registration Assignments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_registration_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.ManagedServices/registrationAssignments/00000000-0000-0000-0000-000000000000
+terraform import azurerm_lighthouse_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.ManagedServices/registrationAssignments/00000000-0000-0000-0000-000000000000
 ```

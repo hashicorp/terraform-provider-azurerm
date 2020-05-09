@@ -1,19 +1,19 @@
 ---
 subcategory: "Managed Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_registration_definition"
+page_title: "Azure Resource Manager: azurerm_lighthouse_definition"
 description: |-
   Get information about an existing Registration Definition.
 ---
 
-# Data Source: azurerm_registration_definition
+# Data Source: azurerm_lighthouse_definition
 
 Use this data source to access information about an existing Registration Definition.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_registration_definition" "example" {
+resource "azurerm_lighthouse_definition" "example" {
   registration_definition_name = "Sample registration"
   description                  = "This is a registration definition created via Terraform"
   managed_by_tenant_id         = "00000000-0000-0000-0000-000000000000"
@@ -24,12 +24,12 @@ resource "azurerm_registration_definition" "example" {
   }
 }
 
-data "azurerm_registration_definition" "example" {
-  registration_definition_id = azurerm_registration_definition.definition1.registration_definition_id
+data "azurerm_lighthouse_definition" "example" {
+  registration_definition_id = azurerm_lighthouse_definition.example.registration_definition_id
 }
 
 output "registration_definition_id" {
-  value = data.azurerm_registration_definition.example.id
+  value = data.azurerm_lighthouse_definition.example.id
 }
 ```
 

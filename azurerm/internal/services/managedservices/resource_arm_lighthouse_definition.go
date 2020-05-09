@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRegistrationDefinition() *schema.Resource {
+func resourceArmLighthouseDefinition() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRegistrationDefinitionCreateUpdate,
-		Read:   resourceArmRegistrationDefinitionRead,
-		Update: resourceArmRegistrationDefinitionCreateUpdate,
-		Delete: resourceArmRegistrationDefinitionDelete,
+		Create: resourceArmLighthouseDefinitionCreateUpdate,
+		Read:   resourceArmLighthouseDefinitionRead,
+		Update: resourceArmLighthouseDefinitionCreateUpdate,
+		Delete: resourceArmLighthouseDefinitionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -88,8 +88,8 @@ func resourceArmRegistrationDefinition() *schema.Resource {
 	}
 }
 
-func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
+func resourceArmLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedServices.LighthouseDefinitionsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -108,7 +108,7 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error reading Subscription for Registration Definition %q", registrationDefinitionID)
 	}
 
-	scope := buildScopeForRegistrationDefinition(subscriptionID)
+	scope := buildScopeForLighthouseDefinition(subscriptionID)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, registrationDefinitionID)
@@ -119,7 +119,7 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_registration_definition", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_lighthouse_definition", *existing.ID)
 		}
 	}
 
@@ -147,15 +147,15 @@ func resourceArmRegistrationDefinitionCreateUpdate(d *schema.ResourceData, meta 
 
 	d.SetId(*read.ID)
 
-	return resourceArmRegistrationDefinitionRead(d, meta)
+	return resourceArmLighthouseDefinitionRead(d, meta)
 }
 
-func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
+func resourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedServices.LighthouseDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRegistrationDefinitionID(d.Id())
+	id, err := parseAzureLighthouseDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -186,12 +186,12 @@ func resourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmRegistrationDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
+func resourceArmLighthouseDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedServices.LighthouseDefinitionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRegistrationDefinitionID(d.Id())
+	id, err := parseAzureLighthouseDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ type registrationDefinitionID struct {
 	registrationDefinitionID string
 }
 
-func parseAzureRegistrationDefinitionID(id string) (*registrationDefinitionID, error) {
+func parseAzureLighthouseDefinitionID(id string) (*registrationDefinitionID, error) {
 	segments := strings.Split(id, "/providers/Microsoft.ManagedServices/registrationDefinitions/")
 
 	if len(segments) != 2 {
@@ -224,7 +224,7 @@ func parseAzureRegistrationDefinitionID(id string) (*registrationDefinitionID, e
 	return &azureregistrationDefinitionID, nil
 }
 
-func buildScopeForRegistrationDefinition(subscriptionID string) string {
+func buildScopeForLighthouseDefinition(subscriptionID string) string {
 	return fmt.Sprintf("/subscriptions/%s", subscriptionID)
 }
 

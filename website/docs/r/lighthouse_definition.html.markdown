@@ -1,20 +1,20 @@
 ---
 subcategory: "Managed Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_registration_definition"
+page_title: "Azure Resource Manager: azurerm_lighthouse_definition"
 description: |-
   Manages a Registration Definition.
 
 ---
 
-# azurerm_registration_definition
+# azurerm_lighthouse_definition
 
 Manages a Registration Definition.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_registration_definition" "example" {
+resource "azurerm_lighthouse_definition" "example" {
   registration_definition_name = "Sample registration"
   description                  = "This is a registration definition created via Terraform"
   managed_by_tenant_id         = "00000000-0000-0000-0000-000000000000"
@@ -66,5 +66,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Registration Definitions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_registration_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.ManagedServices/registrationDefinitions/00000000-0000-0000-0000-000000000000
+terraform import azurerm_lighthouse_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.ManagedServices/registrationDefinitions/00000000-0000-0000-0000-000000000000
 ```

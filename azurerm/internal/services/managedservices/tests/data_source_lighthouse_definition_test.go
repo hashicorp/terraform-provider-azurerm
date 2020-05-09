@@ -11,13 +11,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
+func TestAccDataSourceAzureRMLighthouseDefinition_basic(t *testing.T) {
 	// Multiple tenants are needed to test this resource.
 	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.
 	// ObjectId for user, usergroup or service principal in second tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
 	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
-	data := acceptance.BuildTestData(t, "data.azurerm_registration_definition", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_lighthouse_definition", "test")
 	id := uuid.New().String()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,7 +25,7 @@ func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceRegistrationDefinition_basic(id, secondTenantID, principalID, data),
+				Config: testAccDataSourceLighthouseDefinition_basic(id, secondTenantID, principalID, data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
@@ -41,13 +41,13 @@ func TestAccDataSourceAzureRMRegistrationDefinition_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceRegistrationDefinition_basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
+func testAccDataSourceLighthouseDefinition_basic(id string, secondTenantID string, principalID string, data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_registration_definition" "test" {
+resource "azurerm_lighthouse_definition" "test" {
   registration_definition_id   = "%s"
   registration_definition_name = "acctestrd-%d"
   description                  = "Acceptance Test Registration Definition"
@@ -59,8 +59,8 @@ resource "azurerm_registration_definition" "test" {
   }
 }
 
-data "azurerm_registration_definition" "test" {
-  registration_definition_id = azurerm_registration_definition.test.registration_definition_id
+data "azurerm_lighthouse_definition" "test" {
+  registration_definition_id = azurerm_lighthouse_definition.test.registration_definition_id
 }
 `, id, data.RandomInteger, secondTenantID, principalID)
 }

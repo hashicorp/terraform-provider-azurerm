@@ -21,14 +21,14 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_registration_definition": dataSourceArmRegistrationDefinition(),
+		"azurerm_lighthouse_definition": dataSourceArmLighthouseDefinition(),
 	}
 }
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_registration_definition": resourceArmRegistrationDefinition(),
-		"azurerm_registration_assignment": resourceArmRegistrationAssignment(),
+		"azurerm_lighthouse_definition": resourceArmLighthouseDefinition(),
+		"azurerm_lighthouse_assignment": resourceArmLighthouseAssignment(),
 	}
 }

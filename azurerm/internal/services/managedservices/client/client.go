@@ -6,19 +6,19 @@ import (
 )
 
 type Client struct {
-	RegistrationDefinitionsClient *managedservices.RegistrationDefinitionsClient
-	RegistrationAssignmentsClient *managedservices.RegistrationAssignmentsClient
+	LighthouseDefinitionsClient *managedservices.RegistrationDefinitionsClient
+	LighthouseAssignmentsClient *managedservices.RegistrationAssignmentsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
-	RegistrationDefinitionsClient := managedservices.NewRegistrationDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&RegistrationDefinitionsClient.Client, o.ResourceManagerAuthorizer)
+	LighthouseDefinitionsClient := managedservices.NewRegistrationDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&LighthouseDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	RegistrationAssignmentsClient := managedservices.NewRegistrationAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&RegistrationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
+	LighthouseAssignmentsClient := managedservices.NewRegistrationAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&LighthouseAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		RegistrationDefinitionsClient: &RegistrationDefinitionsClient,
-		RegistrationAssignmentsClient: &RegistrationAssignmentsClient,
+		LighthouseDefinitionsClient: &LighthouseDefinitionsClient,
+		LighthouseAssignmentsClient: &LighthouseAssignmentsClient,
 	}
 }

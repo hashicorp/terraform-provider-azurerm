@@ -17,12 +17,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRegistrationAssignment() *schema.Resource {
+func resourceArmLighthouseAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmRegistrationAssignmentCreateUpdate,
-		Read:   resourceArmRegistrationAssignmentRead,
-		Update: resourceArmRegistrationAssignmentCreateUpdate,
-		Delete: resourceArmRegistrationAssignmentDelete,
+		Create: resourceArmLighthouseAssignmentCreateUpdate,
+		Read:   resourceArmLighthouseAssignmentRead,
+		Update: resourceArmLighthouseAssignmentCreateUpdate,
+		Delete: resourceArmLighthouseAssignmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,8 +66,8 @@ func resourceArmRegistrationAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmRegistrationAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.RegistrationAssignmentsClient
+func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedServices.LighthouseAssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -93,7 +93,7 @@ func resourceArmRegistrationAssignmentCreateUpdate(d *schema.ResourceData, meta 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_registration_assignment", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_lighthouse_assignment", *existing.ID)
 		}
 	}
 
@@ -118,15 +118,15 @@ func resourceArmRegistrationAssignmentCreateUpdate(d *schema.ResourceData, meta 
 
 	d.SetId(*read.ID)
 
-	return resourceArmRegistrationAssignmentRead(d, meta)
+	return resourceArmLighthouseAssignmentRead(d, meta)
 }
 
-func resourceArmRegistrationAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.RegistrationAssignmentsClient
+func resourceArmLighthouseAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedServices.LighthouseAssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRegistrationAssignmentID(d.Id())
+	id, err := parseAzureLighthouseAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ type registrationAssignmentID struct {
 	registrationAssignmentID string
 }
 
-func parseAzureRegistrationAssignmentID(id string) (*registrationAssignmentID, error) {
+func parseAzureLighthouseAssignmentID(id string) (*registrationAssignmentID, error) {
 	segments := strings.Split(id, "/providers/Microsoft.ManagedServices/registrationAssignments/")
 	if len(segments) != 2 {
 		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.ManagedServices/registrationAssignments/{name} - got %d segments", len(segments))
@@ -172,12 +172,12 @@ func parseAzureRegistrationAssignmentID(id string) (*registrationAssignmentID, e
 	return &azureRegistrationAssignmentID, nil
 }
 
-func resourceArmRegistrationAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.RegistrationAssignmentsClient
+func resourceArmLighthouseAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedServices.LighthouseAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureRegistrationAssignmentID(d.Id())
+	id, err := parseAzureLighthouseAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,6 @@ func resourceArmRegistrationAssignmentDelete(d *schema.ResourceData, meta interf
 	}
 
 	// The sleep is needed to ensure the registration assignment is successfully deleted.
-	// A bug will be logged with the Azure product team to address this issue.
 	time.Sleep(30 * time.Second)
 
 	return nil

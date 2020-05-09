@@ -12,9 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmRegistrationDefinition() *schema.Resource {
+func dataSourceArmLighthouseDefinition() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmRegistrationDefinitionRead,
+		Read: dataSourceArmLighthouseDefinitionRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -67,8 +67,8 @@ func dataSourceArmRegistrationDefinition() *schema.Resource {
 	}
 }
 
-func dataSourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.RegistrationDefinitionsClient
+func dataSourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ManagedServices.LighthouseDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -78,7 +78,7 @@ func dataSourceArmRegistrationDefinitionRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error reading Subscription for Registration Definition %q", registrationDefinitionID)
 	}
 
-	scope := buildScopeForRegistrationDefinition(subscriptionID)
+	scope := buildScopeForLighthouseDefinition(subscriptionID)
 
 	resp, err := client.Get(ctx, scope, registrationDefinitionID)
 	if err != nil {
