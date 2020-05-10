@@ -91,7 +91,7 @@ func (client DatabasesClient) AddPrincipalsPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -129,8 +129,8 @@ func (client DatabasesClient) AddPrincipalsResponder(resp *http.Response) (resul
 // Parameters:
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
 // clusterName - the name of the Kusto cluster.
-// databaseName - the name of the database.
-func (client DatabasesClient) CheckNameAvailability(ctx context.Context, resourceGroupName string, clusterName string, databaseName DatabaseCheckNameRequest) (result CheckNameResult, err error) {
+// resourceName - the name of the resource.
+func (client DatabasesClient) CheckNameAvailability(ctx context.Context, resourceGroupName string, clusterName string, resourceName CheckNameRequest) (result CheckNameResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.CheckNameAvailability")
 		defer func() {
@@ -142,13 +142,12 @@ func (client DatabasesClient) CheckNameAvailability(ctx context.Context, resourc
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: databaseName,
-			Constraints: []validation.Constraint{{Target: "databaseName.Name", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "databaseName.Type", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		{TargetValue: resourceName,
+			Constraints: []validation.Constraint{{Target: "resourceName.Name", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("kusto.DatabasesClient", "CheckNameAvailability", err.Error())
 	}
 
-	req, err := client.CheckNameAvailabilityPreparer(ctx, resourceGroupName, clusterName, databaseName)
+	req, err := client.CheckNameAvailabilityPreparer(ctx, resourceGroupName, clusterName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "kusto.DatabasesClient", "CheckNameAvailability", nil, "Failure preparing request")
 		return
@@ -170,14 +169,14 @@ func (client DatabasesClient) CheckNameAvailability(ctx context.Context, resourc
 }
 
 // CheckNameAvailabilityPreparer prepares the CheckNameAvailability request.
-func (client DatabasesClient) CheckNameAvailabilityPreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName DatabaseCheckNameRequest) (*http.Request, error) {
+func (client DatabasesClient) CheckNameAvailabilityPreparer(ctx context.Context, resourceGroupName string, clusterName string, resourceName CheckNameRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":       autorest.Encode("path", clusterName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -187,7 +186,7 @@ func (client DatabasesClient) CheckNameAvailabilityPreparer(ctx context.Context,
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/checkNameAvailability", pathParameters),
-		autorest.WithJSON(databaseName),
+		autorest.WithJSON(resourceName),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -217,7 +216,7 @@ func (client DatabasesClient) CheckNameAvailabilityResponder(resp *http.Response
 // clusterName - the name of the Kusto cluster.
 // databaseName - the name of the database in the Kusto cluster.
 // parameters - the database parameters supplied to the CreateOrUpdate operation.
-func (client DatabasesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters Database) (result DatabasesCreateOrUpdateFuture, err error) {
+func (client DatabasesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters BasicDatabase) (result DatabasesCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.CreateOrUpdate")
 		defer func() {
@@ -244,7 +243,7 @@ func (client DatabasesClient) CreateOrUpdate(ctx context.Context, resourceGroupN
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client DatabasesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters Database) (*http.Request, error) {
+func (client DatabasesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters BasicDatabase) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":       autorest.Encode("path", clusterName),
 		"databaseName":      autorest.Encode("path", databaseName),
@@ -252,7 +251,7 @@ func (client DatabasesClient) CreateOrUpdatePreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -281,7 +280,7 @@ func (client DatabasesClient) CreateOrUpdateSender(req *http.Request) (future Da
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
 // closes the http.Response Body.
-func (client DatabasesClient) CreateOrUpdateResponder(resp *http.Response) (result Database, err error) {
+func (client DatabasesClient) CreateOrUpdateResponder(resp *http.Response) (result DatabaseModel, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -332,7 +331,7 @@ func (client DatabasesClient) DeletePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -374,7 +373,7 @@ func (client DatabasesClient) DeleteResponder(resp *http.Response) (result autor
 // resourceGroupName - the name of the resource group containing the Kusto cluster.
 // clusterName - the name of the Kusto cluster.
 // databaseName - the name of the database in the Kusto cluster.
-func (client DatabasesClient) Get(ctx context.Context, resourceGroupName string, clusterName string, databaseName string) (result Database, err error) {
+func (client DatabasesClient) Get(ctx context.Context, resourceGroupName string, clusterName string, databaseName string) (result DatabaseModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.Get")
 		defer func() {
@@ -415,7 +414,7 @@ func (client DatabasesClient) GetPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -436,7 +435,7 @@ func (client DatabasesClient) GetSender(req *http.Request) (*http.Response, erro
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client DatabasesClient) GetResponder(resp *http.Response) (result Database, err error) {
+func (client DatabasesClient) GetResponder(resp *http.Response) (result DatabaseModel, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -491,7 +490,7 @@ func (client DatabasesClient) ListByClusterPreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -569,7 +568,7 @@ func (client DatabasesClient) ListPrincipalsPreparer(ctx context.Context, resour
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -648,7 +647,7 @@ func (client DatabasesClient) RemovePrincipalsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -688,7 +687,7 @@ func (client DatabasesClient) RemovePrincipalsResponder(resp *http.Response) (re
 // clusterName - the name of the Kusto cluster.
 // databaseName - the name of the database in the Kusto cluster.
 // parameters - the database parameters supplied to the Update operation.
-func (client DatabasesClient) Update(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters DatabaseUpdate) (result DatabasesUpdateFuture, err error) {
+func (client DatabasesClient) Update(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters BasicDatabase) (result DatabasesUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/DatabasesClient.Update")
 		defer func() {
@@ -715,7 +714,7 @@ func (client DatabasesClient) Update(ctx context.Context, resourceGroupName stri
 }
 
 // UpdatePreparer prepares the Update request.
-func (client DatabasesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters DatabaseUpdate) (*http.Request, error) {
+func (client DatabasesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, clusterName string, databaseName string, parameters BasicDatabase) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"clusterName":       autorest.Encode("path", clusterName),
 		"databaseName":      autorest.Encode("path", databaseName),
@@ -723,7 +722,7 @@ func (client DatabasesClient) UpdatePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -752,7 +751,7 @@ func (client DatabasesClient) UpdateSender(req *http.Request) (future DatabasesU
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client DatabasesClient) UpdateResponder(resp *http.Response) (result Database, err error) {
+func (client DatabasesClient) UpdateResponder(resp *http.Response) (result DatabaseModel, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
