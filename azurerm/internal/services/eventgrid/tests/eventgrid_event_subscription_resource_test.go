@@ -180,6 +180,29 @@ func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventGridEventSubscription_advancedFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridEventSubscription_advancedFilter(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than.0.key", "data.filesite"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than.0.value", "42.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_begins_with.0.key", "topic"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_begins_with.0.value", "topic_prefix"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMEventGridEventSubscriptionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -532,6 +555,55 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   subject_filter {
     subject_begins_with = "test/test"
     subject_ends_with   = ".jpg"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMEventGridEventSubscription_advancedFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  tags = {
+    environment = "staging"
+  }
+}
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+}
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name  = "acctesteg-%d"
+  scope = "${azurerm_storage_account.test.id}"
+  storage_queue_endpoint {
+    storage_account_id = "${azurerm_storage_account.test.id}"
+    queue_name         = "${azurerm_storage_queue.test.name}"
+  }
+  advanced_filter {
+    number_less_than {
+      key   = "data.contentLength"
+      value = 42.0
+    }
+    number_in {
+      key    = "data.contentLength"
+      values = [1, 1, 2, 3, 5]
+    }
+    string_begins_with {
+      key    = "data.blobType"
+      values = ["Page", "Block"]
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
