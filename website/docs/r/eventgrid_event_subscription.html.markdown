@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `scope` - (Required) Specifies the scope at which the EventGrid Event Subscription should be created. Changing this forces a new resource to be created.
 
+* `expiration_time_utc` - (Optional) Specifies the expiration time of the event subscription (Datetime Format `RFC 3339`).
+
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
 * `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
@@ -66,7 +68,13 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `storage_queue_endpoint`, `eventhub_endpoint`, `hybrid_connection_endpoint` or `webhook_endpoint` must be specified.
+* `service_bus_queue_endpoint` - (Optional) A `service_bus_queue_endpoint` block as defined below.
+
+* `service_bus_topic_endpoint` - (Optional) A `service_bus_topic_endpoint` block as defined below.
+
+* `azure_function_endpoint` - (Optional) A `azure_function_endpoint` block as defined below.
+
+~> **NOTE:** One of `storage_queue_endpoint`, `eventhub_endpoint`, `hybrid_connection_endpoint`, `webhook_endpoint`, `service_bus_queue_endpoint`, `service_bus_topic_endpoint` or `azure_function_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -103,6 +111,24 @@ A `hybrid_connection_endpoint` supports the following:
 A `webhook_endpoint` supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
+
+---
+
+A `service_bus_queue_endpoint` supports the following:
+
+* `service_bus_queue_id` - (Required) Specifies the id where the service bus queue is located.
+
+---
+
+A `service_bus_topic_endpoint` supports the following:
+
+* `service_bus_topic_id` - (Required) Specifies the id where the service bus topic is located.
+
+---
+
+A `azure_function_endpoint` supports the following:
+
+* `azure_function_id` - (Required) Specifies the id where the azure function is located.
 
 ---
 
