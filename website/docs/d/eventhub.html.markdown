@@ -14,9 +14,9 @@ Use this data source to access information about an existing EventHub.
 
 ```hcl
 data "azurerm_eventhub" "example" {
-  name = "search-eventhub"
+  name                = "search-eventhub"
   resource_group_name = "search-service"
-  namespace_name = "search-eventhubns"
+  namespace_name      = "search-eventhubns"
 }
 
 output "eventhub_id" {
