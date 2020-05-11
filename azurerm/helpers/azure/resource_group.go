@@ -30,8 +30,9 @@ func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 
 func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeString,
-		Required: true,
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validateResourceGroupName,
 	}
 }
 
