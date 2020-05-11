@@ -11,7 +11,8 @@ FEATURES:
 IMPROVEMENTS:
 
 * Data Source: `azurerm_virtual_machine` - export `identity` attribute [GH-6826]
-* `azurerm_mssql_server`  - Add support for `azuread_administrator` [GH-6822]
+* `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
+* `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
 
 BUG FIXES:
 
