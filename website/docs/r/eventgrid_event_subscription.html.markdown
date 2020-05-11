@@ -56,9 +56,7 @@ The following arguments are supported:
 
 * `scope` - (Required) Specifies the scope at which the EventGrid Event Subscription should be created. Changing this forces a new resource to be created.
 
-* `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventV01Schema`, `CustomInputSchema`.
-
-* `topic_name` - (Optional) Specifies the name of the topic to associate with the event subscription.
+* `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
 * `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
 
@@ -100,6 +98,8 @@ A `hybrid_connection_endpoint` supports the following:
 
 * `hybrid_connection_id` - (Required) Specifies the id of the hybrid connection where the Event Subscription will receive events.
 
+---
+
 A `webhook_endpoint` supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
@@ -136,9 +136,9 @@ The following attributes are exported:
 
 * `id` - The ID of the EventGrid Event Subscription.
 
+* `topic_name` - (Optional) Specifies the name of the topic to associate with the event subscription.
+
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

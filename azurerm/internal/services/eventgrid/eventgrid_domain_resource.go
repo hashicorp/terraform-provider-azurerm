@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -13,7 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +26,6 @@ func resourceArmEventGridDomain() *schema.Resource {
 		Read:   resourceArmEventGridDomainRead,
 		Update: resourceArmEventGridDomainCreateUpdate,
 		Delete: resourceArmEventGridDomainDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,6 +33,11 @@ func resourceArmEventGridDomain() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.EventGridDomainID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -54,7 +58,7 @@ func resourceArmEventGridDomain() *schema.Resource {
 				Default:  string(eventgrid.InputSchemaEventGridSchema),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(eventgrid.InputSchemaCloudEventV01Schema),
+					string(eventgrid.InputSchemaCloudEventSchemaV10),
 					string(eventgrid.InputSchemaCustomEventSchema),
 					string(eventgrid.InputSchemaEventGridSchema),
 				}, false),
@@ -211,26 +215,24 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EventGridDomainID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["domains"]
 
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] EventGrid Domain %q was not found (Resource Group %q)", name, resourceGroup)
+			log.Printf("[WARN] EventGrid Domain %q was not found (Resource Group %q)", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on EventGrid Domain %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request on EventGrid Domain %q: %+v", id.Name, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -242,24 +244,24 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 
 		inputMappingFields, err := flattenAzureRmEventgridDomainInputMapping(props.InputSchemaMapping)
 		if err != nil {
-			return fmt.Errorf("Unable to flatten `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("Unable to flatten `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 		if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
-			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 
 		inputMappingDefaultValues, err := flattenAzureRmEventgridDomainInputMappingDefaultValues(props.InputSchemaMapping)
 		if err != nil {
-			return fmt.Errorf("Unable to flatten `input_schema_mapping_default_values` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("Unable to flatten `input_schema_mapping_default_values` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 		if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
-			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
+			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
 	}
 
-	keys, err := client.ListSharedAccessKeys(ctx, resourceGroup, name)
+	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Shared Access Keys for EventGrid Domain %q: %+v", name, err)
+		return fmt.Errorf("Error retrieving Shared Access Keys for EventGrid Domain %q: %+v", id.Name, err)
 	}
 	d.Set("primary_access_key", keys.Key1)
 	d.Set("secondary_access_key", keys.Key2)
@@ -272,26 +274,24 @@ func resourceArmEventGridDomainDelete(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.EventGridDomainID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["domains"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Event Grid Domain %q: %+v", name, err)
+		return fmt.Errorf("Error deleting Event Grid Domain %q: %+v", id.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Event Grid Domain %q: %+v", name, err)
+		return fmt.Errorf("Error deleting Event Grid Domain %q: %+v", id.Name, err)
 	}
 
 	return nil

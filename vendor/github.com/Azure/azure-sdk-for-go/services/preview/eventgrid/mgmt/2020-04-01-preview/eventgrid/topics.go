@@ -45,8 +45,8 @@ func NewTopicsClientWithBaseURI(baseURI string, subscriptionID string) TopicsCli
 // CreateOrUpdate asynchronously creates a new topic with the specified parameters.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic
-// topicInfo - topic information
+// topicName - name of the topic.
+// topicInfo - topic information.
 func (client TopicsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, topicName string, topicInfo Topic) (result TopicsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.CreateOrUpdate")
@@ -81,7 +81,7 @@ func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -121,10 +121,10 @@ func (client TopicsClient) CreateOrUpdateResponder(resp *http.Response) (result 
 	return
 }
 
-// Delete delete existing topic
+// Delete delete existing topic.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic
+// topicName - name of the topic.
 func (client TopicsClient) Delete(ctx context.Context, resourceGroupName string, topicName string) (result TopicsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.Delete")
@@ -159,7 +159,7 @@ func (client TopicsClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -196,10 +196,10 @@ func (client TopicsClient) DeleteResponder(resp *http.Response) (result autorest
 	return
 }
 
-// Get get properties of a topic
+// Get get properties of a topic.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic
+// topicName - name of the topic.
 func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, topicName string) (result Topic, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.Get")
@@ -240,7 +240,7 @@ func (client TopicsClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -272,21 +272,30 @@ func (client TopicsClient) GetResponder(resp *http.Response) (result Topic, err 
 	return
 }
 
-// ListByResourceGroup list all the topics under a resource group
+// ListByResourceGroup list all the topics under a resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result TopicsListResult, err error) {
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, filter string, top *int32) (result TopicsListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.tlr.Response.Response != nil {
+				sc = result.tlr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName)
+	result.fn = client.listByResourceGroupNextResults
+	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListByResourceGroup", nil, "Failure preparing request")
 		return
@@ -294,12 +303,12 @@ func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.tlr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListByResourceGroupResponder(resp)
+	result.tlr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
@@ -308,15 +317,21 @@ func (client TopicsClient) ListByResourceGroup(ctx context.Context, resourceGrou
 }
 
 // ListByResourceGroupPreparer prepares the ListByResourceGroup request.
-func (client TopicsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string) (*http.Request, error) {
+func (client TopicsClient) ListByResourceGroupPreparer(ctx context.Context, resourceGroupName string, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -346,19 +361,66 @@ func (client TopicsClient) ListByResourceGroupResponder(resp *http.Response) (re
 	return
 }
 
-// ListBySubscription list all the topics under an Azure subscription
-func (client TopicsClient) ListBySubscription(ctx context.Context) (result TopicsListResult, err error) {
+// listByResourceGroupNextResults retrieves the next set of results, if any.
+func (client TopicsClient) listByResourceGroupNextResults(ctx context.Context, lastResults TopicsListResult) (result TopicsListResult, err error) {
+	req, err := lastResults.topicsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByResourceGroupSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listByResourceGroupNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByResourceGroupResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
+func (client TopicsClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, filter string, top *int32) (result TopicsListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListBySubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListBySubscriptionPreparer(ctx)
+	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName, filter, top)
+	return
+}
+
+// ListBySubscription list all the topics under an Azure subscription.
+// Parameters:
+// filter - the query used to filter the search results using OData syntax. Filtering is permitted on the
+// 'name' property only and with limited number of OData operations. These operations are: the 'contains'
+// function as well as the following logical operations: not, and, or, eq (for equal), and ne (for not equal).
+// No arithmetic operations are supported. The following is a valid filter example: $filter=contains(namE,
+// 'PATTERN') and name ne 'PATTERN-1'. The following is not a valid filter example: $filter=location eq
+// 'westus'.
+// top - the number of results to return per page for the list operation. Valid range for top parameter is 1 to
+// 100. If not specified, the default number of results to be returned is 20 items per page.
+func (client TopicsClient) ListBySubscription(ctx context.Context, filter string, top *int32) (result TopicsListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListBySubscription")
+		defer func() {
+			sc := -1
+			if result.tlr.Response.Response != nil {
+				sc = result.tlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listBySubscriptionNextResults
+	req, err := client.ListBySubscriptionPreparer(ctx, filter, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListBySubscription", nil, "Failure preparing request")
 		return
@@ -366,12 +428,12 @@ func (client TopicsClient) ListBySubscription(ctx context.Context) (result Topic
 
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.tlr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListBySubscriptionResponder(resp)
+	result.tlr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "ListBySubscription", resp, "Failure responding to request")
 	}
@@ -380,14 +442,20 @@ func (client TopicsClient) ListBySubscription(ctx context.Context) (result Topic
 }
 
 // ListBySubscriptionPreparer prepares the ListBySubscription request.
-func (client TopicsClient) ListBySubscriptionPreparer(ctx context.Context) (*http.Request, error) {
+func (client TopicsClient) ListBySubscriptionPreparer(ctx context.Context, filter string, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -417,12 +485,49 @@ func (client TopicsClient) ListBySubscriptionResponder(resp *http.Response) (res
 	return
 }
 
-// ListEventTypes list event types for a topic
+// listBySubscriptionNextResults retrieves the next set of results, if any.
+func (client TopicsClient) listBySubscriptionNextResults(ctx context.Context, lastResults TopicsListResult) (result TopicsListResult, err error) {
+	req, err := lastResults.topicsListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListBySubscriptionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listBySubscriptionNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListBySubscriptionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventgrid.TopicsClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client TopicsClient) ListBySubscriptionComplete(ctx context.Context, filter string, top *int32) (result TopicsListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListBySubscription")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListBySubscription(ctx, filter, top)
+	return
+}
+
+// ListEventTypes list event types for a topic.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// providerNamespace - namespace of the provider of the topic
-// resourceTypeName - name of the topic type
-// resourceName - name of the topic
+// providerNamespace - namespace of the provider of the topic.
+// resourceTypeName - name of the topic type.
+// resourceName - name of the topic.
 func (client TopicsClient) ListEventTypes(ctx context.Context, resourceGroupName string, providerNamespace string, resourceTypeName string, resourceName string) (result EventTypesListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListEventTypes")
@@ -465,7 +570,7 @@ func (client TopicsClient) ListEventTypesPreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -497,10 +602,10 @@ func (client TopicsClient) ListEventTypesResponder(resp *http.Response) (result 
 	return
 }
 
-// ListSharedAccessKeys list the two keys used to publish to a topic
+// ListSharedAccessKeys list the two keys used to publish to a topic.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic
+// topicName - name of the topic.
 func (client TopicsClient) ListSharedAccessKeys(ctx context.Context, resourceGroupName string, topicName string) (result TopicSharedAccessKeys, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListSharedAccessKeys")
@@ -541,7 +646,7 @@ func (client TopicsClient) ListSharedAccessKeysPreparer(ctx context.Context, res
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -573,11 +678,11 @@ func (client TopicsClient) ListSharedAccessKeysResponder(resp *http.Response) (r
 	return
 }
 
-// RegenerateKey regenerate a shared access key for a topic
+// RegenerateKey regenerate a shared access key for a topic.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic
-// regenerateKeyRequest - request body to regenerate key
+// topicName - name of the topic.
+// regenerateKeyRequest - request body to regenerate key.
 func (client TopicsClient) RegenerateKey(ctx context.Context, resourceGroupName string, topicName string, regenerateKeyRequest TopicRegenerateKeyRequest) (result TopicSharedAccessKeys, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.RegenerateKey")
@@ -624,7 +729,7 @@ func (client TopicsClient) RegenerateKeyPreparer(ctx context.Context, resourceGr
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -661,8 +766,8 @@ func (client TopicsClient) RegenerateKeyResponder(resp *http.Response) (result T
 // Update asynchronously updates a topic with the specified parameters.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
-// topicName - name of the topic
-// topicUpdateParameters - topic update information
+// topicName - name of the topic.
+// topicUpdateParameters - topic update information.
 func (client TopicsClient) Update(ctx context.Context, resourceGroupName string, topicName string, topicUpdateParameters TopicUpdateParameters) (result TopicsUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.Update")
@@ -697,7 +802,7 @@ func (client TopicsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"topicName":         autorest.Encode("path", topicName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
