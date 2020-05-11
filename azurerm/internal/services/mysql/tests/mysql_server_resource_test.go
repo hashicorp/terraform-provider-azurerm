@@ -305,6 +305,7 @@ func TestAccAzureRMMySQLServer_createReplica(t *testing.T) {
 func TestAccAzureRMMySQLServer_createPointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	restoreTime := time.Now().Add(11 * time.Minute)
+	mysqlVersion := "8.0"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -312,7 +313,7 @@ func TestAccAzureRMMySQLServer_createPointInTimeRestore(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySQLServer_basic(data, "8.0"),
+				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 				),
@@ -320,7 +321,7 @@ func TestAccAzureRMMySQLServer_createPointInTimeRestore(t *testing.T) {
 			data.ImportStep("administrator_login_password"),
 			{
 				PreConfig: func() { time.Sleep(restoreTime.Sub(time.Now().Add(-7 * time.Minute))) },
-				Config:    testAccAzureRMMySQLServer_createPointInTimeRestore(data, "8.0", restoreTime.Format(time.RFC3339)),
+				Config:    testAccAzureRMMySQLServer_createPointInTimeRestore(data, mysqlVersion, restoreTime.Format(time.RFC3339)),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
 					testCheckAzureRMMySQLServerExists("azurerm_mysql_server.restore"),
@@ -511,19 +512,15 @@ resource "azurerm_mysql_server" "import" {
   name                = azurerm_mysql_server.test.name
   location            = azurerm_mysql_server.test.location
   resource_group_name = azurerm_mysql_server.test.resource_group_name
-
-  sku_name = "GP_Gen5_2"
-
-  storage_profile {
-    storage_mb            = 51200
-    backup_retention_days = 7
-    geo_redundant_backup  = "Disabled"
-  }
+  sku_name            = "GP_Gen5_2"
+  version             = "5.7"
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.7"
-  ssl_enforcement              = "Enabled"
+  backup_retention_days        = 7
+  geo_redundant_backup_enabled = false
+  ssl_enforcement_enabled      = true
+  storage_mb                   = 51200
 }
 `, testAccAzureRMMySQLServer_basic(data, "5.7"))
 }
@@ -540,15 +537,16 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                         = "acctestmysqlsvr-%d"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
-  sku_name                     = "%s"
+  name                = "acctestmysqlsvr-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "%s"
+  version             = "5.7"
+
   storage_mb                   = 4194304
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  version                      = "5.7"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
@@ -565,10 +563,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                         = "acctestmysqlsvr-%d"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
-  sku_name                     = "GP_Gen5_2"
+  name                = "acctestmysqlsvr-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "GP_Gen5_2"
+  version             = "%s"
+
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   auto_grow_enabled            = true
@@ -576,7 +576,6 @@ resource "azurerm_mysql_server" "test" {
   geo_redundant_backup_enabled = false
   ssl_enforcement_enabled      = true
   storage_mb                   = 51200
-  version                      = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -586,14 +585,15 @@ func testAccAzureRMMySQLServer_createReplica(data acceptance.TestData, version s
 %s
 
 resource "azurerm_mysql_server" "replica" {
-  name                      = "acctestmysqlsvr-%d-replica"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  sku_name                  = "GP_Gen5_2"
+  name                = "acctestmysqlsvr-%d-replica"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "GP_Gen5_2"
+  version             = "%s"
+
   create_mode               = "Replica"
   creation_source_server_id = azurerm_mysql_server.test.id
   ssl_enforcement_enabled   = true
-  version                   = "%s"
 }
 `, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, version)
 }
@@ -603,16 +603,17 @@ func testAccAzureRMMySQLServer_createPointInTimeRestore(data acceptance.TestData
 %s
 
 resource "azurerm_mysql_server" "restore" {
-  name                      = "acctestmysqlsvr-%d-restore"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  sku_name                  = "GP_Gen5_2"
+  name                = "acctestmysqlsvr-%d-restore"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "GP_Gen5_2"
+  version             = "%s"
+
   create_mode               = "PointInTimeRestore"
   creation_source_server_id = azurerm_mysql_server.test.id
   restore_point_in_time     = "%s"
   ssl_enforcement_enabled   = true
   storage_mb                = 51200
-  version                   = "%s"
 }
-`, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, restoreTime, version)
+`, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, version, restoreTime)
 }
