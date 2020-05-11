@@ -46,12 +46,6 @@ func dataSourceMariaDbServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"administrator_login_password": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
