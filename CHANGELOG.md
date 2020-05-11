@@ -1,9 +1,13 @@
 ## 2.10.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_eventhub` [GH-6841]
+
 IMPROVEMENTS:
 
+* Data Source: `azurerm_virtual_machine` - export `identity` attribute [GH-6826]
 * `azurerm_mssql_server`  - Add support for `azuread_administrator` [GH-6822]
-* `data.azurerm_virtual_machine` - export `identity` attribute [GH-6826]
 
 BUG FIXES:
 
