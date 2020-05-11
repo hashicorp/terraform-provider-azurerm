@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -149,16 +148,22 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	d.SetId(*resp.ID)
 
 	if d.HasChange("snapshot_schedule") {
-		syncFuture, err := syncClient.Delete(ctx, accountId.ResourceGroup, accountId.Name, name, name)
-		if err != nil {
-			if !response.WasNotFound(syncFuture.Response()) {
-				return fmt.Errorf("deleting DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+		// only one dependent sync setting is allowed in one data share
+		if syncIterator, err := syncClient.ListByShareComplete(ctx, accountId.ResourceGroup, accountId.Name, name, ""); syncIterator.NotDone() {
+			if err != nil {
+				return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
 			}
-		} else if err = syncFuture.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
-			if !response.WasNotFound(syncFuture.Response()) {
-				return fmt.Errorf("waiting for DataShare %q snapshot schedule (Resource Group %q / accountName %q) to be deleted: %+v", name, accountId.ResourceGroup, accountId.Name, err)
+			if syncName := syncIterator.Value().(datashare.ScheduledSynchronizationSetting).Name; syncName != nil && *syncName != "" {
+				syncFuture, err := syncClient.Delete(ctx, accountId.ResourceGroup, accountId.Name, name, *syncName)
+				if err != nil {
+					return fmt.Errorf("deleting DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+				}
+				if err = syncFuture.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
+					return fmt.Errorf("waiting for DataShare %q snapshot schedule (Resource Group %q / accountName %q) to be deleted: %+v", name, accountId.ResourceGroup, accountId.Name, err)
+				}
 			}
 		}
+
 		if snapshotSchedule := expandAzureRmDataShareSnapshotSchedule(d.Get("snapshot_schedule").([]interface{})); snapshotSchedule != nil {
 			if _, err := syncClient.Create(ctx, accountId.ResourceGroup, accountId.Name, name, name, snapshotSchedule); err != nil {
 				return fmt.Errorf("creating DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
@@ -207,16 +212,19 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("terms", props.Terms)
 	}
 
-	syncResp, err := syncClient.Get(ctx, id.ResourceGroup, id.AccountName, id.Name, id.Name)
-	if err != nil {
-		// if not found, we set nothing to the block
-		if !utils.ResponseWasNotFound(syncResp.Response) {
-			return fmt.Errorf("checking for present of existing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+	if syncIterator, err := syncClient.ListByShareComplete(ctx, id.ResourceGroup, id.AccountName, id.Name, ""); syncIterator.NotDone() {
+		if err != nil {
+			return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
 		}
-	} else {
-		if schedule := syncResp.Value.(datashare.ScheduledSynchronizationSetting); schedule.ID != nil && *schedule.ID != "" {
-			if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(&schedule)); err != nil {
-				return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
+		if syncName := syncIterator.Value().(datashare.ScheduledSynchronizationSetting).Name; syncName != nil && *syncName != "" {
+			syncResp, err := syncClient.Get(ctx, id.ResourceGroup, id.AccountName, id.Name, *syncName)
+			if err != nil {
+				return fmt.Errorf("reading DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+			}
+			if schedule := syncResp.Value.(datashare.ScheduledSynchronizationSetting); schedule.ID != nil && *schedule.ID != "" {
+				if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(&schedule)); err != nil {
+					return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
+				}
 			}
 		}
 	}
@@ -235,27 +243,29 @@ func resourceArmDataShareDelete(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	// sync setting will not automatically be deleted after the data share is deleted
+	if syncIterator, err := syncClient.ListByShareComplete(ctx, id.ResourceGroup, id.AccountName, id.Name, ""); syncIterator.NotDone() {
+		if err != nil {
+			return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+		}
+		if syncName := syncIterator.Value().(datashare.ScheduledSynchronizationSetting).Name; syncName != nil && *syncName != "" {
+			syncFuture, err := syncClient.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name, *syncName)
+			if err != nil {
+				return fmt.Errorf("deleting DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+			}
+			if err = syncFuture.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
+				return fmt.Errorf("waiting for DataShare %q snapshot schedule (Resource Group %q / accountName %q) to be deleted: %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+			}
+		}
+	}
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting DataShare %q (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for DataShare %q (Resource Group %q / accountName %q) to be deleted: %+v", id.Name, id.ResourceGroup, id.AccountName, err)
-		}
-	}
-
-	// force delete sync setting resource whether it exists or not
-	syncFuture, err := syncClient.Delete(ctx, id.ResourceGroup, id.AccountName, id.Name, id.Name)
-	if err != nil {
-		if !response.WasNotFound(syncFuture.Response()) {
-			return fmt.Errorf("deleting DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
-		}
-	} else if err = syncFuture.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
-		if !response.WasNotFound(syncFuture.Response()) {
-			return fmt.Errorf("waiting for DataShare %q snapshot schedule (Resource Group %q / accountName %q) to be deleted: %+v", id.Name, id.ResourceGroup, id.AccountName, err)
-		}
+		return fmt.Errorf("waiting for DataShare %q (Resource Group %q / accountName %q) to be deleted: %+v", id.Name, id.ResourceGroup, id.AccountName, err)
 	}
 
 	return nil

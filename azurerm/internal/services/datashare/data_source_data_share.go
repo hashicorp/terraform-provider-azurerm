@@ -107,18 +107,22 @@ func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("terms", props.Terms)
 	}
 
-	syncResp, err := syncClient.Get(ctx, accountId.ResourceGroup, accountId.Name, name, name)
-	if err != nil {
-		// if not found, we set nothing to the block
-		if !utils.ResponseWasNotFound(syncResp.Response) {
-			return fmt.Errorf("checking for present of existing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+	if syncIterator, err := syncClient.ListByShareComplete(ctx, accountId.ResourceGroup, accountId.Name, name, ""); syncIterator.NotDone() {
+		if err != nil {
+			return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
 		}
-	} else {
-		if schedule := syncResp.Value.(datashare.ScheduledSynchronizationSetting); schedule.ID != nil && *schedule.ID != "" {
-			if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(&schedule)); err != nil {
-				return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
+		if syncName := syncIterator.Value().(datashare.ScheduledSynchronizationSetting).Name; syncName != nil && *syncName != "" {
+			syncResp, err := syncClient.Get(ctx, accountId.ResourceGroup, accountId.Name, name, *syncName)
+			if err != nil {
+				return fmt.Errorf("reading DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+			}
+			if schedule := syncResp.Value.(datashare.ScheduledSynchronizationSetting); schedule.ID != nil && *schedule.ID != "" {
+				if err := d.Set("snapshot_schedule", flattenAzureRmDataShareSnapshotSchedule(&schedule)); err != nil {
+					return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
+				}
 			}
 		}
 	}
+
 	return nil
 }
