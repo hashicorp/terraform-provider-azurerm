@@ -88,7 +88,6 @@ func resourceArmApiManagementService() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
-							Default:  string(apimanagement.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(apimanagement.SystemAssigned),
 								string(apimanagement.UserAssigned),
@@ -104,7 +103,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Computed: true,
 						},
 						"identity_ids": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							MinItems: 1,
 							Elem: &schema.Schema{
@@ -918,7 +917,9 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 func expandAzureRmApiManagementIdentity(d *schema.ResourceData) (*apimanagement.ServiceIdentity, error) {
 	vs := d.Get("identity").([]interface{})
 	if len(vs) == 0 {
-		return nil, nil
+		return &apimanagement.ServiceIdentity{
+			Type: apimanagement.None,
+		}, nil
 	}
 
 	v := vs[0].(map[string]interface{})
@@ -928,15 +929,19 @@ func expandAzureRmApiManagementIdentity(d *schema.ResourceData) (*apimanagement.
 		Type: apimanagement.ApimIdentityType(identityType),
 	}
 
+	identityIdSet := (v["identity_ids"].(*schema.Set))
 	if managedServiceIdentity.Type == apimanagement.UserAssigned || managedServiceIdentity.Type == apimanagement.SystemAssignedUserAssigned {
-		identityIds := make(map[string]*apimanagement.UserIdentityProperties)
+		if identityIdSet.Len() == 0 {
+			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
+		}
 
-		for _, id := range v["identity_ids"].([]interface{}) {
+		identityIds := make(map[string]*apimanagement.UserIdentityProperties)
+		for _, id := range identityIdSet.List() {
 			identityIds[id.(string)] = &apimanagement.UserIdentityProperties{}
 		}
 
 		managedServiceIdentity.UserAssignedIdentities = identityIds
-	} else if _, exists := v["identity_ids"]; exists {
+	} else if identityIdSet.Len() > 0 {
 		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
 	}
 
@@ -960,12 +965,12 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 		result["tenant_id"] = identity.TenantID.String()
 	}
 
-	identityIds := make([]string, 0)
+	identityIds := make([]interface{}, 0)
 	if identity.UserAssignedIdentities != nil {
 		for key := range identity.UserAssignedIdentities {
 			identityIds = append(identityIds, key)
 		}
-		result["identity_ids"] = identityIds
+		result["identity_ids"] = schema.NewSet(schema.HashString, identityIds)
 	}
 
 	return []interface{}{result}
