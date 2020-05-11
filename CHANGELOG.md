@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_mssql_server`  - Add support for `azuread_administrator` [GH-6822]
+* `data.azurerm_virtual_machine` - export `identity` attribute [GH-6826]
 
 BUG FIXES:
 
