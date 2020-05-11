@@ -482,7 +482,11 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		properties.Identity = expandAzureRmApiManagementIdentity(d)
+		identity, err := expandAzureRmApiManagementIdentity(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `identity`: %+v", err)
+		}
+		properties.Identity = identity
 	}
 
 	if _, ok := d.GetOk("additional_location"); ok {
@@ -911,28 +915,32 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 	return results
 }
 
-func expandAzureRmApiManagementIdentity(d *schema.ResourceData) *apimanagement.ServiceIdentity {
+func expandAzureRmApiManagementIdentity(d *schema.ResourceData) (*apimanagement.ServiceIdentity, error) {
 	vs := d.Get("identity").([]interface{})
 	if len(vs) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	v := vs[0].(map[string]interface{})
 	identityType := v["type"].(string)
 
-	identityIds := make(map[string]*apimanagement.UserIdentityProperties)
-	for _, id := range v["identity_ids"].([]interface{}) {
-		identityIds[id.(string)] = &apimanagement.UserIdentityProperties{}
-	}
 	managedServiceIdentity := apimanagement.ServiceIdentity{
 		Type: apimanagement.ApimIdentityType(identityType),
 	}
 
 	if managedServiceIdentity.Type == apimanagement.UserAssigned || managedServiceIdentity.Type == apimanagement.SystemAssignedUserAssigned {
+		identityIds := make(map[string]*apimanagement.UserIdentityProperties)
+
+		for _, id := range v["identity_ids"].([]interface{}) {
+			identityIds[id.(string)] = &apimanagement.UserIdentityProperties{}
+		}
+
 		managedServiceIdentity.UserAssignedIdentities = identityIds
+	} else if _, exists := v["identity_ids"]; exists {
+		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
 	}
 
-	return &managedServiceIdentity
+	return &managedServiceIdentity, nil
 }
 
 func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
