@@ -1,5 +1,9 @@
 ## 2.10.0 (Unreleased)
 
+DEPENDENCIES: 
+
+* updating `eventgrid` to `2020-04-01-preview` [GH-6837]
+
 FEATURES:
 
 * **New Data Source:** `azurerm_eventhub` [GH-6841]
@@ -99,7 +103,7 @@ FEATURES:
 * **New Resource:** `azurerm_servicebus_namespace_network_rule_set` ([#6379](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6379))
 * **New Resource:** `azurerm_spring_cloud_app` ([#6384](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6384))
 
-DEPENDENCIES: 
+DEPENDENCIES:
 
 * updating `apimanagement` to `2019-12-01` ([#6479](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6479))
 * updating the fork of `github.com/Azure/go-autorest` ([#6509](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6509))
