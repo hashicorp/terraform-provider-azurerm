@@ -4,6 +4,10 @@ IMPROVEMENTS:
 
 * `azurerm_mssql_server`  - Add support for `azuread_administrator` [GH-6822]
 
+BUG FIXES:
+
+* Data Source: `azurerm_automation_account` - using the ID of the Automation Account, rather than the ID of the Automation Account's Registration Info [GH-6848]
+
 ## 2.9.0 (May 07, 2020)
 
 FEATURES:
