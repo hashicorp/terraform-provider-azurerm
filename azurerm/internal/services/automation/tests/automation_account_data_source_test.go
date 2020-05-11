@@ -22,7 +22,7 @@ func TestAccDataSourceAutomationAccount(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
 					resource.TestMatchResourceAttr(data.ResourceName, "id",
-						regexp.MustCompile(`^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft.Automation/automationAccounts/[^/]+$`)),
+						regexp.MustCompile(`^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Automation/automationAccounts/[^/]+$`)),
 				),
 			},
 		},
