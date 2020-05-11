@@ -28,11 +28,11 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *resources.Client, key
 	filter := fmt.Sprintf("name eq '%s'", name)
 	keyVaults, err := client.List(ctx, filter, "", nil)
 	if err != nil {
-		return nil, nil
+		return nil, fmt.Errorf("listing key vault with name %q: %+v", name, err)
 	}
 	values := keyVaults.Values()
 	if len(values) == 0 {
-		return nil, fmt.Errorf("no key Vault found with Url: %q", keyVaultUrl)
+		return nil, nil
 	} else if len(values) > 1 {
 		return nil, fmt.Errorf("more than one key Vault found with Url: %q", keyVaultUrl)
 	}
