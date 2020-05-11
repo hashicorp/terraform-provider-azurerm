@@ -5,12 +5,12 @@ import (
 	"log"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -189,23 +189,22 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(keyVaultId)
+		kvID, err := parse.KeyVaultID(keyVaultId)
 		if err != nil {
-			// key vault's been deleted
-			return nil
+			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
-		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+		ok, err := azure.KeyVaultExists(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, kvID.BaseUrl(), err)
 		}
 		if !ok {
-			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, kvID.BaseUrl())
 			return nil
 		}
 
 		// get the latest version
-		resp, err := client.GetSecret(ctx, vaultBaseUrl, name, "")
+		resp, err := client.GetSecret(ctx, kvID.BaseUrl(), name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
@@ -232,24 +231,25 @@ func testCheckAzureRMKeyVaultSecretExists(resourceName string) resource.TestChec
 		}
 		name := rs.Primary.Attributes["name"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(keyVaultId)
+
+		kvID, err := parse.KeyVaultID(keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+		ok, err = azure.KeyVaultExists(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, kvID.BaseUrl(), err)
 		}
 		if !ok {
-			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, kvID.BaseUrl())
 			return nil
 		}
 
-		resp, err := client.GetSecret(ctx, vaultBaseUrl, name, "")
+		resp, err := client.GetSecret(ctx, kvID.BaseUrl(), name, "")
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Key Vault Secret %q (resource group: %q) does not exist", name, vaultBaseUrl)
+				return fmt.Errorf("Bad: Key Vault Secret %q (resource group: %q) does not exist", name, kvID.BaseUrl())
 			}
 
 			return fmt.Errorf("Bad: Get on keyVaultManagementClient: %+v", err)
@@ -272,21 +272,21 @@ func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.Test
 		}
 		name := rs.Primary.Attributes["name"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(keyVaultId)
+		kvID, err := parse.KeyVaultID(keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
-		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
+		ok, err = azure.KeyVaultExists(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+			return fmt.Errorf("Error checking if key vault %q for Secret %q in Vault at url %q exists: %v", keyVaultId, name, kvID.BaseUrl(), err)
 		}
 		if !ok {
-			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
+			log.Printf("[DEBUG] Secret %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, kvID.BaseUrl())
 			return nil
 		}
 
-		resp, err := client.DeleteSecret(ctx, vaultBaseUrl, name)
+		resp, err := client.DeleteSecret(ctx, kvID.BaseUrl(), name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil

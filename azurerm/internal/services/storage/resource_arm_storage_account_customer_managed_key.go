@@ -157,7 +157,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 
 func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	resourcesClient := meta.(*clients.Client).Resource.ResourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -206,7 +206,7 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultUri` was nil", storageAccountId.Name, storageAccountId.ResourceGroup)
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultUri)
+	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, resourcesClient, keyVaultUri)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Key Vault ID from the Base URI %q: %+v", keyVaultUri, err)
 	}

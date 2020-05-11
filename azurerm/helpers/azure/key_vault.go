@@ -28,7 +28,7 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *resources.Client, key
 	filter := fmt.Sprintf("name eq '%s'", name)
 	keyVaults, err := client.List(ctx, filter, "", nil)
 	if err != nil {
-		return nil, fmt.Errorf("listing key vaults: %+v", err)
+		return nil, nil
 	}
 	values := keyVaults.Values()
 	if len(values) == 0 {
