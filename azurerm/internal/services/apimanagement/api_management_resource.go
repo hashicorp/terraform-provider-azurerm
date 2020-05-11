@@ -733,17 +733,28 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 }
 
 func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}, hostnameType apimanagement.HostnameType) apimanagement.HostnameConfiguration {
-	encodedCertificate := input["certificate"].(string)
-	certificatePassword := input["certificate_password"].(string)
-	hostName := input["host_name"].(string)
-	keyVaultId := input["key_vault_id"].(string)
-
 	output := apimanagement.HostnameConfiguration{
-		EncodedCertificate:  utils.String(encodedCertificate),
-		CertificatePassword: utils.String(certificatePassword),
-		HostName:            utils.String(hostName),
-		KeyVaultID:          utils.String(keyVaultId),
-		Type:                hostnameType,
+		Type: hostnameType,
+	}
+	if v, ok := input["certificate"]; ok {
+		if v.(string) != "" {
+			output.EncodedCertificate = utils.String(v.(string))
+		}
+	}
+	if v, ok := input["certificate_password"]; ok {
+		if v.(string) != "" {
+			output.CertificatePassword = utils.String(v.(string))
+		}
+	}
+	if v, ok := input["host_name"]; ok {
+		if v.(string) != "" {
+			output.HostName = utils.String(v.(string))
+		}
+	}
+	if v, ok := input["key_vault_id"]; ok {
+		if v.(string) != "" {
+			output.KeyVaultID = utils.String(v.(string))
+		}
 	}
 
 	if v, ok := input["negotiate_client_certificate"]; ok {
