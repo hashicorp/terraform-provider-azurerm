@@ -44,7 +44,8 @@ func dataSourceArmAutomationAccount() *schema.Resource {
 }
 
 func dataSourceAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
+	iclient := meta.(*clients.Client).Automation.AgentRegistrationInfoClient
+	client := meta.(*clients.Client).Automation.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -56,11 +57,19 @@ func dataSourceAutomationAccountRead(d *schema.ResourceData, meta interface{}) e
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Automation Account %q (Resource Group %q) was not found", name, resourceGroupName)
 		}
-		return fmt.Errorf("Error making Read request on Automation Account Registration Information %q (Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("Error making Read request on Automation %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	d.SetId(*resp.ID)
-	d.Set("primary_key", resp.Keys.Primary)
-	d.Set("secondary_key", resp.Keys.Secondary)
-	d.Set("endpoint", resp.Endpoint)
+
+	iresp, err := iclient.Get(ctx, resourceGroupName, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(iresp.Response) {
+			return fmt.Errorf("Error: Automation Account Registration Information %q (Resource Group %q) was not found", name, resourceGroupName)
+		}
+		return fmt.Errorf("Error making Read request on Automation Account Registration Information %q (Resource Group %q): %+v", name, resourceGroupName, err)
+	}
+	d.Set("primary_key", iresp.Keys.Primary)
+	d.Set("secondary_key", iresp.Keys.Secondary)
+	d.Set("endpoint", iresp.Endpoint)
 	return nil
 }
