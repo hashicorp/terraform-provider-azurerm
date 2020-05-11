@@ -18,6 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -73,7 +75,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.KeyVaultID,
 			},
 
 			"certificate": {
@@ -336,24 +338,19 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 }
 
 func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	keyVaultId := d.Get("key_vault_id").(string)
-
-	keyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-	if err != nil {
-		return fmt.Errorf("Error looking up Certificate %q vault url from id %q: %+v", name, keyVaultId, err)
-	}
+	kvID, _ := parse.KeyVaultID(keyVaultId)
 
 	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+		existing, err := client.GetCertificate(ctx, kvID.BaseUrl(), name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
+				return fmt.Errorf("Error checking for presence of existing Certificate %q (Key Vault %q): %s", name, kvID.BaseUrl(), err)
 			}
 		}
 
@@ -374,7 +371,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			CertificatePolicy:        &policy,
 			Tags:                     tags.Expand(t),
 		}
-		if _, err := client.ImportCertificate(ctx, keyVaultBaseUrl, name, importParameters); err != nil {
+		if _, err := client.ImportCertificate(ctx, kvID.BaseUrl(), name, importParameters); err != nil {
 			return err
 		}
 	} else {
@@ -383,9 +380,9 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			CertificatePolicy: &policy,
 			Tags:              tags.Expand(t),
 		}
-		if resp, err := client.CreateCertificate(ctx, keyVaultBaseUrl, name, parameters); err != nil {
+		if resp, err := client.CreateCertificate(ctx, kvID.BaseUrl(), name, parameters); err != nil {
 			if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
-				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, keyVaultBaseUrl, name)
+				recoveredCertificate, err := client.RecoverDeletedCertificate(ctx, kvID.BaseUrl(), name)
 				if err != nil {
 					return err
 				}
@@ -411,21 +408,21 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			}
 		}
 
-		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, keyVaultBaseUrl)
+		log.Printf("[DEBUG] Waiting for Key Vault Certificate %q in Vault %q to be provisioned", name, kvID.BaseUrl())
 		stateConf := &resource.StateChangeConf{
 			Pending:    []string{"Provisioning"},
 			Target:     []string{"Ready"},
-			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, keyVaultBaseUrl, name),
+			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, kvID.BaseUrl(), name),
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(schema.TimeoutCreate),
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, keyVaultBaseUrl, err)
+			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, kvID.BaseUrl(), err)
 		}
 	}
 
-	resp, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
+	resp, err := client.GetCertificate(ctx, kvID.BaseUrl(), name, "")
 	if err != nil {
 		return err
 	}

@@ -189,7 +189,7 @@ func testCheckAzureRMKeyVaultSecretDestroy(s *terraform.State) error {
 
 		name := rs.Primary.Attributes["name"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(keyVaultId)
 		if err != nil {
 			// key vault's been deleted
 			return nil
@@ -232,7 +232,7 @@ func testCheckAzureRMKeyVaultSecretExists(resourceName string) resource.TestChec
 		}
 		name := rs.Primary.Attributes["name"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
@@ -272,7 +272,7 @@ func testCheckAzureRMKeyVaultSecretDisappears(resourceName string) resource.Test
 		}
 		name := rs.Primary.Attributes["name"]
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
-		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
+		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(keyVaultId)
 		if err != nil {
 			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}

@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -14,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -48,7 +51,7 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.KeyVaultID,
 			},
 
 			"value": {
@@ -85,7 +88,6 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 }
 
 func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -93,17 +95,12 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret creation.")
 
 	name := d.Get("name").(string)
-	keyVaultId := d.Get("key_vault_id").(string)
+	kvID, _ := parse.KeyVaultID(d.Get("key_vault_id").(string))
 
-	keyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-	if err != nil {
-		return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
-	}
-
-	existing, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
+	existing, err := client.GetSecret(ctx, kvID.BaseUrl(), name, "")
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("Error checking for presence of existing Secret %q (Key Vault %q): %s", name, keyVaultBaseUrl, err)
+			return fmt.Errorf("Error checking for presence of existing Secret %q (Key Vault %q): %s", name, kvID.BaseUrl(), err)
 		}
 	}
 
@@ -134,11 +131,11 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 		parameters.SecretAttributes.Expires = &expirationUnixTime
 	}
 
-	if resp, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters); err != nil {
+	if resp, err := client.SetSecret(ctx, kvID.BaseUrl(), name, parameters); err != nil {
 		// In the case that the Secret already exists in a Soft Deleted / Recoverable state we check if `recover_soft_deleted_key_vaults` is set
 		// and attempt recovery where appropriate
 		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
-			recoveredSecret, err := client.RecoverDeletedSecret(ctx, keyVaultBaseUrl, name)
+			recoveredSecret, err := client.RecoverDeletedSecret(ctx, kvID.BaseUrl(), name)
 			if err != nil {
 				return err
 			}
@@ -167,13 +164,13 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
+	read, err := client.GetSecret(ctx, kvID.BaseUrl(), name, "")
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read KeyVault Secret '%s' (in key vault '%s')", name, keyVaultBaseUrl)
+		return fmt.Errorf("Cannot read KeyVault Secret '%s' (in key vault '%s')", name, kvID.BaseUrl())
 	}
 
 	d.SetId(*read.ID)

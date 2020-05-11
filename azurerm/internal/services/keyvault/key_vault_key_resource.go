@@ -15,6 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -49,7 +51,7 @@ func resourceArmKeyVaultKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.KeyVaultID,
 			},
 
 			"key_type": {
@@ -154,7 +156,6 @@ func resourceArmKeyVaultKey() *schema.Resource {
 }
 
 func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -162,17 +163,13 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
 	keyVaultId := d.Get("key_vault_id").(string)
-
-	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
-	if err != nil {
-		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
-	}
+	kvID, _ := parse.KeyVaultID(keyVaultId)
 
 	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
+		existing, err := client.GetKey(ctx, kvID.BaseUrl(), name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Key %q (Key Vault %q): %s", name, keyVaultBaseUri, err)
+				return fmt.Errorf("Error checking for presence of existing Key %q (Key Vault %q): %s", name, kvID.BaseUrl(), err)
 			}
 		}
 
@@ -222,9 +219,9 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 		parameters.KeyAttributes.Expires = &expirationUnixTime
 	}
 
-	if resp, err := client.CreateKey(ctx, keyVaultBaseUri, name, parameters); err != nil {
+	if resp, err := client.CreateKey(ctx, kvID.BaseUrl(), name, parameters); err != nil {
 		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeyVaults && utils.ResponseWasConflict(resp.Response) {
-			recoveredKey, err := client.RecoverDeletedKey(ctx, keyVaultBaseUri, name)
+			recoveredKey, err := client.RecoverDeletedKey(ctx, kvID.BaseUrl(), name)
 			if err != nil {
 				return err
 			}
@@ -251,7 +248,7 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	// "" indicates the latest version
-	read, err := client.GetKey(ctx, keyVaultBaseUri, name, "")
+	read, err := client.GetKey(ctx, kvID.BaseUrl(), name, "")
 	if err != nil {
 		return err
 	}

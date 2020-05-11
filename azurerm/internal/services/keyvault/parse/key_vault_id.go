@@ -1,6 +1,8 @@
 package parse
 
 import (
+	"fmt"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -28,4 +30,8 @@ func KeyVaultID(input string) (*KeyVaultId, error) {
 	}
 
 	return &account, nil
+}
+
+func (id *KeyVaultId) BaseUrl() string {
+	return fmt.Sprintf("https://%s.vault.azure.net/", id.Name)
 }

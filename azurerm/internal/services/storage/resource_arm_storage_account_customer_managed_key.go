@@ -104,12 +104,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 		}
 	}
 
-	keyVaultIdRaw := d.Get("key_vault_id").(string)
-	keyVaultId, err := keyVaultParse.KeyVaultID(keyVaultIdRaw)
-	if err != nil {
-		return err
-	}
-
+	keyVaultId, _ := keyVaultParse.KeyVaultID(d.Get("key_vault_id").(string))
 	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", keyVaultId.Name, keyVaultId.ResourceGroup, err)
@@ -129,11 +124,6 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 		return fmt.Errorf("Key Vault %q (Resource Group %q) must be configured for both Purge Protection and Soft Delete", keyVaultId.Name, keyVaultId.ResourceGroup)
 	}
 
-	keyVaultBaseURL, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultsClient, keyVaultIdRaw)
-	if err != nil {
-		return fmt.Errorf("Error looking up Key Vault URI from Key Vault %q (Resource Group %q): %+v", keyVaultId.Name, keyVaultId.ResourceGroup, err)
-	}
-
 	keyName := d.Get("key_name").(string)
 	keyVersion := d.Get("key_version").(string)
 	props := storage.AccountUpdateParameters{
@@ -151,7 +141,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 				KeyVaultProperties: &storage.KeyVaultProperties{
 					KeyName:     utils.String(keyName),
 					KeyVersion:  utils.String(keyVersion),
-					KeyVaultURI: utils.String(keyVaultBaseURL),
+					KeyVaultURI: utils.String(keyVaultId.BaseUrl()),
 				},
 			},
 		},
