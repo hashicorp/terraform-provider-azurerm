@@ -17,6 +17,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_api_management` - fixing a crash when `policy` is nil [GH-6862]
 * `azurerm_application_insights` - `retention_in_days` defaults to 90 [GH-6851]
 * Data Source: `azurerm_automation_account` - using the ID of the Automation Account, rather than the ID of the Automation Account's Registration Info [GH-6848]
 
