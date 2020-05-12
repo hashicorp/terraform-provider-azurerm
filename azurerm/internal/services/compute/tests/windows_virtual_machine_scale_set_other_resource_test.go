@@ -975,7 +975,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_password      = "P@ssword1234!"
   overprovision       = true
 
-  do_not_run_extensions_on_overprovisioned_machines = %v
+  do_not_run_extensions_on_overprovisioned_machines = %t
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"

@@ -816,7 +816,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   overprovision       = true
 
   disable_password_authentication                   = false
-  do_not_run_extensions_on_overprovisioned_machines = %v
+  do_not_run_extensions_on_overprovisioned_machines = %t
 
   source_image_reference {
     publisher = "Canonical"
