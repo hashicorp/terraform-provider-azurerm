@@ -210,7 +210,7 @@ resource "azurerm_eventgrid_topic" "test" {
   name                = "acctesteg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  input_schema = "CustomEventSchema"
+  input_schema        = "CustomEventSchema"
   input_mapping_fields {
     topic      = "test"
     event_type = "test"
