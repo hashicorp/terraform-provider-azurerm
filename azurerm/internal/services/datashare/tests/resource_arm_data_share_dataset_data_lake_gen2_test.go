@@ -159,7 +159,7 @@ resource "azurerm_data_share_dataset_data_lake_gen2" "test" {
   storage_account_name                = azurerm_storage_account.test.name
   storage_account_resource_group_name = azurerm_storage_account.test.resource_group_name
   storage_account_subscription_id     = "%s"
-  file_system_name                         = azurerm_storage_data_lake_gen2_filesystem.test.name
+  file_system_name                    = azurerm_storage_data_lake_gen2_filesystem.test.name
   file_path                           = "myfile.txt"
   depends_on = [
     azurerm_role_assignment.test,
@@ -179,7 +179,7 @@ resource "azurerm_data_share_dataset_data_lake_gen2" "test" {
   storage_account_name                = azurerm_storage_account.test.name
   storage_account_resource_group_name = azurerm_storage_account.test.resource_group_name
   storage_account_subscription_id     = "%s"
-  file_system_name                         = azurerm_storage_data_lake_gen2_filesystem.test.name
+  file_system_name                    = azurerm_storage_data_lake_gen2_filesystem.test.name
   folder_path                         = "/test/"
   depends_on = [
     azurerm_role_assignment.test,
@@ -199,7 +199,7 @@ resource "azurerm_data_share_dataset_data_lake_gen2" "test" {
   storage_account_name                = azurerm_storage_account.test.name
   storage_account_resource_group_name = azurerm_storage_account.test.resource_group_name
   storage_account_subscription_id     = "%s"
-  file_system_name                         = azurerm_storage_data_lake_gen2_filesystem.test.name
+  file_system_name                    = azurerm_storage_data_lake_gen2_filesystem.test.name
   depends_on = [
     azurerm_role_assignment.test,
   ]
@@ -218,7 +218,7 @@ resource "azurerm_data_share_dataset_data_lake_gen2" "import" {
   storage_account_name                = azurerm_data_share_dataset_data_lake_gen2.test.storage_account_name
   storage_account_resource_group_name = azurerm_data_share_dataset_data_lake_gen2.test.storage_account_resource_group_name
   storage_account_subscription_id     = azurerm_data_share_dataset_data_lake_gen2.test.storage_account_subscription_id
-  file_system_name                         = azurerm_data_share_dataset_data_lake_gen2.test.file_system_name
+  file_system_name                    = azurerm_data_share_dataset_data_lake_gen2.test.file_system_name
   file_path                           = azurerm_data_share_dataset_data_lake_gen2.test.file_path
 }
 `, config)
