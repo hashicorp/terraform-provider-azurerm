@@ -1226,7 +1226,7 @@ func flattenApiManagementSignUpSettings(input apimanagement.PortalSignupSettings
 }
 
 func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyContract, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
