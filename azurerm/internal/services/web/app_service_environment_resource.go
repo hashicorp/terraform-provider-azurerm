@@ -86,8 +86,8 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				}, false),
 			},
 
-			// TODO: Make it "Required" in next major release
-			"resource_group_name": azure.SchemaResourceGroupNameOC(),
+			// TODO in 3.0 Make it "Required"
+			"resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
 
 			"tags": tags.ForceNewSchema(),
 

@@ -35,7 +35,7 @@ func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	}
 }
 
-func SchemaResourceGroupNameOC() *schema.Schema {
+func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		ForceNew:     true,
