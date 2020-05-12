@@ -87,8 +87,10 @@ func resourceArmApiManagementService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  string(apimanagement.None),
 							ValidateFunc: validation.StringInSlice([]string{
+								string(apimanagement.None),
 								string(apimanagement.SystemAssigned),
 								string(apimanagement.UserAssigned),
 								string(apimanagement.SystemAssignedUserAssigned),
@@ -915,34 +917,39 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 }
 
 func expandAzureRmApiManagementIdentity(d *schema.ResourceData) (*apimanagement.ServiceIdentity, error) {
+	var identityIdSet *schema.Set
+	managedServiceIdentity := apimanagement.ServiceIdentity{}
+
 	vs := d.Get("identity").([]interface{})
 	if len(vs) == 0 {
-		return &apimanagement.ServiceIdentity{
-			Type: apimanagement.None,
-		}, nil
+		managedServiceIdentity.Type = apimanagement.None
+	} else {
+		v := vs[0].(map[string]interface{})
+		identityType, exists := v["type"]
+		if !exists {
+			return nil, fmt.Errorf("`type` must be specified when `identity` is set")
+		}
+		managedServiceIdentity.Type = apimanagement.ApimIdentityType(identityType.(string))
+		if identityIds, exists := v["identity_ids"]; exists {
+			identityIdSet = (identityIds.(*schema.Set))
+		}
 	}
 
-	v := vs[0].(map[string]interface{})
-	identityType := v["type"].(string)
-
-	managedServiceIdentity := apimanagement.ServiceIdentity{
-		Type: apimanagement.ApimIdentityType(identityType),
-	}
-
-	identityIdSet := (v["identity_ids"].(*schema.Set))
+	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
 	if managedServiceIdentity.Type == apimanagement.UserAssigned || managedServiceIdentity.Type == apimanagement.SystemAssignedUserAssigned {
-		if identityIdSet.Len() == 0 {
+		if identityIdSet == nil || identityIdSet.Len() == 0 {
 			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
 		}
 
-		identityIds := make(map[string]*apimanagement.UserIdentityProperties)
+		userAssignedIdentities := make(map[string]*apimanagement.UserIdentityProperties)
 		for _, id := range identityIdSet.List() {
-			identityIds[id.(string)] = &apimanagement.UserIdentityProperties{}
+			userAssignedIdentities[id.(string)] = &apimanagement.UserIdentityProperties{}
 		}
 
-		managedServiceIdentity.UserAssignedIdentities = identityIds
-	} else if identityIdSet.Len() > 0 {
-		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`")
+		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentities
+	} else if identityIdSet != nil && identityIdSet.Len() > 0 {
+		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
+		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
 	}
 
 	return &managedServiceIdentity, nil
