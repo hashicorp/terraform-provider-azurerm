@@ -72,7 +72,6 @@ func dataSourceApiManagementService() *schema.Resource {
 						"identity_ids": {
 							Type:     schema.TypeList,
 							Computed: true,
-							MinItems: 1,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
