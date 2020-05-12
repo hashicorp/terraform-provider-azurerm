@@ -1,8 +1,23 @@
 ## 2.10.0 (Unreleased)
 
+DEPENDENCIES: 
+
+* updating `eventgrid` to `2020-04-01-preview` [GH-6837]
+
+FEATURES:
+
+* **New Data Source:** `azurerm_eventhub` [GH-6841]
+
 IMPROVEMENTS:
 
-* `azurerm_mssql_server`  - Add support for `azuread_administrator` [GH-6822]
+* Data Source: `azurerm_virtual_machine` - export `identity` attribute [GH-6826]
+* `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
+* `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
+
+BUG FIXES:
+
+* `azurerm_application_insights` - `retention_in_days` defaults to 90 [GH-6851]
+* Data Source: `azurerm_automation_account` - using the ID of the Automation Account, rather than the ID of the Automation Account's Registration Info [GH-6848]
 
 ## 2.9.0 (May 07, 2020)
 
@@ -90,7 +105,7 @@ FEATURES:
 * **New Resource:** `azurerm_servicebus_namespace_network_rule_set` ([#6379](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6379))
 * **New Resource:** `azurerm_spring_cloud_app` ([#6384](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6384))
 
-DEPENDENCIES: 
+DEPENDENCIES:
 
 * updating `apimanagement` to `2019-12-01` ([#6479](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6479))
 * updating the fork of `github.com/Azure/go-autorest` ([#6509](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6509))

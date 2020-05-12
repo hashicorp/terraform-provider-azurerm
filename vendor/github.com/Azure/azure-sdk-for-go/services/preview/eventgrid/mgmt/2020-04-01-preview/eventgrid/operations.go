@@ -41,7 +41,7 @@ func NewOperationsClientWithBaseURI(baseURI string, subscriptionID string) Opera
 	return OperationsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// List list the available operations supported by the Microsoft.EventGrid resource provider
+// List list the available operations supported by the Microsoft.EventGrid resource provider.
 func (client OperationsClient) List(ctx context.Context) (result OperationsListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/OperationsClient.List")
@@ -76,7 +76,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationsListR
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

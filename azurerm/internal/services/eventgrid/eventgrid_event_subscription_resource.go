@@ -3,10 +3,9 @@ package eventgrid
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -14,9 +13,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func getEnpointTypes() []string {
+	return []string{"webhook_endpoint", "storage_queue_endpoint", "eventhub_endpoint", "hybrid_connection_endpoint"}
+}
 
 func resourceArmEventGridEventSubscription() *schema.Resource {
 	return &schema.Resource{
@@ -24,9 +29,6 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 		Read:   resourceArmEventGridEventSubscriptionRead,
 		Update: resourceArmEventGridEventSubscriptionCreateUpdate,
 		Delete: resourceArmEventGridEventSubscriptionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -34,6 +36,11 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.EventGridEventSubscriptionID(id)
+			return err
+		}),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -56,9 +63,9 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				ForceNew: true,
 				Default:  string(eventgrid.EventGridSchema),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(eventgrid.CloudEventV01Schema),
-					string(eventgrid.CustomInputSchema),
 					string(eventgrid.EventGridSchema),
+					string(eventgrid.CloudEventSchemaV10),
+					string(eventgrid.CustomInputSchema),
 				}, false),
 			},
 
@@ -72,7 +79,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: []string{"eventhub_endpoint", "hybrid_connection_endpoint", "webhook_endpoint"},
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "storage_queue_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_account_id": {
@@ -93,7 +100,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: []string{"storage_queue_endpoint", "hybrid_connection_endpoint", "webhook_endpoint"},
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "eventhub_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"eventhub_id": {
@@ -109,7 +116,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: []string{"storage_queue_endpoint", "eventhub_endpoint", "webhook_endpoint"},
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "hybrid_connection_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"hybrid_connection_id": {
@@ -125,7 +132,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: []string{"storage_queue_endpoint", "eventhub_endpoint", "hybrid_connection_endpoint"},
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "webhook_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"url": {
@@ -142,7 +149,8 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 
@@ -243,20 +251,18 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 
 	destination := expandEventGridEventSubscriptionDestination(d)
 	if destination == nil {
-		return fmt.Errorf("One of `webhook_endpoint`, eventhub_endpoint` `hybrid_connection_endpoint` or `storage_queue_endpoint` must be specificed to create an EventGrid Event Subscription")
+		return fmt.Errorf("One of the following endpoint types must be specificed to create an EventGrid Event Subscription: %q", getEnpointTypes())
 	}
+
+	filter := expandEventGridEventSubscriptionFilter(d)
 
 	eventSubscriptionProperties := eventgrid.EventSubscriptionProperties{
 		Destination:           destination,
-		Filter:                expandEventGridEventSubscriptionFilter(d),
+		Filter:                filter,
 		DeadLetterDestination: expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d),
 		RetryPolicy:           expandEventGridEventSubscriptionRetryPolicy(d),
 		Labels:                utils.ExpandStringSlice(d.Get("labels").([]interface{})),
 		EventDeliverySchema:   eventgrid.EventDeliverySchema(d.Get("event_delivery_schema").(string)),
-	}
-
-	if v, ok := d.GetOk("topic_name"); ok {
-		eventSubscriptionProperties.Topic = utils.String(v.(string))
 	}
 
 	eventSubscription := eventgrid.EventSubscription{
@@ -292,7 +298,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureEventGridEventSubscriptionID(d.Id())
+	id, err := parse.EventGridEventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -377,7 +383,7 @@ func resourceArmEventGridEventSubscriptionDelete(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureEventGridEventSubscriptionID(d.Id())
+	id, err := parse.EventGridEventSubscriptionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -398,26 +404,6 @@ func resourceArmEventGridEventSubscriptionDelete(d *schema.ResourceData, meta in
 	}
 
 	return nil
-}
-
-type AzureEventGridEventSubscriptionID struct {
-	Scope string
-	Name  string
-}
-
-func parseAzureEventGridEventSubscriptionID(id string) (*AzureEventGridEventSubscriptionID, error) {
-	segments := strings.Split(id, "/providers/Microsoft.EventGrid/eventSubscriptions/")
-	if len(segments) != 2 {
-		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.EventGrid/eventSubscriptions/{name} - got %d segments", len(segments))
-	}
-
-	scope := segments[0]
-	name := segments[1]
-	eventSubscriptionID := AzureEventGridEventSubscriptionID{
-		Scope: scope,
-		Name:  name,
-	}
-	return &eventSubscriptionID, nil
 }
 
 func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
