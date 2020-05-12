@@ -152,7 +152,10 @@ func TestSentinelAlertRuleActionID(t *testing.T) {
 				continue
 			}
 
-			t.Fatalf("Expected a value but got an error: %s", err)
+			t.Fatalf("Expect a value but got an error: %s", err)
+		}
+		if v.Error {
+			t.Fatal("Expect an error but didn't get")
 		}
 
 		if actual.Subscription != v.Expect.Subscription {
