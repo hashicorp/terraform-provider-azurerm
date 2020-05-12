@@ -41,9 +41,9 @@ func NewTopicTypesClientWithBaseURI(baseURI string, subscriptionID string) Topic
 	return TopicTypesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get get information about a topic type
+// Get get information about a topic type.
 // Parameters:
-// topicTypeName - name of the topic type
+// topicTypeName - name of the topic type.
 func (client TopicTypesClient) Get(ctx context.Context, topicTypeName string) (result TopicTypeInfo, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicTypesClient.Get")
@@ -82,7 +82,7 @@ func (client TopicTypesClient) GetPreparer(ctx context.Context, topicTypeName st
 		"topicTypeName": autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -114,7 +114,7 @@ func (client TopicTypesClient) GetResponder(resp *http.Response) (result TopicTy
 	return
 }
 
-// List list all registered topic types
+// List list all registered topic types.
 func (client TopicTypesClient) List(ctx context.Context) (result TopicTypesListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicTypesClient.List")
@@ -149,7 +149,7 @@ func (client TopicTypesClient) List(ctx context.Context) (result TopicTypesListR
 
 // ListPreparer prepares the List request.
 func (client TopicTypesClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -181,9 +181,9 @@ func (client TopicTypesClient) ListResponder(resp *http.Response) (result TopicT
 	return
 }
 
-// ListEventTypes list event types for a topic type
+// ListEventTypes list event types for a topic type.
 // Parameters:
-// topicTypeName - name of the topic type
+// topicTypeName - name of the topic type.
 func (client TopicTypesClient) ListEventTypes(ctx context.Context, topicTypeName string) (result EventTypesListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/TopicTypesClient.ListEventTypes")
@@ -222,7 +222,7 @@ func (client TopicTypesClient) ListEventTypesPreparer(ctx context.Context, topic
 		"topicTypeName": autorest.Encode("path", topicTypeName),
 	}
 
-	const APIVersion = "2018-09-15-preview"
+	const APIVersion = "2020-04-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -20,6 +21,8 @@ func TestAccDataSourceAutomationAccount(t *testing.T) {
 				Config: testAccDataSourceAutomationAccount_complete(resourceGroupName, data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
+					resource.TestMatchResourceAttr(data.ResourceName, "id",
+						regexp.MustCompile(`^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/Microsoft\.Automation/automationAccounts/[^/]+$`)),
 				),
 			},
 		},

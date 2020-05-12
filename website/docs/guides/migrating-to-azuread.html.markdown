@@ -110,7 +110,7 @@ azurerm_azuread_service_principal_password.example
 As the Terraform Configuration has been updated - we can move each of the resources in the state using the `terraform state mv` command, for example:
 
 ```shell
-$ terraform state mv azurerm_azuread_application.exampleazuread_application.example
+$ terraform state mv azurerm_azuread_application.example azuread_application.example
 Moved azurerm_azuread_application.example to azuread_application.example
 ```
 
