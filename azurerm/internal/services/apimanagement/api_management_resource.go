@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	apimValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -68,15 +69,10 @@ func resourceArmApiManagementService() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: azure.MinCapacitySkuNameInSlice([]string{
-					string(apimanagement.SkuTypeConsumption),
-					string(apimanagement.SkuTypeDeveloper),
-					string(apimanagement.SkuTypeBasic),
-					string(apimanagement.SkuTypeStandard),
-					string(apimanagement.SkuTypePremium),
-				}, 1, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 
 			"identity": {
