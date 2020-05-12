@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Share.
 
-* `share_kind` - TODO.
+* `share_kind` - The kind of the Data Share.
 
 * `description` - The description of the Data Share.
 

@@ -51,11 +51,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Data Share. Changing this forces a new Data Share to be created.
 
-* `account_id` - (Required) The ID of the Data Share account from which the Data Share is created. Changing this forces a new Data Share to be created.
+* `account_id` - (Required) The ID of the Data Share account in which the Data Share is created. Changing this forces a new Data Share to be created.
 
-* `share_kind` - (Required) The kind of the Data Share. Changing this forces a new Data Share to be created.
+* `share_kind` - (Required) The kind of the Data Share. Possible values are `CopyBased` and `InPlace`. Changing this forces a new Data Share to be created.
 
-* `description` - (Optional) The description of the Data Share.
+* `description` - (Optional) The Data Share's description.
 
 * `snapshot_schedule` - (Optional) A `snapshot_schedule` block as defined below.
 
@@ -65,9 +65,9 @@ The following arguments are supported:
 
 A `snapshot_schedule` block supports the following:
 
-* `recurrence` - (Required) The recurrence interval of the synchronization of the source data. Possible values are 'Hour'and 'Day'.
+* `recurrence` - (Required) The recurrence interval of the synchronization of the source data. Possible values are `Hour` and `Day`.
 
-* `start_time` - (Required) The start time of the synchronization of the source data.
+* `start_time` - (Required) The time to start synchronization with the source data.
 
 ## Attributes Reference
 
