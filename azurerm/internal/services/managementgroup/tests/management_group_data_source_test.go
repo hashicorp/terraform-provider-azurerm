@@ -36,7 +36,7 @@ func TestAccDataSourceArmManagementGroup_basicByDisplayName(t *testing.T) {
 			{
 				Config: testAccDataSourceArmManagementGroup_basicByDisplayName(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctest Management Group %d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "subscription_ids.#", "0"),
 				),
 			},
@@ -67,7 +67,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_management_group" "test" {
-  display_name = "acctestmg-%d"
+  display_name = "acctest Management Group %d"
 }
 
 data "azurerm_management_group" "test" {

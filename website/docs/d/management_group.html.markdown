@@ -13,10 +13,6 @@ Use this data source to access information about an existing Management Group.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_management_group" "example" {
   name = "00000000-0000-0000-0000-000000000000"
 }
@@ -38,7 +34,7 @@ The following arguments are supported:
 
 * `display_name` - Specifies the display name of this Management Group.
 
-~> **NOTE** As `display_name` is not unique errors may occur when there are multiple Management Groups with same display name. 
+~> **NOTE** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.  
 
 ## Attributes Reference
 

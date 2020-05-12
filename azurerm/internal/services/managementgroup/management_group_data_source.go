@@ -145,12 +145,12 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 
 	// we found none
 	if len(results) == 0 {
-		return "", fmt.Errorf("do not find Management Group (Display Name %q)", displayName)
+		return "", fmt.Errorf("Management Group (Display Name %q) was not found", displayName)
 	}
 
 	// we found more than one
 	if len(results) > 1 {
-		return "", fmt.Errorf("found more than one Management Group with display name %q", displayName)
+		return "", fmt.Errorf("expected a single Management Group with the Display Name %q but expected one", displayName)
 	}
 
 	return results[0], nil
