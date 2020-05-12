@@ -67,7 +67,7 @@ resource "azurerm_data_share_dataset_data_lake_gen2" "example" {
   storage_account_name                = azurerm_storage_account.example.name
   storage_account_resource_group_name = azurerm_storage_account.example.resource_group_name
   storage_account_subscription_id     = "00000000-0000-0000-0000-000000000000"
-  file_system_name                         = azurerm_storage_data_lake_gen2_filesystem.example.name
+  file_system_name                    = azurerm_storage_data_lake_gen2_filesystem.example.name
   file_path                           = "myfile.txt"
   depends_on = [
     azurerm_role_assignment.example,
