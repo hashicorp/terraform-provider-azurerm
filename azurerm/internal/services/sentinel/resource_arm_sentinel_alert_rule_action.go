@@ -57,6 +57,12 @@ func resourceArmSentinelAlertRuleAction() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: logicValidate.LogicAppWorkflowID,
 			},
+
+			"logic_app_trigger_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -91,7 +97,7 @@ func resourceArmSentinelAlertRuleActionCreate(d *schema.ResourceData, meta inter
 	}
 
 	// List callback URL for sentinel alert specific trigger from the workspace containing specified alert rule.
-	triggerName := "When_a_response_to_an_Azure_Sentinel_alert_is_triggered"
+	triggerName := d.Get("logic_app_trigger_name").(string)
 	tresp, err := logicTriggerClient.ListCallbackURL(ctx, ruleID.ResourceGroup, lappId.Name, triggerName)
 	if err != nil {
 		return fmt.Errorf("listing callback URL for Logic App Trigger %q (Resource Group %q / Workspace %q): %+v", triggerName, ruleID.ResourceGroup, ruleID.Workspace, err)
@@ -145,6 +151,9 @@ func resourceArmSentinelAlertRuleActionRead(d *schema.ResourceData, meta interfa
 	d.Set("rule_id", id.FormatSentinelAlertRuleId().String())
 	if prop := resp.ActionResponseProperties; prop != nil {
 		d.Set("logic_app_id", prop.LogicAppResourceID)
+		// TODO: Uncomment below line once https://github.com/Azure/azure-rest-api-specs/issues/9424 is addressed.
+		//       Also, remove the ignore import step in acctest for `logic_app_trigger_name`.
+		//d.Set("logic_app_trigger_name", prop.TriggerUrl)
 	}
 
 	return nil

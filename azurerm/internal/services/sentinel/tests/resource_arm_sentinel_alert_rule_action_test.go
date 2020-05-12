@@ -26,7 +26,7 @@ func TestAccAzureRMSentinelAlertRuleAction_basic(t *testing.T) {
 					testCheckAzureRMSentinelAlertRuleActionExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("logic_app_trigger_name"),
 		},
 	})
 }
@@ -108,10 +108,11 @@ func testAccAzureRMSentinelAlertRuleAction_basic(data acceptance.TestData) strin
 %s
 
 resource "azurerm_sentinel_alert_rule_action" "test" {
-  name         = "acctest-AlertRuleAction-%d"
-  rule_id      = azurerm_sentinel_alert_rule_scheduled.test.id
-  logic_app_id = azurerm_logic_app_workflow.test.id
-  depends_on   = [azurerm_logic_app_trigger_custom.test]
+  name                   = "acctest-AlertRuleAction-%d"
+  rule_id                = azurerm_sentinel_alert_rule_scheduled.test.id
+  logic_app_id           = azurerm_logic_app_trigger_custom.test.logic_app_id
+  logic_app_trigger_name = azurerm_logic_app_trigger_custom.test.name
+  depends_on             = [azurerm_logic_app_trigger_custom.test]
 }
 `, template, data.RandomInteger)
 }
@@ -122,9 +123,10 @@ func testAccAzureRMSentinelAlertRuleAction_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_sentinel_alert_rule_action" "import" {
-  name         = azurerm_sentinel_alert_rule_action.test.name
-  rule_id      = azurerm_sentinel_alert_rule_action.test.rule_id
-  logic_app_id = azurerm_sentinel_alert_rule_action.test.logic_app_id
+  name                   = azurerm_sentinel_alert_rule_action.test.name
+  rule_id                = azurerm_sentinel_alert_rule_action.test.rule_id
+  logic_app_id           = azurerm_sentinel_alert_rule_action.test.logic_app_id
+  logic_app_trigger_name = azurerm_sentinel_alert_rule_action.test.logic_app_trigger_name
 }
 `, template)
 }
@@ -167,7 +169,7 @@ resource "azurerm_logic_app_workflow" "test" {
 }
 
 resource "azurerm_logic_app_trigger_custom" "test" {
-  name         = "When_a_response_to_an_Azure_Sentinel_alert_is_triggered"
+  name         = "acctest-LogicAppTrigger-%[1]d"
   logic_app_id = azurerm_logic_app_workflow.test.id
 
   body = <<BODY

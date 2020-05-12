@@ -71,10 +71,11 @@ BODY
 }
 
 resource "azurerm_sentinel_alert_rule_action" "example" {
-  name         = "example-alert-rule-action"
-  rule_id      = azurerm_sentinel_alert_rule_scheduled.example.id
-  logic_app_id = azurerm_logic_app_workflow.example.id
-  depends_on   = [azurerm_logic_app_trigger_custom.example]
+  name                   = "example-alert-rule-action"
+  rule_id                = azurerm_sentinel_alert_rule_scheduled.example.id
+  logic_app_id           = azurerm_logic_app_trigger_custom.example.logic_app_id
+  logic_app_trigger_name = azurerm_logic_app_trigger_custom.example.name
+  depends_on             = [azurerm_logic_app_trigger_custom.example]
 }
 ```
 
@@ -85,6 +86,8 @@ The following arguments are supported:
 * `name` - (Required) The name which should be used for this Sentinel Alert Rule Action. Changing this forces a new Sentinel Alert Rule Action to be created.
 
 * `logic_app_id` - (Required) The ID of the Logic App Workflow. Changing this forces a new Sentinel Alert Rule Action to be created.
+
+* `logic_app_trigger_name` - (Required) The Name of the Logic App Workflow Trigger. Changing this forces a new Sentinel Alert Rule Action to be created.
 
 * `rule_id` - (Required) The ID of the Sentinel Alert Rule where the Sentinel Alert Rule Action should exist. Changing this forces a new Sentinel Alert Rule Action to be created.
 
