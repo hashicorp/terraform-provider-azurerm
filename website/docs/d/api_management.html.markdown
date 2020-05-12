@@ -81,6 +81,10 @@ A `identity` block exports the following:
 
 * `type` - Specifies the type of Managed Service Identity that is configured on this API Management Service.
 
+* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+
+* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+
 * `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
 
 ---
