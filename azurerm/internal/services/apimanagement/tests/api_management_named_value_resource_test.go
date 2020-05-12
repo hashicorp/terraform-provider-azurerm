@@ -44,6 +44,7 @@ func TestAccAzureRMAPIManagementNamedValue_update(t *testing.T) {
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAPIManagementNamedValue_update(data),
 				Check: resource.ComposeTestCheckFunc(
