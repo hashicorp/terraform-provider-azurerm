@@ -23,10 +23,6 @@ func TestAccAzureRMAPIManagementNamedValue_basic(t *testing.T) {
 				Config: testAccAzureRMAPIManagementNamedValue_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Test Value"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag2"),
 				),
 			},
 			data.ImportStep(),
@@ -46,24 +42,16 @@ func TestAccAzureRMAPIManagementNamedValue_update(t *testing.T) {
 				Config: testAccAzureRMAPIManagementNamedValue_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Test Value"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag2"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAPIManagementNamedValue_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementNamedValueExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty2%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Test Value2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "secret", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag4"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("value"),
 		},
 	})
 }
