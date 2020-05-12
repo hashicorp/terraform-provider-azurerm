@@ -84,6 +84,8 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
 					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "None"),
 				),
 			},
 			{
