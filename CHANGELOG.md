@@ -3,6 +3,7 @@
 DEPENDENCIES: 
 
 * updating `eventgrid` to `2020-04-01-preview` [GH-6837]
+* updating `iothub` to `2019-03-22-preview` [GH-6875]
 
 FEATURES:
 
