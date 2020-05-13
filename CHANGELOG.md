@@ -26,6 +26,7 @@ BUG FIXES:
 * Data Source: `azurerm_automation_account` - using the ID of the Automation Account, rather than the ID of the Automation Account's Registration Info [GH-6848]
 * Data Source: `azurerm_security_group` - fixing crash where id is nil [GH-6910]
 * `azurerm_api_management` - fixing a crash when `policy` is nil [GH-6862]
+* `azurerm_api_management` - only sending the `hostname_configuration` properties if they are not empty [GH-6850]
 * `azurerm_api_management_named_value` - fix the non empty plan when `secret` is true [GH-6834]
 * `azurerm_application_insights` - `retention_in_days` defaults to 90 [GH-6851]
 * `azurerm_data_factory_trigger_schedule` - setting the `type` required for Pipeline References [GH-6871]
