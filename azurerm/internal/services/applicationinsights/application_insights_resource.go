@@ -64,6 +64,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 			"retention_in_days": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Default:  90,
 				ValidateFunc: validation.IntInSlice([]int{
 					30,
 					60,

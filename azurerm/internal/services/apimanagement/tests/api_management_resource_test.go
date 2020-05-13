@@ -86,6 +86,10 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "None"),
+					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.0.host_name", "api.terraform.io"),
+					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.1.host_name", "api2.terraform.io"),
+					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.portal.0.host_name", "portal.terraform.io"),
+					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.developer_portal.0.host_name", "developer-portal.terraform.io"),
 				),
 			},
 			{
@@ -94,12 +98,14 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"certificate", // not returned from API, sensitive
-					"hostname_configuration.0.portal.0.certificate",          // not returned from API, sensitive
-					"hostname_configuration.0.portal.0.certificate_password", // not returned from API, sensitive
-					"hostname_configuration.0.proxy.0.certificate",           // not returned from API, sensitive
-					"hostname_configuration.0.proxy.0.certificate_password",  // not returned from API, sensitive
-					"hostname_configuration.0.proxy.1.certificate",           // not returned from API, sensitive
-					"hostname_configuration.0.proxy.1.certificate_password",  // not returned from API, sensitive
+					"hostname_configuration.0.portal.0.certificate",                    // not returned from API, sensitive
+					"hostname_configuration.0.portal.0.certificate_password",           // not returned from API, sensitive
+					"hostname_configuration.0.developer_portal.0.certificate",          // not returned from API, sensitive
+					"hostname_configuration.0.developer_portal.0.certificate_password", // not returned from API, sensitive
+					"hostname_configuration.0.proxy.0.certificate",                     // not returned from API, sensitive
+					"hostname_configuration.0.proxy.0.certificate_password",            // not returned from API, sensitive
+					"hostname_configuration.0.proxy.1.certificate",                     // not returned from API, sensitive
+					"hostname_configuration.0.proxy.1.certificate_password",            // not returned from API, sensitive
 				},
 			},
 		},
@@ -778,6 +784,12 @@ resource "azurerm_api_management" "test" {
     portal {
       host_name            = "portal.terraform.io"
       certificate          = filebase64("testdata/api_management_portal_test.pfx")
+      certificate_password = "terraform"
+    }
+
+    developer_portal {
+      host_name            = "developer-portal.terraform.io"
+      certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
       certificate_password = "terraform"
     }
   }

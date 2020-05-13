@@ -1,8 +1,36 @@
 ## 2.10.0 (Unreleased)
 
+DEPENDENCIES: 
+
+* updating `eventgrid` to `2020-04-01-preview` [GH-6837]
+* updating `iothub` to `2019-03-22-preview` [GH-6875]
+
+FEATURES:
+
+* **New Data Source:** `azurerm_eventhub` [GH-6841]
+
 IMPROVEMENTS:
 
-* `azurerm_mssql_server`  - Add support for `azuread_administrator` [GH-6822]
+* All Data Sources: adding validation for the `resource_group_name` field to not be empty where it's Required [GH-6864]
+* Data Source: `azurerm_virtual_machine` - export `identity` attribute [GH-6826]
+* `azurerm_api_management` - support for configuring the Developer Portal [GH-6724]
+* `azurerm_application_gateway` - support for WAF policies [GH-6105]
+* `azurerm_app_service_environment` - support specifying explicit resource group [GH-6821]
+* `azurerm_express_route_circuit` - de-provision and re-provision circuit when changing the bandwidth reduction [GH-6601]
+* `azurerm_log_analytics_workspace` - add support for `rentention_in_days` for Free Tier [GH-6844]
+* `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
+* `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
+
+BUG FIXES:
+
+* Data Source: `azurerm_automation_account` - using the ID of the Automation Account, rather than the ID of the Automation Account's Registration Info [GH-6848]
+* Data Source: `azurerm_security_group` - fixing crash where id is nil [GH-6910]
+* `azurerm_api_management` - fixing a crash when `policy` is nil [GH-6862]
+* `azurerm_api_management` - only sending the `hostname_configuration` properties if they are not empty [GH-6850]
+* `azurerm_api_management_named_value` - fix the non empty plan when `secret` is true [GH-6834]
+* `azurerm_application_insights` - `retention_in_days` defaults to 90 [GH-6851]
+* `azurerm_data_factory_trigger_schedule` - setting the `type` required for Pipeline References [GH-6871]
+* `azurerm_kubernetes_cluster` - fixes the `InvalidLoadbalancerProfile` error [GH-6534]
 
 ## 2.9.0 (May 07, 2020)
 
@@ -90,7 +118,7 @@ FEATURES:
 * **New Resource:** `azurerm_servicebus_namespace_network_rule_set` ([#6379](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6379))
 * **New Resource:** `azurerm_spring_cloud_app` ([#6384](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6384))
 
-DEPENDENCIES: 
+DEPENDENCIES:
 
 * updating `apimanagement` to `2019-12-01` ([#6479](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6479))
 * updating the fork of `github.com/Azure/go-autorest` ([#6509](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6509))

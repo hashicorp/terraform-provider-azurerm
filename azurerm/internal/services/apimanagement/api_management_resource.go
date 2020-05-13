@@ -291,6 +291,13 @@ func resourceArmApiManagementService() *schema.Resource {
 								Schema: apiManagementResourceHostnameSchema("portal"),
 							},
 						},
+						"developer_portal": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: apiManagementResourceHostnameSchema("developer_portal"),
+							},
+						},
 						"proxy": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -728,6 +735,13 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 			results = append(results, output)
 		}
 
+		developerPortalVs := hostnameV["developer_portal"].([]interface{})
+		for _, developerPortalV := range developerPortalVs {
+			v := developerPortalV.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeDeveloperPortal)
+			results = append(results, output)
+		}
+
 		proxyVs := hostnameV["proxy"].([]interface{})
 		for _, proxyV := range proxyVs {
 			v := proxyV.(map[string]interface{})
@@ -750,17 +764,28 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 }
 
 func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}, hostnameType apimanagement.HostnameType) apimanagement.HostnameConfiguration {
-	encodedCertificate := input["certificate"].(string)
-	certificatePassword := input["certificate_password"].(string)
-	hostName := input["host_name"].(string)
-	keyVaultId := input["key_vault_id"].(string)
-
 	output := apimanagement.HostnameConfiguration{
-		EncodedCertificate:  utils.String(encodedCertificate),
-		CertificatePassword: utils.String(certificatePassword),
-		HostName:            utils.String(hostName),
-		KeyVaultID:          utils.String(keyVaultId),
-		Type:                hostnameType,
+		Type: hostnameType,
+	}
+	if v, ok := input["certificate"]; ok {
+		if v.(string) != "" {
+			output.EncodedCertificate = utils.String(v.(string))
+		}
+	}
+	if v, ok := input["certificate_password"]; ok {
+		if v.(string) != "" {
+			output.CertificatePassword = utils.String(v.(string))
+		}
+	}
+	if v, ok := input["host_name"]; ok {
+		if v.(string) != "" {
+			output.HostName = utils.String(v.(string))
+		}
+	}
+	if v, ok := input["key_vault_id"]; ok {
+		if v.(string) != "" {
+			output.KeyVaultID = utils.String(v.(string))
+		}
 	}
 
 	if v, ok := input["negotiate_client_certificate"]; ok {
@@ -778,6 +803,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 	managementResults := make([]interface{}, 0)
 	portalResults := make([]interface{}, 0)
+	developerPortalResults := make([]interface{}, 0)
 	proxyResults := make([]interface{}, 0)
 	scmResults := make([]interface{}, 0)
 
@@ -830,6 +856,9 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
 
+		case strings.ToLower(string(apimanagement.HostnameTypeDeveloperPortal)):
+			developerPortalResults = append(developerPortalResults, output)
+
 		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
 		}
@@ -837,10 +866,11 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 	return []interface{}{
 		map[string]interface{}{
-			"management": managementResults,
-			"portal":     portalResults,
-			"proxy":      proxyResults,
-			"scm":        scmResults,
+			"management":       managementResults,
+			"portal":           portalResults,
+			"developer_portal": developerPortalResults,
+			"proxy":            proxyResults,
+			"scm":              scmResults,
 		},
 	}
 }
@@ -1277,7 +1307,7 @@ func flattenApiManagementSignUpSettings(input apimanagement.PortalSignupSettings
 }
 
 func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyContract, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
