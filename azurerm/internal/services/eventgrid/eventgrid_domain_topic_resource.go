@@ -46,6 +46,7 @@ func resourceArmEventGridDomainTopic() *schema.Resource {
 			"domain_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
