@@ -84,6 +84,8 @@ func TestAccAzureRMApiManagement_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Acceptance", "Test"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "public_ip_addresses.#"),
 					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0.enable_http2", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "None"),
 					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.0.host_name", "api.terraform.io"),
 					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.proxy.1.host_name", "api2.terraform.io"),
 					resource.TestCheckResourceAttr(data.ResourceName, "hostname_configuration.0.portal.0.host_name", "portal.terraform.io"),
@@ -244,6 +246,271 @@ func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheck
 
 		return nil
 	}
+}
+
+func TestAccAzureRMApiManagement_identityUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identityUserAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identityNoneUpdateUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identityNone(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagement_identityUserAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identityUserAssignedUpdateNone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identityUserAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagement_identityNone(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identitySystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identitySystemAssignedUpdateNone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagement_identityNone(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identityNoneUpdateSystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identityNone(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identitySystemAssignedUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identitySystemAssignedUserAssignedUpdateNone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagement_identityNone(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identityNoneUpdateSystemAssignedUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identityNone(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identitySystemAssignedUserAssignedUpdateSystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagement_identitySystemAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagement_identitySystemAssignedUserAssignedUpdateUserAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMApiManagement_identityUserAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
 }
 
 func testAccAzureRMApiManagement_basic(data acceptance.TestData) string {
@@ -579,4 +846,130 @@ resource "azurerm_api_management" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_identityUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_identitySystemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_identityNone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  identity {
+    type = "None"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

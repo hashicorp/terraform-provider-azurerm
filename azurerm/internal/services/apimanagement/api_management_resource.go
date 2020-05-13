@@ -87,9 +87,13 @@ func resourceArmApiManagementService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  string(apimanagement.None),
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(apimanagement.None),
+								string(apimanagement.SystemAssigned),
+								string(apimanagement.UserAssigned),
+								string(apimanagement.SystemAssignedUserAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -99,6 +103,15 @@ func resourceArmApiManagementService() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
 						},
 					},
 				},
@@ -477,7 +490,11 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		properties.Identity = expandAzureRmApiManagementIdentity(d)
+		identity, err := expandAzureRmApiManagementIdentity(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `identity`: %+v", err)
+		}
+		properties.Identity = identity
 	}
 
 	if _, ok := d.GetOk("additional_location"); ok {
@@ -929,17 +946,43 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 	return results
 }
 
-func expandAzureRmApiManagementIdentity(d *schema.ResourceData) *apimanagement.ServiceIdentity {
+func expandAzureRmApiManagementIdentity(d *schema.ResourceData) (*apimanagement.ServiceIdentity, error) {
+	var identityIdSet *schema.Set
+	managedServiceIdentity := apimanagement.ServiceIdentity{}
+
 	vs := d.Get("identity").([]interface{})
 	if len(vs) == 0 {
-		return nil
+		managedServiceIdentity.Type = apimanagement.None
+	} else {
+		v := vs[0].(map[string]interface{})
+		identityType, exists := v["type"]
+		if !exists {
+			return nil, fmt.Errorf("`type` must be specified when `identity` is set")
+		}
+		managedServiceIdentity.Type = apimanagement.ApimIdentityType(identityType.(string))
+		if identityIds, exists := v["identity_ids"]; exists {
+			identityIdSet = (identityIds.(*schema.Set))
+		}
 	}
 
-	v := vs[0].(map[string]interface{})
-	identityType := v["type"].(string)
-	return &apimanagement.ServiceIdentity{
-		Type: apimanagement.ApimIdentityType(identityType),
+	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
+	if managedServiceIdentity.Type == apimanagement.UserAssigned || managedServiceIdentity.Type == apimanagement.SystemAssignedUserAssigned {
+		if identityIdSet == nil || identityIdSet.Len() == 0 {
+			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
+		}
+
+		userAssignedIdentities := make(map[string]*apimanagement.UserIdentityProperties)
+		for _, id := range identityIdSet.List() {
+			userAssignedIdentities[id.(string)] = &apimanagement.UserIdentityProperties{}
+		}
+
+		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentities
+	} else if identityIdSet != nil && identityIdSet.Len() > 0 {
+		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
+		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
 	}
+
+	return &managedServiceIdentity, nil
 }
 
 func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
@@ -957,6 +1000,14 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 
 	if identity.TenantID != nil {
 		result["tenant_id"] = identity.TenantID.String()
+	}
+
+	identityIds := make([]interface{}, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+		result["identity_ids"] = schema.NewSet(schema.HashString, identityIds)
 	}
 
 	return []interface{}{result}
