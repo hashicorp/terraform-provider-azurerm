@@ -19,15 +19,13 @@ import (
 
 func resourceArmEventGridDomainTopic() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventGridDomainTopicCreateUpdate,
+		Create: resourceArmEventGridDomainTopicCreate,
 		Read:   resourceArmEventGridDomainTopicRead,
-		Update: resourceArmEventGridDomainTopicCreateUpdate,
 		Delete: resourceArmEventGridDomainTopicDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
@@ -54,7 +52,7 @@ func resourceArmEventGridDomainTopic() *schema.Resource {
 	}
 }
 
-func resourceArmEventGridDomainTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventGridDomainTopicCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).EventGrid.DomainTopicsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

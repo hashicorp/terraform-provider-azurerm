@@ -24,7 +24,6 @@ func TestAccAzureRMEventGridDomainTopic_basic(t *testing.T) {
 				Config: testAccAzureRMEventGridDomainTopic_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridDomainTopicExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
 				),
 			},
 			data.ImportStep(),
