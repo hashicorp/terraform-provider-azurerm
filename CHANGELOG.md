@@ -13,6 +13,7 @@ IMPROVEMENTS:
 
 * All Data Sources: adding validation for the `resource_group_name` field to not be empty where it's Required [GH-6864]
 * Data Source: `azurerm_virtual_machine` - export `identity` attribute [GH-6826]
+* `azurerm_app_service_environment` - support specifying explicit resource group [GH-6821]
 * `azurerm_log_analytics_workspace` - add support for `rentention_in_days` for Free Tier [GH-6844]
 * `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
 * `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
