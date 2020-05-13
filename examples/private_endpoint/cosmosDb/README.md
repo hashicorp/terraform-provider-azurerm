@@ -1,6 +1,6 @@
 ## Example: Private Endpoint
 
-This example provisions a Private Endpoint which connects to a Cosmos MongoDB within Azure.
+This example provisions a Private Endpoint in Azure connected to a CosmosDB Account configured with MongoDB.
 
 ### Variables
 
