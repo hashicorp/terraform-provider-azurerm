@@ -32,6 +32,7 @@ BUG FIXES:
 * `azurerm_application_insights` - `retention_in_days` defaults to 90 [GH-6851]
 * `azurerm_data_factory_trigger_schedule` - setting the `type` required for Pipeline References [GH-6871]
 * `azurerm_kubernetes_cluster` - fixes the `InvalidLoadbalancerProfile` error [GH-6534]
+* `azurerm_monitor_diagnostic_setting` - fix possible crash with `retention_policy` [GH-6911]
 
 ## 2.9.0 (May 07, 2020)
 
