@@ -13,6 +13,7 @@ IMPROVEMENTS:
 
 * All Data Sources: adding validation for the `resource_group_name` field to not be empty where it's Required [GH-6864]
 * Data Source: `azurerm_virtual_machine` - export `identity` attribute [GH-6826]
+* `azurerm_application_gateway` - support for WAF policies [GH-6105]
 * `azurerm_app_service_environment` - support specifying explicit resource group [GH-6821]
 * `azurerm_log_analytics_workspace` - add support for `rentention_in_days` for Free Tier [GH-6844]
 * `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
