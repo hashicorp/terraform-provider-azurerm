@@ -6,4 +6,4 @@ This example provisions a Private Endpoint in Azure connected to a CosmosDB Acco
 
 * `prefix` - (Required) The prefix used for all resources in this example.
 
-* `location` - (Required) The Azure Region in which the CosmosDB Account should be created.
+* `location` - (Required) The Azure Region in which all resources in this example should be created.
