@@ -153,9 +153,9 @@ The following attributes are exported:
 
 ## Example HCL Configurations
 
-* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private_endpoint/cosmosDb)
-* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private_endpoint/postgreSql)
-* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private_endpoint/privateLinkService)
+* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/cosmos-db)
+* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/postgresql)
+* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-link-service)
 
 ## Timeouts
 
