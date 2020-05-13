@@ -33,7 +33,7 @@ func TestAccAzureRMMariaDbServer_basicTenTwo(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMariaDbServer_basicTenTwoDeprecated(t *testing.T) {
+func TestAccAzureRMMariaDbServer_basicTenTwoDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	version := "10.2"
 
@@ -167,7 +167,7 @@ func TestAccAzureRMMariaDbServer_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMariaDbServer_completeDeprecatedMigrate(t *testing.T) {
+func TestAccAzureRMMariaDbServer_completeDeprecatedMigrate(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	version := "10.3"
 
@@ -194,7 +194,7 @@ func TestAccAzureRMMariaDbServer_completeDeprecatedMigrate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMariaDbServer_updateDeprecated(t *testing.T) {
+func TestAccAzureRMMariaDbServer_updateDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mariadb_server", "test")
 	version := "10.2"
 
@@ -395,7 +395,7 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMMariaDbServer_basicDeprecated(data acceptance.TestData, version string) string {
+func testAccAzureRMMariaDbServer_basicDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -454,7 +454,7 @@ resource "azurerm_mariadb_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMMariaDbServer_completeDeprecated(data acceptance.TestData, version string) string {
+func testAccAzureRMMariaDbServer_completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
