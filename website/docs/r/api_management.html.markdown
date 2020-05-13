@@ -110,6 +110,8 @@ A `hostname_configuration` block supports the following:
 
 * `portal` - (Optional) One or more `portal` blocks as documented below.
 
+* `developer_portal` - (Optional) One or more `developer_portal` blocks as documented below.
+
 * `proxy` - (Optional) One or more `proxy` blocks as documented below.
 
 * `scm` - (Optional) One or more `scm` blocks as documented below.
@@ -122,7 +124,7 @@ A `identity` block supports the following:
 
 ---
 
-A `management`, `portal` and `scm` block supports the following:
+A `management`, `portal`, `developer_portal` and `scm` block supports the following:
 
 * `host_name` - (Required) The Hostname to use for the Management API.
 
