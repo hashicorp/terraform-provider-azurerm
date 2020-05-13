@@ -157,6 +157,11 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
+
+						"zone_redundant": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
 					},
 				},
 				Set: resourceAzureRMCosmosDBAccountGeoLocationHash,
@@ -752,6 +757,10 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 		location := documentdb.Location{
 			LocationName:     utils.String(azure.NormalizeLocation(data["location"].(string))),
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
+		}
+
+		if zoneRedundant, ok := data["zone_redundant"].(*bool); ok {
+			location.IsZoneRedundant = zoneRedundant
 		}
 
 		if v, ok := data["prefix"].(string); ok {
