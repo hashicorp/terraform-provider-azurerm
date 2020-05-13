@@ -87,15 +87,18 @@ func resourceArmAutomationRunbook() *schema.Resource {
 			},
 
 			"content": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				AtLeastOneOf: []string{"content", "publish_content_link"},
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"publish_content_link": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:         schema.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				AtLeastOneOf: []string{"content", "publish_content_link"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"uri": {
@@ -166,19 +169,23 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
 
-	contentLink := expandContentLink(d)
-
 	parameters := automation.RunbookCreateOrUpdateParameters{
 		RunbookCreateOrUpdateProperties: &automation.RunbookCreateOrUpdateProperties{
-			LogVerbose:         &logVerbose,
-			LogProgress:        &logProgress,
-			RunbookType:        runbookType,
-			Description:        &description,
-			PublishContentLink: &contentLink,
+			LogVerbose:  &logVerbose,
+			LogProgress: &logProgress,
+			RunbookType: runbookType,
+			Description: &description,
 		},
 
 		Location: &location,
 		Tags:     tags.Expand(t),
+	}
+
+	contentLink := expandContentLink(d.Get("publish_content_link").([]interface{}))
+	if contentLink != nil {
+		parameters.RunbookCreateOrUpdateProperties.PublishContentLink = contentLink
+	} else {
+		parameters.RunbookCreateOrUpdateProperties.Draft = &automation.RunbookDraft{}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
@@ -298,12 +305,14 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func expandContentLink(d *schema.ResourceData) automation.ContentLink {
-	inputs := d.Get("publish_content_link").([]interface{})
+func expandContentLink(inputs []interface{}) *automation.ContentLink {
+	if len(inputs) == 0 || inputs[0] == nil {
+		return nil
+	}
+
 	input := inputs[0].(map[string]interface{})
 	uri := input["uri"].(string)
 	version := input["version"].(string)
-
 	hashes := input["hash"].([]interface{})
 
 	if len(hashes) > 0 {
@@ -311,7 +320,7 @@ func expandContentLink(d *schema.ResourceData) automation.ContentLink {
 		hashValue := hash["value"].(string)
 		hashAlgorithm := hash["algorithm"].(string)
 
-		return automation.ContentLink{
+		return &automation.ContentLink{
 			URI:     &uri,
 			Version: &version,
 			ContentHash: &automation.ContentHash{
@@ -321,7 +330,7 @@ func expandContentLink(d *schema.ResourceData) automation.ContentLink {
 		}
 	}
 
-	return automation.ContentLink{
+	return &automation.ContentLink{
 		URI:     &uri,
 		Version: &version,
 	}

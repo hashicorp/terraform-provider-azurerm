@@ -23,7 +23,6 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 				Config: testAccAzureRMAutomationRunbook_PSWorkflow(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "runbook_type", "PowerShellWorkflow"),
 				),
 			},
 			data.ImportStep("publish_content_link"),
@@ -184,11 +183,12 @@ resource "azurerm_automation_runbook" "test" {
   log_verbose  = "true"
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
-  runbook_type = "PowerShellWorkflow"
+  runbook_type = "PowerShell"
 
-  publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
-  }
+  content = <<CONTENT
+# Some test content
+# for Terraform acceptance test
+CONTENT
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -207,11 +207,12 @@ resource "azurerm_automation_runbook" "import" {
   log_verbose  = "true"
   log_progress = "true"
   description  = "This is a test runbook for terraform acceptance test"
-  runbook_type = "PowerShellWorkflow"
+  runbook_type = "PowerShell"
 
-  publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
-  }
+  content = <<CONTENT
+# Some test content
+# for Terraform acceptance test
+CONTENT
 }
 `, template)
 }

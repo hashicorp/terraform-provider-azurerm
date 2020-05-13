@@ -28,6 +28,7 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
 			"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
 			"data_basic":                   testAccDataSourceAzureRMExpressRoute_basicMetered,
+			"bandwidthReduction":           testAccAzureRMExpressRouteCircuit_bandwidthReduction,
 		},
 		"PrivatePeering": {
 			"azurePrivatePeering":           testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
@@ -267,6 +268,33 @@ func testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
 					resource.TestCheckResourceAttr(data.ResourceName, "allow_classic_operations", "true"),
+				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMExpressRouteCircuit_bandwidthReduction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	var erc network.ExpressRouteCircuit
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMExpressRouteCircuitDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMExpressRouteCircuit_bandwidthReductionConfig(data, "100"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
+					resource.TestCheckResourceAttr(data.ResourceName, "bandwidth_in_mbps", "100"),
+				),
+			},
+			{
+				Config: testAccAzureRMExpressRouteCircuit_bandwidthReductionConfig(data, "50"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMExpressRouteCircuitExists("azurerm_express_route_circuit.test", &erc),
+					resource.TestCheckResourceAttr(data.ResourceName, "bandwidth_in_mbps", "50"),
 				),
 			},
 		},
@@ -527,4 +555,38 @@ resource "azurerm_express_route_circuit" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, allowClassicOperations)
+}
+
+func testAccAzureRMExpressRouteCircuit_bandwidthReductionConfig(data acceptance.TestData, bandwidth string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_express_route_circuit" "test" {
+  name                  = "acctest-erc-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = %s
+
+  sku {
+    tier   = "Standard"
+    family = "MeteredData"
+  }
+
+  allow_classic_operations = false
+
+  tags = {
+    Environment = "production"
+    Purpose     = "AcceptanceTests"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, bandwidth)
 }

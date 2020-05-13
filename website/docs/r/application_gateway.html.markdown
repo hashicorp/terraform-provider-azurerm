@@ -167,6 +167,8 @@ The following arguments are supported:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
+* `firewall_policy_id` - (Optional) The resource ID of a firewall policy.
+
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
 * `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.

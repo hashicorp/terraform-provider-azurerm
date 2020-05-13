@@ -66,9 +66,9 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the Express Route Circuit Peering. Changing this forces a new resource to be created.
 
-* `primary_peer_address_prefix` - (Optional) A `/30` subnet for the primary link.
-* `secondary_peer_address_prefix` - (Optional) A `/30` subnet for the secondary link.
-* `vlan_id` - (Optional) A valid VLAN ID to establish this peering on.
+* `primary_peer_address_prefix` - (Required) A `/30` subnet for the primary link.
+* `secondary_peer_address_prefix` - (Required) A `/30` subnet for the secondary link.
+* `vlan_id` - (Required) A valid VLAN ID to establish this peering on.
 * `shared_key` - (Optional) The shared key. Can be a maximum of 25 characters.
 * `peer_asn` - (Optional) The Either a 16-bit or a 32-bit ASN. Can either be public or private..
 * `microsoft_peering_config` - (Optional) A `microsoft_peering_config` block as defined below. Required when `peering_type` is set to `MicrosoftPeering`.

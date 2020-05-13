@@ -1267,6 +1267,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
+			"firewall_policy_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"custom_error_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -1426,6 +1432,13 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	if _, ok := d.GetOk("waf_configuration"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	if v, ok := d.GetOk("firewall_policy_id"); ok {
+		id := v.(string)
+		gateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
+			ID: &id,
+		}
 	}
 
 	if stopApplicationGateway {
@@ -1605,6 +1618,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); setErr != nil {
 			return fmt.Errorf("Error setting `waf_configuration`: %+v", setErr)
+		}
+
+		if props.FirewallPolicy != nil {
+			d.Set("firewall_policy_id", props.FirewallPolicy.ID)
 		}
 	}
 
