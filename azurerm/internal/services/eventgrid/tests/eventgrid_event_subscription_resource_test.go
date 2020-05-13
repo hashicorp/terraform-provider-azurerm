@@ -427,6 +427,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-eg-%d"
   location = "%s"
 }
+
 resource "azurerm_servicebus_namespace" "example" {
   name                = "acctestservicebusnamespace-%d"
   location            = azurerm_resource_group.test.location
