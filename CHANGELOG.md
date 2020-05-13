@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_api_management` - support for configuring the Developer Portal [GH-6724]
 * `azurerm_application_gateway` - support for WAF policies [GH-6105]
 * `azurerm_app_service_environment` - support specifying explicit resource group [GH-6821]
+* `azurerm_express_route_circuit` - de-provision and re-provision circuit when changing the bandwidth reduction [GH-6601]
 * `azurerm_log_analytics_workspace` - add support for `rentention_in_days` for Free Tier [GH-6844]
 * `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
 * `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
