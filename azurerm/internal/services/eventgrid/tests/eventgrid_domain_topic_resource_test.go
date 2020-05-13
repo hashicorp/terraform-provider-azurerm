@@ -137,7 +137,7 @@ resource "azurerm_eventgrid_domain_topic" "test" {
 }
 
 func testAccAzureRMEventGridDomainTopic_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMEventGridDomain_basic(data)
+	template := testAccAzureRMEventGridDomainTopic_basic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_eventgrid_domain_topic" "import" {
