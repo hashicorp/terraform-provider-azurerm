@@ -1,6 +1,6 @@
 ## Example: Private Endpoint
 
-This example provisions a Private Endpoint within Azure.
+This example provisions a Private Endpoint which connects to a PostgreSQL server within Azure.
 
 ### Variables
 
