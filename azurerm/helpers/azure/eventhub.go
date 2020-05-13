@@ -88,16 +88,22 @@ func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 			Default:  false,
 		},
 
-		"send": {
+		"manage": {
 			Type:     schema.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		"manage": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
+		"primary_connection_string": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"primary_connection_string_alias": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"primary_key": {
@@ -106,7 +112,13 @@ func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 			Sensitive: true,
 		},
 
-		"primary_connection_string": {
+		"secondary_connection_string": {
+			Type:      schema.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_connection_string_alias": {
 			Type:      schema.TypeString,
 			Computed:  true,
 			Sensitive: true,
@@ -118,10 +130,10 @@ func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string
 			Sensitive: true,
 		},
 
-		"secondary_connection_string": {
-			Type:      schema.TypeString,
-			Computed:  true,
-			Sensitive: true,
+		"send": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 	return MergeSchema(s, authSchema)

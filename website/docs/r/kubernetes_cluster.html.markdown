@@ -267,7 +267,7 @@ A `network_profile` block supports the following:
 
 * `network_policy` - (Optional) Sets up network policy to be used with Azure CNI. [Network policy allows us to control the traffic flow between pods](https://docs.microsoft.com/en-us/azure/aks/use-network-policies). Currently supported values are `calico` and `azure`. Changing this forces a new resource to be created.
 
-~> **NOTE:** When `network_plugin` is set to `kubenet` the `network_policy` field can only be set to `calico`, otherwise it has to be set to `azure`.
+~> **NOTE:** When `network_policy` is set to `azure`, the `network_plugin` field can only be set to `azure`.
 
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). This is required when `network_plugin` is set to `azure`. Changing this forces a new resource to be created.
 
@@ -295,9 +295,15 @@ A `load_balancer_profile` block supports the following:
 
 * `managed_outbound_ip_count` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
 
+-> **NOTE** User has to explicitly set `managed_outbound_ip_count` to empty slice (`[]`) to remove it.
+
 * `outbound_ip_prefix_ids` - (Optional) The ID of the outbound Public IP Address Prefixes which should be used for the cluster load balancer.
 
+-> **NOTE** User has to explicitly set `outbound_ip_prefix_ids` to empty slice (`[]`) to remove it.
+
 * `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
+
+-> **NOTE** User has to explicitly set `outbound_ip_address_ids` to empty slice (`[]`) to remove it.
 
 ---
 
