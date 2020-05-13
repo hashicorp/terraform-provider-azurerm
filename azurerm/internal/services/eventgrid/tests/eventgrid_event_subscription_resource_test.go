@@ -424,7 +424,7 @@ provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eg-%d"
   location = "%s"
 }
 resource "azurerm_servicebus_namespace" "example" {
