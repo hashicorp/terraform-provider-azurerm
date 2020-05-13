@@ -31,7 +31,7 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMySQLServer_basicFiveSixDeprecated(t *testing.T) {
+func TestAccAzureRMMySQLServer_basicFiveSixDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -187,7 +187,7 @@ func TestAccAzureRMMySQLServer_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMySQLServer_completeDeprecatedMigrate(t *testing.T) {
+func TestAccAzureRMMySQLServer_completeDeprecatedMigrate(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	mysqlVersion := "5.6"
 
@@ -214,7 +214,7 @@ func TestAccAzureRMMySQLServer_completeDeprecatedMigrate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMySQLServer_updateDeprecated(t *testing.T) {
+func TestAccAzureRMMySQLServer_updateDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	mysqlVersion := "5.6"
 
@@ -412,7 +412,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMMySQLServer_basicDeprecated(data acceptance.TestData, version string) string {
+func testAccAzureRMMySQLServer_basicDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -471,7 +471,7 @@ resource "azurerm_mysql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
-func testAccAzureRMMySQLServer_completeDeprecated(data acceptance.TestData, version string) string {
+func testAccAzureRMMySQLServer_completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
