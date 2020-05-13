@@ -3,6 +3,7 @@
 DEPENDENCIES: 
 
 * updating `eventgrid` to `2020-04-01-preview` [GH-6837]
+* updating `iothub` to `2019-03-22-preview` [GH-6875]
 
 FEATURES:
 
@@ -10,14 +11,20 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* All Data Sources: adding validation for the `resource_group_name` field to not be empty where it's Required [GH-6864]
 * Data Source: `azurerm_virtual_machine` - export `identity` attribute [GH-6826]
+* `azurerm_log_analytics_workspace` - add support for `rentention_in_days` for Free Tier [GH-6844]
 * `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
 * `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
 
 BUG FIXES:
 
-* `azurerm_application_insights` - `retention_in_days` defaults to 90 [GH-6851]
 * Data Source: `azurerm_automation_account` - using the ID of the Automation Account, rather than the ID of the Automation Account's Registration Info [GH-6848]
+* `azurerm_api_management` - fixing a crash when `policy` is nil [GH-6862]
+* `azurerm_api_management_named_value` - fix the non empty plan when `secret` is true [GH-6834]
+* `azurerm_application_insights` - `retention_in_days` defaults to 90 [GH-6851]
+* `azurerm_kubernetes_cluster` - fixes the `InvalidLoadbalancerProfile` error [GH-6534]
+* `azurerm_data_factory_trigger_schedule` - setting the `type` required for Pipeline References [GH-6871]
 
 ## 2.9.0 (May 07, 2020)
 

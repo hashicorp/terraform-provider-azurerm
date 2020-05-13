@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices"
 
 // AccessRights enumerates the values for access rights.
 type AccessRights string
@@ -583,6 +583,17 @@ func NewEndpointHealthDataListResultPage(getNextPage func(context.Context, Endpo
 	return EndpointHealthDataListResultPage{fn: getNextPage}
 }
 
+// EnrichmentProperties the properties of an enrichment that your IoT hub applies to messages delivered to
+// endpoints.
+type EnrichmentProperties struct {
+	// Key - The key or name for the enrichment property.
+	Key *string `json:"key,omitempty"`
+	// Value - The value for the enrichment property.
+	Value *string `json:"value,omitempty"`
+	// EndpointNames - The list of endpoints for which the enrichment is applied to the message.
+	EndpointNames *[]string `json:"endpointNames,omitempty"`
+}
+
 // ErrorDetails error details.
 type ErrorDetails struct {
 	// Code - READ-ONLY; The error code.
@@ -787,6 +798,12 @@ type ExportDevicesRequest struct {
 	ExportBlobContainerURI *string `json:"exportBlobContainerUri,omitempty"`
 	// ExcludeKeys - The value indicating whether keys should be excluded during export.
 	ExcludeKeys *bool `json:"excludeKeys,omitempty"`
+}
+
+// FailoverInput use to provide failover region when requesting manual Failover for a hub.
+type FailoverInput struct {
+	// FailoverRegion - Region the hub will be failed over to
+	FailoverRegion *string `json:"failoverRegion,omitempty"`
 }
 
 // FallbackRouteProperties the properties of the fallback route. IoT Hub uses these properties when it
@@ -1030,6 +1047,29 @@ type IotHubLocationDescription struct {
 	Role IotHubReplicaRoleType `json:"role,omitempty"`
 }
 
+// IotHubManualFailoverFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type IotHubManualFailoverFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *IotHubManualFailoverFuture) Result(client IotHubClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "devices.IotHubManualFailoverFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("devices.IotHubManualFailoverFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // IotHubNameAvailabilityInfo the properties indicating whether a given IoT hub name is available.
 type IotHubNameAvailabilityInfo struct {
 	autorest.Response `json:"-"`
@@ -1069,7 +1109,7 @@ type IotHubProperties struct {
 	DeviceStreams *IotHubPropertiesDeviceStreams `json:"deviceStreams,omitempty"`
 	// Features - The capabilities and features enabled for the IoT hub. Possible values include: 'None', 'DeviceManagement'
 	Features Capabilities `json:"features,omitempty"`
-	// Locations - Primary and secondary location for iot hub
+	// Locations - READ-ONLY; Primary and secondary location for iot hub
 	Locations *[]IotHubLocationDescription `json:"locations,omitempty"`
 }
 
@@ -1108,9 +1148,6 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ihp.Features != "" {
 		objectMap["features"] = ihp.Features
-	}
-	if ihp.Locations != nil {
-		objectMap["locations"] = ihp.Locations
 	}
 	return json.Marshal(objectMap)
 }
@@ -2044,6 +2081,8 @@ type RoutingProperties struct {
 	Routes *[]RouteProperties `json:"routes,omitempty"`
 	// FallbackRoute - The properties of the route that is used as a fall-back route when none of the conditions specified in the 'routes' section are met. This is an optional parameter. When this property is not set, the messages which do not meet any of the conditions specified in the 'routes' section get routed to the built-in eventhub endpoint.
 	FallbackRoute *FallbackRouteProperties `json:"fallbackRoute,omitempty"`
+	// Enrichments - The list of user-provided enrichments that the IoT hub applies to messages to be delivered to built-in and custom endpoints. See: https://aka.ms/iotmsgenrich
+	Enrichments *[]EnrichmentProperties `json:"enrichments,omitempty"`
 }
 
 // RoutingServiceBusQueueEndpointProperties the properties related to service bus queue endpoint types.
