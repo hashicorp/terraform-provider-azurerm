@@ -226,6 +226,13 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 			},
 			data.ImportStep("administrator_login_password"),
 			{
+				Config: testAccAzureRMPostgreSQLServer_complete2(data, "9.6"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+			{
 				Config: testAccAzureRMPostgreSQLServer_basic(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
@@ -501,7 +508,7 @@ resource "azurerm_postgresql_server" "import" {
 
   sku_name   = azurerm_postgresql_server.test.sku_name
   version    = azurerm_postgresql_server.test.version
-  storage_mb = azurerm_postgresql_server.test.storage_profile.storage_mb
+  storage_mb = azurerm_postgresql_server.test.storage_mb
 
   ssl_enforcement_enabled = azurerm_postgresql_server.test.ssl_enforcement_enabled
 }
@@ -553,12 +560,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-psql-%d"
-  location = "%s"
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                = "acctest-psql-server-%d"
+  name                = "acctest-psql-server-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -566,7 +573,7 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login_password = "H@Sh1CoR3!updated"
 
   sku_name   = "GP_Gen5_4"
-  version    = "%s"
+  version    = "%[3]s"
   storage_mb = 640000
 
   backup_retention_days        = 7
@@ -577,8 +584,72 @@ resource "azurerm_postgresql_server" "test" {
   public_network_access_enabled     = false
   ssl_enforcement_enabled           = true
   ssl_minimal_tls_version_enforced  = "TLS1_2"
+
+  threat_detection_policy {
+    enabled              = true
+    disabled_alerts      = ["Sql_Injection", "Data_Exfiltration"]
+    email_account_admins = true
+    email_addresses      = ["kt@example.com", "admin@example.com"]
+
+    retention_days = 7
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
+`, data.RandomInteger, data.Locations.Primary, version)
+}
+
+func testAccAzureRMPostgreSQLServer_complete2(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  backup_retention_days        = 14
+  geo_redundant_backup_enabled = false
+  auto_grow_enabled            = false
+
+  infrastructure_encryption_enabled = false
+  public_network_access_enabled     = true
+  ssl_enforcement_enabled           = false
+  ssl_minimal_tls_version_enforced  = "TLS1_1"
+
+  threat_detection_policy {
+    enabled              = true
+    disabled_alerts      = ["Sql_Injection"]
+    email_account_admins = true
+    email_addresses      = ["kt@example.com"]
+
+    retention_days = 7
+
+    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, version)
 }
 
 func testAccAzureRMPostgreSQLServer_sku(data acceptance.TestData, version, sku string) string {
