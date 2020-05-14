@@ -105,23 +105,20 @@ func resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate(d *schema.ResourceD
 	defer cancel()
 
 	vmID := d.Get("virtual_machine_id").(string)
-	vm, err := parse.GlobalScheduleVirtualMachineID(vmID)
+	id, err := parse.GlobalScheduleVirtualMachineID(vmID)
 	if err != nil {
 		return err
 	}
 
-	vmName := vm.Name
-	resGroup := vm.ResourceGroup
-
 	// Can't find any official documentation on this, but the API returns a 400 for any other name.
 	// The best example I could find is here: https://social.msdn.microsoft.com/Forums/en-US/25a02403-dba9-4bcb-bdcc-1f4afcba5b65/powershell-script-to-autoshutdown-azure-virtual-machine?forum=WAVirtualMachinesforWindows
-	name := "shutdown-computevm-" + vmName
+	name := "shutdown-computevm-" + id.Name
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name, "")
+		existing, err := client.Get(ctx, id.ResourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Schedule %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Schedule %q (Resource Group %q): %s", name, id.ResourceGroup, err)
 			}
 		}
 
@@ -162,17 +159,17 @@ func resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate(d *schema.ResourceD
 		schedule.NotificationSettings = notificationSettings
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, name, schedule); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, name, schedule); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, name, "")
+	read, err := client.Get(ctx, id.ResourceGroup, name, "")
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Dev Test Global Schedule %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Dev Test Global Schedule %s (resource group %s) ID", name, id.ResourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -185,21 +182,19 @@ func resourceArmDevTestLabGlobalShutdownScheduleRead(d *schema.ResourceData, met
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	schedule, err := parse.GlobalScheduleID(d.Id())
+	id, err := parse.GlobalScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := schedule.ResourceGroup
-	name := schedule.Name
 
-	resp, err := client.Get(ctx, resGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Dev Test Global Schedule %s: %s", name, err)
+		return fmt.Errorf("Error making Read request on Dev Test Global Schedule %s: %s", id.Name, err)
 	}
 
 	if location := resp.Location; location != nil {
@@ -228,14 +223,12 @@ func resourceArmDevTestLabGlobalShutdownScheduleDelete(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	schedule, err := parse.GlobalScheduleID(d.Id())
+	id, err := parse.GlobalScheduleID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := schedule.ResourceGroup
-	name := schedule.Name
 
-	if _, err := client.Delete(ctx, resGroup, name); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
 		return err
 	}
 
