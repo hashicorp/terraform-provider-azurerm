@@ -54,19 +54,14 @@ func TestApimSkuName(t *testing.T) {
 			valid: false,
 		},
 		{
-			name:  "Standard_2",
-			input: "Standard_2",
-			valid: true,
-		},
-		{
 			name:  "standard_2",
 			input: "standard_2",
-			valid: true,
+			valid: false,
 		},
 		{
 			name:  "PREMIUM_7",
 			input: "PREMIUM_7",
-			valid: true,
+			valid: false,
 		},
 	}
 	var validationFunction = ApimSkuName()

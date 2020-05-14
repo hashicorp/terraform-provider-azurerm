@@ -69,11 +69,10 @@ func resourceArmApiManagementService() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				ValidateFunc:     apimValidate.ApimSkuName(),
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: apimValidate.ApimSkuName(),
 			},
 
 			"identity": {
