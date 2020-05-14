@@ -30,6 +30,16 @@ resource "azurerm_storage_share" "example" {
   name                 = "sharename"
   storage_account_name = azurerm_storage_account.example.name
   quota                = 50
+
+  acl {
+      id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+  
+      access_policy {
+        permissions = "rwdl"
+        start       = "2019-07-02T09:38:21.0000000Z"
+        expiry      = "2019-07-02T10:38:21.0000000Z"
+      }
+  }
 }
 ```
 
@@ -60,11 +70,11 @@ A `acl` block supports the following:
 
 A `access_policy` block supports the following:
 
-* `expiry` - (Required) The ISO8061 UTC time at which this Access Policy should be valid until.
+* `expiry` - (Required) The ISO8061 UTC time (Y-m-d'T'H:M'Z') at which this Access Policy should be valid until.
 
-* `permissions` - (Required) The permissions which should associated with this Shared Identifier.
+* `permissions` - (Required) The permissions which should associated with this Shared Identifier. Possible values are `(d)elete`, `(l)ist`, `(r)ead` and `(w)rite`. They also can be combined.
 
-* `start` - (Required) The ISO8061 UTC time at which this Access Policy should be valid from.
+* `start` - (Required) The ISO8061 UTC time (Y-m-d'T'H:M'Z') at which this Access Policy should be valid from.
 
 ## Attributes Reference
 
