@@ -51,7 +51,7 @@ resource "azurerm_api_management_diagnostic" "example" {
   identifier          = "applicationinsights"
   resource_group_name = azurerm_resource_group.example.name
   api_management_name = azurerm_api_management.example.name
-  logger_id           = azurerm_api_management_logger.example.id
+  api_management_logger_id           = azurerm_api_management_logger.example.id
 }
 ```
 
@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the API Management Service exists. Changing this forces a new resource to be created.
 
-* `logger_id` - (Required) The id of the target API Management Logger where the API Management Diagnostic should be saved.
+* `api_management_logger_id` - (Required) The id of the target API Management Logger where the API Management Diagnostic should be saved.
 
 ---
 

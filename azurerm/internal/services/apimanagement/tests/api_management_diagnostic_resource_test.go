@@ -177,7 +177,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   identifier          = "applicationinsights"
   resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
-  logger_id           = azurerm_api_management_logger.test.id
+  api_management_logger_id           = azurerm_api_management_logger.test.id
 }
 `, config)
 }
@@ -208,7 +208,7 @@ resource "azurerm_api_management_diagnostic" "test" {
   identifier          = "applicationinsights"
   resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
-  logger_id           = azurerm_api_management_logger.test2.id
+  api_management_logger_id           = azurerm_api_management_logger.test2.id
 }
 `, config, data.RandomInteger)
 }
@@ -222,7 +222,7 @@ resource "azurerm_api_management_diagnostic" "import" {
   identifier          = azurerm_api_management_diagnostic.test.identifier
   resource_group_name = azurerm_api_management_diagnostic.test.resource_group_name
   api_management_name = azurerm_api_management_diagnostic.test.api_management_name
-  logger_id           = azurerm_api_management_diagnostic.test.logger_id
+  api_management_logger_id           = azurerm_api_management_diagnostic.test.api_management_logger_id
 }
 `, template)
 }

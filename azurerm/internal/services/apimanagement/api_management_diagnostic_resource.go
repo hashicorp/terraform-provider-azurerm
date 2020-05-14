@@ -51,7 +51,7 @@ func resourceArmApiManagementDiagnostic() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
-			"logger_id": {
+			"api_management_logger_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.ApiManagementLoggerID,
@@ -90,7 +90,7 @@ func resourceArmApiManagementDiagnosticCreateUpdate(d *schema.ResourceData, meta
 
 	parameters := apimanagement.DiagnosticContract{
 		DiagnosticContractProperties: &apimanagement.DiagnosticContractProperties{
-			LoggerID: utils.String(d.Get("logger_id").(string)),
+			LoggerID: utils.String(d.Get("api_management_logger_id").(string)),
 		},
 	}
 
@@ -134,7 +134,7 @@ func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interfa
 	d.Set("identifier", resp.Name)
 	d.Set("resource_group_name", diagnosticId.ResourceGroup)
 	d.Set("api_management_name", diagnosticId.ServiceName)
-	d.Set("logger_id", resp.LoggerID)
+	d.Set("api_management_logger_id", resp.LoggerID)
 
 	return nil
 }
