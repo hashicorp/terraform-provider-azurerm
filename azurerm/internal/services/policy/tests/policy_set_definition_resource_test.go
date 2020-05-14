@@ -339,7 +339,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 
 		var resp policy.SetDefinition
 		if mgmtGroupID, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
-			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupId)
+			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupName)
 		} else {
 			resp, err = client.Get(ctx, id.Name)
 		}
@@ -372,7 +372,7 @@ func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
 
 		var resp policy.SetDefinition
 		if mgmtGroupID, ok := id.PolicyScopeId.(parse.ScopeAtManagementGroup); ok {
-			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupId)
+			resp, err = client.GetAtManagementGroup(ctx, id.Name, mgmtGroupID.ManagementGroupName)
 		} else {
 			resp, err = client.Get(ctx, id.Name)
 		}
