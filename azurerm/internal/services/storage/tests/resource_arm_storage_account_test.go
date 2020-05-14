@@ -377,7 +377,7 @@ func TestAccAzureRMStorageAccount_storageV1ToV2Update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageAccount_storageToV2(data),
+				Config: testAccAzureRMStorageAccount_storageToV2Prep(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_kind", "Storage"),
@@ -1156,7 +1156,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_storageToV2(data acceptance.TestData) string {
+func testAccAzureRMStorageAccount_storageToV2Prep(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
