@@ -69,10 +69,11 @@ func resourceArmApiManagementService() *schema.Resource {
 			},
 
 			"sku_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: apimValidate.ApimSkuName(),
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				ValidateFunc:     apimValidate.ApimSkuName(),
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"identity": {
@@ -442,6 +443,8 @@ func resourceArmApiManagementService() *schema.Resource {
 
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
+	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -538,18 +541,16 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	d.SetId(*read.ID)
 
-	signInSettingsRaw := d.Get("sign_in").([]interface{})
-	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
-	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
-	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings, ""); err != nil {
-		return fmt.Errorf(" setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if signInSettings := expandApiManagementSignInSettings(d.Get("sign_in").([]interface{})); signInSettings != nil {
+		if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, *signInSettings, ""); err != nil {
+			return fmt.Errorf(" setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
-	signUpSettingsRaw := d.Get("sign_up").([]interface{})
-	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
-	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
-	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings, ""); err != nil {
-		return fmt.Errorf(" setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if signUpSettings := expandApiManagementSignUpSettings(d.Get("sign_up").([]interface{})); signUpSettings != nil {
+		if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, *signUpSettings, ""); err != nil {
+			return fmt.Errorf(" setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
@@ -580,6 +581,8 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ServiceClient
+	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
+	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -600,18 +603,6 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		}
 
 		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	signInClient := meta.(*clients.Client).ApiManagement.SignInClient
-	signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
-	signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	policyClient := meta.(*clients.Client).ApiManagement.PolicyClient
@@ -674,16 +665,27 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("setting `sku_name`: %+v", err)
 	}
 
-	if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
-		return fmt.Errorf("setting `sign_in`: %+v", err)
-	}
-
-	if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
-		return fmt.Errorf("setting `sign_up`: %+v", err)
-	}
-
 	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
 		return fmt.Errorf("setting `policy`: %+v", err)
+	}
+
+	if resp.Sku.Name != apimanagement.SkuTypeConsumption {
+		signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
+			return fmt.Errorf("setting `sign_in`: %+v", err)
+		}
+
+		signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
+			return fmt.Errorf("setting `sign_up`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

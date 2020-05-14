@@ -191,6 +191,25 @@ func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagement_consumption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_consumption(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
@@ -898,6 +917,29 @@ resource "azurerm_api_management" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagement_consumption(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "consumption_0"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagement_identityUserAssigned(data acceptance.TestData) string {
