@@ -47,6 +47,7 @@ BUG FIXES:
 * `azurerm_monitor_diagnostic_setting` - fix possible crash with `retention_policy` [GH-6911]
 * `azurerm_mariadb_server` - the `storage_mb` property is now optional when `auto_grow` is enabled [GH-6865]
 * `azurerm_mysql_server` - the `storage_mb` property is now optional when `auto_grow` is enabled [GH-6833]
+* `azurerm_role_assignment` - added evential consistency check to assignment creation [GH-6925]
 
 ## 2.9.0 (May 07, 2020)
 
