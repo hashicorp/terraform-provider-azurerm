@@ -1139,7 +1139,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 		"key_vault_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateKeyVaultChildId,
+			ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
 			ConflictsWith: []string{
 				fmt.Sprintf("hostname_configuration.0.%s.0.certificate", schemaName),
 				fmt.Sprintf("hostname_configuration.0.%s.0.certificate_password", schemaName),
