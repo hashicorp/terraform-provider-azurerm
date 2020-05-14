@@ -44,10 +44,12 @@ BUG FIXES:
 * `azurerm_application_insights` - `retention_in_days` defaults to 90 [GH-6851]
 * `azurerm_data_factory_trigger_schedule` - setting the `type` required for Pipeline References [GH-6871]
 * `azurerm_kubernetes_cluster` - fixes the `InvalidLoadbalancerProfile` error [GH-6534]
+* `azurerm_linux_virtual_machine_scale_set` - support for updating the `do_not_run_extensions_on_overprovisioned_machines` property [GH-6917]
 * `azurerm_monitor_diagnostic_setting` - fix possible crash with `retention_policy` [GH-6911]
 * `azurerm_mariadb_server` - the `storage_mb` property is now optional when `auto_grow` is enabled [GH-6865]
 * `azurerm_mysql_server` - the `storage_mb` property is now optional when `auto_grow` is enabled [GH-6833]
 * `azurerm_role_assignment` - added evential consistency check to assignment creation [GH-6925]
+* `azurerm_windows_virtual_machine_scale_set` - support for updating the `do_not_run_extensions_on_overprovisioned_machines` property [GH-6917]
 
 ## 2.9.0 (May 07, 2020)
 
