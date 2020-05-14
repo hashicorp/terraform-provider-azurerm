@@ -20,10 +20,14 @@ IMPROVEMENTS:
 * `azurerm_app_service_environment` - support specifying explicit resource group [GH-6821]
 * `azurerm_express_route_circuit` - de-provision and re-provision circuit when changing the bandwidth reduction [GH-6601]
 * `azurerm_log_analytics_workspace` - add support for `rentention_in_days` for Free Tier [GH-6844]
-* `azurerm_mysql_server` - support for the `create_mode` property allowing the creation of replicas, point in time restores, and geo restors [GH-6865]
-* `azurerm_mysql_server` - support for the `public_network_access_enabled` property [GH-6865]
-* `azurerm_mysql_server` - all properties in the `storage_profile` block have been moved to the top level [GH-6865]
-* `azurerm_mysql_server` - the following properties were renamed and changed to a boolean type: `ssl_enforcement` to `ssl_enforcement_enabled`, `geo_redundant_backup` to `geo_redundant_backup_enabled`, and `auto_grow` to `auto_grow_enabled` [GH-6865]
+* `azurerm_mariadb_server` - support for the `create_mode` property allowing the creation of replicas, point in time restores, and geo restors [GH-6865]
+* `azurerm_mariadb_server` - support for the `public_network_access_enabled` property [GH-6865]
+* `azurerm_mariadb_server` - all properties in the `storage_profile` block have been moved to the top level [GH-6865]
+* `azurerm_mariadb_server` - the following properties were renamed and changed to a boolean type: `ssl_enforcement` to `ssl_enforcement_enabled`, `geo_redundant_backup` to `geo_redundant_backup_enabled`, and `auto_grow` 
+* `azurerm_mysql_server` - support for the `create_mode` property allowing the creation of replicas, point in time restores, and geo restors [GH-6833]
+* `azurerm_mysql_server` - support for the `public_network_access_enabled` property [GH-6833]
+* `azurerm_mysql_server` - all properties in the `storage_profile` block have been moved to the top level [GH-6833]
+* `azurerm_mysql_server` - the following properties were renamed and changed to a boolean type: `ssl_enforcement` to `ssl_enforcement_enabled`, `geo_redundant_backup` to `geo_redundant_backup_enabled`, and `auto_grow` to `auto_grow_enabled` [GH-6833]
 * `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
 * `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
 
@@ -39,7 +43,8 @@ BUG FIXES:
 * `azurerm_data_factory_trigger_schedule` - setting the `type` required for Pipeline References [GH-6871]
 * `azurerm_kubernetes_cluster` - fixes the `InvalidLoadbalancerProfile` error [GH-6534]
 * `azurerm_monitor_diagnostic_setting` - fix possible crash with `retention_policy` [GH-6911]
-* `azurerm_mysql_server` - the `storage_mb` property is now optional when `auto_grow` is enabled [GH-6865]
+* `azurerm_mariadb_server` - the `storage_mb` property is now optional when `auto_grow` is enabled [GH-6865]
+* `azurerm_mysql_server` - the `storage_mb` property is now optional when `auto_grow` is enabled [GH-6833]
 
 ## 2.9.0 (May 07, 2020)
 
