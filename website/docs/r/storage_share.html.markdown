@@ -70,11 +70,11 @@ A `acl` block supports the following:
 
 A `access_policy` block supports the following:
 
-* `expiry` - (Required) The ISO8061 UTC time (Y-m-d'T'H:M'Z') at which this Access Policy should be valid until.
+* `expiry` - (Required) The ISO8061 UTC time (Y-m-d'T'H:M:S'Z') at which this Access Policy should be valid until.
 
 * `permissions` - (Required) The permissions which should associated with this Shared Identifier. Possible values are `(d)elete`, `(l)ist`, `(r)ead` and `(w)rite`. They also can be combined.
 
-* `start` - (Required) The ISO8061 UTC time (Y-m-d'T'H:M'Z') at which this Access Policy should be valid from.
+* `start` - (Required) The ISO8061 UTC time (Y-m-d'T'H:M:S'Z') at which this Access Policy should be valid from.
 
 ## Attributes Reference
 
