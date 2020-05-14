@@ -30,6 +30,7 @@ IMPROVEMENTS:
 * `azurerm_mysql_server` - all properties in the `storage_profile` block have been moved to the top level [GH-6833]
 * `azurerm_mysql_server` - the following properties were renamed and changed to a boolean type: `ssl_enforcement` to `ssl_enforcement_enabled`, `geo_redundant_backup` to `geo_redundant_backup_enabled`, and `auto_grow` to `auto_grow_enabled` [GH-6833]
 * `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
+* `azurerm_storage_account` - Enable migration of `account_kind` from `Storage` to `StorageV2` [GH-6580]
 * `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
 
 BUG FIXES:
