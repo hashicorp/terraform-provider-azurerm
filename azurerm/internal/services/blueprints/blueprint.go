@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -30,10 +31,12 @@ func ManagedIdentitySchema() *schema.Schema {
 						// Such activity in the Provider would be brittle
 						// string(blueprint.ManagedServiceIdentityTypeSystemAssigned),
 						string(blueprint.ManagedServiceIdentityTypeUserAssigned),
-					}, false),
+					}, true),
+					// The first character of value returned by the service is always in lower case - bug?
+					DiffSuppressFunc: suppress.CaseDifference,
 				},
 
-				"user_assigned_identities": {
+				"identity_ids": {
 					// The API only seems to care about the "key" portion of this struct, which is the ResourceID of the Identity
 					Type:     schema.TypeList,
 					Required: true,
@@ -63,6 +66,9 @@ func blueprintAssignmentCreateStateRefreshFunc(ctx context.Context, client *blue
 		resp, err := client.Get(ctx, scope, name)
 		if err != nil {
 			return nil, "", fmt.Errorf("unable to retrieve Blueprint Assignment %q (Scope %q): %+v", name, scope, err)
+		}
+		if resp.ProvisioningState == blueprint.Failed {
+			return resp, string(resp.ProvisioningState), err
 		}
 
 		return resp, string(resp.ProvisioningState), nil
@@ -137,11 +143,12 @@ func expandArmBlueprintAssignmentIdentity(input []interface{}) (*blueprint.Manag
 		Type: blueprint.ManagedServiceIdentityType(raw["type"].(string)),
 	}
 
-	identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
+	identityIdsRaw := raw["identity_ids"].([]interface{})
 	identityIds := make(map[string]*blueprint.UserAssignedIdentity)
 	for _, v := range identityIdsRaw {
 		identityIds[v.(string)] = &blueprint.UserAssignedIdentity{}
 	}
+	identity.UserAssignedIdentities = identityIds
 
 	return &identity, nil
 }

@@ -89,7 +89,7 @@ func dataSourceArmBlueprintPublishedVersionRead(d *schema.ResourceData, meta int
 	if subscriptionRaw != nil {
 		subscription = subscriptionRaw.(string)
 	}
-	managementGroupRaw := d.Get("managementGroup")
+	managementGroupRaw := d.Get("management_group")
 	if managementGroupRaw != nil {
 		managementGroup = managementGroupRaw.(string)
 	}

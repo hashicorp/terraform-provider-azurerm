@@ -30,7 +30,9 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 		Read:   resourceArmBlueprintAssignmentRead,
 		Delete: resourceArmBlueprintAssignmentDelete,
 
-		Importer: nil,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -47,7 +49,7 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"subscription",
+					"subscriptions",
 					"managementGroup",
 				}, true),
 			},
@@ -113,14 +115,13 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 			},
 
 			"lock_exclude_principals": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 5,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsUUID,
 				},
-				Set: schema.HashString,
 			},
 
 			"description": {
@@ -154,7 +155,6 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 	var name, targetScope, definitionScope, blueprintId string
 
 	if versionIdRaw, ok := d.GetOk("version_id"); ok {
-		blueprintId = versionIdRaw.(string)
 		if _, ok := d.GetOk("blueprint_id"); ok {
 			return fmt.Errorf("cannot specify `blueprint_id` when `version_id` is specified")
 		}
@@ -162,6 +162,9 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 		if _, ok := d.GetOk("version_name"); ok {
 			return fmt.Errorf("cannot specify `version_name` when `version_id` is specified")
 		}
+		blueprintId = versionIdRaw.(string)
+		versionId, _ := parse.VersionID(blueprintId)
+		definitionScope = versionId.Scope
 	} else {
 		if bpIDRaw, ok := d.GetOk("blueprint_id"); ok {
 			bpID, err := parse.DefinitionID(bpIDRaw.(string))
@@ -180,11 +183,10 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	targetScope = fmt.Sprintf("%s/%s", d.Get("scope_type"), d.Get("Scope"))
+	targetScope = fmt.Sprintf("%s/%s", d.Get("scope_type"), d.Get("scope"))
 	name = d.Get("name").(string)
 
 	assignment := blueprint.Assignment{
-		Identity: nil, // TODO - Identity schema?
 		AssignmentProperties: &blueprint.AssignmentProperties{
 			BlueprintID: utils.String(blueprintId), // This is mislabeled - The ID is that of the Published Version, not just the Blueprint
 			Scope:       utils.String(definitionScope),
@@ -197,7 +199,7 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 		lockMode := lockModeRaw.(string)
 		assignmentLockSettings.Mode = blueprint.AssignmentLockMode(lockMode)
 		if lockMode != "None" {
-			excludedPrincipalsRaw := d.Get("lock_exclude_principals").(*schema.Set).List()
+			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]interface{})
 			if len(excludedPrincipalsRaw) != 0 {
 				assignmentLockSettings.ExcludedPrincipals = utils.ExpandStringSlice(excludedPrincipalsRaw)
 			}
@@ -211,12 +213,16 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 	}
 	assignment.Identity = identity
 
-	if paramValuesRaw, ok := d.GetOk("parameter_values"); ok {
+	if paramValuesRaw := d.Get("parameter_values"); paramValuesRaw != "" {
 		assignment.Parameters = expandArmBlueprintAssignmentParameters(paramValuesRaw.(string))
+	} else {
+		assignment.Parameters = expandArmBlueprintAssignmentParameters("{}")
 	}
 
-	if resourceGroupsRaw, ok := d.GetOk("resource_groups"); ok {
+	if resourceGroupsRaw := d.Get("resource_groups"); resourceGroupsRaw != "" {
 		assignment.ResourceGroups = expandArmBlueprintAssignmentResourceGroups(resourceGroupsRaw.(string))
+	} else {
+		assignment.ResourceGroups = expandArmBlueprintAssignmentResourceGroups("{}")
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, targetScope, name, assignment)
@@ -275,17 +281,17 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if resp.Scope != nil {
-		scopeParts := strings.Split(*resp.Scope, "/")
+		scopeParts := strings.Split(strings.Trim(*resp.Scope, "/"), "/")
 		if len(scopeParts) == 2 {
 			d.Set("scope_type", scopeParts[0])
 			d.Set("scope", scopeParts[1])
 		} else {
-			return fmt.Errorf("read on Assignment scope failed, got: %+v", resp.Scope)
+			return fmt.Errorf("read on Assignment scope failed, got: %+v", *resp.Scope)
 		}
 	}
 
 	if resp.Location != nil {
-		d.Set("location", azure.NormalizeLocation(resp.Location))
+		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
 	if resp.Identity != nil {
@@ -363,6 +369,7 @@ func resourceArmBlueprintAssignmentDelete(d *schema.ResourceData, meta interface
 			string(blueprint.Validating),
 			string(blueprint.Locking),
 			string(blueprint.Deleting),
+			string(blueprint.Failed),
 		},
 		Target:  []string{"NotFound"},
 		Refresh: blueprintAssignmentDeleteStateRefreshFunc(ctx, client, targetScope, name),

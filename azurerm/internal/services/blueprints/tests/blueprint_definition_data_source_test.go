@@ -22,8 +22,9 @@ func TestAccDataSourceBlueprintDefinition_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test stub for Blueprints at Subscription"),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_basicSubscription"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"),
+					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
 					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
+					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "subscription"),
 				),
 			},
 		},
@@ -31,7 +32,7 @@ func TestAccDataSourceBlueprintDefinition_basic(t *testing.T) {
 }
 
 // lintignore:AT001
-func TestAccDataSourceBlueprintDefinition_basicAtManagementGroup(t *testing.T) {
+func TestAccDataSourceBlueprintDefinition_basicAtRootManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 
 	// TODO - Update when the AccTest environment is capable of supporting MG level testing. For now this will fail.
@@ -41,12 +42,36 @@ func TestAccDataSourceBlueprintDefinition_basicAtManagementGroup(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceBlueprintDefinition_basicAtManagementGroup("SomeGroup"),
+				Config: testAccDataSourceBlueprintDefinition_basicAtRootManagementGroup(),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_basicRootManagementGroup"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "target_scope"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "type"),
+					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
+					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "managementGroup"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceBlueprintDefinition_basicAtChildManagementGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
+
+	// TODO - Update when the AccTest environment is capable of supporting MG level testing. For now this will fail.
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceBlueprintDefinition_basicAtManagementGroup("testAcc_staticStubGroup"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_staticStubManagementGroup"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
+					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
+					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "managementGroup"),
 				),
 			},
 		},
@@ -79,10 +104,27 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 data "azurerm_blueprint_definition" "test" {
-  name       = "simpleBlueprint"
+  name       = "testAcc_staticStubManagementGroup"
   scope_type = "managementGroup"
-  scope_name = %s
+  scope_name = "%s"
 }
 
 `, managementGroup)
+}
+
+func testAccDataSourceBlueprintDefinition_basicAtRootManagementGroup() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+data "azurerm_blueprint_definition" "test" {
+  name       = "testAcc_basicRootManagementGroup"
+  scope_type = "managementGroup"
+  scope_name = data.azurerm_client_config.current.tenant_id
+}
+
+`
 }
