@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_application_gateway` - support for WAF policies [GH-6105]
 * `azurerm_app_service_environment` - support specifying explicit resource group [GH-6821]
 * `azurerm_express_route_circuit` - de-provision and re-provision circuit when changing the bandwidth reduction [GH-6601]
+* `azurerm_frontdoor` - Expose the `header_frontdoor_id` attribute [GH-6916]
 * `azurerm_log_analytics_workspace` - add support for `rentention_in_days` for Free Tier [GH-6844]
 * `azurerm_mariadb_server` - support for the `create_mode` property allowing the creation of replicas, point in time restores, and geo restors [GH-6865]
 * `azurerm_mariadb_server` - support for the `public_network_access_enabled` property [GH-6865]
