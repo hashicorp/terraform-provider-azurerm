@@ -276,7 +276,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
-			
+
 			"threat_detection_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
