@@ -531,15 +531,15 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
 	}
 
 	if props := resp.ServerProperties; props != nil {
-		if location := resp.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
-		}
-
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("ssl_enforcement", string(props.SslEnforcement))
 		d.Set("ssl_minimal_tls_version_enforced", props.MinimalTLSVersion)
