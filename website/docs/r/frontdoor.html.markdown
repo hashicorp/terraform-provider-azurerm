@@ -294,11 +294,11 @@ The following attributes are exported:
 
 * `cname` - The host that each frontendEndpoint must CNAME to.
 
+* `frontdoor_id` - The ID of the Front Door which can be used to filter on the incoming header `X-Azure-FDID` attribute which is sent by the Front Door to your backend.
+
 * `id` - The ID of the FrontDoor.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
