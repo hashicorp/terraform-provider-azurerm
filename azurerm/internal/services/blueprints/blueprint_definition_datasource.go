@@ -31,7 +31,7 @@ func dataSourceArmBlueprintDefinition() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"subscription",
+					"subscriptions",
 					"managementGroup",
 				}, false),
 			},
@@ -89,7 +89,7 @@ func dataSourceArmBlueprintDefinitionRead(d *schema.ResourceData, meta interface
 	scopeName := d.Get("scope_name").(string)
 	scopeType := d.Get("scope_type").(string)
 	switch scopeType {
-	case "subscription":
+	case "subscriptions":
 		scope = fmt.Sprintf("subscriptions/%s", scopeName)
 	case "managementGroup":
 		scope = fmt.Sprintf("providers/Microsoft.Management/managementGroups/%s", scopeName)

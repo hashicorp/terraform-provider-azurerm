@@ -23,7 +23,7 @@ data "azurerm_blueprint_definition" "example" {
 
 * `name` - (Required) The name of the Blueprint
 
-* `scope_type` - (Required) The scope at which the blueprint definition is stored. Possible values are `subscription` and `managementGroup`.  
+* `scope_type` - (Required) The scope at which the blueprint definition is stored. Possible values are `subscriptions` and `managementGroup`.  
 
 * `scope_name` - (Required) The name of the scope. This is a subscription ID or Management Group name, depending on the `scope_type`.  
 
