@@ -22,9 +22,9 @@ func TestAccDataSourceBlueprintDefinition_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test stub for Blueprints at Subscription"),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_basicSubscription"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
+					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscriptions"), // Only subscriptions can be targets
 					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "subscription"),
+					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "subscriptions"),
 				),
 			},
 		},
@@ -47,7 +47,7 @@ func TestAccDataSourceBlueprintDefinition_basicAtRootManagementGroup(t *testing.
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_basicRootManagementGroup"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
+					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscriptions"), // Only subscriptions can be targets
 					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "managementGroup"),
 				),
 			},
@@ -70,7 +70,7 @@ func TestAccDataSourceBlueprintDefinition_basicAtChildManagementGroup(t *testing
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_staticStubManagementGroup"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
-					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
+					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscriptions"), // Only subscriptions can be targets
 					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "managementGroup"),
 				),
 			},
@@ -88,7 +88,7 @@ data "azurerm_client_config" "current" {}
 
 data "azurerm_blueprint_definition" "test" {
   name       = "testAcc_basicSubscription"
-  scope_type = "subscription"
+  scope_type = "subscriptions"
   scope_name = data.azurerm_client_config.current.subscription_id
 }
 
