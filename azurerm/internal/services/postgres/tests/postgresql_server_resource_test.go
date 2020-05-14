@@ -585,7 +585,7 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement_enabled           = true
   ssl_minimal_tls_version_enforced  = "TLS1_2"
 
-  security_alert_policy {
+  threat_detection_policy {
     enabled              = true
     disabled_alerts      = ["Sql_Injection", "Data_Exfiltration"]
     email_account_admins = true
@@ -637,7 +637,7 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement_enabled           = false
   ssl_minimal_tls_version_enforced  = "TLS1_1"
 
-  security_alert_policy {
+  threat_detection_policy {
     enabled              = true
     disabled_alerts      = ["Sql_Injection"]
     email_account_admins = true

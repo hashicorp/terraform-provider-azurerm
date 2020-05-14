@@ -276,9 +276,8 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
-
-			// computed as when not set the API returns an empty zeroed out struct
-			"security_alert_policy": {
+			
+			"threat_detection_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -506,7 +505,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 
 	d.SetId(*read.ID)
 
-	if v, ok := d.GetOk("security_alert_policy"); ok {
+	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
 			future, err := securityClient.CreateOrUpdate(ctx, resourceGroup, name, *alert)
@@ -575,7 +574,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	if v, ok := d.GetOk("security_alert_policy"); ok {
+	if v, ok := d.GetOk("threat_detection_policy"); ok {
 		alert := expandSecurityAlertPolicy(v)
 		if alert != nil {
 			future, err := securityClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *alert)
@@ -656,9 +655,9 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if !utils.ResponseWasNotFound(secResp.Response) {
-		block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, d.Get("security_alert_policy.0.storage_account_access_key").(string))
-		if err := d.Set("security_alert_policy", block); err != nil {
-			return fmt.Errorf("setting `security_alert_policy`: %+v", err)
+		block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, d.Get("threat_detection_policy.0.storage_account_access_key").(string))
+		if err := d.Set("threat_detection_policy", block); err != nil {
+			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
 		}
 	}
 
