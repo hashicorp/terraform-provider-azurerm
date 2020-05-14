@@ -1,13 +1,13 @@
 ---
 subcategory: "App Service (Web Apps)"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_app_service_virtual_network_swift_connection_slot"
+page_title: "Azure Resource Manager: azurerm_app_service_slot_virtual_network_swift_connection"
 description: |-
   Manages an App Service's Slot Virtual Network Association.
 
 ---
 
-# azurerm_app_service_virtual_network_swift_connection_slot
+# azurerm_app_service_slot_virtual_network_swift_connection
 
 Manages an App Service Slot's Virtual Network Association (this is for the [Regional VNet Integration](https://docs.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#regional-vnet-integration) which is still in preview).
 
@@ -73,7 +73,7 @@ resource "azurerm_app_service_slot" "example-staging" {
   app_service_plan_id = azurerm_app_service_plan.example.id
 }
 
-resource "azurerm_app_service_virtual_network_swift_connection_slot" "example" {
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "example" {
   slot_name      = azurerm_app_service_slot.example-staging.name
   app_service_id = azurerm_app_service.example.id
   subnet_id      = azurerm_subnet.example.id
@@ -110,5 +110,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 App Service Slot Virtual Network Associations can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_service_virtual_network_swift_connection_slot.myassociation /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/slots/stageing/networkconfig/virtualNetwork
+terraform import azurerm_app_service_slot_virtual_network_swift_connection.myassociation /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/slots/stageing/networkconfig/virtualNetwork
 ```
