@@ -147,7 +147,7 @@ data "azurerm_subscription" "test" {}
 
 data "azurerm_blueprint_definition" "test" {
   name       = "%s"
-  scope_type = "subscription"
+  scope_type = "subscriptions"
   scope_name = data.azurerm_client_config.current.subscription_id
 }
 
@@ -207,7 +207,7 @@ data "azurerm_subscription" "test" {}
 
 data "azurerm_blueprint_definition" "test" {
   name       = "%s"
-  scope_type = "subscription"
+  scope_type = "subscriptions"
   scope_name = data.azurerm_client_config.current.subscription_id
 }
 
