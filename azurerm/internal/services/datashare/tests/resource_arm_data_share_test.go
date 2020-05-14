@@ -272,16 +272,17 @@ resource "azurerm_data_share" "test" {
 func testAccAzureRMDataShare_snapshotSchedule(data acceptance.TestData, startTime string) string {
 	template := testAccAzureRMDataShare_template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_data_share" "test" {
-  name       = "acctest_ds_%d"
+  name       = "acctest_ds_%[2]d"
   account_id = azurerm_data_share_account.test.id
   share_kind = "CopyBased"
 
   snapshot_schedule {
+    name       = "acctest-ss-%[2]d"
     recurrence = "Day"
-    start_time = "%s"
+    start_time = "%[3]s"
   }
 }
 `, template, data.RandomInteger, startTime)
@@ -290,16 +291,17 @@ resource "azurerm_data_share" "test" {
 func testAccAzureRMDataShare_snapshotScheduleUpdated(data acceptance.TestData, startTime string) string {
 	template := testAccAzureRMDataShare_template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_data_share" "test" {
-  name       = "acctest_ds_%d"
+  name       = "acctest_ds_%[2]d"
   account_id = azurerm_data_share_account.test.id
   share_kind = "CopyBased"
 
   snapshot_schedule {
+    name       = "acctest-ss2-%[2]d"
     recurrence = "Hour"
-    start_time = "%s"
+    start_time = "%[3]s"
   }
 }
 `, template, data.RandomInteger, startTime)

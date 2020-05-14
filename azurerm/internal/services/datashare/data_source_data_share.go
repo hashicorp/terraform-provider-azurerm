@@ -50,6 +50,11 @@ func dataSourceDataShare() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"recurrence": {
 							Type:     schema.TypeString,
 							Computed: true,

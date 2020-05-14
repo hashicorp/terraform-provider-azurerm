@@ -39,6 +39,7 @@ resource "azurerm_data_share" "example" {
   terms       = "example terms"
 
   snapshot_schedule {
+    name       = "example-ss"
     recurrence = "Day"
     start_time = "2020-04-17T04:47:52.9614956Z"
   }
@@ -64,6 +65,8 @@ The following arguments are supported:
 ---
 
 A `snapshot_schedule` block supports the following:
+
+* `name` - The name of the snapshot schedule.
 
 * `recurrence` - (Required) The recurrence interval of the synchronization of the source data. Possible values are `Hour` and `Day`.
 

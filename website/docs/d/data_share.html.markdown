@@ -58,7 +58,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `snapshot_schedule` block exports the following:
 
-* `recurrence` - The recurrence interval of the synchronization of the source data. Possible values are 'Hour'and 'Day'.
+* `name` - The name of the snapshot schedule.
+
+* `recurrence` - The recurrence interval of the synchronization of the source data.
 
 * `start_time` - The start time of the synchronization of the source data.
 

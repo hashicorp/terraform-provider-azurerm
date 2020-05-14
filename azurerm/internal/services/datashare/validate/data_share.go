@@ -34,3 +34,9 @@ func DatashareAccountID(i interface{}, k string) (warnings []string, errors []er
 
 	return warnings, errors
 }
+
+func DataShareSyncName() schema.SchemaValidateFunc {
+	return validation.StringMatch(
+		regexp.MustCompile(`^[^&%#/]{1,90}$`), `Data share snapshot schedule name should have length of 1 - 90, and cannot contain &%#/`,
+	)
+}

@@ -20,6 +20,8 @@ func TestAccDataSourceAzureRMDataShare_basic(t *testing.T) {
 				Config: testAccDataSourceDataShare_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataShareExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "account_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "share_kind"),
 				),
 			},
 		},
@@ -39,6 +41,9 @@ func TestAccDataSourceAzureRMDataShare_snapshotSchedule(t *testing.T) {
 				Config: testAccDataSourceAzureRMDataShare_snapshotSchedule(data, startTime),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataShareExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "snapshot_schedule.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "snapshot_schedule.0.recurrence"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "snapshot_schedule.0.start_time"),
 				),
 			},
 			data.ImportStep(),
