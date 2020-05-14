@@ -6,8 +6,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -152,7 +150,7 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	var name, targetScope, definitionScope, blueprintId string
+	var name, targetScope, blueprintId string
 
 	if versionIdRaw, ok := d.GetOk("version_id"); ok {
 		if _, ok := d.GetOk("blueprint_id"); ok {
@@ -163,18 +161,10 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 			return fmt.Errorf("cannot specify `version_name` when `version_id` is specified")
 		}
 		blueprintId = versionIdRaw.(string)
-		versionId, _ := parse.VersionID(blueprintId)
-		definitionScope = versionId.Scope
 	} else {
 		if bpIDRaw, ok := d.GetOk("blueprint_id"); ok {
-			bpID, err := parse.DefinitionID(bpIDRaw.(string))
-			if err != nil {
-				return err
-			}
-
 			if versionName, ok := d.GetOk("version_name"); ok {
 				blueprintId = fmt.Sprintf("%s/versions/%s", bpIDRaw.(string), versionName.(string))
-				definitionScope = bpID.Scope
 			} else {
 				return fmt.Errorf("`version_name` must be specified if `version_id` is not supplied")
 			}
@@ -189,7 +179,7 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 	assignment := blueprint.Assignment{
 		AssignmentProperties: &blueprint.AssignmentProperties{
 			BlueprintID: utils.String(blueprintId), // This is mislabeled - The ID is that of the Published Version, not just the Blueprint
-			Scope:       utils.String(definitionScope),
+			Scope:       utils.String(targetScope),
 		},
 		Location: utils.String(azure.NormalizeLocation(d.Get("location"))),
 	}
@@ -326,7 +316,7 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 		if locks := resp.Locks; locks != nil {
 			d.Set("lock_mode", locks.Mode)
 			if locks.ExcludedPrincipals != nil {
-				d.Set("lock_excluded_principals", set.FromStringSlice(*locks.ExcludedPrincipals))
+				d.Set("lock_exclude_principals", locks.ExcludedPrincipals)
 			}
 		}
 	}

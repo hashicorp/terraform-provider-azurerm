@@ -74,8 +74,8 @@ func TestAccBlueprintAssignment_managementGroup(t *testing.T) {
 				Config: testAccBlueprintAssignment_rootManagementGroup(data, "testAcc_basicRootManagementGroup"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckBlueprintAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "userAssigned"),      // Casing bug in API?
-					resource.TestCheckResourceAttr(data.ResourceName, "lock_mode", "allResourcesDoNotDelete"), // Casing bug in API?
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "userAssigned"), // Casing bug in API?
+					resource.TestCheckResourceAttr(data.ResourceName, "lock_mode", "none"),               // Casing bug in API?
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAccBPAssignment"),
 					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "subscriptions"),
 					resource.TestCheckResourceAttr(data.ResourceName, "version_name", "v0.1_testAcc"),
@@ -299,7 +299,7 @@ data "azurerm_subscription" "test" {}
 data "azurerm_blueprint_definition" "test" {
   name       = "%s"
   scope_type = "managementGroup"
-  scope_name = data.azurerm_client_config.current.subscription_id
+  scope_name = data.azurerm_client_config.current.tenant_id
 }
 
 data "azurerm_blueprint_published_version" "test" {
@@ -342,39 +342,15 @@ resource "azurerm_blueprint_assignment" "test" {
   version_id = data.azurerm_blueprint_published_version.test.id
   location   = "%s"
 
-  lock_mode = "AllResourcesDoNotDelete"
-
-  lock_exclude_principals = [
-    data.azurerm_client_config.current.object_id,
-  ]
-
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-
-  resource_groups = <<GROUPS
-    {
-      "ResourceGroup": {
-        "name": "accTestRG-BP-%d-2",
-        "location" : "%s"
-      }
-    }
-  GROUPS
-
-  parameter_values = <<VALUES
-    {
-      "appendataganditsvaluetoresourcegroups_tagValue": {
-        "value": "true"
-      }
-    }
-  VALUES
 
   depends_on = [
     azurerm_role_assignment.test,
     azurerm_role_assignment.test2
   ]
 }
-`, bpName, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
-
+`, bpName, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
