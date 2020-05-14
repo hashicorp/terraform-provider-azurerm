@@ -78,14 +78,14 @@ func resourceArmMySqlServer() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				Computed:      true, // TODO: remove in 3.0 and default to true
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
+				ConflictsWith: []string{"storage_profile.0.auto_grow"},
 			},
 
 			"backup_retention_days": {
 				Type:          schema.TypeInt,
 				Optional:      true,
 				Computed:      true,
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.backup_retention_days"},
+				ConflictsWith: []string{"storage_profile.0.backup_retention_days"},
 				ValidateFunc:  validation.IntBetween(7, 35),
 			},
 
@@ -116,7 +116,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				Computed:      true,
-				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
+				ConflictsWith: []string{"storage_profile.0.geo_redundant_backup"},
 			},
 
 			"infrastructure_encryption_enabled": {
@@ -201,10 +201,10 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 
 			"storage_mb": {
-				Type:          schema.TypeInt,
-				Optional:      true,
-				Computed:      true,
-				ExactlyOneOf:  []string{"storage_profile", "storage_profile.0.storage_mb"},
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ExactlyOneOf: []string{"storage_profile.0.storage_mb"},
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 4194304),
 					validation.IntDivisibleBy(1024),
