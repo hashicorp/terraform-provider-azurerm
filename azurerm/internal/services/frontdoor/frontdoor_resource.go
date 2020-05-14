@@ -51,7 +51,7 @@ func resourceArmFrontDoor() *schema.Resource {
 				Computed: true,
 			},
 
-			"frontdoor_id": {
+			"header_frontdoor_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -710,7 +710,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		d.Set("cname", properties.Cname)
-		d.Set("frontdoor_id", properties.FrontdoorID)
+		d.Set("header_frontdoor_id", properties.FrontdoorID)
 		d.Set("load_balancer_enabled", properties.EnabledState == frontdoor.EnabledStateEnabled)
 		d.Set("friendly_name", properties.FriendlyName)
 

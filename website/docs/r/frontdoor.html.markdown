@@ -294,7 +294,7 @@ The following attributes are exported:
 
 * `cname` - The host that each frontendEndpoint must CNAME to.
 
-* `frontdoor_id` - The ID of the Front Door which can be used to filter on the incoming header `X-Azure-FDID` attribute which is sent by the Front Door to your backend.
+* `header_frontdoor_id` - The unique ID of the Front Door which is embedded into the incoming headers `X-Azure-FDID` attribute and maybe used to filter traffic sent by the Front Door to your backend.
 
 * `id` - The ID of the FrontDoor.
 
