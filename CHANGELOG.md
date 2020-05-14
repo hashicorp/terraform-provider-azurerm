@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * `azurerm_api_management` - support for configuring the Developer Portal [GH-6724]
 * `azurerm_api_management` - support for user assigned managed identities [GH-6783]
 * `azurerm_api_management` - support `key_vault_id` that do not have a version [GH-6723]
+* `azurerm_api_management_diagnostic` - support required property `api_management_logger_id` [GH-6682]
 * `azurerm_application_gateway` - support for WAF policies [GH-6105]
 * `azurerm_app_service_environment` - support specifying explicit resource group [GH-6821]
 * `azurerm_express_route_circuit` - de-provision and re-provision circuit when changing the bandwidth reduction [GH-6601]
@@ -33,7 +34,7 @@ IMPROVEMENTS:
 * `azurerm_mssql_server`  - add support for the `azuread_administrator` property [GH-6822]
 * `azurerm_postgres_server` - support for the `threat_detection_policy` property [GH-6721]
 * `azurerm_storage_account` - enable migration of `account_kind` from `Storage` to `StorageV2` [GH-6580]
-* `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
+* `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can now be updated [GH-6846]
 
 BUG FIXES:
 
@@ -42,6 +43,7 @@ BUG FIXES:
 * Data Source: `azurerm_mysql_server` - remove `administrator_login_password` property as it is not returned from the api [GH-6865]
 * `azurerm_api_management` - fixing a crash when `policy` is nil [GH-6862]
 * `azurerm_api_management` - only sending the `hostname_configuration` properties if they are not empty [GH-6850]
+* `azurerm_api_management_diagnostic` - can now be provision again by supporting `api_management_logger_id` [GH-6682]
 * `azurerm_api_management_named_value` - fix the non empty plan when `secret` is true [GH-6834]
 * `azurerm_application_insights` - `retention_in_days` defaults to 90 [GH-6851]
 * `azurerm_data_factory_trigger_schedule` - setting the `type` required for Pipeline References [GH-6871]
