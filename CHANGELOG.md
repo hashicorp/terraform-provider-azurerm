@@ -20,7 +20,7 @@ IMPROVEMENTS:
 * `azurerm_application_gateway` - support for WAF policies [GH-6105]
 * `azurerm_app_service_environment` - support specifying explicit resource group [GH-6821]
 * `azurerm_express_route_circuit` - de-provision and re-provision circuit when changing the bandwidth reduction [GH-6601]
-* `azurerm_frontdoor` - Expose the `header_frontdoor_id` attribute [GH-6916]
+* `azurerm_frontdoor` - expose the `header_frontdoor_id` attribute [GH-6916]
 * `azurerm_log_analytics_workspace` - add support for `rentention_in_days` for Free Tier [GH-6844]
 * `azurerm_mariadb_server` - support for the `create_mode` property allowing the creation of replicas, point in time restores, and geo restors [GH-6865]
 * `azurerm_mariadb_server` - support for the `public_network_access_enabled` property [GH-6865]
@@ -30,8 +30,9 @@ IMPROVEMENTS:
 * `azurerm_mysql_server` - support for the `public_network_access_enabled` property [GH-6833]
 * `azurerm_mysql_server` - all properties in the `storage_profile` block have been moved to the top level [GH-6833]
 * `azurerm_mysql_server` - the following properties were renamed and changed to a boolean type: `ssl_enforcement` to `ssl_enforcement_enabled`, `geo_redundant_backup` to `geo_redundant_backup_enabled`, and `auto_grow` to `auto_grow_enabled` [GH-6833]
-* `azurerm_mssql_server`  - add support for `azuread_administrator` [GH-6822]
-* `azurerm_storage_account` - Enable migration of `account_kind` from `Storage` to `StorageV2` [GH-6580]
+* `azurerm_mssql_server`  - add support for the `azuread_administrator` property [GH-6822]
+* `azurerm_postgres_server` - support for the `threat_detection_policy` property [GH-6721]
+* `azurerm_storage_account` - enable migration of `account_kind` from `Storage` to `StorageV2` [GH-6580]
 * `azurerm_windows_virtual_machine` - the `os_disk.disk_encryption_set_id` can no be updated [GH-6846]
 
 BUG FIXES:
