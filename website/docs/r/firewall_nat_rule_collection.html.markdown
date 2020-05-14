@@ -76,6 +76,10 @@ resource "azurerm_firewall_nat_rule_collection" "example" {
       "8.8.4.4",
     ]
 
+    translated_port = 53
+
+    translated_address = "8.8.8.8"
+
     protocols = [
       "TCP",
       "UDP",
