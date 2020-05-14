@@ -229,6 +229,7 @@ func testAccAzureRMStorageQueue_basicAzureADAuth(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
