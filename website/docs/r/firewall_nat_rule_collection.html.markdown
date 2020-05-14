@@ -14,6 +14,10 @@ Manages a NAT Rule Collection within an Azure Firewall.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "North Europe"
