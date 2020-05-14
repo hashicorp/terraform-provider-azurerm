@@ -179,7 +179,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("failed waiting for Role Assignment %q: %+v", name, err)
+		return fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err)
 	}
 
 	d.SetId(*read.ID)
