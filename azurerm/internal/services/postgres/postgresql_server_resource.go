@@ -833,25 +833,23 @@ func flattenSecurityAlertPolicy(props *postgresql.SecurityAlertPolicyProperties,
 		return nil
 	}
 
-	// if they have no been set an empty struct is returned - so ignore it
-	/*if props.StorageAccountAccessKey == "" && props.StorageEndpoint == ""
-
-	cy.#:                            "1" => "0"
-	security_alert_policy.0.disabled_alerts.#:          "1" => ""
-	security_alert_policy.0.disabled_alerts.0:          "" => ""
-	security_alert_policy.0.email_account_admins:       "false" => ""
-	security_alert_policy.0.email_addresses.#:          "0" => ""
-	security_alert_policy.0.enabled:                    "false" => ""
-	security_alert_policy.0.retention_days:             "0" => ""
-	security_alert_policy.0.storage_account_access_key: "" => ""
-	security_alert_policy.0.storage_endpoint:           "" => ""*/
+	// check if its an empty block as in its never been set before
+	if props.DisabledAlerts != nil && len(*props.DisabledAlerts) == 1 && (*props.DisabledAlerts)[0] == "" &&
+		props.EmailAddresses != nil && len(*props.EmailAddresses) == 1 && (*props.EmailAddresses)[0] == "" &&
+		props.StorageAccountAccessKey != nil && *props.StorageAccountAccessKey == "" &&
+		props.StorageEndpoint != nil && *props.StorageEndpoint == "" &&
+		props.RetentionDays != nil && *props.RetentionDays == 0 &&
+		props.EmailAccountAdmins != nil && !*props.EmailAccountAdmins &&
+		props.State == postgresql.ServerSecurityAlertPolicyStateDisabled {
+		return nil
+	}
 
 	block := map[string]interface{}{}
 
 	block["enabled"] = props.State == postgresql.ServerSecurityAlertPolicyStateEnabled
 
 	block["disabled_alerts"] = utils.FlattenStringSlice(props.DisabledAlerts)
-	block["disabled_alerts"] = utils.FlattenStringSlice(props.EmailAddresses)
+	block["email_addresses"] = utils.FlattenStringSlice(props.EmailAddresses)
 
 	if v := props.EmailAccountAdmins; v != nil {
 		block["email_account_admins"] = *v
