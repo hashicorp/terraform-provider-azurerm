@@ -8,6 +8,7 @@ DEPENDENCIES:
 FEATURES:
 
 * **New Data Source:** `azurerm_eventhub` [GH-6841]
+* **New Resource:** `azurerm_eventgrid_domain_topic` [GH-6859]
 
 IMPROVEMENTS:
 
