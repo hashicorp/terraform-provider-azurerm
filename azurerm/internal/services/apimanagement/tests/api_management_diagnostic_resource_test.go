@@ -174,10 +174,10 @@ func testAccAzureRMApiManagementDiagnostic_basic(data acceptance.TestData) strin
 %s
 
 resource "azurerm_api_management_diagnostic" "test" {
-  identifier          = "applicationinsights"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  api_management_logger_id           = azurerm_api_management_logger.test.id
+  identifier               = "applicationinsights"
+  resource_group_name      = azurerm_resource_group.test.name
+  api_management_name      = azurerm_api_management.test.name
+  api_management_logger_id = azurerm_api_management_logger.test.id
 }
 `, config)
 }
@@ -205,10 +205,10 @@ resource "azurerm_api_management_logger" "test2" {
 }
 
 resource "azurerm_api_management_diagnostic" "test" {
-  identifier          = "applicationinsights"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  api_management_logger_id           = azurerm_api_management_logger.test2.id
+  identifier               = "applicationinsights"
+  resource_group_name      = azurerm_resource_group.test.name
+  api_management_name      = azurerm_api_management.test.name
+  api_management_logger_id = azurerm_api_management_logger.test2.id
 }
 `, config, data.RandomInteger)
 }
@@ -219,10 +219,10 @@ func testAccAzureRMApiManagementDiagnostic_requiresImport(data acceptance.TestDa
 %s
 
 resource "azurerm_api_management_diagnostic" "import" {
-  identifier          = azurerm_api_management_diagnostic.test.identifier
-  resource_group_name = azurerm_api_management_diagnostic.test.resource_group_name
-  api_management_name = azurerm_api_management_diagnostic.test.api_management_name
-  api_management_logger_id           = azurerm_api_management_diagnostic.test.api_management_logger_id
+  identifier               = azurerm_api_management_diagnostic.test.identifier
+  resource_group_name      = azurerm_api_management_diagnostic.test.resource_group_name
+  api_management_name      = azurerm_api_management_diagnostic.test.api_management_name
+  api_management_logger_id = azurerm_api_management_diagnostic.test.api_management_logger_id
 }
 `, template)
 }
