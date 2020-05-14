@@ -316,6 +316,18 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 								Optional:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
+							"name": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								Computed:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"priority": {
+								Type:         schema.TypeInt,
+								Optional:     true,
+								Computed:     true,
+								ValidateFunc: validation.IntBetween(1, 2147483647),
+							},
 						},
 					},
 				},
@@ -394,10 +406,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2012",
+						"VS2012", // TODO for 3.0 - remove VS2012, VS2013, VS2015
 						"VS2013",
 						"VS2015",
 						"VS2017",
+						"VS2019",
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
@@ -447,6 +460,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						string(web.Disabled),
 						string(web.FtpsOnly),
 					}, false),
+				},
+
+				"health_check_path": {
+					Type:     schema.TypeString,
+					Optional: true,
 				},
 
 				"linux_fx_version": {
@@ -679,6 +697,14 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 								Type:     schema.TypeString,
 								Computed: true,
 							},
+							"name": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"priority": {
+								Type:     schema.TypeInt,
+								Computed: true,
+							},
 						},
 					},
 				},
@@ -744,6 +770,11 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 				},
 
 				"ftps_state": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"health_check_path": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
@@ -1419,6 +1450,8 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 
 			ipAddress := restriction["ip_address"].(string)
 			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
+			name := restriction["name"].(string)
+			priority := restriction["priority"].(int)
 			if vNetSubnetID != "" && ipAddress != "" {
 				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can be set for `site_config.0.ip_restriction.%d`", i))
 			}
@@ -1438,6 +1471,14 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 
 			if vNetSubnetID != "" {
 				ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+			}
+
+			if name != "" {
+				ipSecurityRestriction.Name = &name
+			}
+
+			if priority != 0 {
+				ipSecurityRestriction.Priority = utils.Int32(int32(priority))
 			}
 
 			restrictions = append(restrictions, ipSecurityRestriction)
@@ -1483,6 +1524,10 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 
 	if v, ok := config["ftps_state"]; ok {
 		siteConfig.FtpsState = web.FtpsState(v.(string))
+	}
+
+	if v, ok := config["health_check_path"]; ok {
+		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
 	if v, ok := config["min_tls_version"]; ok {
@@ -1564,6 +1609,12 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
 				block["virtual_network_subnet_id"] = *vNetSubnetID
 			}
+			if name := v.Name; name != nil {
+				block["name"] = *name
+			}
+			if priority := v.Priority; priority != nil {
+				block["priority"] = *priority
+			}
 			restrictions = append(restrictions, block)
 		}
 	}
@@ -1605,6 +1656,11 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["scm_type"] = string(input.ScmType)
 	result["ftps_state"] = string(input.FtpsState)
+
+	if input.HealthCheckPath != nil {
+		result["health_check_path"] = *input.HealthCheckPath
+	}
+
 	result["min_tls_version"] = string(input.MinTLSVersion)
 
 	result["cors"] = FlattenWebCorsSettings(input.Cors)

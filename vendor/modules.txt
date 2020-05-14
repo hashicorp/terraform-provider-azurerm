@@ -28,11 +28,12 @@ github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/ac
 github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem
 github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account
 github.com/Azure/azure-sdk-for-go/services/datamigration/mgmt/2018-04-19/datamigration
+github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare
 github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces
 github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
 github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub
-github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor
+github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis
 github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral
@@ -56,9 +57,9 @@ github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-p
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization
 github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice
 github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders
-github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid
+github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid
 github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight
-github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices
+github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices
 github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance
 github.com/Azure/azure-sdk-for-go/services/preview/mixedreality/mgmt/2019-02-28/mixedreality
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights
@@ -245,6 +246,7 @@ github.com/hashicorp/logutils
 github.com/hashicorp/terraform-config-inspect/tfconfig
 # github.com/hashicorp/terraform-plugin-sdk v1.6.0
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest
+github.com/hashicorp/terraform-plugin-sdk/helper/customdiff
 github.com/hashicorp/terraform-plugin-sdk/helper/hashcode
 github.com/hashicorp/terraform-plugin-sdk/helper/logging
 github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv
@@ -324,6 +326,10 @@ github.com/posener/complete
 github.com/posener/complete/cmd
 github.com/posener/complete/cmd/install
 github.com/posener/complete/match
+# github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
+github.com/rickb777/date/period
+# github.com/rickb777/plural v1.2.0
+github.com/rickb777/plural
 # github.com/satori/go.uuid v1.2.0
 github.com/satori/go.uuid
 # github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
