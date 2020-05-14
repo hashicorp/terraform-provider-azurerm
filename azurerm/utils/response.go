@@ -44,7 +44,3 @@ func ResponseWasStatusCode(resp autorest.Response, statusCode int) bool { // nol
 
 	return false
 }
-
-func ResponseWasForbidden(resp autorest.Response) bool {
-	return ResponseWasStatusCode(resp, http.StatusForbidden)
-}
