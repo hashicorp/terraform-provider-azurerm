@@ -197,6 +197,14 @@ A `site_config` block supports the following:
 
 -> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
+* `scm_use_main_ip_restriction` - (Optional)  IP security restrictions for scm to use main. Defaults to false.  
+
+-> **NOTE** Can't be use together with `scm_ip_restriction`.
+
+* `scm_ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
+-> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
+
 * `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7`, `1.8` and `11` and their specific versions - except for Java 11 (e.g. `1.7.0_80`, `1.8.0_181`, `11`)
 
 * `java_container` - (Optional) The Java Container to use. If specified `java_version` and `java_container_version` must also be specified. Possible values are `JAVA`, `JETTY`, and `TOMCAT`.
@@ -308,6 +316,22 @@ A `google` block supports the following:
 ---
 
 A `ip_restriction` block supports the following:
+
+* `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `virtual_network_subnet_id` - (Optional) The Virtual Network Subnet ID used for this IP Restriction.
+
+-> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
+
+* `name` - (Optional) The name for this IP Restriction.
+
+* `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
+
+---
+
+---
+
+A `scm_ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
 
