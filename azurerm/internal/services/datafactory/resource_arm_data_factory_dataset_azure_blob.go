@@ -173,24 +173,17 @@ func resourceArmDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, 
 		}
 	}
 
-	azureBlobDatasetProperties := datafactory.AzureBlobDatasetTypeProperties{
-		FolderPath: d.Get("path").(string),
-		FileName:   d.Get("filename").(string),
-	}
 
-	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
-	linkedService := &datafactory.LinkedServiceReference{
-		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
-	}
-
-	description := d.Get("description").(string)
-	// TODO
 	azureBlobTableset := datafactory.AzureBlobDataset{
-		AzureBlobDatasetTypeProperties: &azureBlobDatasetProperties,
-		LinkedServiceName:              linkedService,
-		Description:                    &description,
+		AzureBlobDatasetTypeProperties: &datafactory.AzureBlobDatasetTypeProperties{
+			FolderPath: d.Get("path").(string),
+			FileName:   d.Get("filename").(string),
+		},
+		LinkedServiceName: &datafactory.LinkedServiceReference{
+			ReferenceName: utils.Strings(d.Get("linked_service_name").(string)),
+			Type:          utils.String("LinkedServiceReference"),
+		},
+		Description:                    &utils.Streing(d.Get("description").(string)),
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
