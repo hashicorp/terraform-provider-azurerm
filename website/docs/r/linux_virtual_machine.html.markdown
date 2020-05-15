@@ -262,6 +262,18 @@ A `secret` block supports the following:
 
 * `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
 
+---
+
+`source_image_reference` supports the following:
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:

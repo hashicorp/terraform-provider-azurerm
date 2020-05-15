@@ -3,15 +3,18 @@ package mariadb
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -35,10 +38,13 @@ func resourceArmMariaDBFirewallRule() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.MariaDBFirewallRuleName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[-a-z0-9]{1,128}$"),
+					"name must be 1-128 characters long and contain only letters, numbers and hyphens",
+				),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -47,19 +53,19 @@ func resourceArmMariaDBFirewallRule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MariaDBServerName,
+				ValidateFunc: validate.MariaDbServerServerName,
 			},
 
 			"start_ip_address": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.IPv4Address,
+				ValidateFunc: azValidate.IPv4Address,
 			},
 
 			"end_ip_address": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.IPv4Address,
+				ValidateFunc: azValidate.IPv4Address,
 			},
 		},
 	}
