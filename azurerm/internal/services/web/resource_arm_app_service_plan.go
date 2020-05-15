@@ -108,6 +108,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 
 			"reserved": {
 				Type:     schema.TypeBool,
+				ForceNew: true,
 				Optional: true,
 			},
 
