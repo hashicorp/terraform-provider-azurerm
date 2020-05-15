@@ -2,8 +2,7 @@ package validate
 
 import (
 	"fmt"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/parse"
 )
 
 func UserAssignedIdentityId(i interface{}, k string) (warnings []string, errors []error) {
@@ -13,7 +12,7 @@ func UserAssignedIdentityId(i interface{}, k string) (warnings []string, errors 
 		return
 	}
 
-	if _, err := azure.ParseUserAssignedIdentityID(v); err != nil {
+	if _, err := parse.UserAssignedIdentityID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
 		return
 	}

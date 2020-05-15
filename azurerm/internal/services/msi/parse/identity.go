@@ -1,6 +1,9 @@
-package azure
+package parse
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
 
 type UserAssignedIdentityId struct {
 	// "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/contoso-resource-group/providers/Microsoft.ManagedIdentity/userAssignedIdentities/contoso-identity"
@@ -9,12 +12,12 @@ type UserAssignedIdentityId struct {
 	Name          string
 }
 
-func ParseUserAssignedIdentityID(input string) (*UserAssignedIdentityId, error) {
+func UserAssignedIdentityID(input string) (*UserAssignedIdentityId, error) {
 	if len(input) == 0 {
 		return nil, fmt.Errorf("Bad: UserAssignedIdentityId cannot be an empty string")
 	}
 
-	id, err := ParseAzureResourceID(input)
+	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, err
 	}
