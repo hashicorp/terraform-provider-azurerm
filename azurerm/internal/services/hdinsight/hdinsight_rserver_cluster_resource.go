@@ -272,12 +272,12 @@ func resourceArmHDInsightRServerClusterRead(d *schema.ResourceData, meta interfa
 
 	gateway, exists := configurations.Configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("Error retrieving gateway for HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving gateway for HDInsight RServer Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	rStudioConfig, exists := configurations.Configurations["rserver"]
 	if !exists {
-		return fmt.Errorf("Error retrieving RStudio Configuration for HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving RStudio Configuration for HDInsight RServer Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)

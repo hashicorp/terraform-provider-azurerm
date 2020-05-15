@@ -253,12 +253,12 @@ func resourceArmHDInsightSparkClusterRead(d *schema.ResourceData, meta interface
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
 	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Configuration for HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	gateway, exists := configurations.Configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("Error retrieving gateway for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving gateway for HDInsight Spark Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
