@@ -167,7 +167,7 @@ func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
