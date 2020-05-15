@@ -126,6 +126,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 			"is_xenon": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"tags": tags.Schema(),
