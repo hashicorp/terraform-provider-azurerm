@@ -93,36 +93,6 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeLrs(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSharedImageVersion_notUpdateStorageAccountType(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
-
-	userName := "testuser"
-	password := "Pwd1234!"
-	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(data, userName, password, hostName, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageVersionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(data, userName, password, hostName, "Standard_LRS"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageVersionExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 
