@@ -47,11 +47,6 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 				),
 			},
 
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
 			"data_factory_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -59,17 +54,12 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 				ValidateFunc: validate.DataFactoryName(),
 			},
 
-			"auth_key_1": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"auth_key_2": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 
 			"rbac_authorization": {
 				Type:     schema.TypeSet,
@@ -84,7 +74,16 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmDataFactoryIntegrationRuntimeSelfHostedRbacAuthorizationHash,
+			},
+
+			"auth_key_1": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"auth_key_2": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -117,7 +116,11 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHostedCreateUpdate(d *schema.Re
 	selfHostedIntegrationRuntime := datafactory.SelfHostedIntegrationRuntime{
 		Description: &description,
 		Type:        datafactory.TypeSelfHosted,
-		SelfHostedIntegrationRuntimeTypeProperties: expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d),
+	}
+
+	properties := expandAzureRmDataFactoryIntegrationRuntimeSelfHostedTypeProperties(d)
+	if properties != nil {
+		selfHostedIntegrationRuntime.SelfHostedIntegrationRuntimeTypeProperties = properties
 	}
 
 	basicIntegrationRuntime, _ := selfHostedIntegrationRuntime.AsBasicIntegrationRuntime()

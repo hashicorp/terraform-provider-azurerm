@@ -58,7 +58,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -69,11 +69,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_self_hosted" "test" {
-  name                = "self-integration-runtime"
+  name                = "acctestSIR%d"
   data_factory_name   = azurerm_data_factory.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMDataFactoryIntegrationRuntimeSelfHosted_rbac(data acceptance.TestData) string {
@@ -167,7 +167,7 @@ resource "azurerm_virtual_machine_extension" "test" {
 }
 
 resource "azurerm_resource_group" "host" {
-  name     = "acctesthostRG-%d"
+  name     = "acctesthostRG-df-%d"
   location = "%s"
 }
 
