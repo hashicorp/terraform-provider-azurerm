@@ -211,7 +211,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
 
   parameters = {
     foo = "test1"
-    bar = "test2"
+    Bar = "Test2"
   }
 
   additional_properties = {
