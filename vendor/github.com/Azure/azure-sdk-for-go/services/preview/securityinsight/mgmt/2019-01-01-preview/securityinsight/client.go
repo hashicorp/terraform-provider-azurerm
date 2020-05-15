@@ -1,4 +1,4 @@
-// Package securityinsight implements the Azure ARM Securityinsight service API version 2020-01-01.
+// Package securityinsight implements the Azure ARM Securityinsight service API version 2019-01-01-preview.
 //
 // API spec for Microsoft.SecurityInsights (Azure Security Insights) resource provider
 package securityinsight

@@ -213,6 +213,8 @@ type AppResource struct {
 	autorest.Response `json:"-"`
 	// Properties - Properties of the App resource
 	Properties *AppResourceProperties `json:"properties,omitempty"`
+	// Location - The GEO location of the application, always the same with its parent resource
+	Location *string `json:"location,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource.
@@ -378,6 +380,10 @@ type AppResourceProperties struct {
 	ProvisioningState AppResourceProvisioningState `json:"provisioningState,omitempty"`
 	// ActiveDeploymentName - Name of the active deployment of the App
 	ActiveDeploymentName *string `json:"activeDeploymentName,omitempty"`
+	// Fqdn - Fully qualified dns Name.
+	Fqdn *string `json:"fqdn,omitempty"`
+	// HTTPSOnly - Indicate if only https is allowed.
+	HTTPSOnly *bool `json:"httpsOnly,omitempty"`
 	// CreatedTime - READ-ONLY; Date time when the resource is created
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
 	// TemporaryDisk - Temporary disk settings
@@ -792,6 +798,191 @@ func (brp BindingResourceProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// CertificateProperties certificate resource payload.
+type CertificateProperties struct {
+	// Thumbprint - READ-ONLY; The thumbprint of certificate.
+	Thumbprint *string `json:"thumbprint,omitempty"`
+	// VaultURI - The vault uri of user key vault.
+	VaultURI *string `json:"vaultUri,omitempty"`
+	// KeyVaultCertName - The certificate name of key vault.
+	KeyVaultCertName *string `json:"keyVaultCertName,omitempty"`
+	// CertVersion - The certificate version of key vault.
+	CertVersion *string `json:"certVersion,omitempty"`
+	// Issuer - READ-ONLY; The issuer of certificate.
+	Issuer *string `json:"issuer,omitempty"`
+	// IssuedDate - READ-ONLY; The issue date of certificate.
+	IssuedDate *string `json:"issuedDate,omitempty"`
+	// ExpirationDate - READ-ONLY; The expiration date of certificate.
+	ExpirationDate *string `json:"expirationDate,omitempty"`
+	// ActivateDate - READ-ONLY; The activate date of certificate.
+	ActivateDate *string `json:"activateDate,omitempty"`
+	// SubjectName - READ-ONLY; The subject name of certificate.
+	SubjectName *string `json:"subjectName,omitempty"`
+	// DNSNames - READ-ONLY; The domain list of certificate.
+	DNSNames *[]string `json:"dnsNames,omitempty"`
+}
+
+// CertificateResource certificate resource payload.
+type CertificateResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of the certificate resource payload.
+	Properties *CertificateProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// CertificateResourceCollection collection compose of certificate resources list and a possible link for
+// next page.
+type CertificateResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - The certificate resources list.
+	Value *[]CertificateResource `json:"value,omitempty"`
+	// NextLink - The link to next page of certificate list.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// CertificateResourceCollectionIterator provides access to a complete listing of CertificateResource
+// values.
+type CertificateResourceCollectionIterator struct {
+	i    int
+	page CertificateResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *CertificateResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CertificateResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *CertificateResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter CertificateResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter CertificateResourceCollectionIterator) Response() CertificateResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter CertificateResourceCollectionIterator) Value() CertificateResource {
+	if !iter.page.NotDone() {
+		return CertificateResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the CertificateResourceCollectionIterator type.
+func NewCertificateResourceCollectionIterator(page CertificateResourceCollectionPage) CertificateResourceCollectionIterator {
+	return CertificateResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (crc CertificateResourceCollection) IsEmpty() bool {
+	return crc.Value == nil || len(*crc.Value) == 0
+}
+
+// certificateResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (crc CertificateResourceCollection) certificateResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if crc.NextLink == nil || len(to.String(crc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(crc.NextLink)))
+}
+
+// CertificateResourceCollectionPage contains a page of CertificateResource values.
+type CertificateResourceCollectionPage struct {
+	fn  func(context.Context, CertificateResourceCollection) (CertificateResourceCollection, error)
+	crc CertificateResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *CertificateResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CertificateResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.crc)
+	if err != nil {
+		return err
+	}
+	page.crc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *CertificateResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page CertificateResourceCollectionPage) NotDone() bool {
+	return !page.crc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page CertificateResourceCollectionPage) Response() CertificateResourceCollection {
+	return page.crc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page CertificateResourceCollectionPage) Values() []CertificateResource {
+	if page.crc.IsEmpty() {
+		return nil
+	}
+	return *page.crc.Value
+}
+
+// Creates a new instance of the CertificateResourceCollectionPage type.
+func NewCertificateResourceCollectionPage(getNextPage func(context.Context, CertificateResourceCollection) (CertificateResourceCollection, error)) CertificateResourceCollectionPage {
+	return CertificateResourceCollectionPage{fn: getNextPage}
+}
+
 // CloudError an error response from the service.
 type CloudError struct {
 	Error *CloudErrorBody `json:"error,omitempty"`
@@ -861,6 +1052,192 @@ type ConfigServerProperties struct {
 type ConfigServerSettings struct {
 	// GitProperty - Property of git environment.
 	GitProperty *ConfigServerGitProperty `json:"gitProperty,omitempty"`
+}
+
+// CustomDomainProperties custom domain of app resource payload.
+type CustomDomainProperties struct {
+	// Thumbprint - The thumbprint of bound certificate.
+	Thumbprint *string `json:"thumbprint,omitempty"`
+	// AppName - The app name of domain.
+	AppName *string `json:"appName,omitempty"`
+	// CertName - The bound certificate name of domain.
+	CertName *string `json:"certName,omitempty"`
+}
+
+// CustomDomainResource custom domain resource payload.
+type CustomDomainResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of the custom domain resource.
+	Properties *CustomDomainProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// CustomDomainResourceCollection collection compose of a custom domain resources list and a possible link
+// for next page.
+type CustomDomainResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - The custom domain resources list.
+	Value *[]CustomDomainResource `json:"value,omitempty"`
+	// NextLink - The link to next page of custom domain list.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// CustomDomainResourceCollectionIterator provides access to a complete listing of CustomDomainResource
+// values.
+type CustomDomainResourceCollectionIterator struct {
+	i    int
+	page CustomDomainResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *CustomDomainResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *CustomDomainResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter CustomDomainResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter CustomDomainResourceCollectionIterator) Response() CustomDomainResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter CustomDomainResourceCollectionIterator) Value() CustomDomainResource {
+	if !iter.page.NotDone() {
+		return CustomDomainResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the CustomDomainResourceCollectionIterator type.
+func NewCustomDomainResourceCollectionIterator(page CustomDomainResourceCollectionPage) CustomDomainResourceCollectionIterator {
+	return CustomDomainResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (cdrc CustomDomainResourceCollection) IsEmpty() bool {
+	return cdrc.Value == nil || len(*cdrc.Value) == 0
+}
+
+// customDomainResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (cdrc CustomDomainResourceCollection) customDomainResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if cdrc.NextLink == nil || len(to.String(cdrc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(cdrc.NextLink)))
+}
+
+// CustomDomainResourceCollectionPage contains a page of CustomDomainResource values.
+type CustomDomainResourceCollectionPage struct {
+	fn   func(context.Context, CustomDomainResourceCollection) (CustomDomainResourceCollection, error)
+	cdrc CustomDomainResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *CustomDomainResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.cdrc)
+	if err != nil {
+		return err
+	}
+	page.cdrc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *CustomDomainResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page CustomDomainResourceCollectionPage) NotDone() bool {
+	return !page.cdrc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page CustomDomainResourceCollectionPage) Response() CustomDomainResourceCollection {
+	return page.cdrc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page CustomDomainResourceCollectionPage) Values() []CustomDomainResource {
+	if page.cdrc.IsEmpty() {
+		return nil
+	}
+	return *page.cdrc.Value
+}
+
+// Creates a new instance of the CustomDomainResourceCollectionPage type.
+func NewCustomDomainResourceCollectionPage(getNextPage func(context.Context, CustomDomainResourceCollection) (CustomDomainResourceCollection, error)) CustomDomainResourceCollectionPage {
+	return CustomDomainResourceCollectionPage{fn: getNextPage}
+}
+
+// CustomDomainValidatePayload custom domain validate payload.
+type CustomDomainValidatePayload struct {
+	// Name - Name to be validated
+	Name *string `json:"name,omitempty"`
+}
+
+// CustomDomainValidateResult validation result for custom domain.
+type CustomDomainValidateResult struct {
+	autorest.Response `json:"-"`
+	// IsValid - Indicates if domain name is valid.
+	IsValid *bool `json:"isValid,omitempty"`
+	// Message - Message of why domain name is invalid.
+	Message *string `json:"message,omitempty"`
 }
 
 // DeploymentInstance deployment instance payload
@@ -1042,10 +1419,10 @@ type DeploymentResourceProperties struct {
 	Source *UserSourceInfo `json:"source,omitempty"`
 	// AppName - READ-ONLY; App name of the deployment
 	AppName *string `json:"appName,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning state of the Deployment. Possible values include: 'DeploymentResourceProvisioningStateCreating', 'DeploymentResourceProvisioningStateUpdating', 'DeploymentResourceProvisioningStateSucceeded', 'DeploymentResourceProvisioningStateFailed'
-	ProvisioningState DeploymentResourceProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentSettings - Deployment settings of the Deployment
 	DeploymentSettings *DeploymentSettings `json:"deploymentSettings,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the Deployment. Possible values include: 'DeploymentResourceProvisioningStateCreating', 'DeploymentResourceProvisioningStateUpdating', 'DeploymentResourceProvisioningStateSucceeded', 'DeploymentResourceProvisioningStateFailed'
+	ProvisioningState DeploymentResourceProvisioningState `json:"provisioningState,omitempty"`
 	// Status - READ-ONLY; Status of the Deployment. Possible values include: 'DeploymentResourceStatusUnknown', 'DeploymentResourceStatusStopped', 'DeploymentResourceStatusRunning', 'DeploymentResourceStatusFailed', 'DeploymentResourceStatusAllocating', 'DeploymentResourceStatusUpgrading', 'DeploymentResourceStatusCompiling'
 	Status DeploymentResourceStatus `json:"status,omitempty"`
 	// Active - READ-ONLY; Indicates whether the Deployment is active
@@ -1329,8 +1706,8 @@ type NameAvailabilityParameters struct {
 type OperationDetail struct {
 	// Name - Name of the operation
 	Name *string `json:"name,omitempty"`
-	// DataAction - Indicates whether the operation is a data action
-	DataAction *bool `json:"dataAction,omitempty"`
+	// IsDataAction - Indicates whether the operation is a data action
+	IsDataAction *bool `json:"isDataAction,omitempty"`
 	// Display - Display of the operation
 	Display *OperationDisplay `json:"display,omitempty"`
 	// Origin - Origin of the operation

@@ -1497,7 +1497,7 @@ type VolumeProperties struct {
 	// SubnetID - The Azure Resource URI for a delegated subnet. Must have the delegation Microsoft.NetApp/volumes
 	SubnetID *string `json:"subnetId,omitempty"`
 	// MountTargets - List of mount targets
-	MountTargets *[]MountTargetList `json:"mountTargets,omitempty"`
+	MountTargets *[]MountTargetProperties `json:"mountTargets,omitempty"`
 	// VolumeType - What type of volume is this
 	VolumeType *string `json:"volumeType,omitempty"`
 	// DataProtection - DataProtection type volumes include an object containing details of the replication
