@@ -317,7 +317,6 @@ func expandAzureRmEventgridTopicInputMapping(d *schema.ResourceData) *eventgrid.
 		mappings := imf.([]interface{})
 		if len(mappings) > 0 && mappings[0] != nil {
 			if mapping := mappings[0].(map[string]interface{}); mapping != nil {
-
 				if id := mapping["id"].(string); id != "" {
 					jismp.ID = &eventgrid.JSONField{SourceField: &id}
 				}
@@ -349,7 +348,6 @@ func expandAzureRmEventgridTopicInputMapping(d *schema.ResourceData) *eventgrid.
 		mappings := imdv.([]interface{})
 		if len(mappings) > 0 && mappings[0] != nil {
 			if mapping := mappings[0].(map[string]interface{}); mapping != nil {
-
 				if dataVersion := mapping["data_version"].(string); dataVersion != "" {
 					jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
 				}
