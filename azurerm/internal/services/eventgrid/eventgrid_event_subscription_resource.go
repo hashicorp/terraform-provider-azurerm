@@ -21,7 +21,7 @@ import (
 )
 
 func getEnpointTypes() []string {
-	return []string{"webhook_endpoint", "storage_queue_endpoint", "eventhub_endpoint", "hybrid_connection_endpoint", "service_bus_queue_endpoint", "service_bus_topic_endpoint", "azure_function_endpoint"}
+	return []string{"azure_function_endpoint", "eventhub_endpoint", "hybrid_connection_endpoint", "service_bus_queue_endpoint", "service_bus_topic_endpoint", "storage_queue_endpoint", "webhook_endpoint_url"}
 }
 
 func resourceArmEventGridEventSubscription() *schema.Resource {
@@ -83,6 +83,41 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Computed: true,
 			},
 
+			"azure_function_endpoint": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "azure_function_endpoint"),
+				ValidateFunc:  azure.ValidateResourceID,
+			},
+
+			"eventhub_endpoint": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "eventhub_endpoint"),
+				ValidateFunc:  azure.ValidateResourceID,
+			},
+
+			"hybrid_connection_endpoint": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "hybrid_connection_endpoint"),
+				ValidateFunc:  azure.ValidateResourceID,
+			},
+
+			"service_bus_queue_endpoint": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "service_bus_queue_endpoint"),
+				ValidateFunc:  azure.ValidateResourceID,
+			},
+
+			"service_bus_topic_endpoint": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "service_bus_topic_endpoint"),
+				ValidateFunc:  azure.ValidateResourceID,
+			},
+
 			"storage_queue_endpoint": {
 				Type:          schema.TypeList,
 				MaxItems:      1,
@@ -104,100 +139,11 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				},
 			},
 
-			"eventhub_endpoint": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
+			"webhook_endpoint_url": {
+				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "eventhub_endpoint"),
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"eventhub_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-
-			"hybrid_connection_endpoint": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "hybrid_connection_endpoint"),
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"hybrid_connection_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-
-			"webhook_endpoint": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "webhook_endpoint"),
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"url": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.IsURLWithHTTPS,
-						},
-					},
-				},
-			},
-
-			"service_bus_queue_endpoint": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "service_bus_queue_endpoint"),
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"service_bus_queue_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-
-			"service_bus_topic_endpoint": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "service_bus_topic_endpoint"),
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"service_bus_queue_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-
-			"azure_function_endpoint": {
-				Type:          schema.TypeList,
-				MaxItems:      1,
-				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "azure_function_endpoint"),
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"azure_function_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
+				ConflictsWith: utils.RemoveFromStringArray(getEnpointTypes(), "webhook_endpoint_url"),
+				ValidateFunc:  validation.IsURLWithHTTPS,
 			},
 
 			"included_event_types": {
@@ -424,8 +370,8 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			if err != nil {
 				return fmt.Errorf("Error making Read request on EventGrid Event Subscription full URL '%s': %+v", id.Name, err)
 			}
-			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(&fullURL)); err != nil {
-				return fmt.Errorf("Error setting `webhook_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+			if err := d.Set("webhook_endpoint_url", flattenEventGridEventSubscriptionWebhookEndpoint(&fullURL)); err != nil {
+				return fmt.Errorf("Error setting `webhook_endpoint_url` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
 		}
 
@@ -487,8 +433,8 @@ func resourceArmEventGridEventSubscriptionDelete(d *schema.ResourceData, meta in
 }
 
 func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	if _, ok := d.GetOk("storage_queue_endpoint"); ok {
-		return expandEventGridEventSubscriptionStorageQueueEndpoint(d)
+	if _, ok := d.GetOk("azure_function_endpoint"); ok {
+		return expandEventGridEventSubscriptionAzureFunctionEndpoint(d)
 	}
 
 	if _, ok := d.GetOk("eventhub_endpoint"); ok {
@@ -499,10 +445,6 @@ func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgr
 		return expandEventGridEventSubscriptionHybridConnectionEndpoint(d)
 	}
 
-	if _, ok := d.GetOk("webhook_endpoint"); ok {
-		return expandEventGridEventSubscriptionWebhookEndpoint(d)
-	}
-
 	if _, ok := d.GetOk("service_bus_queue_endpoint"); ok {
 		return expandEventGridEventSubscriptionServiceBusQueueEndpoint(d)
 	}
@@ -511,8 +453,12 @@ func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgr
 		return expandEventGridEventSubscriptionServiceBusTopicEndpoint(d)
 	}
 
-	if _, ok := d.GetOk("azure_function"); ok {
-		return expandEventGridEventSubscriptionAzureFunctionEndpoint(d)
+	if _, ok := d.GetOk("storage_queue_endpoint"); ok {
+		return expandEventGridEventSubscriptionStorageQueueEndpoint(d)
+	}
+
+	if _, ok := d.GetOk("webhook_endpoint_url"); ok {
+		return expandEventGridEventSubscriptionWebhookEndpoint(d)
 	}
 
 	return nil
@@ -534,8 +480,7 @@ func expandEventGridEventSubscriptionStorageQueueEndpoint(d *schema.ResourceData
 }
 
 func expandEventGridEventSubscriptionEventHubEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("eventhub_endpoint").([]interface{})[0].(map[string]interface{})
-	eventHubID := props["eventhub_id"].(string)
+	eventHubID := d.Get("eventhub_endpoint").(string)
 
 	eventHubEndpoint := eventgrid.EventHubEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeEventHub,
@@ -547,8 +492,7 @@ func expandEventGridEventSubscriptionEventHubEndpoint(d *schema.ResourceData) ev
 }
 
 func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("hybrid_connection_endpoint").([]interface{})[0].(map[string]interface{})
-	hybridConnectionID := props["hybrid_connection_id"].(string)
+	hybridConnectionID := d.Get("hybrid_connection_endpoint").(string)
 
 	hybridConnectionEndpoint := eventgrid.HybridConnectionEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeHybridConnection,
@@ -560,8 +504,7 @@ func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *schema.Resource
 }
 
 func expandEventGridEventSubscriptionWebhookEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("webhook_endpoint").([]interface{})[0].(map[string]interface{})
-	url := props["url"].(string)
+	url := d.Get("webhook_endpoint_url").(string)
 
 	webhookEndpoint := eventgrid.WebHookEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeWebHook,
@@ -573,8 +516,7 @@ func expandEventGridEventSubscriptionWebhookEndpoint(d *schema.ResourceData) eve
 }
 
 func expandEventGridEventSubscriptionServiceBusQueueEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("service_bus_queue_endpoint").([]interface{})[0].(map[string]interface{})
-	serviceBusQueueID := props["service_bus_queue_id"].(string)
+	serviceBusQueueID := d.Get("service_bus_queue_endpoint").(string)
 
 	serviceBusQueueEndpoint := eventgrid.ServiceBusQueueEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeServiceBusQueue,
@@ -586,8 +528,7 @@ func expandEventGridEventSubscriptionServiceBusQueueEndpoint(d *schema.ResourceD
 }
 
 func expandEventGridEventSubscriptionServiceBusTopicEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("service_bus_topic_endpoint").([]interface{})[0].(map[string]interface{})
-	serviceBusTopicID := props["service_bus_topic_id"].(string)
+	serviceBusTopicID := d.Get("service_bus_topic_endpoint").(string)
 
 	serviceBusTopicEndpoint := eventgrid.ServiceBusTopicEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeServiceBusTopic,
@@ -599,8 +540,7 @@ func expandEventGridEventSubscriptionServiceBusTopicEndpoint(d *schema.ResourceD
 }
 
 func expandEventGridEventSubscriptionAzureFunctionEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("azure_function_endpoint").([]interface{})[0].(map[string]interface{})
-	azureFunctionResourceID := props["azure_function_id"].(string)
+	azureFunctionResourceID := d.Get("azure_function_endpoint").(string)
 
 	azureFunctionEndpoint := eventgrid.AzureFunctionEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeAzureFunction,
@@ -661,6 +601,46 @@ func expandEventGridEventSubscriptionRetryPolicy(d *schema.ResourceData) *eventg
 	return nil
 }
 
+func flattenEventGridEventSubscriptionEventHubEndpoint(input *eventgrid.EventHubEventSubscriptionDestination) *string {
+	if input == nil || input.ResourceID == nil {
+		return nil
+	}
+
+	return input.ResourceID
+}
+
+func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.HybridConnectionEventSubscriptionDestination) *string {
+	if input == nil || input.ResourceID == nil {
+		return nil
+	}
+
+	return input.ResourceID
+}
+
+func flattenEventGridEventSubscriptionServiceBusQueueEndpoint(input *eventgrid.ServiceBusQueueEventSubscriptionDestination) *string {
+	if input == nil || input.ResourceID == nil {
+		return nil
+	}
+
+	return input.ResourceID
+}
+
+func flattenEventGridEventSubscriptionServiceBusTopicEndpoint(input *eventgrid.ServiceBusTopicEventSubscriptionDestination) *string {
+	if input == nil || input.ResourceID == nil {
+		return nil
+	}
+
+	return input.ResourceID
+}
+
+func flattenEventGridEventSubscriptionAzureFunctionEndpoint(input *eventgrid.AzureFunctionEventSubscriptionDestination) *string {
+	if input == nil || input.ResourceID == nil {
+		return nil
+	}
+
+	return input.ResourceID
+}
+
 func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.StorageQueueEventSubscriptionDestination) []interface{} {
 	if input == nil {
 		return nil
@@ -677,43 +657,12 @@ func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.Stor
 	return []interface{}{result}
 }
 
-func flattenEventGridEventSubscriptionEventHubEndpoint(input *eventgrid.EventHubEventSubscriptionDestination) []interface{} {
-	if input == nil {
+func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubscriptionFullURL) *string {
+	if input == nil || input.EndpointURL == nil {
 		return nil
 	}
-	result := make(map[string]interface{})
 
-	if input.ResourceID != nil {
-		result["eventhub_id"] = *input.ResourceID
-	}
-
-	return []interface{}{result}
-}
-
-func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.HybridConnectionEventSubscriptionDestination) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.ResourceID != nil {
-		result["eventhub_id"] = *input.ResourceID
-	}
-
-	return []interface{}{result}
-}
-
-func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubscriptionFullURL) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.EndpointURL != nil {
-		result["url"] = *input.EndpointURL
-	}
-
-	return []interface{}{result}
+	return input.EndpointURL
 }
 
 func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubscriptionFilter) []interface{} {
@@ -749,45 +698,6 @@ func flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(dest *eve
 
 	if dest.BlobContainerName != nil {
 		result["storage_blob_container_name"] = *dest.BlobContainerName
-	}
-
-	return []interface{}{result}
-}
-
-func flattenEventGridEventSubscriptionServiceBusQueueEndpoint(input *eventgrid.ServiceBusQueueEventSubscriptionDestination) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.ResourceID != nil {
-		result["service_bus_queue_id"] = *input.ResourceID
-	}
-
-	return []interface{}{result}
-}
-
-func flattenEventGridEventSubscriptionServiceBusTopicEndpoint(input *eventgrid.ServiceBusTopicEventSubscriptionDestination) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.ResourceID != nil {
-		result["service_bus_topic_id"] = *input.ResourceID
-	}
-
-	return []interface{}{result}
-}
-
-func flattenEventGridEventSubscriptionAzureFunctionEndpoint(input *eventgrid.AzureFunctionEventSubscriptionDestination) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.ResourceID != nil {
-		result["azure_function_id"] = *input.ResourceID
 	}
 
 	return []interface{}{result}
