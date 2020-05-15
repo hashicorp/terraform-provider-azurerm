@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(t *testing.T) {
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -21,97 +21,7 @@ func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(t *testing.T) {
 		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_multipleLinux(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_multipleLinux(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicWindows(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicWindows(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_multipleWindows(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_multipleWindows(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinuxUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinuxUpdate(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -130,12 +40,45 @@ func TestAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport(t *testing.
 		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data),
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport),
+		},
+	})
+}
+
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinuxUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -196,25 +139,13 @@ func testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(resourceName strin
 	}
 }
 
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data acceptance.TestData) string {
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data acceptance.TestData) string {
 	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctestnic-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
+%s
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestVMO-%[2]d"
+  name                = "acctestVMO-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -227,38 +158,34 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     ENV = "Test"
   }
 }
+`, template, data.RandomInteger)
+}
 
-resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssw0rd1234!"
-  disable_password_authentication = false
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_update(data acceptance.TestData) string {
+	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestVMO-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 5
+  single_placement_group      = true
+
+  zones = ["1"]
+
+  tags = {
+    ENV = "Test",
+    FOO = "Bar"
   }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
 }
 `, template, data.RandomInteger)
 }
 
 func testAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinux(data)
+	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -273,264 +200,6 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
 `, template)
 }
 
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_multipleLinux(data acceptance.TestData) string {
-	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestVMO-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  platform_fault_domain_count = 5
-  single_placement_group      = true
-
-  zones = ["1"]
-
-  tags = {
-    ENV = "Test"
-  }
-}
-
-resource "azurerm_network_interface" "first" {
-  name                = "acctestnic1-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_linux_virtual_machine" "first" {
-  name                            = "acctestVM1-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssw0rd1234!"
-  disable_password_authentication = false
-  network_interface_ids = [
-    azurerm_network_interface.first.id,
-  ]
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-}
-
-resource "azurerm_network_interface" "second" {
-  name                = "acctestnic2-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_linux_virtual_machine" "second" {
-  name                            = "acctestVM2-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssw0rd1234!"
-  disable_password_authentication = false
-  network_interface_ids = [
-    azurerm_network_interface.second.id,
-  ]
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_basicWindows(data acceptance.TestData) string {
-	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctestnic-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestVMO-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  platform_fault_domain_count = 5
-  single_placement_group      = true
-
-  zones = ["1"]
-
-  tags = {
-    ENV = "Test"
-  }
-}
-
-resource "azurerm_windows_virtual_machine" "test" {
-  name                = "accVM-%[3]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@ssw0rd1234!"
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-}
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
-}
-
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_multipleWindows(data acceptance.TestData) string {
-	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestVMO-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  platform_fault_domain_count = 5
-  single_placement_group      = true
-
-  zones = ["1"]
-
-  tags = {
-    ENV = "Test"
-  }
-}
-
-resource "azurerm_network_interface" "first" {
-  name                = "acctestnic1-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_windows_virtual_machine" "first" {
-  name                = "accVM1-%[3]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@ssw0rd1234!"
-  network_interface_ids = [
-    azurerm_network_interface.first.id,
-  ]
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-}
-
-resource "azurerm_network_interface" "second" {
-  name                = "acctestnic2-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_windows_virtual_machine" "second" {
-  name                = "accVM2-%[3]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password      = "P@ssw0rd1234!"
-  network_interface_ids = [
-    azurerm_network_interface.second.id,
-  ]
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-}
-`, template, data.RandomInteger, data.RandomIntOfLength(8))
-}
-
 func testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data acceptance.TestData) string {
 	// in VMSS VMO mode, the `platform_fault_domain_count` has different acceptable values for different locations,
 	// therefore this location is fixed to EastUS2 to make sure the acceptance test has no issues about this value
@@ -541,84 +210,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-VMSS-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-network-%[1]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  name     = "acctestRG-VMSS-%d"
+  location = "%s"
 }
 `, data.RandomInteger, location)
-}
-
-func testAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinuxUpdate(data acceptance.TestData) string {
-	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_network_interface" "test" {
-  name                = "acctestnic-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.test.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestVMO-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  platform_fault_domain_count = 5
-  single_placement_group      = true
-
-  zones = ["1"]
-
-  tags = {
-    ENV = "Test",
-    FOO = "Bar"
-  }
-}
-
-resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctestVM-%[2]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  size                            = "Standard_F2"
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssw0rd1234!"
-  disable_password_authentication = false
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
-}
-`, template, data.RandomInteger)
 }

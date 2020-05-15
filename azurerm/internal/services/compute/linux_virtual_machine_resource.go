@@ -222,7 +222,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				ForceNew: true,
 				ConflictsWith: []string{
 					"availability_set_id",
-					"zone",
 				},
 				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
 			},
@@ -238,7 +237,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Computed: true,
 				ConflictsWith: []string{
 					"availability_set_id",
-					"virtual_machine_scale_set_id",
 				},
 			},
 
@@ -436,6 +434,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
+		// you must also specify a zone in order to assign this vm to a orchestrated vmss
+		if _, ok := d.GetOk("zone"); !ok {
+			return fmt.Errorf("`zone` must be specified when `virtual_machine_scale_set_id` is set")
+		}
 		params.VirtualMachineScaleSet = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}

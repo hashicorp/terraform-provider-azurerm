@@ -38,7 +38,7 @@ func assertOrchestratedVirtualMachineScaleSet(resp compute.VirtualMachineScaleSe
 	}
 
 	if resp.VirtualMachineScaleSetProperties.VirtualMachineProfile != nil {
-		return fmt.Errorf("the virtual machine scale set is not in orchestration mode VM")
+		return fmt.Errorf("the virtual machine scale set is an orchestration virtual machine scale set")
 	}
 
 	return nil

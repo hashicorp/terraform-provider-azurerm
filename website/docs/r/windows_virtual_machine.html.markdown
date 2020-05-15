@@ -27,10 +27,6 @@ Manages a Windows Virtual Machine.
 This example provisions a basic Windows Virtual Machine on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine` resource can be found [in the ./examples/virtual-machine/windows` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machine/windows).
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -161,9 +157,9 @@ The following arguments are supported:
 
 * `timezone` - (Optional) Specifies the Time Zone which should be used by the Virtual Machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 
-* `virtual_machine_scale_set_id` - (Optional) Specifies the Virtual Machine Scale Set that this Virtual Machine needs to be added.
+* `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within. Changing this forces a new resource to be created.
 
-~> **NOTE:** The referenced Virtual Machine Scale Set must be in the orchestration mode of `VM`. This could be only used accompany by `azurerm_orchestrated_virtual_machine_scale_set`.
+~> **NOTE:** Orchestrated Virtual Machine Scale Sets can be provisioned using [the `azurerm_orchestrated_virtual_machine_scale_set` resource](orchestrated_virtual_machine_scale_set.html.markdown).
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below.
 

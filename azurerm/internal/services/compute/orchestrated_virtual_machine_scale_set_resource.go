@@ -43,7 +43,7 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateVmName,
+				ValidateFunc: ValidateOrchestratedVMSSName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -176,15 +176,6 @@ func resourceArmOrchestratedVirtualMachineScaleSetDelete(d *schema.ResourceData,
 	id, err := parse.VirtualMachineScaleSetID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
-		return fmt.Errorf("retrieving Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)

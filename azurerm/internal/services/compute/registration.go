@@ -21,21 +21,20 @@ func (r Registration) WebsiteCategories() []string {
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_availability_set":                       dataSourceArmAvailabilitySet(),
-		"azurerm_dedicated_host":                         dataSourceArmDedicatedHost(),
-		"azurerm_dedicated_host_group":                   dataSourceArmDedicatedHostGroup(),
-		"azurerm_disk_encryption_set":                    dataSourceArmDiskEncryptionSet(),
-		"azurerm_managed_disk":                           dataSourceArmManagedDisk(),
-		"azurerm_image":                                  dataSourceArmImage(),
-		"azurerm_platform_image":                         dataSourceArmPlatformImage(),
-		"azurerm_proximity_placement_group":              dataSourceArmProximityPlacementGroup(),
-		"azurerm_shared_image_gallery":                   dataSourceArmSharedImageGallery(),
-		"azurerm_shared_image_version":                   dataSourceArmSharedImageVersion(),
-		"azurerm_shared_image_versions":                  dataSourceArmSharedImageVersions(),
-		"azurerm_shared_image":                           dataSourceArmSharedImage(),
-		"azurerm_snapshot":                               dataSourceArmSnapshot(),
-		"azurerm_virtual_machine":                        dataSourceArmVirtualMachine(),
-		"azurerm_orchestrated_virtual_machine_scale_set": dataSourceArmVirtualMachineScaleSetOrchestratorVM(),
+		"azurerm_availability_set":          dataSourceArmAvailabilitySet(),
+		"azurerm_dedicated_host":            dataSourceArmDedicatedHost(),
+		"azurerm_dedicated_host_group":      dataSourceArmDedicatedHostGroup(),
+		"azurerm_disk_encryption_set":       dataSourceArmDiskEncryptionSet(),
+		"azurerm_managed_disk":              dataSourceArmManagedDisk(),
+		"azurerm_image":                     dataSourceArmImage(),
+		"azurerm_platform_image":            dataSourceArmPlatformImage(),
+		"azurerm_proximity_placement_group": dataSourceArmProximityPlacementGroup(),
+		"azurerm_shared_image_gallery":      dataSourceArmSharedImageGallery(),
+		"azurerm_shared_image_version":      dataSourceArmSharedImageVersion(),
+		"azurerm_shared_image_versions":     dataSourceArmSharedImageVersions(),
+		"azurerm_shared_image":              dataSourceArmSharedImage(),
+		"azurerm_snapshot":                  dataSourceArmSnapshot(),
+		"azurerm_virtual_machine":           dataSourceArmVirtualMachine(),
 	}
 }
 

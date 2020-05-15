@@ -27,10 +27,6 @@ Manages a Linux Virtual Machine.
 This example provisions a basic Linux Virtual Machine on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine` resource can be found [in the ./examples/virtual-machine/linux` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machines/linux).
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -170,9 +166,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine.
 
-* `virtual_machine_scale_set_id` - (Optional) Specifies the Virtual Machine Scale Set that this Virtual Machine needs to be added.
+* `virtual_machine_scale_set_id` - (Optional) Specifies the Orchestrated Virtual Machine Scale Set that this Virtual Machine should be created within. Changing this forces a new resource to be created.
 
-~> **NOTE:** The referenced Virtual Machine Scale Set must be in the orchestration mode of `VM`. This could be only used accompany by `azurerm_orchestrated_virtual_machine_scale_set`.
+~> **NOTE:** Orchestrated Virtual Machine Scale Sets can be provisioned using [the `azurerm_orchestrated_virtual_machine_scale_set` resource](orchestrated_virtual_machine_scale_set.html.markdown).
 
 * `zone` - (Optional) The Zone in which this Virtual Machine should be created. Changing this forces a new resource to be created.
 
