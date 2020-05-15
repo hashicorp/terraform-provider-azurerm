@@ -192,7 +192,7 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 		d.Set("user_id", props.OwnerID)
 	}
 
-	// Primary and secondary keys must be get from this additional api
+	// Primary and secondary keys must be got from this additional api
 	keyResp, err := client.ListSecrets(ctx, resourceGroup, serviceName, subscriptionId)
 	if err != nil {
 		return fmt.Errorf("listing Subscription %q Primary and Secondary Keys (API Management Service %q / Resource Group %q): %+v", subscriptionId, serviceName, resourceGroup, err)
