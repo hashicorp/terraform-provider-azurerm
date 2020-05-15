@@ -55,6 +55,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorage() *schema.Resource {
 			"connection_string": {
 				Type:         schema.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
