@@ -89,6 +89,8 @@ func resourceArmHDInsightRServerCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"metastores": azure.SchemaHDInsightsExternalMetastores(),
+
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
 			"roles": {
@@ -153,7 +155,14 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 
 	gatewayRaw := d.Get("gateway").([]interface{})
 	rStudio := d.Get("rstudio").(bool)
-	gateway := expandHDInsightsRServerConfigurations(gatewayRaw, rStudio)
+	configurations := expandHDInsightsMLServicesConfigurations(gatewayRaw, rStudio)
+
+	if metastoresRaw, ok := d.GetOkExists("metastores"); ok {
+		metastores := expandHDInsightsMetastore(metastoresRaw.([]interface{}))
+		for k, v := range metastores {
+			configurations[k] = v
+		}
+	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
@@ -195,7 +204,7 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 			MinSupportedTLSVersion: utils.String(tls),
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:           utils.String("RServer"),
-				Configurations: gateway,
+				Configurations: configurations,
 			},
 			StorageProfile: &hdinsight.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -255,14 +264,20 @@ func resourceArmHDInsightRServerClusterRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error retrieving HDInsight RServer Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
+	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
+	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Gateway Configuration for HDInsight RServer Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Configuration for HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	rStudioConfig, err := configurationsClient.Get(ctx, resourceGroup, name, "rserver")
-	if err != nil {
-		return fmt.Errorf("Error retrieving RStudio Configuration for HDInsight RServer Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	gateway, exists := configurations.Configurations["gateway"]
+	if !exists {
+		return fmt.Errorf("Error retrieving gateway for HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	rStudioConfig, exists := configurations.Configurations["rserver"]
+	if !exists {
+		return fmt.Errorf("Error retrieving RStudio Configuration for HDInsight MLServices Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -278,12 +293,14 @@ func resourceArmHDInsightRServerClusterRead(d *schema.ResourceData, meta interfa
 		d.Set("tls_min_version", props.MinSupportedTLSVersion)
 
 		if def := props.ClusterDefinition; def != nil {
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
 
+			flattenHDInsightsMetastores(d, configurations.Configurations)
+
 			var rStudio bool
-			if rStudioStr := rStudioConfig.Value["rstudio"]; rStudioStr != nil {
+			if rStudioStr := rStudioConfig["rstudio"]; rStudioStr != nil {
 				rStudioBool, err := strconv.ParseBool(*rStudioStr)
 				if err != nil {
 					return err
