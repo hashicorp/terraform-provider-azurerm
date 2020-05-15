@@ -61,8 +61,8 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeLrs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 
 	resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
-	userName := "testuser"
-	password := "Pwd1234!"
+	userName := "testadmin"
+	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
 	sshPort := "22"
 
@@ -96,8 +96,8 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeLrs(t *testing.T) {
 func TestAccAzureRMSharedImageVersion_notUpdateStorageAccountType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 
-	userName := "testadmin"
-	password := "Password1234!"
+	userName := "testuser"
+	password := "Pwd1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
