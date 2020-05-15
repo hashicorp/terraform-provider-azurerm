@@ -416,9 +416,9 @@ resource "azurerm_function_app" "test" {
   storage_connection_string = azurerm_storage_account.test.primary_connection_string
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                  = "acctesteg-%d"
-  scope                 = azurerm_resource_group.test.id
-  event_delivery_schema = "CloudEventSchemaV1_0"
+  name                    = "acctesteg-%d"
+  scope                   = azurerm_resource_group.test.id
+  event_delivery_schema   = "CloudEventSchemaV1_0"
   azure_function_endpoint = azurerm_function_app.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -455,7 +455,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   scope                 = azurerm_resource_group.test.id
   event_delivery_schema = "CloudEventSchemaV1_0"
 
-  eventhub_endpoint     = azurerm_eventhub.test.id
+  eventhub_endpoint = azurerm_eventhub.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -483,9 +483,9 @@ resource "azurerm_servicebus_queue" "test" {
   enable_partitioning = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                  = "acctesteg-%d"
-  scope                 = azurerm_resource_group.test.id
-  event_delivery_schema = "CloudEventSchemaV1_0"
+  name                       = "acctesteg-%d"
+  scope                      = azurerm_resource_group.test.id
+  event_delivery_schema      = "CloudEventSchemaV1_0"
   service_bus_queue_endpoint = azurerm_servicebus_queue.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -513,9 +513,9 @@ resource "azurerm_servicebus_topic" "test" {
   enable_partitioning = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                  = "acctesteg-%d"
-  scope                 = azurerm_resource_group.test.id
-  event_delivery_schema = "CloudEventSchemaV1_0"
+  name                       = "acctesteg-%d"
+  scope                      = azurerm_resource_group.test.id
+  event_delivery_schema      = "CloudEventSchemaV1_0"
   service_bus_topic_endpoint = azurerm_servicebus_topic.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
