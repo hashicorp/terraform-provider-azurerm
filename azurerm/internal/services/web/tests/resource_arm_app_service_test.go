@@ -3099,7 +3099,7 @@ resource "azurerm_app_service" "test" {
   site_config {
     scm_ip_restriction {
       ip_address = "10.10.10.10/32"
-	  action = "Allow"
+      action     = "Allow"
     }
   }
 }
@@ -3139,7 +3139,7 @@ resource "azurerm_app_service" "test" {
       ip_address = "10.10.10.10/32"
       name       = "test-restriction"
       priority   = 123
-	  action     = "Allow"
+      action     = "Allow"
     }
   }
 }
@@ -3179,14 +3179,14 @@ resource "azurerm_app_service" "test" {
       ip_address = "10.10.10.10/32"
       name       = "test-restriction"
       priority   = 123
-	  action     = "Allow"
+      action     = "Allow"
     }
 
     scm_ip_restriction {
       ip_address = "20.20.20.0/24"
       name       = "test-restriction-2"
       priority   = 1234
-	  action     = "Deny"
+      action     = "Deny"
     }
   }
 }
