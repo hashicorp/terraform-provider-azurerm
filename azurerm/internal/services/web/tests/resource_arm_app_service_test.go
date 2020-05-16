@@ -2648,7 +2648,7 @@ resource "azurerm_app_service" "test" {
   site_config {
     ip_restriction {
       ip_address = "10.10.10.10/32"
-      action = "Allow"
+      action     = "Allow"
     }
   }
 }
@@ -2688,7 +2688,7 @@ resource "azurerm_app_service" "test" {
       ip_address = "10.10.10.10/32"
       name       = "test-restriction"
       priority   = 123
-      action = "Allow"
+      action     = "Allow"
     }
   }
 }
