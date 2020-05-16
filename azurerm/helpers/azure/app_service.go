@@ -367,6 +367,15 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 								Computed:     true,
 								ValidateFunc: validation.IntBetween(1, 2147483647),
 							},
+							"action": {
+								Type:     schema.TypeString,
+								Optional: true,
+								Default:  "Allow",
+								ValidateFunc: validation.StringInSlice([]string{
+									"Allow",
+									"Deny",
+								}, true),
+							},
 						},
 					},
 				},
@@ -742,6 +751,40 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 							},
 							"priority": {
 								Type:     schema.TypeInt,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"scm_use_main_ip_restriction": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"scm_ip_restriction": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"ip_address": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"virtual_network_subnet_id": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"name": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"priority": {
+								Type:     schema.TypeInt,
+								Computed: true,
+							},
+							"action": {
+								Type:     schema.TypeString,
 								Computed: true,
 							},
 						},
@@ -1539,6 +1582,7 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 			vNetSubnetID := scmRestriction["virtual_network_subnet_id"].(string)
 			name := scmRestriction["name"].(string)
 			priority := scmRestriction["priority"].(int)
+			action := scmRestriction["action"].(string)
 			if vNetSubnetID != "" && ipAddress != "" {
 				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can be set for `site_config.0.scm_ip_restriction.%d`", i))
 			}
@@ -1566,6 +1610,10 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 
 			if priority != 0 {
 				scmIPSecurityRestriction.Priority = utils.Int32(int32(priority))
+			}
+
+			if action != "" {
+				scmIPSecurityRestriction.Action = &action
 			}
 
 			scmRestrictions = append(scmRestrictions, scmIPSecurityRestriction)
@@ -1731,6 +1779,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 			}
 			if priority := v.Priority; priority != nil {
 				block["priority"] = *priority
+			}
+
+			if action := v.Action; action != nil {
+				block["action"] = *action
 			}
 			scmRestrictions = append(scmRestrictions, block)
 		}
