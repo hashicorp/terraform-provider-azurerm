@@ -716,12 +716,7 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 							},
 							"action": {
 								Type:     schema.TypeString,
-								Default:  "Allow",
-								Optional: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									"Allow",
-									"Deny",
-								}, true),
+								Computed: true,
 							},
 						},
 					},
