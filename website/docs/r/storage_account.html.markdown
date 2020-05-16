@@ -144,7 +144,7 @@ A `cors_rule` block supports the following:
 
 A `custom_domain` block supports the following:
 
-* `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
+* `name` - (Required) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
 ---
