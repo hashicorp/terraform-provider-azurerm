@@ -319,14 +319,14 @@ func TestResourceAzureRMSqlVirtualNetworkRule_validNameValidation(t *testing.T) 
 			Value:    "this_is_a_rule_",
 			ErrCount: 0,
 		},
-		// Test multiple hyphens in a row
+		// Test multiple underscoress in a row
 		{
 			Value:    "this____1s____a____ru1e",
 			ErrCount: 0,
 		},
 		// Test periods
 		{
-			Value:    "this.is_..rule",
+			Value:    "this.is.a.rule",
 			ErrCount: 0,
 		},
 		// Test multiple periods in a row
