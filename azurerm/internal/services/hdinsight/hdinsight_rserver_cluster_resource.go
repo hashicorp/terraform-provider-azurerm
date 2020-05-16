@@ -155,7 +155,7 @@ func resourceArmHDInsightRServerClusterCreate(d *schema.ResourceData, meta inter
 
 	gatewayRaw := d.Get("gateway").([]interface{})
 	rStudio := d.Get("rstudio").(bool)
-	configurations := expandHDInsightsRServerConfigurations(gatewayRaw, rStudio)
+	configurations := expandHDInsightsMLServicesConfigurations(gatewayRaw, rStudio)
 
 	if metastoresRaw, ok := d.GetOkExists("metastores"); ok {
 		metastores := expandHDInsightsMetastore(metastoresRaw.([]interface{}))

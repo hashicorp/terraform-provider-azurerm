@@ -971,7 +971,6 @@ resource "azurerm_hdinsight_ml_services_cluster" "test" {
   cluster_version     = "3.6"
   tier                = "Standard"
   rstudio             = true
-
   gateway {
     enabled  = true
     username = "acctestusrgw"
