@@ -780,8 +780,8 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
   shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
   traffic_selector_policy {
-    local_address_ranges = ["10.66.18.0/24", "10.66.17.0/24"]
-    remote_address_ranges = ["10.1.1.0/24"]
+    local_address_cidrs  = ["10.66.18.0/24", "10.66.17.0/24"]
+    remote_address_cidrs = ["10.1.1.0/24"]
   }
 
 }

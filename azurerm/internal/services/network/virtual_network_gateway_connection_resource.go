@@ -142,14 +142,14 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"local_address_ranges": {
+						"local_address_cidrs": {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"remote_address_ranges": {
+						"remote_address_cidrs": {
 							Type:     schema.TypeList,
 							Required: true,
 							Elem: &schema.Schema{
@@ -628,14 +628,14 @@ func expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTraff
 	for _, d := range schemaTrafficSelectorPolicies {
 		schemaTrafficSelectorPolicy := d.(map[string]interface{})
 		trafficSelectorPolicy := &network.TrafficSelectorPolicy{}
-		if localAddressRanges, ok := schemaTrafficSelectorPolicy["local_address_ranges"].([]interface{}); ok {
+		if localAddressRanges, ok := schemaTrafficSelectorPolicy["local_address_cidrs"].([]interface{}); ok {
 			localAddressRangesArr := make([]string, 0, len(localAddressRanges))
 			for _, l := range localAddressRanges {
 				localAddressRangesArr = append(localAddressRangesArr, l.(string))
 			}
 			trafficSelectorPolicy.LocalAddressRanges = &localAddressRangesArr
 		}
-		if remoteAddressRanges, ok := schemaTrafficSelectorPolicy["remote_address_ranges"].([]interface{}); ok {
+		if remoteAddressRanges, ok := schemaTrafficSelectorPolicy["remote_address_cidrs"].([]interface{}); ok {
 			remoteAddressRangesArr := make([]string, 0, len(remoteAddressRanges))
 			for _, l := range remoteAddressRanges {
 				remoteAddressRangesArr = append(remoteAddressRangesArr, l.(string))
@@ -684,8 +684,8 @@ func flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSel
 	if trafficSelectorPolicies != nil {
 		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
 			schemaTrafficSelectorPolicy := make(map[string]interface{})
-			schemaTrafficSelectorPolicy["local_address_ranges"] = trafficSelectorPolicy.LocalAddressRanges
-			schemaTrafficSelectorPolicy["remote_address_ranges"] = trafficSelectorPolicy.RemoteAddressRanges
+			schemaTrafficSelectorPolicy["local_address_cidrs"] = trafficSelectorPolicy.LocalAddressRanges
+			schemaTrafficSelectorPolicy["remote_address_cidrs"] = trafficSelectorPolicy.RemoteAddressRanges
 			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, schemaTrafficSelectorPolicy)
 		}
 	}

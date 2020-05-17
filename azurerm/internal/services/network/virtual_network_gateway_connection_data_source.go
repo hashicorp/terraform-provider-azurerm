@@ -112,16 +112,17 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			"traffic_selector_policy": {
 				Type:     schema.TypeList,
 				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"local_address_ranges": {
+						"local_address_cidrs": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
 						},
-						"remote_address_ranges": {
+						"remote_address_cidrs": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
@@ -284,8 +285,8 @@ func flattenArmVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(t
 	if trafficSelectorPolicies != nil {
 		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
 			schemaTrafficSelectorPolicy := make(map[string]interface{})
-			schemaTrafficSelectorPolicy["local_address_ranges"] = trafficSelectorPolicy.LocalAddressRanges
-			schemaTrafficSelectorPolicy["local_address_ranges"] = trafficSelectorPolicy.RemoteAddressRanges
+			schemaTrafficSelectorPolicy["local_address_cidrs"] = trafficSelectorPolicy.LocalAddressRanges
+			schemaTrafficSelectorPolicy["remote_address_cidrs"] = trafficSelectorPolicy.RemoteAddressRanges
 			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, schemaTrafficSelectorPolicy)
 		}
 	}
