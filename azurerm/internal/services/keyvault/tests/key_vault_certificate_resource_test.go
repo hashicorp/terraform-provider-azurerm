@@ -118,6 +118,25 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultCertificate_basicGenerateUnknownIssuer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultCertificate_basicGenerateUnknownIssuer(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultCertificate_softDeleteRecovery(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 
@@ -531,6 +550,101 @@ resource "azurerm_key_vault_certificate" "test" {
     lifetime_action {
       action {
         action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func testAccAzureRMKeyVaultCertificate_basicGenerateUnknownIssuer(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkeyvault%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "create",
+      "delete",
+      "get",
+      "update",
+    ]
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+
+    storage_permissions = [
+      "set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acctestcert%s"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Unknown"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "EmailContacts"
       }
 
       trigger {

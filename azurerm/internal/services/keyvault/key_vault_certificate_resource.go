@@ -442,6 +442,13 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 			return nil, "", fmt.Errorf("Error issuing read request in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
 		}
 
+		if res.Policy != nil &&
+			res.Policy.IssuerParameters != nil &&
+			res.Policy.IssuerParameters.Name != nil &&
+			strings.EqualFold(*(res.Policy.IssuerParameters.Name), "unknown") {
+			return res, "Ready", nil
+		}
+
 		if res.Sid == nil || *res.Sid == "" {
 			return nil, "Provisioning", nil
 		}
