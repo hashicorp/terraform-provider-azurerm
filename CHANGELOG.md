@@ -1,4 +1,10 @@
 ## 2.11.0 (Unreleased)
+
+DEPENDENCIES: 
+
+* updating `github.com/Azure/azure-sdk-for-go` to `v42.1.0` [GH-6725]
+* updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.9.0` [GH-6725]
+
 ## 2.10.0 (May 14, 2020)
 
 DEPENDENCIES: 
