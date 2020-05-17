@@ -24,8 +24,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_mariadb_server" "example" {
   name                = "example-mariadb-server"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   administrator_login          = "mariadbadmin"
   administrator_login_password = "H@Sh1CoR3!"
