@@ -2247,7 +2247,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 		}
 
 		if len(hosts) > 0 {
-			listener.ApplicationGatewayHTTPListenerPropertiesFormat.Hostnames = utils.ExpandStringSlice(hosts)
+			listener.ApplicationGatewayHTTPListenerPropertiesFormat.HostNames = utils.ExpandStringSlice(hosts)
 		}
 
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
@@ -2309,7 +2309,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 				output["host_name"] = *hostname
 			}
 
-			if hostnames := props.Hostnames; hostnames != nil {
+			if hostnames := props.HostNames; hostnames != nil {
 				output["host_names"] = utils.FlattenStringSlice(hostnames)
 			}
 
