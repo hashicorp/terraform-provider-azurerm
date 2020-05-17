@@ -46,10 +46,12 @@ func NewAlertRulesClientWithBaseURI(baseURI string, subscriptionID string) Alert
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
 // ruleID - alert rule ID
 // alertRule - the alert rule
-func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string, alertRule BasicAlertRule) (result AlertRuleModel, err error) {
+func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, alertRule BasicAlertRule) (result AlertRuleModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.CreateOrUpdate")
 		defer func() {
@@ -73,7 +75,7 @@ func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 		return result, validation.NewError("securityinsight.AlertRulesClient", "CreateOrUpdate", err.Error())
 	}
 
-	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, workspaceName, ruleID, alertRule)
+	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID, alertRule)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "CreateOrUpdate", nil, "Failure preparing request")
 		return
@@ -95,15 +97,16 @@ func (client AlertRulesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 }
 
 // CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client AlertRulesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string, alertRule BasicAlertRule) (*http.Request, error) {
+func (client AlertRulesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, alertRule BasicAlertRule) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"ruleId":            autorest.Encode("path", ruleID),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workspaceName":     autorest.Encode("path", workspaceName),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"ruleId":                              autorest.Encode("path", ruleID),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -112,7 +115,7 @@ func (client AlertRulesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}", pathParameters),
 		autorest.WithJSON(alertRule),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -141,11 +144,13 @@ func (client AlertRulesClient) CreateOrUpdateResponder(resp *http.Response) (res
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
 // ruleID - alert rule ID
 // actionID - action ID
 // action - the action
-func (client AlertRulesClient) CreateOrUpdateAction(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string, actionID string, action ActionRequest) (result ActionResponse, err error) {
+func (client AlertRulesClient) CreateOrUpdateAction(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string, action ActionRequest) (result ActionResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.CreateOrUpdateAction")
 		defer func() {
@@ -169,7 +174,7 @@ func (client AlertRulesClient) CreateOrUpdateAction(ctx context.Context, resourc
 		return result, validation.NewError("securityinsight.AlertRulesClient", "CreateOrUpdateAction", err.Error())
 	}
 
-	req, err := client.CreateOrUpdateActionPreparer(ctx, resourceGroupName, workspaceName, ruleID, actionID, action)
+	req, err := client.CreateOrUpdateActionPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID, actionID, action)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "CreateOrUpdateAction", nil, "Failure preparing request")
 		return
@@ -191,16 +196,17 @@ func (client AlertRulesClient) CreateOrUpdateAction(ctx context.Context, resourc
 }
 
 // CreateOrUpdateActionPreparer prepares the CreateOrUpdateAction request.
-func (client AlertRulesClient) CreateOrUpdateActionPreparer(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string, actionID string, action ActionRequest) (*http.Request, error) {
+func (client AlertRulesClient) CreateOrUpdateActionPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string, action ActionRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"actionId":          autorest.Encode("path", actionID),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"ruleId":            autorest.Encode("path", ruleID),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workspaceName":     autorest.Encode("path", workspaceName),
+		"actionId":                            autorest.Encode("path", actionID),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"ruleId":                              autorest.Encode("path", ruleID),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -209,7 +215,7 @@ func (client AlertRulesClient) CreateOrUpdateActionPreparer(ctx context.Context,
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions/{actionId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions/{actionId}", pathParameters),
 		autorest.WithJSON(action),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -238,9 +244,11 @@ func (client AlertRulesClient) CreateOrUpdateActionResponder(resp *http.Response
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
 // ruleID - alert rule ID
-func (client AlertRulesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string) (result autorest.Response, err error) {
+func (client AlertRulesClient) Delete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.Delete")
 		defer func() {
@@ -264,7 +272,7 @@ func (client AlertRulesClient) Delete(ctx context.Context, resourceGroupName str
 		return result, validation.NewError("securityinsight.AlertRulesClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, workspaceName, ruleID)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "Delete", nil, "Failure preparing request")
 		return
@@ -286,15 +294,16 @@ func (client AlertRulesClient) Delete(ctx context.Context, resourceGroupName str
 }
 
 // DeletePreparer prepares the Delete request.
-func (client AlertRulesClient) DeletePreparer(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string) (*http.Request, error) {
+func (client AlertRulesClient) DeletePreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"ruleId":            autorest.Encode("path", ruleID),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workspaceName":     autorest.Encode("path", workspaceName),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"ruleId":                              autorest.Encode("path", ruleID),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -302,7 +311,7 @@ func (client AlertRulesClient) DeletePreparer(ctx context.Context, resourceGroup
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -329,10 +338,12 @@ func (client AlertRulesClient) DeleteResponder(resp *http.Response) (result auto
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
 // ruleID - alert rule ID
 // actionID - action ID
-func (client AlertRulesClient) DeleteAction(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string, actionID string) (result autorest.Response, err error) {
+func (client AlertRulesClient) DeleteAction(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.DeleteAction")
 		defer func() {
@@ -356,7 +367,7 @@ func (client AlertRulesClient) DeleteAction(ctx context.Context, resourceGroupNa
 		return result, validation.NewError("securityinsight.AlertRulesClient", "DeleteAction", err.Error())
 	}
 
-	req, err := client.DeleteActionPreparer(ctx, resourceGroupName, workspaceName, ruleID, actionID)
+	req, err := client.DeleteActionPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID, actionID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "DeleteAction", nil, "Failure preparing request")
 		return
@@ -378,16 +389,17 @@ func (client AlertRulesClient) DeleteAction(ctx context.Context, resourceGroupNa
 }
 
 // DeleteActionPreparer prepares the DeleteAction request.
-func (client AlertRulesClient) DeleteActionPreparer(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string, actionID string) (*http.Request, error) {
+func (client AlertRulesClient) DeleteActionPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"actionId":          autorest.Encode("path", actionID),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"ruleId":            autorest.Encode("path", ruleID),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workspaceName":     autorest.Encode("path", workspaceName),
+		"actionId":                            autorest.Encode("path", actionID),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"ruleId":                              autorest.Encode("path", ruleID),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -395,7 +407,7 @@ func (client AlertRulesClient) DeleteActionPreparer(ctx context.Context, resourc
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions/{actionId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions/{actionId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -422,9 +434,11 @@ func (client AlertRulesClient) DeleteActionResponder(resp *http.Response) (resul
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
 // ruleID - alert rule ID
-func (client AlertRulesClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string) (result AlertRuleModel, err error) {
+func (client AlertRulesClient) Get(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string) (result AlertRuleModel, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.Get")
 		defer func() {
@@ -448,7 +462,7 @@ func (client AlertRulesClient) Get(ctx context.Context, resourceGroupName string
 		return result, validation.NewError("securityinsight.AlertRulesClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName, ruleID)
+	req, err := client.GetPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "Get", nil, "Failure preparing request")
 		return
@@ -470,15 +484,16 @@ func (client AlertRulesClient) Get(ctx context.Context, resourceGroupName string
 }
 
 // GetPreparer prepares the Get request.
-func (client AlertRulesClient) GetPreparer(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string) (*http.Request, error) {
+func (client AlertRulesClient) GetPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"ruleId":            autorest.Encode("path", ruleID),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workspaceName":     autorest.Encode("path", workspaceName),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"ruleId":                              autorest.Encode("path", ruleID),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -486,7 +501,7 @@ func (client AlertRulesClient) GetPreparer(ctx context.Context, resourceGroupNam
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -514,10 +529,12 @@ func (client AlertRulesClient) GetResponder(resp *http.Response) (result AlertRu
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
 // ruleID - alert rule ID
 // actionID - action ID
-func (client AlertRulesClient) GetAction(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string, actionID string) (result ActionResponse, err error) {
+func (client AlertRulesClient) GetAction(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string) (result ActionResponse, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.GetAction")
 		defer func() {
@@ -541,7 +558,7 @@ func (client AlertRulesClient) GetAction(ctx context.Context, resourceGroupName 
 		return result, validation.NewError("securityinsight.AlertRulesClient", "GetAction", err.Error())
 	}
 
-	req, err := client.GetActionPreparer(ctx, resourceGroupName, workspaceName, ruleID, actionID)
+	req, err := client.GetActionPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, ruleID, actionID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "GetAction", nil, "Failure preparing request")
 		return
@@ -563,16 +580,17 @@ func (client AlertRulesClient) GetAction(ctx context.Context, resourceGroupName 
 }
 
 // GetActionPreparer prepares the GetAction request.
-func (client AlertRulesClient) GetActionPreparer(ctx context.Context, resourceGroupName string, workspaceName string, ruleID string, actionID string) (*http.Request, error) {
+func (client AlertRulesClient) GetActionPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, ruleID string, actionID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"actionId":          autorest.Encode("path", actionID),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"ruleId":            autorest.Encode("path", ruleID),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workspaceName":     autorest.Encode("path", workspaceName),
+		"actionId":                            autorest.Encode("path", actionID),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"ruleId":                              autorest.Encode("path", ruleID),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -580,7 +598,7 @@ func (client AlertRulesClient) GetActionPreparer(ctx context.Context, resourceGr
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions/{actionId}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules/{ruleId}/actions/{actionId}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -608,8 +626,10 @@ func (client AlertRulesClient) GetActionResponder(resp *http.Response) (result A
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
+// operationalInsightsResourceProvider - the namespace of workspaces resource provider-
+// Microsoft.OperationalInsights.
 // workspaceName - the name of the workspace.
-func (client AlertRulesClient) List(ctx context.Context, resourceGroupName string, workspaceName string) (result AlertRulesListPage, err error) {
+func (client AlertRulesClient) List(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string) (result AlertRulesListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.List")
 		defer func() {
@@ -634,7 +654,7 @@ func (client AlertRulesClient) List(ctx context.Context, resourceGroupName strin
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, resourceGroupName, workspaceName)
+	req, err := client.ListPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.AlertRulesClient", "List", nil, "Failure preparing request")
 		return
@@ -656,14 +676,15 @@ func (client AlertRulesClient) List(ctx context.Context, resourceGroupName strin
 }
 
 // ListPreparer prepares the List request.
-func (client AlertRulesClient) ListPreparer(ctx context.Context, resourceGroupName string, workspaceName string) (*http.Request, error) {
+func (client AlertRulesClient) ListPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-		"workspaceName":     autorest.Encode("path", workspaceName),
+		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
+		"resourceGroupName":                   autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                      autorest.Encode("path", client.SubscriptionID),
+		"workspaceName":                       autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2020-01-01"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -671,7 +692,7 @@ func (client AlertRulesClient) ListPreparer(ctx context.Context, resourceGroupNa
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -717,7 +738,7 @@ func (client AlertRulesClient) listNextResults(ctx context.Context, lastResults 
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client AlertRulesClient) ListComplete(ctx context.Context, resourceGroupName string, workspaceName string) (result AlertRulesListIterator, err error) {
+func (client AlertRulesClient) ListComplete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string) (result AlertRulesListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AlertRulesClient.List")
 		defer func() {
@@ -728,6 +749,6 @@ func (client AlertRulesClient) ListComplete(ctx context.Context, resourceGroupNa
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, resourceGroupName, workspaceName)
+	result.page, err = client.List(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName)
 	return
 }
