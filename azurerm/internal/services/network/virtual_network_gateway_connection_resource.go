@@ -136,6 +136,30 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				}, false),
 			},
 
+			"traffic_selector_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"local_address_ranges": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"remote_address_ranges": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
 			"ipsec_policy": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -394,6 +418,13 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		}
 	}
 
+	if conn.TrafficSelectorPolicies != nil {
+		trafficSelectorPolicies := flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(conn.TrafficSelectorPolicies)
+		if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
+			return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
+		}
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -504,6 +535,10 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		props.ConnectionProtocol = network.VirtualNetworkGatewayConnectionProtocol(connectionProtocol)
 	}
 
+	if v, ok := d.GetOk("traffic_selector_policy"); ok {
+		props.TrafficSelectorPolicies = expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("ipsec_policy"); ok {
 		props.IpsecPolicies = expandArmVirtualNetworkGatewayConnectionIpsecPolicies(v.([]interface{}))
 	}
@@ -587,6 +622,33 @@ func expandArmVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies [
 	return &ipsecPolicies
 }
 
+func expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTrafficSelectorPolicies []interface{}) *[]network.TrafficSelectorPolicy {
+	trafficSelectorPolicies := make([]network.TrafficSelectorPolicy, 0, len(schemaTrafficSelectorPolicies))
+
+	for _, d := range schemaTrafficSelectorPolicies {
+		schemaTrafficSelectorPolicy := d.(map[string]interface{})
+		trafficSelectorPolicy := &network.TrafficSelectorPolicy{}
+		if localAddressRanges, ok := schemaTrafficSelectorPolicy["local_address_ranges"].([]interface{}); ok {
+			localAddressRangesArr := make([]string, 0, len(localAddressRanges))
+			for _, l := range localAddressRanges {
+				localAddressRangesArr = append(localAddressRangesArr, l.(string))
+			}
+			trafficSelectorPolicy.LocalAddressRanges = &localAddressRangesArr
+		}
+		if remoteAddressRanges, ok := schemaTrafficSelectorPolicy["remote_address_ranges"].([]interface{}); ok {
+			remoteAddressRangesArr := make([]string, 0, len(remoteAddressRanges))
+			for _, l := range remoteAddressRanges {
+				remoteAddressRangesArr = append(remoteAddressRangesArr, l.(string))
+			}
+			trafficSelectorPolicy.RemoteAddressRanges = &remoteAddressRangesArr
+		}
+
+		trafficSelectorPolicies = append(trafficSelectorPolicies, *trafficSelectorPolicy)
+	}
+
+	return &trafficSelectorPolicies
+}
+
 func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
 	schemaIpsecPolicies := make([]interface{}, 0)
 
@@ -614,4 +676,19 @@ func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]net
 	}
 
 	return schemaIpsecPolicies
+}
+
+func flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
+	schemaTrafficSelectorPolicies := make([]interface{}, 0)
+
+	if trafficSelectorPolicies != nil {
+		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
+			schemaTrafficSelectorPolicy := make(map[string]interface{})
+			schemaTrafficSelectorPolicy["local_address_ranges"] = trafficSelectorPolicy.LocalAddressRanges
+			schemaTrafficSelectorPolicy["remote_address_ranges"] = trafficSelectorPolicy.RemoteAddressRanges
+			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, schemaTrafficSelectorPolicy)
+		}
+	}
+
+	return schemaTrafficSelectorPolicies
 }
