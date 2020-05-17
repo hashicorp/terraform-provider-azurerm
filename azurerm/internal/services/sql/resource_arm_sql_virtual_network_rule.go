@@ -218,7 +218,7 @@ func ValidateSqlVirtualNetworkRuleName(v interface{}, k string) (warnings []stri
 	}
 
 	// Cannot be shorter than 2 characters
-	if len(value) < 2 {
+	if len(value) == 1 {
 		errors = append(errors, fmt.Errorf(
 			"%q cannot be shorter than 2 characters: %q", k, value))
 	}
