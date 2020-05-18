@@ -2245,6 +2245,35 @@ func (asr *ApplicationStackResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// AppsApproveOrRejectPrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type AppsApproveOrRejectPrivateEndpointConnectionFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AppsApproveOrRejectPrivateEndpointConnectionFuture) Result(client AppsClient) (pecr PrivateEndpointConnectionResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("web.AppsApproveOrRejectPrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pecr.Response.Response, err = future.GetResult(sender); err == nil && pecr.Response.Response.StatusCode != http.StatusNoContent {
+		pecr, err = client.ApproveOrRejectPrivateEndpointConnectionResponder(pecr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionFuture", "Result", pecr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // AppsCopyProductionSlotFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsCopyProductionSlotFuture struct {
@@ -2576,6 +2605,35 @@ func (future *AppsCreateOrUpdateSourceControlSlotFuture) Result(client AppsClien
 		ssc, err = client.CreateOrUpdateSourceControlSlotResponder(ssc.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateSourceControlSlotFuture", "Result", ssc.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// AppsDeletePrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type AppsDeletePrivateEndpointConnectionFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AppsDeletePrivateEndpointConnectionFuture) Result(client AppsClient) (so SetObject, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsDeletePrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("web.AppsDeletePrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+		so, err = client.DeletePrivateEndpointConnectionResponder(so.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppsDeletePrivateEndpointConnectionFuture", "Result", so.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -5195,6 +5253,12 @@ func (future *AppsSwapSlotWithProductionFuture) Result(client AppsClient) (ar au
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// ArmIDWrapper a wrapper for an ARM resource id
+type ArmIDWrapper struct {
+	// ID - READ-ONLY
+	ID *string `json:"id,omitempty"`
 }
 
 // AutoHealActions actions which to take by the auto-heal module when a rule is triggered.
@@ -14499,6 +14563,220 @@ type PrivateAccessVirtualNetwork struct {
 	Subnets *[]PrivateAccessSubnet `json:"subnets,omitempty"`
 }
 
+// PrivateEndpointConnectionResource private Endpoint Connection ARM resource.
+type PrivateEndpointConnectionResource struct {
+	autorest.Response `json:"-"`
+	// RemotePrivateEndpointConnection - Core resource properties
+	*RemotePrivateEndpointConnection `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionResource.
+func (pecr PrivateEndpointConnectionResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pecr.RemotePrivateEndpointConnection != nil {
+		objectMap["properties"] = pecr.RemotePrivateEndpointConnection
+	}
+	if pecr.Kind != nil {
+		objectMap["kind"] = pecr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnectionResource struct.
+func (pecr *PrivateEndpointConnectionResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var remotePrivateEndpointConnection RemotePrivateEndpointConnection
+				err = json.Unmarshal(*v, &remotePrivateEndpointConnection)
+				if err != nil {
+					return err
+				}
+				pecr.RemotePrivateEndpointConnection = &remotePrivateEndpointConnection
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pecr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pecr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				pecr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pecr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkConnectionApprovalRequest a request to approve or reject a private endpoint connection
+type PrivateLinkConnectionApprovalRequest struct {
+	PrivateLinkServiceConnectionState *PrivateLinkConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// PrivateLinkConnectionApprovalRequestResource private Endpoint Connection Approval ARM resource.
+type PrivateLinkConnectionApprovalRequestResource struct {
+	// PrivateLinkConnectionApprovalRequest - Core resource properties
+	*PrivateLinkConnectionApprovalRequest `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkConnectionApprovalRequestResource.
+func (plcarr PrivateLinkConnectionApprovalRequestResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plcarr.PrivateLinkConnectionApprovalRequest != nil {
+		objectMap["properties"] = plcarr.PrivateLinkConnectionApprovalRequest
+	}
+	if plcarr.Kind != nil {
+		objectMap["kind"] = plcarr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkConnectionApprovalRequestResource struct.
+func (plcarr *PrivateLinkConnectionApprovalRequestResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkConnectionApprovalRequest PrivateLinkConnectionApprovalRequest
+				err = json.Unmarshal(*v, &privateLinkConnectionApprovalRequest)
+				if err != nil {
+					return err
+				}
+				plcarr.PrivateLinkConnectionApprovalRequest = &privateLinkConnectionApprovalRequest
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plcarr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plcarr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				plcarr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plcarr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkConnectionState the state of a private link connection
+type PrivateLinkConnectionState struct {
+	// Status - Status of a private link connection
+	Status *string `json:"status,omitempty"`
+	// Description - Description of a private link connection
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - ActionsRequired for a private link connection
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	ID *string `json:"id,omitempty"`
+	// Name - Name of a private link resource
+	Name *string `json:"name,omitempty"`
+	Type *string `json:"type,omitempty"`
+	// Properties - Properties of a private link resource
+	Properties *PrivateLinkResourceProperties `json:"properties,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; GroupId of a private link resource
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; RequiredMembers of a private link resource
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - READ-ONLY; RequiredZoneNames of a private link resource
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkResourcesWrapper wrapper for a collection of private link resources
+type PrivateLinkResourcesWrapper struct {
+	autorest.Response `json:"-"`
+	Value             *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
 // ProcessInfo process Information.
 type ProcessInfo struct {
 	autorest.Response `json:"-"`
@@ -16421,6 +16699,15 @@ type RelayServiceConnectionEntityProperties struct {
 	BiztalkURI               *string `json:"biztalkUri,omitempty"`
 }
 
+// RemotePrivateEndpointConnection a remote private endpoint connection
+type RemotePrivateEndpointConnection struct {
+	// ProvisioningState - READ-ONLY
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// PrivateEndpoint - PrivateEndpoint of a remote private endpoint connection
+	PrivateEndpoint                   *ArmIDWrapper               `json:"privateEndpoint,omitempty"`
+	PrivateLinkServiceConnectionState *PrivateLinkConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
 // Rendering instructions for rendering the data
 type Rendering struct {
 	// Type - Rendering Type. Possible values include: 'NoGraph', 'Table', 'TimeSeries', 'TimeSeriesPerInstance'
@@ -17716,6 +18003,8 @@ type SiteConfig struct {
 	PythonVersion *string `json:"pythonVersion,omitempty"`
 	// NodeVersion - Version of Node.js.
 	NodeVersion *string `json:"nodeVersion,omitempty"`
+	// PowerShellVersion - Version of PowerShell.
+	PowerShellVersion *string `json:"powerShellVersion,omitempty"`
 	// LinuxFxVersion - Linux App Framework and version
 	LinuxFxVersion *string `json:"linuxFxVersion,omitempty"`
 	// WindowsFxVersion - Xenon App Framework and version

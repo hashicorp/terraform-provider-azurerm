@@ -117,7 +117,7 @@ func testCheckAzureRMSentinelAlertRuleMsSecurityIncidentExists(resourceName stri
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Sentinel Alert Rule Ms Security Incident %q (Resource Group %q / Workspace: %q) does not exist", id.Name, id.ResourceGroup, id.Workspace)
 			}
@@ -142,7 +142,7 @@ func testCheckAzureRMSentinelAlertRuleMsSecurityIncidentDestroy(s *terraform.Sta
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Getting on Sentinel.AlertRules: %+v", err)
 			}

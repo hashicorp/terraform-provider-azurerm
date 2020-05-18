@@ -38,10 +38,9 @@ resource "azurerm_postgresql_server" "example" {
   geo_redundant_backup_enabled = true
   auto_grow_enabled            = true
 
-  infrastructure_encryption_enabled = true
-  public_network_access_enabled     = false
-  ssl_enforcement_enabled           = true
-  ssl_minimal_tls_version_enforced  = "TLS1_2"
+  public_network_access_enabled    = false
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "TLS1_2"
 }
 ```
 
@@ -75,7 +74,7 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled` - (Optional) Whether or not infrastructure is encrypted for this server. Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **Note:** This property is currently still in development by Microsoft. It is suggested to leave as `false` as not doing so can lead to unclear error messages.
+~> **NOTE:** This property is currently still in development and not supported by Microsoft. If the `infrastructure_encryption_enabled` attribute is set to `true` the postgreSQL instance will incur a substantial performance degradation due to a second encryption pass on top of the existing default encryption that is already provided by Azure Storage. It is strongly suggested to leave this value `false` as not doing so can lead to unclear error messages.
 
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 

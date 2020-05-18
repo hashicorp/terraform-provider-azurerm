@@ -3,7 +3,7 @@ package sentinel
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2017-08-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
@@ -37,7 +37,7 @@ func importSentinelAlertRule(expectKind securityinsight.AlertRuleKind) func(d *s
 		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name)
+		resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name)
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Sentinel Alert Rule %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 		}

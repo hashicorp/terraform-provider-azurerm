@@ -10092,6 +10092,29 @@ func (future *ReplicationLinksFailoverFuture) Result(client ReplicationLinksClie
 	return
 }
 
+// ReplicationLinksUnlinkFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ReplicationLinksUnlinkFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ReplicationLinksUnlinkFuture) Result(client ReplicationLinksClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ReplicationLinksUnlinkFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ReplicationLinksUnlinkFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // Resource ARM resource.
 type Resource struct {
 	// ID - READ-ONLY; Resource ID.
@@ -15375,6 +15398,12 @@ type TransparentDataEncryptionActivityProperties struct {
 type TransparentDataEncryptionProperties struct {
 	// Status - The status of the database transparent data encryption. Possible values include: 'TransparentDataEncryptionStatusEnabled', 'TransparentDataEncryptionStatusDisabled'
 	Status TransparentDataEncryptionStatus `json:"status,omitempty"`
+}
+
+// UnlinkParameters represents the parameters for Unlink Replication Link request.
+type UnlinkParameters struct {
+	// ForcedTermination - Determines whether link will be terminated in a forced or a friendly way.
+	ForcedTermination *bool `json:"forcedTermination,omitempty"`
 }
 
 // VirtualCluster an Azure SQL virtual cluster.
