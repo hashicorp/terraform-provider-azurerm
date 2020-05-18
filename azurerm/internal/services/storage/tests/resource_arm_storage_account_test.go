@@ -1427,7 +1427,7 @@ resource "azurerm_storage_account" "test" {
       allowed_origins    = ["http://www.example.com"]
       exposed_headers    = ["x-tempo-*"]
       allowed_headers    = ["x-tempo-*"]
-      allowed_methods    = ["GET", "PUT"]
+      allowed_methods    = ["GET", "PUT", "PATCH"]
       max_age_in_seconds = "500"
     }
 
