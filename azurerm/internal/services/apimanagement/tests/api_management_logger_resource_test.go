@@ -329,7 +329,7 @@ resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  application_type    = "Other"
+  application_type    = "other"
 }
 
 resource "azurerm_api_management" "test" {
@@ -369,7 +369,7 @@ resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  application_type    = "Other"
+  application_type    = "other"
 }
 
 resource "azurerm_api_management" "test" {
