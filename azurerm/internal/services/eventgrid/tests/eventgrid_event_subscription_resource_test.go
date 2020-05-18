@@ -32,7 +32,7 @@ func TestAccAzureRMEventGridEventSubscription_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_eventhub(t *testing.T) {
+func TestAccAzureRMEventGridEventSubscription_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,11 +41,33 @@ func TestAccAzureRMEventGridEventSubscription_eventhub(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_eventhub(data),
+				Config: testAccAzureRMEventGridEventSubscription_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventGridEventSubscription_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_event_subscription"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMEventGridEventSubscription_eventHubID(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridEventSubscription_eventHubID(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "eventhub_endpoint.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "eventhub_endpoint_id"),
 				),
 			},
 			data.ImportStep(),
@@ -53,7 +75,7 @@ func TestAccAzureRMEventGridEventSubscription_eventhub(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_serviceBusQueue(t *testing.T) {
+func TestAccAzureRMEventGridEventSubscription_serviceBusQueueID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -62,11 +84,11 @@ func TestAccAzureRMEventGridEventSubscription_serviceBusQueue(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_serviceBusQueue(data),
+				Config: testAccAzureRMEventGridEventSubscription_serviceBusQueueID(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_bus_queue_endpoint.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "service_bus_queue_endpoint_id"),
 				),
 			},
 			data.ImportStep(),
@@ -74,7 +96,7 @@ func TestAccAzureRMEventGridEventSubscription_serviceBusQueue(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_serviceBusTopic(t *testing.T) {
+func TestAccAzureRMEventGridEventSubscription_serviceBusTopicID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -83,11 +105,11 @@ func TestAccAzureRMEventGridEventSubscription_serviceBusTopic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_serviceBusTopic(data),
+				Config: testAccAzureRMEventGridEventSubscription_serviceBusTopicID(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "service_bus_topic_endpoint.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "service_bus_topic_endpoint_id"),
 				),
 			},
 			data.ImportStep(),
@@ -95,7 +117,7 @@ func TestAccAzureRMEventGridEventSubscription_serviceBusTopic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_azureFunction(t *testing.T) {
+func TestAccAzureRMEventGridEventSubscription_azureFunctionID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -104,11 +126,11 @@ func TestAccAzureRMEventGridEventSubscription_azureFunction(t *testing.T) {
 		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_azureFunction(data),
+				Config: testAccAzureRMEventGridEventSubscription_azureFunctionID(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "azure_function_endpoint.#", "1"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "azure_function_endpoint_id"),
 				),
 			},
 			data.ImportStep(),
@@ -245,7 +267,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eg-%d"
   location = "%s"
 }
 
@@ -306,6 +328,19 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
+func testAccAzureRMEventGridEventSubscription_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMEventGridEventSubscription_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_event_subscription" "import" {
+  name                = azurerm_eventgrid_event_subscription.test.name
+  location            = azurerm_eventgrid_event_subscription.test.location
+  resource_group_name = azurerm_eventgrid_event_subscription.test.resource_group_name
+}
+`, template)
+}
+
 func testAccAzureRMEventGridEventSubscription_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -313,7 +348,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eg-%d"
   location = "%s"
 }
 
@@ -351,7 +386,7 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctesteg-%d"
+  name  = "acctest-eg-%d"
   scope = azurerm_resource_group.test.id
 
   storage_queue_endpoint {
@@ -380,13 +415,13 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_azureFunction(data acceptance.TestData) string {
+func testAccAzureRMEventGridEventSubscription_azureFunctionID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eg-%d"
   location = "%s"
 }
 resource "azurerm_storage_account" "test" {
@@ -400,7 +435,7 @@ resource "azurerm_storage_account" "test" {
   }
 }
 resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-eg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku {
@@ -416,22 +451,22 @@ resource "azurerm_function_app" "test" {
   storage_connection_string = azurerm_storage_account.test.primary_connection_string
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                    = "acctesteg-%d"
-  scope                   = azurerm_resource_group.test.id
-  event_delivery_schema   = "CloudEventSchemaV1_0"
-  azure_function_endpoint = azurerm_function_app.test.id
+  name                       = "acctest-eg-%d"
+  scope                      = azurerm_resource_group.test.id
+  event_delivery_schema      = "CloudEventSchemaV1_0"
+  azure_function_endpoint_id = azurerm_function_app.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_eventhub(data acceptance.TestData) string {
+func testAccAzureRMEventGridEventSubscription_eventHubID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eg-%d"
   location = "%s"
 }
 
@@ -451,16 +486,16 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                  = "acctesteg-%d"
+  name                  = "acctest-eg-%d"
   scope                 = azurerm_resource_group.test.id
   event_delivery_schema = "CloudEventSchemaV1_0"
 
-  eventhub_endpoint = azurerm_eventhub.test.id
+  eventhub_endpoint_id = azurerm_eventhub.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_serviceBusQueue(data acceptance.TestData) string {
+func testAccAzureRMEventGridEventSubscription_serviceBusQueueID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -483,21 +518,21 @@ resource "azurerm_servicebus_queue" "test" {
   enable_partitioning = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                       = "acctesteg-%d"
-  scope                      = azurerm_resource_group.test.id
-  event_delivery_schema      = "CloudEventSchemaV1_0"
-  service_bus_queue_endpoint = azurerm_servicebus_queue.test.id
+  name                          = "acctest-eg-%d"
+  scope                         = azurerm_resource_group.test.id
+  event_delivery_schema         = "CloudEventSchemaV1_0"
+  service_bus_queue_endpoint_id = azurerm_servicebus_queue.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_serviceBusTopic(data acceptance.TestData) string {
+func testAccAzureRMEventGridEventSubscription_serviceBusTopicID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eg-%d"
   location = "%s"
 }
 resource "azurerm_servicebus_namespace" "example" {
@@ -513,10 +548,10 @@ resource "azurerm_servicebus_topic" "test" {
   enable_partitioning = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                       = "acctesteg-%d"
-  scope                      = azurerm_resource_group.test.id
-  event_delivery_schema      = "CloudEventSchemaV1_0"
-  service_bus_topic_endpoint = azurerm_servicebus_topic.test.id
+  name                          = "acctest-eg-%d"
+  scope                         = azurerm_resource_group.test.id
+  event_delivery_schema         = "CloudEventSchemaV1_0"
+  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -528,7 +563,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-eg-%d"
   location = "%s"
 }
 
@@ -550,7 +585,7 @@ resource "azurerm_storage_queue" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctesteg-%d"
+  name  = "acctest-eg-%d"
   scope = "${azurerm_resource_group.test.id}"
 
   storage_queue_endpoint {

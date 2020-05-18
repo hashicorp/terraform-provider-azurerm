@@ -60,21 +60,25 @@ The following arguments are supported:
 
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
-* `azure_function_endpoint` - (Optional) Specifies the id where the azure function is located.
+* `azure_function_endpoint_id` - (Optional) Specifies the id where the Azure Function is located.
 
-* `eventhub_endpoint` - (Optional) Specifies the id of the eventhub where the Event Subscription will receive events.
+* `eventhub_endpoint` - (Optional / **Deprecated in favour of `eventhub_endpoint_id`**) A `eventhub_endpoint` block as defined below.
 
-* `hybrid_connection_endpoint` - (Optional) Specifies the id of the hybrid connection where the Event Subscription will receive events.
+* `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
 
-* `service_bus_queue_endpoint` - (Optional) Specifies the id where the service bus queue is located.
+* `hybrid_connection_endpoint` - (Optional / **Deprecated in favour of `hybrid_connection_endpoint_id`**) A `hybrid_connection_endpoint` block as defined below.
 
-* `service_bus_topic_endpoint` - (Optional) Specifies the id where the service bus topic is located.
+* `hybrid_connection_endpoint_id` - (Optional) Specifies the id where the Hybrid Connection is located.
+
+* `service_bus_queue_endpoint_id` - (Optional) Specifies the id where the Service Bus Queue is located.
+
+* `service_bus_topic_endpoint_id` - (Optional) Specifies the id where the Service Bus Topic is located.
 
 * `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
 
-* `webhook_endpoint_url` - (Optional) Specifies the url of the webhook where the Event Subscription will receive events.
+* `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `azure_function_endpoint`, `eventhub_endpoint`, `hybrid_connection_endpoint`, `service_bus_queue_endpoint`, `service_bus_topic_endpoint`, `storage_queue_endpoint` or `webhook_endpoint_url` must be specified.
+~> **NOTE:** One of `azure_function_endpoint_id`, `eventhub_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -93,6 +97,23 @@ A `storage_queue_endpoint` supports the following:
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscriptio will receive events.
+
+---
+A `eventhub_endpoint` supports the following:	
+
+* `eventhub_id` - (Required) Specifies the id of the eventhub where the Event Subscription will receive events.	
+
+---	
+
+A `hybrid_connection_endpoint` supports the following:	
+
+* `hybrid_connection_id` - (Required) Specifies the id of the hybrid connection where the Event Subscription will receive events.	
+
+---	
+
+A `webhook_endpoint` supports the following:	
+
+* `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.	
 
 ---
 
