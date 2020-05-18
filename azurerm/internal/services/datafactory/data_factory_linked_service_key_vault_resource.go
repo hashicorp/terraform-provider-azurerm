@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	keyVaultParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,10 +54,10 @@ func resourceArmDataFactoryLinkedServiceKeyVault() *schema.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"base_url": {
+			"key_vault_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.IsURLWithHTTPS,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"description": {
@@ -100,12 +101,23 @@ func resourceArmDataFactoryLinkedServiceKeyVault() *schema.Resource {
 
 func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
+	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	keyVaultIdRaw := d.Get("key_vault_id").(string)
+	_, err := keyVaultParse.KeyVaultID(keyVaultIdRaw)
+	if err != nil {
+		return err
+	}
+
+	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultIdRaw)
+	if err != nil {
+		return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultIdRaw, err)
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
@@ -121,7 +133,7 @@ func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceD
 	}
 
 	azureKeyVaultProperties := &datafactory.AzureKeyVaultLinkedServiceTypeProperties{
-		BaseURL: utils.String(d.Get("base_url").(string)),
+		BaseURL: utils.String(keyVaultBaseUri),
 	}
 
 	azureKeyVaultLinkedService := &datafactory.AzureKeyVaultLinkedService{
@@ -171,6 +183,7 @@ func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceD
 
 func resourceArmDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
+	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -231,7 +244,13 @@ func resourceArmDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, met
 			}
 		}
 	}
-	d.Set("base_url", baseUrl)
+
+	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, baseUrl)
+	if err != nil {
+		return fmt.Errorf("Error looking up Key Vault id from url %q: %+v", baseUrl, err)
+	}
+
+	d.Set("key_vault_id", keyVaultId)
 
 	return nil
 }

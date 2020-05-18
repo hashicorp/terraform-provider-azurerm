@@ -128,9 +128,20 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "atkv%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 }
 
 resource "azurerm_data_factory" "test" {
@@ -143,9 +154,9 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
   name                = "acctestlskv%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  base_url            = "https://myakv.vault.azure.net"
+  key_vault_id        = azurerm_key_vault.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMDataFactoryLinkedServiceKeyVault_update1(data acceptance.TestData) string {
@@ -154,9 +165,20 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "atkv%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 }
 
 resource "azurerm_data_factory" "test" {
@@ -169,7 +191,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
   name                = "acctestlskv%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  base_url            = "https://myakv.vault.azure.net"
+  key_vault_id        = azurerm_key_vault.test.id
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
@@ -183,7 +205,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
     bar = "test2"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMDataFactoryLinkedServiceKeyVault_update2(data acceptance.TestData) string {
@@ -192,9 +214,20 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "atkv%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 }
 
 resource "azurerm_data_factory" "test" {
@@ -207,7 +240,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
   name                = "acctestlskv%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  base_url            = "https://myakv.vault.azure.net"
+  key_vault_id        = azurerm_key_vault.test.id
   annotations         = ["test1", "test2"]
   description         = "test description 2"
 
@@ -221,5 +254,5 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
     foo = "test1"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

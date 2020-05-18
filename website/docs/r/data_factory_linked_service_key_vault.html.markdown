@@ -10,14 +10,23 @@ description: |-
 
 Manages a Linked Service (connection) between Key Vault and Azure Data Factory.
 
-~> **Note:** All arguments including the base_url will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
-
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "eastus"
+}
+
+resource "azurerm_key_vault" "example" {
+  name                = "example"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
 }
 
 resource "azurerm_data_factory" "example" {
@@ -30,7 +39,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
   data_factory_name   = azurerm_data_factory.example.name
-  base_url            = "https://myakv.vault.azure.net"
+  key_vault_id        = azurerm_key_vault.example.id
 }
 ```
 
@@ -44,7 +53,7 @@ The following arguments are supported:
 
 * `data_factory_name` - (Required) The Data Factory name in which to associate the Linked Service with. Changing this forces a new resource.
 
-* `base_url` - (Required) The base URL of the Azure Key Vault.
+* `key_vault_id` - (Required) The ID the Azure Key Vault resource.
 
 * `description` - (Optional) The description for the Data Factory Linked Service Key Vault.
 
