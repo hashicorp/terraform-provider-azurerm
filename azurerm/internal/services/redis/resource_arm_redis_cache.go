@@ -570,8 +570,9 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
 
 	if props != nil {
-		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.PrimaryKey, *props.EnableNonSslPort))
-		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.SecondaryKey, *props.EnableNonSslPort))
+		enableSslPort := !*props.EnableNonSslPort
+		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.PrimaryKey, enableSslPort))
+		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.SecondaryKey, enableSslPort))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -671,6 +672,11 @@ func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error
 
 	// RDB Backup
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
+		if v.(bool) {
+			if connStr, connOk := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); !connOk || connStr.(string) == "" {
+				return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+			}
+		}
 		delta := strconv.FormatBool(v.(bool))
 		output["rdb-backup-enabled"] = utils.String(delta)
 	}

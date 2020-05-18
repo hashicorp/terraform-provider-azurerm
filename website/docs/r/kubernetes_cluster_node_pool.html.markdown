@@ -56,9 +56,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Node Pool which should be created within the Kubernetes Cluster. Changing this forces a new resource to be created.
 
--> **NOTE:** A Windows Node Pool cannot have a `name` longer than 6 characters.
+~> **NOTE:** A Windows Node Pool cannot have a `name` longer than 6 characters.
 
 * `kubernetes_cluster_id` - (Required) The ID of the Kubernetes Cluster where this Node Pool should exist. Changing this forces a new resource to be created.
+
+~> **NOTE:** The type of Default Node Pool for the Kubernetes Cluster must be `VirtualMachineScaleSets` to attach multiple node pools.
 
 * `vm_size` - (Required) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this forces a new resource to be created.
 
@@ -68,7 +70,7 @@ The following arguments are supported:
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Defaults to `false`.
 
--> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
+~> **NOTE:** Additional fields must be configured depending on the value of this field - see below.
 
 * `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Defaults to `false`.
 

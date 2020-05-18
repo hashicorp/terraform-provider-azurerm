@@ -167,6 +167,8 @@ The following arguments are supported:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
+* `firewall_policy_id` - (Optional) The resource ID of a firewall policy.
+
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
 * `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
@@ -288,6 +290,10 @@ A `http_listener` block supports the following:
 
 * `host_name` - (Optional) The Hostname which should be used for this HTTP Listener.
 
+* `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
+
+-> **NOTE** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
+
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
 * `require_sni` - (Optional) Should Server Name Indication be Required? Defaults to `false`.
@@ -393,6 +399,10 @@ A `ssl_certificate` block supports the following:
 * `password` - (Optional) Password for the pfx file specified in data.  Required if `data` is set.
 
 * `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
+
+-> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs).
+
+-> **NOTE:** For TLS termination with Key Vault certificates to work properly existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 

@@ -62,9 +62,7 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
-* `private_link_enabled` - Does this Kubernetes Cluster have the Kubernetes API exposed via Private Link?                           
-
--> **NOTE:** At this time Private Link is in Public Preview
+* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.                           
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 

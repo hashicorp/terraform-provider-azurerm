@@ -6,7 +6,7 @@ description: |-
   Manages a Slack integration for a Bot Channel
 ---
 
-# azurerm_bot_connection
+# azurerm_bot_channel_slack
 
 Manages a Slack integration for a Bot Channel
 

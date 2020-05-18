@@ -13,25 +13,45 @@ Manages an API Management Service Diagnostic.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_api_management" "test" {
+resource "azurerm_application_insights" "example" {
+  name                = "example-appinsights"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  application_type    = "web"
+}
+
+resource "azurerm_api_management" "example" {
   name                = "example-apim"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
   sku_name            = "Developer_1"
 }
+resource "azurerm_api_management_logger" "example" {
+  name                = "example-apimlogger"
+  api_management_name = azurerm_api_management.example.name
+  resource_group_name = azurerm_resource_group.example.name
 
-resource "azurerm_api_management_diagnostic" "test" {
-  identifier          = "applicationinsights"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  enabled             = true
+  application_insights {
+    instrumentation_key = azurerm_application_insights.example.instrumentation_key
+  }
+}
+
+resource "azurerm_api_management_diagnostic" "example" {
+  identifier               = "applicationinsights"
+  resource_group_name      = azurerm_resource_group.example.name
+  api_management_name      = azurerm_api_management.example.name
+  api_management_logger_id = azurerm_api_management_logger.example.id
 }
 ```
 
@@ -45,7 +65,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the API Management Service exists. Changing this forces a new resource to be created.
 
-* `enabled` - (Required) Indicates whether a Diagnostic should receive data or not.
+* `api_management_logger_id` - (Required) The id of the target API Management Logger where the API Management Diagnostic should be saved.
 
 ---
 
@@ -69,5 +89,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 API Management Diagnostics can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_diagnostic.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/diagnostics/applicationinsights
+terraform import azurerm_api_management_diagnostic.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/diagnostics/applicationinsights
 ```

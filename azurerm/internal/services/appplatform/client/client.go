@@ -7,13 +7,18 @@ import (
 
 type Client struct {
 	ServicesClient *appplatform.ServicesClient
+	AppsClient     *appplatform.AppsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	appsClient := appplatform.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&appsClient.Client, o.ResourceManagerAuthorizer)
+
 	servicesClient := appplatform.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		AppsClient:     &appsClient,
 		ServicesClient: &servicesClient,
 	}
 }

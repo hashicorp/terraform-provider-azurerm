@@ -3,7 +3,6 @@ WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
 TESTTIMEOUT=180m
 
-
 .EXPORT_ALL_VARIABLES:
   TF_SCHEMA_PANIC_ON_ERROR=1
   GO111MODULE=on
@@ -14,11 +13,11 @@ default: build
 tools:
 	@echo "==> installing required tooling..."
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
-	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
 	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$GOPATH/bin v1.24.0
 
 build: fmtcheck generate
 	go install
@@ -36,6 +35,12 @@ fmt:
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 	@sh "$(CURDIR)/scripts/timeouts.sh"
+
+terrafmt:
+	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
+	@find azurerm | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
+	@echo "==> Fixing website terraform blocks code with terrafmt..."
+	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
 
 generate:
 	go generate ./azurerm/internal/provider/
@@ -77,6 +82,7 @@ test-docker:
 	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.13 make test
 
 test: fmtcheck
+	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/run-test.sh
 
 test-compile:
