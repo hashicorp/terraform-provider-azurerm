@@ -7,6 +7,7 @@ DEPENDENCIES:
 
 IMPROVEMENTS:
 
+* `azurerm_api_management_api_version_set` - updating the validation for the `name` field [GH-6947]
 * `azurerm_databricks_workspace` - exposing `workspace_id` and `workspace_url` [GH-6973]
 
 ---
