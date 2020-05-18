@@ -28,7 +28,7 @@ var ValidateWebApplicationFirewallPolicyRuleGroupName = validation.StringInSlice
 }, false)
 
 var ValidateWebApplicationFirewallPolicyRuleSetVersion = validation.StringInSlice([]string{
-	"0.1",
+	"1.0",
 	"2.2.9",
 	"3.0",
 	"3.1",
