@@ -83,7 +83,7 @@ A `storage_queue_endpoint` supports the following:
 
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
-* `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscriptio will receive events.
+* `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscription will receive events.
 
 ---
 
