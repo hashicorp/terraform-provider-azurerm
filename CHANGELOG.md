@@ -5,6 +5,9 @@ DEPENDENCIES:
 * updating `github.com/Azure/azure-sdk-for-go` to `v42.1.0` [GH-6725]
 * updating `network` to `2020-03-01` [GH-6727]
 
+FEATURES:
+* **Opt-In/Experimental Enhanced Validation for Locations:** This allows validating that the `location` field being specified is a valid Azure Region within the Azure Environment being used - which can be caught via `terraform plan` rather than `terraform apply`. This can be enabled by setting the Environment Variable `ARM_PROVIDER_ENHANCED_VALIDATION` to `true` and will be enabled by default in a future release of the AzureRM Provider [GH-6927]
+
 IMPROVEMENTS:
 
 * `azurerm_api_management_api_version_set` - updating the validation for the `name` field [GH-6947]
