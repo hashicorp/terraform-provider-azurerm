@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-11-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,11 +23,13 @@ func resourceArmNetAppSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmNetAppSnapshotCreate,
 		Read:   resourceArmNetAppSnapshotRead,
+		Update: resourceArmNetAppSnapshotUpdate,
 		Delete: resourceArmNetAppSnapshotDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
@@ -66,6 +69,8 @@ func resourceArmNetAppSnapshot() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: ValidateNetAppVolumeName,
 			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -97,6 +102,7 @@ func resourceArmNetAppSnapshotCreate(d *schema.ResourceData, meta interface{}) e
 
 	parameters := netapp.Snapshot{
 		Location: utils.String(location),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.Create(ctx, parameters, resourceGroup, accountName, poolName, volumeName, name)
@@ -148,7 +154,36 @@ func resourceArmNetAppSnapshotRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceArmNetAppSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).NetApp.SnapshotClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.NetAppSnapshotID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := netapp.SnapshotPatch{
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if _, err = client.Update(ctx, parameters, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name); err != nil {
+		return fmt.Errorf("Error updating NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.AccountName, id.PoolName, id.VolumeName, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving NetApp Snapshot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("Cannot read NetApp Snapshot %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
+	}
+
+	return resourceArmNetAppSnapshotRead(d, meta)
 }
 
 func resourceArmNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) error {

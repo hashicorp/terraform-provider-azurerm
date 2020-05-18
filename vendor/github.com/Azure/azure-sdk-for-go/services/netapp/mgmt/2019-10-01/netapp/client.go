@@ -1,4 +1,4 @@
-// Package netapp implements the Azure ARM Netapp service API version 2019-11-01.
+// Package netapp implements the Azure ARM Netapp service API version 2019-10-01.
 //
 // Microsoft NetApp Azure Resource Provider specification
 package netapp

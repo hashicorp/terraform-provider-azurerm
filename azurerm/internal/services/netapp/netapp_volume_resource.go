@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-11-01/netapp"
+	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -469,7 +469,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 	return results
 }
 
-func flattenArmNetAppVolumeMountIPAddresses(input *[]netapp.MountTargetProperties) []interface{} {
+func flattenArmNetAppVolumeMountIPAddresses(input *[]netapp.MountTarget) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
