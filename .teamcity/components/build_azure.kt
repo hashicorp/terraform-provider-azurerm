@@ -3,10 +3,10 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.ParametrizedWithType
 class ClientConfiguration(var clientId: String,
                           var clientSecret: String,
                           val subscriptionId : String,
-                          val subscriptionIdAlt : String,
                           val tenantId : String,
                           val clientIdAlt: String,
-                          val clientSecretAlt: String) {
+                          val clientSecretAlt: String,
+                          val subscriptionIdAlt : String) {
 }
 
 class LocationConfiguration(var primary : String, var secondary : String, var ternary : String, var rotate : Boolean) {
