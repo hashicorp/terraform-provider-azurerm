@@ -125,7 +125,7 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
 		if err := d.Set("mount_ip_addresses", flattenArmNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
-			return fmt.Errorf("Error setting `mount_ip_addresses`: %+v", err)
+			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 		}
 	}
 
