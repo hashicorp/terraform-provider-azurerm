@@ -13,6 +13,6 @@ var environment = DslContext.getParameter("environment", "public")
 var clientIdAlt = DslContext.getParameter("clientIdAlt", "")
 var clientSecretAlt = DslContext.getParameter("clientSecretAlt", "")
 
-var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, subscriptionIdAlt, tenantId, clientIdAlt, clientSecretAlt)
+var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt )
 
 project(AzureRM(environment, clientConfig))
