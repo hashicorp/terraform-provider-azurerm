@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
@@ -398,6 +398,20 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 									"key_data": {
 										Type:     schema.TypeString,
 										Computed: true,
+									},
+
+									"managed": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+
+									"admin_group_object_ids": {
+										Type:       schema.TypeSet,
+										Computed:   true,
+										ConfigMode: schema.SchemaConfigModeAttr,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},

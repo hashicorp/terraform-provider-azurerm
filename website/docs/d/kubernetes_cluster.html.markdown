@@ -247,6 +247,10 @@ A `role_based_access_control` block exports the following:
 
 * `enabled` - Is Role Based Access Control enabled?
 
+* `managed` - Is the AAD Integration managed.
+
+* `admin_group_object_ids` -  AAD group object IDs that will have admin role of the cluster. Only available when managed is enabled
+
 ---
 
 A `service_principal` block supports the following:

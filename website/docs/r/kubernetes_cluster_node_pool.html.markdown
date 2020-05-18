@@ -110,6 +110,8 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 * `node_count` - (Required) The number of nodes which should exist within this Node Pool. Valid values are between `1` and `100`.
 
+* `mode` - (Optional) represents mode of an agent pool. Possible values: System, User. If omitted, system will be used.
+
 ## Attributes Reference
 
 The following attributes are exported:

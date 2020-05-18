@@ -162,13 +162,19 @@ A `addon_profile` block supports the following:
 
 A `azure_active_directory` block supports the following:
 
-* `client_app_id` - (Required) The Client ID of an Azure Active Directory Application.
+* `client_app_id` - (Optional) The Client ID of an Azure Active Directory Application.
 
-* `server_app_id` - (Required) The Server ID of an Azure Active Directory Application.
+* `server_app_id` - (Optional) The Server ID of an Azure Active Directory Application.
 
-* `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application.
+* `server_app_secret` - (Optional) The Server Secret of an Azure Active Directory Application.
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
+
+* `managed` - (Optional) Is the AAD Integration managed. When enabled Azure will create the quired service principals for RBAC. If enabled client_app_id, server_app_id or server_app_secret should not be provided.
+
+* `admin_group_object_ids` - (Optional) When using managed AAD integration, AAD group object IDs that will have admin role of the cluster.
+
+-> **NOTE:** For more information about managed AAD Integration, please visit [Integrate Azure AD in Azure Kubernetes Service](https://docs.microsoft.com/en-us/azure/aks/azure-ad-v2). This is a preview feature, follow link instructions to enable it in the subscription. 
 
 
 ---

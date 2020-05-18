@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -355,19 +355,19 @@ func resourceArmKubernetesCluster() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"client_app_id": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.IsUUID,
 									},
 
 									"server_app_id": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.IsUUID,
 									},
 
 									"server_app_secret": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										Sensitive:    true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
@@ -378,6 +378,21 @@ func resourceArmKubernetesCluster() *schema.Resource {
 										Computed: true,
 										// OrEmpty since this can be sourced from the client config if it's not specified
 										ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+									},
+
+									"managed": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+
+									"admin_group_object_ids": {
+										Type:       schema.TypeSet,
+										Optional:   true,
+										ConfigMode: schema.SchemaConfigModeAttr,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validation.IsUUID,
+										},
 									},
 								},
 							},
@@ -581,7 +596,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
-	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+	rbacEnabled, azureADProfile, err := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+	if err != nil {
+		return err
+	}
 
 	t := d.Get("tags").(map[string]interface{})
 
@@ -747,7 +765,11 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("reading current state of RBAC Enabled, expected bool got %+v", props.EnableRBAC)
 		}
 		rbacRaw := d.Get("role_based_access_control").([]interface{})
-		rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+		rbacEnabled, azureADProfile, err := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+		if err != nil {
+			return err
+		}
+
 		// changing rbacEnabled must still force cluster recreation
 		if *props.EnableRBAC == rbacEnabled {
 			props.AadProfile = azureADProfile
@@ -1413,9 +1435,9 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	}
 }
 
-func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, providerTenantId string) (bool, *containerservice.ManagedClusterAADProfile) {
+func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, providerTenantId string) (bool, *containerservice.ManagedClusterAADProfile, error) {
 	if len(input) == 0 {
-		return false, nil
+		return false, nil, nil
 	}
 
 	val := input[0].(map[string]interface{})
@@ -1424,6 +1446,8 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 	azureADsRaw := val["azure_active_directory"].([]interface{})
 
 	var aad *containerservice.ManagedClusterAADProfile
+	var validationError error
+
 	if len(azureADsRaw) > 0 {
 		azureAdRaw := azureADsRaw[0].(map[string]interface{})
 
@@ -1431,20 +1455,44 @@ func expandKubernetesClusterRoleBasedAccessControl(input []interface{}, provider
 		serverAppId := azureAdRaw["server_app_id"].(string)
 		serverAppSecret := azureAdRaw["server_app_secret"].(string)
 		tenantId := azureAdRaw["tenant_id"].(string)
+		managed := azureAdRaw["managed"].(bool)
+		adminGroupObjectIdsRaw := azureAdRaw["admin_group_object_ids"].(*schema.Set).List()
+		adminGroupObjectIds := utils.ExpandStringSlice(adminGroupObjectIdsRaw)
 
 		if tenantId == "" {
 			tenantId = providerTenantId
 		}
 
-		aad = &containerservice.ManagedClusterAADProfile{
-			ClientAppID:     utils.String(clientAppId),
-			ServerAppID:     utils.String(serverAppId),
-			ServerAppSecret: utils.String(serverAppSecret),
-			TenantID:        utils.String(tenantId),
+		if managed {
+			aad = &containerservice.ManagedClusterAADProfile{
+				TenantID:            utils.String(tenantId),
+				Managed:             utils.Bool(managed),
+				AdminGroupObjectIDs: adminGroupObjectIds,
+			}
+
+			if clientAppId != "" || serverAppId != "" || serverAppSecret != "" {
+				validationError = fmt.Errorf("Can't specify client_app_id or server_app_id or server_app_secret when using managed aad rbac (managed = true)")
+			}
+		} else {
+			aad = &containerservice.ManagedClusterAADProfile{
+				ClientAppID:     utils.String(clientAppId),
+				ServerAppID:     utils.String(serverAppId),
+				ServerAppSecret: utils.String(serverAppSecret),
+				TenantID:        utils.String(tenantId),
+				Managed:         utils.Bool(managed),
+			}
+
+			if len(*adminGroupObjectIds) > 0 {
+				validationError = fmt.Errorf("Can't specify admin_group_object_ids when using managed aad rbac (managed = false)")
+			}
+
+			if clientAppId == "" || serverAppId == "" || serverAppSecret == "" {
+				validationError = fmt.Errorf("You must specify client_app_id and server_app_id and server_app_secret when using managed aad rbac (managed = false)")
+			}
 		}
 	}
 
-	return rbacEnabled, aad
+	return rbacEnabled, aad, validationError
 }
 
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) *containerservice.ManagedClusterIdentity {
@@ -1501,11 +1549,23 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 			tenantId = *profile.TenantID
 		}
 
+		managed := false
+		if profile.Managed != nil {
+			managed = *profile.Managed
+		}
+
+		var adminGroupObjectIds *schema.Set
+		if profile.AdminGroupObjectIDs != nil {
+			adminGroupObjectIds = schema.NewSet(schema.HashString, utils.FlattenStringSlice(profile.AdminGroupObjectIDs))
+		}
+
 		results = append(results, map[string]interface{}{
-			"client_app_id":     clientAppId,
-			"server_app_id":     serverAppId,
-			"server_app_secret": serverAppSecret,
-			"tenant_id":         tenantId,
+			"client_app_id":          clientAppId,
+			"server_app_id":          serverAppId,
+			"server_app_secret":      serverAppSecret,
+			"tenant_id":              tenantId,
+			"managed":                managed,
+			"admin_group_object_ids": adminGroupObjectIds,
 		})
 	}
 

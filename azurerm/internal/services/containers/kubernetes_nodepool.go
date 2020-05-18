@@ -3,7 +3,7 @@ package containers
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -124,6 +124,17 @@ func SchemaDefaultNodePool() *schema.Schema {
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceID,
 				},
+
+				"mode": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ForceNew: true,
+					Default:  string(containerservice.System),
+					ValidateFunc: validation.StringInSlice([]string{
+						string(containerservice.User),
+						string(containerservice.System),
+					}, false),
+				},
 			},
 		},
 	}
@@ -152,6 +163,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			NodeLabels:             defaultCluster.NodeLabels,
 			NodeTaints:             defaultCluster.NodeTaints,
 			Tags:                   defaultCluster.Tags,
+			Mode:                   defaultCluster.Mode,
 		},
 	}
 }
@@ -186,6 +198,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		// OrchestratorVersion:    nil,
 		// ScaleSetEvictionPolicy: "",
 		// ScaleSetPriority:       "",
+		Mode: containerservice.AgentPoolMode(raw["mode"].(string)),
 	}
 
 	availabilityZonesRaw := raw["availability_zones"].([]interface{})
@@ -350,6 +363,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"type":                  string(agentPool.Type),
 			"vm_size":               string(agentPool.VMSize),
 			"vnet_subnet_id":        vnetSubnetId,
+			"mode":                  string(agentPool.Mode),
 		},
 	}, nil
 }

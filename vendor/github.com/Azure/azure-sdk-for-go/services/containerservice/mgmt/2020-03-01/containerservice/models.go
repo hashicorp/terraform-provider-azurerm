@@ -28,7 +28,22 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
+
+// AgentPoolMode enumerates the values for agent pool mode.
+type AgentPoolMode string
+
+const (
+	// System ...
+	System AgentPoolMode = "System"
+	// User ...
+	User AgentPoolMode = "User"
+)
+
+// PossibleAgentPoolModeValues returns an array of possible values for the AgentPoolMode const type.
+func PossibleAgentPoolModeValues() []AgentPoolMode {
+	return []AgentPoolMode{System, User}
+}
 
 // AgentPoolType enumerates the values for agent pool type.
 type AgentPoolType string
@@ -73,6 +88,34 @@ const (
 // PossibleLoadBalancerSkuValues returns an array of possible values for the LoadBalancerSku const type.
 func PossibleLoadBalancerSkuValues() []LoadBalancerSku {
 	return []LoadBalancerSku{Basic, Standard}
+}
+
+// ManagedClusterSKUName enumerates the values for managed cluster sku name.
+type ManagedClusterSKUName string
+
+const (
+	// ManagedClusterSKUNameBasic ...
+	ManagedClusterSKUNameBasic ManagedClusterSKUName = "Basic"
+)
+
+// PossibleManagedClusterSKUNameValues returns an array of possible values for the ManagedClusterSKUName const type.
+func PossibleManagedClusterSKUNameValues() []ManagedClusterSKUName {
+	return []ManagedClusterSKUName{ManagedClusterSKUNameBasic}
+}
+
+// ManagedClusterSKUTier enumerates the values for managed cluster sku tier.
+type ManagedClusterSKUTier string
+
+const (
+	// Free ...
+	Free ManagedClusterSKUTier = "Free"
+	// Paid ...
+	Paid ManagedClusterSKUTier = "Paid"
+)
+
+// PossibleManagedClusterSKUTierValues returns an array of possible values for the ManagedClusterSKUTier const type.
+func PossibleManagedClusterSKUTierValues() []ManagedClusterSKUTier {
+	return []ManagedClusterSKUTier{Free, Paid}
 }
 
 // NetworkMode enumerates the values for network mode.
@@ -1534,6 +1577,8 @@ type ManagedCluster struct {
 	*ManagedClusterProperties `json:"properties,omitempty"`
 	// Identity - The identity of the managed cluster, if configured.
 	Identity *ManagedClusterIdentity `json:"identity,omitempty"`
+	// Sku - The managed cluster SKU.
+	Sku *ManagedClusterSKU `json:"sku,omitempty"`
 	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource name
@@ -1554,6 +1599,9 @@ func (mc ManagedCluster) MarshalJSON() ([]byte, error) {
 	}
 	if mc.Identity != nil {
 		objectMap["identity"] = mc.Identity
+	}
+	if mc.Sku != nil {
+		objectMap["sku"] = mc.Sku
 	}
 	if mc.Location != nil {
 		objectMap["location"] = mc.Location
@@ -1590,6 +1638,15 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				mc.Identity = &identity
+			}
+		case "sku":
+			if v != nil {
+				var sku ManagedClusterSKU
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				mc.Sku = &sku
 			}
 		case "id":
 			if v != nil {
@@ -1644,6 +1701,10 @@ func (mc *ManagedCluster) UnmarshalJSON(body []byte) error {
 
 // ManagedClusterAADProfile aADProfile specifies attributes for Azure Active Directory integration.
 type ManagedClusterAADProfile struct {
+	// Managed - Whether to enable managed AAD.
+	Managed *bool `json:"managed,omitempty"`
+	// AdminGroupObjectIDs - AAD group object IDs that will have admin role of the cluster.
+	AdminGroupObjectIDs *[]string `json:"adminGroupObjectIDs,omitempty"`
 	// ClientAppID - The client AAD application ID.
 	ClientAppID *string `json:"clientAppID,omitempty"`
 	// ServerAppID - The server AAD application ID.
@@ -1791,7 +1852,7 @@ type ManagedClusterAddonProfileIdentity struct {
 type ManagedClusterAgentPoolProfile struct {
 	// Name - Unique name of the agent pool profile in the context of the subscription and resource group.
 	Name *string `json:"name,omitempty"`
-	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
+	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 100 (inclusive). The default value is 1.
 	Count *int32 `json:"count,omitempty"`
 	// VMSize - Size of agent VMs. Possible values include: 'VMSizeTypesStandardA1', 'VMSizeTypesStandardA10', 'VMSizeTypesStandardA11', 'VMSizeTypesStandardA1V2', 'VMSizeTypesStandardA2', 'VMSizeTypesStandardA2V2', 'VMSizeTypesStandardA2mV2', 'VMSizeTypesStandardA3', 'VMSizeTypesStandardA4', 'VMSizeTypesStandardA4V2', 'VMSizeTypesStandardA4mV2', 'VMSizeTypesStandardA5', 'VMSizeTypesStandardA6', 'VMSizeTypesStandardA7', 'VMSizeTypesStandardA8', 'VMSizeTypesStandardA8V2', 'VMSizeTypesStandardA8mV2', 'VMSizeTypesStandardA9', 'VMSizeTypesStandardB2ms', 'VMSizeTypesStandardB2s', 'VMSizeTypesStandardB4ms', 'VMSizeTypesStandardB8ms', 'VMSizeTypesStandardD1', 'VMSizeTypesStandardD11', 'VMSizeTypesStandardD11V2', 'VMSizeTypesStandardD11V2Promo', 'VMSizeTypesStandardD12', 'VMSizeTypesStandardD12V2', 'VMSizeTypesStandardD12V2Promo', 'VMSizeTypesStandardD13', 'VMSizeTypesStandardD13V2', 'VMSizeTypesStandardD13V2Promo', 'VMSizeTypesStandardD14', 'VMSizeTypesStandardD14V2', 'VMSizeTypesStandardD14V2Promo', 'VMSizeTypesStandardD15V2', 'VMSizeTypesStandardD16V3', 'VMSizeTypesStandardD16sV3', 'VMSizeTypesStandardD1V2', 'VMSizeTypesStandardD2', 'VMSizeTypesStandardD2V2', 'VMSizeTypesStandardD2V2Promo', 'VMSizeTypesStandardD2V3', 'VMSizeTypesStandardD2sV3', 'VMSizeTypesStandardD3', 'VMSizeTypesStandardD32V3', 'VMSizeTypesStandardD32sV3', 'VMSizeTypesStandardD3V2', 'VMSizeTypesStandardD3V2Promo', 'VMSizeTypesStandardD4', 'VMSizeTypesStandardD4V2', 'VMSizeTypesStandardD4V2Promo', 'VMSizeTypesStandardD4V3', 'VMSizeTypesStandardD4sV3', 'VMSizeTypesStandardD5V2', 'VMSizeTypesStandardD5V2Promo', 'VMSizeTypesStandardD64V3', 'VMSizeTypesStandardD64sV3', 'VMSizeTypesStandardD8V3', 'VMSizeTypesStandardD8sV3', 'VMSizeTypesStandardDS1', 'VMSizeTypesStandardDS11', 'VMSizeTypesStandardDS11V2', 'VMSizeTypesStandardDS11V2Promo', 'VMSizeTypesStandardDS12', 'VMSizeTypesStandardDS12V2', 'VMSizeTypesStandardDS12V2Promo', 'VMSizeTypesStandardDS13', 'VMSizeTypesStandardDS132V2', 'VMSizeTypesStandardDS134V2', 'VMSizeTypesStandardDS13V2', 'VMSizeTypesStandardDS13V2Promo', 'VMSizeTypesStandardDS14', 'VMSizeTypesStandardDS144V2', 'VMSizeTypesStandardDS148V2', 'VMSizeTypesStandardDS14V2', 'VMSizeTypesStandardDS14V2Promo', 'VMSizeTypesStandardDS15V2', 'VMSizeTypesStandardDS1V2', 'VMSizeTypesStandardDS2', 'VMSizeTypesStandardDS2V2', 'VMSizeTypesStandardDS2V2Promo', 'VMSizeTypesStandardDS3', 'VMSizeTypesStandardDS3V2', 'VMSizeTypesStandardDS3V2Promo', 'VMSizeTypesStandardDS4', 'VMSizeTypesStandardDS4V2', 'VMSizeTypesStandardDS4V2Promo', 'VMSizeTypesStandardDS5V2', 'VMSizeTypesStandardDS5V2Promo', 'VMSizeTypesStandardE16V3', 'VMSizeTypesStandardE16sV3', 'VMSizeTypesStandardE2V3', 'VMSizeTypesStandardE2sV3', 'VMSizeTypesStandardE3216sV3', 'VMSizeTypesStandardE328sV3', 'VMSizeTypesStandardE32V3', 'VMSizeTypesStandardE32sV3', 'VMSizeTypesStandardE4V3', 'VMSizeTypesStandardE4sV3', 'VMSizeTypesStandardE6416sV3', 'VMSizeTypesStandardE6432sV3', 'VMSizeTypesStandardE64V3', 'VMSizeTypesStandardE64sV3', 'VMSizeTypesStandardE8V3', 'VMSizeTypesStandardE8sV3', 'VMSizeTypesStandardF1', 'VMSizeTypesStandardF16', 'VMSizeTypesStandardF16s', 'VMSizeTypesStandardF16sV2', 'VMSizeTypesStandardF1s', 'VMSizeTypesStandardF2', 'VMSizeTypesStandardF2s', 'VMSizeTypesStandardF2sV2', 'VMSizeTypesStandardF32sV2', 'VMSizeTypesStandardF4', 'VMSizeTypesStandardF4s', 'VMSizeTypesStandardF4sV2', 'VMSizeTypesStandardF64sV2', 'VMSizeTypesStandardF72sV2', 'VMSizeTypesStandardF8', 'VMSizeTypesStandardF8s', 'VMSizeTypesStandardF8sV2', 'VMSizeTypesStandardG1', 'VMSizeTypesStandardG2', 'VMSizeTypesStandardG3', 'VMSizeTypesStandardG4', 'VMSizeTypesStandardG5', 'VMSizeTypesStandardGS1', 'VMSizeTypesStandardGS2', 'VMSizeTypesStandardGS3', 'VMSizeTypesStandardGS4', 'VMSizeTypesStandardGS44', 'VMSizeTypesStandardGS48', 'VMSizeTypesStandardGS5', 'VMSizeTypesStandardGS516', 'VMSizeTypesStandardGS58', 'VMSizeTypesStandardH16', 'VMSizeTypesStandardH16m', 'VMSizeTypesStandardH16mr', 'VMSizeTypesStandardH16r', 'VMSizeTypesStandardH8', 'VMSizeTypesStandardH8m', 'VMSizeTypesStandardL16s', 'VMSizeTypesStandardL32s', 'VMSizeTypesStandardL4s', 'VMSizeTypesStandardL8s', 'VMSizeTypesStandardM12832ms', 'VMSizeTypesStandardM12864ms', 'VMSizeTypesStandardM128ms', 'VMSizeTypesStandardM128s', 'VMSizeTypesStandardM6416ms', 'VMSizeTypesStandardM6432ms', 'VMSizeTypesStandardM64ms', 'VMSizeTypesStandardM64s', 'VMSizeTypesStandardNC12', 'VMSizeTypesStandardNC12sV2', 'VMSizeTypesStandardNC12sV3', 'VMSizeTypesStandardNC24', 'VMSizeTypesStandardNC24r', 'VMSizeTypesStandardNC24rsV2', 'VMSizeTypesStandardNC24rsV3', 'VMSizeTypesStandardNC24sV2', 'VMSizeTypesStandardNC24sV3', 'VMSizeTypesStandardNC6', 'VMSizeTypesStandardNC6sV2', 'VMSizeTypesStandardNC6sV3', 'VMSizeTypesStandardND12s', 'VMSizeTypesStandardND24rs', 'VMSizeTypesStandardND24s', 'VMSizeTypesStandardND6s', 'VMSizeTypesStandardNV12', 'VMSizeTypesStandardNV24', 'VMSizeTypesStandardNV6'
 	VMSize VMSizeTypes `json:"vmSize,omitempty"`
@@ -1811,6 +1872,8 @@ type ManagedClusterAgentPoolProfile struct {
 	EnableAutoScaling *bool `json:"enableAutoScaling,omitempty"`
 	// Type - AgentPoolType represents types of an agent pool. Possible values include: 'VirtualMachineScaleSets', 'AvailabilitySet'
 	Type AgentPoolType `json:"type,omitempty"`
+	// Mode - AgentPoolMode represents mode of an agent pool. Possible values include: 'System', 'User'
+	Mode AgentPoolMode `json:"mode,omitempty"`
 	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
@@ -1869,6 +1932,9 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	if mcapp.Type != "" {
 		objectMap["type"] = mcapp.Type
 	}
+	if mcapp.Mode != "" {
+		objectMap["mode"] = mcapp.Mode
+	}
 	if mcapp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcapp.OrchestratorVersion
 	}
@@ -1901,7 +1967,7 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 
 // ManagedClusterAgentPoolProfileProperties properties for the container service agent pool profile.
 type ManagedClusterAgentPoolProfileProperties struct {
-	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 1 to 100 (inclusive). The default value is 1.
+	// Count - Number of agents (VMs) to host docker containers. Allowed values must be in the range of 0 to 100 (inclusive). The default value is 1.
 	Count *int32 `json:"count,omitempty"`
 	// VMSize - Size of agent VMs. Possible values include: 'VMSizeTypesStandardA1', 'VMSizeTypesStandardA10', 'VMSizeTypesStandardA11', 'VMSizeTypesStandardA1V2', 'VMSizeTypesStandardA2', 'VMSizeTypesStandardA2V2', 'VMSizeTypesStandardA2mV2', 'VMSizeTypesStandardA3', 'VMSizeTypesStandardA4', 'VMSizeTypesStandardA4V2', 'VMSizeTypesStandardA4mV2', 'VMSizeTypesStandardA5', 'VMSizeTypesStandardA6', 'VMSizeTypesStandardA7', 'VMSizeTypesStandardA8', 'VMSizeTypesStandardA8V2', 'VMSizeTypesStandardA8mV2', 'VMSizeTypesStandardA9', 'VMSizeTypesStandardB2ms', 'VMSizeTypesStandardB2s', 'VMSizeTypesStandardB4ms', 'VMSizeTypesStandardB8ms', 'VMSizeTypesStandardD1', 'VMSizeTypesStandardD11', 'VMSizeTypesStandardD11V2', 'VMSizeTypesStandardD11V2Promo', 'VMSizeTypesStandardD12', 'VMSizeTypesStandardD12V2', 'VMSizeTypesStandardD12V2Promo', 'VMSizeTypesStandardD13', 'VMSizeTypesStandardD13V2', 'VMSizeTypesStandardD13V2Promo', 'VMSizeTypesStandardD14', 'VMSizeTypesStandardD14V2', 'VMSizeTypesStandardD14V2Promo', 'VMSizeTypesStandardD15V2', 'VMSizeTypesStandardD16V3', 'VMSizeTypesStandardD16sV3', 'VMSizeTypesStandardD1V2', 'VMSizeTypesStandardD2', 'VMSizeTypesStandardD2V2', 'VMSizeTypesStandardD2V2Promo', 'VMSizeTypesStandardD2V3', 'VMSizeTypesStandardD2sV3', 'VMSizeTypesStandardD3', 'VMSizeTypesStandardD32V3', 'VMSizeTypesStandardD32sV3', 'VMSizeTypesStandardD3V2', 'VMSizeTypesStandardD3V2Promo', 'VMSizeTypesStandardD4', 'VMSizeTypesStandardD4V2', 'VMSizeTypesStandardD4V2Promo', 'VMSizeTypesStandardD4V3', 'VMSizeTypesStandardD4sV3', 'VMSizeTypesStandardD5V2', 'VMSizeTypesStandardD5V2Promo', 'VMSizeTypesStandardD64V3', 'VMSizeTypesStandardD64sV3', 'VMSizeTypesStandardD8V3', 'VMSizeTypesStandardD8sV3', 'VMSizeTypesStandardDS1', 'VMSizeTypesStandardDS11', 'VMSizeTypesStandardDS11V2', 'VMSizeTypesStandardDS11V2Promo', 'VMSizeTypesStandardDS12', 'VMSizeTypesStandardDS12V2', 'VMSizeTypesStandardDS12V2Promo', 'VMSizeTypesStandardDS13', 'VMSizeTypesStandardDS132V2', 'VMSizeTypesStandardDS134V2', 'VMSizeTypesStandardDS13V2', 'VMSizeTypesStandardDS13V2Promo', 'VMSizeTypesStandardDS14', 'VMSizeTypesStandardDS144V2', 'VMSizeTypesStandardDS148V2', 'VMSizeTypesStandardDS14V2', 'VMSizeTypesStandardDS14V2Promo', 'VMSizeTypesStandardDS15V2', 'VMSizeTypesStandardDS1V2', 'VMSizeTypesStandardDS2', 'VMSizeTypesStandardDS2V2', 'VMSizeTypesStandardDS2V2Promo', 'VMSizeTypesStandardDS3', 'VMSizeTypesStandardDS3V2', 'VMSizeTypesStandardDS3V2Promo', 'VMSizeTypesStandardDS4', 'VMSizeTypesStandardDS4V2', 'VMSizeTypesStandardDS4V2Promo', 'VMSizeTypesStandardDS5V2', 'VMSizeTypesStandardDS5V2Promo', 'VMSizeTypesStandardE16V3', 'VMSizeTypesStandardE16sV3', 'VMSizeTypesStandardE2V3', 'VMSizeTypesStandardE2sV3', 'VMSizeTypesStandardE3216sV3', 'VMSizeTypesStandardE328sV3', 'VMSizeTypesStandardE32V3', 'VMSizeTypesStandardE32sV3', 'VMSizeTypesStandardE4V3', 'VMSizeTypesStandardE4sV3', 'VMSizeTypesStandardE6416sV3', 'VMSizeTypesStandardE6432sV3', 'VMSizeTypesStandardE64V3', 'VMSizeTypesStandardE64sV3', 'VMSizeTypesStandardE8V3', 'VMSizeTypesStandardE8sV3', 'VMSizeTypesStandardF1', 'VMSizeTypesStandardF16', 'VMSizeTypesStandardF16s', 'VMSizeTypesStandardF16sV2', 'VMSizeTypesStandardF1s', 'VMSizeTypesStandardF2', 'VMSizeTypesStandardF2s', 'VMSizeTypesStandardF2sV2', 'VMSizeTypesStandardF32sV2', 'VMSizeTypesStandardF4', 'VMSizeTypesStandardF4s', 'VMSizeTypesStandardF4sV2', 'VMSizeTypesStandardF64sV2', 'VMSizeTypesStandardF72sV2', 'VMSizeTypesStandardF8', 'VMSizeTypesStandardF8s', 'VMSizeTypesStandardF8sV2', 'VMSizeTypesStandardG1', 'VMSizeTypesStandardG2', 'VMSizeTypesStandardG3', 'VMSizeTypesStandardG4', 'VMSizeTypesStandardG5', 'VMSizeTypesStandardGS1', 'VMSizeTypesStandardGS2', 'VMSizeTypesStandardGS3', 'VMSizeTypesStandardGS4', 'VMSizeTypesStandardGS44', 'VMSizeTypesStandardGS48', 'VMSizeTypesStandardGS5', 'VMSizeTypesStandardGS516', 'VMSizeTypesStandardGS58', 'VMSizeTypesStandardH16', 'VMSizeTypesStandardH16m', 'VMSizeTypesStandardH16mr', 'VMSizeTypesStandardH16r', 'VMSizeTypesStandardH8', 'VMSizeTypesStandardH8m', 'VMSizeTypesStandardL16s', 'VMSizeTypesStandardL32s', 'VMSizeTypesStandardL4s', 'VMSizeTypesStandardL8s', 'VMSizeTypesStandardM12832ms', 'VMSizeTypesStandardM12864ms', 'VMSizeTypesStandardM128ms', 'VMSizeTypesStandardM128s', 'VMSizeTypesStandardM6416ms', 'VMSizeTypesStandardM6432ms', 'VMSizeTypesStandardM64ms', 'VMSizeTypesStandardM64s', 'VMSizeTypesStandardNC12', 'VMSizeTypesStandardNC12sV2', 'VMSizeTypesStandardNC12sV3', 'VMSizeTypesStandardNC24', 'VMSizeTypesStandardNC24r', 'VMSizeTypesStandardNC24rsV2', 'VMSizeTypesStandardNC24rsV3', 'VMSizeTypesStandardNC24sV2', 'VMSizeTypesStandardNC24sV3', 'VMSizeTypesStandardNC6', 'VMSizeTypesStandardNC6sV2', 'VMSizeTypesStandardNC6sV3', 'VMSizeTypesStandardND12s', 'VMSizeTypesStandardND24rs', 'VMSizeTypesStandardND24s', 'VMSizeTypesStandardND6s', 'VMSizeTypesStandardNV12', 'VMSizeTypesStandardNV24', 'VMSizeTypesStandardNV6'
 	VMSize VMSizeTypes `json:"vmSize,omitempty"`
@@ -1921,6 +1987,8 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	EnableAutoScaling *bool `json:"enableAutoScaling,omitempty"`
 	// Type - AgentPoolType represents types of an agent pool. Possible values include: 'VirtualMachineScaleSets', 'AvailabilitySet'
 	Type AgentPoolType `json:"type,omitempty"`
+	// Mode - AgentPoolMode represents mode of an agent pool. Possible values include: 'System', 'User'
+	Mode AgentPoolMode `json:"mode,omitempty"`
 	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
@@ -1975,6 +2043,9 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.Type != "" {
 		objectMap["type"] = mcappp.Type
+	}
+	if mcappp.Mode != "" {
+		objectMap["mode"] = mcappp.Mode
 	}
 	if mcappp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcappp.OrchestratorVersion
@@ -2328,6 +2399,7 @@ func (mcp ManagedClusterProperties) MarshalJSON() ([]byte, error) {
 // ManagedClusterPropertiesAutoScalerProfile parameters to be applied to the cluster-autoscaler when
 // enabled
 type ManagedClusterPropertiesAutoScalerProfile struct {
+	BalanceSimilarNodeGroups      *string `json:"balance-similar-node-groups,omitempty"`
 	ScanInterval                  *string `json:"scan-interval,omitempty"`
 	ScaleDownDelayAfterAdd        *string `json:"scale-down-delay-after-add,omitempty"`
 	ScaleDownDelayAfterDelete     *string `json:"scale-down-delay-after-delete,omitempty"`
@@ -2407,6 +2479,14 @@ type ManagedClusterServicePrincipalProfile struct {
 	ClientID *string `json:"clientId,omitempty"`
 	// Secret - The secret password associated with the service principal in plain text.
 	Secret *string `json:"secret,omitempty"`
+}
+
+// ManagedClusterSKU ...
+type ManagedClusterSKU struct {
+	// Name - Name of a managed cluster SKU. Possible values include: 'ManagedClusterSKUNameBasic'
+	Name ManagedClusterSKUName `json:"name,omitempty"`
+	// Tier - Tier of a managed cluster SKU. Possible values include: 'Paid', 'Free'
+	Tier ManagedClusterSKUTier `json:"tier,omitempty"`
 }
 
 // ManagedClustersResetAADProfileFuture an abstraction for monitoring and retrieving the results of a
