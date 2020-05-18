@@ -25,11 +25,6 @@ func TestAccBlueprintAssignment_basic(t *testing.T) {
 				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckBlueprintAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "userAssigned"), // Casing bug in API?
-					resource.TestCheckResourceAttr(data.ResourceName, "lock_mode", "none"),               // Casing bug in API?
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAccBPAssignment"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "subscriptions"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version_name", "v0.1_testAcc"),
 				),
 			},
 			data.ImportStep(),
@@ -50,13 +45,9 @@ func TestAccBlueprintAssignment_subscriptionComplete(t *testing.T) {
 				Config: testAccBlueprintAssignment_subscriptionComplete(data, "testAcc_subscriptionComplete"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckBlueprintAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "userAssigned"),      // Casing bug in API?
-					resource.TestCheckResourceAttr(data.ResourceName, "lock_mode", "allResourcesDoNotDelete"), // Casing bug in API?
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAccBPAssignment"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "subscriptions"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version_name", "v0.1_testAcc"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -74,13 +65,9 @@ func TestAccBlueprintAssignment_managementGroup(t *testing.T) {
 				Config: testAccBlueprintAssignment_rootManagementGroup(data, "testAcc_basicRootManagementGroup"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckBlueprintAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "userAssigned"), // Casing bug in API?
-					resource.TestCheckResourceAttr(data.ResourceName, "lock_mode", "none"),               // Casing bug in API?
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAccBPAssignment"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "subscriptions"),
-					resource.TestCheckResourceAttr(data.ResourceName, "version_name", "v0.1_testAcc"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }

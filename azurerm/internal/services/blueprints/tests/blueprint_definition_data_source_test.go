@@ -35,8 +35,6 @@ func TestAccDataSourceBlueprintDefinition_basic(t *testing.T) {
 func TestAccDataSourceBlueprintDefinition_basicAtRootManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
 
-	// TODO - Update when the AccTest environment is capable of supporting MG level testing. For now this will fail.
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
 		Providers: acceptance.SupportedProviders,
@@ -57,8 +55,6 @@ func TestAccDataSourceBlueprintDefinition_basicAtRootManagementGroup(t *testing.
 
 func TestAccDataSourceBlueprintDefinition_basicAtChildManagementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_blueprint_definition", "test")
-
-	// TODO - Update when the AccTest environment is capable of supporting MG level testing. For now this will fail.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
