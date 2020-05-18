@@ -244,6 +244,5 @@ func TestApiManagementChildName(t *testing.T) {
 		if valid != tt.valid {
 			t.Errorf("Expected valid status %t but got %t for input %s", tt.valid, valid, tt.input)
 		}
-
 	}
 }
