@@ -109,6 +109,7 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the NetApp Snapshot.
+* `update` - (Defaults to 30 minutes) Used when updating the NetApp Snapshot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Snapshot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Snapshot.
 
