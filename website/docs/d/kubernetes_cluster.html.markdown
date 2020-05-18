@@ -136,7 +136,11 @@ A `agent_pool_profile` block exports the following:
 
 A `azure_active_directory` block exports the following:
 
+* `admin_group_object_ids` - The list of Object IDs of Azure Active Directory Groups which have Admin Role on the Cluster (when using a Managed integration).
+
 * `client_app_id` - The Client ID of an Azure Active Directory Application.
+
+* `managed` - Is the Azure Active Directory Integration managed (also known as AAD Integration V2)?
 
 * `server_app_id` - The Server ID of an Azure Active Directory Application.
 

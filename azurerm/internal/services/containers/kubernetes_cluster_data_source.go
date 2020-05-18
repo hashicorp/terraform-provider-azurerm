@@ -489,8 +489,21 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"admin_group_object_ids": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
 									"client_app_id": {
 										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"managed": {
+										Type:     schema.TypeBool,
 										Computed: true,
 									},
 
@@ -656,21 +669,35 @@ func flattenKubernetesClusterDataSourceRoleBasedAccessControl(input *containerse
 
 	results := make([]interface{}, 0)
 	if profile := input.AadProfile; profile != nil {
-		output := make(map[string]interface{})
+		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
 
+		clientAppId := ""
 		if profile.ClientAppID != nil {
-			output["client_app_id"] = *profile.ClientAppID
+			clientAppId = *profile.ClientAppID
 		}
 
+		managed := false
+		if profile.Managed != nil {
+			managed = *profile.Managed
+		}
+
+		serverAppId := ""
 		if profile.ServerAppID != nil {
-			output["server_app_id"] = *profile.ServerAppID
+			serverAppId = *profile.ServerAppID
 		}
 
+		tenantId := ""
 		if profile.TenantID != nil {
-			output["tenant_id"] = *profile.TenantID
+			tenantId = *profile.TenantID
 		}
 
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"admin_group_object_ids": adminGroupObjectIds,
+			"client_app_id":          clientAppId,
+			"managed":                managed,
+			"server_app_id":          serverAppId,
+			"tenant_id":              tenantId,
+		})
 	}
 
 	return []interface{}{
