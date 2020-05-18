@@ -95,6 +95,8 @@ func TestAccAzureRMDatabricksWorkspace_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDatabricksWorkspaceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_resource_group_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "workspace_url"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "workspace_id"),
 				),
 			},
 			data.ImportStep(),
