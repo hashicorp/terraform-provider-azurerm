@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/Azure/go-autorest/tracing"
 	"github.com/satori/go.uuid"
@@ -79,6 +80,16 @@ const (
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
 	return []ProvisioningState{Accepted, Canceled, Created, Creating, Deleted, Deleting, Failed, Ready, Running, Succeeded, Updating}
+}
+
+// CreatedBy provides details of the entity that created/updated the workspace.
+type CreatedBy struct {
+	// Oid - READ-ONLY; The Object ID that created the workspace.
+	Oid *uuid.UUID `json:"oid,omitempty"`
+	// Puid - READ-ONLY; The Personal Object ID corresponding to the object ID above
+	Puid *string `json:"puid,omitempty"`
+	// ApplicationID - READ-ONLY; The application ID of the application that initiated the creation of the workspace. For example, Azure Portal.
+	ApplicationID *uuid.UUID `json:"applicationId,omitempty"`
 }
 
 // ErrorDetail ...
@@ -451,8 +462,6 @@ type WorkspaceCustomObjectParameter struct {
 
 // WorkspaceCustomParameters custom Parameters used for Cluster Creation.
 type WorkspaceCustomParameters struct {
-	// AmlWorkspaceID - The Workspace ID of an Azure Machine Learning Workspace
-	AmlWorkspaceID *WorkspaceCustomStringParameter `json:"amlWorkspaceId,omitempty"`
 	// CustomVirtualNetworkID - The ID of a Virtual Network where this Databricks Cluster should be created
 	CustomVirtualNetworkID *WorkspaceCustomStringParameter `json:"customVirtualNetworkId,omitempty"`
 	// CustomPublicSubnetName - The name of a Public Subnet within the Virtual Network
@@ -461,20 +470,6 @@ type WorkspaceCustomParameters struct {
 	CustomPrivateSubnetName *WorkspaceCustomStringParameter `json:"customPrivateSubnetName,omitempty"`
 	// EnableNoPublicIP - Should the Public IP be Disabled?
 	EnableNoPublicIP *WorkspaceCustomBooleanParameter `json:"enableNoPublicIp,omitempty"`
-	// LoadBalancerBackendPoolName - The name of a Backend Address Pool within an Azure Load Balancer
-	LoadBalancerBackendPoolName *WorkspaceCustomStringParameter `json:"loadBalancerBackendPoolName,omitempty"`
-	// LoadBalancerID - The Resource ID of an Azure Load Balancer
-	LoadBalancerID *WorkspaceCustomStringParameter `json:"loadBalancerId,omitempty"`
-	// RelayNamespaceName - The name of an Azure Relay Namespace
-	RelayNamespaceName *WorkspaceCustomStringParameter `json:"relayNamespaceName,omitempty"`
-	// StorageAccountName - The name which should be used for the Storage Account
-	StorageAccountName *WorkspaceCustomStringParameter `json:"storageAccountName,omitempty"`
-	// StorageAccountSkuName - The SKU which should be used for this Storage Account
-	StorageAccountSkuName *WorkspaceCustomStringParameter `json:"storageAccountSkuName,omitempty"`
-	// ResourceTags - A map of Tags which should be applied to the resources used by this Databricks Cluster.
-	ResourceTags *WorkspaceCustomObjectParameter `json:"resourceTags,omitempty"`
-	// VnetAddressPrefix - The first 2 octets of the virtual network /16 address range (e.g., '10.139' for the address range 10.139.0.0/16).
-	VnetAddressPrefix *WorkspaceCustomStringParameter `json:"vnetAddressPrefix,omitempty"`
 }
 
 // WorkspaceCustomStringParameter the Value.
@@ -643,6 +638,16 @@ type WorkspaceProperties struct {
 	UIDefinitionURI *string `json:"uiDefinitionUri,omitempty"`
 	// Authorizations - The workspace provider authorizations.
 	Authorizations *[]WorkspaceProviderAuthorization `json:"authorizations,omitempty"`
+	// CreatedBy - Indicates the Object ID, PUID and Application ID of entity that created the workspace.
+	CreatedBy *CreatedBy `json:"createdBy,omitempty"`
+	// UpdatedBy - Indicates the Object ID, PUID and Application ID of entity that last updated the workspace.
+	UpdatedBy *CreatedBy `json:"updatedBy,omitempty"`
+	// CreatedDateTime - Specifies the date and time when the workspace is created.
+	CreatedDateTime *date.Time `json:"createdDateTime,omitempty"`
+	// WorkspaceID - READ-ONLY; The unique identifier of the databricks workspace in databricks control plane.
+	WorkspaceID *string `json:"workspaceId,omitempty"`
+	// WorkspaceURL - READ-ONLY; The workspace URL which is of the format 'adb-{workspaceId}.{random}.azuredatabricks.net'
+	WorkspaceURL *string `json:"workspaceUrl,omitempty"`
 }
 
 // WorkspaceProviderAuthorization the workspace provider authorization.

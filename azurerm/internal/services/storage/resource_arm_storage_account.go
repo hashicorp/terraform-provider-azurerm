@@ -66,7 +66,6 @@ func resourceArmStorageAccount() *schema.Resource {
 			"account_kind": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.Storage),
 					string(storage.BlobStorage),
@@ -541,6 +540,20 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 		},
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			if d.HasChange("account_kind") {
+				accountKind, changedKind := d.GetChange("account_kind")
+
+				if accountKind != string(storage.Storage) && changedKind != string(storage.StorageV2) {
+					log.Printf("[DEBUG] recreate storage account, could't be migrated from %s to %s", accountKind, changedKind)
+					d.ForceNew("account_kind")
+				} else {
+					log.Printf("[DEBUG] storage account can be upgraded from %s to %s", accountKind, changedKind)
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -785,6 +798,18 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		d.SetPartial("account_replication_type")
+	}
+
+	if d.HasChange("account_kind") {
+		opts := storage.AccountUpdateParameters{
+			Kind: storage.Kind(accountKind),
+		}
+
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account account_kind %q: %+v", storageAccountName, err)
+		}
+
+		d.SetPartial("access_kind")
 	}
 
 	if d.HasChange("access_tier") {

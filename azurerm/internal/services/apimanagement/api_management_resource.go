@@ -87,9 +87,13 @@ func resourceArmApiManagementService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
+							Default:  string(apimanagement.None),
 							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
+								string(apimanagement.None),
+								string(apimanagement.SystemAssigned),
+								string(apimanagement.UserAssigned),
+								string(apimanagement.SystemAssignedUserAssigned),
 							}, false),
 						},
 						"principal_id": {
@@ -99,6 +103,15 @@ func resourceArmApiManagementService() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"identity_ids": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.NoZeroValues,
+							},
 						},
 					},
 				},
@@ -276,6 +289,13 @@ func resourceArmApiManagementService() *schema.Resource {
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: apiManagementResourceHostnameSchema("portal"),
+							},
+						},
+						"developer_portal": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: apiManagementResourceHostnameSchema("developer_portal"),
 							},
 						},
 						"proxy": {
@@ -470,7 +490,11 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		properties.Identity = expandAzureRmApiManagementIdentity(d)
+		identity, err := expandAzureRmApiManagementIdentity(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `identity`: %+v", err)
+		}
+		properties.Identity = identity
 	}
 
 	if _, ok := d.GetOk("additional_location"); ok {
@@ -711,6 +735,13 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 			results = append(results, output)
 		}
 
+		developerPortalVs := hostnameV["developer_portal"].([]interface{})
+		for _, developerPortalV := range developerPortalVs {
+			v := developerPortalV.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagement.HostnameTypeDeveloperPortal)
+			results = append(results, output)
+		}
+
 		proxyVs := hostnameV["proxy"].([]interface{})
 		for _, proxyV := range proxyVs {
 			v := proxyV.(map[string]interface{})
@@ -733,17 +764,28 @@ func expandAzureRmApiManagementHostnameConfigurations(d *schema.ResourceData) *[
 }
 
 func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}, hostnameType apimanagement.HostnameType) apimanagement.HostnameConfiguration {
-	encodedCertificate := input["certificate"].(string)
-	certificatePassword := input["certificate_password"].(string)
-	hostName := input["host_name"].(string)
-	keyVaultId := input["key_vault_id"].(string)
-
 	output := apimanagement.HostnameConfiguration{
-		EncodedCertificate:  utils.String(encodedCertificate),
-		CertificatePassword: utils.String(certificatePassword),
-		HostName:            utils.String(hostName),
-		KeyVaultID:          utils.String(keyVaultId),
-		Type:                hostnameType,
+		Type: hostnameType,
+	}
+	if v, ok := input["certificate"]; ok {
+		if v.(string) != "" {
+			output.EncodedCertificate = utils.String(v.(string))
+		}
+	}
+	if v, ok := input["certificate_password"]; ok {
+		if v.(string) != "" {
+			output.CertificatePassword = utils.String(v.(string))
+		}
+	}
+	if v, ok := input["host_name"]; ok {
+		if v.(string) != "" {
+			output.HostName = utils.String(v.(string))
+		}
+	}
+	if v, ok := input["key_vault_id"]; ok {
+		if v.(string) != "" {
+			output.KeyVaultID = utils.String(v.(string))
+		}
 	}
 
 	if v, ok := input["negotiate_client_certificate"]; ok {
@@ -761,6 +803,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 	managementResults := make([]interface{}, 0)
 	portalResults := make([]interface{}, 0)
+	developerPortalResults := make([]interface{}, 0)
 	proxyResults := make([]interface{}, 0)
 	scmResults := make([]interface{}, 0)
 
@@ -813,6 +856,9 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 		case strings.ToLower(string(apimanagement.HostnameTypePortal)):
 			portalResults = append(portalResults, output)
 
+		case strings.ToLower(string(apimanagement.HostnameTypeDeveloperPortal)):
+			developerPortalResults = append(developerPortalResults, output)
+
 		case strings.ToLower(string(apimanagement.HostnameTypeScm)):
 			scmResults = append(scmResults, output)
 		}
@@ -820,10 +866,11 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 
 	return []interface{}{
 		map[string]interface{}{
-			"management": managementResults,
-			"portal":     portalResults,
-			"proxy":      proxyResults,
-			"scm":        scmResults,
+			"management":       managementResults,
+			"portal":           portalResults,
+			"developer_portal": developerPortalResults,
+			"proxy":            proxyResults,
+			"scm":              scmResults,
 		},
 	}
 }
@@ -899,17 +946,43 @@ func flattenApiManagementAdditionalLocations(input *[]apimanagement.AdditionalLo
 	return results
 }
 
-func expandAzureRmApiManagementIdentity(d *schema.ResourceData) *apimanagement.ServiceIdentity {
+func expandAzureRmApiManagementIdentity(d *schema.ResourceData) (*apimanagement.ServiceIdentity, error) {
+	var identityIdSet *schema.Set
+	managedServiceIdentity := apimanagement.ServiceIdentity{}
+
 	vs := d.Get("identity").([]interface{})
 	if len(vs) == 0 {
-		return nil
+		managedServiceIdentity.Type = apimanagement.None
+	} else {
+		v := vs[0].(map[string]interface{})
+		identityType, exists := v["type"]
+		if !exists {
+			return nil, fmt.Errorf("`type` must be specified when `identity` is set")
+		}
+		managedServiceIdentity.Type = apimanagement.ApimIdentityType(identityType.(string))
+		if identityIds, exists := v["identity_ids"]; exists {
+			identityIdSet = (identityIds.(*schema.Set))
+		}
 	}
 
-	v := vs[0].(map[string]interface{})
-	identityType := v["type"].(string)
-	return &apimanagement.ServiceIdentity{
-		Type: apimanagement.ApimIdentityType(identityType),
+	// If type contains `UserAssigned`, `identity_ids` must be specified and have at least 1 element
+	if managedServiceIdentity.Type == apimanagement.UserAssigned || managedServiceIdentity.Type == apimanagement.SystemAssignedUserAssigned {
+		if identityIdSet == nil || identityIdSet.Len() == 0 {
+			return nil, fmt.Errorf("`identity_ids` must have at least 1 element when `type` includes `UserAssigned`")
+		}
+
+		userAssignedIdentities := make(map[string]*apimanagement.UserIdentityProperties)
+		for _, id := range identityIdSet.List() {
+			userAssignedIdentities[id.(string)] = &apimanagement.UserIdentityProperties{}
+		}
+
+		managedServiceIdentity.UserAssignedIdentities = userAssignedIdentities
+	} else if identityIdSet != nil && identityIdSet.Len() > 0 {
+		// If type does _not_ contain `UserAssigned` (i.e. is set to `SystemAssigned` or defaulted to `None`), `identity_ids` is not allowed
+		return nil, fmt.Errorf("`identity_ids` can only be specified when `type` includes `UserAssigned`; but `type` is currently %q", managedServiceIdentity.Type)
 	}
+
+	return &managedServiceIdentity, nil
 }
 
 func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
@@ -927,6 +1000,14 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 
 	if identity.TenantID != nil {
 		result["tenant_id"] = identity.TenantID.String()
+	}
+
+	identityIds := make([]interface{}, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+		result["identity_ids"] = schema.NewSet(schema.HashString, identityIds)
 	}
 
 	return []interface{}{result}
@@ -1058,7 +1139,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 		"key_vault_id": {
 			Type:         schema.TypeString,
 			Optional:     true,
-			ValidateFunc: azure.ValidateKeyVaultChildId,
+			ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
 			ConflictsWith: []string{
 				fmt.Sprintf("hostname_configuration.0.%s.0.certificate", schemaName),
 				fmt.Sprintf("hostname_configuration.0.%s.0.certificate_password", schemaName),
@@ -1226,7 +1307,7 @@ func flattenApiManagementSignUpSettings(input apimanagement.PortalSignupSettings
 }
 
 func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyContract, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 

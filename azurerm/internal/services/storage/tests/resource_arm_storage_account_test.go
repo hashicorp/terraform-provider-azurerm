@@ -368,6 +368,33 @@ func TestAccAzureRMStorageAccount_storageV2WithUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_storageV1ToV2Update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccount_storageToV2Prep(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_kind", "Storage"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccount_storageToV2Update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "account_kind", "StorageV2"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageAccount_NonStandardCasing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
@@ -1121,6 +1148,60 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   access_tier              = "Cool"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_storageToV2Prep(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "Storage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_storageToV2Update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 
   tags = {
     environment = "production"

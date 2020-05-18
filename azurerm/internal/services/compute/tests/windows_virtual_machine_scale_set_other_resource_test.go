@@ -162,7 +162,46 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverPr
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(data),
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func TestAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachinesUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(data, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(data, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
 				),
@@ -921,7 +960,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, template, customData)
 }
 
-func testAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(data acceptance.TestData) string {
+func testAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverProvisionedMachines(data acceptance.TestData, enabled bool) string {
 	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
@@ -936,7 +975,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_password      = "P@ssword1234!"
   overprovision       = true
 
-  do_not_run_extensions_on_overprovisioned_machines = true
+  do_not_run_extensions_on_overprovisioned_machines = %t
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -961,7 +1000,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, template)
+`, template, enabled)
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisabled(data acceptance.TestData) string {

@@ -86,6 +86,8 @@ The following arguments are supported:
 
 * `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Changing this forces a new resource to be created. Defaults to `StorageV2`.
 
+-> **NOTE:** Changing the `account_kind` value from `Storage` to `StorageV2` will not trigger a force new on the storage account, it will only upgrade the existing storage account from `Storage` to `StorageV2` keeping the existing storage account in place.
+
 * `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS` and `ZRS`.
@@ -142,7 +144,7 @@ A `cors_rule` block supports the following:
 
 A `custom_domain` block supports the following:
 
-* `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
+* `name` - (Required) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
 ---
