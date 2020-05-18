@@ -1,7 +1,7 @@
 ---
 subcategory: "Sentinel"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_sentinel_alert"
+page_title: "Azure Resource Manager: Data Source: azurerm_sentinel_alert_rule"
 description: |-
   Gets information about an existing Sentinel Alert Rule.
 ---
