@@ -2,6 +2,7 @@ package timeseriesinsights
 
 import (
 	"fmt"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"regexp"
 	"strconv"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/timeseriesinsights/parse"
@@ -82,6 +82,13 @@ func resourceArmTimeSeriesInsightsEnvironment() *schema.Resource {
 				}, false),
 			},
 
+			"data_retention_time": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azValidate.ISO8601Duration,
+			},
+
 			"storage_limited_exceeded_behavior": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -92,11 +99,10 @@ func resourceArmTimeSeriesInsightsEnvironment() *schema.Resource {
 				}, false),
 			},
 
-			"data_retention_time": {
+			"partition_key": {
 				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azValidate.ISO8601Duration,
+				Optional:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"tags": tags.ForceNewSchema(),
@@ -138,16 +144,23 @@ func resourceArmTimeSeriesInsightsEnvironmentCreateUpdate(d *schema.ResourceData
 		}
 	}
 
-	props := &timeseriesinsights.StandardEnvironmentCreationProperties{
-		StorageLimitExceededBehavior: timeseriesinsights.StorageLimitExceededBehavior(d.Get("storage_limited_exceeded_behavior").(string)),
-		DataRetentionTime:            utils.String(d.Get("data_retention_time").(string)),
+	environment := timeseriesinsights.StandardEnvironmentCreateOrUpdateParameters{
+		Location: &location,
+		Tags:     tags.Expand(t),
+		Sku:      sku,
+		StandardEnvironmentCreationProperties: &timeseriesinsights.StandardEnvironmentCreationProperties{
+			StorageLimitExceededBehavior: timeseriesinsights.StorageLimitExceededBehavior(d.Get("storage_limited_exceeded_behavior").(string)),
+			DataRetentionTime:            utils.String(d.Get("data_retention_time").(string)),
+		},
 	}
 
-	environment := timeseriesinsights.StandardEnvironmentCreateOrUpdateParameters{
-		Location:                              &location,
-		Tags:                                  tags.Expand(t),
-		Sku:                                   sku,
-		StandardEnvironmentCreationProperties: props,
+	if v, ok := d.GetOk("partition_key"); ok {
+		partition := make([]timeseriesinsights.TimeSeriesIDProperty, 1)
+		partition[0] = timeseriesinsights.TimeSeriesIDProperty{
+			Name: utils.String(v.(string)),
+			Type: timeseriesinsights.String,
+		}
+		environment.StandardEnvironmentCreationProperties.PartitionKeyProperties = &partition
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, environment)
@@ -213,6 +226,12 @@ func resourceArmTimeSeriesInsightsEnvironmentRead(d *schema.ResourceData, meta i
 	if props := environment.StandardEnvironmentResourceProperties; props != nil {
 		d.Set("storage_limited_exceeded_behavior", string(props.StorageLimitExceededBehavior))
 		d.Set("data_retention_time", props.DataRetentionTime)
+
+		if partition := props.PartitionKeyProperties; partition != nil && len(*partition) > 0 {
+			for _, v := range *partition {
+				d.Set("partition_key", *v.Name)
+			}
+		}
 	}
 
 	return tags.FlattenAndSet(d, environment.Tags)
