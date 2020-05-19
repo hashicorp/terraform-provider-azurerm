@@ -73,11 +73,13 @@ The following arguments are supported:
 
 * `azuread_administrator` - (Optional) An `azuread_administrator` block as defined below.
 
+* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
+
 * `connection_policy` - (Optional) The connection policy the server will use. Possible values are `Default`, `Proxy`, and `Redirect`. Defaults to `Default`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
