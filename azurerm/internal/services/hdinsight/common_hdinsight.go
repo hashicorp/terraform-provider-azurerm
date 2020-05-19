@@ -106,6 +106,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			}
 		}
 
+		//<<<<<<< HEAD
 		if d.HasChange("gateway") {
 			log.Printf("[DEBUG] Updating the HDInsight %q Cluster gateway", clusterKind)
 			vs := d.Get("gateway").([]interface{})[0].(map[string]interface{})
@@ -128,7 +129,21 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) Gateway to be updated: %s", name, resourceGroup, err)
 			}
 		}
-
+		if d.HasChange("monitor") {
+			log.Printf("[DEBUG] Chnage Azure Monitor for the HDInsight %q Cluster", clusterKind)
+			fmt.Println("Monitor change")
+			extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+			if v, ok := d.GetOk("monitor"); ok {
+				monitorRaw := v.([]interface{})
+				if err := enableMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+					return err
+				}
+			} else {
+				if err := disableMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
+					return nil
+				}
+			}
+		}
 		return readFunc(d, meta)
 	}
 }
@@ -350,4 +365,31 @@ func flattenHDInsightsMetastores(d *schema.ResourceData, configurations map[stri
 			result,
 		})
 	}
+}
+
+func enableMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string, input []interface{}) error {
+	monitor := azure.ExpandHDInsightsMonitor(input)
+	future, err := client.EnableMonitoring(ctx, resourceGroup, name, monitor)
+	if err != nil {
+		return err
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for enabling monitor for  HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
+}
+
+func disableMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string) error {
+	future, err := client.DisableMonitoring(ctx, resourceGroup, name)
+	if err != nil {
+		return err
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for disabling monitor for  HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
 }

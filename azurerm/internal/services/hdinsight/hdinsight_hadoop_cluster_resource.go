@@ -178,6 +178,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	defer cancel()
 
 	name := d.Get("name").(string)
+	fmt.Printf("Create cluster %q", name)
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
@@ -297,17 +298,11 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	}
 
 	// We can only enable monitoring after creation
+	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
-		monitor := azure.ExpandHDInsightsMonitor(monitorRaw)
-		extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
-		future, err := extensionsClient.EnableMonitoring(ctx, resourceGroup, name, monitor)
-		if err != nil {
+		if err := enableMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
 			return err
-		}
-
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for enabling monitor for  HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -414,7 +409,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 			d.Set("monitor", []interface{}{
 				map[string]string{
 					"log_analytics_workspace_id": *monitor.WorkspaceID,
-					"primary_key":                "****",
+					"primary_key":                "*****",
 				}})
 		}
 	}
