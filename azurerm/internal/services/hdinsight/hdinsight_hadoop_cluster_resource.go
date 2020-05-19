@@ -192,7 +192,6 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	defer cancel()
 
 	name := d.Get("name").(string)
-	fmt.Printf("Create cluster %q", name)
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
