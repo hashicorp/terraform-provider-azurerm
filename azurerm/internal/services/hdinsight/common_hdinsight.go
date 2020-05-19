@@ -131,7 +131,6 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		}
 		if d.HasChange("monitor") {
 			log.Printf("[DEBUG] Chnage Azure Monitor for the HDInsight %q Cluster", clusterKind)
-			fmt.Println("Monitor change")
 			extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 			if v, ok := d.GetOk("monitor"); ok {
 				monitorRaw := v.([]interface{})
@@ -375,7 +374,7 @@ func enableMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, r
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for enabling monitor for  HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for enabling monitor for  HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
@@ -388,7 +387,7 @@ func disableMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, 
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for disabling monitor for  HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for disabling monitor for  HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
