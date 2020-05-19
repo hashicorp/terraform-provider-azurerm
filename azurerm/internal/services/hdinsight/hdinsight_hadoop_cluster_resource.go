@@ -166,6 +166,8 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"monitor": azure.SchemaHDInsightsMonitor(),
 		},
 	}
 }
@@ -294,6 +296,21 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
+	// We can only enable monitoring after creation
+	if v, ok := d.GetOk("monitor"); ok {
+		monitorRaw := v.([]interface{})
+		monitor := azure.ExpandHDInsightsMonitor(monitorRaw)
+		extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+		future, err := extensionsClient.EnableMonitoring(ctx, resourceGroup, name, monitor)
+		if err != nil {
+			return err
+		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for enabling monitor for  HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	return resourceArmHDInsightHadoopClusterRead(d, meta)
 }
 
@@ -385,6 +402,21 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
+
+		extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+
+		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error reading monitor configuation for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if *monitor.ClusterMonitoringEnabled {
+			d.Set("monitor", []interface{}{
+				map[string]string{
+					"log_analytics_workspace_id": *monitor.WorkspaceID,
+					"primary_key":                "****",
+				}})
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
