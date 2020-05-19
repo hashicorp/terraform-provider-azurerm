@@ -111,11 +111,11 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 			if v, ok := d.GetOk("monitor"); ok {
 				monitorRaw := v.([]interface{})
-				if err := enableMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+				if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
 					return err
 				}
 			} else {
-				if err := disableMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
+				if err := disableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
 					return nil
 				}
 			}
@@ -341,7 +341,19 @@ func flattenHDInsightsMetastores(d *schema.ResourceData, configurations map[stri
 	}
 }
 
-func enableMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string, input []interface{}) error {
+func flattenHDInsightMonitoring(monitor hdinsight.ClusterMonitoringResponse) []interface{} {
+	if *monitor.ClusterMonitoringEnabled {
+		return []interface{}{
+			map[string]string{
+				"log_analytics_workspace_id": *monitor.WorkspaceID,
+				"primary_key":                "*****",
+			}}
+	}
+
+	return nil
+}
+
+func enableHDInsightMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string, input []interface{}) error {
 	monitor := azure.ExpandHDInsightsMonitor(input)
 	future, err := client.EnableMonitoring(ctx, resourceGroup, name, monitor)
 	if err != nil {
@@ -355,7 +367,7 @@ func enableMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, r
 	return nil
 }
 
-func disableMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string) error {
+func disableHDInsightMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string) error {
 	future, err := client.DisableMonitoring(ctx, resourceGroup, name)
 	if err != nil {
 		return err

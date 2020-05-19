@@ -315,7 +315,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
-		if err := enableMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
 			return err
 		}
 	}
@@ -419,13 +419,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 			return fmt.Errorf("Error reading monitor configuation for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		if *monitor.ClusterMonitoringEnabled {
-			d.Set("monitor", []interface{}{
-				map[string]string{
-					"log_analytics_workspace_id": *monitor.WorkspaceID,
-					"primary_key":                "*****",
-				}})
-		}
+		d.Set("monitor", flattenHDInsightMonitoring(monitor))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
