@@ -86,7 +86,7 @@ func testCheckAzureRMTimeSeriesInsightsEnvironmentExists(name string) resource.T
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Spatial Anchors Account %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+			return fmt.Errorf("Bad: Time Series Insights Environment %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -98,7 +98,7 @@ func testCheckAzureRMTimeSeriesInsightsEnvironmentDestroy(s *terraform.State) er
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_spatial_anchors_account" {
+		if rs.Type != "azurerm_time_series_insights_environment" {
 			continue
 		}
 
@@ -113,7 +113,7 @@ func testCheckAzureRMTimeSeriesInsightsEnvironmentDestroy(s *terraform.State) er
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Spatial Anchors Account still exists: %q", id.Name)
+			return fmt.Errorf("Time Series Insights Environment still exists: %q", id.Name)
 		}
 	}
 

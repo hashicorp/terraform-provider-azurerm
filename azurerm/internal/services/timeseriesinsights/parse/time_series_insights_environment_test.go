@@ -32,7 +32,7 @@ func TestTimeSeriesInsightsEnvironmentId(t *testing.T) {
 		},
 		{
 			Name:     "Time Series Insight Environment Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MixedReality/spatialAnchorsAccounts/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.TimeSeriesInsights/environments/",
 			Expected: nil,
 		},
 		{
