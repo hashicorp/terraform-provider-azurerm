@@ -37,7 +37,8 @@ func NewDiagnosticsClient(subscriptionID string) DiagnosticsClient {
 	return NewDiagnosticsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDiagnosticsClientWithBaseURI creates an instance of the DiagnosticsClient client.
+// NewDiagnosticsClientWithBaseURI creates an instance of the DiagnosticsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDiagnosticsClientWithBaseURI(baseURI string, subscriptionID string) DiagnosticsClient {
 	return DiagnosticsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -129,8 +130,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisPreparer(ctx context.Context,
 // ExecuteSiteAnalysisSender sends the ExecuteSiteAnalysis request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ExecuteSiteAnalysisSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ExecuteSiteAnalysisResponder handles the response to the ExecuteSiteAnalysis request. The method always
@@ -235,8 +235,7 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisSlotPreparer(ctx context.Cont
 // ExecuteSiteAnalysisSlotSender sends the ExecuteSiteAnalysisSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ExecuteSiteAnalysisSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ExecuteSiteAnalysisSlotResponder handles the response to the ExecuteSiteAnalysisSlot request. The method always
@@ -339,8 +338,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorPreparer(ctx context.Context,
 // ExecuteSiteDetectorSender sends the ExecuteSiteDetector request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ExecuteSiteDetectorSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ExecuteSiteDetectorResponder handles the response to the ExecuteSiteDetector request. The method always
@@ -445,8 +443,7 @@ func (client DiagnosticsClient) ExecuteSiteDetectorSlotPreparer(ctx context.Cont
 // ExecuteSiteDetectorSlotSender sends the ExecuteSiteDetectorSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ExecuteSiteDetectorSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ExecuteSiteDetectorSlotResponder handles the response to the ExecuteSiteDetectorSlot request. The method always
@@ -547,8 +544,7 @@ func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponsePreparer(ct
 // GetHostingEnvironmentDetectorResponseSender sends the GetHostingEnvironmentDetectorResponse request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetHostingEnvironmentDetectorResponseResponder handles the response to the GetHostingEnvironmentDetectorResponse request. The method always
@@ -636,8 +632,7 @@ func (client DiagnosticsClient) GetSiteAnalysisPreparer(ctx context.Context, res
 // GetSiteAnalysisSender sends the GetSiteAnalysis request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) GetSiteAnalysisSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSiteAnalysisResponder handles the response to the GetSiteAnalysis request. The method always
@@ -727,8 +722,7 @@ func (client DiagnosticsClient) GetSiteAnalysisSlotPreparer(ctx context.Context,
 // GetSiteAnalysisSlotSender sends the GetSiteAnalysisSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) GetSiteAnalysisSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSiteAnalysisSlotResponder handles the response to the GetSiteAnalysisSlot request. The method always
@@ -816,8 +810,7 @@ func (client DiagnosticsClient) GetSiteDetectorPreparer(ctx context.Context, res
 // GetSiteDetectorSender sends the GetSiteDetector request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) GetSiteDetectorSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSiteDetectorResponder handles the response to the GetSiteDetector request. The method always
@@ -918,8 +911,7 @@ func (client DiagnosticsClient) GetSiteDetectorResponsePreparer(ctx context.Cont
 // GetSiteDetectorResponseSender sends the GetSiteDetectorResponse request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) GetSiteDetectorResponseSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSiteDetectorResponseResponder handles the response to the GetSiteDetectorResponse request. The method always
@@ -1022,8 +1014,7 @@ func (client DiagnosticsClient) GetSiteDetectorResponseSlotPreparer(ctx context.
 // GetSiteDetectorResponseSlotSender sends the GetSiteDetectorResponseSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) GetSiteDetectorResponseSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSiteDetectorResponseSlotResponder handles the response to the GetSiteDetectorResponseSlot request. The method always
@@ -1113,8 +1104,7 @@ func (client DiagnosticsClient) GetSiteDetectorSlotPreparer(ctx context.Context,
 // GetSiteDetectorSlotSender sends the GetSiteDetectorSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) GetSiteDetectorSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSiteDetectorSlotResponder handles the response to the GetSiteDetectorSlot request. The method always
@@ -1200,8 +1190,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategoryPreparer(ctx context.Co
 // GetSiteDiagnosticCategorySender sends the GetSiteDiagnosticCategory request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) GetSiteDiagnosticCategorySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSiteDiagnosticCategoryResponder handles the response to the GetSiteDiagnosticCategory request. The method always
@@ -1289,8 +1278,7 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategorySlotPreparer(ctx contex
 // GetSiteDiagnosticCategorySlotSender sends the GetSiteDiagnosticCategorySlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) GetSiteDiagnosticCategorySlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSiteDiagnosticCategorySlotResponder handles the response to the GetSiteDiagnosticCategorySlot request. The method always
@@ -1375,8 +1363,7 @@ func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesPreparer(
 // ListHostingEnvironmentDetectorResponsesSender sends the ListHostingEnvironmentDetectorResponses request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListHostingEnvironmentDetectorResponsesResponder handles the response to the ListHostingEnvironmentDetectorResponses request. The method always
@@ -1500,8 +1487,7 @@ func (client DiagnosticsClient) ListSiteAnalysesPreparer(ctx context.Context, re
 // ListSiteAnalysesSender sends the ListSiteAnalyses request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ListSiteAnalysesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSiteAnalysesResponder handles the response to the ListSiteAnalyses request. The method always
@@ -1627,8 +1613,7 @@ func (client DiagnosticsClient) ListSiteAnalysesSlotPreparer(ctx context.Context
 // ListSiteAnalysesSlotSender sends the ListSiteAnalysesSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ListSiteAnalysesSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSiteAnalysesSlotResponder handles the response to the ListSiteAnalysesSlot request. The method always
@@ -1750,8 +1735,7 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesPreparer(ctx context.Co
 // ListSiteDetectorResponsesSender sends the ListSiteDetectorResponses request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ListSiteDetectorResponsesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSiteDetectorResponsesResponder handles the response to the ListSiteDetectorResponses request. The method always
@@ -1875,8 +1859,7 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesSlotPreparer(ctx contex
 // ListSiteDetectorResponsesSlotSender sends the ListSiteDetectorResponsesSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ListSiteDetectorResponsesSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSiteDetectorResponsesSlotResponder handles the response to the ListSiteDetectorResponsesSlot request. The method always
@@ -2000,8 +1983,7 @@ func (client DiagnosticsClient) ListSiteDetectorsPreparer(ctx context.Context, r
 // ListSiteDetectorsSender sends the ListSiteDetectors request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ListSiteDetectorsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSiteDetectorsResponder handles the response to the ListSiteDetectors request. The method always
@@ -2127,8 +2109,7 @@ func (client DiagnosticsClient) ListSiteDetectorsSlotPreparer(ctx context.Contex
 // ListSiteDetectorsSlotSender sends the ListSiteDetectorsSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ListSiteDetectorsSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSiteDetectorsSlotResponder handles the response to the ListSiteDetectorsSlot request. The method always
@@ -2250,8 +2231,7 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesPreparer(ctx context
 // ListSiteDiagnosticCategoriesSender sends the ListSiteDiagnosticCategories request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSiteDiagnosticCategoriesResponder handles the response to the ListSiteDiagnosticCategories request. The method always
@@ -2375,8 +2355,7 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSlotPreparer(ctx con
 // ListSiteDiagnosticCategoriesSlotSender sends the ListSiteDiagnosticCategoriesSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListSiteDiagnosticCategoriesSlotResponder handles the response to the ListSiteDiagnosticCategoriesSlot request. The method always

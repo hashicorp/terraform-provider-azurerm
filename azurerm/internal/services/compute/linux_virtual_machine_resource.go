@@ -35,7 +35,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 		Update: resourceLinuxVirtualMachineUpdate,
 		Delete: resourceLinuxVirtualMachineDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
-			_, err := ParseVirtualMachineID(id)
+			_, err := parse.VirtualMachineID(id)
 			return err
 		}, importVirtualMachine(compute.Linux, "azurerm_linux_virtual_machine")),
 
@@ -51,7 +51,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateLinuxName,
+				ValidateFunc: ValidateVmName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -128,9 +128,8 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				// Computed since we reuse the VM name if one's not specified
 				Computed: true,
 				ForceNew: true,
-				// note: whilst the portal says 1-15 characters it seems to mirror the rules for the vm name
-				// (e.g. 1-15 for Windows, 1-63 for Linux)
-				ValidateFunc: ValidateLinuxName,
+
+				ValidateFunc: ValidateLinuxComputerNameFull,
 			},
 
 			"custom_data": base64.OptionalSchema(true),
@@ -295,6 +294,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
 	} else {
+		_, errs := ValidateLinuxComputerNameFull(d.Get("name"), "computer_name")
+		if len(errs) > 0 {
+			return fmt.Errorf("unable to assume default computer name %s Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
+		}
 		computerName = name
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
@@ -471,7 +474,7 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -566,8 +569,13 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error setting `secret`: %+v", err)
 		}
 	}
-
-	d.Set("priority", string(props.Priority))
+	// Resources created with azurerm_virtual_machine have priority set to ""
+	// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
+	priority := string(compute.Regular)
+	if props.Priority != "" {
+		priority = string(props.Priority)
+	}
+	d.Set("priority", priority)
 	proximityPlacementGroupId := ""
 	if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
 		proximityPlacementGroupId = *props.ProximityPlacementGroup.ID
@@ -621,7 +629,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -857,6 +865,37 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Resized OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.Name, id.ResourceGroup, newSize)
 	}
 
+	if d.HasChange("os_disk.0.disk_encryption_set_id") {
+		if diskEncryptionSetId := d.Get("os_disk.0.disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			diskName := d.Get("os_disk.0.name").(string)
+			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q..", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
+
+			disksClient := meta.(*clients.Client).Compute.DisksClient
+
+			update := compute.DiskUpdate{
+				DiskUpdateProperties: &compute.DiskUpdateProperties{
+					Encryption: &compute.Encryption{
+						Type:                compute.EncryptionAtRestWithCustomerKey,
+						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+					},
+				},
+			}
+
+			future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
+			if err != nil {
+				return fmt.Errorf("Error updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting to update encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			}
+
+			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
+		} else {
+			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+		}
+	}
+
 	if shouldUpdate {
 		log.Printf("[DEBUG] Updating Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
@@ -894,7 +933,7 @@ func resourceLinuxVirtualMachineDelete(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualMachineID(d.Id())
+	id, err := parse.VirtualMachineID(d.Id())
 	if err != nil {
 		return err
 	}

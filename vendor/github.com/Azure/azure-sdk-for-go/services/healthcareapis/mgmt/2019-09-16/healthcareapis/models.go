@@ -47,6 +47,21 @@ func PossibleKindValues() []Kind {
 	return []Kind{Fhir, FhirR4, FhirStu3}
 }
 
+// ManagedServiceIdentityType enumerates the values for managed service identity type.
+type ManagedServiceIdentityType string
+
+const (
+	// None ...
+	None ManagedServiceIdentityType = "None"
+	// SystemAssigned ...
+	SystemAssigned ManagedServiceIdentityType = "SystemAssigned"
+)
+
+// PossibleManagedServiceIdentityTypeValues returns an array of possible values for the ManagedServiceIdentityType const type.
+func PossibleManagedServiceIdentityTypeValues() []ManagedServiceIdentityType {
+	return []ManagedServiceIdentityType{None, SystemAssigned}
+}
+
 // OperationResultStatus enumerates the values for operation result status.
 type OperationResultStatus string
 
@@ -335,6 +350,8 @@ type Resource struct {
 	Tags map[string]*string `json:"tags"`
 	// Etag - An etag associated with the resource, used for optimistic concurrency when editing it.
 	Etag *string `json:"etag,omitempty"`
+	// Identity - Setting indicating whether the service has a managed identity associated with it.
+	Identity *ResourceIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Resource.
@@ -352,7 +369,20 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 	if r.Etag != nil {
 		objectMap["etag"] = r.Etag
 	}
+	if r.Identity != nil {
+		objectMap["identity"] = r.Identity
+	}
 	return json.Marshal(objectMap)
+}
+
+// ResourceIdentity setting indicating whether the service has a managed identity associated with it.
+type ResourceIdentity struct {
+	// PrincipalID - READ-ONLY; The principal ID of the resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of the resource.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - Type of identity being specified, currently SystemAssigned and None are allowed. Possible values include: 'SystemAssigned', 'None'
+	Type ManagedServiceIdentityType `json:"type,omitempty"`
 }
 
 // ServiceAccessPolicyEntry an access policy entry.
@@ -389,6 +419,12 @@ type ServiceCorsConfigurationInfo struct {
 type ServiceCosmosDbConfigurationInfo struct {
 	// OfferThroughput - The provisioned throughput for the backing database.
 	OfferThroughput *int32 `json:"offerThroughput,omitempty"`
+}
+
+// ServiceExportConfigurationInfo export operation configuration information
+type ServiceExportConfigurationInfo struct {
+	// StorageAccountName - The name of the default export storage account.
+	StorageAccountName *string `json:"storageAccountName,omitempty"`
 }
 
 // ServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -462,6 +498,8 @@ type ServicesDescription struct {
 	Tags map[string]*string `json:"tags"`
 	// Etag - An etag associated with the resource, used for optimistic concurrency when editing it.
 	Etag *string `json:"etag,omitempty"`
+	// Identity - Setting indicating whether the service has a managed identity associated with it.
+	Identity *ResourceIdentity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ServicesDescription.
@@ -481,6 +519,9 @@ func (sd ServicesDescription) MarshalJSON() ([]byte, error) {
 	}
 	if sd.Etag != nil {
 		objectMap["etag"] = sd.Etag
+	}
+	if sd.Identity != nil {
+		objectMap["identity"] = sd.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -670,6 +711,8 @@ type ServicesProperties struct {
 	AuthenticationConfiguration *ServiceAuthenticationConfigurationInfo `json:"authenticationConfiguration,omitempty"`
 	// CorsConfiguration - The settings for the CORS configuration of the service instance.
 	CorsConfiguration *ServiceCorsConfigurationInfo `json:"corsConfiguration,omitempty"`
+	// ExportConfiguration - The settings for the export operation of the service instance.
+	ExportConfiguration *ServiceExportConfigurationInfo `json:"exportConfiguration,omitempty"`
 }
 
 // ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running

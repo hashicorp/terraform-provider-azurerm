@@ -36,7 +36,8 @@ func NewDatabaseClient(subscriptionID string) DatabaseClient {
 	return NewDatabaseClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewDatabaseClientWithBaseURI creates an instance of the DatabaseClient client.
+// NewDatabaseClientWithBaseURI creates an instance of the DatabaseClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDatabaseClientWithBaseURI(baseURI string, subscriptionID string) DatabaseClient {
 	return DatabaseClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -115,8 +116,7 @@ func (client DatabaseClient) ListMetricDefinitionsPreparer(ctx context.Context, 
 // ListMetricDefinitionsSender sends the ListMetricDefinitions request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseClient) ListMetricDefinitionsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListMetricDefinitionsResponder handles the response to the ListMetricDefinitions request. The method always
@@ -210,8 +210,7 @@ func (client DatabaseClient) ListMetricsPreparer(ctx context.Context, resourceGr
 // ListMetricsSender sends the ListMetrics request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseClient) ListMetricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListMetricsResponder handles the response to the ListMetrics request. The method always
@@ -306,8 +305,7 @@ func (client DatabaseClient) ListUsagesPreparer(ctx context.Context, resourceGro
 // ListUsagesSender sends the ListUsages request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseClient) ListUsagesSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListUsagesResponder handles the response to the ListUsages request. The method always

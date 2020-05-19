@@ -3,7 +3,6 @@ WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
 TESTTIMEOUT=180m
 
-
 .EXPORT_ALL_VARIABLES:
   TF_SCHEMA_PANIC_ON_ERROR=1
   GO111MODULE=on
@@ -14,11 +13,11 @@ default: build
 tools:
 	@echo "==> installing required tooling..."
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
-	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
 	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$GOPATH/bin v1.24.0
 
 build: fmtcheck generate
 	go install
@@ -37,6 +36,12 @@ fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 	@sh "$(CURDIR)/scripts/timeouts.sh"
 
+terrafmt:
+	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
+	@find azurerm | egrep "_test.go" | sort | while read f; do terrafmt fmt -f $$f; done
+	@echo "==> Fixing website terraform blocks code with terrafmt..."
+	@find . | egrep html.markdown | sort | while read f; do terrafmt fmt $$f; done
+
 generate:
 	go generate ./azurerm/internal/provider/
 
@@ -45,8 +50,7 @@ goimports:
 	goimports -w $(PKG_NAME)/
 
 lint:
-	@echo "==> Checking source code against linters..."
-	golangci-lint run ./...
+	./scripts/run-lint.sh
 
 # we have split off static check because it causes travis to fail with an OOM error
 lintunused:
@@ -55,9 +59,7 @@ lintunused:
 	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=unused; ES=$$?; kill -9 $$PID; exit $$ES
 
 lintrest:
-	@echo "==> Checking source code against linters..."
-	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... -v --concurrency 1 --config .golangci-travis.yml ; ES=$$?; kill -9 $$PID; exit $$ES
+	./scripts/run-lint-rest.sh
 
 depscheck:
 	@echo "==> Checking source code with go mod tidy..."
@@ -70,14 +72,7 @@ depscheck:
 		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)
 
 tflint:
-	@echo "==> Checking source code against terraform provider linters..."
-	@tfproviderlint \
-        -AT001 -AT005 -AT006 -AT007\
-        -R001 -R002 -R003 -R004 -R006\
-        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019 -S020\
-        -S021 -S022 -S023 -S024 -S025 -S026 -S027 -S028 -S029 -S030 -S031 -S032 -S033\
-        ./$(PKG_NAME)/...
-	@sh -c "'$(CURDIR)/scripts/terrafmt-acctests.sh'"
+	./scripts/run-tflint.sh
 
 whitespace:
 	@echo "==> Fixing source code with whitespace linter..."
@@ -87,9 +82,8 @@ test-docker:
 	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.13 make test
 
 test: fmtcheck
-	go test -i $(TEST) || exit 1
-	echo $(TEST) | \
-		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
+	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
+	@TEST=$(TEST) ./scripts/run-test.sh
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
@@ -110,7 +104,7 @@ debugacc: fmtcheck
 
 website-lint:
 	@echo "==> Checking documentation spelling..."
-	@misspell -error -source=text -i hdinsight website/
+	@misspell -error -source=text -i hdinsight,exportfs website/
 	@echo "==> Checking documentation for errors..."
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
 		-allowed-resource-subcategories-file website/allowed-subcategories

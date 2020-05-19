@@ -35,7 +35,8 @@ func NewProviderClient(subscriptionID string) ProviderClient {
 	return NewProviderClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewProviderClientWithBaseURI creates an instance of the ProviderClient client.
+// NewProviderClientWithBaseURI creates an instance of the ProviderClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewProviderClientWithBaseURI(baseURI string, subscriptionID string) ProviderClient {
 	return ProviderClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -95,8 +96,7 @@ func (client ProviderClient) GetAvailableStacksPreparer(ctx context.Context, osT
 // GetAvailableStacksSender sends the GetAvailableStacks request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProviderClient) GetAvailableStacksSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetAvailableStacksResponder handles the response to the GetAvailableStacks request. The method always
@@ -208,8 +208,7 @@ func (client ProviderClient) GetAvailableStacksOnPremPreparer(ctx context.Contex
 // GetAvailableStacksOnPremSender sends the GetAvailableStacksOnPrem request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProviderClient) GetAvailableStacksOnPremSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetAvailableStacksOnPremResponder handles the response to the GetAvailableStacksOnPrem request. The method always
@@ -315,8 +314,7 @@ func (client ProviderClient) ListOperationsPreparer(ctx context.Context) (*http.
 // ListOperationsSender sends the ListOperations request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProviderClient) ListOperationsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListOperationsResponder handles the response to the ListOperations request. The method always

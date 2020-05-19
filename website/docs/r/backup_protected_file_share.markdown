@@ -57,6 +57,10 @@ resource "azurerm_backup_policy_file_share" "example" {
     frequency = "Daily"
     time      = "23:00"
   }
+  
+  retention_daily {
+    count = 10
+  }
 }
 
 resource "azurerm_backup_protected_file_share" "share1" {

@@ -1,6 +1,7 @@
 package azuread
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/p"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/slices"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 )
@@ -33,7 +35,7 @@ func resourceApplication() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"available_to_other_tenants": {
@@ -44,17 +46,20 @@ func resourceApplication() *schema.Resource {
 			"group_membership_claims": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ValidateFunc: validation.StringInSlice(
-					[]string{"All", "None", "SecurityGroup", "DirectoryRole", "DistributionGroup"},
-					false,
-				),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(graphrbac.All),
+					string(graphrbac.None),
+					string(graphrbac.SecurityGroup),
+					"DirectoryRole",    // missing from sdk: https://github.com/Azure/azure-sdk-for-go/issues/7857
+					"ApplicationGroup", //missing from sdk:https://github.com/Azure/azure-sdk-for-go/issues/8244
+				}, false),
 			},
 
 			"homepage": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validate.URLIsHTTPS,
+				ValidateFunc: validate.URLIsHTTPOrHTTPS,
 			},
 
 			"identifier_uris": {
@@ -62,9 +67,14 @@ func resourceApplication() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.URLIsAppURI,
+					Type: schema.TypeString,
 				},
+			},
+
+			"logout_url": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.URLIsHTTPOrHTTPS,
 			},
 
 			"oauth2_allow_implicit_flow": {
@@ -137,9 +147,8 @@ func resourceApplication() *schema.Resource {
 						},
 
 						"value": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -181,6 +190,17 @@ func resourceApplication() *schema.Resource {
 				},
 			},
 
+			"owners": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+			},
+
 			"application_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -191,7 +211,7 @@ func resourceApplication() *schema.Resource {
 				Computed: true,
 			},
 
-			"oauth2_permissions": graph.SchemaOauth2Permissions(),
+			"oauth2_permissions": graph.SchemaOauth2PermissionsComputed(),
 		},
 	}
 }
@@ -213,13 +233,12 @@ func resourceApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 		DisplayName:             &name,
 		IdentifierUris:          tf.ExpandStringSlicePtr(identUrls.([]interface{})),
 		ReplyUrls:               tf.ExpandStringSlicePtr(d.Get("reply_urls").(*schema.Set).List()),
-		AvailableToOtherTenants: p.Bool(d.Get("available_to_other_tenants").(bool)),
+		AvailableToOtherTenants: p.BoolI(d.Get("available_to_other_tenants")),
 		RequiredResourceAccess:  expandADApplicationRequiredResourceAccess(d),
-		AppRoles:                expandADApplicationAppRoles(d.Get("app_role")),
 	}
 
 	if v, ok := d.GetOk("homepage"); ok {
-		properties.Homepage = p.String(v.(string))
+		properties.Homepage = p.StringI(v)
 	} else {
 		// continue to automatically set the homepage with the type is not native
 		if appType != "native" {
@@ -227,16 +246,20 @@ func resourceApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	if v, ok := d.GetOk("logout_url"); ok {
+		properties.LogoutURL = p.StringI(v)
+	}
+
 	if v, ok := d.GetOk("oauth2_allow_implicit_flow"); ok {
-		properties.Oauth2AllowImplicitFlow = p.Bool(v.(bool))
+		properties.Oauth2AllowImplicitFlow = p.BoolI(v)
 	}
 
 	if v, ok := d.GetOk("public_client"); ok {
-		properties.PublicClient = p.Bool(v.(bool))
+		properties.PublicClient = p.BoolI(v)
 	}
 
 	if v, ok := d.GetOk("group_membership_claims"); ok {
-		properties.GroupMembershipClaims = v
+		properties.GroupMembershipClaims = graphrbac.GroupMembershipClaimTypes(v.(string))
 	}
 
 	app, err := client.Create(ctx, properties)
@@ -248,7 +271,7 @@ func resourceApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	d.SetId(*app.ObjectID)
 
-	_, err = graph.WaitForReplication(func() (interface{}, error) {
+	_, err = graph.WaitForCreationReplication(func() (interface{}, error) {
 		return client.Get(ctx, *app.ObjectID)
 	})
 	if err != nil {
@@ -269,6 +292,26 @@ func resourceApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	// to use an empty value we need to patch the resource
+	appRoles := expandADApplicationAppRoles(d.Get("app_role"))
+	if appRoles != nil {
+		properties2 := graphrbac.ApplicationUpdateParameters{
+			AppRoles: appRoles,
+		}
+
+		if _, err := client.Patch(ctx, *app.ObjectID, properties2); err != nil {
+			return err
+		}
+	}
+
+	// zadd owners, there is a default owner that we must account so use this shared function
+	if v, ok := d.GetOk("owners"); ok {
+		members := *tf.ExpandStringSlicePtr(v.(*schema.Set).List())
+		if err := adApplicationSetOwnersTo(client, ctx, *app.ObjectID, members); err != nil {
+			return err
+		}
+	}
+
 	return resourceApplicationRead(d, meta)
 }
 
@@ -285,7 +328,11 @@ func resourceApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("homepage") {
-		properties.Homepage = p.String(d.Get("homepage").(string))
+		properties.Homepage = p.StringI(d.Get("homepage"))
+	}
+
+	if d.HasChange("logout_url") {
+		properties.LogoutURL = p.StringI(d.Get("logout_url"))
 	}
 
 	if d.HasChange("identifier_uris") {
@@ -297,15 +344,15 @@ func resourceApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("available_to_other_tenants") {
-		properties.AvailableToOtherTenants = p.Bool(d.Get("available_to_other_tenants").(bool))
+		properties.AvailableToOtherTenants = p.BoolI(d.Get("available_to_other_tenants"))
 	}
 
 	if d.HasChange("oauth2_allow_implicit_flow") {
-		properties.Oauth2AllowImplicitFlow = p.Bool(d.Get("oauth2_allow_implicit_flow").(bool))
+		properties.Oauth2AllowImplicitFlow = p.BoolI(d.Get("oauth2_allow_implicit_flow"))
 	}
 
 	if d.HasChange("public_client") {
-		properties.PublicClient = p.Bool(d.Get("public_client").(bool))
+		properties.PublicClient = p.BoolI(d.Get("public_client").(bool))
 	}
 
 	if d.HasChange("required_resource_access") {
@@ -339,7 +386,7 @@ func resourceApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("group_membership_claims") {
-		properties.GroupMembershipClaims = d.Get("group_membership_claims")
+		properties.GroupMembershipClaims = graphrbac.GroupMembershipClaimTypes(d.Get("group_membership_claims").(string))
 	}
 
 	if d.HasChange("type") {
@@ -357,6 +404,13 @@ func resourceApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if _, err := client.Patch(ctx, d.Id(), properties); err != nil {
 		return fmt.Errorf("Error patching Azure AD Application with ID %q: %+v", d.Id(), err)
+	}
+
+	if v, ok := d.GetOkExists("owners"); ok && d.HasChange("owners") {
+		desiredOwners := *tf.ExpandStringSlicePtr(v.(*schema.Set).List())
+		if err := adApplicationSetOwnersTo(client, ctx, d.Id(), desiredOwners); err != nil {
+			return err
+		}
 	}
 
 	return resourceApplicationRead(d, meta)
@@ -380,6 +434,7 @@ func resourceApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", app.DisplayName)
 	d.Set("application_id", app.AppID)
 	d.Set("homepage", app.Homepage)
+	d.Set("logout_url", app.LogoutURL)
 	d.Set("available_to_other_tenants", app.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", app.Oauth2AllowImplicitFlow)
 	d.Set("public_client", app.PublicClient)
@@ -413,6 +468,14 @@ func resourceApplicationRead(d *schema.ResourceData, meta interface{}) error {
 
 	if err := d.Set("oauth2_permissions", graph.FlattenOauth2Permissions(app.Oauth2Permissions)); err != nil {
 		return fmt.Errorf("Error setting `oauth2_permissions`: %+v", err)
+	}
+
+	owners, err := graph.ApplicationAllOwners(client, ctx, d.Id())
+	if err != nil {
+		return fmt.Errorf("Error getting owners for Application %q: %+v", *app.ObjectID, err)
+	}
+	if err := d.Set("owners", owners); err != nil {
+		return fmt.Errorf("Error setting `owners`: %+v", err)
 	}
 
 	return nil
@@ -547,7 +610,11 @@ func expandADApplicationAppRoles(i interface{}) *[]graphrbac.AppRole {
 		appRoleDescription := appRole["description"].(string)
 		appRoleDisplayName := appRole["display_name"].(string)
 		appRoleIsEnabled := appRole["is_enabled"].(bool)
-		appRoleValue := appRole["value"].(string)
+
+		var appRoleValue *string
+		if v, ok := appRole["value"].(string); ok {
+			appRoleValue = &v
+		}
 
 		output = append(output,
 			graphrbac.AppRole{
@@ -556,10 +623,36 @@ func expandADApplicationAppRoles(i interface{}) *[]graphrbac.AppRole {
 				Description:        &appRoleDescription,
 				DisplayName:        &appRoleDisplayName,
 				IsEnabled:          &appRoleIsEnabled,
-				Value:              &appRoleValue,
+				Value:              appRoleValue,
 			},
 		)
 	}
 
 	return &output
+}
+
+func adApplicationSetOwnersTo(client graphrbac.ApplicationsClient, ctx context.Context, id string, desiredOwners []string) error {
+	existingOwners, err := graph.ApplicationAllOwners(client, ctx, id)
+	if err != nil {
+		return err
+	}
+
+	ownersForRemoval := slices.Difference(existingOwners, desiredOwners)
+	ownersToAdd := slices.Difference(desiredOwners, existingOwners)
+
+	// add owners first to prevent a possible situation where terraform revokes its own access before adding it back.
+	if err := graph.ApplicationAddOwners(client, ctx, id, ownersToAdd); err != nil {
+		return err
+	}
+
+	for _, ownerToDelete := range ownersForRemoval {
+		log.Printf("[DEBUG] Removing member with id %q from Azure AD group with id %q", ownerToDelete, id)
+		if resp, err := client.RemoveOwner(ctx, id, ownerToDelete); err != nil {
+			if !ar.ResponseWasNotFound(resp) {
+				return fmt.Errorf("Error Deleting group member %q from Azure AD Group with ID %q: %+v", ownerToDelete, id, err)
+			}
+		}
+	}
+
+	return nil
 }

@@ -167,6 +167,8 @@ The following arguments are supported:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
+* `firewall_policy_id` - (Optional) The resource ID of a firewall policy.
+
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
 * `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
@@ -219,7 +221,7 @@ A `backend_http_settings` block supports the following:
 
 * `port`- (Required) The port which should be used for this Backend HTTP Settings Collection.
 
-* `probe_name` - (Required) The name of an associated HTTP Probe.
+* `probe_name` - (Optional) The name of an associated HTTP Probe.
 
 * `protocol`- (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
 
@@ -287,6 +289,10 @@ A `http_listener` block supports the following:
 * `frontend_port_name` - (Required) The Name of the Frontend Port use for this HTTP Listener.
 
 * `host_name` - (Optional) The Hostname which should be used for this HTTP Listener.
+
+* `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
+
+-> **NOTE** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
 
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
@@ -388,9 +394,15 @@ A `ssl_certificate` block supports the following:
 
 * `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
 
-* `data` - (Required) PFX certificate.
+* `data` - (Optional) PFX certificate. Required if `key_vault_secret_id` is not set.
 
-* `password` - (Required) Password for the pfx file specified in data.
+* `password` - (Optional) Password for the pfx file specified in data.  Required if `data` is set.
+
+* `key_vault_secret_id` - (Optional) Secret Id of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for keyvault to use this feature. Required if `data` is not set.
+
+-> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/en-us/azure/application-gateway/key-vault-certs).
+
+-> **NOTE:** For TLS termination with Key Vault certificates to work properly existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 
@@ -441,7 +453,7 @@ A `waf_configuration` block supports the following:
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
-* `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall.
+* `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, and `3.1`.
 

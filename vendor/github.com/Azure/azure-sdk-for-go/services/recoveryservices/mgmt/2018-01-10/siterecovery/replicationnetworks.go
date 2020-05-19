@@ -35,7 +35,9 @@ func NewReplicationNetworksClient(subscriptionID string, resourceGroupName strin
 	return NewReplicationNetworksClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName, resourceName)
 }
 
-// NewReplicationNetworksClientWithBaseURI creates an instance of the ReplicationNetworksClient client.
+// NewReplicationNetworksClientWithBaseURI creates an instance of the ReplicationNetworksClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewReplicationNetworksClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string, resourceName string) ReplicationNetworksClient {
 	return ReplicationNetworksClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName, resourceName)}
 }
@@ -102,8 +104,7 @@ func (client ReplicationNetworksClient) GetPreparer(ctx context.Context, fabricN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworksClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -177,8 +178,7 @@ func (client ReplicationNetworksClient) ListPreparer(ctx context.Context) (*http
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworksClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -292,8 +292,7 @@ func (client ReplicationNetworksClient) ListByReplicationFabricsPreparer(ctx con
 // ListByReplicationFabricsSender sends the ListByReplicationFabrics request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationNetworksClient) ListByReplicationFabricsSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByReplicationFabricsResponder handles the response to the ListByReplicationFabrics request. The method always

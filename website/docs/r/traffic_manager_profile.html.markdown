@@ -92,11 +92,19 @@ The `monitor_config` block supports:
 
 * `expected_status_code_ranges` - (Optional) A list of status code ranges in the format of `100-101`.
 
+* `custom_header` - (Optional) One or more `custom_header` blocks as defined below.
+
 * `interval_in_seconds` - (Optional) The interval used to check the endpoint health from a Traffic Manager probing agent. You can specify two values here: `30` (normal probing) and `10` (fast probing). The default value is `30`.
 
 * `timeout_in_seconds` - (Optional) The amount of time the Traffic Manager probing agent should wait before considering that check a failure when a health check probe is sent to the endpoint. If `interval_in_seconds` is set to `30`, then `timeout_in_seconds` can be between `5` and `10`. The default value is `10`. If `interval_in_seconds` is set to `10`, then valid values are between `5` and `9` and `timeout_in_seconds` is required.
 
 * `tolerated_number_of_failures` - (Optional) The number of failures a Traffic Manager probing agent tolerates before marking that endpoint as unhealthy. Valid values are between `0` and `9`. The default value is `3`
+
+A `custom_header` block supports the following:
+
+* `name` - (Required) The name of the custom header.
+
+* `value` - (Required) The value of custom header. Applicable for Http and Https protocol.
 
 ## Attributes Reference
 

@@ -96,7 +96,7 @@ func (td *TestData) RandomIntOfLength(len int) int {
 	//  - greater then 18, longest a int can represent
 	//  - less then 8, as that gives us YYMMDDRR
 	if 8 > len || len > 18 {
-		panic(fmt.Sprintf("Invalid Test: RandomIntOfLength: len is not between 8 or 18 inclusive"))
+		panic("Invalid Test: RandomIntOfLength: len is not between 8 or 18 inclusive")
 	}
 
 	// 18 - just return the int
@@ -122,7 +122,7 @@ func (td *TestData) RandomIntOfLength(len int) int {
 func (td *TestData) RandomStringOfLength(len int) string {
 	// len should not be less then 1 or greater than 1024
 	if 1 > len || len > 1024 {
-		panic(fmt.Sprintf("Invalid Test: RandomStringOfLength: length argument must be between 1 and 1024 characters"))
+		panic("Invalid Test: RandomStringOfLength: length argument must be between 1 and 1024 characters")
 	}
 
 	return acctest.RandString(len)

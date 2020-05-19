@@ -38,7 +38,8 @@ func NewStorageTargetsClient(subscriptionID string) StorageTargetsClient {
 	return NewStorageTargetsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewStorageTargetsClientWithBaseURI creates an instance of the StorageTargetsClient client.
+// NewStorageTargetsClientWithBaseURI creates an instance of the StorageTargetsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewStorageTargetsClientWithBaseURI(baseURI string, subscriptionID string) StorageTargetsClient {
 	return StorageTargetsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -126,9 +127,8 @@ func (client StorageTargetsClient) CreateOrUpdatePreparer(ctx context.Context, r
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageTargetsClient) CreateOrUpdateSender(req *http.Request) (future StorageTargetsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -216,9 +216,8 @@ func (client StorageTargetsClient) DeletePreparer(ctx context.Context, resourceG
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageTargetsClient) DeleteSender(req *http.Request) (future StorageTargetsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -309,8 +308,7 @@ func (client StorageTargetsClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageTargetsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -393,8 +391,7 @@ func (client StorageTargetsClient) ListByCachePreparer(ctx context.Context, reso
 // ListByCacheSender sends the ListByCache request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageTargetsClient) ListByCacheSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByCacheResponder handles the response to the ListByCache request. The method always

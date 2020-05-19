@@ -35,7 +35,8 @@ func NewCompliancesClient(subscriptionID string, ascLocation string) Compliances
 	return NewCompliancesClientWithBaseURI(DefaultBaseURI, subscriptionID, ascLocation)
 }
 
-// NewCompliancesClientWithBaseURI creates an instance of the CompliancesClient client.
+// NewCompliancesClientWithBaseURI creates an instance of the CompliancesClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewCompliancesClientWithBaseURI(baseURI string, subscriptionID string, ascLocation string) CompliancesClient {
 	return CompliancesClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
@@ -100,8 +101,7 @@ func (client CompliancesClient) GetPreparer(ctx context.Context, scope string, c
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client CompliancesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -176,8 +176,7 @@ func (client CompliancesClient) ListPreparer(ctx context.Context, scope string) 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client CompliancesClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always

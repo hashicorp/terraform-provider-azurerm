@@ -40,9 +40,9 @@ func dataServicePrincipal() *schema.Resource {
 				ConflictsWith: []string{"object_id", "display_name"},
 			},
 
-			"app_roles": graph.SchemaAppRoles(),
+			"app_roles": graph.SchemaAppRolesComputed(),
 
-			"oauth2_permissions": graph.SchemaOauth2Permissions(),
+			"oauth2_permissions": graph.SchemaOauth2PermissionsComputed(),
 		},
 	}
 }

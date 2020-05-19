@@ -23,6 +23,10 @@ Manages a Linux Virtual Machine Scale Set.
 This example provisions a basic Linux Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine_scale_set` resource can be found [in the ./examples/vm-scale-set/linux` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/vm-scale-set/linux).
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -118,9 +122,13 @@ The following arguments are supported:
 
 * `automatic_os_upgrade_policy` - (Optional) A `automatic_os_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic`.
 
+* `automatic_instance_repair` - (Optional) A `automatic_instance_repair` block as defined below. To enable the automatic instance repair, this Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
+
+~> **NOTE:** For more information about Automatic Instance Repair, please refer to [this doc](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs).
+
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
-* `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the `name` field.
+* `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`.
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine Scale Set.
 
@@ -160,6 +168,8 @@ The following arguments are supported:
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`.
 
+* `scale_in_policy` - (Optional) The scale-in policy rule that decides which virtual machines are chosen for removal when a Virtual Machine Scale Set is scaled in. Possible values for the scale-in policy rules are `Default`, `NewestVM` and `OldestVM`, defaults to `Default`. For more information about scale in policy, please [refer to this doc](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-scale-in-policy).
+
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
 * `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Defaults to `true`.
@@ -173,6 +183,8 @@ The following arguments are supported:
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
+
+* `terminate_notification` - (Optional) A `terminate_notification` block as defined below.
 
 * `upgrade_mode` - (Optional) Specifies how Upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances. Possible values are `Automatic`, `Manual` and `Rolling`. Defaults to `Manual`.
 
@@ -208,6 +220,14 @@ A `automatic_os_upgrade_policy` block supports the following:
 
 ---
 
+A `automatic_instance_repair` block supports the following:
+
+* `enabled` - (Required) Should the automatic instance repair be enabled on this Virtual Machine Scale Set?
+
+* `grace_period` - (Optional) Amount of time (in minutes, between 30 and 90, defaults to 30 minutes) for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. The time duration should be specified in ISO 8601 format.
+
+---
+
 A `boot_diagnostics` block supports the following:
 
 * `storage_account_uri` - (Required) The Primary/Secondary Endpoint for the Azure Storage Account which should be used to store Boot Diagnostics, including Console Output and Screenshots from the Hypervisor.
@@ -225,6 +245,8 @@ A `certificate` block supports the following:
 A `data_disk` block supports the following:
 
 * `caching` - (Required) The type of Caching which should be used for this Data Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
+
+* `create_option` - (Optional) The create option which should be used for this Data Disk. Possible values are `Empty` and `FromImage`. Defaults to `Empty`. (`FromImage` should only be used if the source image includes data disks).
 
 * `disk_size_gb` - (Required) The size of the Data Disk which should be created.
 
@@ -377,6 +399,28 @@ A `secret` block supports the following:
 * `certificate` - (Required) One or more `certificate` blocks as defined above.
 
 * `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
+
+---
+
+A `terminate_notification` block supports the following:
+
+* `enabled` - (Required) Should the terminate notification be enabled on this Virtual Machine Scale Set? Defaults to `false`.
+
+* `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
+
+~> For more information about the terminate notification, please [refer to this doc](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
+
+---
+
+`source_image_reference` supports the following:
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 ## Attributes Reference
 

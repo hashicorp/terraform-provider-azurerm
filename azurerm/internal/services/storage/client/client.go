@@ -4,16 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
-
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2019-11-01/storagecache"
+	"github.com/Azure/go-autorest/autorest"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
@@ -27,7 +26,8 @@ type Client struct {
 	ManagementPoliciesClient storage.ManagementPoliciesClient
 	BlobServicesClient       storage.BlobServicesClient
 	CachesClient             *storagecache.CachesClient
-	BlobAccountsClient       *accounts.Client
+	StorageTargetsClient     *storagecache.StorageTargetsClient
+	SubscriptionId           string
 
 	environment   az.Environment
 	storageAdAuth *autorest.Authorizer
@@ -49,8 +49,8 @@ func NewClient(options *common.ClientOptions) *Client {
 	cachesClient := storagecache.NewCachesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&cachesClient.Client, options.ResourceManagerAuthorizer)
 
-	blobAccountsClient := accounts.NewWithEnvironment(options.Environment)
-	options.ConfigureClient(&blobAccountsClient.Client, options.StorageAuthorizer)
+	storageTargetsClient := storagecache.NewStorageTargetsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&storageTargetsClient.Client, options.ResourceManagerAuthorizer)
 
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
@@ -60,7 +60,8 @@ func NewClient(options *common.ClientOptions) *Client {
 		ManagementPoliciesClient: managementPoliciesClient,
 		BlobServicesClient:       blobServicesClient,
 		CachesClient:             &cachesClient,
-		BlobAccountsClient:       &blobAccountsClient,
+		SubscriptionId:           options.SubscriptionId,
+		StorageTargetsClient:     &storageTargetsClient,
 		environment:              options.Environment,
 	}
 
@@ -69,6 +70,28 @@ func NewClient(options *common.ClientOptions) *Client {
 	}
 
 	return &client
+}
+
+func (client Client) AccountsDataPlaneClient(ctx context.Context, account accountDetails) (*accounts.Client, error) {
+	if client.storageAdAuth != nil {
+		accountsClient := accounts.NewWithEnvironment(client.environment)
+		accountsClient.Client.Authorizer = *client.storageAdAuth
+		return &accountsClient, nil
+	}
+
+	accountKey, err := account.AccountKey(ctx, client)
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
+	}
+
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKeyForAccount)
+	if err != nil {
+		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+	}
+
+	accountsClient := accounts.NewWithEnvironment(client.environment)
+	accountsClient.Client.Authorizer = storageAuth
+	return &accountsClient, nil
 }
 
 func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*blobs.Client, error) {

@@ -38,7 +38,9 @@ func NewInstanceFailoverGroupsClient(subscriptionID string) InstanceFailoverGrou
 	return NewInstanceFailoverGroupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewInstanceFailoverGroupsClientWithBaseURI creates an instance of the InstanceFailoverGroupsClient client.
+// NewInstanceFailoverGroupsClientWithBaseURI creates an instance of the InstanceFailoverGroupsClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewInstanceFailoverGroupsClientWithBaseURI(baseURI string, subscriptionID string) InstanceFailoverGroupsClient {
 	return InstanceFailoverGroupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -113,9 +115,8 @@ func (client InstanceFailoverGroupsClient) CreateOrUpdatePreparer(ctx context.Co
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) CreateOrUpdateSender(req *http.Request) (future InstanceFailoverGroupsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -193,9 +194,8 @@ func (client InstanceFailoverGroupsClient) DeletePreparer(ctx context.Context, r
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) DeleteSender(req *http.Request) (future InstanceFailoverGroupsDeleteFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -272,9 +272,8 @@ func (client InstanceFailoverGroupsClient) FailoverPreparer(ctx context.Context,
 // FailoverSender sends the Failover request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) FailoverSender(req *http.Request) (future InstanceFailoverGroupsFailoverFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -353,9 +352,8 @@ func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossPreparer(ct
 // ForceFailoverAllowDataLossSender sends the ForceFailoverAllowDataLoss request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossSender(req *http.Request) (future InstanceFailoverGroupsForceFailoverAllowDataLossFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -439,8 +437,7 @@ func (client InstanceFailoverGroupsClient) GetPreparer(ctx context.Context, reso
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -518,8 +515,7 @@ func (client InstanceFailoverGroupsClient) ListByLocationPreparer(ctx context.Co
 // ListByLocationSender sends the ListByLocation request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) ListByLocationSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByLocationResponder handles the response to the ListByLocation request. The method always

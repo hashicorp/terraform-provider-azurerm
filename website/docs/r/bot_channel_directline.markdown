@@ -6,7 +6,7 @@ description: |-
   Manages an Directline integration for a Bot Channel
 ---
 
-# azurerm_bot_connection
+# azurerm_bot_channel_directline
 
 Manages a Directline integration for a Bot Channel
 
@@ -82,6 +82,15 @@ A `site` block exports the following:
 - `key2` - Secondary key for accessing this site
 
 - `id` - Id for the site
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Directline Channel.
+* `update` - (Defaults to 30 minutes) Used when updating the Directline Channel.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Directline Channel.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Directline Channel.
 
 ## Import
 

@@ -130,9 +130,9 @@ The following arguments are supported:
 
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
-    gateway is created will be routed (*forced tunneling*). Refer to the
-    [Azure documentation on forced tunneling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
-    If not specified, forced tunneling is disabled.
+    gateway is created will be routed (*forced tunnelling*). Refer to the
+    [Azure documentation on forced tunnelling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
+    If not specified, forced tunnelling is disabled.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
@@ -143,6 +143,8 @@ The following arguments are supported:
     sku is only supported by an `ExpressRoute` gateway.
 
 ~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
+
+~> **NOTE:** Not all skus (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region. 
 
 * `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`.
 
@@ -172,7 +174,7 @@ The `ip_configuration` block supports:
     the associated subnet is named `GatewaySubnet`. Therefore, each virtual
     network can contain at most a single Virtual Network Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of the public ip address to associate
+* `public_ip_address_id` - (Required) The ID of the public ip address to associate
     with the Virtual Network Gateway.
 
 The `vpn_client_configuration` block supports:

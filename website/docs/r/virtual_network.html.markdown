@@ -93,6 +93,8 @@ The following arguments are supported:
 * `subnet` - (Optional) Can be specified multiple times to define multiple
     subnets. Each `subnet` block supports fields documented below.
 
+-> **NOTE** Since `subnet` can be configured both inline and via the separate `azurerm_subnet` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -124,9 +126,11 @@ The following attributes are exported:
 
 * `resource_group_name` - The name of the resource group in which to create the virtual network.
 
-* `location` - The location/region where the virtual network is created
+* `location` - The location/region where the virtual network is created.
 
 * `address_space` - The address space that is used the virtual network.
+
+* `guid` - The GUID of the virtual network.
 
 * `subnet`- One or more `subnet` blocks as defined below.
 

@@ -28,7 +28,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "content"
-  resource_group_name   = azurerm_resource_group.example.name
   storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
@@ -55,7 +54,9 @@ The following arguments are supported:
 
 * `type` - (Required) The type of the storage blob to be created. Possible values are `Append`, `Block` or `Page`. Changing this forces a new resource to be created.
 
-* `size` - (Optional) Used only for `page` blobs to specify the size in bytes of the blob to be created. Must be a multiple of 512. Defaults to 0.
+* `size` - (Optional) Used only for `page` blobs to specify the size in bytes of the blob to be created. Must be a multiple of 512. Defaults to 0. 
+
+~> **Note:** `size` is required if `source_uri` is not set.
 
 * `access_tier` - (Optional) The access tier of the storage blob. Possible values are `Archive`, `Cool` and `Hot`.
 

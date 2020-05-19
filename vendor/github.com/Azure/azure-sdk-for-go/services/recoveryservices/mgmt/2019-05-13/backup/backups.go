@@ -35,7 +35,8 @@ func NewBackupsClient(subscriptionID string) BackupsClient {
 	return NewBackupsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewBackupsClientWithBaseURI creates an instance of the BackupsClient client.
+// NewBackupsClientWithBaseURI creates an instance of the BackupsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewBackupsClientWithBaseURI(baseURI string, subscriptionID string) BackupsClient {
 	return BackupsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -110,8 +111,7 @@ func (client BackupsClient) TriggerPreparer(ctx context.Context, vaultName strin
 // TriggerSender sends the Trigger request. The method will close the
 // http.Response Body if it receives an error.
 func (client BackupsClient) TriggerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // TriggerResponder handles the response to the Trigger request. The method always

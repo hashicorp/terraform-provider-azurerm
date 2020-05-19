@@ -203,6 +203,7 @@ func resourceArmBackupProtectionContainerStorageAccountDelete(d *schema.Resource
 	return nil
 }
 
+// nolint unused - linter mistakenly things this function isn't used?
 func resourceArmBackupProtectionContainerStorageAccountWaitForOperation(ctx context.Context, client *backup.OperationStatusesClient, vaultName, resourceGroup, operationID string, d *schema.ResourceData) (backup.OperationStatus, error) {
 	state := &resource.StateChangeConf{
 		MinTimeout:                10 * time.Second,

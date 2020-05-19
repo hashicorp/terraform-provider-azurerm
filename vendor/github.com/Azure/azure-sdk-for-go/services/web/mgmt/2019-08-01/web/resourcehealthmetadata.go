@@ -36,7 +36,9 @@ func NewResourceHealthMetadataClient(subscriptionID string) ResourceHealthMetada
 	return NewResourceHealthMetadataClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceHealthMetadataClientWithBaseURI creates an instance of the ResourceHealthMetadataClient client.
+// NewResourceHealthMetadataClientWithBaseURI creates an instance of the ResourceHealthMetadataClient client using a
+// custom endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds,
+// Azure stack).
 func NewResourceHealthMetadataClientWithBaseURI(baseURI string, subscriptionID string) ResourceHealthMetadataClient {
 	return ResourceHealthMetadataClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -109,8 +111,7 @@ func (client ResourceHealthMetadataClient) GetBySitePreparer(ctx context.Context
 // GetBySiteSender sends the GetBySite request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceHealthMetadataClient) GetBySiteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetBySiteResponder handles the response to the GetBySite request. The method always
@@ -196,8 +197,7 @@ func (client ResourceHealthMetadataClient) GetBySiteSlotPreparer(ctx context.Con
 // GetBySiteSlotSender sends the GetBySiteSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceHealthMetadataClient) GetBySiteSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetBySiteSlotResponder handles the response to the GetBySiteSlot request. The method always
@@ -269,8 +269,7 @@ func (client ResourceHealthMetadataClient) ListPreparer(ctx context.Context) (*h
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceHealthMetadataClient) ListSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -391,8 +390,7 @@ func (client ResourceHealthMetadataClient) ListByResourceGroupPreparer(ctx conte
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceHealthMetadataClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -514,8 +512,7 @@ func (client ResourceHealthMetadataClient) ListBySitePreparer(ctx context.Contex
 // ListBySiteSender sends the ListBySite request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceHealthMetadataClient) ListBySiteSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySiteResponder handles the response to the ListBySite request. The method always
@@ -639,8 +636,7 @@ func (client ResourceHealthMetadataClient) ListBySiteSlotPreparer(ctx context.Co
 // ListBySiteSlotSender sends the ListBySiteSlot request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceHealthMetadataClient) ListBySiteSlotSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListBySiteSlotResponder handles the response to the ListBySiteSlot request. The method always

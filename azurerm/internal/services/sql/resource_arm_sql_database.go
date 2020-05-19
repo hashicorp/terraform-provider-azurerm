@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -328,6 +329,8 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Optional: true,
 			},
 
+			"extended_auditing_policy": helper.ExtendedAuditingSchema(),
+
 			"tags": tags.Schema(),
 		},
 
@@ -353,6 +356,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 
 func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sql.DatabasesClient
+	threatClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -361,6 +365,12 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
+	auditingPolicies := d.Get("extended_auditing_policy").([]interface{})
+
+	if createMode == string(sql.CreateModeOnlineSecondary) && len(auditingPolicies) > 0 {
+		return fmt.Errorf("could not configure auditing policies on SQL Database %q (Resource Group %q, Server %q) in online secondary create mode", name, resourceGroup, serverName)
+	}
+
 	zoneRedundant := d.Get("zone_redundant").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -375,11 +385,6 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_sql_database", *existing.ID)
 		}
-	}
-
-	threatDetection, err := expandArmSqlServerThreatDetectionPolicy(d, location)
-	if err != nil {
-		return fmt.Errorf("Error parsing the database threat detection policy: %+v", err)
 	}
 
 	properties := sql.Database{
@@ -497,9 +502,18 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	threatDetectionClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
-	if _, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection); err != nil {
+	if _, err = threatClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *expandArmSqlServerThreatDetectionPolicy(d, location)); err != nil {
 		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
+	}
+
+	if createMode != string(sql.CreateModeOnlineSecondary) {
+		auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
+		auditingProps := sql.ExtendedDatabaseBlobAuditingPolicy{
+			ExtendedDatabaseBlobAuditingPolicyProperties: helper.ExpandAzureRmSqlDBBlobAuditingPolicies(auditingPolicies),
+		}
+		if _, err = auditingClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, auditingProps); err != nil {
+			return fmt.Errorf("failure in issuing create/update request for SQL Database %q Blob Auditing Policies(SQL Server %q/ Resource Group %q): %+v", name, serverName, resourceGroup, err)
+		}
 	}
 
 	return resourceArmSqlDatabaseRead(d, meta)
@@ -530,11 +544,10 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
 	}
 
-	threatDetectionClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
-	threatDetection, err := threatDetectionClient.Get(ctx, resourceGroup, serverName, name)
+	threatClient := meta.(*clients.Client).Sql.DatabaseThreatDetectionPoliciesClient
+	threat, err := threatClient.Get(ctx, resourceGroup, serverName, name)
 	if err == nil {
-		flattenedThreatDetection := flattenArmSqlServerThreatDetectionPolicy(d, threatDetection)
-		if err := d.Set("threat_detection_policy", flattenedThreatDetection); err != nil {
+		if err := d.Set("threat_detection_policy", flattenArmSqlServerThreatDetectionPolicy(d, threat)); err != nil {
 			return fmt.Errorf("Error setting `threat_detection_policy`: %+v", err)
 		}
 	}
@@ -584,6 +597,17 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		d.Set("zone_redundant", props.ZoneRedundant)
+	}
+
+	auditingClient := meta.(*clients.Client).Sql.DatabaseExtendedBlobAuditingPoliciesClient
+	auditingResp, err := auditingClient.Get(ctx, resourceGroup, serverName, name)
+	if err != nil {
+		return fmt.Errorf("failure in reading SQL Database %q: %v Blob Auditing Policies", name, err)
+	}
+
+	flattenBlobAuditing := helper.FlattenAzureRmSqlDBBlobAuditingPolicies(&auditingResp, d)
+	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
+		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -695,7 +719,7 @@ func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionR
 	}
 }
 
-func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) (*sql.DatabaseSecurityAlertPolicy, error) {
+func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) *sql.DatabaseSecurityAlertPolicy {
 	policy := sql.DatabaseSecurityAlertPolicy{
 		Location: utils.String(location),
 		DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
@@ -706,7 +730,7 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 
 	td, ok := d.GetOk("threat_detection_policy")
 	if !ok {
-		return &policy, nil
+		return &policy
 	}
 
 	if tdl := td.([]interface{}); len(tdl) > 0 {
@@ -742,8 +766,8 @@ func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location st
 			properties.StorageEndpoint = utils.String(v.(string))
 		}
 
-		return &policy, nil
+		return &policy
 	}
 
-	return &policy, nil
+	return &policy
 }

@@ -36,7 +36,8 @@ func NewResourceClient(subscriptionID string) ResourceClient {
 	return NewResourceClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewResourceClientWithBaseURI creates an instance of the ResourceClient client.
+// NewResourceClientWithBaseURI creates an instance of the ResourceClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewResourceClientWithBaseURI(baseURI string, subscriptionID string) ResourceClient {
 	return ResourceClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -109,8 +110,7 @@ func (client ResourceClient) CheckFilePathAvailabilityPreparer(ctx context.Conte
 // CheckFilePathAvailabilitySender sends the CheckFilePathAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceClient) CheckFilePathAvailabilitySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckFilePathAvailabilityResponder handles the response to the CheckFilePathAvailability request. The method always
@@ -194,8 +194,7 @@ func (client ResourceClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 // CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client ResourceClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always

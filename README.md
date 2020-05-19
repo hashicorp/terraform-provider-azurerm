@@ -1,6 +1,6 @@
 # Terraform Provider for Azure (Resource Manager)
 
-The AzureRM Provider supports Terraform 0.10.x and later - but Terraform 0.12.x is recommended.
+Version 2.0 of the AzureRM Provider requires Terraform 0.12.x and later.
 
 * [Terraform Website](https://www.terraform.io)
 * [AzureRM Provider Documentation](https://www.terraform.io/docs/providers/azurerm/index.html)
@@ -96,7 +96,7 @@ $ make test
 The majority of tests in the provider are Acceptance Tests - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
 
 ```sh
-make testacc SERVICE='resource' TESTARGS='-run=TestAccAzureRMResourceGroup' TESTTIMEOUT='60m'
+make acctests SERVICE='resource' TESTARGS='-run=TestAccAzureRMResourceGroup' TESTTIMEOUT='60m'
 ```
 
 The following Environment Variables must be set in your shell prior to running acceptance tests:

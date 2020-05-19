@@ -1,6 +1,6 @@
 // Package search implements the Azure ARM Search service API version 2015-08-19.
 //
-// Client that can be used to manage Azure Search services and API keys.
+// Client that can be used to manage Azure Cognitive Search services and API keys.
 package search
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
@@ -41,7 +41,8 @@ func New(subscriptionID string) BaseClient {
 	return NewWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWithBaseURI creates an instance of the BaseClient client.
+// NewWithBaseURI creates an instance of the BaseClient client using a custom endpoint.  Use this when interacting with
+// an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWithBaseURI(baseURI string, subscriptionID string) BaseClient {
 	return BaseClient{
 		Client:         autorest.NewClientWithUserAgent(UserAgent()),

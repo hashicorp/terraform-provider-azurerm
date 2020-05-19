@@ -37,7 +37,9 @@ func NewServiceObjectivesClient(subscriptionID string) ServiceObjectivesClient {
 	return NewServiceObjectivesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewServiceObjectivesClientWithBaseURI creates an instance of the ServiceObjectivesClient client.
+// NewServiceObjectivesClientWithBaseURI creates an instance of the ServiceObjectivesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewServiceObjectivesClientWithBaseURI(baseURI string, subscriptionID string) ServiceObjectivesClient {
 	return ServiceObjectivesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -105,8 +107,7 @@ func (client ServiceObjectivesClient) GetPreparer(ctx context.Context, resourceG
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceObjectivesClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -183,8 +184,7 @@ func (client ServiceObjectivesClient) ListByServerPreparer(ctx context.Context, 
 // ListByServerSender sends the ListByServer request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceObjectivesClient) ListByServerSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByServerResponder handles the response to the ListByServer request. The method always

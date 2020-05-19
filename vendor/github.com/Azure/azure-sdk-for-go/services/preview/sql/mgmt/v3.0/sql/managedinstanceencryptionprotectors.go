@@ -39,7 +39,8 @@ func NewManagedInstanceEncryptionProtectorsClient(subscriptionID string) Managed
 }
 
 // NewManagedInstanceEncryptionProtectorsClientWithBaseURI creates an instance of the
-// ManagedInstanceEncryptionProtectorsClient client.
+// ManagedInstanceEncryptionProtectorsClient client using a custom endpoint.  Use this when interacting with an Azure
+// cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewManagedInstanceEncryptionProtectorsClientWithBaseURI(baseURI string, subscriptionID string) ManagedInstanceEncryptionProtectorsClient {
 	return ManagedInstanceEncryptionProtectorsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -104,9 +105,8 @@ func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdatePreparer(c
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -189,8 +189,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) GetPreparer(ctx context.
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceEncryptionProtectorsClient) GetSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -268,8 +267,7 @@ func (client ManagedInstanceEncryptionProtectorsClient) ListByInstancePreparer(c
 // ListByInstanceSender sends the ListByInstance request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceEncryptionProtectorsClient) ListByInstanceSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByInstanceResponder handles the response to the ListByInstance request. The method always
@@ -378,9 +376,8 @@ func (client ManagedInstanceEncryptionProtectorsClient) RevalidatePreparer(ctx c
 // RevalidateSender sends the Revalidate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstanceEncryptionProtectorsClient) RevalidateSender(req *http.Request) (future ManagedInstanceEncryptionProtectorsRevalidateFuture, err error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req, sd...)
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}

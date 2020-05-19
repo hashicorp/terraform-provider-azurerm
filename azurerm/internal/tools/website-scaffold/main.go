@@ -502,12 +502,12 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 	if name == "name" {
 		if blockName == "" {
 			if gen.isDataSource {
-				return fmt.Sprintf("The Name of this %s.", gen.brandName)
+				return fmt.Sprintf("The name of this %s.", gen.brandName)
 			}
 
-			return fmt.Sprintf("The Name which should be used for this %s.", gen.brandName)
+			return fmt.Sprintf("The name which should be used for this %s.", gen.brandName)
 		} else {
-			return "The Name which should be used for this TODO."
+			return "The name which should be used for this TODO."
 		}
 	}
 	if name == "location" {
@@ -529,36 +529,38 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 	}
 
 	if name == "enabled" || strings.HasSuffix(name, "_enabled") {
-		return fmt.Sprintf("Should the TODO be enabled?")
+		return "Should the TODO be enabled?"
 	}
 
 	if strings.HasSuffix(name, "_id") {
-		return fmt.Sprintf("The ID of the TODO.")
+		return "The ID of the TODO."
 	}
 
 	if field.Elem != nil {
-		if _, ok := field.Elem.(*schema.Schema); ok {
-			if gen.blockIsBefore(name, blockName) {
-				return fmt.Sprintf("A `%s` block as defined above.", name)
-			} else {
-				return fmt.Sprintf("A `%s` block as defined below.", name)
-			}
-		}
-
 		if _, ok := field.Elem.(*schema.Resource); ok {
-			if gen.blockIsBefore(name, blockName) {
-				return fmt.Sprintf("A `%s` block as defined above.", name)
-			} else {
-				return fmt.Sprintf("A `%s` block as defined below.", name)
+			fmtBlock := func(name string, maxItem int, blockIsBefore bool) string {
+				var head string
+				if maxItem == 1 {
+					head = fmt.Sprintf("A `%s` block", name)
+				} else {
+					head = fmt.Sprintf("One or more `%s` blocks", name)
+				}
+
+				var tail string
+				if blockIsBefore {
+					tail = "as defined above."
+				} else {
+					tail = "as defined below."
+				}
+				return head + " " + tail
 			}
+			return fmtBlock(name, field.MaxItems, gen.blockIsBefore(name, blockName))
 		}
 	}
-	if field.Type == schema.TypeList {
-		if gen.blockIsBefore(name, blockName) {
-			return fmt.Sprintf("A `%s` block as defined above.", name)
-		} else {
-			return fmt.Sprintf("A `%s` block as defined below.", name)
-		}
+
+	switch field.Type {
+	case schema.TypeList, schema.TypeSet, schema.TypeMap:
+		return "Specifies a list of TODO."
 	}
 
 	return "TODO."
@@ -567,9 +569,9 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 func (gen documentationGenerator) buildDescriptionForAttribute(name string, field *schema.Schema, blockName string) string {
 	if name == "name" {
 		if blockName == "" {
-			return fmt.Sprintf("The Name of this %s.", gen.brandName)
+			return fmt.Sprintf("The name of this %s.", gen.brandName)
 		} else {
-			return "The Name of this TODO."
+			return "The name of this TODO."
 		}
 	}
 	if name == "location" {
@@ -583,11 +585,11 @@ func (gen documentationGenerator) buildDescriptionForAttribute(name string, fiel
 	}
 
 	if name == "enabled" || strings.HasSuffix(name, "_enabled") {
-		return fmt.Sprintf("Is the TODO enabled?")
+		return "Is the TODO enabled?"
 	}
 
 	if strings.HasSuffix(name, "_id") {
-		return fmt.Sprintf("The ID of the TODO.")
+		return "The ID of the TODO."
 	}
 
 	if field.Elem != nil {

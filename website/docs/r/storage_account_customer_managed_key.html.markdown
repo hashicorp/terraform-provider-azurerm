@@ -105,6 +105,15 @@ The following attributes are exported in addition to the arguments listed above:
 
 ---
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Storage Account Customer Managed Keys.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Account Customer Managed Keys.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account Customer Managed Keys.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Storage Account Customer Managed Keys.
+
 ## Import
 
 Customer Managed Keys for a Storage Account can be imported using the `resource id` of the Storage Account, e.g.

@@ -9,7 +9,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,20 +28,15 @@ func TestAccAzureRMBackupProtectedVm_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{ // vault cannot be deleted unless we unregister all backups
+			{
+				// vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedVm_base(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
 }
 
 func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,9 +52,9 @@ func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMBackupProtectedVm_requiresImport),
-			{ // vault cannot be deleted unless we unregister all backups
+			{
+				// vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedVm_base(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
@@ -82,9 +76,9 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{ // vault cannot be deleted unless we unregister all backups
+			{
+				// vault cannot be deleted unless we unregister all backups
 				Config: testAccAzureRMBackupProtectedVm_additionalVault(data),
-				Check:  resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
@@ -116,22 +110,22 @@ func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 					resource.TestCheckResourceAttrPair(data.ResourceName, "backup_policy_id", sBackupPolicyResourceName, "id"),
 				),
 			},
-			{ // Remove backup policy link
+			{
+				// Remove backup policy link
 				// Backup policy link will need to be removed first so the VM's backup policy subsequently reverts to Default
 				// Azure API is quite sensitive, adding the step to control resource cleanup order
 				ResourceName: fBackupPolicyResourceName,
 				Config:       testAccAzureRMBackupProtectedVm_withVM(data),
-				Check:        resource.ComposeTestCheckFunc(),
 			},
-			{ // Then VM can be removed
+			{
+				// Then VM can be removed
 				ResourceName: virtualMachine,
 				Config:       testAccAzureRMBackupProtectedVm_withSecondPolicy(data),
-				Check:        resource.ComposeTestCheckFunc(),
 			},
-			{ // Remove backup policies and vault
+			{
+				// Remove backup policies and vault
 				ResourceName: data.ResourceName,
 				Config:       testAccAzureRMBackupProtectedVm_basePolicyTest(data),
-				Check:        resource.ComposeTestCheckFunc(),
 			},
 		},
 	})
@@ -235,51 +229,51 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_virtual_network" "test" {
   name                = "vnet"
-  location            = "${azurerm_resource_group.test.location}"
+  location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctest_subnet"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = azurerm_virtual_network.test.name
+  resource_group_name  = azurerm_resource_group.test.name
   address_prefix       = "10.0.10.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
   name                = "acctest_nic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
     name                          = "acctestipconfig"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.test.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    public_ip_address_id          = azurerm_public_ip.test.id
   }
 }
 
 resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   domain_name_label   = "acctestip%d"
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctest%s"
-  location                 = "${azurerm_resource_group.test.location}"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_managed_disk" "test" {
   name                 = "acctest-datadisk"
-  location             = "${azurerm_resource_group.test.location}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1023"
@@ -287,10 +281,10 @@ resource "azurerm_managed_disk" "test" {
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctestvm"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
   vm_size               = "Standard_A0"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  network_interface_ids = [azurerm_network_interface.test.id]
 
   storage_image_reference {
     publisher = "Canonical"
@@ -308,9 +302,9 @@ resource "azurerm_virtual_machine" "test" {
 
   storage_data_disk {
     name              = "acctest-datadisk"
-    managed_disk_id   = "${azurerm_managed_disk.test.id}"
+    managed_disk_id   = azurerm_managed_disk.test.id
     managed_disk_type = "Standard_LRS"
-    disk_size_gb      = "${azurerm_managed_disk.test.disk_size_gb}"
+    disk_size_gb      = azurerm_managed_disk.test.disk_size_gb
     create_option     = "Attach"
     lun               = 0
   }
@@ -327,14 +321,14 @@ resource "azurerm_virtual_machine" "test" {
 
   boot_diagnostics {
     enabled     = true
-    storage_uri = "${azurerm_storage_account.test.primary_blob_endpoint}"
+    storage_uri = azurerm_storage_account.test.primary_blob_endpoint
   }
 }
 
 resource "azurerm_recovery_services_vault" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
   soft_delete_enabled = false
@@ -342,8 +336,8 @@ resource "azurerm_recovery_services_vault" "test" {
 
 resource "azurerm_backup_policy_vm" "test" {
   name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Daily"

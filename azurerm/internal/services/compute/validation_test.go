@@ -2,7 +2,90 @@ package compute
 
 import "testing"
 
-func TestValidateLinuxName(t *testing.T) {
+func TestValidateVmName(t *testing.T) {
+	testData := []struct {
+		input    string
+		expected bool
+	}{
+		{
+			// empty
+			input:    "",
+			expected: false,
+		},
+		{
+			// basic example
+			input:    "hello",
+			expected: true,
+		},
+		{
+			// 79 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyza",
+			expected: true,
+		},
+		{
+			// 80 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzab",
+			expected: true,
+		},
+		{
+			// 81 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabc",
+			expected: false,
+		},
+		{
+			// may contain alphanumerics, dots, dashes and underscores
+			input:    "hello_world7.goodbye-world4",
+			expected: true,
+		},
+		{
+			// must begin with an alphanumeric
+			input:    "_hello",
+			expected: false,
+		},
+		{
+			// can't end with a period
+			input:    "hello.",
+			expected: false,
+		},
+		{
+			// can't end with a dash
+			input:    "hello-",
+			expected: false,
+		},
+		{
+			// can end with an underscore
+			input:    "hello_",
+			expected: true,
+		},
+		{
+			// can't contain an exclamation mark
+			input:    "hello!",
+			expected: false,
+		},
+		{
+			// start with a number
+			input:    "0abc",
+			expected: true,
+		},
+		{
+			// cannot contain only numbers
+			input:    "12345",
+			expected: false,
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q..", v.input)
+
+		_, errors := ValidateVmName(v.input, "name")
+		actual := len(errors) == 0
+		if v.expected != actual {
+			t.Fatalf("Expected %t but got %t", v.expected, actual)
+		}
+	}
+}
+
+func TestValidateLinuxComputerName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -20,6 +103,11 @@ func TestValidateLinuxName(t *testing.T) {
 		{
 			// can't start with an underscore
 			input:    "_hello",
+			expected: false,
+		},
+		{
+			// can't end with a period
+			input:    "hello.",
 			expected: false,
 		},
 		{
@@ -33,36 +121,41 @@ func TestValidateLinuxName(t *testing.T) {
 			expected: false,
 		},
 		{
+			// or brackets
+			input:    "hello[]",
+			expected: false,
+		},
+		{
+			// or pipe
+			input:    "hel|lo",
+			expected: false,
+		},
+		{
+			// nor dollar
+			input:    "dollar$bill",
+			expected: false,
+		},
+		{
 			// dash in the middle
 			input:    "malcolm-in-the-middle",
 			expected: true,
 		},
 		{
-			// can't end with a period
-			input:    "hello.",
-			expected: false,
-		},
-		{
-			// 63 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghij",
+			// can have a dot in the middle
+			input:    "hello.world",
 			expected: true,
 		},
 		{
-			// 64 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk",
+			// start with a number
+			input:    "0abc",
 			expected: true,
-		},
-		{
-			// 65 chars
-			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkj",
-			expected: false,
 		},
 	}
 
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateLinuxName(v.input, "name")
+		_, errors := ValidateLinuxComputerName(v.input, "computer_name", 100)
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
@@ -70,7 +163,73 @@ func TestValidateLinuxName(t *testing.T) {
 	}
 }
 
-func TestValidateWindowsName(t *testing.T) {
+func TestValidateLinuxComputerNameFull(t *testing.T) {
+	testData := []struct {
+		input    string
+		expected bool
+	}{
+		{
+			// 63 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijk",
+			expected: true,
+		},
+		{
+			// 64 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkj",
+			expected: true,
+		},
+		{
+			// 65 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijkjl",
+			expected: false,
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q..", v.input)
+
+		_, errors := ValidateLinuxComputerNameFull(v.input, "computer_name")
+		actual := len(errors) == 0
+		if v.expected != actual {
+			t.Fatalf("Expected %t but got %t", v.expected, actual)
+		}
+	}
+}
+
+func TestValidateLinuxComputerNamePrefix(t *testing.T) {
+	testData := []struct {
+		input    string
+		expected bool
+	}{
+		{
+			// 57 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcde",
+			expected: true,
+		},
+		{
+			// 58 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdef",
+			expected: true,
+		},
+		{
+			// 59 chars
+			input:    "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefg",
+			expected: false,
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q..", v.input)
+
+		_, errors := ValidateLinuxComputerNamePrefix(v.input, "computer_name")
+		actual := len(errors) == 0
+		if v.expected != actual {
+			t.Fatalf("Expected %t but got %t", v.expected, actual)
+		}
+	}
+}
+
+func TestValidateWindowsComputerName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -88,6 +247,11 @@ func TestValidateWindowsName(t *testing.T) {
 		{
 			// can't start with an underscore
 			input:    "_hello",
+			expected: false,
+		},
+		{
+			// can't contain underscore
+			input:    "hello_world",
 			expected: false,
 		},
 		{
@@ -111,6 +275,39 @@ func TestValidateWindowsName(t *testing.T) {
 			expected: false,
 		},
 		{
+			// can't contain dot
+			input:    "hello.world",
+			expected: false,
+		},
+		{
+			// start with a number
+			input:    "0abc",
+			expected: true,
+		},
+		{
+			// cannot contain only numbers
+			input:    "12345",
+			expected: false,
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q..", v.input)
+
+		_, errors := ValidateWindowsComputerName(v.input, "computer_name", 100)
+		actual := len(errors) == 0
+		if v.expected != actual {
+			t.Fatalf("Expected %t but got %t", v.expected, actual)
+		}
+	}
+}
+
+func TestValidateWindowsComputerNameFull(t *testing.T) {
+	testData := []struct {
+		input    string
+		expected bool
+	}{
+		{
 			// 14 chars
 			input:    "abcdefghijklmn",
 			expected: true,
@@ -130,7 +327,40 @@ func TestValidateWindowsName(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateWindowsName(v.input, "name")
+		_, errors := ValidateWindowsComputerNameFull(v.input, "computer_name")
+		actual := len(errors) == 0
+		if v.expected != actual {
+			t.Fatalf("Expected %t but got %t", v.expected, actual)
+		}
+	}
+}
+
+func TestValidateWindowsComputerNamePrefix(t *testing.T) {
+	testData := []struct {
+		input    string
+		expected bool
+	}{
+		{
+			// 8 chars
+			input:    "abcdefgh",
+			expected: true,
+		},
+		{
+			// 9 chars
+			input:    "abcdefghi",
+			expected: true,
+		},
+		{
+			// 10 chars
+			input:    "abcdefghij",
+			expected: false,
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q..", v.input)
+
+		_, errors := ValidateWindowsComputerNamePrefix(v.input, "computer_name")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)

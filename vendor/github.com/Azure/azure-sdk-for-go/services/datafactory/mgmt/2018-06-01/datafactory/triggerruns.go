@@ -37,7 +37,8 @@ func NewTriggerRunsClient(subscriptionID string) TriggerRunsClient {
 	return NewTriggerRunsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTriggerRunsClientWithBaseURI creates an instance of the TriggerRunsClient client.
+// NewTriggerRunsClientWithBaseURI creates an instance of the TriggerRunsClient client using a custom endpoint.  Use
+// this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTriggerRunsClientWithBaseURI(baseURI string, subscriptionID string) TriggerRunsClient {
 	return TriggerRunsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -120,8 +121,7 @@ func (client TriggerRunsClient) QueryByFactoryPreparer(ctx context.Context, reso
 // QueryByFactorySender sends the QueryByFactory request. The method will close the
 // http.Response Body if it receives an error.
 func (client TriggerRunsClient) QueryByFactorySender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // QueryByFactoryResponder handles the response to the QueryByFactory request. The method always
@@ -217,8 +217,7 @@ func (client TriggerRunsClient) RerunPreparer(ctx context.Context, resourceGroup
 // RerunSender sends the Rerun request. The method will close the
 // http.Response Body if it receives an error.
 func (client TriggerRunsClient) RerunSender(req *http.Request) (*http.Response, error) {
-	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
-	return autorest.SendWithSender(client, req, sd...)
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RerunResponder handles the response to the Rerun request. The method always
