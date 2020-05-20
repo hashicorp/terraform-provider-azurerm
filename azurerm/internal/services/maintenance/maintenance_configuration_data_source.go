@@ -54,7 +54,7 @@ func dataSourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta inte
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Maintenance Configuration %q was not found in Resource Group %q", name, resp)
+			return fmt.Errorf("Maintenance Configuration %q was not found in Resource Group %q", name, resGroup)
 		}
 		return fmt.Errorf("retrieving Maintenance Configuration %q (Resource Group %q): %+v", name, resGroup, err)
 	}
