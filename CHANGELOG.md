@@ -18,7 +18,10 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_api_management_subscription` - fix the export of `primary_key` and `secondary_key` [GH-6938]
-
+* `azurerm_linux_virtual_machine` - allowing name to end with a capital letter [GH-7023]
+* `azurerm_linux_virtual_machine_scale_set` - allowing name to end with a capital [GH-7023]
+* `azurerm_windows_virtual_machine` - allowing name to end with a capital [GH-7023]
+* `azurerm_windows_virtual_machine_scale_set` - allowing name to end with a capital [GH-7023]
 
 ---
 
