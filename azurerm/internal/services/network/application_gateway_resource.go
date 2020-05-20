@@ -102,7 +102,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			// Required
 			"backend_address_pool": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -140,7 +140,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"backend_http_settings": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
@@ -205,7 +205,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"authentication_certificate": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -270,7 +270,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"frontend_ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
@@ -342,7 +342,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"gateway_ip_configuration": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MaxItems: 2,
 				Elem: &schema.Resource{
@@ -367,7 +367,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"http_listener": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -440,7 +440,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"custom_error_configuration": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -680,7 +680,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			// Optional
 			"authentication_certificate": {
-				Type:     schema.TypeList, // todo this should probably be a map
+				Type:     schema.TypeSet, // todo this should probably be a map
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -706,7 +706,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"trusted_root_certificate": {
-				Type:     schema.TypeList, // todo this should probably be a map
+				Type:     schema.TypeSet, // todo this should probably be a map
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -739,7 +739,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"ssl_policy": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -799,7 +799,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"probe": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -887,7 +887,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"rewrite_rule_set": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -898,7 +898,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"rewrite_rule": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -915,7 +915,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 									},
 
 									"condition": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -942,7 +942,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 									},
 
 									"request_header_configuration": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -959,7 +959,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 									},
 
 									"response_header_configuration": {
-										Type:     schema.TypeList,
+										Type:     schema.TypeSet,
 										Optional: true,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
@@ -987,8 +987,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"ssl_certificate": {
-				// TODO: should this become a Set?
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -1030,7 +1029,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 			},
 
 			"url_path_map": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -1062,7 +1061,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"path_rule": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -1230,7 +1229,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							},
 						},
 						"exclusion": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -1339,7 +1338,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	gatewayIDFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s"
 	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.Account.SubscriptionId, resGroup, name)
 
-	trustedRootCertificates := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
+	trustedRootCertificates := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").(*schema.Set).List())
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	if err != nil {
@@ -1375,7 +1374,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		Tags: tags.Expand(t),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
 			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
-			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
+			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").(*schema.Set).List()),
 			TrustedRootCertificates:       trustedRootCertificates,
 			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
 			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
@@ -1754,7 +1753,7 @@ func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.Applic
 	// since the certificate data isn't returned lets load any existing data
 	nameToDataMap := map[string]string{}
 	if existing, ok := d.GetOk("authentication_certificate"); ok && existing != nil {
-		for _, c := range existing.([]interface{}) {
+		for _, c := range existing.(*schema.Set).List() {
 			b := c.(map[string]interface{})
 			nameToDataMap[b["name"].(string)] = b["data"].(string)
 		}
@@ -1791,7 +1790,7 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 	// since the certificate data isn't returned lets load any existing data
 	nameToDataMap := map[string]string{}
 	if existing, ok := d.GetOk("trusted_root_certificate"); ok && existing != nil {
-		for _, c := range existing.([]interface{}) {
+		for _, c := range existing.(*schema.Set).List() {
 			b := c.(map[string]interface{})
 			nameToDataMap[b["name"].(string)] = b["data"].(string)
 		}
@@ -1828,7 +1827,7 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 }
 
 func expandApplicationGatewayBackendAddressPools(d *schema.ResourceData) *[]network.ApplicationGatewayBackendAddressPool {
-	vs := d.Get("backend_address_pool").([]interface{})
+	vs := d.Get("backend_address_pool").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayBackendAddressPool, 0)
 
 	for _, raw := range vs {
@@ -1903,7 +1902,7 @@ func flattenApplicationGatewayBackendAddressPools(input *[]network.ApplicationGa
 
 func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gatewayID string) *[]network.ApplicationGatewayBackendHTTPSettings {
 	results := make([]network.ApplicationGatewayBackendHTTPSettings, 0)
-	vs := d.Get("backend_http_settings").([]interface{})
+	vs := d.Get("backend_http_settings").(*schema.Set).List()
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
@@ -1940,7 +1939,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 		}
 
 		if v["authentication_certificate"] != nil {
-			authCerts := v["authentication_certificate"].([]interface{})
+			authCerts := v["authentication_certificate"].(*schema.Set).List()
 			authCertSubResources := make([]network.SubResource, 0)
 
 			for _, rawAuthCert := range authCerts {
@@ -2129,7 +2128,7 @@ func expandApplicationGatewaySslPolicy(d *schema.ResourceData) *network.Applicat
 	policy := network.ApplicationGatewaySslPolicy{}
 	disabledSSLPolicies := make([]network.ApplicationGatewaySslProtocol, 0)
 
-	vs := d.Get("ssl_policy").([]interface{})
+	vs := d.Get("ssl_policy").(*schema.Set).List()
 
 	if len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
@@ -2203,7 +2202,7 @@ func flattenApplicationGatewaySslPolicy(input *network.ApplicationGatewaySslPoli
 }
 
 func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayHTTPListener, error) {
-	vs := d.Get("http_listener").([]interface{})
+	vs := d.Get("http_listener").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayHTTPListener, 0)
 
 	for _, raw := range vs {
@@ -2342,7 +2341,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 }
 
 func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]network.ApplicationGatewayIPConfiguration, bool) {
-	vs := d.Get("gateway_ip_configuration").([]interface{})
+	vs := d.Get("gateway_ip_configuration").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayIPConfiguration, 0)
 	stopApplicationGateway := false
 
@@ -2477,7 +2476,7 @@ func flattenApplicationGatewayFrontendPorts(input *[]network.ApplicationGatewayF
 }
 
 func expandApplicationGatewayFrontendIPConfigurations(d *schema.ResourceData) *[]network.ApplicationGatewayFrontendIPConfiguration {
-	vs := d.Get("frontend_ip_configuration").([]interface{})
+	vs := d.Get("frontend_ip_configuration").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayFrontendIPConfiguration, 0)
 
 	for _, raw := range vs {
@@ -2556,7 +2555,7 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]network.Applicat
 }
 
 func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.ApplicationGatewayProbe {
-	vs := d.Get("probe").([]interface{})
+	vs := d.Get("probe").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayProbe, 0)
 
 	for _, raw := range vs {
@@ -2857,7 +2856,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 }
 
 func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.ApplicationGatewayRewriteRuleSet {
-	vs := d.Get("rewrite_rule_set").([]interface{})
+	vs := d.Get("rewrite_rule_set").(*schema.Set).List()
 	ruleSets := make([]network.ApplicationGatewayRewriteRuleSet, 0)
 
 	for _, raw := range vs {
@@ -2866,7 +2865,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 
 		name := v["name"].(string)
 
-		for _, ruleConfig := range v["rewrite_rule"].([]interface{}) {
+		for _, ruleConfig := range v["rewrite_rule"].(*schema.Set).List() {
 			r := ruleConfig.(map[string]interface{})
 			conditions := make([]network.ApplicationGatewayRewriteRuleCondition, 0)
 			requestConfigurations := make([]network.ApplicationGatewayHeaderConfiguration, 0)
@@ -2877,7 +2876,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 				RuleSequence: utils.Int32(int32(r["rule_sequence"].(int))),
 			}
 
-			for _, rawCondition := range r["condition"].([]interface{}) {
+			for _, rawCondition := range r["condition"].(*schema.Set).List() {
 				c := rawCondition.(map[string]interface{})
 				condition := network.ApplicationGatewayRewriteRuleCondition{
 					Variable:   utils.String(c["variable"].(string)),
@@ -2889,7 +2888,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 			}
 			rule.Conditions = &conditions
 
-			for _, rawConfig := range r["request_header_configuration"].([]interface{}) {
+			for _, rawConfig := range r["request_header_configuration"].(*schema.Set).List() {
 				c := rawConfig.(map[string]interface{})
 				config := network.ApplicationGatewayHeaderConfiguration{
 					HeaderName:  utils.String(c["header_name"].(string)),
@@ -2898,7 +2897,7 @@ func expandApplicationGatewayRewriteRuleSets(d *schema.ResourceData) *[]network.
 				requestConfigurations = append(requestConfigurations, config)
 			}
 
-			for _, rawConfig := range r["response_header_configuration"].([]interface{}) {
+			for _, rawConfig := range r["response_header_configuration"].(*schema.Set).List() {
 				c := rawConfig.(map[string]interface{})
 				config := network.ApplicationGatewayHeaderConfiguration{
 					HeaderName:  utils.String(c["header_name"].(string)),
@@ -3203,7 +3202,7 @@ func flattenApplicationGatewaySku(input *network.ApplicationGatewaySku) []interf
 }
 
 func expandApplicationGatewaySslCertificates(d *schema.ResourceData) (*[]network.ApplicationGatewaySslCertificate, error) {
-	vs := d.Get("ssl_certificate").([]interface{})
+	vs := d.Get("ssl_certificate").(*schema.Set).List()
 	results := make([]network.ApplicationGatewaySslCertificate, 0)
 
 	for _, raw := range vs {
@@ -3275,7 +3274,7 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 
 		// since the certificate data isn't returned we have to load it from the same index
 		if existing, ok := d.GetOk("ssl_certificate"); ok && existing != nil {
-			existingVals := existing.([]interface{})
+			existingVals := existing.(*schema.Set).List()
 			for _, existingVal := range existingVals {
 				existingCerts := existingVal.(map[string]interface{})
 				existingName := existingCerts["name"].(string)
@@ -3300,7 +3299,7 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 }
 
 func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayURLPathMap, error) {
-	vs := d.Get("url_path_map").([]interface{})
+	vs := d.Get("url_path_map").(*schema.Set).List()
 	results := make([]network.ApplicationGatewayURLPathMap, 0)
 
 	for _, raw := range vs {
@@ -3309,7 +3308,7 @@ func expandApplicationGatewayURLPathMaps(d *schema.ResourceData, gatewayID strin
 		name := v["name"].(string)
 
 		pathRules := make([]network.ApplicationGatewayPathRule, 0)
-		for _, ruleConfig := range v["path_rule"].([]interface{}) {
+		for _, ruleConfig := range v["path_rule"].(*schema.Set).List() {
 			ruleConfigMap := ruleConfig.(map[string]interface{})
 
 			ruleName := ruleConfigMap["name"].(string)
@@ -3575,7 +3574,7 @@ func expandApplicationGatewayWafConfig(d *schema.ResourceData) *network.Applicat
 		RequestBodyCheck:       utils.Bool(requestBodyCheck),
 		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
 		DisabledRuleGroups:     expandApplicationGatewayFirewallDisabledRuleGroup(v["disabled_rule_group"].([]interface{})),
-		Exclusions:             expandApplicationGatewayFirewallExclusion(v["exclusion"].([]interface{})),
+		Exclusions:             expandApplicationGatewayFirewallExclusion(v["exclusion"].(*schema.Set).List()),
 	}
 }
 
