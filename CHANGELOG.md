@@ -17,7 +17,21 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_api_management_group` - raising an error when the Group cannot be found [GH-7024]
+* Data Source: `azurerm_image` - raising an error when the Image cannot be found [GH-7024]
+* Data Source: `azurerm_data_lake_store` - raising an error when Data Lake Store cannot be found [GH-7024]
+* Data Source: `azurerm_data_share_account` - raising an error when Data Share Account cannot be found [GH-7024]
+* Data Source: `azurerm_hdinsight_cluster` - raising an error when the HDInsight Cluster cannot be found [GH-7024]
+* Data Source: `azurerm_healthcare_service` - raising an error when the HealthCare Service cannot be found [GH-7024]
+* Data Source: `azurerm_healthcare_service` - ensuring all blocks are set in the response [GH-7024]
+* Data Source: `azurerm_firewall` - raising an error when the Firewall cannot be found [GH-7024]
+* Data Source: `azurerm_maintenance_configuration` - raising an error when the Maintenance Configuration cannot be found [GH-7024]
+* Data Source: `azurerm_private_endpoint_connection` - raising an error when the Private Endpoint Connection cannot be found [GH-7024]
+* Data Source: `azurerm_shared_image_version` - raising an error when the Image Version cannot be found [GH-7024]
+* Data Source: `azurerm_shared_image_versions` - raising an error when Image Versions cannot be found [GH-7024]
+* Data Source: `azurerm_user_assigned_identity` - raising an error when the User Assigned Identity cannot be found [GH-7024]
 * `azurerm_api_management_subscription` - fix the export of `primary_key` and `secondary_key` [GH-6938]
+* `azurerm_healthcare_service` - ensuring all blocks are set in the response [GH-7024]
 * `azurerm_linux_virtual_machine` - allowing name to end with a capital letter [GH-7023]
 * `azurerm_linux_virtual_machine_scale_set` - allowing name to end with a capital [GH-7023]
 * `azurerm_windows_virtual_machine` - allowing name to end with a capital [GH-7023]
