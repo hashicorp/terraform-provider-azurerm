@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -77,9 +76,7 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("[DEBUG] Firewall %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Firewall %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error making Read request on Azure Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
