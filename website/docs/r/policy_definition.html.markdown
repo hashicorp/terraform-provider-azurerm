@@ -15,10 +15,6 @@ Policy definitions do not take effect until they are assigned to a scope using a
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_policy_definition" "policy" {
   name         = "accTestPolicy"
   policy_type  = "Custom"

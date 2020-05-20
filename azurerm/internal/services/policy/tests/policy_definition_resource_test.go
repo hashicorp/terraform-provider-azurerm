@@ -74,7 +74,7 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroyInMgmtGroup,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyDefinition_ManagementGroup(data),
+				Config: testAzureRMPolicyDefinition_managementGroup(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(data.ResourceName),
 				),
@@ -308,7 +308,7 @@ POLICY_RULE
 `, data.RandomInteger)
 }
 
-func testAzureRMPolicyDefinition_ManagementGroup(data acceptance.TestData) string {
+func testAzureRMPolicyDefinition_managementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
