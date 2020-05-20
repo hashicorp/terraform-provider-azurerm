@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
-func TestvalidateResourceGroupName(t *testing.T) {
+func TestValidateResourceGroupName(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
