@@ -14,6 +14,7 @@ IMPROVEMENTS:
 * `azurerm_api_management_api_version_set` - updating the validation for the `name` field [GH-6947]
 * `azurerm_app_service` - the `ip_restriction` block now supports the `action` property [GH-6967]
 * `azurerm_databricks_workspace` - exposing `workspace_id` and `workspace_url` [GH-6973]
+* `azurerm_netapp_volume` - support the `mount_ip_addresses` property [GH-5526]
 * `azurerm_storage_account` - allowing the value `PATCH` for `allowed_methods` within the `cors_rule` block within the `blob_properties` block [GH-6964]
 
 BUG FIXES:
