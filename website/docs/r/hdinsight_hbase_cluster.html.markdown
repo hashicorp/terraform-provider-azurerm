@@ -111,6 +111,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight HBase Cluster.
 
+* `monitor` - (Optional) A `monitor` block as defined below.
+
 ---
 
 A `component_version` block supports the following:
@@ -232,6 +234,14 @@ A `zookeeper_node` block supports the following:
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
+
+---
+
+A `monitor` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
+
+* `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
 
 ## Attributes Reference
 
