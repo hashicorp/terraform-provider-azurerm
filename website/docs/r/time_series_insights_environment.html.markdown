@@ -1,5 +1,5 @@
 ---
-subcategory: "Time Series Insights
+subcategory: "Time Series Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_time_series_insights_environment"
 description: |-
