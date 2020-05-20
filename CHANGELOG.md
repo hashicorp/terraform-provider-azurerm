@@ -14,6 +14,11 @@ IMPROVEMENTS:
 * `azurerm_databricks_workspace` - exposing `workspace_id` and `workspace_url` [GH-6973]
 * `azurerm_storage_account` - allowing the value `PATCH` for `allowed_methods` within the `cors_rule` block within the `blob_properties` block [GH-6964]
 
+BUG FIXES:
+
+* `azurerm_api_management_subscription` - fix the export of `primary_key` and `secondary_key` [GH-6938]
+
+
 ---
 
 For information on changes between the v2.10.0 and v2.0.0 releases, please see [the v2.10.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/v2.10.0/CHANGELOG.md).
