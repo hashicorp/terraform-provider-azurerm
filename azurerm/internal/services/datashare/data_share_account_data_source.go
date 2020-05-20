@@ -2,7 +2,6 @@ package datashare
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -68,9 +67,7 @@ func dataSourceArmDataShareAccountRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] DataShare %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("DataShare Account %q does not exist in Resource Group %q", name, resourceGroup)
 		}
 		return fmt.Errorf("retrieving DataShare Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
