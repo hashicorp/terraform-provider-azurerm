@@ -328,6 +328,15 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 								Computed:     true,
 								ValidateFunc: validation.IntBetween(1, 2147483647),
 							},
+							"action": {
+								Type:     schema.TypeString,
+								Default:  "Allow",
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Allow",
+									"Deny",
+								}, false),
+							},
 						},
 					},
 				},
@@ -703,6 +712,10 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 							},
 							"priority": {
 								Type:     schema.TypeInt,
+								Computed: true,
+							},
+							"action": {
+								Type:     schema.TypeString,
 								Computed: true,
 							},
 						},
@@ -1452,6 +1465,7 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
 			name := restriction["name"].(string)
 			priority := restriction["priority"].(int)
+			action := restriction["action"].(string)
 			if vNetSubnetID != "" && ipAddress != "" {
 				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can be set for `site_config.0.ip_restriction.%d`", i))
 			}
@@ -1479,6 +1493,10 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 
 			if priority != 0 {
 				ipSecurityRestriction.Priority = utils.Int32(int32(priority))
+			}
+
+			if action != "" {
+				ipSecurityRestriction.Action = &action
 			}
 
 			restrictions = append(restrictions, ipSecurityRestriction)
@@ -1615,6 +1633,11 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 			if priority := v.Priority; priority != nil {
 				block["priority"] = *priority
 			}
+
+			if action := v.Action; action != nil {
+				block["action"] = *action
+			}
+
 			restrictions = append(restrictions, block)
 		}
 	}
