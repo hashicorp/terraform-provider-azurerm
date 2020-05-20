@@ -900,10 +900,12 @@ func validateRedisMaxMemoryPolicy(v interface{}, _ string) (warnings []string, e
 		"allkeys-random":  true,
 		"volatile-random": true,
 		"volatile-ttl":    true,
+		"allkeys-lfu":     true,
+		"volatile-lfu":    true,
 	}
 
 	if !families[value] {
-		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl'"))
+		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl' / 'allkeys-lfu' / 'volatile-lfu'"))
 	}
 
 	return warnings, errors
