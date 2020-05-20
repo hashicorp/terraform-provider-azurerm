@@ -99,21 +99,22 @@ A `storage_queue_endpoint` supports the following:
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscriptio will receive events.
 
 ---
-A `eventhub_endpoint` supports the following:	
 
-* `eventhub_id` - (Required) Specifies the id of the eventhub where the Event Subscription will receive events.	
+A `eventhub_endpoint` supports the following:
 
----	
+* `eventhub_id` - (Required) Specifies the id of the eventhub where the Event Subscription will receive events.
 
-A `hybrid_connection_endpoint` supports the following:	
+---
 
-* `hybrid_connection_id` - (Required) Specifies the id of the hybrid connection where the Event Subscription will receive events.	
+A `hybrid_connection_endpoint` supports the following:
 
----	
+* `hybrid_connection_id` - (Required) Specifies the id of the hybrid connection where the Event Subscription will receive events.
 
-A `webhook_endpoint` supports the following:	
+---
 
-* `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.	
+A `webhook_endpoint` supports the following:
+
+* `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
 
 ---
 
@@ -131,7 +132,7 @@ A `storage_blob_dead_letter_destination` supports the following:
 
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage blob is located.
 
-* `storage_blob_container_name` - (Required) Specifies the name of the Storage blob container that is the destination of the deadletter events
+* `storage_blob_container_name` - (Required) Specifies the name of the Storage blob container that is the destination of the deadletter events.
 
 ---
 
