@@ -221,7 +221,7 @@ func testAccAzureRMDataShare_basic(data acceptance.TestData) string {
 resource "azurerm_data_share" "test" {
   name       = "acctest_ds_%d"
   account_id = azurerm_data_share_account.test.id
-  share_kind = "CopyBased"
+  kind       = "CopyBased"
 }
 `, template, data.RandomInteger)
 }
@@ -234,7 +234,7 @@ func testAccAzureRMDataShare_requiresImport(data acceptance.TestData) string {
 resource "azurerm_data_share" "import" {
   name       = azurerm_data_share.test.name
   account_id = azurerm_data_share_account.test.id
-  share_kind = azurerm_data_share.test.share_kind
+  kind       = azurerm_data_share.test.kind
 }
 `, config)
 }
@@ -247,7 +247,7 @@ func testAccAzureRMDataShare_complete(data acceptance.TestData) string {
 resource "azurerm_data_share" "test" {
   name        = "acctest_ds_%d"
   account_id  = azurerm_data_share_account.test.id
-  share_kind  = "CopyBased"
+  kind        = "CopyBased"
   description = "share desc"
   terms       = "share terms"
 }
@@ -262,7 +262,7 @@ func testAccAzureRMDataShare_update(data acceptance.TestData) string {
 resource "azurerm_data_share" "test" {
   name        = "acctest_ds_%d"
   account_id  = azurerm_data_share_account.test.id
-  share_kind  = "CopyBased"
+  kind        = "CopyBased"
   description = "share desc 2"
   terms       = "share terms 2"
 }
@@ -277,7 +277,7 @@ func testAccAzureRMDataShare_snapshotSchedule(data acceptance.TestData, startTim
 resource "azurerm_data_share" "test" {
   name       = "acctest_ds_%[2]d"
   account_id = azurerm_data_share_account.test.id
-  share_kind = "CopyBased"
+  kind       = "CopyBased"
 
   snapshot_schedule {
     name       = "acctest-ss-%[2]d"
@@ -296,7 +296,7 @@ func testAccAzureRMDataShare_snapshotScheduleUpdated(data acceptance.TestData, s
 resource "azurerm_data_share" "test" {
   name       = "acctest_ds_%[2]d"
   account_id = azurerm_data_share_account.test.id
-  share_kind = "CopyBased"
+  kind       = "CopyBased"
 
   snapshot_schedule {
     name       = "acctest-ss2-%[2]d"

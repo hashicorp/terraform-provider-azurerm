@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Data Share.
 
-* `account_id` - (Required) The ID of the Data Share account from which the Data Share is created.
+* `account_id` - (Required) The ID of the Data Share account in which the Data Share is created.
 
 ## Attributes Reference
 
@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Data Share.
 
-* `share_kind` - The kind of the Data Share.
+* `kind` - The kind of the Data Share.
 
 * `description` - The description of the Data Share.
 
@@ -60,9 +60,9 @@ A `snapshot_schedule` block exports the following:
 
 * `name` - The name of the snapshot schedule.
 
-* `recurrence` - The recurrence interval of the synchronization of the source data.
+* `recurrence` - The interval of the synchronization with the source data.
 
-* `start_time` - The start time of the synchronization of the source data.
+* `start_time` -  The synchronization with the source data's start time.
 
 ## Timeouts
 

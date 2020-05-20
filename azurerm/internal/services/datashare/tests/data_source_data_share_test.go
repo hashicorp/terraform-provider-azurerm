@@ -21,7 +21,7 @@ func TestAccDataSourceAzureRMDataShare_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataShareExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "account_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "share_kind"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kind"),
 				),
 			},
 		},

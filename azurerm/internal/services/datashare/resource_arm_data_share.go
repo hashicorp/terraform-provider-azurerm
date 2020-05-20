@@ -53,7 +53,7 @@ func resourceArmDataShare() *schema.Resource {
 				ValidateFunc: validate.DatashareAccountID,
 			},
 
-			"share_kind": {
+			"kind": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
@@ -132,7 +132,7 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	share := datashare.Share{
 		ShareProperties: &datashare.ShareProperties{
-			ShareKind:   datashare.ShareKind(d.Get("share_kind").(string)),
+			ShareKind:   datashare.ShareKind(d.Get("kind").(string)),
 			Description: utils.String(d.Get("description").(string)),
 			Terms:       utils.String(d.Get("terms").(string)),
 		},
@@ -157,12 +157,15 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		// only one dependent sync setting is allowed in one data share
 		o, _ := d.GetChange("snapshot_schedule")
 		if origins := o.([]interface{}); len(origins) > 0 {
-			syncFuture, err := syncClient.Delete(ctx, accountId.ResourceGroup, accountId.Name, name, origins[0].(map[string]interface{})["name"].(string))
-			if err != nil {
-				return fmt.Errorf("deleting DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
-			}
-			if err = syncFuture.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
-				return fmt.Errorf("waiting for DataShare %q snapshot schedule (Resource Group %q / accountName %q) to be deleted: %+v", name, accountId.ResourceGroup, accountId.Name, err)
+			origin := origins[0].(map[string]interface{})
+			if originName, ok := origin["name"].(string); ok && originName != "" {
+				syncFuture, err := syncClient.Delete(ctx, accountId.ResourceGroup, accountId.Name, name, originName)
+				if err != nil {
+					return fmt.Errorf("deleting DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+				}
+				if err = syncFuture.WaitForCompletionRef(ctx, syncClient.Client); err != nil {
+					return fmt.Errorf("waiting for DataShare %q snapshot schedule (Resource Group %q / accountName %q) to be deleted: %+v", name, accountId.ResourceGroup, accountId.Name, err)
+				}
 			}
 		}
 	}
@@ -172,6 +175,7 @@ func resourceArmDataShareCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("creating DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
 		}
 	}
+
 	return resourceArmDataShareRead(d, meta)
 }
 
@@ -209,7 +213,7 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("account_id", accountResp.ID)
 
 	if props := resp.ShareProperties; props != nil {
-		d.Set("share_kind", props.ShareKind)
+		d.Set("kind", props.ShareKind)
 		d.Set("description", props.Description)
 		d.Set("terms", props.Terms)
 	}
@@ -228,6 +232,12 @@ func resourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error {
 					return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
 				}
 			}
+		}
+		if err := syncIterator.NextWithContext(ctx); err != nil {
+			return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, err)
+		}
+		if syncIterator.NotDone() {
+			return fmt.Errorf("more than one DataShare %q snapshot schedule (Resource Group %q / accountName %q) is returned", id.Name, id.ResourceGroup, id.AccountName)
 		}
 	}
 

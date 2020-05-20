@@ -34,7 +34,7 @@ resource "azurerm_data_share_account" "example" {
 resource "azurerm_data_share" "example" {
   name        = "example_dss"
   account_id  = azurerm_data_share_account.example.id
-  share_kind  = "CopyBased"
+  kind        = "CopyBased"
   description = "example desc"
   terms       = "example terms"
 
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `account_id` - (Required) The ID of the Data Share account in which the Data Share is created. Changing this forces a new Data Share to be created.
 
-* `share_kind` - (Required) The kind of the Data Share. Possible values are `CopyBased` and `InPlace`. Changing this forces a new Data Share to be created.
+* `kind` - (Required) The kind of the Data Share. Possible values are `CopyBased` and `InPlace`. Changing this forces a new Data Share to be created.
 
 * `description` - (Optional) The Data Share's description.
 
@@ -68,9 +68,9 @@ A `snapshot_schedule` block supports the following:
 
 * `name` - The name of the snapshot schedule.
 
-* `recurrence` - (Required) The recurrence interval of the synchronization of the source data. Possible values are `Hour` and `Day`.
+* `recurrence` - (Required) The interval of the synchronization with the source data. Possible values are `Hour` and `Day`.
 
-* `start_time` - (Required) The time to start synchronization with the source data.
+* `start_time` - (Required) The synchronization with the source data's start time.
 
 ## Attributes Reference
 

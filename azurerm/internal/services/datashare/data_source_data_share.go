@@ -16,10 +16,13 @@ import (
 
 func dataSourceDataShare() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmDataShareRead,
+		Read:   dataSourceArmDataShareRead,
 
 		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(5 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -35,7 +38,7 @@ func dataSourceDataShare() *schema.Resource {
 				ValidateFunc: validate.DatashareAccountID,
 			},
 
-			"share_kind": {
+			"kind": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -107,7 +110,7 @@ func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", name)
 	d.Set("account_id", accountID)
 	if props := resp.ShareProperties; props != nil {
-		d.Set("share_kind", props.ShareKind)
+		d.Set("kind", props.ShareKind)
 		d.Set("description", props.Description)
 		d.Set("terms", props.Terms)
 	}
@@ -126,6 +129,12 @@ func dataSourceArmDataShareRead(d *schema.ResourceData, meta interface{}) error 
 					return fmt.Errorf("setting `snapshot_schedule`: %+v", err)
 				}
 			}
+		}
+		if err := syncIterator.NextWithContext(ctx); err != nil {
+			return fmt.Errorf("listing DataShare %q snapshot schedule (Resource Group %q / accountName %q): %+v", name, accountId.ResourceGroup, accountId.Name, err)
+		}
+		if syncIterator.NotDone() {
+			return fmt.Errorf("more than one DataShare %q snapshot schedule (Resource Group %q / accountName %q) is returned", name, accountId.ResourceGroup, accountId.Name)
 		}
 	}
 
