@@ -321,11 +321,11 @@ resource "azurerm_resource_group" "remotetest" {
 resource "azurerm_key_vault" "remotetest" {
   provider = azurerm.alt
 
-  name                     = "acctestkv%s"
-  location                 = azurerm_resource_group.remotetest.location
-  resource_group_name      = azurerm_resource_group.remotetest.name
-  tenant_id                = "%s"
-  sku_name                 = "standard"
+  name                = "acctestkv%s"
+  location            = azurerm_resource_group.remotetest.location
+  resource_group_name = azurerm_resource_group.remotetest.name
+  tenant_id           = "%s"
+  sku_name            = "standard"
 }
 
 resource "azurerm_key_vault_access_policy" "storage" {
