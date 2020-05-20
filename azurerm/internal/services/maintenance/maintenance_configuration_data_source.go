@@ -2,7 +2,6 @@ package maintenance
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -55,11 +54,9 @@ func dataSourceArmMaintenanceConfigurationRead(d *schema.ResourceData, meta inte
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Maintenance Configuration %q does not exist - removing from state", d.Id())
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Maintenance Configuration %q was not found in Resource Group %q", name, resGroup)
 		}
-		return fmt.Errorf("failure retrieving MaintenanceConfiguration %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("retrieving Maintenance Configuration %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if id := resp.ID; id != nil {
