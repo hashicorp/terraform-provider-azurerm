@@ -157,7 +157,8 @@ resource "azurerm_time_series_insights_environment" "test" {
   data_retention_time = "P30D"
 
   storage_limited_exceeded_behavior = "PauseIngress"
-  partition_key = "foo"
+  partition_key                     = "foo"
+
   tags = {
     Environment = "Production"
   }
