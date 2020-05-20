@@ -31,6 +31,7 @@ BUG FIXES:
 * Data Source: `azurerm_shared_image_versions` - raising an error when Image Versions cannot be found [GH-7024]
 * Data Source: `azurerm_user_assigned_identity` - raising an error when the User Assigned Identity cannot be found [GH-7024]
 * `azurerm_api_management_subscription` - fix the export of `primary_key` and `secondary_key` [GH-6938]
+* `azurerm_eventgrid_event_subscription` - correctly parsing the ID [GH-6958]
 * `azurerm_healthcare_service` - ensuring all blocks are set in the response [GH-7024]
 * `azurerm_linux_virtual_machine` - allowing name to end with a capital letter [GH-7023]
 * `azurerm_linux_virtual_machine_scale_set` - allowing name to end with a capital [GH-7023]
