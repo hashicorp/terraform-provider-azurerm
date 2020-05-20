@@ -18,7 +18,7 @@ provider "azurerm" {
 }
 
 data "azurerm_advisor_recommendations" "example" {
-  filter_by_category           = ["security", "cost"]
+  filter_by_category        = ["security", "cost"]
   filter_by_resource_groups = ["example-resgroups"]
 }
 
