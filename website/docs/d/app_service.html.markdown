@@ -89,7 +89,7 @@ A `ip_restriction` block exports the following:
 
 * `priority` - The priority for this IP Restriction.
 
-* `action` - Allow or Deny access for this IP range.
+* `action` - Does this restriction `Allow` or `Deny` access for this IP range?
 
 ---
 
