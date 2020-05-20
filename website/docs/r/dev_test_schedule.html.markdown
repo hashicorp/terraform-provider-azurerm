@@ -21,15 +21,15 @@ resource "azurerm_resource_group" "sample" {
 
 resource "azurerm_dev_test_lab" "sample" {
   name                = "YourDevTestLab"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.sample.location
+  resource_group_name = azurerm_resource_group.sample.name
 }
 
 resource "azurerm_dev_test_schedule" "sample" {
   name                = "LabVmAutoStart"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  lab_name            = azurerm_dev_test_lab.example.name
+  location            = azurerm_resource_group.sample.location
+  resource_group_name = azurerm_resource_group.sample.name
+  lab_name            = azurerm_dev_test_lab.sample.name
 
   weekly_recurrence {
     time      = "1100"

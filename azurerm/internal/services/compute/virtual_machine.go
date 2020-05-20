@@ -96,6 +96,11 @@ func virtualMachineIdentitySchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -149,11 +154,17 @@ func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) []inte
 		principalId = *input.PrincipalID
 	}
 
+	tenantId := ""
+	if input.TenantID != nil {
+		tenantId = *input.TenantID
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"type":         string(input.Type),
 			"identity_ids": identityIds,
 			"principal_id": principalId,
+			"tenant_id":    tenantId,
 		},
 	}
 }

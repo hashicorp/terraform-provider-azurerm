@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,10 +52,6 @@ func TestAccAzureRMStorageContainer_basicAzureADAuth(t *testing.T) {
 }
 
 func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -318,14 +313,35 @@ resource "azurerm_storage_container" "test" {
 }
 
 func testAccAzureRMStorageContainer_basicAzureADAuth(data acceptance.TestData) string {
-	template := testAccAzureRMStorageContainer_basic(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   storage_use_azuread = true
+  features {}
 }
 
-%s
-`, template)
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMStorageContainer_requiresImport(data acceptance.TestData) string {

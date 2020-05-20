@@ -144,6 +144,8 @@ The following arguments are supported:
 
 ~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
 
+~> **NOTE:** Not all skus (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region. 
+
 * `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`.
 
 -> **NOTE:** The available values depend on the `type` and `sku` arguments - where `Generation2` is only value for a `sku` larger than `VpnGw2` or `VpnGw2AZ`.
@@ -172,7 +174,7 @@ The `ip_configuration` block supports:
     the associated subnet is named `GatewaySubnet`. Therefore, each virtual
     network can contain at most a single Virtual Network Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of the public ip address to associate
+* `public_ip_address_id` - (Required) The ID of the public ip address to associate
     with the Virtual Network Gateway.
 
 The `vpn_client_configuration` block supports:
