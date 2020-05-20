@@ -105,7 +105,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux`, `elastic` (for Premium Consumption) and `FunctionApp` (for a Consumption Plan). Defaults to `Windows`. Changing this forces a new resource to be created.
+* `kind` - (Optional) The kind of the App Service Plan to create. Possible values are `Windows` (also available as `App`), `Linux`, `elastic` (for Premium Consumption), `FunctionApp` (for a Consumption Plan) and `xenon`. Defaults to `Windows`. Changing this forces a new resource to be created.
 
 ~> **NOTE:** When creating a `Linux` App Service Plan, the `reserved` field must be set to `true`, and when creating a `Windows`/`app` App Service Plan the `reserved` field must be set to `false`.
 
@@ -117,7 +117,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU (when using an ASEv1) and the `Isolated` SKU (for an ASEv2).
 
-* `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`.
+* `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `per_site_scaling` - (Optional) Can Apps assigned to this App Service Plan be scaled independently? If set to `false` apps assigned to this plan will scale to all instances of the plan.  Defaults to `false`.
 
@@ -131,6 +131,7 @@ The following arguments are supported:
 
 * `capacity` - (Optional) Specifies the number of workers associated with this App Service Plan.
 
+* `is_xenon` - (Optional) Specifies the plan is type of `xenon`.
 
 ## Attributes Reference
 
