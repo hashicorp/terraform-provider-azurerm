@@ -94,26 +94,26 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Computed: true,
 			},
 
-			AzureFunctionEndpointID: {
+			"azure_function_endpoint_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), AzureFunctionEndpointID),
+				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), "azure_function_endpoint_id"),
 				ValidateFunc:  azure.ValidateResourceID,
 			},
 
-			EventHubEndpointID: {
+			"eventhub_endpoint_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), EventHubEndpointID),
+				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), "eventhub_endpoint_id"),
 				ValidateFunc:  azure.ValidateResourceID,
 			},
 
-			EventHubEndpoint: {
+			"eventhub_endpoint": {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Deprecated:    "Deprecated in favour of `" + EventHubEndpointID + "`",
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), EventHubEndpoint),
+				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), "eventhub_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"eventhub_id": {
@@ -125,19 +125,19 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				},
 			},
 
-			HybridConnectionEndpointID: {
+			"hybrid_connection_endpoint_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), HybridConnectionEndpointID),
+				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), "hybrid_connection_endpoint_id"),
 				ValidateFunc:  azure.ValidateResourceID,
 			},
 
-			HybridConnectionEndpoint: {
+			"hybrid_connection_endpoint": {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Deprecated:    "Deprecated in favour of `" + HybridConnectionEndpointID + "`",
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), HybridConnectionEndpoint),
+				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), "hybrid_connection_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"hybrid_connection_id": {
@@ -149,25 +149,25 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				},
 			},
 
-			ServiceBusQueueEndpointID: {
+			"service_bus_queue_endpoint_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), ServiceBusQueueEndpointID),
+				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), "service_bus_queue_endpoint_id"),
 				ValidateFunc:  azure.ValidateResourceID,
 			},
 
-			ServiceBusTopicEndpointID: {
+			"service_bus_topic_endpoint_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), ServiceBusTopicEndpointID),
+				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), "service_bus_topic_endpoint_id"),
 				ValidateFunc:  azure.ValidateResourceID,
 			},
 
-			StorageQueueEndpoint: {
+			"storage_queue_endpoint": {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), StorageQueueEndpoint),
+				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), "storage_queue_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"storage_account_id": {
@@ -184,11 +184,11 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				},
 			},
 
-			WebhookEndpoint: {
+			"webhook_endpoint": {
 				Type:          schema.TypeList,
 				MaxItems:      1,
 				Optional:      true,
-				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), WebhookEndpoint),
+				ConflictsWith: utils.RemoveFromStringArray(PossibleEnpointTypes(), "webhook_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"url": {
@@ -383,6 +383,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 		if props.ExpirationTimeUtc != nil {
 			d.Set("expiration_time_utc", props.ExpirationTimeUtc.Format(time.RFC3339))
 		}
+
 		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
 
 		if props.Topic != nil && *props.Topic != "" {
@@ -390,12 +391,12 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 		}
 
 		if azureFunctionEndpoint, ok := props.Destination.AsAzureFunctionEventSubscriptionDestination(); ok {
-			if err := d.Set(AzureFunctionEndpointID, flattenEventGridEventSubscriptionAzureFunctionEndpointID(azureFunctionEndpoint)); err != nil {
+			if err := d.Set(AzureFunctionEndpointID, azureFunctionEndpoint.ResourceID); err != nil {
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", AzureFunctionEndpointID, id.Name, id.Scope, err)
 			}
 		}
 		if eventHubEndpoint, ok := props.Destination.AsEventHubEventSubscriptionDestination(); ok {
-			if err := d.Set(EventHubEndpointID, flattenEventGridEventSubscriptionEventHubEndpointID(eventHubEndpoint)); err != nil {
+			if err := d.Set(EventHubEndpointID, eventHubEndpoint.ResourceID); err != nil {
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", EventHubEndpointID, id.Name, id.Scope, err)
 			}
 
@@ -404,7 +405,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			}
 		}
 		if hybridConnectionEndpoint, ok := props.Destination.AsHybridConnectionEventSubscriptionDestination(); ok {
-			if err := d.Set(HybridConnectionEndpointID, flattenEventGridEventSubscriptionHybridConnectionEndpointID(hybridConnectionEndpoint)); err != nil {
+			if err := d.Set(HybridConnectionEndpointID, hybridConnectionEndpoint.ResourceID); err != nil {
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", HybridConnectionEndpointID, id.Name, id.Scope, err)
 			}
 
@@ -413,12 +414,12 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			}
 		}
 		if serviceBusQueueEndpoint, ok := props.Destination.AsServiceBusQueueEventSubscriptionDestination(); ok {
-			if err := d.Set(ServiceBusQueueEndpointID, flattenEventGridEventSubscriptionServiceBusQueueEndpointID(serviceBusQueueEndpoint)); err != nil {
+			if err := d.Set(ServiceBusQueueEndpointID, serviceBusQueueEndpoint.ResourceID); err != nil {
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", ServiceBusQueueEndpointID, id.Name, id.Scope, err)
 			}
 		}
 		if serviceBusTopicEndpoint, ok := props.Destination.AsServiceBusTopicEventSubscriptionDestination(); ok {
-			if err := d.Set(ServiceBusTopicEndpointID, flattenEventGridEventSubscriptionServiceBusTopicEndpointID(serviceBusTopicEndpoint)); err != nil {
+			if err := d.Set(ServiceBusTopicEndpointID, serviceBusTopicEndpoint.ResourceID); err != nil {
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", ServiceBusTopicEndpointID, id.Name, id.Scope, err)
 			}
 		}
@@ -512,28 +513,53 @@ func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
 }
 
 func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	if _, ok := d.GetOk(AzureFunctionEndpointID); ok {
-		return expandEventGridEventSubscriptionAzureFunctionEndpointID(d)
+	if v, ok := d.GetOk(AzureFunctionEndpointID); ok {
+		return &eventgrid.AzureFunctionEventSubscriptionDestination{
+			EndpointType: eventgrid.EndpointTypeAzureFunction,
+			AzureFunctionEventSubscriptionDestinationProperties: &eventgrid.AzureFunctionEventSubscriptionDestinationProperties{
+				ResourceID: utils.String(v.(string)),
+			},
+		}
 	}
 
-	if _, ok := d.GetOk(EventHubEndpointID); ok {
-		return expandEventGridEventSubscriptionEventHubEndpointID(d)
+	if v, ok := d.GetOk(EventHubEndpointID); ok {
+		return &eventgrid.EventHubEventSubscriptionDestination{
+			EndpointType: eventgrid.EndpointTypeEventHub,
+			EventHubEventSubscriptionDestinationProperties: &eventgrid.EventHubEventSubscriptionDestinationProperties{
+				ResourceID: utils.String(v.(string)),
+			},
+		}
 	} else if _, ok := d.GetOk(EventHubEndpoint); ok {
 		return expandEventGridEventSubscriptionEventHubEndpoint(d)
 	}
 
-	if _, ok := d.GetOk(HybridConnectionEndpointID); ok {
-		return expandEventGridEventSubscriptionHybridConnectionEndpointID(d)
+	if v, ok := d.GetOk(HybridConnectionEndpointID); ok {
+		return &eventgrid.HybridConnectionEventSubscriptionDestination{
+			EndpointType: eventgrid.EndpointTypeHybridConnection,
+			HybridConnectionEventSubscriptionDestinationProperties: &eventgrid.HybridConnectionEventSubscriptionDestinationProperties{
+				ResourceID: utils.String(v.(string)),
+			},
+		}
 	} else if _, ok := d.GetOk(HybridConnectionEndpoint); ok {
 		return expandEventGridEventSubscriptionHybridConnectionEndpoint(d)
 	}
 
-	if _, ok := d.GetOk(ServiceBusQueueEndpointID); ok {
-		return expandEventGridEventSubscriptionServiceBusQueueEndpointID(d)
+	if v, ok := d.GetOk(ServiceBusQueueEndpointID); ok {
+		return &eventgrid.ServiceBusQueueEventSubscriptionDestination{
+			EndpointType: eventgrid.EndpointTypeServiceBusQueue,
+			ServiceBusQueueEventSubscriptionDestinationProperties: &eventgrid.ServiceBusQueueEventSubscriptionDestinationProperties{
+				ResourceID: utils.String(v.(string)),
+			},
+		}
 	}
 
-	if _, ok := d.GetOk(ServiceBusTopicEndpointID); ok {
-		return expandEventGridEventSubscriptionServiceBusTopicEndpointID(d)
+	if v, ok := d.GetOk(ServiceBusTopicEndpointID); ok {
+		return &eventgrid.ServiceBusTopicEventSubscriptionDestination{
+			EndpointType: eventgrid.EndpointTypeServiceBusTopic,
+			ServiceBusTopicEventSubscriptionDestinationProperties: &eventgrid.ServiceBusTopicEventSubscriptionDestinationProperties{
+				ResourceID: utils.String(v.(string)),
+			},
+		}
 	}
 
 	if _, ok := d.GetOk(StorageQueueEndpoint); ok {
@@ -575,33 +601,9 @@ func expandEventGridEventSubscriptionEventHubEndpoint(d *schema.ResourceData) ev
 	return eventHubEndpoint
 }
 
-func expandEventGridEventSubscriptionEventHubEndpointID(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	eventHubID := d.Get(EventHubEndpointID).(string)
-
-	eventHubEndpoint := eventgrid.EventHubEventSubscriptionDestination{
-		EndpointType: eventgrid.EndpointTypeEventHub,
-		EventHubEventSubscriptionDestinationProperties: &eventgrid.EventHubEventSubscriptionDestinationProperties{
-			ResourceID: &eventHubID,
-		},
-	}
-	return eventHubEndpoint
-}
-
 func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
 	props := d.Get(HybridConnectionEndpoint).([]interface{})[0].(map[string]interface{})
 	hybridConnectionID := props["hybrid_connection_id"].(string)
-
-	hybridConnectionEndpoint := eventgrid.HybridConnectionEventSubscriptionDestination{
-		EndpointType: eventgrid.EndpointTypeHybridConnection,
-		HybridConnectionEventSubscriptionDestinationProperties: &eventgrid.HybridConnectionEventSubscriptionDestinationProperties{
-			ResourceID: &hybridConnectionID,
-		},
-	}
-	return hybridConnectionEndpoint
-}
-
-func expandEventGridEventSubscriptionHybridConnectionEndpointID(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	hybridConnectionID := d.Get(HybridConnectionEndpointID).(string)
 
 	hybridConnectionEndpoint := eventgrid.HybridConnectionEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeHybridConnection,
@@ -623,42 +625,6 @@ func expandEventGridEventSubscriptionWebhookEndpoint(d *schema.ResourceData) eve
 		},
 	}
 	return webhookEndpoint
-}
-
-func expandEventGridEventSubscriptionServiceBusQueueEndpointID(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	serviceBusQueueID := d.Get(ServiceBusQueueEndpointID).(string)
-
-	serviceBusQueueEndpoint := eventgrid.ServiceBusQueueEventSubscriptionDestination{
-		EndpointType: eventgrid.EndpointTypeServiceBusQueue,
-		ServiceBusQueueEventSubscriptionDestinationProperties: &eventgrid.ServiceBusQueueEventSubscriptionDestinationProperties{
-			ResourceID: &serviceBusQueueID,
-		},
-	}
-	return serviceBusQueueEndpoint
-}
-
-func expandEventGridEventSubscriptionServiceBusTopicEndpointID(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	serviceBusTopicID := d.Get(ServiceBusTopicEndpointID).(string)
-
-	serviceBusTopicEndpoint := eventgrid.ServiceBusTopicEventSubscriptionDestination{
-		EndpointType: eventgrid.EndpointTypeServiceBusTopic,
-		ServiceBusTopicEventSubscriptionDestinationProperties: &eventgrid.ServiceBusTopicEventSubscriptionDestinationProperties{
-			ResourceID: &serviceBusTopicID,
-		},
-	}
-	return serviceBusTopicEndpoint
-}
-
-func expandEventGridEventSubscriptionAzureFunctionEndpointID(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	azureFunctionResourceID := d.Get(AzureFunctionEndpointID).(string)
-
-	azureFunctionEndpoint := eventgrid.AzureFunctionEventSubscriptionDestination{
-		EndpointType: eventgrid.EndpointTypeAzureFunction,
-		AzureFunctionEventSubscriptionDestinationProperties: &eventgrid.AzureFunctionEventSubscriptionDestinationProperties{
-			ResourceID: &azureFunctionResourceID,
-		},
-	}
-	return azureFunctionEndpoint
 }
 
 func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) *eventgrid.EventSubscriptionFilter {
@@ -724,14 +690,6 @@ func flattenEventGridEventSubscriptionEventHubEndpoint(input *eventgrid.EventHub
 	return []interface{}{result}
 }
 
-func flattenEventGridEventSubscriptionEventHubEndpointID(input *eventgrid.EventHubEventSubscriptionDestination) *string {
-	if input == nil || input.ResourceID == nil {
-		return nil
-	}
-
-	return input.ResourceID
-}
-
 func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.HybridConnectionEventSubscriptionDestination) []interface{} {
 	if input == nil {
 		return nil
@@ -743,38 +701,6 @@ func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.
 	}
 
 	return []interface{}{result}
-}
-
-func flattenEventGridEventSubscriptionHybridConnectionEndpointID(input *eventgrid.HybridConnectionEventSubscriptionDestination) *string {
-	if input == nil || input.ResourceID == nil {
-		return nil
-	}
-
-	return input.ResourceID
-}
-
-func flattenEventGridEventSubscriptionServiceBusQueueEndpointID(input *eventgrid.ServiceBusQueueEventSubscriptionDestination) *string {
-	if input == nil || input.ResourceID == nil {
-		return nil
-	}
-
-	return input.ResourceID
-}
-
-func flattenEventGridEventSubscriptionServiceBusTopicEndpointID(input *eventgrid.ServiceBusTopicEventSubscriptionDestination) *string {
-	if input == nil || input.ResourceID == nil {
-		return nil
-	}
-
-	return input.ResourceID
-}
-
-func flattenEventGridEventSubscriptionAzureFunctionEndpointID(input *eventgrid.AzureFunctionEventSubscriptionDestination) *string {
-	if input == nil || input.ResourceID == nil {
-		return nil
-	}
-
-	return input.ResourceID
 }
 
 func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.StorageQueueEventSubscriptionDestination) []interface{} {
