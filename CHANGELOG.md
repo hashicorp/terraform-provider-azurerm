@@ -10,6 +10,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_platform_image` - support for `version` filter [GH-6948]
 * `azurerm_api_management_api_version_set` - updating the validation for the `name` field [GH-6947]
 * `azurerm_app_service` - the `ip_restriction` block now supports the `action` property [GH-6967]
 * `azurerm_databricks_workspace` - exposing `workspace_id` and `workspace_url` [GH-6973]
