@@ -9,6 +9,8 @@ import (
 type Client struct {
 	VaultsClient     *keyvault.VaultsClient
 	ManagementClient *keyvaultmgmt.BaseClient
+
+	options *common.ClientOptions
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -21,5 +23,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		VaultsClient:     &VaultsClient,
 		ManagementClient: &ManagementClient,
+		options:          o,
 	}
+}
+
+func (client Client) KeyVaultClientForSubscription(subscriptionId string) *keyvault.VaultsClient {
+	vaultsClient := keyvault.NewVaultsClientWithBaseURI(client.options.ResourceManagerEndpoint, subscriptionId)
+	client.options.ConfigureClient(&vaultsClient.Client, client.options.ResourceManagerAuthorizer)
+	return &vaultsClient
 }

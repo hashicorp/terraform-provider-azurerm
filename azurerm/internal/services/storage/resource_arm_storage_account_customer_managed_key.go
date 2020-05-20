@@ -5,7 +5,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -96,7 +95,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 	resourceId := storageAccountIdRaw
 
 	if d.IsNewResource() {
-		// whilst this looks superflurious given encryption is enabled by default, due to the way
+		// whilst this looks superfluous given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
 		if storageAccount.AccountProperties.Encryption != nil {
 			if storageAccount.AccountProperties.Encryption.KeySource == storage.MicrosoftKeyvault {
@@ -112,13 +111,11 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 	}
 
 	// KeyVault may be in another subscription - e.g. Shared Services pattern
-	keyVault := keyvault.Vault{}
 	if keyVaultId.Subscription != vaultsClient.SubscriptionID {
-		remoteVaultsClient := keyvault.NewVaultsClientWithBaseURI(vaultsClient.BaseURI, keyVaultId.Subscription)
-		keyVault, err = remoteVaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
-	} else {
-		keyVault, err = vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
+		vaultsClient = meta.(*clients.Client).KeyVault.KeyVaultClientForSubscription(keyVaultId.Subscription)
 	}
+
+	keyVault, err := vaultsClient.Get(ctx, keyVaultId.ResourceGroup, keyVaultId.Name)
 
 	if err != nil {
 		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", keyVaultId.Name, keyVaultId.ResourceGroup, err)
