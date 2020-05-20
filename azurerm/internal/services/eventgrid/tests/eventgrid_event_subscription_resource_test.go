@@ -44,7 +44,7 @@ func TestAccAzureRMEventGridEventSubscription_eventhub(t *testing.T) {
 				Config: testAccAzureRMEventGridEventSubscription_eventhub(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventV01Schema"),
+					resource.TestCheckResourceAttr(data.ResourceName, "event_delivery_schema", "CloudEventSchemaV1_0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "eventhub_endpoint.#", "1"),
 				),
 			},
@@ -346,7 +346,7 @@ resource "azurerm_eventhub" "test" {
 resource "azurerm_eventgrid_event_subscription" "test" {
   name                  = "acctesteg-%d"
   scope                 = azurerm_resource_group.test.id
-  event_delivery_schema = "CloudEventV01Schema"
+  event_delivery_schema = "CloudEventSchemaV1_0"
 
   eventhub_endpoint {
     eventhub_id = azurerm_eventhub.test.id

@@ -707,6 +707,11 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 		updateProps.VirtualMachineProfile.DiagnosticsProfile = expandBootDiagnostics(bootDiagnosticsRaw)
 	}
 
+	if d.HasChange("do_not_run_extensions_on_overprovisioned_machines") {
+		v := d.Get("do_not_run_extensions_on_overprovisioned_machines").(bool)
+		updateProps.DoNotRunExtensionsOnOverprovisionedVMs = utils.Bool(v)
+	}
+
 	if d.HasChange("scale_in_policy") {
 		scaleInPolicy := d.Get("scale_in_policy").(string)
 		updateProps.ScaleInPolicy = &compute.ScaleInPolicy{

@@ -13,66 +13,66 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMySqlVirtualNetworkRule_basic(t *testing.T) {
+func TestAccAzureRMMySSQLVirtualNetworkRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
+		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySqlVirtualNetworkRule_basic(data),
+				Config: testAccAzureRMMySSQLVirtualNetworkRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
+					testCheckAzureRMMySSQLVirtualNetworkRuleExists(data.ResourceName),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMMySqlVirtualNetworkRule_badsubnet(t *testing.T) {
+func TestAccAzureRMMySSQLVirtualNetworkRule_badsubnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
+		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySqlVirtualNetworkRule_badsubnet(data),
+				Config: testAccAzureRMMySSQLVirtualNetworkRule_badsubnet(data),
 				/*
 					Check: resource.ComposeTestCheckFunc(
-						testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
+						testCheckAzureRMMySSQLVirtualNetworkRuleExists(data.ResourceName),
 					),*/
 			},
 		},
 	})
 }
 
-func TestAccAzureRMMySqlVirtualNetworkRule_requiresImport(t *testing.T) {
+func TestAccAzureRMMySSQLVirtualNetworkRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
+		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySqlVirtualNetworkRule_basic(data),
+				Config: testAccAzureRMMySSQLVirtualNetworkRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
+					testCheckAzureRMMySSQLVirtualNetworkRuleExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMySqlVirtualNetworkRule_requiresImport(data),
+				Config:      testAccAzureRMMySSQLVirtualNetworkRule_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_mysql_virtual_network_rule"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMMySqlVirtualNetworkRule_switchSubnets(t *testing.T) {
+func TestAccAzureRMMySSQLVirtualNetworkRule_switchSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
 	// Create regex strings that will ensure that one subnet name exists, but not the other
@@ -82,19 +82,19 @@ func TestAccAzureRMMySqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
+		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPre(data),
+				Config: testAccAzureRMMySSQLVirtualNetworkRule_subnetSwitchPre(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
+					testCheckAzureRMMySSQLVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", preConfigRegex),
 				),
 			},
 			{
-				Config: testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPost(data),
+				Config: testAccAzureRMMySSQLVirtualNetworkRule_subnetSwitchPost(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
+					testCheckAzureRMMySSQLVirtualNetworkRuleExists(data.ResourceName),
 					resource.TestMatchResourceAttr(data.ResourceName, "subnet_id", postConfigRegex),
 				),
 			},
@@ -102,19 +102,19 @@ func TestAccAzureRMMySqlVirtualNetworkRule_switchSubnets(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMySqlVirtualNetworkRule_disappears(t *testing.T) {
+func TestAccAzureRMMySSQLVirtualNetworkRule_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
+		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySqlVirtualNetworkRule_basic(data),
+				Config: testAccAzureRMMySSQLVirtualNetworkRule_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
-					testCheckAzureRMMySqlVirtualNetworkRuleDisappears(data.ResourceName),
+					testCheckAzureRMMySSQLVirtualNetworkRuleExists(data.ResourceName),
+					testCheckAzureRMMySSQLVirtualNetworkRuleDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -122,7 +122,7 @@ func TestAccAzureRMMySqlVirtualNetworkRule_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
+func TestAccAzureRMMySSQLVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_virtual_network_rule", "rule1")
 
 	resourceName2 := "azurerm_mysql_virtual_network_rule.rule2"
@@ -131,21 +131,21 @@ func TestAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMySqlVirtualNetworkRuleDestroy,
+		CheckDestroy: testCheckAzureRMMySSQLVirtualNetworkRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(data),
+				Config: testAccAzureRMMySSQLVirtualNetworkRule_multipleSubnets(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMySqlVirtualNetworkRuleExists(data.ResourceName),
-					testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName2),
-					testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName3),
+					testCheckAzureRMMySSQLVirtualNetworkRuleExists(data.ResourceName),
+					testCheckAzureRMMySSQLVirtualNetworkRuleExists(resourceName2),
+					testCheckAzureRMMySSQLVirtualNetworkRuleExists(resourceName3),
 				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMMySSQLVirtualNetworkRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -172,7 +172,7 @@ func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource
 	}
 }
 
-func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
+func testCheckAzureRMMySSQLVirtualNetworkRuleDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -200,7 +200,7 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMMySSQLVirtualNetworkRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MySQL.VirtualNetworkRulesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -239,7 +239,7 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) reso
 	}
 }
 
-func testAccAzureRMMySqlVirtualNetworkRule_basic(data acceptance.TestData) string {
+func testAccAzureRMMySSQLVirtualNetworkRule_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -292,7 +292,7 @@ resource "azurerm_mysql_virtual_network_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMySqlVirtualNetworkRule_badsubnet(data acceptance.TestData) string {
+func testAccAzureRMMySSQLVirtualNetworkRule_badsubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -345,7 +345,7 @@ resource "azurerm_mysql_virtual_network_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMySqlVirtualNetworkRule_requiresImport(data acceptance.TestData) string {
+func testAccAzureRMMySSQLVirtualNetworkRule_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -355,10 +355,10 @@ resource "azurerm_mysql_virtual_network_rule" "import" {
   server_name         = azurerm_mysql_virtual_network_rule.test.server_name
   subnet_id           = azurerm_mysql_virtual_network_rule.test.subnet_id
 }
-`, testAccAzureRMMySqlVirtualNetworkRule_basic(data))
+`, testAccAzureRMMySSQLVirtualNetworkRule_basic(data))
 }
 
-func testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
+func testAccAzureRMMySSQLVirtualNetworkRule_subnetSwitchPre(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -419,7 +419,7 @@ resource "azurerm_mysql_virtual_network_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMySqlVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
+func testAccAzureRMMySSQLVirtualNetworkRule_subnetSwitchPost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -480,7 +480,7 @@ resource "azurerm_mysql_virtual_network_rule" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMMySqlVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
+func testAccAzureRMMySSQLVirtualNetworkRule_multipleSubnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

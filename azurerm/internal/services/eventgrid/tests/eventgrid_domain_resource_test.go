@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,6 +31,33 @@ func TestAccAzureRMEventGridDomain_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMEventGridDomain_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridDomain_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridDomainExists(data.ResourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMEventGridDomain_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_domain"),
+			},
 		},
 	})
 }
@@ -154,6 +182,19 @@ resource "azurerm_eventgrid_domain" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMEventGridDomain_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMEventGridDomain_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_domain" "import" {
+  name                = azurerm_eventgrid_domain.test.name
+  location            = azurerm_eventgrid_domain.test.location
+  resource_group_name = azurerm_eventgrid_domain.test.resource_group_name
+}
+`, template)
 }
 
 func testAccAzureRMEventGridDomain_mapping(data acceptance.TestData) string {

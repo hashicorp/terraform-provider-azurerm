@@ -575,7 +575,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
-	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw, true, true, true)
+	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw, false, false, false)
 	if err != nil {
 		return err
 	}
@@ -1266,7 +1266,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}, changeManagedIps
 	return &networkProfile, nil
 }
 
-func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, allowToSetIpCount bool, allowToSetIpPrefixes bool, allowToSetOutboundIp bool) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, ipCountChanges bool, ipPrefixesChanges bool, outboundIpChanges bool) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
 	if len(d) == 0 || d[0] == nil {
 		return nil, nil
 	}
@@ -1280,6 +1280,11 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, allowTo
 	var managedOutboundIps *containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs
 	var outboundIpPrefixes *containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes
 	var outboundIps *containerservice.ManagedClusterLoadBalancerProfileOutboundIPs
+
+	noChangesForLoadBalancerIps := !ipCountChanges && !ipPrefixesChanges && !outboundIpChanges
+	allowToSetIpCount := ipCountChanges || noChangesForLoadBalancerIps
+	allowToSetIpPrefixes := ipPrefixesChanges || noChangesForLoadBalancerIps
+	allowToSetOutboundIp := outboundIpChanges || noChangesForLoadBalancerIps
 
 	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil && allowToSetIpCount {
 		if c := int32(ipCount.(int)); c > 0 {
