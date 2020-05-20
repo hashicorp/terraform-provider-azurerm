@@ -1,12 +1,12 @@
 ---
 subcategory: "Dev Test"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_dev_test_global_shutdown_schedule"
+page_title: "Azure Resource Manager: azurerm_dev_test_global_vm_shutdown_schedule"
 description: |-
     Manages automated shutdown schedules for Azure Resource Manager VMs outside of Dev Test Labs.
 ---
 
-# azurerm_dev_test_global_shutdown_schedule
+# azurerm_dev_test_global_vm_shutdown_schedule
 
 Manages automated shutdown schedules for Azure Resource Manager VMs outside of Dev Test Labs.
 
@@ -69,7 +69,7 @@ resource "azurerm_linux_virtual_machine" "sample" {
   disable_password_authentication = false
 }
 
-resource "azurerm_dev_test_global_shutdown_schedule" "sample" {
+resource "azurerm_dev_test_global_vm_shutdown_schedule" "sample" {
   target_resource_id = azurerm_virtual_machine.sample.id
   location           = azurerm_resource_group.example.location
   status             = "Enabled"
@@ -125,5 +125,5 @@ The following additional attributes are exported:
 An existing Dev Test Global Shutdown Schedule can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_global_shutdown_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-rg/providers/Microsoft.DevTestLab/schedules/shutdown-computevm-SampleVM
+terraform import azurerm_dev_test_global_vm_shutdown_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-rg/providers/Microsoft.DevTestLab/schedules/shutdown-computevm-SampleVM
 ```

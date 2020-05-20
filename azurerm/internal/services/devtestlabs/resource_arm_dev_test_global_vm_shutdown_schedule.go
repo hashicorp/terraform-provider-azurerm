@@ -21,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDevTestLabGlobalShutdownSchedule() *schema.Resource {
+func resourceArmDevTestLabGlobalVMShutdownSchedule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate,
-		Read:   resourceArmDevTestLabGlobalShutdownScheduleRead,
-		Update: resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate,
-		Delete: resourceArmDevTestLabGlobalShutdownScheduleDelete,
+		Create: resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate,
+		Read:   resourceArmDevTestLabGlobalVMShutdownScheduleRead,
+		Update: resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate,
+		Delete: resourceArmDevTestLabGlobalVMShutdownScheduleDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.GlobalScheduleID(id)
 			return err
@@ -99,7 +99,7 @@ func resourceArmDevTestLabGlobalShutdownSchedule() *schema.Resource {
 	}
 }
 
-func resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestLabGlobalVMShutdownScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -123,7 +123,7 @@ func resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate(d *schema.ResourceD
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_dev_test_global_shutdown_schedule", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_dev_test_global_vm_shutdown_schedule", *existing.ID)
 		}
 	}
 
@@ -150,12 +150,12 @@ func resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate(d *schema.ResourceD
 	}
 
 	if v, ok := d.GetOk("daily_recurrence_time"); ok {
-		dailyRecurrence := expandArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(v)
+		dailyRecurrence := expandArmDevTestLabGlobalVMShutdownScheduleRecurrenceDaily(v)
 		schedule.DailyRecurrence = dailyRecurrence
 	}
 
 	if _, ok := d.GetOk("notification_settings"); ok {
-		notificationSettings := expandArmDevTestLabGlobalShutdownScheduleNotificationSettings(d)
+		notificationSettings := expandArmDevTestLabGlobalVMShutdownScheduleNotificationSettings(d)
 		schedule.NotificationSettings = notificationSettings
 	}
 
@@ -174,10 +174,10 @@ func resourceArmDevTestLabGlobalShutdownScheduleCreateUpdate(d *schema.ResourceD
 
 	d.SetId(*read.ID)
 
-	return resourceArmDevTestLabGlobalShutdownScheduleRead(d, meta)
+	return resourceArmDevTestLabGlobalVMShutdownScheduleRead(d, meta)
 }
 
-func resourceArmDevTestLabGlobalShutdownScheduleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestLabGlobalVMShutdownScheduleRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,11 +206,11 @@ func resourceArmDevTestLabGlobalShutdownScheduleRead(d *schema.ResourceData, met
 		d.Set("timezone", props.TimeZoneID)
 		d.Set("enabled", props.Status == dtl.EnableStatusEnabled)
 
-		if err := d.Set("daily_recurrence_time", flattenArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(props.DailyRecurrence)); err != nil {
+		if err := d.Set("daily_recurrence_time", flattenArmDevTestLabGlobalVMShutdownScheduleRecurrenceDaily(props.DailyRecurrence)); err != nil {
 			return fmt.Errorf("Error setting `dailyRecurrence`: %#v", err)
 		}
 
-		if err := d.Set("notification_settings", flattenArmDevTestLabGlobalShutdownScheduleNotificationSettings(props.NotificationSettings)); err != nil {
+		if err := d.Set("notification_settings", flattenArmDevTestLabGlobalVMShutdownScheduleNotificationSettings(props.NotificationSettings)); err != nil {
 			return fmt.Errorf("Error setting `notificationSettings`: %#v", err)
 		}
 	}
@@ -218,7 +218,7 @@ func resourceArmDevTestLabGlobalShutdownScheduleRead(d *schema.ResourceData, met
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmDevTestLabGlobalShutdownScheduleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDevTestLabGlobalVMShutdownScheduleDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DevTestLabs.GlobalLabSchedulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -235,14 +235,14 @@ func resourceArmDevTestLabGlobalShutdownScheduleDelete(d *schema.ResourceData, m
 	return nil
 }
 
-func expandArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(dailyTime interface{}) *dtl.DayDetails {
+func expandArmDevTestLabGlobalVMShutdownScheduleRecurrenceDaily(dailyTime interface{}) *dtl.DayDetails {
 	time := dailyTime.(string)
 	return &dtl.DayDetails{
 		Time: &time,
 	}
 }
 
-func flattenArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(dailyRecurrence *dtl.DayDetails) interface{} {
+func flattenArmDevTestLabGlobalVMShutdownScheduleRecurrenceDaily(dailyRecurrence *dtl.DayDetails) interface{} {
 	if dailyRecurrence == nil {
 		return nil
 	}
@@ -255,7 +255,7 @@ func flattenArmDevTestLabGlobalShutdownScheduleRecurrenceDaily(dailyRecurrence *
 	return result
 }
 
-func expandArmDevTestLabGlobalShutdownScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
+func expandArmDevTestLabGlobalVMShutdownScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)
@@ -275,7 +275,7 @@ func expandArmDevTestLabGlobalShutdownScheduleNotificationSettings(d *schema.Res
 	}
 }
 
-func flattenArmDevTestLabGlobalShutdownScheduleNotificationSettings(notificationSettings *dtl.NotificationSettings) []interface{} {
+func flattenArmDevTestLabGlobalVMShutdownScheduleNotificationSettings(notificationSettings *dtl.NotificationSettings) []interface{} {
 	if notificationSettings == nil {
 		return []interface{}{}
 	}
