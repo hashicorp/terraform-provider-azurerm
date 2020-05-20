@@ -120,7 +120,7 @@ func TestAccAzureRMLighthouseDefinition_update(t *testing.T) {
 					testCheckAzureRMLighthouseDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
 					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test Registration Definition"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test Lighthouse Definition"),
 				),
 			},
 		},
