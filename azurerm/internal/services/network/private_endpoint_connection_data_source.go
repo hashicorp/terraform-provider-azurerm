@@ -71,8 +71,7 @@ func dataSourceArmPrivateEndpointConnectionRead(d *schema.ResourceData, meta int
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Private Endpoint %q was not found in Resource Group %q", name, resourceGroup)
 		}
 		return fmt.Errorf("Error reading Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
