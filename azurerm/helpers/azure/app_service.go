@@ -335,7 +335,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 								ValidateFunc: validation.StringInSlice([]string{
 									"Allow",
 									"Deny",
-								}, true),
+								}, false),
 							},
 						},
 					},
