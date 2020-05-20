@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
-func TestValidateResourceGroupName(t *testing.T) {
+func TestvalidateResourceGroupName(t *testing.T) {
 	cases := []struct {
 		Value    string
 		ErrCount int
@@ -58,11 +58,11 @@ func TestValidateResourceGroupName(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := ValidateResourceGroupName(tc.Value, "azurerm_resource_group")
+		_, errors := validateResourceGroupName(tc.Value, "azurerm_resource_group")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected "+
-				"ValidateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
+				"validateResourceGroupName to trigger '%d' errors for '%s' - got '%d'", tc.ErrCount, tc.Value, len(errors))
 		}
 	}
 }

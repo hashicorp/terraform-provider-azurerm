@@ -37,14 +37,7 @@ func dataSourceArmAdvisorRecommendations() *schema.Resource {
 				},
 			},
 
-			"resource_group_names_filter": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: azure.ValidateResourceGroupName,
-				},
-			},
+			"resource_group_names_filter": azure.SchemaResourceGroupNameSetOptional(),
 
 			"recommendations": {
 				Type:     schema.TypeList,
