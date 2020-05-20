@@ -35,7 +35,7 @@ func ValidateVmName(i interface{}, k string) (warnings []string, errors []error)
 		errors = append(errors, fmt.Errorf("%q must begin with an alphanumeric character", k))
 	}
 
-	if matched := regexp.MustCompile(`[a-zA-Z0-9_]$`).Match([]byte(v)); !matched {
+	if matched := regexp.MustCompile(`\w$`).Match([]byte(v)); !matched {
 		errors = append(errors, fmt.Errorf("%q must end with an alphanumeric character or underscore", k))
 	}
 
