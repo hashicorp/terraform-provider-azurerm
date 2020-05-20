@@ -18,8 +18,8 @@ provider "azurerm" {
 }
 
 data "azurerm_advisor_recommendations" "example" {
-  categories_filter           = ["security", "cost"]
-  resource_group_names_filter = ["example-resgroups"]
+  filter_by_category           = ["security", "cost"]
+  filter_by_resource_groups = ["example-resgroups"]
 }
 
 output "recommendations" {
@@ -31,9 +31,9 @@ output "recommendations" {
 
 The following arguments are supported:
 
-* `categories_filter` - (Optional) Specifies a list of categories in which the Advisor Recommendations will be listed. Possible values are 'HighAvailability', 'Security', 'Performance', 'Cost' and 'OperationalExcellence'.
+* `filter_by_category` - (Optional) Specifies a list of categories in which the Advisor Recommendations will be listed. Possible values are `HighAvailability`, `Security`, `Performance`, `Cost` and `OperationalExcellence`.
 
-* `resource_group_names_filter` - (Optional) Specifies a list of resource groups about which the Advisor Recommendations will be listed.
+* `filter_by_resource_groups` - (Optional) Specifies a list of resource groups about which the Advisor Recommendations will be listed.
 
 ## Attributes Reference
 

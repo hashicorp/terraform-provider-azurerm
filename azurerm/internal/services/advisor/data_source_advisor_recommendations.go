@@ -23,7 +23,7 @@ func dataSourceArmAdvisorRecommendations() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"categories_filter": {
+			"filter_by_category": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
@@ -37,7 +37,7 @@ func dataSourceArmAdvisorRecommendations() *schema.Resource {
 				},
 			},
 
-			"resource_group_names_filter": azure.SchemaResourceGroupNameSetOptional(),
+			"filter_by_resource_groups": azure.SchemaResourceGroupNameSetOptional(),
 
 			"recommendations": {
 				Type:     schema.TypeList,
@@ -104,10 +104,10 @@ func dataSourceArmAdvisorRecommendationsRead(d *schema.ResourceData, meta interf
 	defer cancel()
 
 	filterList := make([]string, 0)
-	if categories := expandAzureRmAdvisorRecommendationsMapString("Category", d.Get("categories_filter").(*schema.Set).List()); categories != "" {
+	if categories := expandAzureRmAdvisorRecommendationsMapString("Category", d.Get("filter_by_category").(*schema.Set).List()); categories != "" {
 		filterList = append(filterList, categories)
 	}
-	if resGroups := expandAzureRmAdvisorRecommendationsMapString("ResourceGroup", d.Get("resource_group_names_filter").(*schema.Set).List()); resGroups != "" {
+	if resGroups := expandAzureRmAdvisorRecommendationsMapString("ResourceGroup", d.Get("filter_by_resource_groups").(*schema.Set).List()); resGroups != "" {
 		filterList = append(filterList, resGroups)
 	}
 

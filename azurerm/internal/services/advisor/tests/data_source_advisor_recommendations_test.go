@@ -100,8 +100,8 @@ resource "azurerm_storage_account" "test" {
 }
 
 data "azurerm_advisor_recommendations" "test" {
-  categories_filter           = ["security"]
-  resource_group_names_filter = [azurerm_resource_group.test.name]
+  filter_by_category           = ["security"]
+  filter_by_resource_groups = [azurerm_resource_group.test.name]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -112,6 +112,6 @@ provider "azurerm" {
 }
 
 data "azurerm_advisor_recommendations" "test" {
-  categories_filter           = ["cost"]
+  filter_by_category           = ["cost"]
 }
 `
