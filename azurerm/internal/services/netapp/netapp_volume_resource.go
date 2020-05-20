@@ -183,6 +183,14 @@ func resourceArmNetAppVolume() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"mount_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -291,6 +299,9 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 		}
 		if err := d.Set("export_policy_rule", flattenArmNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 			return fmt.Errorf("Error setting `export_policy_rule`: %+v", err)
+		}
+		if err := d.Set("mount_ip_addresses", flattenArmNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
+			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 		}
 	}
 

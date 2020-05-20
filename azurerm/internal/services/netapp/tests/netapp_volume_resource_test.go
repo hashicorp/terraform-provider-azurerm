@@ -91,6 +91,7 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
+					resource.TestCheckResourceAttr(data.ResourceName, "mount_ip_addresses.#", "1"),
 				),
 			},
 			data.ImportStep(),
