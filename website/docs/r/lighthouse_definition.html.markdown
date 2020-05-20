@@ -3,20 +3,20 @@ subcategory: "Managed Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lighthouse_definition"
 description: |-
-  Manages a Registration Definition.
+  Manages a Lighthouse Definition.
 
 ---
 
 # azurerm_lighthouse_definition
 
-Manages a Registration Definition.
+Manages a Lighthouse Definition.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_lighthouse_definition" "example" {
-  registration_definition_name = "Sample registration"
-  description                  = "This is a registration definition created via Terraform"
+  registration_definition_name = "Sample definition"
+  description                  = "This is a lighthouse definition created via Terraform"
   managed_by_tenant_id         = "00000000-0000-0000-0000-000000000000"
 
   authorization {
@@ -30,13 +30,13 @@ resource "azurerm_lighthouse_definition" "example" {
 
 The following arguments are supported:
 
-* `registration_definition_id` - (Optional) A unique UUID/GUID which identifies this registration definition - one will be generated if not specified. Changing this forces a new resource to be created.
+* `registration_definition_id` - (Optional) A unique UUID/GUID which identifies this lighthouse definition - one will be generated if not specified. Changing this forces a new resource to be created.
 
-* `registration_definition_name` - (Required) The name of the Registration Definition.
+* `registration_definition_name` - (Required) The name of the Lighthouse Definition.
 
 * `managed_by_tenant_id` - (Required) A ID of the managing tenant.
 
-* `description` - (Optional) A description of the Registration Definition.
+* `description` - (Optional) A description of the Lighthouse Definition.
 
 * `authorization` - (Required) Authorization tuple containing principal id of the user/security group or service principal and id of the build-in role.
 
@@ -50,20 +50,20 @@ A `authorization` block as the following properties:
 
 The following attributes are exported:
 
-* `id` - The Registration Definition ID.
+* `id` - The Lighthouse Definition ID.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Registration Definition.
-* `update` - (Defaults to 30 minutes) Used when updating the Registration Definition.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Registration Definition.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Registration Definition.
+* `create` - (Defaults to 30 minutes) Used when creating the Lighthouse Definition.
+* `update` - (Defaults to 30 minutes) Used when updating the Lighthouse Definition.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Lighthouse Definition.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Lighthouse Definition.
 
 ## Import
 
-Registration Definitions can be imported using the `resource id`, e.g.
+Lighthouse Definitions can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_lighthouse_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.ManagedServices/registrationDefinitions/00000000-0000-0000-0000-000000000000

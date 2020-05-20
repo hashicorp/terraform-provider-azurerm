@@ -72,23 +72,23 @@ func dataSourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	registrationDefinitionID := d.Get("registration_definition_id").(string)
+	lighthouseDefinitionID := d.Get("registration_definition_id").(string)
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	if subscriptionID == "" {
-		return fmt.Errorf("Error reading Subscription for Registration Definition %q", registrationDefinitionID)
+		return fmt.Errorf("Error reading Subscription for Lighthouse Definition %q", lighthouseDefinitionID)
 	}
 
 	scope := buildScopeForLighthouseDefinition(subscriptionID)
 
-	resp, err := client.Get(ctx, scope, registrationDefinitionID)
+	resp, err := client.Get(ctx, scope, lighthouseDefinitionID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", registrationDefinitionID, scope)
+			log.Printf("[WARN] Lighthouse Definition '%s' was not found (Scope '%s')", lighthouseDefinitionID, scope)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", registrationDefinitionID, scope, err)
+		return fmt.Errorf("Error making Read request on Lighthouse Definition %q (Scope %q): %+v", lighthouseDefinitionID, scope, err)
 	}
 
 	d.SetId(*resp.ID)

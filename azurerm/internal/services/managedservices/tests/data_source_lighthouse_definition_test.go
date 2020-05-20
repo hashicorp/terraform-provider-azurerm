@@ -31,7 +31,7 @@ func TestAccDataSourceAzureRMLighthouseDefinition_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
 					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
 					resource.TestCheckResourceAttr(data.ResourceName, "registration_definition_name", fmt.Sprintf("acctestrd-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test Registration Definition"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test Lighthouse Definition"),
 					resource.TestMatchResourceAttr(data.ResourceName, "managed_by_tenant_id", validate.UUIDRegExp),
 					resource.TestMatchResourceAttr(data.ResourceName, "authorization.0.principal_id", validate.UUIDRegExp),
 					resource.TestMatchResourceAttr(data.ResourceName, "authorization.0.role_definition_id", validate.UUIDRegExp),
@@ -50,7 +50,7 @@ provider "azurerm" {
 resource "azurerm_lighthouse_definition" "test" {
   registration_definition_id   = "%s"
   registration_definition_name = "acctestrd-%d"
-  description                  = "Acceptance Test Registration Definition"
+  description                  = "Acceptance Test Lighthouse Definition"
   managed_by_tenant_id         = "%s"
 
   authorization {

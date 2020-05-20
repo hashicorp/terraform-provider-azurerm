@@ -87,7 +87,7 @@ func TestAccAzureRMLighthouseDefinition_complete(t *testing.T) {
 					testCheckAzureRMLighthouseDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
 					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test Registration Definition"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test Lighthouse Definition"),
 				),
 			},
 			data.ImportStep("registration_definition_id"),
@@ -160,15 +160,15 @@ func testCheckAzureRMLighthouseDefinitionExists(resourceName string) resource.Te
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		registrationDefinitionID := rs.Primary.Attributes["registration_definition_id"]
+		lighthouseDefinitionID := rs.Primary.Attributes["registration_definition_id"]
 
-		resp, err := client.Get(ctx, scope, registrationDefinitionID)
+		resp, err := client.Get(ctx, scope, lighthouseDefinitionID)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Registration Definition %q (Scope: %q) does not exist", registrationDefinitionID, scope)
+				return fmt.Errorf("Bad: Lighthouse Definition %q (Scope: %q) does not exist", lighthouseDefinitionID, scope)
 			}
-			return fmt.Errorf("Bad: Get on registrationDefinitionsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on lighthouseDefinitionsClient: %+v", err)
 		}
 
 		return nil
@@ -185,9 +185,9 @@ func testCheckAzureRMLighthouseDefinitionDestroy(s *terraform.State) error {
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		registrationDefinitionID := rs.Primary.Attributes["registration_definition_id"]
+		lighthouseDefinitionID := rs.Primary.Attributes["registration_definition_id"]
 
-		resp, err := client.Get(ctx, scope, registrationDefinitionID)
+		resp, err := client.Get(ctx, scope, lighthouseDefinitionID)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -245,7 +245,7 @@ provider "azurerm" {
 resource "azurerm_lighthouse_definition" "test" {
   registration_definition_id   = "%s"
   registration_definition_name = "acctestrd-%d"
-  description                  = "Acceptance Test Registration Definition"
+  description                  = "Acceptance Test Lighthouse Definition"
   managed_by_tenant_id         = "%s"
 
   authorization {
@@ -264,7 +264,7 @@ provider "azurerm" {
 
 resource "azurerm_lighthouse_definition" "test" {
   registration_definition_name = "acctestrd-%d"
-  description                  = "Acceptance Test Registration Definition"
+  description                  = "Acceptance Test Lighthouse Definition"
   managed_by_tenant_id         = "%s"
 
   authorization {

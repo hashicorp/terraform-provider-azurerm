@@ -93,28 +93,28 @@ func resourceArmLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta in
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	registrationDefinitionID := d.Get("registration_definition_id").(string)
-	if registrationDefinitionID == "" {
+	lighthouseDefinitionID := d.Get("registration_definition_id").(string)
+	if lighthouseDefinitionID == "" {
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
-			return fmt.Errorf("Error generating UUID for Registration Definition: %+v", err)
+			return fmt.Errorf("Error generating UUID for Lighthouse Definition: %+v", err)
 		}
 
-		registrationDefinitionID = uuid
+		lighthouseDefinitionID = uuid
 	}
 
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	if subscriptionID == "" {
-		return fmt.Errorf("Error reading Subscription for Registration Definition %q", registrationDefinitionID)
+		return fmt.Errorf("Error reading Subscription for Lighthouse Definition %q", lighthouseDefinitionID)
 	}
 
 	scope := buildScopeForLighthouseDefinition(subscriptionID)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, registrationDefinitionID)
+		existing, err := client.Get(ctx, scope, lighthouseDefinitionID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Registration Definition %q (Scope %q): %+v", registrationDefinitionID, scope, err)
+				return fmt.Errorf("Error checking for presence of existing Lighthouse Definition %q (Scope %q): %+v", lighthouseDefinitionID, scope, err)
 			}
 		}
 
@@ -132,17 +132,17 @@ func resourceArmLighthouseDefinitionCreateUpdate(d *schema.ResourceData, meta in
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, registrationDefinitionID, scope, parameters); err != nil {
-		return fmt.Errorf("Error Creating/Updating Registration Definition %q (Scope %q): %+v", registrationDefinitionID, scope, err)
+	if _, err := client.CreateOrUpdate(ctx, lighthouseDefinitionID, scope, parameters); err != nil {
+		return fmt.Errorf("Error Creating/Updating Lighthouse Definition %q (Scope %q): %+v", lighthouseDefinitionID, scope, err)
 	}
 
-	read, err := client.Get(ctx, scope, registrationDefinitionID)
+	read, err := client.Get(ctx, scope, lighthouseDefinitionID)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Registration Definition %q ID (scope %q) ID", registrationDefinitionID, scope)
+		return fmt.Errorf("Cannot read Lighthouse Definition %q ID (scope %q) ID", lighthouseDefinitionID, scope)
 	}
 
 	d.SetId(*read.ID)
@@ -160,15 +160,15 @@ func resourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.scope, id.registrationDefinitionID)
+	resp, err := client.Get(ctx, id.scope, id.lighthouseDefinitionID)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Registration Definition '%s' was not found (Scope '%s')", id.registrationDefinitionID, id.scope)
+			log.Printf("[WARN] Lighthouse Definition '%s' was not found (Scope '%s')", id.lighthouseDefinitionID, id.scope)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Registration Definition %q (Scope %q): %+v", id.registrationDefinitionID, id.scope, err)
+		return fmt.Errorf("Error making Read request on Lighthouse Definition %q (Scope %q): %+v", id.lighthouseDefinitionID, id.scope, err)
 	}
 
 	d.Set("registration_definition_id", resp.Name)
@@ -196,32 +196,32 @@ func resourceArmLighthouseDefinitionDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.registrationDefinitionID, id.scope)
+	_, err = client.Delete(ctx, id.lighthouseDefinitionID, id.scope)
 	if err != nil {
-		return fmt.Errorf("Error deleting Registration Definition %q at Scope %q: %+v", id.registrationDefinitionID, id.scope, err)
+		return fmt.Errorf("Error deleting Lighthouse Definition %q at Scope %q: %+v", id.lighthouseDefinitionID, id.scope, err)
 	}
 
 	return nil
 }
 
-type registrationDefinitionID struct {
-	scope                    string
-	registrationDefinitionID string
+type lighthouseDefinitionID struct {
+	scope                  string
+	lighthouseDefinitionID string
 }
 
-func parseAzureLighthouseDefinitionID(id string) (*registrationDefinitionID, error) {
+func parseAzureLighthouseDefinitionID(id string) (*lighthouseDefinitionID, error) {
 	segments := strings.Split(id, "/providers/Microsoft.ManagedServices/registrationDefinitions/")
 
 	if len(segments) != 2 {
 		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.ManagedServices/registrationDefinitions/{name} - got %d segments", len(segments))
 	}
 
-	azureregistrationDefinitionID := registrationDefinitionID{
-		scope:                    segments[0],
-		registrationDefinitionID: segments[1],
+	azurelighthouseDefinitionID := lighthouseDefinitionID{
+		scope:                  segments[0],
+		lighthouseDefinitionID: segments[1],
 	}
 
-	return &azureregistrationDefinitionID, nil
+	return &azurelighthouseDefinitionID, nil
 }
 
 func buildScopeForLighthouseDefinition(subscriptionID string) string {

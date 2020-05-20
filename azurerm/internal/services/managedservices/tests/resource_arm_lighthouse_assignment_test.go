@@ -101,16 +101,16 @@ func testCheckAzureRMLighthouseAssignmentExists(resourceName string) resource.Te
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		RegistrationAssignmentID := rs.Primary.Attributes["registration_assignment_id"]
-		expandRegistrationDefinition := true
+		lighthouseAssignmentID := rs.Primary.Attributes["registration_assignment_id"]
+		expandLighthouseDefinition := true
 
-		resp, err := client.Get(ctx, scope, RegistrationAssignmentID, &expandRegistrationDefinition)
+		resp, err := client.Get(ctx, scope, lighthouseAssignmentID, &expandLighthouseDefinition)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Registration Assignment %q (Scope: %q) does not exist", RegistrationAssignmentID, scope)
+				return fmt.Errorf("Bad: Lighthouse Assignment %q (Scope: %q) does not exist", lighthouseAssignmentID, scope)
 			}
-			return fmt.Errorf("Bad: Get on RegistrationAssignmentsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on LighthouseAssignmentsClient: %+v", err)
 		}
 
 		return nil
@@ -127,10 +127,10 @@ func testCheckAzureRMLighthouseAssignmentDestroy(s *terraform.State) error {
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		RegistrationAssignmentID := rs.Primary.Attributes["registration_assignment_id"]
-		expandRegistrationDefinition := true
+		lighthouseAssignmentID := rs.Primary.Attributes["registration_assignment_id"]
+		expandLighthouseDefinition := true
 
-		resp, err := client.Get(ctx, scope, RegistrationAssignmentID, &expandRegistrationDefinition)
+		resp, err := client.Get(ctx, scope, lighthouseAssignmentID, &expandLighthouseDefinition)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -155,7 +155,7 @@ data "azurerm_subscription" "primary" {
 
 resource "azurerm_lighthouse_definition" "test" {
   registration_definition_name = "acctestrd-%d"
-  description                  = "Acceptance Test Registration Definition"
+  description                  = "Acceptance Test Lighthouse Definition"
   managed_by_tenant_id         = "%s"
 
   authorization {
@@ -196,7 +196,7 @@ data "azurerm_subscription" "primary" {
 
 resource "azurerm_lighthouse_definition" "test" {
   registration_definition_name = "acctestrd-%d"
-  description                  = "Acceptance Test Registration Definition"
+  description                  = "Acceptance Test Lighthouse Definition"
   managed_by_tenant_id         = "%s"
 
   authorization {
