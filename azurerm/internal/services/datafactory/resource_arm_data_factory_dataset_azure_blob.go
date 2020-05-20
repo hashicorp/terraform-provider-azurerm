@@ -160,7 +160,7 @@ func resourceArmDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, 
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -173,24 +173,17 @@ func resourceArmDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, 
 		}
 	}
 
-	azureBlobDatasetProperties := datafactory.AzureBlobDatasetTypeProperties{
-		FolderPath: d.Get("path").(string),
-		FileName:   d.Get("filename").(string),
-	}
 
-	linkedServiceName := d.Get("linked_service_name").(string)
-	linkedServiceType := "LinkedServiceReference"
-	linkedService := &datafactory.LinkedServiceReference{
-		ReferenceName: &linkedServiceName,
-		Type:          &linkedServiceType,
-	}
-
-	description := d.Get("description").(string)
-	// TODO
 	azureBlobTableset := datafactory.AzureBlobDataset{
-		AzureBlobDatasetTypeProperties: &azureBlobDatasetProperties,
-		LinkedServiceName:              linkedService,
-		Description:                    &description,
+		AzureBlobDatasetTypeProperties: &datafactory.AzureBlobDatasetTypeProperties{
+			FolderPath: d.Get("path").(string),
+			FileName:   d.Get("filename").(string),
+		},
+		LinkedServiceName: &datafactory.LinkedServiceReference{
+			ReferenceName: utils.Strings(d.Get("linked_service_name").(string)),
+			Type:          utils.String("LinkedServiceReference"),
+		},
+		Description:                    &utils.Streing(d.Get("description").(string)),
 	}
 
 	if v, ok := d.GetOk("folder"); ok {

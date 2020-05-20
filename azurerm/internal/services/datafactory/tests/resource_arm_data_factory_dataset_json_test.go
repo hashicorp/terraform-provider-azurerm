@@ -131,7 +131,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -173,7 +173,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -211,7 +211,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
 
   parameters = {
     foo = "test1"
-    bar = "test2"
+    Bar = "Test2"
   }
 
   additional_properties = {
@@ -235,7 +235,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
