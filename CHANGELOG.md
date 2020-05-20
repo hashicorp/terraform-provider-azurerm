@@ -15,6 +15,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - the `ip_restriction` block now supports the `action` property [GH-6967]
 * `azurerm_databricks_workspace` - exposing `workspace_id` and `workspace_url` [GH-6973]
 * `azurerm_netapp_volume` - support the `mount_ip_addresses` property [GH-5526]
+* `azurerm_redis_cache` - support new maxmemory policies `allkeys-lfu` & `volatile-lfu` [GH-7031]
 * `azurerm_storage_account` - allowing the value `PATCH` for `allowed_methods` within the `cors_rule` block within the `blob_properties` block [GH-6964]
 
 BUG FIXES:
