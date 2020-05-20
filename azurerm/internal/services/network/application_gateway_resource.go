@@ -440,7 +440,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"custom_error_configuration": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
