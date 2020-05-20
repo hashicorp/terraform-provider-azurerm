@@ -16,7 +16,7 @@ import (
 
 func dataSourceDataShare() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceArmDataShareRead,
+		Read: dataSourceArmDataShareRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
