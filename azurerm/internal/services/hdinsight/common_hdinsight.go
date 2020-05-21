@@ -137,10 +137,8 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
 					return err
 				}
-			} else {
-				if err := disableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
-					return nil
-				}
+			} else if err := disableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
+				return nil
 			}
 		}
 		return readFunc(d, meta)
