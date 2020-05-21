@@ -12,17 +12,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetCosmosDbSQLAPI() *schema.Resource {
+func resourceArmDataFactoryDatasetAzureBlob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
-		Read:   resourceArmDataFactoryDatasetCosmosDbSQLAPIRead,
-		Update: resourceArmDataFactoryDatasetCosmosDbSQLAPICreateUpdate,
-		Delete: resourceArmDataFactoryDatasetCosmosDbSQLAPIDelete,
+		Create: resourceArmDataFactoryDatasetAzureBlobCreateUpdate,
+		Read:   resourceArmDataFactoryDatasetAzureBlobRead,
+		Update: resourceArmDataFactoryDatasetAzureBlobCreateUpdate,
+		Delete: resourceArmDataFactoryDatasetAzureBlobDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -60,7 +59,15 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPI() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"collection_name": {
+			// Blob Storage Specific field
+			"path": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			// Blob Storage Specific field
+			"filename": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -145,7 +152,7 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPI() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetAzureBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -158,17 +165,13 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *schema.ResourceD
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_dataset_cosmosdb_sqlapi", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_dataset_delimited_text", *existing.ID)
 		}
-	}
-
-	cosmosDbDatasetProperties := datafactory.CosmosDbSQLAPICollectionDatasetTypeProperties{
-		CollectionName: d.Get("collection_name").(string),
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
@@ -179,62 +182,65 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPICreateUpdate(d *schema.ResourceD
 	}
 
 	description := d.Get("description").(string)
-	// TODO
-	cosmosDbTableset := datafactory.CosmosDbSQLAPICollectionDataset{
-		CosmosDbSQLAPICollectionDatasetTypeProperties: &cosmosDbDatasetProperties,
+
+	azureBlobTableset := datafactory.AzureBlobDataset{
+		AzureBlobDatasetTypeProperties: &datafactory.AzureBlobDatasetTypeProperties{
+			FolderPath: d.Get("path").(string),
+			FileName:   d.Get("filename").(string),
+		},
 		LinkedServiceName: linkedService,
 		Description:       &description,
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
 		name := v.(string)
-		cosmosDbTableset.Folder = &datafactory.DatasetFolder{
+		azureBlobTableset.Folder = &datafactory.DatasetFolder{
 			Name: &name,
 		}
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		cosmosDbTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		azureBlobTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		cosmosDbTableset.Annotations = &annotations
+		azureBlobTableset.Annotations = &annotations
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		cosmosDbTableset.AdditionalProperties = v.(map[string]interface{})
+		azureBlobTableset.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		cosmosDbTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		azureBlobTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeRelationalTable)
+	datasetType := string(datafactory.TypeAzureBlob)
 	dataset := datafactory.DatasetResource{
-		Properties: &cosmosDbTableset,
+		Properties: &azureBlobTableset,
 		Type:       &datasetType,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Dataset CosmosDB SQL API %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Data Factory Dataset Azure Blob  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Cannot read Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetCosmosDbSQLAPIRead(d, meta)
+	return resourceArmDataFactoryDatasetAzureBlobRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetCosmosDbSQLAPIRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetAzureBlobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -254,56 +260,62 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPIRead(d *schema.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
-	cosmosDbTable, ok := resp.Properties.AsCosmosDbSQLAPICollectionDataset()
+	azureBlobTable, ok := resp.Properties.AsAzureBlobDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
 	}
 
-	d.Set("additional_properties", cosmosDbTable.AdditionalProperties)
+	d.Set("additional_properties", azureBlobTable.AdditionalProperties)
 
-	if cosmosDbTable.Description != nil {
-		d.Set("description", cosmosDbTable.Description)
+	if azureBlobTable.Description != nil {
+		d.Set("description", azureBlobTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(cosmosDbTable.Parameters)
+	parameters := flattenDataFactoryParameters(azureBlobTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(cosmosDbTable.Annotations)
+	annotations := flattenDataFactoryAnnotations(azureBlobTable.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
 	}
 
-	if linkedService := cosmosDbTable.LinkedServiceName; linkedService != nil {
+	if linkedService := azureBlobTable.LinkedServiceName; linkedService != nil {
 		if linkedService.ReferenceName != nil {
 			d.Set("linked_service_name", linkedService.ReferenceName)
 		}
 	}
 
-	if properties := cosmosDbTable.CosmosDbSQLAPICollectionDatasetTypeProperties; properties != nil {
-		val, ok := properties.CollectionName.(string)
+	if properties := azureBlobTable.AzureBlobDatasetTypeProperties; properties != nil {
+		filename, ok := properties.FileName.(string)
 		if !ok {
-			log.Printf("[DEBUG] Skipping `table_name` since it's not a string")
+			log.Printf("[DEBUG] Skipping `filename` since it's not a string")
 		} else {
-			d.Set("collection_name", val)
+			d.Set("filename", filename)
+		}
+		path, ok := properties.FolderPath.(string)
+		if !ok {
+			log.Printf("[DEBUG] Skipping `path` since it's not a string")
+		} else {
+			d.Set("path", path)
 		}
 	}
 
-	if folder := cosmosDbTable.Folder; folder != nil {
+	if folder := azureBlobTable.Folder; folder != nil {
 		if folder.Name != nil {
 			d.Set("folder", folder.Name)
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(cosmosDbTable.Structure)
+	structureColumns := flattenDataFactoryStructureColumns(azureBlobTable.Structure)
 	if err := d.Set("schema_column", structureColumns); err != nil {
 		return fmt.Errorf("Error setting `schema_column`: %+v", err)
 	}
@@ -311,7 +323,7 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPIRead(d *schema.ResourceData, met
 	return nil
 }
 
-func resourceArmDataFactoryDatasetCosmosDbSQLAPIDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetAzureBlobDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -327,7 +339,7 @@ func resourceArmDataFactoryDatasetCosmosDbSQLAPIDelete(d *schema.ResourceData, m
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset CosmosDB SQL API%q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Dataset Azure Blob %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 

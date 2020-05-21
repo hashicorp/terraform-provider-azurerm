@@ -156,9 +156,9 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-    url      = "http://www.bing.com"
-    path     = "foo/bar/"
-    filename = "foo.txt"
+    relative_url  = "/fizz/buzz/"
+    path          = "foo/bar/"
+    filename      = "foo.txt"
   }
 
   column_delimiter    = ","
@@ -205,9 +205,9 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-    url      = "http://www.bing.com"
-    path     = "foo/bar/"
-    filename = "foo.txt"
+    relative_url      = "/fizz/buzz/"
+    path              = "foo/bar/"
+    filename          = "foo.txt"
   }
 
   column_delimiter    = ","
@@ -274,9 +274,9 @@ resource "azurerm_data_factory_dataset_delimited_text" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-    url      = "http://www.bing.com"
-    path     = "foo/bar/"
-    filename = "foo.txt"
+    relative_url      = "/fizz/buzz/"
+    path              = "foo/bar/"
+    filename          = "foo.txt"
   }
 
   column_delimiter    = ","

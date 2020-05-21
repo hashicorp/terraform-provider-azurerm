@@ -12,17 +12,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
+func resourceArmDataFactoryDatasetJSON() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetDelimitedTextCreateUpdate,
-		Read:   resourceArmDataFactoryDatasetDelimitedTextRead,
-		Update: resourceArmDataFactoryDatasetDelimitedTextCreateUpdate,
-		Delete: resourceArmDataFactoryDatasetDelimitedTextDelete,
+		Create: resourceArmDataFactoryDatasetJSONCreateUpdate,
+		Read:   resourceArmDataFactoryDatasetJSONRead,
+		Update: resourceArmDataFactoryDatasetJSONCreateUpdate,
+		Delete: resourceArmDataFactoryDatasetJSONDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -60,6 +59,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// JSON Dataset Specific Field
 			"http_server_location": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -68,7 +68,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				ConflictsWith: []string{"azure_blob_storage_location"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"url": {
+						"relative_url": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -87,6 +87,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				},
 			},
 
+			// JSON Dataset Specific Field
 			"azure_blob_storage_location": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
@@ -114,42 +115,8 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 				},
 			},
 
-			"column_delimiter": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"row_delimiter": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
+			// JSON Dataset Specific Field
 			"encoding": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"quote_character": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"escape_character": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"first_row_as_header": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
-			"null_value": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -234,7 +201,7 @@ func resourceArmDataFactoryDatasetDelimitedText() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetJSONCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -247,7 +214,7 @@ func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceDa
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
@@ -261,15 +228,9 @@ func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceDa
 		return fmt.Errorf("One of `http_server_location`, `blob_storage_location` must be specified to create a DataFactory Delimited Text Dataset")
 	}
 
-	delimited_textDatasetProperties := datafactory.DelimitedTextDatasetTypeProperties{
-		Location:         location,
-		ColumnDelimiter:  d.Get("column_delimiter").(string),
-		RowDelimiter:     d.Get("row_delimiter").(string),
-		EncodingName:     d.Get("encoding").(string),
-		QuoteChar:        d.Get("quote_character").(string),
-		EscapeChar:       d.Get("escape_character").(string),
-		FirstRowAsHeader: d.Get("first_row_as_header").(bool),
-		NullValue:        d.Get("null_value").(string),
+	jsonDatasetProperties := datafactory.JSONDatasetTypeProperties{
+		Location:     location,
+		EncodingName: d.Get("encoding").(string),
 	}
 
 	linkedServiceName := d.Get("linked_service_name").(string)
@@ -281,61 +242,61 @@ func resourceArmDataFactoryDatasetDelimitedTextCreateUpdate(d *schema.ResourceDa
 
 	description := d.Get("description").(string)
 	// TODO
-	delimited_textTableset := datafactory.DelimitedTextDataset{
-		DelimitedTextDatasetTypeProperties: &delimited_textDatasetProperties,
-		LinkedServiceName:                  linkedService,
-		Description:                        &description,
+	jsonTableset := datafactory.JSONDataset{
+		JSONDatasetTypeProperties: &jsonDatasetProperties,
+		LinkedServiceName:         linkedService,
+		Description:               &description,
 	}
 
 	if v, ok := d.GetOk("folder"); ok {
 		name := v.(string)
-		delimited_textTableset.Folder = &datafactory.DatasetFolder{
+		jsonTableset.Folder = &datafactory.DatasetFolder{
 			Name: &name,
 		}
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		delimited_textTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		jsonTableset.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		delimited_textTableset.Annotations = &annotations
+		jsonTableset.Annotations = &annotations
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		delimited_textTableset.AdditionalProperties = v.(map[string]interface{})
+		jsonTableset.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("schema_column"); ok {
-		delimited_textTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
+		jsonTableset.Structure = expandDataFactoryDatasetStructure(v.([]interface{}))
 	}
 
-	datasetType := string(datafactory.TypeDelimitedText)
+	datasetType := string(datafactory.TypeJSON)
 	dataset := datafactory.DatasetResource{
-		Properties: &delimited_textTableset,
+		Properties: &jsonTableset,
 		Type:       &datasetType,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, dataset, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Dataset DelimitedText  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Data Factory Dataset JSON  %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Cannot read Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryDatasetDelimitedTextRead(d, meta)
+	return resourceArmDataFactoryDatasetJSONRead(d, meta)
 }
 
-func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetJSONRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -355,41 +316,41 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
-	delimited_textTable, ok := resp.Properties.AsDelimitedTextDataset()
+	jsonTable, ok := resp.Properties.AsJSONDataset()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeRelationalTable, *resp.Type)
 	}
 
-	d.Set("additional_properties", delimited_textTable.AdditionalProperties)
+	d.Set("additional_properties", jsonTable.AdditionalProperties)
 
-	if delimited_textTable.Description != nil {
-		d.Set("description", delimited_textTable.Description)
+	if jsonTable.Description != nil {
+		d.Set("description", jsonTable.Description)
 	}
 
-	parameters := flattenDataFactoryParameters(delimited_textTable.Parameters)
+	parameters := flattenDataFactoryParameters(jsonTable.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
 
-	annotations := flattenDataFactoryAnnotations(delimited_textTable.Annotations)
+	annotations := flattenDataFactoryAnnotations(jsonTable.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
 	}
 
-	if linkedService := delimited_textTable.LinkedServiceName; linkedService != nil {
+	if linkedService := jsonTable.LinkedServiceName; linkedService != nil {
 		if linkedService.ReferenceName != nil {
 			d.Set("linked_service_name", linkedService.ReferenceName)
 		}
 	}
 
-	if properties := delimited_textTable.DelimitedTextDatasetTypeProperties; properties != nil {
+	if properties := jsonTable.JSONDatasetTypeProperties; properties != nil {
 		if httpServerLocation, ok := properties.Location.AsHTTPServerLocation(); ok {
 			if err := d.Set("http_server_location", flattenDataFactoryDatasetHTTPServerLocation(httpServerLocation)); err != nil {
 				return fmt.Errorf("Error setting `http_server_location` for Data Factory Delimited Text Dataset %s", err)
@@ -401,61 +362,21 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 			}
 		}
 
-		columnDelimiter, ok := properties.ColumnDelimiter.(string)
-		if !ok {
-			log.Printf("[DEBUG] Skipping `column_delimiter` since it's not a string")
-		} else {
-			d.Set("column_delimiter", columnDelimiter)
-		}
-
-		rowDelimiter, ok := properties.RowDelimiter.(string)
-		if !ok {
-			log.Printf("[DEBUG] Skipping `row_delimiter` since it's not a string")
-		} else {
-			d.Set("row_delimiter", rowDelimiter)
-		}
-
 		encodingName, ok := properties.EncodingName.(string)
 		if !ok {
 			log.Printf("[DEBUG] Skipping `encoding` since it's not a string")
 		} else {
 			d.Set("encoding", encodingName)
 		}
-
-		quoteChar, ok := properties.QuoteChar.(string)
-		if !ok {
-			log.Printf("[DEBUG] Skipping `quote_char` since it's not a string")
-		} else {
-			d.Set("quote_character", quoteChar)
-		}
-
-		escapeChar, ok := properties.EscapeChar.(string)
-		if !ok {
-			log.Printf("[DEBUG] Skipping `escape_char` since it's not a string")
-		} else {
-			d.Set("escape_character", escapeChar)
-		}
-		firstRow, ok := properties.FirstRowAsHeader.(bool)
-		if !ok {
-			log.Printf("[DEBUG] Skipping `first_row_as_header` since it's not a string")
-		} else {
-			d.Set("first_row_as_header", firstRow)
-		}
-		nullValue, ok := properties.NullValue.(string)
-		if !ok {
-			log.Printf("[DEBUG] Skipping `null_value` since it's not a string")
-		} else {
-			d.Set("null_value", nullValue)
-		}
 	}
 
-	if folder := delimited_textTable.Folder; folder != nil {
+	if folder := jsonTable.Folder; folder != nil {
 		if folder.Name != nil {
 			d.Set("folder", folder.Name)
 		}
 	}
 
-	structureColumns := flattenDataFactoryStructureColumns(delimited_textTable.Structure)
+	structureColumns := flattenDataFactoryStructureColumns(jsonTable.Structure)
 	if err := d.Set("schema_column", structureColumns); err != nil {
 		return fmt.Errorf("Error setting `schema_column`: %+v", err)
 	}
@@ -463,7 +384,7 @@ func resourceArmDataFactoryDatasetDelimitedTextRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetJSONDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.DatasetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -479,86 +400,9 @@ func resourceArmDataFactoryDatasetDelimitedTextDelete(d *schema.ResourceData, me
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Dataset DelimitedText %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Dataset JSON %q (Data Factory %q / Resource Group %q): %s", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 
 	return nil
-}
-
-func expandDataFactoryDatasetLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	if _, ok := d.GetOk("http_server_location"); ok {
-		return expandDataFactoryDatasetHttpServerLocation(d)
-	}
-
-	if _, ok := d.GetOk("blob_storage_location"); ok {
-		return expandDataFactoryDatasetAzureBlobStorageLocation(d)
-	}
-
-	return nil
-}
-
-func expandDataFactoryDatasetHttpServerLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
-	url := props["url"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
-
-	httpServerLocation := datafactory.HTTPServerLocation{
-		RelativeURL: url,
-		FolderPath:  path,
-		FileName:    filename,
-	}
-	return httpServerLocation
-}
-func expandDataFactoryDatasetAzureBlobStorageLocation(d *schema.ResourceData) datafactory.BasicDatasetLocation {
-	props := d.Get("http_server_location").([]interface{})[0].(map[string]interface{})
-	container := props["container"].(string)
-	path := props["path"].(string)
-	filename := props["filename"].(string)
-
-	blobStorageLocation := datafactory.AzureBlobStorageLocation{
-		Container:  container,
-		FolderPath: path,
-		FileName:   filename,
-	}
-	return blobStorageLocation
-}
-
-func flattenDataFactoryDatasetHTTPServerLocation(input *datafactory.HTTPServerLocation) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.RelativeURL != nil {
-		result["url"] = input.RelativeURL
-	}
-	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
-	}
-	if input.FileName != nil {
-		result["filename"] = input.FileName
-	}
-
-	return []interface{}{result}
-}
-
-func flattenDataFactoryDatasetAzureBlobStorageLocation(input *datafactory.AzureBlobStorageLocation) []interface{} {
-	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.Container != nil {
-		result["container"] = input.Container
-	}
-	if input.FolderPath != nil {
-		result["path"] = input.FolderPath
-	}
-	if input.FileName != nil {
-		result["filename"] = input.FileName
-	}
-
-	return []interface{}{result}
 }

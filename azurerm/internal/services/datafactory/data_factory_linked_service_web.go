@@ -11,17 +11,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceSFTP() *schema.Resource {
+func resourceArmDataFactoryLinkedServiceWeb() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceSFTPCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceSFTPRead,
-		Update: resourceArmDataFactoryLinkedServiceSFTPCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceSFTPDelete,
+		Create: resourceArmDataFactoryLinkedServiceWebCreateUpdate,
+		Read:   resourceArmDataFactoryLinkedServiceWebRead,
+		Update: resourceArmDataFactoryLinkedServiceWebCreateUpdate,
+		Delete: resourceArmDataFactoryLinkedServiceWebDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -59,24 +58,7 @@ func resourceArmDataFactoryLinkedServiceSFTP() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"host": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"port": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-
-			"username": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"password": {
+			"url": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -121,7 +103,7 @@ func resourceArmDataFactoryLinkedServiceSFTP() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceWebCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -134,83 +116,72 @@ func resourceArmDataFactoryLinkedServiceSFTPCreateUpdate(d *schema.ResourceData,
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service Web Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_sftp", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_web", *existing.ID)
 		}
 	}
 
 	authenticationType := d.Get("authentication_type").(string)
 
-	host := d.Get("host").(string)
-	port := d.Get("port").(int)
-	username := d.Get("username").(string)
-	password := d.Get("password").(string)
+	url := d.Get("url").(string)
 
-	passwordSecureString := datafactory.SecureString{
-		Value: &password,
-		Type:  datafactory.TypeSecureString,
-	}
-
-	sftpProperties := &datafactory.SftpServerLinkedServiceTypeProperties{
-		Host:               utils.String(host),
-		Port:               port,
-		AuthenticationType: datafactory.SftpAuthenticationType(authenticationType),
-		UserName:           utils.String(username),
-		Password:           &passwordSecureString,
+	webProperties := &datafactory.WebAnonymousAuthentication{
+		AuthenticationType: datafactory.AuthenticationType(authenticationType),
+		URL:                utils.String(url),
 	}
 
 	description := d.Get("description").(string)
 
-	sftpLinkedService := &datafactory.SftpServerLinkedService{
-		Description:                           &description,
-		SftpServerLinkedServiceTypeProperties: sftpProperties,
-		Type:                                  datafactory.TypeSftp,
+	webLinkedService := &datafactory.WebLinkedService{
+		Description:    &description,
+		TypeProperties: webProperties,
+		Type:           datafactory.TypeWeb,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		sftpLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		webLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
-		sftpLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+		webLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		sftpLinkedService.AdditionalProperties = v.(map[string]interface{})
+		webLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		sftpLinkedService.Annotations = &annotations
+		webLinkedService.Annotations = &annotations
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
-		Properties: sftpLinkedService,
+		Properties: webLinkedService,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Linked Service SFTP Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Data Factory Linked Service Web Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Linked Service SFTP Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service Web Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service SFTP Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Cannot read Data Factory Linked Service Web Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceSFTPRead(d, meta)
+	return resourceArmDataFactoryLinkedServiceWebRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceSFTPRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceWebRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -230,32 +201,32 @@ func resourceArmDataFactoryLinkedServiceSFTPRead(d *schema.ResourceData, meta in
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service Web %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
-	sftp, ok := resp.Properties.AsSftpServerLinkedService()
+	web, ok := resp.Properties.AsWebLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSftp, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Web %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
 	}
 
-	d.Set("additional_properties", sftp.AdditionalProperties)
-	d.Set("description", sftp.Description)
+	d.Set("additional_properties", web.AdditionalProperties)
+	d.Set("description", web.Description)
 
-	annotations := flattenDataFactoryAnnotations(sftp.Annotations)
+	annotations := flattenDataFactoryAnnotations(web.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
 	}
 
-	parameters := flattenDataFactoryParameters(sftp.Parameters)
+	parameters := flattenDataFactoryParameters(web.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
 
-	if connectVia := sftp.ConnectVia; connectVia != nil {
+	if connectVia := web.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
@@ -264,7 +235,7 @@ func resourceArmDataFactoryLinkedServiceSFTPRead(d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceSFTPDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceWebDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -280,7 +251,7 @@ func resourceArmDataFactoryLinkedServiceSFTPDelete(d *schema.ResourceData, meta 
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service Web %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 

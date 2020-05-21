@@ -156,9 +156,9 @@ resource "azurerm_data_factory_dataset_json" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-    url      = "http://www.bing.com"
-    path     = "foo/bar/"
-    filename = "foo.json"
+    relative_url      = "/fizz/buzz/"
+    path              = "foo/bar/"
+    filename          = "foo.json"
   }
 
   encoding = "UTF-8"
@@ -198,9 +198,9 @@ resource "azurerm_data_factory_dataset_json" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-    url      = "http://www.bing.com"
-    path     = "foo/bar/"
-    filename = "foo.json"
+    relative_url      = "/fizz/buzz/"
+    path              = "foo/bar/"
+    filename          = "foo.json"
   }
 
   encoding = "UTF-8"
@@ -260,9 +260,9 @@ resource "azurerm_data_factory_dataset_json" "test" {
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
   http_server_location {
-    url      = "http://www.bing.com"
-    path     = "foo/bar/"
-    filename = "foo.json"
+    relative_url      = "/fizz/buzz/"
+    path              = "foo/bar/"
+    filename          = "foo.json"
   }
 
   encoding = "UTF-8"

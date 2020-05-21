@@ -156,9 +156,9 @@ resource "azurerm_data_factory_dataset_http" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
-  url            = "http://www.bing.com"
-  request_body   = "OK"
-  request_method = "POST"
+  relative_url        = "/foo/bar"
+  request_body   	  = "OK"
+  request_method 	  = "POST"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -196,9 +196,9 @@ resource "azurerm_data_factory_dataset_http" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
-  url            = "http://www.bing.com"
-  request_body   = "OK"
-  request_method = "POST"
+  relative_url        = "/foo/bar"
+  request_body   	  = "OK"
+  request_method 	  = "POST"
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
@@ -254,9 +254,9 @@ resource "azurerm_data_factory_dataset_http" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
-  url            = "http://www.bing.com"
-  request_body   = "OK"
-  request_method = "POST"
+  relative_url        = "/foo/bar"
+  request_body   	  = "OK"
+  request_method 	  = "POST"
 
   description = "test description 2"
   annotations = ["test1", "test2"]

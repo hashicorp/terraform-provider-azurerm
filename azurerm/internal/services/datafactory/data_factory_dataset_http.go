@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -60,18 +59,21 @@ func resourceArmDataFactoryDatasetHTTP() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"url": {
+			// Specific to HTTP Dataset
+			"relative_url": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// Specific to HTTP Dataset
 			"request_body": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			// Specific to HTTP Dataset
 			"request_method": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -180,7 +182,7 @@ func resourceArmDataFactoryDatasetHTTPCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	httpDatasetProperties := datafactory.HTTPDatasetTypeProperties{
-		RelativeURL:   d.Get("url").(string),
+		RelativeURL:   d.Get("relative_url").(string),
 		RequestBody:   d.Get("request_body").(string),
 		RequestMethod: d.Get("request_method").(string),
 	}
@@ -305,9 +307,9 @@ func resourceArmDataFactoryDatasetHTTPRead(d *schema.ResourceData, meta interfac
 	if properties := httpTable.HTTPDatasetTypeProperties; properties != nil {
 		url, ok := properties.RelativeURL.(string)
 		if !ok {
-			log.Printf("[DEBUG] Skipping `url` since it's not a string")
+			log.Printf("[DEBUG] Skipping `relative_url` since it's not a string")
 		} else {
-			d.Set("url", url)
+			d.Set("relative_url", url)
 		}
 		requestBody, ok := properties.RequestBody.(string)
 		if !ok {

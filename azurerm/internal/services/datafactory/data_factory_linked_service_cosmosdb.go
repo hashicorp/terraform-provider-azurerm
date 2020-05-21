@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -55,9 +54,34 @@ func resourceArmDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 
 			"connection_string": {
 				Type:             schema.TypeString,
-				Required:         true,
+				Optional:         true,
+				Sensitive:        true,
+				ConflictsWith:    []string{"account_endpoint", "account_key"},
 				DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
 				ValidateFunc:     validation.StringIsNotEmpty,
+			},
+
+			"account_endpoint": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"connection_string"},
+				ValidateFunc:  validation.StringIsNotEmpty,
+			},
+
+			"account_key": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"connection_string"},
+				ValidateFunc:  validation.StringIsNotEmpty,
+			},
+
+			"database": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"connection_string"},
+				ValidateFunc:  validation.StringIsNotEmpty,
 			},
 
 			"description": {
@@ -121,14 +145,32 @@ func resourceArmDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceD
 		}
 	}
 
-	connectionString := d.Get("connection_string").(string)
-	secureString := datafactory.SecureString{
-		Value: &connectionString,
-		Type:  datafactory.TypeSecureString,
-	}
+	cosmosdbProperties := &datafactory.CosmosDbLinkedServiceTypeProperties{}
 
-	cosmosdbProperties := &datafactory.CosmosDbLinkedServiceTypeProperties{
-		ConnectionString: &secureString,
+	endpoint := d.Get("account_endpoint").(string)
+	accountKey := d.Get("account_key").(string)
+	databaseName := d.Get("database").(string)
+
+	isAccountDetailUsed := endpoint != "" && accountKey != "" && databaseName != ""
+
+	if isAccountDetailUsed {
+
+		accountKeySecureString := datafactory.SecureString{
+			Value: &accountKey,
+			Type:  datafactory.TypeSecureString,
+		}
+		cosmosdbProperties.AccountEndpoint = endpoint
+		cosmosdbProperties.AccountKey = accountKeySecureString
+		cosmosdbProperties.Database = databaseName
+
+	} else {
+
+		connectionString := d.Get("connection_string").(string)
+		connectionStringSecureString := datafactory.SecureString{
+			Value: &connectionString,
+			Type:  datafactory.TypeSecureString,
+		}
+		cosmosdbProperties.ConnectionString = connectionStringSecureString
 	}
 
 	description := d.Get("description").(string)
@@ -227,6 +269,16 @@ func resourceArmDataFactoryLinkedServiceCosmosDbRead(d *schema.ResourceData, met
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
+	}
+
+	accountEndpoint := cosmosdb.CosmosDbLinkedServiceTypeProperties.AccountEndpoint
+	if accountEndpoint != "" {
+		d.Set("account_endpoint", accountEndpoint)
+	}
+
+	databaseName := cosmosdb.CosmosDbLinkedServiceTypeProperties.Database
+	if accountEndpoint != "" {
+		d.Set("database", databaseName)
 	}
 
 	return nil
