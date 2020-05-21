@@ -113,7 +113,7 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 	resources = append(resources, filterResource(resourcesResp.Values(), requiredTags)...)
 	for resourcesResp.Response().NextLink != nil && *resourcesResp.Response().NextLink != "" {
 		if err := resourcesResp.NextWithContext(ctx); err != nil {
-			return fmt.Errorf("loading Resource List: %s: %+v", err)
+			return fmt.Errorf("loading Resource List: %+v", err)
 		}
 		resources = append(resources, filterResource(resourcesResp.Values(), requiredTags)...)
 	}
