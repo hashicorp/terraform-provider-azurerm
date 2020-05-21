@@ -38,6 +38,11 @@ resource "azurerm_mssql_server" "example" {
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
 
+  azuread_administrator {
+    login_username = "AzureAD Admin"
+    object_id      = "00000000-0000-0000-0000-000000000000"
+  }
+
   extended_auditing_policy {
     storage_endpoint                        = azurerm_storage_account.example.primary_blob_endpoint
     storage_account_access_key              = azurerm_storage_account.example.primary_access_key
@@ -66,11 +71,15 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
+* `azuread_administrator` - (Optional) An `azuread_administrator` block as defined below.
+
+* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
+
 * `connection_policy` - (Optional) The connection policy the server will use. Possible values are `Default`, `Proxy`, and `Redirect`. Defaults to `Default`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -99,6 +108,16 @@ The following attributes are exported:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
 -> You can access the Principal ID via `${azurerm_sql_server.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_sql_server.example.identity.0.tenant_id}`
+
+---
+
+A `azuread_administrator` block supports the following:
+
+* `login_username` - (Required)  The login username of the Azure AD Administrator of this SQL Server.
+
+* `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Server.
+
+* `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Server.
 
 ---
 

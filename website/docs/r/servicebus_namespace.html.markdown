@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Defines which tier to use. Options are basic, standard or premium.
+* `sku` - (Required) Defines which tier to use. Options are basic, standard or premium. Changing this forces a new resource to be created.
 
 * `capacity` - (Optional) Specifies the capacity. When `sku` is `Premium`, capacity can be `1`, `2`, `4` or `8`. When `sku` is `Basic` or `Standard`, capacity can be `0` only.
 

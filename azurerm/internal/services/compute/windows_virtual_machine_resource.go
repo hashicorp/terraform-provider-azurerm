@@ -891,6 +891,37 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		log.Printf("[DEBUG] Resized OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.Name, id.ResourceGroup, newSize)
 	}
 
+	if d.HasChange("os_disk.0.disk_encryption_set_id") {
+		if diskEncryptionSetId := d.Get("os_disk.0.disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			diskName := d.Get("os_disk.0.name").(string)
+			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q..", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
+
+			disksClient := meta.(*clients.Client).Compute.DisksClient
+
+			update := compute.DiskUpdate{
+				DiskUpdateProperties: &compute.DiskUpdateProperties{
+					Encryption: &compute.Encryption{
+						Type:                compute.EncryptionAtRestWithCustomerKey,
+						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+					},
+				},
+			}
+
+			future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
+			if err != nil {
+				return fmt.Errorf("Error updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting to update encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			}
+
+			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
+		} else {
+			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+		}
+	}
+
 	if shouldUpdate {
 		log.Printf("[DEBUG] Updating Windows Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		future, err := client.Update(ctx, id.ResourceGroup, id.Name, update)
