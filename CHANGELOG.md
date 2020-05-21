@@ -30,6 +30,7 @@ BUG FIXES:
 * Data Source: `azurerm_firewall` - raising an error when the Firewall cannot be found [GH-7024]
 * Data Source: `azurerm_maintenance_configuration` - raising an error when the Maintenance Configuration cannot be found [GH-7024]
 * Data Source: `azurerm_private_endpoint_connection` - raising an error when the Private Endpoint Connection cannot be found [GH-7024]
+* Data Source: `azurerm_resources` - does not return all matched resources sometimes [GH-7036]
 * Data Source: `azurerm_shared_image_version` - raising an error when the Image Version cannot be found [GH-7024]
 * Data Source: `azurerm_shared_image_versions` - raising an error when Image Versions cannot be found [GH-7024]
 * Data Source: `azurerm_user_assigned_identity` - raising an error when the User Assigned Identity cannot be found [GH-7024]
