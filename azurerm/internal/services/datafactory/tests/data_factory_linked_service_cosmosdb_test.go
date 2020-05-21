@@ -67,6 +67,7 @@ func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_update2(data),
 				Check: resource.ComposeTestCheckFunc(

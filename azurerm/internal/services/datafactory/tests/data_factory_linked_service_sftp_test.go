@@ -49,6 +49,7 @@ func TestAccAzureRMDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMDataFactoryLinkedServiceSFTP_update2(data),
 				Check: resource.ComposeTestCheckFunc(

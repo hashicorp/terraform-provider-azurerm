@@ -50,6 +50,7 @@ func TestAccAzureRMDataFactoryDatasetDelimitedText_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMDataFactoryDatasetDelimitedText_update2(data),
 				Check: resource.ComposeTestCheckFunc(
