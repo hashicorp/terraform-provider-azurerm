@@ -57,6 +57,10 @@ func ValidateLinuxComputerNamePrefix(i interface{}, k string) (warnings []string
 	return ValidateLinuxComputerName(i, k, 58)
 }
 
+func ValidateOrchestratedVMSSName(i interface{}, k string) (warnings []string, errors []error) {
+	return ValidateVmName(i, k)
+}
+
 func ValidateLinuxComputerName(i interface{}, k string, maxLength int) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
