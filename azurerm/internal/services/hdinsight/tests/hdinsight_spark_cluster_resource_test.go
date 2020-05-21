@@ -1214,20 +1214,20 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
 
   roles {
     head_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
 
     worker_node {
-      vm_size               = "Standard_D4_V2"
+      vm_size               = "Standard_A4_V2"
       username              = "acctestusrvm"
       password              = "AccTestvdSC4daf986!"
-      target_instance_count = 2
+      target_instance_count = 3
     }
 
     zookeeper_node {
-      vm_size  = "Standard_D3_v2"
+      vm_size  = "Medium"
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
