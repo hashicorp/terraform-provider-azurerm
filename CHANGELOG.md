@@ -38,6 +38,7 @@ BUG FIXES:
 * `azurerm_healthcare_service` - ensuring all blocks are set in the response [GH-7024]
 * `azurerm_linux_virtual_machine` - allowing name to end with a capital letter [GH-7023]
 * `azurerm_linux_virtual_machine_scale_set` - allowing name to end with a capital [GH-7023]
+* `azurerm_management_group` - workaround for 403 bug in service response [GH-6668]
 * `azurerm_windows_virtual_machine` - allowing name to end with a capital [GH-7023]
 * `azurerm_windows_virtual_machine_scale_set` - allowing name to end with a capital [GH-7023]
 
