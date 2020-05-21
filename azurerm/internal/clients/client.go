@@ -37,6 +37,7 @@ import (
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
 	iotcentral "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
+	timeseriesinsights "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/client"
 	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
@@ -86,77 +87,78 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
-	AnalysisServices   *analysisServices.Client
-	ApiManagement      *apiManagement.Client
-	AppConfiguration   *appConfiguration.Client
-	AppInsights        *applicationInsights.Client
-	AppPlatform        *appPlatform.Client
-	Authorization      *authorization.Client
-	Automation         *automation.Client
-	Batch              *batch.Client
-	Bot                *bot.Client
-	Cdn                *cdn.Client
-	Cognitive          *cognitiveServices.Client
-	Compute            *compute.Client
-	Containers         *containerServices.Client
-	Cosmos             *cosmosdb.Client
-	CostManagement     *costmanagement.Client
-	CustomProviders    *customproviders.Client
-	DatabaseMigration  *datamigration.Client
-	DataBricks         *databricks.Client
-	DataFactory        *datafactory.Client
-	Datalake           *datalake.Client
-	DataShare          *datashare.Client
-	DevSpace           *devspace.Client
-	DevTestLabs        *devtestlabs.Client
-	Dns                *dns.Client
-	EventGrid          *eventgrid.Client
-	Eventhub           *eventhub.Client
-	Frontdoor          *frontdoor.Client
-	HDInsight          *hdinsight.Client
-	HealthCare         *healthcare.Client
-	IoTHub             *iothub.Client
-	IoTCentral         *iotcentral.Client
-	KeyVault           *keyvault.Client
-	Kusto              *kusto.Client
-	LogAnalytics       *loganalytics.Client
-	Logic              *logic.Client
-	MachineLearning    *machinelearning.Client
-	Maintenance        *maintenance.Client
-	ManagedApplication *managedapplication.Client
-	ManagementGroups   *managementgroup.Client
-	Maps               *maps.Client
-	MariaDB            *mariadb.Client
-	Media              *media.Client
-	MixedReality       *mixedreality.Client
-	Monitor            *monitor.Client
-	MSI                *msi.Client
-	MSSQL              *mssql.Client
-	MySQL              *mysql.Client
-	NetApp             *netapp.Client
-	Network            *network.Client
-	NotificationHubs   *notificationhub.Client
-	Policy             *policy.Client
-	Portal             *portal.Client
-	Postgres           *postgres.Client
-	PowerBI            *powerBI.Client
-	PrivateDns         *privatedns.Client
-	RecoveryServices   *recoveryServices.Client
-	Redis              *redis.Client
-	Relay              *relay.Client
-	Resource           *resource.Client
-	Search             *search.Client
-	SecurityCenter     *securityCenter.Client
-	Sentinel           *sentinel.Client
-	ServiceBus         *serviceBus.Client
-	ServiceFabric      *serviceFabric.Client
-	SignalR            *signalr.Client
-	Storage            *storage.Client
-	StreamAnalytics    *streamAnalytics.Client
-	Subscription       *subscription.Client
-	Sql                *sql.Client
-	TrafficManager     *trafficManager.Client
-	Web                *web.Client
+	AnalysisServices      *analysisServices.Client
+	ApiManagement         *apiManagement.Client
+	AppConfiguration      *appConfiguration.Client
+	AppInsights           *applicationInsights.Client
+	AppPlatform           *appPlatform.Client
+	Authorization         *authorization.Client
+	Automation            *automation.Client
+	Batch                 *batch.Client
+	Bot                   *bot.Client
+	Cdn                   *cdn.Client
+	Cognitive             *cognitiveServices.Client
+	Compute               *compute.Client
+	Containers            *containerServices.Client
+	Cosmos                *cosmosdb.Client
+	CostManagement        *costmanagement.Client
+	CustomProviders       *customproviders.Client
+	DatabaseMigration     *datamigration.Client
+	DataBricks            *databricks.Client
+	DataFactory           *datafactory.Client
+	Datalake              *datalake.Client
+	DataShare             *datashare.Client
+	DevSpace              *devspace.Client
+	DevTestLabs           *devtestlabs.Client
+	Dns                   *dns.Client
+	EventGrid             *eventgrid.Client
+	Eventhub              *eventhub.Client
+	Frontdoor             *frontdoor.Client
+	HDInsight             *hdinsight.Client
+	HealthCare            *healthcare.Client
+	IoTCentral            *iotcentral.Client
+	IoTHub                *iothub.Client
+	IoTTimeSeriesInsights *timeseriesinsights.Client
+	KeyVault              *keyvault.Client
+	Kusto                 *kusto.Client
+	LogAnalytics          *loganalytics.Client
+	Logic                 *logic.Client
+	MachineLearning       *machinelearning.Client
+	Maintenance           *maintenance.Client
+	ManagedApplication    *managedapplication.Client
+	ManagementGroups      *managementgroup.Client
+	Maps                  *maps.Client
+	MariaDB               *mariadb.Client
+	Media                 *media.Client
+	MixedReality          *mixedreality.Client
+	Monitor               *monitor.Client
+	MSI                   *msi.Client
+	MSSQL                 *mssql.Client
+	MySQL                 *mysql.Client
+	NetApp                *netapp.Client
+	Network               *network.Client
+	NotificationHubs      *notificationhub.Client
+	Policy                *policy.Client
+	Portal                *portal.Client
+	Postgres              *postgres.Client
+	PowerBI               *powerBI.Client
+	PrivateDns            *privatedns.Client
+	RecoveryServices      *recoveryServices.Client
+	Redis                 *redis.Client
+	Relay                 *relay.Client
+	Resource              *resource.Client
+	Search                *search.Client
+	SecurityCenter        *securityCenter.Client
+	Sentinel              *sentinel.Client
+	ServiceBus            *serviceBus.Client
+	ServiceFabric         *serviceFabric.Client
+	SignalR               *signalr.Client
+	Storage               *storage.Client
+	StreamAnalytics       *streamAnalytics.Client
+	Subscription          *subscription.Client
+	Sql                   *sql.Client
+	TrafficManager        *trafficManager.Client
+	Web                   *web.Client
 }
 
 // NOTE: it should be possible for this method to become Private once the top level Client's removed
@@ -196,8 +198,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.HealthCare = healthcare.NewClient(o)
-	client.IoTHub = iothub.NewClient(o)
 	client.IoTCentral = iotcentral.NewClient(o)
+	client.IoTHub = iothub.NewClient(o)
+	client.IoTTimeSeriesInsights = timeseriesinsights.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
