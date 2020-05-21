@@ -6,7 +6,9 @@ DEPENDENCIES:
 * updating `network` to `2020-03-01` [GH-6727]
 
 FEATURES:
+
 * **Opt-In/Experimental Enhanced Validation for Locations:** This allows validating that the `location` field being specified is a valid Azure Region within the Azure Environment being used - which can be caught via `terraform plan` rather than `terraform apply`. This can be enabled by setting the Environment Variable `ARM_PROVIDER_ENHANCED_VALIDATION` to `true` and will be enabled by default in a future release of the AzureRM Provider [GH-6927]
+* **New Resource:** `azurerm_orchestrated_virtual_machine_scale_set` [GH-6626]
 
 IMPROVEMENTS:
 
