@@ -46,7 +46,6 @@ func TestAccDataSourceAzureRMDataShare_snapshotSchedule(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "snapshot_schedule.0.start_time"),
 				),
 			},
-			data.ImportStep(),
 		},
 	})
 }
