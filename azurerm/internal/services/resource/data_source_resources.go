@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -104,13 +105,29 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	resources := make([]map[string]interface{}, 0)
-	resourcesResp, err := client.ListComplete(ctx, filter, "", nil)
+	resourcesResp, err := client.List(ctx, filter, "", nil)
 	if err != nil {
 		return fmt.Errorf("Error getting resources: %+v", err)
 	}
 
-	for resourcesResp.NotDone() {
-		res := resourcesResp.Value()
+	resources = append(resources, filterResource(resourcesResp.Values(), requiredTags)...)
+	for resourcesResp.Response().NextLink != nil && *resourcesResp.Response().NextLink != "" {
+		if err := resourcesResp.NextWithContext(ctx); err != nil {
+			return fmt.Errorf("loading Resource List: %s: %+v", err)
+		}
+		resources = append(resources, filterResource(resourcesResp.Values(), requiredTags)...)
+	}
+
+	d.SetId("resource-" + uuid.New().String())
+	if err := d.Set("resources", resources); err != nil {
+		return fmt.Errorf("Error setting `resources`: %+v", err)
+	}
+
+	return nil
+}
+
+func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map[string]interface{}) (result []map[string]interface{}) {
+	for _, res := range inputs {
 		if res.ID == nil {
 			continue
 		}
@@ -159,7 +176,7 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 				}
 			}
 
-			resources = append(resources, map[string]interface{}{
+			result = append(result, map[string]interface{}{
 				"name":     resName,
 				"id":       resID,
 				"type":     resType,
@@ -169,17 +186,6 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 		} else {
 			log.Printf("[DEBUG] azurerm_resources - resources %q (id: %q) skipped as a required tag is not set or has the wrong value.", *res.Name, *res.ID)
 		}
-
-		err = resourcesResp.NextWithContext(ctx)
-		if err != nil {
-			return fmt.Errorf("Error loading Resource List: %s", err)
-		}
 	}
-
-	d.SetId("resource-" + uuid.New().String())
-	if err := d.Set("resources", resources); err != nil {
-		return fmt.Errorf("Error setting `resources`: %+v", err)
-	}
-
-	return nil
+	return
 }
