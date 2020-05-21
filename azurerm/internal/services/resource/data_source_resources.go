@@ -104,6 +104,7 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 		filter += v
 	}
 
+	// Use List instead of listComplete because of bug in SDK: https://github.com/Azure/azure-sdk-for-go/issues/9510
 	resources := make([]map[string]interface{}, 0)
 	resourcesResp, err := client.List(ctx, filter, "", nil)
 	if err != nil {
