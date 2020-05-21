@@ -126,7 +126,8 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map[string]interface{}) (result []map[string]interface{}) {
+func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map[string]interface{}) []map[string]interface{} {
+	var result []map[string]interface{}
 	for _, res := range inputs {
 		if res.ID == nil {
 			continue
@@ -187,5 +188,5 @@ func filterResource(inputs []resources.GenericResourceExpanded, requiredTags map
 			log.Printf("[DEBUG] azurerm_resources - resources %q (id: %q) skipped as a required tag is not set or has the wrong value.", *res.Name, *res.ID)
 		}
 	}
-	return
+	return result
 }
