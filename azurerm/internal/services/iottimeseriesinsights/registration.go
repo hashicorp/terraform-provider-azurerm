@@ -1,4 +1,4 @@
-package timeseriesinsights
+package iottimeseriesinsights
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -26,6 +26,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_time_series_insights_standard_environment": resourceArmTimeSeriesInsightsStandardEnvironment(),
+		"azurerm_iot_time_series_insights_standard_environment": resourceArmIoTTimeSeriesInsightsStandardEnvironment(),
 	}
 }

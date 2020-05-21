@@ -1,4 +1,4 @@
-package timeseriesinsights
+package iottimeseriesinsights
 
 import (
 	"fmt"
@@ -14,19 +14,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/timeseriesinsights/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmTimeSeriesInsightsStandardEnvironment() *schema.Resource {
+func resourceArmIoTTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTimeSeriesInsightsStandardEnvironmentCreateUpdate,
-		Read:   resourceArmTimeSeriesInsightsStandardEnvironmentRead,
-		Update: resourceArmTimeSeriesInsightsStandardEnvironmentCreateUpdate,
-		Delete: resourceArmTimeSeriesInsightsStandardEnvironmentDelete,
+		Create: resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate,
+		Read:   resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead,
+		Update: resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate,
+		Delete: resourceArmIoTTimeSeriesInsightsStandardEnvironmentDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.TimeSeriesInsightsEnvironmentID(id)
 			return err
@@ -46,7 +46,7 @@ func resourceArmTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[-\w\._\(\)]+$`),
-					"Time Series Insights Standard Environment name must contain only word characters, periods, underscores, and parentheses.",
+					"IoT Time Series Insights Standard Environment name must contain only word characters, periods, underscores, and parentheses.",
 				),
 			},
 
@@ -89,7 +89,7 @@ func resourceArmTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 				ValidateFunc: azValidate.ISO8601Duration,
 			},
 
-			"storage_limited_exceeded_behavior": {
+			"storage_limit_exceeded_behavior": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(timeseriesinsights.PurgeOldData),
@@ -111,8 +111,8 @@ func resourceArmTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 	}
 }
 
-func resourceArmTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).TimeSeriesInsights.EnvironmentsClient
+func resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -129,14 +129,14 @@ func resourceArmTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.Reso
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Time Series Insights Standard Environment %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing IoT Time Series Insights Standard Environment %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
 		if existing.Value != nil {
 			environment, ok := existing.Value.AsStandardEnvironmentResource()
 			if !ok {
-				return fmt.Errorf("exisiting resource was not a standard Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
+				return fmt.Errorf("exisiting resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
 			}
 
 			if environment.ID != nil && *environment.ID != "" {
@@ -150,7 +150,7 @@ func resourceArmTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.Reso
 		Tags:     tags.Expand(t),
 		Sku:      sku,
 		StandardEnvironmentCreationProperties: &timeseriesinsights.StandardEnvironmentCreationProperties{
-			StorageLimitExceededBehavior: timeseriesinsights.StorageLimitExceededBehavior(d.Get("storage_limited_exceeded_behavior").(string)),
+			StorageLimitExceededBehavior: timeseriesinsights.StorageLimitExceededBehavior(d.Get("storage_limit_exceeded_behavior").(string)),
 			DataRetentionTime:            utils.String(d.Get("data_retention_time").(string)),
 		},
 	}
@@ -166,34 +166,34 @@ func resourceArmTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.Reso
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, environment)
 	if err != nil {
-		return fmt.Errorf("creating/updating Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resource, ok := resp.Value.AsStandardEnvironmentResource()
 	if !ok {
-		return fmt.Errorf("resource was not a standard Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	if resource.ID == nil || *resource.ID == "" {
-		return fmt.Errorf("cannot read Time Series Insights Standard Environment %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("cannot read IoT Time Series Insights Standard Environment %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*resource.ID)
 
-	return resourceArmTimeSeriesInsightsStandardEnvironmentRead(d, meta)
+	return resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead(d, meta)
 }
 
-func resourceArmTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).TimeSeriesInsights.EnvironmentsClient
+func resourceArmIoTTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -209,12 +209,12 @@ func resourceArmTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	environment, ok := resp.Value.AsStandardEnvironmentResource()
 	if !ok {
-		return fmt.Errorf("exisiting resource was not a standard Time Series Insights Standard Environment %q (Resource Group %q)", id.Name, id.ResourceGroup)
+		return fmt.Errorf("exisiting resource was not a standard IoT Time Series Insights Standard Environment %q (Resource Group %q)", id.Name, id.ResourceGroup)
 	}
 
 	d.Set("name", environment.Name)
@@ -225,7 +225,7 @@ func resourceArmTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData
 	}
 
 	if props := environment.StandardEnvironmentResourceProperties; props != nil {
-		d.Set("storage_limited_exceeded_behavior", string(props.StorageLimitExceededBehavior))
+		d.Set("storage_limit_exceeded_behavior", string(props.StorageLimitExceededBehavior))
 		d.Set("data_retention_time", props.DataRetentionTime)
 
 		if partition := props.PartitionKeyProperties; partition != nil && len(*partition) > 0 {
@@ -238,8 +238,8 @@ func resourceArmTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData
 	return tags.FlattenAndSet(d, environment.Tags)
 }
 
-func resourceArmTimeSeriesInsightsStandardEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).TimeSeriesInsights.EnvironmentsClient
+func resourceArmIoTTimeSeriesInsightsStandardEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -251,7 +251,7 @@ func resourceArmTimeSeriesInsightsStandardEnvironmentDelete(d *schema.ResourceDa
 	response, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting IoT Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
