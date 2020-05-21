@@ -140,7 +140,7 @@ func resourceArmIoTTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.R
 			}
 
 			if environment.ID != nil && *environment.ID != "" {
-				return tf.ImportAsExistsError("azurerm_time_series_insights_environment", *environment.ID)
+				return tf.ImportAsExistsError("azurerm_iot_time_series_insights_environment", *environment.ID)
 			}
 		}
 	}
