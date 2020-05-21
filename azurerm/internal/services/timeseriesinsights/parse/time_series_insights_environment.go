@@ -14,7 +14,7 @@ type TimeSeriesInsightsEnvironmentId struct {
 func TimeSeriesInsightsEnvironmentID(input string) (*TimeSeriesInsightsEnvironmentId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Time Series Insights Environment ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing Time Series Insights Environment ID %q: %+v", input, err)
 	}
 
 	service := TimeSeriesInsightsEnvironmentId{

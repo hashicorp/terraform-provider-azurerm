@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/timeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -22,12 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmTimeSeriesInsightsEnvironment() *schema.Resource {
+func resourceArmTimeSeriesInsightsStandardEnvironment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmTimeSeriesInsightsEnvironmentCreateUpdate,
-		Read:   resourceArmTimeSeriesInsightsEnvironmentRead,
-		Update: resourceArmTimeSeriesInsightsEnvironmentCreateUpdate,
-		Delete: resourceArmTimeSeriesInsightsEnvironmentDelete,
+		Create: resourceArmTimeSeriesInsightsStandardEnvironmentCreateUpdate,
+		Read:   resourceArmTimeSeriesInsightsStandardEnvironmentRead,
+		Update: resourceArmTimeSeriesInsightsStandardEnvironmentCreateUpdate,
+		Delete: resourceArmTimeSeriesInsightsStandardEnvironmentDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := parse.TimeSeriesInsightsEnvironmentID(id)
 			return err
@@ -47,7 +46,7 @@ func resourceArmTimeSeriesInsightsEnvironment() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[-\w\._\(\)]+$`),
-					"Time Series Insights Environment name must be 1 - 90 characters long, contain only word characters and underscores.",
+					"Time Series Insights Standard Environment name must contain only word characters, periods, underscores, and parentheses.",
 				),
 			},
 
@@ -58,6 +57,7 @@ func resourceArmTimeSeriesInsightsEnvironment() *schema.Resource {
 			"sku_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"S1_1",
 					"S1_2",
@@ -103,14 +103,15 @@ func resourceArmTimeSeriesInsightsEnvironment() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.NoZeroValues,
+				ForceNew:     true,
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmTimeSeriesInsightsEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTimeSeriesInsightsStandardEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -124,18 +125,18 @@ func resourceArmTimeSeriesInsightsEnvironmentCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("expanding sku: %+v", err)
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Time Series Insights Environment %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing Time Series Insights Standard Environment %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
 		if existing.Value != nil {
 			environment, ok := existing.Value.AsStandardEnvironmentResource()
 			if !ok {
-				return fmt.Errorf("exisiting resource was not a standard Time Series Insights Environment %q (Resource Group %q)", name, resourceGroup)
+				return fmt.Errorf("exisiting resource was not a standard Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
 			}
 
 			if environment.ID != nil && *environment.ID != "" {
@@ -165,33 +166,33 @@ func resourceArmTimeSeriesInsightsEnvironmentCreateUpdate(d *schema.ResourceData
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, environment)
 	if err != nil {
-		return fmt.Errorf("creating/updating Time Series Insights Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updating Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of Time Series Insights Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for completion of Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Time Series Insights Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Time Series Insights Standard Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resource, ok := resp.Value.AsStandardEnvironmentResource()
 	if !ok {
-		return fmt.Errorf("resource was not a standard Time Series Insights Environment %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("resource was not a standard Time Series Insights Standard Environment %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	if resource.ID == nil {
-		return fmt.Errorf("cannot read Time Series Insights Environment %q (Resource Group %q) ID", name, resourceGroup)
+	if resource.ID == nil || *resource.ID == "" {
+		return fmt.Errorf("cannot read Time Series Insights Standard Environment %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*resource.ID)
 
-	return resourceArmTimeSeriesInsightsEnvironmentRead(d, meta)
+	return resourceArmTimeSeriesInsightsStandardEnvironmentRead(d, meta)
 }
 
-func resourceArmTimeSeriesInsightsEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTimeSeriesInsightsStandardEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,12 +209,12 @@ func resourceArmTimeSeriesInsightsEnvironmentRead(d *schema.ResourceData, meta i
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Time Series Insights Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	environment, ok := resp.Value.AsStandardEnvironmentResource()
 	if !ok {
-		return fmt.Errorf("exisiting resource was not a standard Time Series Insights Environment %q (Resource Group %q)", id.Name, id.ResourceGroup)
+		return fmt.Errorf("exisiting resource was not a standard Time Series Insights Standard Environment %q (Resource Group %q)", id.Name, id.ResourceGroup)
 	}
 
 	d.Set("name", environment.Name)
@@ -237,7 +238,7 @@ func resourceArmTimeSeriesInsightsEnvironmentRead(d *schema.ResourceData, meta i
 	return tags.FlattenAndSet(d, environment.Tags)
 }
 
-func resourceArmTimeSeriesInsightsEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmTimeSeriesInsightsStandardEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).TimeSeriesInsights.EnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -250,7 +251,7 @@ func resourceArmTimeSeriesInsightsEnvironmentDelete(d *schema.ResourceData, meta
 	response, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("deleting Time Series Insights Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("deleting Time Series Insights Standard Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
