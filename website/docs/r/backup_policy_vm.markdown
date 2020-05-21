@@ -20,15 +20,15 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_recovery_services_vault" "example" {
   name                = "tfex-recovery-vault"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_backup_policy_vm" "example" {
   name                = "tfex-recovery-vault-policy"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  recovery_vault_name = azurerm_recovery_services_vault.example.name
 
   timezone = "UTC"
 
