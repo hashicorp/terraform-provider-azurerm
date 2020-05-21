@@ -201,7 +201,7 @@ resource "azurerm_iot_time_series_insights_standard_environment" "test" {
   data_retention_time = "P30D"
 
   storage_limit_exceeded_behavior = "PauseIngress"
-  partition_key                     = "foo"
+  partition_key                   = "foo"
 
   tags = {
     Environment = "Production"
