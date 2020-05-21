@@ -102,6 +102,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
+  zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -174,6 +175,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   }
 
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
+  zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
 }
 
 resource "azurerm_windows_virtual_machine" "another" {
@@ -200,6 +202,7 @@ resource "azurerm_windows_virtual_machine" "another" {
   }
 
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
+  zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomIntOfLength(9), data.RandomIntOfLength(9))
 }
