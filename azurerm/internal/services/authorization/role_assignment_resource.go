@@ -1,6 +1,7 @@
 package authorization
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -156,13 +157,29 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
 		return err
 	}
-
 	read, err := roleAssignmentsClient.Get(ctx, scope, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Role Assignment ID for %q (Scope %q)", name, scope)
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			"pending",
+		},
+		Target: []string{
+			"ready",
+		},
+		Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, *read.ID),
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 5,
+		Timeout:                   d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err)
 	}
 
 	d.SetId(*read.ID)
@@ -281,4 +298,17 @@ func parseRoleAssignmentId(input string) (*roleAssignmentId, error) {
 		name:  segments[1],
 	}
 	return &id, nil
+}
+
+func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *authorization.RoleAssignmentsClient, roleID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.GetByID(ctx, roleID)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "pending", nil
+			}
+			return resp, "failed", err
+		}
+		return resp, "ready", nil
+	}
 }

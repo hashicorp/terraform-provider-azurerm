@@ -111,6 +111,16 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"workspace_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"workspace_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -231,6 +241,8 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 		d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters))
+		d.Set("workspace_url", props.WorkspaceURL)
+		d.Set("workspace_id", props.WorkspaceID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -23,6 +23,7 @@ func TestAccDataSourceAzureRMNetAppVolume_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "subnet_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_quota_in_gb"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "protocols.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "mount_ip_addresses.#", "1"),
 				),
 			},
 		},

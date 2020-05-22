@@ -59,8 +59,7 @@ func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("User Assigned Identity %q was not found in Resource Group %q", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on User Assigned Identity %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

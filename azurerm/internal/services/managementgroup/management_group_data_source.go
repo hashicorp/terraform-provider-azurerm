@@ -74,7 +74,7 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	recurse := true
 	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasForbidden(resp.Response) {
 			return fmt.Errorf("Management Group %q was not found", groupName)
 		}
 

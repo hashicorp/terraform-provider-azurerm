@@ -148,9 +148,12 @@ func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interfac
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Network Security Group %q (Resource Group %q) was not found", name, resourceGroup)
 		}
-		return fmt.Errorf("Error making Read request on Network Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Network Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("reading request on Network Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
 	d.SetId(*resp.ID)
 
 	d.Set("name", resp.Name)
