@@ -247,6 +247,11 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 								}, true),
 							},
 						},
+
+						"vpn_profile_package_uri": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -396,13 +401,45 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 
-		if err := d.Set("vpn_client_configuration", flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration)); err != nil {
+		futureProfile, err := client.GenerateVpnProfile(ctx, resGroup, name, network.VpnClientParameters{})
+		if err != nil {
+			return fmt.Errorf("Error generating VPN Profile for AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err = futureProfile.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for completion of generating VPN Profile for AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		futureProfilePackage, err := client.GetVpnProfilePackageURL(ctx, resGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error generating VPN Profile Package for AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err = futureProfilePackage.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for completion of generating VPN Profile Package for AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		vnpProfilePackageURI, err := getProfilePackageResult(*client, futureProfilePackage)
+		if err != nil {
+			return fmt.Errorf("Error retrieving VPN Profile Package URL for AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err := d.Set("vpn_client_configuration", flattenArmVirtualNetworkGatewayVpnClientConfig(gw.VpnClientConfiguration, vnpProfilePackageURI)); err != nil {
 			return fmt.Errorf("Error setting `vpn_client_configuration`: %+v", err)
 		}
 
 		if err := d.Set("bgp_settings", flattenArmVirtualNetworkGatewayBgpSettings(gw.BgpSettings)); err != nil {
 			return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
 		}
+	}
+
+	_, err = client.Get(ctx, resGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error making Read request on AzureRM Virtual Network Gateway %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -670,7 +707,7 @@ func flattenArmVirtualNetworkGatewayIPConfigurations(ipConfigs *[]network.Virtua
 	return flat
 }
 
-func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfiguration) []interface{} {
+func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfiguration, vnpProfilePackageURI string) []interface{} {
 	if cfg == nil {
 		return []interface{}{}
 	}
@@ -720,6 +757,10 @@ func flattenArmVirtualNetworkGatewayVpnClientConfig(cfg *network.VpnClientConfig
 
 	if v := cfg.RadiusServerSecret; v != nil {
 		flat["radius_server_secret"] = *v
+	}
+
+	if vnpProfilePackageURI != "" {
+		flat["vpn_profile_package_uri"] = vnpProfilePackageURI
 	}
 
 	return []interface{}{flat}
