@@ -172,7 +172,7 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 	}
 	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
-	name := id.Path["api-version-sets"]
+	name := id.Path["apiVersionSets"]
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
@@ -211,7 +211,7 @@ func resourceArmApiManagementApiVersionSetDelete(d *schema.ResourceData, meta in
 	}
 	resourceGroup := id.ResourceGroup
 	serviceName := id.Path["service"]
-	name := id.Path["api-version-sets"]
+	name := id.Path["apiVersionSets"]
 
 	if resp, err := client.Delete(ctx, resourceGroup, serviceName, name, ""); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
