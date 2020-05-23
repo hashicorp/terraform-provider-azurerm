@@ -2743,9 +2743,9 @@ resource "azurerm_app_service" "test" {
     }
 
     ip_restriction {
-	  ip_address = "30.30.30.0/24"
-	  name       = "test-restriction-3"
-	  action     = "Deny"
+      ip_address = "30.30.30.0/24"
+      name       = "test-restriction-3"
+      action     = "Deny"
     }
   }
 }
