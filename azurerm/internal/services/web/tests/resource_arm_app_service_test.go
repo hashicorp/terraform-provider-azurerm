@@ -538,7 +538,7 @@ func TestAccAzureRMAppService_completeIpRestriction(t *testing.T) {
 				Config: testAccAzureRMAppService_manyCompleteIpRestrictions(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.name", "test-restriction"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.priority", "123"),
@@ -547,6 +547,10 @@ func TestAccAzureRMAppService_completeIpRestriction(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.name", "test-restriction-2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.priority", "1234"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.1.action", "Deny"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.ip_address", "30.30.30.0/24"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.name", "test-restriction-3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.priority", "65000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.2.action", "Deny"),
 				),
 			},
 			data.ImportStep(),
@@ -2736,6 +2740,12 @@ resource "azurerm_app_service" "test" {
       name       = "test-restriction-2"
       priority   = 1234
       action     = "Deny"
+    }
+
+    ip_restriction {
+	  ip_address = "30.30.30.0/24"
+	  name       = "test-restriction-3"
+	  action     = "Deny"
     }
   }
 }
