@@ -57,6 +57,8 @@ func TestAccAzureRMRedisCacheMaxMemoryPolicy_validation(t *testing.T) {
 		{Value: "allkeys-random", ErrCount: 0},
 		{Value: "volatile-random", ErrCount: 0},
 		{Value: "volatile-ttl", ErrCount: 0},
+		{Value: "allkeys-lfu", ErrCount: 0},
+		{Value: "volatile-lfu", ErrCount: 0},
 		{Value: "something-else", ErrCount: 1},
 	}
 

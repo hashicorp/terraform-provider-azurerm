@@ -44,7 +44,7 @@ resource "azurerm_devspace_controller" "example" {
   sku_name = "S1"
 
   host_suffix                              = "suffix"
-  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.example.id}"
+  target_container_host_resource_id        = azurerm_kubernetes_cluster.example.id
   target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.example.kube_config_raw)}"
 
   tags = {

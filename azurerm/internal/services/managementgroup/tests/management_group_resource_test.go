@@ -15,7 +15,7 @@ import (
 func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -34,7 +34,7 @@ func TestAccAzureRMManagementGroup_basic(t *testing.T) {
 func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -54,7 +54,7 @@ func TestAccAzureRMManagementGroup_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_nested(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -76,7 +76,7 @@ func TestAccAzureRMManagementGroup_nested(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -99,7 +99,7 @@ func TestAccAzureRMManagementGroup_multiLevel(t *testing.T) {
 }
 
 func TestAccAzureRMManagementGroup_multiLevelUpdated(t *testing.T) {
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -126,7 +126,7 @@ func TestAccAzureRMManagementGroup_multiLevelUpdated(t *testing.T) {
 func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -137,6 +137,7 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 					testCheckAzureRMManagementGroupExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -144,7 +145,7 @@ func TestAccAzureRMManagementGroup_withName(t *testing.T) {
 func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -159,9 +160,10 @@ func TestAccAzureRMManagementGroup_updateName(t *testing.T) {
 				Config: testAzureRMManagementGroup_withName(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMManagementGroupExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestmg-%d", data.RandomInteger)),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -170,7 +172,7 @@ func TestAccAzureRMManagementGroup_withSubscriptions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group", "test")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMManagementGroupDestroy,
@@ -218,8 +220,8 @@ func testCheckAzureRMManagementGroupExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: Get on managementGroupsClient: %s", err)
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Management Group does not exist: %s", groupName)
+		if resp.StatusCode == http.StatusForbidden {
+			return fmt.Errorf("Management Group does not exist or you do not have proper permissions: %s", groupName)
 		}
 
 		return nil
@@ -243,7 +245,7 @@ func testCheckAzureRMManagementGroupDestroy(s *terraform.State) error {
 			return nil
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
+		if resp.StatusCode == http.StatusAccepted {
 			return fmt.Errorf("Management Group still exists: %s", *resp.Name)
 		}
 	}
@@ -318,9 +320,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_management_group" "test" {
-  display_name = "acctestmg-%d"
+  name         = "acctestmg-%d"
+  display_name = "accTestMG-%d"
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger)
 }
 
 // TODO: switch this out for dynamically creating a subscription once that's supported in the future

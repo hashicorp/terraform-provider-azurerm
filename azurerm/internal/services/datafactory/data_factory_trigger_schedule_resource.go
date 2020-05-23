@@ -166,6 +166,7 @@ func resourceArmDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, m
 
 	reference := &datafactory.PipelineReference{
 		ReferenceName: utils.String(d.Get("pipeline_name").(string)),
+		Type:          utils.String("PipelineReference"),
 	}
 
 	scheduleProps := &datafactory.ScheduleTrigger{

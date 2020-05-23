@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 )
 
 type ClientBuilder struct {
@@ -40,6 +41,13 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	env, err := authentication.DetermineEnvironment(builder.AuthConfig.Environment)
 	if err != nil {
 		return nil, err
+	}
+
+	if features.EnhancedValidationEnabled() {
+		// e.g. https://management.azure.com/ but we need management.azure.com
+		endpoint := strings.TrimPrefix(env.ResourceManagerEndpoint, "https://")
+		endpoint = strings.TrimSuffix(endpoint, "/")
+		location.CacheSupportedLocations(ctx, endpoint)
 	}
 
 	// client declarations:

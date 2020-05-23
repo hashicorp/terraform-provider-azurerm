@@ -2,7 +2,6 @@ package apimanagement
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -62,9 +61,7 @@ func dataSourceApiManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Group %q (Resource Group %q / API Management Service %q) was not found - removing from state!", name, resourceGroup, serviceName)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Group %q (Resource Group %q / API Management Service %q) was not found", name, resourceGroup, serviceName)
 		}
 
 		return fmt.Errorf("making Read request for Group %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)

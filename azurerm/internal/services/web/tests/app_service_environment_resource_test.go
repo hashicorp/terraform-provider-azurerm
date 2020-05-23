@@ -120,6 +120,25 @@ func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceEnvironmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServiceEnvironmentsClient
@@ -232,6 +251,24 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceEnvironment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%[2]d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_environment" "test" {
+  name                = "acctest-ase-%[2]d"
+  resource_group_name = azurerm_resource_group.test2.name
+  subnet_id           = azurerm_subnet.ase.id
+}
+`, template, data.RandomInteger, data.Locations.Secondary)
 }
 
 func testAccAzureRMAppServiceEnvironment_template(data acceptance.TestData) string {
