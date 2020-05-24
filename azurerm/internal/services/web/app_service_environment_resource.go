@@ -86,15 +86,13 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				}, false),
 			},
 
+			// TODO in 3.0 Make it "Required"
+			"resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
+
 			"tags": tags.ForceNewSchema(),
 
 			// Computed
 			"location": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"resource_group_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -118,10 +116,19 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
+	// TODO: Remove the implicit behavior in new major version.
+	// Discrepancy of resource group between ASE and Subnet is allowed. While for the sake of
+	// compatibility, we still allow user to use the resource group of Subnet to be the one for
+	// ASE implicitly. While allow user to explicitly specify the resource group, which takes higher
+	// precedence.
 	resourceGroup := subnet.ResourceGroup
-	vnet, err := networksClient.Get(ctx, resourceGroup, subnet.VirtualNetworkName, "")
+	if v, ok := d.GetOk("resource_group_name"); ok {
+		resourceGroup = v.(string)
+	}
+
+	vnet, err := networksClient.Get(ctx, subnet.ResourceGroup, subnet.VirtualNetworkName, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual Network %q (Resource Group %q): %+v", subnet.VirtualNetworkName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Virtual Network %q (Resource Group %q): %+v", subnet.VirtualNetworkName, subnet.ResourceGroup, err)
 	}
 
 	// the App Service Environment has to be in the same location as the Virtual Network
@@ -129,7 +136,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 	if loc := vnet.Location; loc != nil {
 		location = azure.NormalizeLocation(*loc)
 	} else {
-		return fmt.Errorf("Error determining Location from Virtual Network %q (Resource Group %q): `location` was nil", subnet.VirtualNetworkName, resourceGroup)
+		return fmt.Errorf("Error determining Location from Virtual Network %q (Resource Group %q): `location` was nil", subnet.VirtualNetworkName, subnet.ResourceGroup)
 	}
 
 	existing, err := client.Get(ctx, resourceGroup, name)

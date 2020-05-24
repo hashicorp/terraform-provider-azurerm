@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
@@ -14,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -44,7 +44,7 @@ func resourceArmAppService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAppServiceName,
+				ValidateFunc: validate.AppServiceName,
 			},
 
 			"identity": azure.SchemaAppServiceIdentity(),
@@ -292,7 +292,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		SiteAuthSettingsProperties: &authSettings}
 
 	if _, err := client.UpdateAuthSettings(ctx, resGroup, name, auth); err != nil {
-		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+s", name, resGroup, err)
+		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	logsConfig := azure.ExpandAppServiceLogs(d.Get("logs"))
@@ -302,14 +302,14 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		SiteLogsConfigProperties: &logsConfig}
 
 	if _, err := client.UpdateDiagnosticLogsConfig(ctx, resGroup, name, logs); err != nil {
-		return fmt.Errorf("Error updating diagnostic logs config for App Service %q (Resource Group %q): %+s", name, resGroup, err)
+		return fmt.Errorf("Error updating diagnostic logs config for App Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	backupRaw := d.Get("backup").([]interface{})
 	if backup := azure.ExpandAppServiceBackup(backupRaw); backup != nil {
 		_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, *backup)
 		if err != nil {
-			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", name, resGroup, err)
+			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resGroup, err)
 		}
 	}
 
@@ -758,16 +758,6 @@ func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
 	}
 
 	return output
-}
-
-func validateAppServiceName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]{1,60}$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters in length", k))
-	}
-
-	return warnings, errors
 }
 
 func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {

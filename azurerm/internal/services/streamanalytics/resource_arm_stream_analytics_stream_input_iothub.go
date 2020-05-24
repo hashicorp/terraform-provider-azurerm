@@ -155,10 +155,8 @@ func resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceD
 		}
 
 		d.SetId(*read.ID)
-	} else {
-		if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-			return fmt.Errorf("Error Updating Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
+	} else if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
+		return fmt.Errorf("Error Updating Stream Analytics Stream Input IoTHub %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
 	return resourceArmStreamAnalyticsStreamInputIoTHubRead(d, meta)

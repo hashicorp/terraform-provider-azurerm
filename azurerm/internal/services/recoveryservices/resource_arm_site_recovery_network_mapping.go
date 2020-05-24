@@ -2,6 +2,7 @@ package recoveryservices
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
@@ -106,7 +107,10 @@ func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta in
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, sourceNetworkName, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !utils.ResponseWasNotFound(existing.Response) &&
+				// todo this workaround can be removed when this bug is fixed
+				// https://github.com/Azure/azure-sdk-for-go/issues/8705
+				!utils.ResponseWasStatusCode(existing.Response, http.StatusBadRequest) {
 				return fmt.Errorf("Error checking for presence of existing site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 			}
 		}

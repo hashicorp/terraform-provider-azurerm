@@ -30,8 +30,19 @@ func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 
 func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeString,
-		Required: true,
+		Type:         schema.TypeString,
+		Required:     true,
+		ValidateFunc: validateResourceGroupName,
+	}
+}
+
+func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		ForceNew:     true,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validateResourceGroupName,
 	}
 }
 
@@ -47,7 +58,7 @@ func validateResourceGroupName(v interface{}, k string) (warnings []string, erro
 	}
 
 	// regex pulled from https://docs.microsoft.com/en-us/rest/api/resources/resourcegroups/createorupdate
-	if matched := regexp.MustCompile(`^[-\w\._\(\)]+$`).Match([]byte(value)); !matched {
+	if matched := regexp.MustCompile(`^[-\w._()]+$`).Match([]byte(value)); !matched {
 		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, dash, underscores, parentheses and periods", k))
 	}
 

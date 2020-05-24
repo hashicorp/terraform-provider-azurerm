@@ -3,13 +3,13 @@ subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_role_assignment"
 description: |-
-  Assigns a given Principal (User or Application) to a given Role.
+  Assigns a given Principal (User or Group) to a given Role.
 
 ---
 
 # azurerm_role_assignment
 
-Assigns a given Principal (User or Application) to a given Role.
+Assigns a given Principal (User or Group) to a given Role.
 
 ## Example Usage (using a built-in Role)
 
@@ -138,7 +138,7 @@ The following arguments are supported:
 
 * `role_definition_name` - (Optional) The name of a built-in Role. Changing this forces a new resource to be created. Conflicts with `role_definition_id`.
 
-* `principal_id` - (Required) The ID of the Principal (User, Group, Service Principal, or Application) to assign the Role Definition to. Changing this forces a new resource to be created.
+* `principal_id` - (Required) The ID of the Principal (User, Group or Service Principal) to assign the Role Definition to. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 

@@ -187,6 +187,31 @@ func PossibleBackupRestoreOperationTypeValues() []BackupRestoreOperationType {
 	return []BackupRestoreOperationType{BackupRestoreOperationTypeClone, BackupRestoreOperationTypeCloudFS, BackupRestoreOperationTypeDefault, BackupRestoreOperationTypeRelocation, BackupRestoreOperationTypeSnapshot}
 }
 
+// BuildStatus enumerates the values for build status.
+type BuildStatus string
+
+const (
+	// BuildStatusDeleting ...
+	BuildStatusDeleting BuildStatus = "Deleting"
+	// BuildStatusDeploying ...
+	BuildStatusDeploying BuildStatus = "Deploying"
+	// BuildStatusDetached ...
+	BuildStatusDetached BuildStatus = "Detached"
+	// BuildStatusFailed ...
+	BuildStatusFailed BuildStatus = "Failed"
+	// BuildStatusReady ...
+	BuildStatusReady BuildStatus = "Ready"
+	// BuildStatusUploading ...
+	BuildStatusUploading BuildStatus = "Uploading"
+	// BuildStatusWaitingForDeployment ...
+	BuildStatusWaitingForDeployment BuildStatus = "WaitingForDeployment"
+)
+
+// PossibleBuildStatusValues returns an array of possible values for the BuildStatus const type.
+func PossibleBuildStatusValues() []BuildStatus {
+	return []BuildStatus{BuildStatusDeleting, BuildStatusDeploying, BuildStatusDetached, BuildStatusFailed, BuildStatusReady, BuildStatusUploading, BuildStatusWaitingForDeployment}
+}
+
 // BuiltInAuthenticationProvider enumerates the values for built in authentication provider.
 type BuiltInAuthenticationProvider string
 
@@ -1321,6 +1346,21 @@ func PossibleTriggeredWebJobStatusValues() []TriggeredWebJobStatus {
 	return []TriggeredWebJobStatus{TriggeredWebJobStatusError, TriggeredWebJobStatusFailed, TriggeredWebJobStatusSuccess}
 }
 
+// TriggerTypes enumerates the values for trigger types.
+type TriggerTypes string
+
+const (
+	// TriggerTypesHTTPTrigger ...
+	TriggerTypesHTTPTrigger TriggerTypes = "HttpTrigger"
+	// TriggerTypesUnknown ...
+	TriggerTypesUnknown TriggerTypes = "Unknown"
+)
+
+// PossibleTriggerTypesValues returns an array of possible values for the TriggerTypes const type.
+func PossibleTriggerTypesValues() []TriggerTypes {
+	return []TriggerTypes{TriggerTypesHTTPTrigger, TriggerTypesUnknown}
+}
+
 // UnauthenticatedClientAction enumerates the values for unauthenticated client action.
 type UnauthenticatedClientAction string
 
@@ -2205,6 +2245,35 @@ func (asr *ApplicationStackResource) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// AppsApproveOrRejectPrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type AppsApproveOrRejectPrivateEndpointConnectionFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AppsApproveOrRejectPrivateEndpointConnectionFuture) Result(client AppsClient) (pecr PrivateEndpointConnectionResource, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("web.AppsApproveOrRejectPrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pecr.Response.Response, err = future.GetResult(sender); err == nil && pecr.Response.Response.StatusCode != http.StatusNoContent {
+		pecr, err = client.ApproveOrRejectPrivateEndpointConnectionResponder(pecr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppsApproveOrRejectPrivateEndpointConnectionFuture", "Result", pecr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // AppsCopyProductionSlotFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type AppsCopyProductionSlotFuture struct {
@@ -2536,6 +2605,35 @@ func (future *AppsCreateOrUpdateSourceControlSlotFuture) Result(client AppsClien
 		ssc, err = client.CreateOrUpdateSourceControlSlotResponder(ssc.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "web.AppsCreateOrUpdateSourceControlSlotFuture", "Result", ssc.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// AppsDeletePrivateEndpointConnectionFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type AppsDeletePrivateEndpointConnectionFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *AppsDeletePrivateEndpointConnectionFuture) Result(client AppsClient) (so SetObject, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsDeletePrivateEndpointConnectionFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("web.AppsDeletePrivateEndpointConnectionFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if so.Response.Response, err = future.GetResult(sender); err == nil && so.Response.Response.StatusCode != http.StatusNoContent {
+		so, err = client.DeletePrivateEndpointConnectionResponder(so.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "web.AppsDeletePrivateEndpointConnectionFuture", "Result", so.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -5155,6 +5253,12 @@ func (future *AppsSwapSlotWithProductionFuture) Result(client AppsClient) (ar au
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// ArmIDWrapper a wrapper for an ARM resource id
+type ArmIDWrapper struct {
+	// ID - READ-ONLY
+	ID *string `json:"id,omitempty"`
 }
 
 // AutoHealActions actions which to take by the auto-heal module when a rule is triggered.
@@ -14459,6 +14563,220 @@ type PrivateAccessVirtualNetwork struct {
 	Subnets *[]PrivateAccessSubnet `json:"subnets,omitempty"`
 }
 
+// PrivateEndpointConnectionResource private Endpoint Connection ARM resource.
+type PrivateEndpointConnectionResource struct {
+	autorest.Response `json:"-"`
+	// RemotePrivateEndpointConnection - Core resource properties
+	*RemotePrivateEndpointConnection `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnectionResource.
+func (pecr PrivateEndpointConnectionResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pecr.RemotePrivateEndpointConnection != nil {
+		objectMap["properties"] = pecr.RemotePrivateEndpointConnection
+	}
+	if pecr.Kind != nil {
+		objectMap["kind"] = pecr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnectionResource struct.
+func (pecr *PrivateEndpointConnectionResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var remotePrivateEndpointConnection RemotePrivateEndpointConnection
+				err = json.Unmarshal(*v, &remotePrivateEndpointConnection)
+				if err != nil {
+					return err
+				}
+				pecr.RemotePrivateEndpointConnection = &remotePrivateEndpointConnection
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pecr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pecr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				pecr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pecr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkConnectionApprovalRequest a request to approve or reject a private endpoint connection
+type PrivateLinkConnectionApprovalRequest struct {
+	PrivateLinkServiceConnectionState *PrivateLinkConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// PrivateLinkConnectionApprovalRequestResource private Endpoint Connection Approval ARM resource.
+type PrivateLinkConnectionApprovalRequestResource struct {
+	// PrivateLinkConnectionApprovalRequest - Core resource properties
+	*PrivateLinkConnectionApprovalRequest `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkConnectionApprovalRequestResource.
+func (plcarr PrivateLinkConnectionApprovalRequestResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plcarr.PrivateLinkConnectionApprovalRequest != nil {
+		objectMap["properties"] = plcarr.PrivateLinkConnectionApprovalRequest
+	}
+	if plcarr.Kind != nil {
+		objectMap["kind"] = plcarr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkConnectionApprovalRequestResource struct.
+func (plcarr *PrivateLinkConnectionApprovalRequestResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkConnectionApprovalRequest PrivateLinkConnectionApprovalRequest
+				err = json.Unmarshal(*v, &privateLinkConnectionApprovalRequest)
+				if err != nil {
+					return err
+				}
+				plcarr.PrivateLinkConnectionApprovalRequest = &privateLinkConnectionApprovalRequest
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plcarr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plcarr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				plcarr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plcarr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkConnectionState the state of a private link connection
+type PrivateLinkConnectionState struct {
+	// Status - Status of a private link connection
+	Status *string `json:"status,omitempty"`
+	// Description - Description of a private link connection
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - ActionsRequired for a private link connection
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	ID *string `json:"id,omitempty"`
+	// Name - Name of a private link resource
+	Name *string `json:"name,omitempty"`
+	Type *string `json:"type,omitempty"`
+	// Properties - Properties of a private link resource
+	Properties *PrivateLinkResourceProperties `json:"properties,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; GroupId of a private link resource
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; RequiredMembers of a private link resource
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - READ-ONLY; RequiredZoneNames of a private link resource
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkResourcesWrapper wrapper for a collection of private link resources
+type PrivateLinkResourcesWrapper struct {
+	autorest.Response `json:"-"`
+	Value             *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
 // ProcessInfo process Information.
 type ProcessInfo struct {
 	autorest.Response `json:"-"`
@@ -16381,6 +16699,15 @@ type RelayServiceConnectionEntityProperties struct {
 	BiztalkURI               *string `json:"biztalkUri,omitempty"`
 }
 
+// RemotePrivateEndpointConnection a remote private endpoint connection
+type RemotePrivateEndpointConnection struct {
+	// ProvisioningState - READ-ONLY
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// PrivateEndpoint - PrivateEndpoint of a remote private endpoint connection
+	PrivateEndpoint                   *ArmIDWrapper               `json:"privateEndpoint,omitempty"`
+	PrivateLinkServiceConnectionState *PrivateLinkConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
 // Rendering instructions for rendering the data
 type Rendering struct {
 	// Type - Rendering Type. Possible values include: 'NoGraph', 'Table', 'TimeSeries', 'TimeSeriesPerInstance'
@@ -17676,6 +18003,8 @@ type SiteConfig struct {
 	PythonVersion *string `json:"pythonVersion,omitempty"`
 	// NodeVersion - Version of Node.js.
 	NodeVersion *string `json:"nodeVersion,omitempty"`
+	// PowerShellVersion - Version of PowerShell.
+	PowerShellVersion *string `json:"powerShellVersion,omitempty"`
 	// LinuxFxVersion - Linux App Framework and version
 	LinuxFxVersion *string `json:"linuxFxVersion,omitempty"`
 	// WindowsFxVersion - Xenon App Framework and version
@@ -20722,6 +21051,1669 @@ func (page StampCapacityCollectionPage) Values() []StampCapacity {
 // Creates a new instance of the StampCapacityCollectionPage type.
 func NewStampCapacityCollectionPage(getNextPage func(context.Context, StampCapacityCollection) (StampCapacityCollection, error)) StampCapacityCollectionPage {
 	return StampCapacityCollectionPage{fn: getNextPage}
+}
+
+// StaticSite a static site.
+type StaticSite struct {
+	// DefaultHostname - READ-ONLY; The default autogenerated hostname for the static site.
+	DefaultHostname *string `json:"defaultHostname,omitempty"`
+	// RepositoryURL - URL for the repository of the static site.
+	RepositoryURL *string `json:"repositoryUrl,omitempty"`
+	// Branch - The target branch in the repository.
+	Branch *string `json:"branch,omitempty"`
+	// CustomDomains - READ-ONLY; The custom domains associated with this static site.
+	CustomDomains *[]string `json:"customDomains,omitempty"`
+	// RepositoryToken - A user's github repository token. This is used to setup the Github Actions workflow file and API secrets.
+	RepositoryToken *string `json:"repositoryToken,omitempty"`
+	// BuildProperties - Build properties to configure on the repository.
+	BuildProperties *StaticSiteBuildProperties `json:"buildProperties,omitempty"`
+}
+
+// StaticSiteARMResource static Site ARM resource.
+type StaticSiteARMResource struct {
+	autorest.Response `json:"-"`
+	// StaticSite - Core resource properties
+	*StaticSite `json:"properties,omitempty"`
+	Sku         *SkuDescription `json:"sku,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Location - Resource Location.
+	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteARMResource.
+func (ssar StaticSiteARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssar.StaticSite != nil {
+		objectMap["properties"] = ssar.StaticSite
+	}
+	if ssar.Sku != nil {
+		objectMap["sku"] = ssar.Sku
+	}
+	if ssar.Kind != nil {
+		objectMap["kind"] = ssar.Kind
+	}
+	if ssar.Location != nil {
+		objectMap["location"] = ssar.Location
+	}
+	if ssar.Tags != nil {
+		objectMap["tags"] = ssar.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteARMResource struct.
+func (ssar *StaticSiteARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSite StaticSite
+				err = json.Unmarshal(*v, &staticSite)
+				if err != nil {
+					return err
+				}
+				ssar.StaticSite = &staticSite
+			}
+		case "sku":
+			if v != nil {
+				var sku SkuDescription
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				ssar.Sku = &sku
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ssar.Kind = &kind
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				ssar.Location = &location
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssar.Type = &typeVar
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				ssar.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteBuildARMResource static Site Build ARM resource.
+type StaticSiteBuildARMResource struct {
+	autorest.Response `json:"-"`
+	// StaticSiteBuildARMResourceProperties - StaticSiteBuildARMResource resource specific properties
+	*StaticSiteBuildARMResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteBuildARMResource.
+func (ssbar StaticSiteBuildARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssbar.StaticSiteBuildARMResourceProperties != nil {
+		objectMap["properties"] = ssbar.StaticSiteBuildARMResourceProperties
+	}
+	if ssbar.Kind != nil {
+		objectMap["kind"] = ssbar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteBuildARMResource struct.
+func (ssbar *StaticSiteBuildARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteBuildARMResourceProperties StaticSiteBuildARMResourceProperties
+				err = json.Unmarshal(*v, &staticSiteBuildARMResourceProperties)
+				if err != nil {
+					return err
+				}
+				ssbar.StaticSiteBuildARMResourceProperties = &staticSiteBuildARMResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssbar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssbar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ssbar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssbar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteBuildARMResourceProperties staticSiteBuildARMResource resource specific properties
+type StaticSiteBuildARMResourceProperties struct {
+	// BuildID - READ-ONLY; An identifier for the static site build.
+	BuildID *string `json:"buildId,omitempty"`
+	// SourceBranch - READ-ONLY; The source branch.
+	SourceBranch *string `json:"sourceBranch,omitempty"`
+	// PullRequestTitle - READ-ONLY; The title of a pull request that a static site build is related to.
+	PullRequestTitle *string `json:"pullRequestTitle,omitempty"`
+	// Hostname - READ-ONLY; The hostname for a static site build.
+	Hostname *string `json:"hostname,omitempty"`
+	// CreatedTimeUtc - READ-ONLY; When this build was created.
+	CreatedTimeUtc *date.Time `json:"createdTimeUtc,omitempty"`
+	// LastUpdatedOn - READ-ONLY; When this build was updated.
+	LastUpdatedOn *date.Time `json:"lastUpdatedOn,omitempty"`
+	// Status - READ-ONLY; The status of the static site build. Possible values include: 'BuildStatusWaitingForDeployment', 'BuildStatusUploading', 'BuildStatusDeploying', 'BuildStatusReady', 'BuildStatusFailed', 'BuildStatusDeleting', 'BuildStatusDetached'
+	Status BuildStatus `json:"status,omitempty"`
+}
+
+// StaticSiteBuildCollection collection of static site builds.
+type StaticSiteBuildCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]StaticSiteBuildARMResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// StaticSiteBuildCollectionIterator provides access to a complete listing of StaticSiteBuildARMResource
+// values.
+type StaticSiteBuildCollectionIterator struct {
+	i    int
+	page StaticSiteBuildCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *StaticSiteBuildCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteBuildCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *StaticSiteBuildCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter StaticSiteBuildCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter StaticSiteBuildCollectionIterator) Response() StaticSiteBuildCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter StaticSiteBuildCollectionIterator) Value() StaticSiteBuildARMResource {
+	if !iter.page.NotDone() {
+		return StaticSiteBuildARMResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the StaticSiteBuildCollectionIterator type.
+func NewStaticSiteBuildCollectionIterator(page StaticSiteBuildCollectionPage) StaticSiteBuildCollectionIterator {
+	return StaticSiteBuildCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ssbc StaticSiteBuildCollection) IsEmpty() bool {
+	return ssbc.Value == nil || len(*ssbc.Value) == 0
+}
+
+// staticSiteBuildCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ssbc StaticSiteBuildCollection) staticSiteBuildCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if ssbc.NextLink == nil || len(to.String(ssbc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ssbc.NextLink)))
+}
+
+// StaticSiteBuildCollectionPage contains a page of StaticSiteBuildARMResource values.
+type StaticSiteBuildCollectionPage struct {
+	fn   func(context.Context, StaticSiteBuildCollection) (StaticSiteBuildCollection, error)
+	ssbc StaticSiteBuildCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *StaticSiteBuildCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteBuildCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.ssbc)
+	if err != nil {
+		return err
+	}
+	page.ssbc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *StaticSiteBuildCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page StaticSiteBuildCollectionPage) NotDone() bool {
+	return !page.ssbc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page StaticSiteBuildCollectionPage) Response() StaticSiteBuildCollection {
+	return page.ssbc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page StaticSiteBuildCollectionPage) Values() []StaticSiteBuildARMResource {
+	if page.ssbc.IsEmpty() {
+		return nil
+	}
+	return *page.ssbc.Value
+}
+
+// Creates a new instance of the StaticSiteBuildCollectionPage type.
+func NewStaticSiteBuildCollectionPage(getNextPage func(context.Context, StaticSiteBuildCollection) (StaticSiteBuildCollection, error)) StaticSiteBuildCollectionPage {
+	return StaticSiteBuildCollectionPage{fn: getNextPage}
+}
+
+// StaticSiteBuildProperties build properties for the static site.
+type StaticSiteBuildProperties struct {
+	// AppLocation - The path to the app code within the repository.
+	AppLocation *string `json:"appLocation,omitempty"`
+	// APILocation - The path to the api code within the repository.
+	APILocation *string `json:"apiLocation,omitempty"`
+	// AppArtifactLocation - The path of the app artifacts after building.
+	AppArtifactLocation *string `json:"appArtifactLocation,omitempty"`
+}
+
+// StaticSiteCollection collection of static sites.
+type StaticSiteCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]StaticSiteARMResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// StaticSiteCollectionIterator provides access to a complete listing of StaticSiteARMResource values.
+type StaticSiteCollectionIterator struct {
+	i    int
+	page StaticSiteCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *StaticSiteCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *StaticSiteCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter StaticSiteCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter StaticSiteCollectionIterator) Response() StaticSiteCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter StaticSiteCollectionIterator) Value() StaticSiteARMResource {
+	if !iter.page.NotDone() {
+		return StaticSiteARMResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the StaticSiteCollectionIterator type.
+func NewStaticSiteCollectionIterator(page StaticSiteCollectionPage) StaticSiteCollectionIterator {
+	return StaticSiteCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ssc StaticSiteCollection) IsEmpty() bool {
+	return ssc.Value == nil || len(*ssc.Value) == 0
+}
+
+// staticSiteCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ssc StaticSiteCollection) staticSiteCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if ssc.NextLink == nil || len(to.String(ssc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ssc.NextLink)))
+}
+
+// StaticSiteCollectionPage contains a page of StaticSiteARMResource values.
+type StaticSiteCollectionPage struct {
+	fn  func(context.Context, StaticSiteCollection) (StaticSiteCollection, error)
+	ssc StaticSiteCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *StaticSiteCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.ssc)
+	if err != nil {
+		return err
+	}
+	page.ssc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *StaticSiteCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page StaticSiteCollectionPage) NotDone() bool {
+	return !page.ssc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page StaticSiteCollectionPage) Response() StaticSiteCollection {
+	return page.ssc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page StaticSiteCollectionPage) Values() []StaticSiteARMResource {
+	if page.ssc.IsEmpty() {
+		return nil
+	}
+	return *page.ssc.Value
+}
+
+// Creates a new instance of the StaticSiteCollectionPage type.
+func NewStaticSiteCollectionPage(getNextPage func(context.Context, StaticSiteCollection) (StaticSiteCollection, error)) StaticSiteCollectionPage {
+	return StaticSiteCollectionPage{fn: getNextPage}
+}
+
+// StaticSiteCustomDomainOverviewARMResource static Site Custom Domain Overview ARM resource.
+type StaticSiteCustomDomainOverviewARMResource struct {
+	autorest.Response `json:"-"`
+	// StaticSiteCustomDomainOverviewARMResourceProperties - StaticSiteCustomDomainOverviewARMResource resource specific properties
+	*StaticSiteCustomDomainOverviewARMResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteCustomDomainOverviewARMResource.
+func (sscdoar StaticSiteCustomDomainOverviewARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sscdoar.StaticSiteCustomDomainOverviewARMResourceProperties != nil {
+		objectMap["properties"] = sscdoar.StaticSiteCustomDomainOverviewARMResourceProperties
+	}
+	if sscdoar.Kind != nil {
+		objectMap["kind"] = sscdoar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteCustomDomainOverviewARMResource struct.
+func (sscdoar *StaticSiteCustomDomainOverviewARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteCustomDomainOverviewARMResourceProperties StaticSiteCustomDomainOverviewARMResourceProperties
+				err = json.Unmarshal(*v, &staticSiteCustomDomainOverviewARMResourceProperties)
+				if err != nil {
+					return err
+				}
+				sscdoar.StaticSiteCustomDomainOverviewARMResourceProperties = &staticSiteCustomDomainOverviewARMResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sscdoar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sscdoar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				sscdoar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sscdoar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteCustomDomainOverviewARMResourceProperties staticSiteCustomDomainOverviewARMResource resource
+// specific properties
+type StaticSiteCustomDomainOverviewARMResourceProperties struct {
+	// DomainName - READ-ONLY; The domain name for the static site custom domain.
+	DomainName *string `json:"domainName,omitempty"`
+	// CreatedOn - READ-ONLY; The date and time on which the custom domain was created for the static site.
+	CreatedOn *date.Time `json:"createdOn,omitempty"`
+}
+
+// StaticSiteCustomDomainOverviewCollection collection of static site custom domains.
+type StaticSiteCustomDomainOverviewCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]StaticSiteCustomDomainOverviewARMResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// StaticSiteCustomDomainOverviewCollectionIterator provides access to a complete listing of
+// StaticSiteCustomDomainOverviewARMResource values.
+type StaticSiteCustomDomainOverviewCollectionIterator struct {
+	i    int
+	page StaticSiteCustomDomainOverviewCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *StaticSiteCustomDomainOverviewCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteCustomDomainOverviewCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *StaticSiteCustomDomainOverviewCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter StaticSiteCustomDomainOverviewCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter StaticSiteCustomDomainOverviewCollectionIterator) Response() StaticSiteCustomDomainOverviewCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter StaticSiteCustomDomainOverviewCollectionIterator) Value() StaticSiteCustomDomainOverviewARMResource {
+	if !iter.page.NotDone() {
+		return StaticSiteCustomDomainOverviewARMResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the StaticSiteCustomDomainOverviewCollectionIterator type.
+func NewStaticSiteCustomDomainOverviewCollectionIterator(page StaticSiteCustomDomainOverviewCollectionPage) StaticSiteCustomDomainOverviewCollectionIterator {
+	return StaticSiteCustomDomainOverviewCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (sscdoc StaticSiteCustomDomainOverviewCollection) IsEmpty() bool {
+	return sscdoc.Value == nil || len(*sscdoc.Value) == 0
+}
+
+// staticSiteCustomDomainOverviewCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (sscdoc StaticSiteCustomDomainOverviewCollection) staticSiteCustomDomainOverviewCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if sscdoc.NextLink == nil || len(to.String(sscdoc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(sscdoc.NextLink)))
+}
+
+// StaticSiteCustomDomainOverviewCollectionPage contains a page of
+// StaticSiteCustomDomainOverviewARMResource values.
+type StaticSiteCustomDomainOverviewCollectionPage struct {
+	fn     func(context.Context, StaticSiteCustomDomainOverviewCollection) (StaticSiteCustomDomainOverviewCollection, error)
+	sscdoc StaticSiteCustomDomainOverviewCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *StaticSiteCustomDomainOverviewCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteCustomDomainOverviewCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.sscdoc)
+	if err != nil {
+		return err
+	}
+	page.sscdoc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *StaticSiteCustomDomainOverviewCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page StaticSiteCustomDomainOverviewCollectionPage) NotDone() bool {
+	return !page.sscdoc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page StaticSiteCustomDomainOverviewCollectionPage) Response() StaticSiteCustomDomainOverviewCollection {
+	return page.sscdoc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page StaticSiteCustomDomainOverviewCollectionPage) Values() []StaticSiteCustomDomainOverviewARMResource {
+	if page.sscdoc.IsEmpty() {
+		return nil
+	}
+	return *page.sscdoc.Value
+}
+
+// Creates a new instance of the StaticSiteCustomDomainOverviewCollectionPage type.
+func NewStaticSiteCustomDomainOverviewCollectionPage(getNextPage func(context.Context, StaticSiteCustomDomainOverviewCollection) (StaticSiteCustomDomainOverviewCollection, error)) StaticSiteCustomDomainOverviewCollectionPage {
+	return StaticSiteCustomDomainOverviewCollectionPage{fn: getNextPage}
+}
+
+// StaticSiteFunctionOverviewARMResource static Site Function Overview ARM resource.
+type StaticSiteFunctionOverviewARMResource struct {
+	// StaticSiteFunctionOverviewARMResourceProperties - StaticSiteFunctionOverviewARMResource resource specific properties
+	*StaticSiteFunctionOverviewARMResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteFunctionOverviewARMResource.
+func (ssfoar StaticSiteFunctionOverviewARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssfoar.StaticSiteFunctionOverviewARMResourceProperties != nil {
+		objectMap["properties"] = ssfoar.StaticSiteFunctionOverviewARMResourceProperties
+	}
+	if ssfoar.Kind != nil {
+		objectMap["kind"] = ssfoar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteFunctionOverviewARMResource struct.
+func (ssfoar *StaticSiteFunctionOverviewARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteFunctionOverviewARMResourceProperties StaticSiteFunctionOverviewARMResourceProperties
+				err = json.Unmarshal(*v, &staticSiteFunctionOverviewARMResourceProperties)
+				if err != nil {
+					return err
+				}
+				ssfoar.StaticSiteFunctionOverviewARMResourceProperties = &staticSiteFunctionOverviewARMResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssfoar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssfoar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ssfoar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssfoar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteFunctionOverviewARMResourceProperties staticSiteFunctionOverviewARMResource resource specific
+// properties
+type StaticSiteFunctionOverviewARMResourceProperties struct {
+	// FunctionName - READ-ONLY; The name for the function
+	FunctionName *string `json:"functionName,omitempty"`
+	// TriggerType - READ-ONLY; The trigger type of the function. Possible values include: 'TriggerTypesHTTPTrigger', 'TriggerTypesUnknown'
+	TriggerType TriggerTypes `json:"triggerType,omitempty"`
+}
+
+// StaticSiteFunctionOverviewCollection collection of static site functions.
+type StaticSiteFunctionOverviewCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]StaticSiteFunctionOverviewARMResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// StaticSiteFunctionOverviewCollectionIterator provides access to a complete listing of
+// StaticSiteFunctionOverviewARMResource values.
+type StaticSiteFunctionOverviewCollectionIterator struct {
+	i    int
+	page StaticSiteFunctionOverviewCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *StaticSiteFunctionOverviewCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteFunctionOverviewCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *StaticSiteFunctionOverviewCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter StaticSiteFunctionOverviewCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter StaticSiteFunctionOverviewCollectionIterator) Response() StaticSiteFunctionOverviewCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter StaticSiteFunctionOverviewCollectionIterator) Value() StaticSiteFunctionOverviewARMResource {
+	if !iter.page.NotDone() {
+		return StaticSiteFunctionOverviewARMResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the StaticSiteFunctionOverviewCollectionIterator type.
+func NewStaticSiteFunctionOverviewCollectionIterator(page StaticSiteFunctionOverviewCollectionPage) StaticSiteFunctionOverviewCollectionIterator {
+	return StaticSiteFunctionOverviewCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ssfoc StaticSiteFunctionOverviewCollection) IsEmpty() bool {
+	return ssfoc.Value == nil || len(*ssfoc.Value) == 0
+}
+
+// staticSiteFunctionOverviewCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ssfoc StaticSiteFunctionOverviewCollection) staticSiteFunctionOverviewCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if ssfoc.NextLink == nil || len(to.String(ssfoc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ssfoc.NextLink)))
+}
+
+// StaticSiteFunctionOverviewCollectionPage contains a page of StaticSiteFunctionOverviewARMResource
+// values.
+type StaticSiteFunctionOverviewCollectionPage struct {
+	fn    func(context.Context, StaticSiteFunctionOverviewCollection) (StaticSiteFunctionOverviewCollection, error)
+	ssfoc StaticSiteFunctionOverviewCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *StaticSiteFunctionOverviewCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteFunctionOverviewCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.ssfoc)
+	if err != nil {
+		return err
+	}
+	page.ssfoc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *StaticSiteFunctionOverviewCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page StaticSiteFunctionOverviewCollectionPage) NotDone() bool {
+	return !page.ssfoc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page StaticSiteFunctionOverviewCollectionPage) Response() StaticSiteFunctionOverviewCollection {
+	return page.ssfoc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page StaticSiteFunctionOverviewCollectionPage) Values() []StaticSiteFunctionOverviewARMResource {
+	if page.ssfoc.IsEmpty() {
+		return nil
+	}
+	return *page.ssfoc.Value
+}
+
+// Creates a new instance of the StaticSiteFunctionOverviewCollectionPage type.
+func NewStaticSiteFunctionOverviewCollectionPage(getNextPage func(context.Context, StaticSiteFunctionOverviewCollection) (StaticSiteFunctionOverviewCollection, error)) StaticSiteFunctionOverviewCollectionPage {
+	return StaticSiteFunctionOverviewCollectionPage{fn: getNextPage}
+}
+
+// StaticSitePatchResource ARM resource for a static site when patching
+type StaticSitePatchResource struct {
+	// StaticSite - Core resource properties
+	*StaticSite `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSitePatchResource.
+func (sspr StaticSitePatchResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sspr.StaticSite != nil {
+		objectMap["properties"] = sspr.StaticSite
+	}
+	if sspr.Kind != nil {
+		objectMap["kind"] = sspr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSitePatchResource struct.
+func (sspr *StaticSitePatchResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSite StaticSite
+				err = json.Unmarshal(*v, &staticSite)
+				if err != nil {
+					return err
+				}
+				sspr.StaticSite = &staticSite
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sspr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sspr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				sspr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sspr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteResetPropertiesARMResource static Site Reset Properties ARM resource.
+type StaticSiteResetPropertiesARMResource struct {
+	// StaticSiteResetPropertiesARMResourceProperties - StaticSiteResetPropertiesARMResource resource specific properties
+	*StaticSiteResetPropertiesARMResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteResetPropertiesARMResource.
+func (ssrpar StaticSiteResetPropertiesARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssrpar.StaticSiteResetPropertiesARMResourceProperties != nil {
+		objectMap["properties"] = ssrpar.StaticSiteResetPropertiesARMResourceProperties
+	}
+	if ssrpar.Kind != nil {
+		objectMap["kind"] = ssrpar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteResetPropertiesARMResource struct.
+func (ssrpar *StaticSiteResetPropertiesARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteResetPropertiesARMResourceProperties StaticSiteResetPropertiesARMResourceProperties
+				err = json.Unmarshal(*v, &staticSiteResetPropertiesARMResourceProperties)
+				if err != nil {
+					return err
+				}
+				ssrpar.StaticSiteResetPropertiesARMResourceProperties = &staticSiteResetPropertiesARMResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssrpar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssrpar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ssrpar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssrpar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteResetPropertiesARMResourceProperties staticSiteResetPropertiesARMResource resource specific
+// properties
+type StaticSiteResetPropertiesARMResourceProperties struct {
+	// RepositoryToken - The token which proves admin privileges to the repository.
+	RepositoryToken *string `json:"repositoryToken,omitempty"`
+	// ShouldUpdateRepository - Determines whether the repository should be updated with the new properties.
+	ShouldUpdateRepository *bool `json:"shouldUpdateRepository,omitempty"`
+}
+
+// StaticSiteUserARMResource static Site User ARM resource.
+type StaticSiteUserARMResource struct {
+	autorest.Response `json:"-"`
+	// StaticSiteUserARMResourceProperties - StaticSiteUserARMResource resource specific properties
+	*StaticSiteUserARMResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteUserARMResource.
+func (ssuar StaticSiteUserARMResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssuar.StaticSiteUserARMResourceProperties != nil {
+		objectMap["properties"] = ssuar.StaticSiteUserARMResourceProperties
+	}
+	if ssuar.Kind != nil {
+		objectMap["kind"] = ssuar.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteUserARMResource struct.
+func (ssuar *StaticSiteUserARMResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteUserARMResourceProperties StaticSiteUserARMResourceProperties
+				err = json.Unmarshal(*v, &staticSiteUserARMResourceProperties)
+				if err != nil {
+					return err
+				}
+				ssuar.StaticSiteUserARMResourceProperties = &staticSiteUserARMResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssuar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssuar.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ssuar.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssuar.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteUserARMResourceProperties staticSiteUserARMResource resource specific properties
+type StaticSiteUserARMResourceProperties struct {
+	// Provider - READ-ONLY; The identity provider for the static site user.
+	Provider *string `json:"provider,omitempty"`
+	// UserID - READ-ONLY; The user id for the static site user.
+	UserID *string `json:"userId,omitempty"`
+	// DisplayName - READ-ONLY; The display name for the static site user.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Roles - The roles for the static site user, in free-form string format
+	Roles *string `json:"roles,omitempty"`
+}
+
+// StaticSiteUserCollection collection of static site custom users.
+type StaticSiteUserCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resources.
+	Value *[]StaticSiteUserARMResource `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to next page of resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// StaticSiteUserCollectionIterator provides access to a complete listing of StaticSiteUserARMResource
+// values.
+type StaticSiteUserCollectionIterator struct {
+	i    int
+	page StaticSiteUserCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *StaticSiteUserCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteUserCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *StaticSiteUserCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter StaticSiteUserCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter StaticSiteUserCollectionIterator) Response() StaticSiteUserCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter StaticSiteUserCollectionIterator) Value() StaticSiteUserARMResource {
+	if !iter.page.NotDone() {
+		return StaticSiteUserARMResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the StaticSiteUserCollectionIterator type.
+func NewStaticSiteUserCollectionIterator(page StaticSiteUserCollectionPage) StaticSiteUserCollectionIterator {
+	return StaticSiteUserCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ssuc StaticSiteUserCollection) IsEmpty() bool {
+	return ssuc.Value == nil || len(*ssuc.Value) == 0
+}
+
+// staticSiteUserCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ssuc StaticSiteUserCollection) staticSiteUserCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if ssuc.NextLink == nil || len(to.String(ssuc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ssuc.NextLink)))
+}
+
+// StaticSiteUserCollectionPage contains a page of StaticSiteUserARMResource values.
+type StaticSiteUserCollectionPage struct {
+	fn   func(context.Context, StaticSiteUserCollection) (StaticSiteUserCollection, error)
+	ssuc StaticSiteUserCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *StaticSiteUserCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/StaticSiteUserCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.ssuc)
+	if err != nil {
+		return err
+	}
+	page.ssuc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *StaticSiteUserCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page StaticSiteUserCollectionPage) NotDone() bool {
+	return !page.ssuc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page StaticSiteUserCollectionPage) Response() StaticSiteUserCollection {
+	return page.ssuc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page StaticSiteUserCollectionPage) Values() []StaticSiteUserARMResource {
+	if page.ssuc.IsEmpty() {
+		return nil
+	}
+	return *page.ssuc.Value
+}
+
+// Creates a new instance of the StaticSiteUserCollectionPage type.
+func NewStaticSiteUserCollectionPage(getNextPage func(context.Context, StaticSiteUserCollection) (StaticSiteUserCollection, error)) StaticSiteUserCollectionPage {
+	return StaticSiteUserCollectionPage{fn: getNextPage}
+}
+
+// StaticSiteUserInvitationRequestResource static sites user roles invitation resource.
+type StaticSiteUserInvitationRequestResource struct {
+	// StaticSiteUserInvitationRequestResourceProperties - StaticSiteUserInvitationRequestResource resource specific properties
+	*StaticSiteUserInvitationRequestResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteUserInvitationRequestResource.
+func (ssuirr StaticSiteUserInvitationRequestResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssuirr.StaticSiteUserInvitationRequestResourceProperties != nil {
+		objectMap["properties"] = ssuirr.StaticSiteUserInvitationRequestResourceProperties
+	}
+	if ssuirr.Kind != nil {
+		objectMap["kind"] = ssuirr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteUserInvitationRequestResource struct.
+func (ssuirr *StaticSiteUserInvitationRequestResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteUserInvitationRequestResourceProperties StaticSiteUserInvitationRequestResourceProperties
+				err = json.Unmarshal(*v, &staticSiteUserInvitationRequestResourceProperties)
+				if err != nil {
+					return err
+				}
+				ssuirr.StaticSiteUserInvitationRequestResourceProperties = &staticSiteUserInvitationRequestResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssuirr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssuirr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ssuirr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssuirr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteUserInvitationRequestResourceProperties staticSiteUserInvitationRequestResource resource
+// specific properties
+type StaticSiteUserInvitationRequestResourceProperties struct {
+	// Domain - The domain name for the static site custom domain.
+	Domain *string `json:"domain,omitempty"`
+	// Provider - The identity provider for the static site user.
+	Provider *string `json:"provider,omitempty"`
+	// UserDetails - The user id for the static site user.
+	UserDetails *string `json:"userDetails,omitempty"`
+	// Roles - The roles for the static site user, in free-form string format
+	Roles *string `json:"roles,omitempty"`
+	// NumHoursToExpiration - The number of hours the sas token stays valid
+	NumHoursToExpiration *int32 `json:"numHoursToExpiration,omitempty"`
+}
+
+// StaticSiteUserInvitationResponseResource static sites user roles invitation link resource.
+type StaticSiteUserInvitationResponseResource struct {
+	autorest.Response `json:"-"`
+	// StaticSiteUserInvitationResponseResourceProperties - StaticSiteUserInvitationResponseResource resource specific properties
+	*StaticSiteUserInvitationResponseResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for StaticSiteUserInvitationResponseResource.
+func (ssuirr StaticSiteUserInvitationResponseResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ssuirr.StaticSiteUserInvitationResponseResourceProperties != nil {
+		objectMap["properties"] = ssuirr.StaticSiteUserInvitationResponseResourceProperties
+	}
+	if ssuirr.Kind != nil {
+		objectMap["kind"] = ssuirr.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for StaticSiteUserInvitationResponseResource struct.
+func (ssuirr *StaticSiteUserInvitationResponseResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var staticSiteUserInvitationResponseResourceProperties StaticSiteUserInvitationResponseResourceProperties
+				err = json.Unmarshal(*v, &staticSiteUserInvitationResponseResourceProperties)
+				if err != nil {
+					return err
+				}
+				ssuirr.StaticSiteUserInvitationResponseResourceProperties = &staticSiteUserInvitationResponseResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ssuirr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ssuirr.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ssuirr.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ssuirr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// StaticSiteUserInvitationResponseResourceProperties staticSiteUserInvitationResponseResource resource
+// specific properties
+type StaticSiteUserInvitationResponseResourceProperties struct {
+	// ExpiresOn - READ-ONLY; The expiration time of the invitation
+	ExpiresOn *date.Time `json:"expiresOn,omitempty"`
+	// InvitationURL - READ-ONLY; The url for the invitation link
+	InvitationURL *string `json:"invitationUrl,omitempty"`
 }
 
 // StatusCodesBasedTrigger trigger based on status code.

@@ -95,7 +95,11 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
 
-* `storage_connection_string` - (Required) The connection string of the backend storage account which will be used by this Function App (such as the dashboard, logs).
+* `storage_connection_string`- (Required) The connection string to the backend storage account which will be used by this Function App (such as the dashboard, logs). Typically set to the `primary_connection_string` of a storage account resource.
+
+* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App (such as the dashboard, logs).
+
+* `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
 
@@ -157,9 +161,13 @@ The following arguments are supported:
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
 
+* `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on the Premium plan.
+
 * `cors` - (Optional) A `cors` block as defined below.
 
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
+-> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
 ---
 

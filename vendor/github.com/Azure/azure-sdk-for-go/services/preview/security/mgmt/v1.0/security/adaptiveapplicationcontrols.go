@@ -43,6 +43,86 @@ func NewAdaptiveApplicationControlsClientWithBaseURI(baseURI string, subscriptio
 	return AdaptiveApplicationControlsClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
+// Delete delete an application control VM/server group
+// Parameters:
+// groupName - name of an application control VM/server group
+func (client AdaptiveApplicationControlsClient) Delete(ctx context.Context, groupName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AdaptiveApplicationControlsClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.Pattern, Rule: `^[0-9A-Fa-f]{8}-([0-9A-Fa-f]{4}-){3}[0-9A-Fa-f]{12}$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("security.AdaptiveApplicationControlsClient", "Delete", err.Error())
+	}
+
+	req, err := client.DeletePreparer(ctx, groupName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "Delete", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.DeleteSender(req)
+	if err != nil {
+		result.Response = resp
+		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "Delete", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.DeleteResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "security.AdaptiveApplicationControlsClient", "Delete", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// DeletePreparer prepares the Delete request.
+func (client AdaptiveApplicationControlsClient) DeletePreparer(ctx context.Context, groupName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"ascLocation":    autorest.Encode("path", client.AscLocation),
+		"groupName":      autorest.Encode("path", groupName),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2015-06-01-preview"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsDelete(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.Security/locations/{ascLocation}/applicationWhitelistings/{groupName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DeleteSender sends the Delete request. The method will close the
+// http.Response Body if it receives an error.
+func (client AdaptiveApplicationControlsClient) DeleteSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// DeleteResponder handles the response to the Delete request. The method always
+// closes the http.Response Body.
+func (client AdaptiveApplicationControlsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // Get gets an application control VM/server group.
 // Parameters:
 // groupName - name of an application control VM/server group

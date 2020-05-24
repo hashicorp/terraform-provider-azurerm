@@ -39,9 +39,11 @@ resource "azurerm_management_group" "example_child" {
 
 The following arguments are supported:
 
-* `group_id` - (Optional) The UUID for this Management Group, which needs to be unique across your tenant - which will be generated if not provided. Changing this forces a new resource to be created.
+* `name` - (Optional) The name or UUID for this Management Group, which needs to be unique across your tenant. A new UUID will be generated if not provided. Changing this forces a new resource to be created.
 
-* `display_name` - (Optional) A friendly name for this Management Group. If not specified, this'll be the same as the `group_id`.
+* `group_id` - (Optional) The name or UUID for this Management Group, which needs to be unique across your tenant. A new UUID will be generated if not provided. Changing this forces a new resource to be created.
+
+* `display_name` - (Optional) A friendly name for this Management Group. If not specified, this'll be the same as the `name`.
 
 * `parent_management_group_id` - (Optional) The ID of the Parent Management Group. Changing this forces a new resource to be created.
 
@@ -67,5 +69,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Management Groups can be imported using the `management group resource id`, e.g.
 
 ```shell
-terraform import azurerm_management_group.example /providers/Microsoft.Management/ManagementGroups/group1
+terraform import azurerm_management_group.example /providers/Microsoft.Management/managementGroups/group1
 ```

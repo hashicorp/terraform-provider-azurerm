@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,11 +33,6 @@ func TestAccAzureRMAppServiceEnvironment_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceEnvironment_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -119,6 +113,25 @@ func TestAccAzureRMAppServiceEnvironment_withAppServicePlan(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
 					resource.TestCheckResourceAttrPair(data.ResourceName, "id", aspData.ResourceName, "app_service_environment_id"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -238,6 +251,24 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceEnvironment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-%[2]d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_environment" "test" {
+  name                = "acctest-ase-%[2]d"
+  resource_group_name = azurerm_resource_group.test2.name
+  subnet_id           = azurerm_subnet.ase.id
+}
+`, template, data.RandomInteger, data.Locations.Secondary)
 }
 
 func testAccAzureRMAppServiceEnvironment_template(data acceptance.TestData) string {
