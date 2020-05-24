@@ -89,6 +89,8 @@ A `ip_restriction` block exports the following:
 
 * `priority` - The priority for this IP Restriction.
 
+* `action` - Does this restriction `Allow` or `Deny` access for this IP range?
+
 ---
 
 `site_config` supports the following:

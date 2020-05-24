@@ -184,9 +184,9 @@ resource "azurerm_sql_server" "test" {
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
   resource_group_name      = azurerm_resource_group.test.name
-  location                 = "%s"
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

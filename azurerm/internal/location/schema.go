@@ -3,7 +3,6 @@ package location
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 )
 
 // Schema returns the default Schema which should be used for Location fields
@@ -13,7 +12,7 @@ func Schema() *schema.Schema {
 		Type:             schema.TypeString,
 		Required:         true,
 		ForceNew:         true,
-		ValidateFunc:     validate.NoEmptyStrings,
+		ValidateFunc:     EnhancedValidate,
 		StateFunc:        StateFunc,
 		DiffSuppressFunc: DiffSuppressFunc,
 	}

@@ -260,23 +260,23 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_eventhub_namespace" "test" {
   name                = "acctesteventhubnamespace-%d"
-  location            = "azurerm_resource_group.test.location"
-  resource_group_name = "azurerm_resource_group.test.name"
-  sku_name            = "Basic_1"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
 }
 
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
-  namespace_name      = "azurerm_eventhub_namespace.test.name"
-  resource_group_name = "azurerm_resource_group.test.name"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
   partition_count     = 2
   message_retention   = 1
 }
 
 resource "azurerm_api_management" "test" {
   name                = "acctestAM-%d"
-  location            = "azurerm_resource_group.test.location"
-  resource_group_name = "azurerm_resource_group.test.name"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
@@ -285,12 +285,12 @@ resource "azurerm_api_management" "test" {
 
 resource "azurerm_api_management_logger" "test" {
   name                = "acctestapimnglogger-%d"
-  api_management_name = "azurerm_api_management.test.name"
-  resource_group_name = "azurerm_resource_group.test.name"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
 
   eventhub {
-    name              = "azurerm_eventhub.test.name"
-    connection_string = "azurerm_eventhub_namespace.test.default_primary_connection_string"
+    name              = azurerm_eventhub.test.name
+    connection_string = azurerm_eventhub_namespace.test.default_primary_connection_string
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -329,7 +329,7 @@ resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  application_type    = "Other"
+  application_type    = "other"
 }
 
 resource "azurerm_api_management" "test" {
@@ -369,7 +369,7 @@ resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  application_type    = "Other"
+  application_type    = "other"
 }
 
 resource "azurerm_api_management" "test" {

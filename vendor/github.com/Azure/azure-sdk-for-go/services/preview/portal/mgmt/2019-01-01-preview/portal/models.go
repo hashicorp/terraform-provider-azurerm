@@ -324,13 +324,13 @@ func (dp DashboardParts) MarshalJSON() ([]byte, error) {
 // DashboardPartsPosition the dashboard's part position.
 type DashboardPartsPosition struct {
 	// X - The dashboard's part x coordinate.
-	X *float64 `json:"x,omitempty"`
+	X *int32 `json:"x,omitempty"`
 	// Y - The dashboard's part y coordinate.
-	Y *float64 `json:"y,omitempty"`
+	Y *int32 `json:"y,omitempty"`
 	// RowSpan - The dashboard's part row span.
-	RowSpan *float64 `json:"rowSpan,omitempty"`
+	RowSpan *int32 `json:"rowSpan,omitempty"`
 	// ColSpan - The dashboard's part column span.
-	ColSpan *float64 `json:"colSpan,omitempty"`
+	ColSpan *int32 `json:"colSpan,omitempty"`
 	// Metadata - The dashboard part's metadata.
 	Metadata map[string]interface{} `json:"metadata"`
 }

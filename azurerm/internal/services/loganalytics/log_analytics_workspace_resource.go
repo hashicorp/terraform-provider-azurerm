@@ -69,7 +69,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(30, 730),
+				ValidateFunc: validation.Any(validation.IntBetween(30, 730), validation.IntInSlice([]int{7})),
 			},
 
 			"workspace_id": {

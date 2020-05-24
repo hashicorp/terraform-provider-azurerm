@@ -117,7 +117,7 @@ func testCheckAzureRMSentinelAlertRuleScheduledExists(resourceName string) resou
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Sentinel Alert Rule Scheduled %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 			}
@@ -142,7 +142,7 @@ func testCheckAzureRMSentinelAlertRuleScheduledDestroy(s *terraform.State) error
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Getting on Sentinel.AlertRules: %+v", err)
 			}
