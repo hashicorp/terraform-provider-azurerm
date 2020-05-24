@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -123,6 +124,27 @@ func TestAccAzureRMKustoCluster_sku(t *testing.T) {
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.name", "Standard_D11_v2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku.0.capacity", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKustoCluster_identitySystemAssigned(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKustoCluster_identitySystemAssigned(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestCheckResourceAttr(data.ResourceName, "identity.0.identity_ids.#", "0"),
+					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -256,6 +278,34 @@ resource "azurerm_kusto_cluster" "test" {
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMKustoCluster_identitySystemAssigned(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
