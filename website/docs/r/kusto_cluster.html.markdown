@@ -58,6 +58,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `trusted_external_tenants` - (Optional) Specifies a list of tenant IDs that are trusted by the cluster.
+
 * `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.
 
 ---
