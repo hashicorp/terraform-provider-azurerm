@@ -1,4 +1,4 @@
-package azure
+package batch
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2019-08-01/batch"
 )
 
-// ExpandBatchAccountKeyVaultReference expands Batch account KeyVault reference
-func ExpandBatchAccountKeyVaultReference(list []interface{}) (*batch.KeyVaultReference, error) {
+// expandBatchAccountKeyVaultReference expands Batch account KeyVault reference
+func expandBatchAccountKeyVaultReference(list []interface{}) (*batch.KeyVaultReference, error) {
 	if len(list) == 0 {
 		return nil, fmt.Errorf("Error: key vault reference should be defined")
 	}
@@ -25,8 +25,8 @@ func ExpandBatchAccountKeyVaultReference(list []interface{}) (*batch.KeyVaultRef
 	return ref, nil
 }
 
-// FlattenBatchAccountKeyvaultReference flattens a Batch account keyvault reference
-func FlattenBatchAccountKeyvaultReference(keyVaultReference *batch.KeyVaultReference) interface{} {
+// flattenBatchAccountKeyvaultReference flattens a Batch account keyvault reference
+func flattenBatchAccountKeyvaultReference(keyVaultReference *batch.KeyVaultReference) interface{} {
 	result := make(map[string]interface{})
 
 	if keyVaultReference == nil {

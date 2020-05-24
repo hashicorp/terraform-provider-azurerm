@@ -1,4 +1,4 @@
-package tests
+package batch_test
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
+func TestAccBatchPoolDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -17,7 +17,7 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMBatchPool_complete(data),
+				Config: testAccBatchPoolDataSource_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccpool%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -58,7 +58,7 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMBatchPool_complete(data acceptance.TestData) string {
+func testAccBatchPoolDataSource_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

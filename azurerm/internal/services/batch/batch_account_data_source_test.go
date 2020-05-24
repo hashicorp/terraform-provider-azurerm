@@ -1,4 +1,4 @@
-package tests
+package batch_test
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMBatchAccount_basic(t *testing.T) {
+func TestAccBatchAccountDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -18,7 +18,7 @@ func TestAccDataSourceAzureRMBatchAccount_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMBatchAccount_basic(data),
+				Config: testAccBatchAccountDataSource_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
@@ -29,7 +29,7 @@ func TestAccDataSourceAzureRMBatchAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMBatchAccount_complete(t *testing.T) {
+func TestAccBatchAccountDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -37,7 +37,7 @@ func TestAccDataSourceAzureRMBatchAccount_complete(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMBatchAccount_complete(data),
+				Config: testAccBatchAccountDataSource_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
@@ -50,7 +50,7 @@ func TestAccDataSourceAzureRMBatchAccount_complete(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMBatchAccount_userSubscription(t *testing.T) {
+func TestAccBatchAccountDataSource_userSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_account", "test")
 
 	tenantID := os.Getenv("ARM_TENANT_ID")
@@ -61,7 +61,7 @@ func TestAccDataSourceAzureRMBatchAccount_userSubscription(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureBatchAccount_userSubscription(data, tenantID, subscriptionID),
+				Config: testAccBatchAccountDataSource_userSubscription(data, tenantID, subscriptionID),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", azure.NormalizeLocation(data.Locations.Primary)),
@@ -73,7 +73,7 @@ func TestAccDataSourceAzureRMBatchAccount_userSubscription(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMBatchAccount_basic(data acceptance.TestData) string {
+func testAccBatchAccountDataSource_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -98,7 +98,7 @@ data "azurerm_batch_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccDataSourceAzureRMBatchAccount_complete(data acceptance.TestData) string {
+func testAccBatchAccountDataSource_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -136,7 +136,7 @@ data "azurerm_batch_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccDataSourceAzureBatchAccount_userSubscription(data acceptance.TestData, tenantID string, subscriptionID string) string {
+func testAccBatchAccountDataSource_userSubscription(data acceptance.TestData, tenantID string, subscriptionID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
