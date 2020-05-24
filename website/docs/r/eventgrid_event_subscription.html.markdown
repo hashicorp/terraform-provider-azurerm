@@ -59,8 +59,6 @@ The following arguments are supported:
 
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
-* `azure_function_endpoint_id` - (Optional) Specifies the id where the Azure Function is located.
-
 * `eventhub_endpoint` - (Optional / **Deprecated in favour of `eventhub_endpoint_id`**) A `eventhub_endpoint` block as defined below.
 
 * `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
@@ -77,7 +75,7 @@ The following arguments are supported:
 
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `azure_function_endpoint_id`, `eventhub_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
+~> **NOTE:** One of `eventhub_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
