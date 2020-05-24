@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.
+
 * `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
 
 * `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.

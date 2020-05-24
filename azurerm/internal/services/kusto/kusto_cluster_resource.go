@@ -93,6 +93,8 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"zones": azure.SchemaZones(),
+
 			"enable_disk_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -153,6 +155,8 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
+
 	clusterProperties := kusto.ClusterProperties{
 		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
@@ -165,6 +169,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		Name:              &name,
 		Location:          &location,
 		Sku:               sku,
+		Zones:             zones,
 		ClusterProperties: &clusterProperties,
 		Tags:              tags.Expand(t),
 	}
@@ -221,6 +226,10 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 
 	if err := d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
+	}
+
+	if err := d.Set("zones", azure.FlattenZones(clusterResponse.Zones)); err != nil {
+		return fmt.Errorf("Error setting `zones`: %+v", err)
 	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
