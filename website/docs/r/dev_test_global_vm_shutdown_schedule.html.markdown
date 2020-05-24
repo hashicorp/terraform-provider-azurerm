@@ -15,42 +15,42 @@ this resource applies only to standard VMs, not DevTest Lab VMs. To manage autom
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "sample" {
+resource "azurerm_resource_group" "example" {
   name     = "sample-rg"
   location = "eastus"
 }
 
-resource "azurerm_virtual_network" "sample" {
+resource "azurerm_virtual_network" "example" {
   name                = "sample-vnet"
   address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.sample.location
-  resource_group_name = azurerm_resource_group.sample.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "sample" {
+resource "azurerm_subnet" "example" {
   name                 = "sample-subnet"
-  resource_group_name  = azurerm_resource_group.sample.name
-  virtual_network_name = azurerm_virtual_network.sample.name
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_network_interface" "sample" {
+resource "azurerm_network_interface" "example" {
   name                = "sample-nic"
-  location            = azurerm_resource_group.sample.location
-  resource_group_name = azurerm_resource_group.sample.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = azurerm_subnet.sample.id
+    subnet_id                     = azurerm_subnet.example.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
-resource "azurerm_linux_virtual_machine" "sample" {
+resource "azurerm_linux_virtual_machine" "example" {
   name                  = "SampleVM"
-  location              = azurerm_resource_group.sample.location
-  resource_group_name   = azurerm_resource_group.sample.name
-  network_interface_ids = [azurerm_network_interface.sample.id]
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  network_interface_ids = [azurerm_network_interface.example.id]
   size                  = "Standard_B2s"
 
   source_image_reference {
@@ -71,8 +71,8 @@ resource "azurerm_linux_virtual_machine" "sample" {
   disable_password_authentication = false
 }
 
-resource "azurerm_dev_test_global_vm_shutdown_schedule" "sample" {
-  target_resource_id = azurerm_virtual_machine.sample.id
+resource "azurerm_dev_test_global_vm_shutdown_schedule" "example" {
+  target_resource_id = azurerm_virtual_machine.example.id
   location           = azurerm_resource_group.example.location
   status             = "Enabled"
 
