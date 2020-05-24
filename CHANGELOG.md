@@ -3,6 +3,8 @@
 BUG FIXES:
 
 * `azurern_linux_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
+* `azurerm_linux_virtual_machine` - allow setting `virtual_machine_scale_set_id` in non-zonal deployment [GH-7057]
+* `azurerm_windows_virtual_machine` - allow setting `virtual_machine_scale_set_id` in non-zonal deployment [GH-7057]
 * `azurern_windows_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
 
 
