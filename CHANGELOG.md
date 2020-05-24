@@ -1,5 +1,11 @@
 ## 2.12.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* `azurerm_eventgrid_event_subscription` - support for the `expiration_time_utc`, `service_bus_topic_endpoint`, and `service_bus_queue_endpoint`, property [GH-6860]
+* `azurerm_eventgrid_event_subscription` - the `eventhub_endpoint` was deprecated in favour of the `eventhub_endpoint_id` property [GH-6860]
+* `azurerm_eventgrid_event_subscription` - the `hybrid_connection_endpoint` was deprecated in favour of the `hybrid_connection_endpoint_id` property [GH-6860]
+
 BUG FIXES:
 
 * `azurern_linux_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
