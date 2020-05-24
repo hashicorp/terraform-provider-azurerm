@@ -1,4 +1,11 @@
 ## 2.12.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurern_linux_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
+* `azurern_windows_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
+
+
 ## 2.11.0 (May 21, 2020)
 
 DEPENDENCIES: 
