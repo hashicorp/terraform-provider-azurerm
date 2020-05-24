@@ -132,6 +132,8 @@ The following attributes are exported:
 
 * `id` - The ID of the NetApp Volume.
 
+* `mount_ip_addresses` - A list of IPv4 Addresses which should be used to mount the volume.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

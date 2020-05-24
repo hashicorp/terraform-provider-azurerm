@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -48,7 +49,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAppServiceName,
+				ValidateFunc: webValidate.AppServiceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -879,7 +880,9 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
-	siteConfig.PreWarmedInstanceCount = utils.Int32(int32(config["pre_warmed_instance_count"].(int)))
+	if v, ok := config["pre_warmed_instance_count"]; ok {
+		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
+	}
 
 	return siteConfig, nil
 }

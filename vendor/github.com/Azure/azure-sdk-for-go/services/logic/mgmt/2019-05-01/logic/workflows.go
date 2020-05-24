@@ -900,7 +900,7 @@ func (client WorkflowsClient) ListSwaggerResponder(resp *http.Response) (result 
 // resourceGroupName - the resource group name.
 // workflowName - the workflow name.
 // move - the workflow to move.
-func (client WorkflowsClient) Move(ctx context.Context, resourceGroupName string, workflowName string, move Workflow) (result WorkflowsMoveFuture, err error) {
+func (client WorkflowsClient) Move(ctx context.Context, resourceGroupName string, workflowName string, move WorkflowReference) (result WorkflowsMoveFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkflowsClient.Move")
 		defer func() {
@@ -927,7 +927,7 @@ func (client WorkflowsClient) Move(ctx context.Context, resourceGroupName string
 }
 
 // MovePreparer prepares the Move request.
-func (client WorkflowsClient) MovePreparer(ctx context.Context, resourceGroupName string, workflowName string, move Workflow) (*http.Request, error) {
+func (client WorkflowsClient) MovePreparer(ctx context.Context, resourceGroupName string, workflowName string, move WorkflowReference) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
@@ -1055,8 +1055,7 @@ func (client WorkflowsClient) RegenerateAccessKeyResponder(resp *http.Response) 
 // Parameters:
 // resourceGroupName - the resource group name.
 // workflowName - the workflow name.
-// workflow - the workflow.
-func (client WorkflowsClient) Update(ctx context.Context, resourceGroupName string, workflowName string, workflow Workflow) (result Workflow, err error) {
+func (client WorkflowsClient) Update(ctx context.Context, resourceGroupName string, workflowName string) (result Workflow, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkflowsClient.Update")
 		defer func() {
@@ -1067,7 +1066,7 @@ func (client WorkflowsClient) Update(ctx context.Context, resourceGroupName stri
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, workflowName, workflow)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, workflowName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "Update", nil, "Failure preparing request")
 		return
@@ -1089,7 +1088,7 @@ func (client WorkflowsClient) Update(ctx context.Context, resourceGroupName stri
 }
 
 // UpdatePreparer prepares the Update request.
-func (client WorkflowsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, workflowName string, workflow Workflow) (*http.Request, error) {
+func (client WorkflowsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, workflowName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
@@ -1102,11 +1101,9 @@ func (client WorkflowsClient) UpdatePreparer(ctx context.Context, resourceGroupN
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Logic/workflows/{workflowName}", pathParameters),
-		autorest.WithJSON(workflow),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -1135,7 +1132,8 @@ func (client WorkflowsClient) UpdateResponder(resp *http.Response) (result Workf
 // resourceGroupName - the resource group name.
 // location - the workflow location.
 // workflowName - the workflow name.
-func (client WorkflowsClient) ValidateByLocation(ctx context.Context, resourceGroupName string, location string, workflowName string) (result autorest.Response, err error) {
+// validate - the workflow.
+func (client WorkflowsClient) ValidateByLocation(ctx context.Context, resourceGroupName string, location string, workflowName string, validate Workflow) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkflowsClient.ValidateByLocation")
 		defer func() {
@@ -1146,7 +1144,7 @@ func (client WorkflowsClient) ValidateByLocation(ctx context.Context, resourceGr
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ValidateByLocationPreparer(ctx, resourceGroupName, location, workflowName)
+	req, err := client.ValidateByLocationPreparer(ctx, resourceGroupName, location, workflowName, validate)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowsClient", "ValidateByLocation", nil, "Failure preparing request")
 		return
@@ -1168,7 +1166,7 @@ func (client WorkflowsClient) ValidateByLocation(ctx context.Context, resourceGr
 }
 
 // ValidateByLocationPreparer prepares the ValidateByLocation request.
-func (client WorkflowsClient) ValidateByLocationPreparer(ctx context.Context, resourceGroupName string, location string, workflowName string) (*http.Request, error) {
+func (client WorkflowsClient) ValidateByLocationPreparer(ctx context.Context, resourceGroupName string, location string, workflowName string, validate Workflow) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"location":          autorest.Encode("path", location),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -1182,9 +1180,11 @@ func (client WorkflowsClient) ValidateByLocationPreparer(ctx context.Context, re
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Logic/locations/{location}/workflows/{workflowName}/validate", pathParameters),
+		autorest.WithJSON(validate),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }

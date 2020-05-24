@@ -6,7 +6,7 @@ description: |-
   Associates a [NAT Gateway](nat_gateway.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).
 ---
 
-# azurerm_subnet_route_table_association
+# azurerm_subnet_nat_gateway_association
 
 Associates a [NAT Gateway](nat_gateway.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).
 

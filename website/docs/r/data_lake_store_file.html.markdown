@@ -23,12 +23,12 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_data_lake_store" "example" {
   name                = "consumptiondatalake"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
 }
 
 resource "azurerm_data_lake_store_file" "example" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   local_file_path     = "/path/to/local/file"
   remote_file_path    = "/path/created/for/remote/file"
 }

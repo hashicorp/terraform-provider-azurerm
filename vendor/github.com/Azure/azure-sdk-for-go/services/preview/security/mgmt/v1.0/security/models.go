@@ -5298,6 +5298,8 @@ func NewInformationProtectionPolicyListPage(getNextPage func(context.Context, In
 type InformationProtectionPolicyProperties struct {
 	// LastModifiedUtc - READ-ONLY; Describes the last UTC time the policy was modified.
 	LastModifiedUtc *date.Time `json:"lastModifiedUtc,omitempty"`
+	// Version - READ-ONLY; Describes the version of the policy.
+	Version *string `json:"version,omitempty"`
 	// Labels - Dictionary of sensitivity labels.
 	Labels map[string]*SensitivityLabel `json:"labels"`
 	// InformationTypes - The sensitivity information types.
@@ -5323,7 +5325,7 @@ type InformationType struct {
 	// Description - The description of the information type.
 	Description *string `json:"description,omitempty"`
 	// Order - The order of the information type.
-	Order *float64 `json:"order,omitempty"`
+	Order *int32 `json:"order,omitempty"`
 	// RecommendedLabelID - The recommended label id to be associated with this information type.
 	RecommendedLabelID *uuid.UUID `json:"recommendedLabelId,omitempty"`
 	// Enabled - Indicates whether the information type is enabled or not.
@@ -7013,7 +7015,7 @@ type SensitivityLabel struct {
 	// Rank - The rank of the sensitivity label. Possible values include: 'RankNone', 'RankLow', 'RankMedium', 'RankHigh', 'RankCritical'
 	Rank Rank `json:"rank,omitempty"`
 	// Order - The order of the sensitivity label.
-	Order *float64 `json:"order,omitempty"`
+	Order *int32 `json:"order,omitempty"`
 	// Enabled - Indicates whether the label is enabled or not.
 	Enabled *bool `json:"enabled,omitempty"`
 }
