@@ -313,8 +313,8 @@ func testAccAzureRMEventGridEventSubscription_requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_eventgrid_event_subscription" "import" {
-  name                = azurerm_eventgrid_event_subscription.test.name
-  scope            = azurerm_eventgrid_event_subscription.test.scope
+  name  = azurerm_eventgrid_event_subscription.test.name
+  scope = azurerm_eventgrid_event_subscription.test.scope
 }
 `, template)
 }
