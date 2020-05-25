@@ -306,7 +306,7 @@ func TestAccBatchPool_container(t *testing.T) {
 			data.ImportStep(
 				"stop_pending_resize_operation",
 				"container_configuration.0.container_registries.0.password",
-				),
+			),
 		},
 	})
 }
