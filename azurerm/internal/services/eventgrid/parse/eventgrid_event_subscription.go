@@ -13,7 +13,7 @@ type EventGridEventSubscriptionId struct {
 }
 
 func EventGridEventSubscriptionID(input string) (*EventGridEventSubscriptionId, error) {
-	id, err := azure.ParseAzureResourceID(input)
+	_, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse EventGrid Event Subscription ID %q: %+v", input, err)
 	}
@@ -25,14 +25,7 @@ func EventGridEventSubscriptionID(input string) (*EventGridEventSubscriptionId, 
 
 	eventSubscription := EventGridEventSubscriptionId{
 		Scope: segments[0],
-	}
-
-	if eventSubscription.Name, err = id.PopSegment("eventSubscriptions"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
+		Name:  segments[1],
 	}
 
 	return &eventSubscription, nil

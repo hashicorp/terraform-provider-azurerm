@@ -255,24 +255,23 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 	if kind := resp.Kind; string(kind) != "" {
 		d.Set("kind", kind)
 	}
-	if properties := resp.Properties; properties != nil {
-		if config := properties.AccessPolicies; config != nil {
-			d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(config))
-		}
-		if config := properties.CosmosDbConfiguration; config != nil {
-			d.Set("cosmosdb_throughput", config.OfferThroughput)
+	if props := resp.Properties; props != nil {
+		if err := d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(props.AccessPolicies)); err != nil {
+			return fmt.Errorf("Error setting `access_policy_object_ids`: %+v", err)
 		}
 
-		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
-			if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(authConfig)); err != nil {
-				return fmt.Errorf("Error setting `authentication_configuration`: %+v", flattenHealthcareAuthConfig(authConfig))
-			}
+		cosmosThroughput := 0
+		if props.CosmosDbConfiguration != nil && props.CosmosDbConfiguration.OfferThroughput != nil {
+			cosmosThroughput = int(*props.CosmosDbConfiguration.OfferThroughput)
+		}
+		d.Set("cosmosdb_throughput", cosmosThroughput)
+
+		if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(props.AuthenticationConfiguration)); err != nil {
+			return fmt.Errorf("Error setting `authentication_configuration`: %+v", err)
 		}
 
-		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
-			if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(corsConfig)); err != nil {
-				return fmt.Errorf("Error setting `cors_configuration`: %+v", flattenHealthcareCorsConfig(corsConfig))
-			}
+		if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(props.CorsConfiguration)); err != nil {
+			return fmt.Errorf("Error setting `cors_configuration`: %+v", err)
 		}
 	}
 
@@ -348,12 +347,12 @@ func expandAzureRMhealthcareapisAuthentication(d *schema.ResourceData) *healthca
 	authConfigAttr := authConfigRaw[0].(map[string]interface{})
 	authority := authConfigAttr["authority"].(string)
 	audience := authConfigAttr["audience"].(string)
-	smart_proxy_enabled := authConfigAttr["smart_proxy_enabled"].(bool)
+	smartProxyEnabled := authConfigAttr["smart_proxy_enabled"].(bool)
 
 	auth := &healthcareapis.ServiceAuthenticationConfigurationInfo{
 		Authority:         &authority,
 		Audience:          &audience,
-		SmartProxyEnabled: &smart_proxy_enabled,
+		SmartProxyEnabled: &smartProxyEnabled,
 	}
 	return auth
 }
@@ -374,44 +373,53 @@ func flattenHealthcareAccessPolicies(policies *[]healthcareapis.ServiceAccessPol
 	return result
 }
 
-func flattenHealthcareAuthConfig(authConfig *healthcareapis.ServiceAuthenticationConfigurationInfo) []interface{} {
-	authOutput := make([]interface{}, 0)
+func flattenHealthcareAuthConfig(input *healthcareapis.ServiceAuthenticationConfigurationInfo) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
 
-	output := make(map[string]interface{})
-	if authConfig.Authority != nil {
-		output["authority"] = *authConfig.Authority
+	authority := ""
+	if input.Authority != nil {
+		authority = *input.Authority
 	}
-	if authConfig.Audience != nil {
-		output["audience"] = *authConfig.Audience
+	audience := ""
+	if input.Audience != nil {
+		audience = *input.Audience
 	}
-	if authConfig.SmartProxyEnabled != nil {
-		output["smart_proxy_enabled"] = *authConfig.SmartProxyEnabled
+	smartProxyEnabled := false
+	if input.SmartProxyEnabled != nil {
+		smartProxyEnabled = *input.SmartProxyEnabled
 	}
-	authOutput = append(authOutput, output)
-
-	return authOutput
+	return []interface{}{
+		map[string]interface{}{
+			"audience":            audience,
+			"authority":           authority,
+			"smart_proxy_enabled": smartProxyEnabled,
+		},
+	}
 }
 
-func flattenHealthcareCorsConfig(corsConfig *healthcareapis.ServiceCorsConfigurationInfo) []interface{} {
-	corsOutput := make([]interface{}, 0)
+func flattenHealthcareCorsConfig(input *healthcareapis.ServiceCorsConfigurationInfo) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
 
-	output := make(map[string]interface{})
-	if corsConfig.Origins != nil {
-		output["allowed_origins"] = *corsConfig.Origins
+	maxAge := 0
+	if input.MaxAge != nil {
+		maxAge = int(*input.MaxAge)
 	}
-	if corsConfig.Headers != nil {
-		output["allowed_headers"] = *corsConfig.Headers
+	allowCredentials := false
+	if input.AllowCredentials != nil {
+		allowCredentials = *input.AllowCredentials
 	}
-	if corsConfig.Methods != nil {
-		output["allowed_methods"] = *corsConfig.Methods
-	}
-	if corsConfig.MaxAge != nil {
-		output["max_age_in_seconds"] = *corsConfig.MaxAge
-	}
-	if corsConfig.AllowCredentials != nil {
-		output["allow_credentials"] = *corsConfig.AllowCredentials
-	}
-	corsOutput = append(corsOutput, output)
 
-	return corsOutput
+	return []interface{}{
+		map[string]interface{}{
+			"allow_credentials":  allowCredentials,
+			"allowed_headers":    utils.FlattenStringSlice(input.Headers),
+			"allowed_methods":    utils.FlattenStringSlice(input.Methods),
+			"allowed_origins":    utils.FlattenStringSlice(input.Origins),
+			"max_age_in_seconds": maxAge,
+		},
+	}
 }

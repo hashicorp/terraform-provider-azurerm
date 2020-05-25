@@ -91,6 +91,7 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "export_policy_rule.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.FoO", "BaR"),
+					resource.TestCheckResourceAttr(data.ResourceName, "mount_ip_addresses.#", "1"),
 				),
 			},
 			data.ImportStep(),
@@ -464,14 +465,14 @@ resource "azurerm_virtual_network" "test" {
   name                = "acctest-VirtualNetwork-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
+  address_space       = ["10.6.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctest-Subnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefix       = "10.6.2.0/24"
 
   delegation {
     name = "testdelegation"

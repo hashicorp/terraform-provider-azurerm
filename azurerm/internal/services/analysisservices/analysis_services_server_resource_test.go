@@ -1,4 +1,4 @@
-package tests
+package analysisservices_test
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
+func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,7 +34,7 @@ func TestAccAzureRMAnalysisServicesServer_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
+func TestAccAnalysisServicesServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -50,6 +50,7 @@ func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.label", "test"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAnalysisServicesServer_withTagsUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -59,11 +60,12 @@ func TestAccAzureRMAnalysisServicesServer_withTags(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "prod"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
+func TestAccAnalysisServicesServer_querypoolConnectionMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -78,6 +80,7 @@ func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) 
 					resource.TestCheckResourceAttr(data.ResourceName, "querypool_connection_mode", "All"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAnalysisServicesServer_querypoolConnectionMode(data, "ReadOnly"),
 				Check: resource.ComposeTestCheckFunc(
@@ -85,11 +88,12 @@ func TestAccAzureRMAnalysisServicesServer_querypoolConnectionMode(t *testing.T) 
 					resource.TestCheckResourceAttr(data.ResourceName, "querypool_connection_mode", "ReadOnly"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
+func TestAccAnalysisServicesServer_firewallSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	config1 := testAccAzureRMAnalysisServicesServer_firewallSettings1(data, true)
 
@@ -110,6 +114,7 @@ func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.#", "0"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
@@ -118,11 +123,7 @@ func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.#", "1"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 			{
 				Config: config3,
 				Check: resource.ComposeTestCheckFunc(
@@ -131,11 +132,7 @@ func TestAccAzureRMAnalysisServicesServer_firewallSettings(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "ipv4_firewall_rule.#", "2"),
 				),
 			},
-			{
-				ResourceName:      data.ResourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			data.ImportStep(),
 		},
 	})
 }
