@@ -88,8 +88,34 @@ func resourceArmKustoCluster() *schema.Resource {
 
 						"capacity": {
 							Type:         schema.TypeInt,
-							Required:     true,
+							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.IntBetween(1, 1000),
+						},
+					},
+				},
+			},
+
+			"optimized_auto_scale": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"minimum_instances": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 1000),
+						},
+						"maximum_instances": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 					},
 				},
@@ -189,14 +215,33 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	sku, err := expandKustoClusterSku(d)
+	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
 		return err
 	}
 
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
+	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
+
+	if optimizedAutoScale != nil && *optimizedAutoScale.IsEnabled {
+		// if Capacity has not been set use min instances
+		if *sku.Capacity == 0 {
+			sku.Capacity = utils.Int32(int32(*optimizedAutoScale.Minimum))
+		}
+
+		// Capacity must be set for the initial creation when using OptimizedAutoScaling but cannot be updated
+		if d.HasChange("sku.0.capacity") && !d.IsNewResource() {
+			return fmt.Errorf("cannot change `sku.capacity` when `optimized_auto_scaling.enabled` is set to `true`")
+		}
+
+		if *optimizedAutoScale.Minimum > *optimizedAutoScale.Maximum {
+			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
+		}
+	}
+
 	clusterProperties := kusto.ClusterProperties{
+		OptimizedAutoscale:    optimizedAutoScale,
 		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
@@ -325,6 +370,9 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("zones", azure.FlattenZones(clusterResponse.Zones)); err != nil {
 		return fmt.Errorf("Error setting `zones`: %+v", err)
 	}
+	if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(clusterResponse.OptimizedAutoscale)); err != nil {
+		return fmt.Errorf("Error setting `optimized_auto_scale`: %+v", err)
+	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
@@ -375,10 +423,58 @@ func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string
 	return warnings, errors
 }
 
-func expandKustoClusterSku(d *schema.ResourceData) (*kusto.AzureSku, error) {
-	skuList := d.Get("sku").([]interface{})
+func expandOptimizedAutoScale(input []interface{}) *kusto.OptimizedAutoscale {
+	if len(input) == 0 {
+		return nil
+	}
 
-	sku := skuList[0].(map[string]interface{})
+	config := input[0].(map[string]interface{})
+	enabled := config["enabled"].(bool)
+	minimumInstances := int32(config["minimum_instances"].(int))
+	maximumInstances := int32(config["maximum_instances"].(int))
+
+	var version int32 = 1
+	optimizedAutoScale := &kusto.OptimizedAutoscale{
+		Version:   &version,
+		IsEnabled: &enabled,
+		Minimum:   &minimumInstances,
+		Maximum:   &maximumInstances,
+	}
+
+	return optimizedAutoScale
+}
+
+func flattenOptimizedAutoScale(optimizedAutoScale *kusto.OptimizedAutoscale) []interface{} {
+	if optimizedAutoScale == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	if optimizedAutoScale.IsEnabled != nil {
+		enabled = *optimizedAutoScale.IsEnabled
+	}
+
+	maxInstances := 0
+	if optimizedAutoScale.Maximum != nil {
+		maxInstances = int(*optimizedAutoScale.Maximum)
+	}
+
+	minInstances := 0
+	if optimizedAutoScale.Minimum != nil {
+		minInstances = int(*optimizedAutoScale.Minimum)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":           enabled,
+			"maximum_instances": maxInstances,
+			"minimum_instances": minInstances,
+		},
+	}
+}
+
+func expandKustoClusterSku(input []interface{}) (*kusto.AzureSku, error) {
+	sku := input[0].(map[string]interface{})
 	name := sku["name"].(string)
 
 	skuNamePrefixToTier := map[string]string{

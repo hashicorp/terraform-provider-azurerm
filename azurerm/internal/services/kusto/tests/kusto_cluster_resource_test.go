@@ -226,6 +226,50 @@ func TestAccAzureRMKustoCluster_languageExtensions(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKustoCluster_optimizedAutoScale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKustoCluster_optimizedAutoScale(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.minimum_instances", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.maximum_instances", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.enabled", "true"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKustoCluster_optimizedAutoScaleUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.minimum_instances", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.maximum_instances", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.enabled", "true"),
+				),
+			},
+			{
+				Config: testAccAzureRMKustoCluster_optimizedAutoScaleDisable(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.minimum_instances", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.maximum_instances", "4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "optimized_auto_scale.0.enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMKustoCluster_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -460,6 +504,91 @@ resource "azurerm_kusto_cluster" "test" {
   }
 
   language_extensions = ["R"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMKustoCluster_optimizedAutoScale(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name = "Standard_D11_v2"
+  }
+
+  optimized_auto_scale {
+    minimum_instances = 2
+    maximum_instances = 3
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMKustoCluster_optimizedAutoScaleUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name = "Standard_D11_v2"
+  }
+
+  optimized_auto_scale {
+    minimum_instances = 3
+    maximum_instances = 4
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMKustoCluster_optimizedAutoScaleDisable(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name = "Standard_D11_v2"
+  }
+
+  optimized_auto_scale {
+    minimum_instances = 3
+    maximum_instances = 4
+    enabled           = false
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
