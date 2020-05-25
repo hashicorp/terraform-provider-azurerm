@@ -1080,8 +1080,8 @@ resource "azurerm_batch_pool" "test" {
   }
 
   container_configuration {
-    type = "DockerCompatible"
-    container_image_names = [ "centos7" ]
+    type                  = "DockerCompatible"
+    container_image_names = ["centos7"]
     container_registries {
       registry_server = "myContainerRegistry.azurecr.io"
       user_name       = "myUserName"
