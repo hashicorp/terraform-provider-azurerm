@@ -48,7 +48,7 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"integration_account_id": {
+			"logic_app_integration_account_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.IntegrationAccountID,
@@ -152,7 +152,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("integration_account_id"); ok {
+	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
 		properties.WorkflowProperties.IntegrationAccount = &logic.ResourceReference{
 			ID: utils.String(v.(string)),
 		}
@@ -219,7 +219,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("integration_account_id"); ok {
+	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
 		properties.WorkflowProperties.IntegrationAccount = &logic.ResourceReference{
 			ID: utils.String(v.(string)),
 		}
@@ -294,7 +294,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
 			integrationAcc = *props.IntegrationAccount.ID
 		}
-		d.Set("integration_account_id", integrationAcc)
+		d.Set("logic_app_integration_account_id", integrationAcc)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

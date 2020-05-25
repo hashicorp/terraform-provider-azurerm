@@ -32,9 +32,9 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"integration_account_id": {
-				Type:         schema.TypeString,
-				Computed:     true,
+			"logic_app_integration_account_id": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
@@ -144,7 +144,7 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
 			integrationAcc = *props.IntegrationAccount.ID
 		}
-		d.Set("integration_account_id", integrationAcc)
+		d.Set("logic_app_integration_account_id", integrationAcc)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
