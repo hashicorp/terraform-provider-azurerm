@@ -14,7 +14,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - exposing the `oms_agent_identity` block within the `addon_profile` block [GH-7056]
 
 BUG FIXES:
-
+* `azurerm_api_management_api_version_set` - handling changes to the Azure Resource ID [GH-7071]
 * `azurerm_key_vault_certificate` - fixing a bug when using externally-signed certificates (using the `Unknown` issuer) where polling would continue indefinitely [GH-6979]
 * `azurerm_linux_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
 * `azurerm_linux_virtual_machine` - allow setting `virtual_machine_scale_set_id` in non-zonal deployment [GH-7057]
