@@ -1,4 +1,4 @@
-package tests
+package devtestlabs_test
 
 import (
 	"fmt"
@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMDevTestLab_basic(t *testing.T) {
+func TestAccDevTestLab_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
+		CheckDestroy: testCheckDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLab_basic(data),
+				Config: testAccDevTestLab_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabExists(data.ResourceName),
+					testCheckDevTestLabExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Premium"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
@@ -32,40 +32,40 @@ func TestAccAzureRMDevTestLab_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
+func TestAccDevTestLab_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
+		CheckDestroy: testCheckDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLab_basic(data),
+				Config: testAccDevTestLab_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabExists(data.ResourceName),
+					testCheckDevTestLabExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDevTestLab_requiresImport(data),
+				Config:      testAccDevTestLab_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_lab"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMDevTestLab_complete(t *testing.T) {
+func TestAccDevTestLab_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_lab", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestLabDestroy,
+		CheckDestroy: testCheckDevTestLabDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestLab_complete(data),
+				Config: testAccDevTestLab_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestLabExists(data.ResourceName),
+					testCheckDevTestLabExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.Hello", "World"),
@@ -76,7 +76,7 @@ func TestAccAzureRMDevTestLab_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFunc {
+func testCheckDevTestLabExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -106,7 +106,7 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 	}
 }
 
-func testCheckAzureRMDevTestLabDestroy(s *terraform.State) error {
+func testCheckDevTestLabDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.LabsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -134,7 +134,7 @@ func testCheckAzureRMDevTestLabDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevTestLab_basic(data acceptance.TestData) string {
+func testAccDevTestLab_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -153,8 +153,8 @@ resource "azurerm_dev_test_lab" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestLab_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDevTestLab_basic(data)
+func testAccDevTestLab_requiresImport(data acceptance.TestData) string {
+	template := testAccDevTestLab_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -166,7 +166,7 @@ resource "azurerm_dev_test_lab" "import" {
 `, template)
 }
 
-func testAccAzureRMDevTestLab_complete(data acceptance.TestData) string {
+func testAccDevTestLab_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

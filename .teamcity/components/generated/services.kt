@@ -70,6 +70,7 @@ var services = mapOf(
         "storage" to "Storage",
         "streamanalytics" to "Stream Analytics",
         "subscription" to "Subscription",
+        "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
         "web" to "Web"
 )
