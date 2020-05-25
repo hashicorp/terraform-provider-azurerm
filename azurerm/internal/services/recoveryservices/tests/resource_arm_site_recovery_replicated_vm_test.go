@@ -126,7 +126,7 @@ resource "azurerm_virtual_network" "test2" {
   location            = azurerm_site_recovery_fabric.test2.location
 }
 resource "azurerm_subnet" "test2_1" {
-  name                 = "snet-%d_1"
+  name                 = "acctest-snet-%d_1"
   resource_group_name  = "${azurerm_resource_group.test2.name}"
   virtual_network_name = "${azurerm_virtual_network.test2.name}"
   address_prefix       = "192.168.2.0/27"
