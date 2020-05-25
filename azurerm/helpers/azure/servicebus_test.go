@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestDataBoxJobName(t *testing.T) {
+func TestValidateServiceBusTopicName(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
