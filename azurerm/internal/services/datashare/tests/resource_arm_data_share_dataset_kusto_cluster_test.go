@@ -74,7 +74,7 @@ resource "azurerm_data_share_account" "test" {
 resource "azurerm_data_share" "test" {
   name       = "acctest_ds_%[1]d"
   account_id = azurerm_data_share_account.test.id
-  kind = "InPlace"
+  kind       = "InPlace"
 }
 
 resource "azurerm_kusto_cluster" "test" {
