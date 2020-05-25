@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `enable_purge` - (Optional) Specifies if the purge operations are enabled.
 
+* `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -62,6 +64,15 @@ A `sku` block supports the following:
 
 * `capacity` - (Required) Specifies the node count for the cluster. Boundaries depend on the sku name.
 
+---
+
+A `virtual_network_configuration` block supports the following:
+
+* `subnet_id` - (Required) The subnet resource id.
+
+* `engine_public_ip_id` - (Required) Engine service's public IP address resource id.
+
+* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id.
 
 ## Attributes Reference
 
