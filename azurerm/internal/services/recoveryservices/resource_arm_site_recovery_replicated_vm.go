@@ -206,39 +206,8 @@ func netwrokInterfaceResource() *schema.Resource {
 func resourceArmSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
-
 	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
-
-	err1 := initialCreation(d, client, meta)
-	if err1 != nil {
-		return err1
-	}
-
-	err2 := updateReplication(d, client, meta)
-	if err2 != nil {
-		return err2
-	}
-
-	return resourceArmSiteRecoveryReplicatedItemRead(d, meta)
-}
-
-func resourceArmSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta interface{}) error {
-	resGroup := d.Get("resource_group_name").(string)
-	vaultName := d.Get("recovery_vault_name").(string)
-
-	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
-
-	err := updateReplication(d, client, meta)
-	if err != nil {
-		return err
-	}
-
-	return resourceArmSiteRecoveryReplicatedItemRead(d, meta)
-}
-
-func initialCreation(d *schema.ResourceData, client siterecovery.ReplicationProtectedItemsClient, meta interface{}) error {
 	name := d.Get("name").(string)
-	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
 	sourceVmId := d.Get("source_vm_id").(string)
 	policyId := d.Get("recovery_replication_policy_id").(string)
@@ -248,8 +217,7 @@ func initialCreation(d *schema.ResourceData, client siterecovery.ReplicationProt
 
 	var targetAvailabilitySetID *string
 	if id, isSet := d.GetOk("target_availability_set_id"); isSet {
-		tmp := id.(string)
-		targetAvailabilitySetID = &tmp
+		targetAvailabilitySetID = utils.String(id.(string))
 	} else {
 		targetAvailabilitySetID = nil
 	}
@@ -315,10 +283,17 @@ func initialCreation(d *schema.ResourceData, client siterecovery.ReplicationProt
 	}
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
-	return nil
+
+	// We are not allowed to configure the NIC on the initial setup, and the VM has to be replicated before
+	// we can reconfigure. Hence this call to update when we create.
+	return resourceArmSiteRecoveryReplicatedItemUpdate(d, meta)
 }
 
-func updateReplication(d *schema.ResourceData, client siterecovery.ReplicationProtectedItemsClient, meta interface{}) error {
+func resourceArmSiteRecoveryReplicatedItemUpdate(d *schema.ResourceData, meta interface{}) error {
+	resGroup := d.Get("resource_group_name").(string)
+	vaultName := d.Get("recovery_vault_name").(string)
+	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+
 	// We are only allowed to update the configuration once the VM is fully protected
 	state, err := waitForReplicationToBeHealthy(d, meta)
 	if err != nil {
@@ -326,7 +301,6 @@ func updateReplication(d *schema.ResourceData, client siterecovery.ReplicationPr
 	}
 
 	name := d.Get("name").(string)
-	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
 	sourceProtectionContainerName := d.Get("source_recovery_protection_container_name").(string)
 	targetNetworkId := d.Get("target_network_id").(string)
@@ -398,6 +372,7 @@ func updateReplication(d *schema.ResourceData, client siterecovery.ReplicationPr
 			},
 		},
 	}
+
 	future, err := client.Update(ctx, fabricName, sourceProtectionContainerName, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error updating replicated vm %s (vault %s): %+v", name, vaultName, err)
@@ -406,7 +381,7 @@ func updateReplication(d *schema.ResourceData, client siterecovery.ReplicationPr
 		return fmt.Errorf("Error updating replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
-	return nil
+	return resourceArmSiteRecoveryReplicatedItemRead(d, meta)
 }
 
 func findNicId(state *siterecovery.ReplicationProtectedItem, sourceNicId string) *string {
@@ -427,13 +402,14 @@ func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
+
 	resGroup := id.ResourceGroup
 	vaultName := id.Path["vaults"]
+	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	fabricName := id.Path["replicationFabrics"]
 	protectionContainerName := id.Path["replicationProtectionContainers"]
 	name := id.Path["replicationProtectedItems"]
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -479,9 +455,15 @@ func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta inte
 			nicsOutput := make([]interface{}, 0)
 			for _, nic := range *a2aDetails.VMNics {
 				nicOutput := make(map[string]interface{})
-				nicOutput["source_network_interface_id"] = *nic.SourceNicArmID
-				nicOutput["target_static_ip"] = *nic.ReplicaNicStaticIPAddress
-				nicOutput["target_subnet_name"] = *nic.RecoveryVMSubnetName
+				if nic.SourceNicArmID != nil {
+					nicOutput["source_network_interface_id"] = *nic.SourceNicArmID
+				}
+				if nic.ReplicaNicStaticIPAddress != nil {
+					nicOutput["target_static_ip"] = *nic.ReplicaNicStaticIPAddress
+				}
+				if nic.RecoveryVMSubnetName != nil {
+					nicOutput["target_subnet_name"] = *nic.RecoveryVMSubnetName
+				}
 				nicsOutput = append(nicsOutput, nicOutput)
 			}
 			d.Set("network_interface", schema.NewSet(schema.HashResource(netwrokInterfaceResource()), nicsOutput))
@@ -499,6 +481,7 @@ func resourceArmSiteRecoveryReplicatedItemDelete(d *schema.ResourceData, meta in
 
 	resGroup := id.ResourceGroup
 	vaultName := id.Path["vaults"]
+	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	fabricName := id.Path["replicationFabrics"]
 	protectionContainerName := id.Path["replicationProtectionContainers"]
 	name := id.Path["replicationProtectedItems"]
@@ -510,7 +493,6 @@ func resourceArmSiteRecoveryReplicatedItemDelete(d *schema.ResourceData, meta in
 		},
 	}
 
-	client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	future, err := client.Delete(ctx, fabricName, protectionContainerName, name, disableProtectionInput)
@@ -540,15 +522,11 @@ func waitForReplicationToBeHealthy(d *schema.ResourceData, meta interface{}) (*s
 	log.Printf("Waiting for Site Recover to replicate VM.")
 	stateConf := &resource.StateChangeConf{
 		Target:       []string{"Protected"},
-		Refresh:      replicationToBeHealthyRefreshFunc(d, meta),
+		Refresh:      waitForReplicationToBeHealthyRefreshFunc(d, meta),
 		PollInterval: time.Minute,
 	}
 
-	if features.SupportsCustomTimeouts() {
-		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
-	} else {
-		stateConf.Timeout = 4 * time.Hour
-	}
+	stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
 
 	result, err := stateConf.WaitForState()
 	if err != nil {
@@ -563,19 +541,20 @@ func waitForReplicationToBeHealthy(d *schema.ResourceData, meta interface{}) (*s
 	}
 }
 
-func replicationToBeHealthyRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
+func waitForReplicationToBeHealthyRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {
 			return nil, "", err
 		}
+
 		resGroup := id.ResourceGroup
 		vaultName := id.Path["vaults"]
+		client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 		fabricName := id.Path["replicationFabrics"]
 		protectionContainerName := id.Path["replicationProtectionContainers"]
 		name := id.Path["replicationProtectedItems"]
 
-		client := meta.(*clients.Client).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
@@ -584,12 +563,26 @@ func replicationToBeHealthyRefreshFunc(d *schema.ResourceData, meta interface{})
 			return nil, "", fmt.Errorf("Error making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 		}
 
+		if resp.Properties == nil {
+			return nil, "", fmt.Errorf("Missing Properties in response when making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
+		}
+
+		if resp.Properties.ProviderSpecificDetails == nil {
+			return nil, "", fmt.Errorf("Missing Properties.ProviderSpecificDetails in response when making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
+		}
+
 		// Find first disk that is not fully replicated yet
 		if a2aDetails, isA2a := resp.Properties.ProviderSpecificDetails.AsA2AReplicationDetails(); isA2a {
 			if a2aDetails.MonitoringPercentageCompletion != nil {
 				log.Printf("Waiting for Site Recover to replicate VM, %d%% complete.", *a2aDetails.MonitoringPercentageCompletion)
 			}
-			return resp, *a2aDetails.VMProtectionState, nil
+			if a2aDetails.VMProtectionState == nil {
+				return resp, *a2aDetails.VMProtectionState, nil
+			}
+		}
+
+		if resp.Properties.ReplicationHealth == nil {
+			fmt.Errorf("Missing ReplicationHealth in response when making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 		}
 		return resp, *resp.Properties.ReplicationHealth, nil
 	}

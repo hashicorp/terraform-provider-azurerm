@@ -2,9 +2,7 @@ package tests
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -25,7 +23,6 @@ func TestAccAzureRMSiteRecoveryReplicatedVm_basic(t *testing.T) {
 				Config: testAccAzureRMSiteRecoveryReplicatedVm_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSiteRecoveryReplicatedVmExists(data.ResourceName),
-					testCheckCorrectTargetSubnet(data.ResourceName, fmt.Sprintf("snet-%d_2", data.RandomInteger)),
 				),
 			},
 			data.ImportStep(),
@@ -40,17 +37,17 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%d-1"
-  location = "%s"
+  name     = "acctestRG-recovery-%[1]d-1"
+  location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG-recovery-%d-2"
-  location = "%s"
+  name     = "acctestRG-recovery-%[1]d-2"
+  location = "%[3]s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-vault-%d"
+  name                = "acctest-vault-%[1]d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
@@ -61,14 +58,14 @@ resource "azurerm_recovery_services_vault" "test" {
 resource "azurerm_site_recovery_fabric" "test1" {
   resource_group_name = azurerm_resource_group.test2.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
-  name                = "acctest-fabric1-%d"
+  name                = "acctest-fabric1-%[1]d"
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_site_recovery_fabric" "test2" {
   resource_group_name = azurerm_resource_group.test2.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
-  name                = "acctest-fabric2-%d"
+  name                = "acctest-fabric2-%[1]d"
   location            = azurerm_resource_group.test2.location
   depends_on          = [azurerm_site_recovery_fabric.test1]
 }
@@ -77,20 +74,20 @@ resource "azurerm_site_recovery_protection_container" "test1" {
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
-  name                 = "acctest-protection-cont1-%d"
+  name                 = "acctest-protection-cont1-%[1]d"
 }
 
 resource "azurerm_site_recovery_protection_container" "test2" {
   resource_group_name  = azurerm_resource_group.test2.name
   recovery_vault_name  = azurerm_recovery_services_vault.test.name
   recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
-  name                 = "acctest-protection-cont2-%d"
+  name                 = "acctest-protection-cont2-%[1]d"
 }
 
 resource "azurerm_site_recovery_replication_policy" "test" {
   resource_group_name                                  = azurerm_resource_group.test2.name
   recovery_vault_name                                  = azurerm_recovery_services_vault.test.name
-  name                                                 = "acctest-policy-%d"
+  name                                                 = "acctest-policy-%[1]d"
   recovery_point_retention_in_minutes                  = 24 * 60
   application_consistent_snapshot_frequency_in_minutes = 4 * 60
 }
@@ -102,45 +99,46 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
   recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
   recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
   recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
-  name                                      = "mapping-%d"
+  name                                      = "mapping-%[1]d"
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                = "net-%d"
+  name                = "net-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
 }
 
 resource "azurerm_subnet" "test1" {
-  name                 = "snet-%d"
+  name                 = "snet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test1.name
   address_prefix       = "192.168.1.0/24"
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                = "net-%d"
+  name                = "net-%[1]d"
   resource_group_name = azurerm_resource_group.test2.name
   address_space       = ["192.168.2.0/24"]
   location            = azurerm_site_recovery_fabric.test2.location
 }
+
 resource "azurerm_subnet" "test2_1" {
-  name                 = "acctest-snet-%d_1"
+  name                 = "acctest-snet-%[1]d_1"
   resource_group_name  = "${azurerm_resource_group.test2.name}"
   virtual_network_name = "${azurerm_virtual_network.test2.name}"
   address_prefix       = "192.168.2.0/27"
 }
 
 resource "azurerm_subnet" "test2_2" {
-  name                 = "snet-%d_2"
+  name                 = "snet-%[1]d_2"
   resource_group_name  = "${azurerm_resource_group.test2.name}"
   virtual_network_name = "${azurerm_virtual_network.test2.name}"
   address_prefix       = "192.168.2.32/27"
 }
 
 resource "azurerm_subnet" "test2_3" {
-  name                 = "snet-%d_3"
+  name                 = "snet-%[1]d_3"
   resource_group_name  = "${azurerm_resource_group.test2.name}"
   virtual_network_name = "${azurerm_virtual_network.test2.name}"
   address_prefix       = "192.168.2.64/27"
@@ -149,7 +147,7 @@ resource "azurerm_subnet" "test2_3" {
 resource "azurerm_site_recovery_network_mapping" "test" {
   resource_group_name         = azurerm_resource_group.test2.name
   recovery_vault_name         = azurerm_recovery_services_vault.test.name
-  name                        = "mapping-%d"
+  name                        = "mapping-%[1]d"
   source_recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
   target_recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
   source_network_id           = azurerm_virtual_network.test1.id
@@ -157,19 +155,19 @@ resource "azurerm_site_recovery_network_mapping" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "vm-%d"
+  name                = "vm-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
   ip_configuration {
-    name                          = "vm-%d"
+    name                          = "vm-%[1]d"
     subnet_id                     = azurerm_subnet.test1.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                = "vm-%d"
+  name                = "vm-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -183,7 +181,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   storage_os_disk {
-    name              = "disk-%d"
+    name              = "disk-%[1]d"
     os_type           = "Linux"
     caching           = "ReadWrite"
     create_option     = "FromImage"
@@ -193,7 +191,7 @@ resource "azurerm_virtual_machine" "test" {
   os_profile {
     admin_username = "testadmin"
     admin_password = "Password1234!"
-    computer_name  = "vm-%d"
+    computer_name  = "vm-%[1]d"
   }
 
   os_profile_linux_config {
@@ -203,7 +201,7 @@ resource "azurerm_virtual_machine" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acct%d"
+  name                     = "acct%[1]d"
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -211,7 +209,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_site_recovery_replicated_vm" "test" {
-  name                                      = "repl-%d"
+  name                                      = "repl-%[1]d"
   resource_group_name                       = azurerm_resource_group.test2.name
   recovery_vault_name                       = azurerm_recovery_services_vault.test.name
   source_vm_id                              = azurerm_virtual_machine.test.id
@@ -233,7 +231,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
-    target_subnet_name          = "snet-%d_2"
+    target_subnet_name          = "snet-%[1]d_2"
   }
 
   depends_on = [
@@ -241,7 +239,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
 func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resource.TestCheckFunc {
@@ -272,29 +270,6 @@ func testCheckAzureRMSiteRecoveryReplicatedVmExists(resourceName string) resourc
 		}
 
 		return nil
-	}
-}
-
-func testCheckCorrectTargetSubnet(resourceName string, expectedTargetSubnet string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		state, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		keyMatcher := regexp.MustCompile(`network_interface\.[0-9]*\.target_subnet_name`)
-
-		for key, value := range state.Primary.Attributes {
-			log.Printf("Testing state key %q", key)
-			if keyMatcher.MatchString(key) {
-				if value == expectedTargetSubnet {
-					return nil
-				} else {
-					return fmt.Errorf("Bad target subnet: %q (expected %q)", value, expectedTargetSubnet)
-				}
-			}
-		}
-		return fmt.Errorf("Target subnet not found in state.")
 	}
 }
 
