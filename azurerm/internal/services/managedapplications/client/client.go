@@ -6,14 +6,19 @@ import (
 )
 
 type Client struct {
+	ApplicationClient           *managedapplications.ApplicationsClient
 	ApplicationDefinitionClient *managedapplications.ApplicationDefinitionsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	applicationClient := managedapplications.NewApplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&applicationClient.Client, o.ResourceManagerAuthorizer)
+
 	applicationDefinitionClient := managedapplications.NewApplicationDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&applicationDefinitionClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		ApplicationClient:           &applicationClient,
 		ApplicationDefinitionClient: &applicationDefinitionClient,
 	}
 }

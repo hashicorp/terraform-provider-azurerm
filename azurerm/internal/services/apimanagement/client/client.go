@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -20,13 +20,13 @@ type Client struct {
 	GroupUsersClient           *apimanagement.GroupUserClient
 	IdentityProviderClient     *apimanagement.IdentityProviderClient
 	LoggerClient               *apimanagement.LoggerClient
+	NamedValueClient           *apimanagement.NamedValueClient
 	OpenIdConnectClient        *apimanagement.OpenIDConnectProviderClient
 	PolicyClient               *apimanagement.PolicyClient
 	ProductsClient             *apimanagement.ProductClient
 	ProductApisClient          *apimanagement.ProductAPIClient
 	ProductGroupsClient        *apimanagement.ProductGroupClient
 	ProductPoliciesClient      *apimanagement.ProductPolicyClient
-	PropertyClient             *apimanagement.PropertyClient
 	ServiceClient              *apimanagement.ServiceClient
 	SignInClient               *apimanagement.SignInSettingsClient
 	SignUpClient               *apimanagement.SignUpSettingsClient
@@ -74,6 +74,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	identityProviderClient := apimanagement.NewIdentityProviderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&identityProviderClient.Client, o.ResourceManagerAuthorizer)
 
+	namedValueClient := apimanagement.NewNamedValueClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&namedValueClient.Client, o.ResourceManagerAuthorizer)
+
 	loggerClient := apimanagement.NewLoggerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&loggerClient.Client, o.ResourceManagerAuthorizer)
 
@@ -94,9 +97,6 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	productPoliciesClient := apimanagement.NewProductPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&productPoliciesClient.Client, o.ResourceManagerAuthorizer)
-
-	propertyClient := apimanagement.NewPropertyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&propertyClient.Client, o.ResourceManagerAuthorizer)
 
 	serviceClient := apimanagement.NewServiceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serviceClient.Client, o.ResourceManagerAuthorizer)
@@ -128,13 +128,13 @@ func NewClient(o *common.ClientOptions) *Client {
 		GroupUsersClient:           &groupUsersClient,
 		IdentityProviderClient:     &identityProviderClient,
 		LoggerClient:               &loggerClient,
+		NamedValueClient:           &namedValueClient,
 		OpenIdConnectClient:        &openIdConnectClient,
 		PolicyClient:               &policyClient,
 		ProductsClient:             &productsClient,
 		ProductApisClient:          &productApisClient,
 		ProductGroupsClient:        &productGroupsClient,
 		ProductPoliciesClient:      &productPoliciesClient,
-		PropertyClient:             &propertyClient,
 		ServiceClient:              &serviceClient,
 		SignInClient:               &signInClient,
 		SignUpClient:               &signUpClient,

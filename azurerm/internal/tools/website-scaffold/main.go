@@ -537,28 +537,30 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 	}
 
 	if field.Elem != nil {
-		if _, ok := field.Elem.(*schema.Schema); ok {
-			if gen.blockIsBefore(name, blockName) {
-				return fmt.Sprintf("A `%s` block as defined above.", name)
-			} else {
-				return fmt.Sprintf("A `%s` block as defined below.", name)
-			}
-		}
-
 		if _, ok := field.Elem.(*schema.Resource); ok {
-			if gen.blockIsBefore(name, blockName) {
-				return fmt.Sprintf("A `%s` block as defined above.", name)
-			} else {
-				return fmt.Sprintf("A `%s` block as defined below.", name)
+			fmtBlock := func(name string, maxItem int, blockIsBefore bool) string {
+				var head string
+				if maxItem == 1 {
+					head = fmt.Sprintf("A `%s` block", name)
+				} else {
+					head = fmt.Sprintf("One or more `%s` blocks", name)
+				}
+
+				var tail string
+				if blockIsBefore {
+					tail = "as defined above."
+				} else {
+					tail = "as defined below."
+				}
+				return head + " " + tail
 			}
+			return fmtBlock(name, field.MaxItems, gen.blockIsBefore(name, blockName))
 		}
 	}
-	if field.Type == schema.TypeList {
-		if gen.blockIsBefore(name, blockName) {
-			return fmt.Sprintf("A `%s` block as defined above.", name)
-		} else {
-			return fmt.Sprintf("A `%s` block as defined below.", name)
-		}
+
+	switch field.Type {
+	case schema.TypeList, schema.TypeSet, schema.TypeMap:
+		return "Specifies a list of TODO."
 	}
 
 	return "TODO."

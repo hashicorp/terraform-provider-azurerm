@@ -19,7 +19,7 @@ data "azurerm_managed_disk" "existing" {
 }
 
 output "id" {
-  value = azurerm_managed_disk.existing.id
+  value = data.azurerm_managed_disk.existing.id
 }
 ```
 
