@@ -100,11 +100,6 @@ provider "azuread" {
 resource "azurerm_resource_group" "test" {
   name     = "acctest-datashare-%[1]d"
   location = "%[2]s"
-  lifecycle {
-    ignore_changes = [
-      tags,
-    ]
-  }
 }
 
 resource "azurerm_data_share_account" "test" {
@@ -119,7 +114,7 @@ resource "azurerm_data_share_account" "test" {
 resource "azurerm_data_share" "test" {
   name       = "acctest_ds_%[1]d"
   account_id = azurerm_data_share_account.test.id
-  share_kind = "CopyBased"
+  kind = "CopyBased"
 }
 
 resource "azurerm_storage_account" "test" {

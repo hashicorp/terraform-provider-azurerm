@@ -34,7 +34,7 @@ resource "azurerm_data_share_account" "example" {
 resource "azurerm_data_share" "example" {
   name       = "example_ds"
   account_id = azurerm_data_share_account.example.id
-  share_kind = "InPlace"
+  kind = "InPlace"
 }
 
 resource "azurerm_kusto_cluster" "example" {
