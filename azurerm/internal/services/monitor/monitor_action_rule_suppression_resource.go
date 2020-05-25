@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMonitorActionRule() *schema.Resource {
+func resourceArmMonitorActionRuleSuppression() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMonitorActionRuleCreateUpdate,
-		Read:   resourceArmMonitorActionRuleRead,
-		Update: resourceArmMonitorActionRuleCreateUpdate,
-		Delete: resourceArmMonitorActionRuleDelete,
+		Create: resourceArmMonitorActionRuleSuppressionCreateUpdate,
+		Read:   resourceArmMonitorActionRuleSuppressionRead,
+		Update: resourceArmMonitorActionRuleSuppressionCreateUpdate,
+		Delete: resourceArmMonitorActionRuleSuppressionDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -49,67 +49,10 @@ func resourceArmMonitorActionRule() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(alertsmanagement.TypeActionGroup),
-					string(alertsmanagement.TypeDiagnostics),
-					string(alertsmanagement.TypeSuppression),
-				}, false),
-			},
-
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"scope": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(alertsmanagement.ScopeTypeResourceGroup),
-								string(alertsmanagement.ScopeTypeResource),
-							}, false),
-						},
-
-						"resource_ids": {
-							Type:     schema.TypeSet,
-							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceID,
-							},
-						},
-					},
-				},
-			},
-
-			"action_group_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  validate.ActionGroupID,
-				ConflictsWith: []string{"suppression"},
-			},
-
 			"suppression": {
-				Type:          schema.TypeList,
-				Optional:      true,
-				MaxItems:      1,
-				ConflictsWith: []string{"action_group_id"},
+				Type:     schema.TypeList,
+				Required: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"recurrence_type": {
@@ -161,13 +104,14 @@ func resourceArmMonitorActionRule() *schema.Resource {
 										ConflictsWith: []string{"suppression.0.schedule.0.recurrence_monthly"},
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
-											ValidateFunc: validation.StringInSlice(weekDays, false),
+											ValidateFunc: validation.IsDayOfTheWeek(false),
 										},
 									},
 
 									"recurrence_monthly": {
 										Type:          schema.TypeSet,
 										Optional:      true,
+										MinItems:      1,
 										ConflictsWith: []string{"suppression.0.schedule.0.recurrence_weekly"},
 										Elem: &schema.Schema{
 											Type:         schema.TypeInt,
@@ -181,25 +125,137 @@ func resourceArmMonitorActionRule() *schema.Resource {
 				},
 			},
 
+			"description": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"scope": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(alertsmanagement.ScopeTypeResourceGroup),
+								string(alertsmanagement.ScopeTypeResource),
+							}, false),
+						},
+
+						"resource_ids": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: azure.ValidateResourceID,
+							},
+						},
+					},
+				},
+			},
+
 			"condition": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"alert_context": schemaActionRuleAlertContextCondtion(),
+						"alert_context": schemaActionRuleCondition(
+							validation.StringInSlice([]string{
+								string(alertsmanagement.Equals),
+								string(alertsmanagement.NotEquals),
+								string(alertsmanagement.Contains),
+								string(alertsmanagement.DoesNotContain),
+							}, false),
+							validation.StringIsNotEmpty,
+						),
 
-						"alert_rule_id": schemaActionRuleAlertRuleIDCondtion(),
+						"alert_rule_id": schemaActionRuleCondition(
+							validation.StringInSlice([]string{
+								string(alertsmanagement.Equals),
+								string(alertsmanagement.NotEquals),
+								string(alertsmanagement.Contains),
+								string(alertsmanagement.DoesNotContain),
+							}, false),
+							validation.StringIsNotEmpty,
+						),
 
-						"description": schemaActionRuleDescriptionCondtion(),
+						"description": schemaActionRuleCondition(
+							validation.StringInSlice([]string{
+								string(alertsmanagement.Equals),
+								string(alertsmanagement.NotEquals),
+								string(alertsmanagement.Contains),
+								string(alertsmanagement.DoesNotContain),
+							}, false),
+							validation.StringIsNotEmpty,
+						),
 
-						"monitor": schemaActionRuleMonitorCondtion(),
+						"monitor": schemaActionRuleCondition(
+							validation.StringInSlice([]string{
+								string(alertsmanagement.Equals),
+								string(alertsmanagement.NotEquals),
+							}, false),
+							validation.StringInSlice([]string{
+								string(alertsmanagement.Fired),
+								string(alertsmanagement.Resolved),
+							}, false),
+						),
 
-						"monitor_service": schemaActionRuleMonitorServiceCondtion(),
+						"monitor_service": schemaActionRuleCondition(
+							validation.StringInSlice([]string{
+								string(alertsmanagement.Equals),
+								string(alertsmanagement.NotEquals),
+							}, false),
+							// the supported type list is not consistent with the swagger and sdk
+							// https://github.com/Azure/azure-rest-api-specs/issues/9076
+							// directly use string constant
+							validation.StringInSlice([]string{
+								"ActivityLog Administrative",
+								"ActivityLog Autoscale",
+								"ActivityLog Policy",
+								"ActivityLog Recommendation",
+								"ActivityLog Security",
+								"Application Insights",
+								"Azure Backup",
+								"Data Box Edge",
+								"Data Box Gateway",
+								"Health Platform",
+								"Log Analytics",
+								"Platform",
+								"Resource Health",
+							}, false),
+						),
 
-						"severity": schemaActionRuleSeverityCondtion(),
+						"severity": schemaActionRuleCondition(
+							validation.StringInSlice([]string{
+								string(alertsmanagement.Equals),
+								string(alertsmanagement.NotEquals),
+							}, false),
+							validation.StringInSlice([]string{
+								string(alertsmanagement.Sev0),
+								string(alertsmanagement.Sev1),
+								string(alertsmanagement.Sev2),
+								string(alertsmanagement.Sev3),
+								string(alertsmanagement.Sev4),
+							}, false),
+						),
 
-						"target_resource_type": schemaActionRuleTargetResourceTypeCondtion(),
+						"target_resource_type": schemaActionRuleCondition(
+							validation.StringInSlice([]string{
+								string(alertsmanagement.Equals),
+								string(alertsmanagement.NotEquals),
+							}, false),
+							validation.StringIsNotEmpty,
+						),
 					},
 				},
 			},
@@ -209,7 +265,7 @@ func resourceArmMonitorActionRule() *schema.Resource {
 	}
 }
 
-func resourceArmMonitorActionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActionRuleSuppressionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -225,84 +281,52 @@ func resourceArmMonitorActionRuleCreateUpdate(d *schema.ResourceData, meta inter
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_monitor_action_rule", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_monitor_action_rule_suppression", *existing.ID)
 		}
 	}
-
-	actionRule := alertsmanagement.ActionRule{
-		// the location is always global from the portal
-		Location: utils.String(location.Normalize("Global")),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	t := alertsmanagement.Type(d.Get("type").(string))
-	description := d.Get("description").(string)
-	scope := expandArmActionRuleScope(d.Get("scope").([]interface{}))
-	conditions := expandArmActionRuleConditions(d.Get("condition").([]interface{}))
 
 	actionRuleStatus := alertsmanagement.Enabled
 	if !d.Get("enabled").(bool) {
 		actionRuleStatus = alertsmanagement.Disabled
 	}
 
-	switch t {
-	case alertsmanagement.TypeSuppression:
-		suppressionConfig, err := expandArmActionRuleSuppressionConfig(d.Get("suppression").([]interface{}))
-		if err != nil {
-			return err
-		}
-		if suppressionConfig == nil {
-			return fmt.Errorf("`suppression` field must be set when type is `Suppression`.")
-		}
-		actionRule.Properties = &alertsmanagement.Suppression{
+	suppressionConfig, err := expandArmActionRuleSuppressionConfig(d.Get("suppression").([]interface{}))
+	if err != nil {
+		return err
+	}
+
+	actionRule := alertsmanagement.ActionRule{
+		// the location is always global from the portal
+		Location: utils.String(location.Normalize("Global")),
+		Properties: &alertsmanagement.Suppression{
 			SuppressionConfig: suppressionConfig,
-			Scope:             scope,
-			Conditions:        conditions,
-			Description:       utils.String(description),
+			Scope:             expandArmActionRuleScope(d.Get("scope").([]interface{})),
+			Conditions:        expandArmActionRuleConditions(d.Get("condition").([]interface{})),
+			Description:       utils.String(d.Get("description").(string)),
 			Status:            actionRuleStatus,
-			Type:              t,
-		}
-	case alertsmanagement.TypeActionGroup:
-		actionGroupId := d.Get("action_group_id").(string)
-		if actionGroupId == "" {
-			return fmt.Errorf("`action_group_id` field must be set when type is `ActionGroup`.")
-		}
-		actionRule.Properties = &alertsmanagement.ActionGroup{
-			ActionGroupID: utils.String(actionGroupId),
-			Scope:         scope,
-			Conditions:    conditions,
-			Description:   utils.String(description),
-			Status:        actionRuleStatus,
-			Type:          t,
-		}
-	case alertsmanagement.TypeDiagnostics:
-		actionRule.Properties = &alertsmanagement.Diagnostics{
-			Scope:       scope,
-			Conditions:  conditions,
-			Description: utils.String(description),
-			Status:      actionRuleStatus,
-			Type:        t,
-		}
+			Type:              alertsmanagement.TypeSuppression,
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.CreateUpdate(ctx, resourceGroup, name, actionRule); err != nil {
-		return fmt.Errorf("creating/updatinge AlertsManagement ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating/updatinge Monitor ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.GetByName(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("retrieving AlertsManagement ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Monitor ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for AlertsManagement ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("empty or nil ID returned for Monitor ActionRule %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmMonitorActionRuleRead(d, meta)
+	return resourceArmMonitorActionRuleSuppressionRead(d, meta)
 }
 
-func resourceArmMonitorActionRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActionRuleSuppressionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -324,50 +348,25 @@ func resourceArmMonitorActionRuleRead(d *schema.ResourceData, meta interface{}) 
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-
 	if resp.Properties != nil {
-		switch props := resp.Properties.(type) {
-		case alertsmanagement.Suppression:
-			if err := d.Set("suppression", flattenArmActionRuleSuppression(props.SuppressionConfig)); err != nil {
-				return fmt.Errorf("setting suppression: %+v", err)
-			}
-			if err := d.Set("scope", flattenArmActionRuleScope(props.Scope)); err != nil {
-				return fmt.Errorf("setting scope: %+v", err)
-			}
-			if err := d.Set("condition", flattenArmActionRuleConditions(props.Conditions)); err != nil {
-				return fmt.Errorf("setting condition: %+v", err)
-			}
-			d.Set("type", string(props.Type))
-			d.Set("description", props.Description)
-			d.Set("enabled", props.Status == alertsmanagement.Enabled)
-		case alertsmanagement.ActionGroup:
-			if err := d.Set("scope", flattenArmActionRuleScope(props.Scope)); err != nil {
-				return fmt.Errorf("setting scope: %+v", err)
-			}
-			if err := d.Set("condition", flattenArmActionRuleConditions(props.Conditions)); err != nil {
-				return fmt.Errorf("setting condition: %+v", err)
-			}
-			d.Set("type", string(props.Type))
-			d.Set("description", props.Description)
-			d.Set("enabled", props.Status == alertsmanagement.Enabled)
-			d.Set("action_group_id", props.ActionGroupID)
-		case alertsmanagement.Diagnostics:
-			if err := d.Set("scope", flattenArmActionRuleScope(props.Scope)); err != nil {
-				return fmt.Errorf("setting scope: %+v", err)
-			}
-			if err := d.Set("condition", flattenArmActionRuleConditions(props.Conditions)); err != nil {
-				return fmt.Errorf("setting condition: %+v", err)
-			}
-			d.Set("type", string(props.Type))
-			d.Set("description", props.Description)
-			d.Set("enabled", props.Status == alertsmanagement.Enabled)
+		props, _ := resp.Properties.AsSuppression()
+		d.Set("description", props.Description)
+		d.Set("enabled", props.Status == alertsmanagement.Enabled)
+		if err := d.Set("suppression", flattenArmActionRuleSuppression(props.SuppressionConfig)); err != nil {
+			return fmt.Errorf("setting suppression: %+v", err)
+		}
+		if err := d.Set("scope", flattenArmActionRuleScope(props.Scope)); err != nil {
+			return fmt.Errorf("setting scope: %+v", err)
+		}
+		if err := d.Set("condition", flattenArmActionRuleConditions(props.Conditions)); err != nil {
+			return fmt.Errorf("setting condition: %+v", err)
 		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmMonitorActionRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMonitorActionRuleSuppressionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Monitor.ActionRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -381,35 +380,6 @@ func resourceArmMonitorActionRuleDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("deleting monitor ActionRule %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	return nil
-}
-
-func expandArmActionRuleScope(input []interface{}) *alertsmanagement.Scope {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-	return &alertsmanagement.Scope{
-		ScopeType: alertsmanagement.ScopeType(v["type"].(string)),
-		Values:    utils.ExpandStringSlice(v["resource_ids"].(*schema.Set).List()),
-	}
-}
-
-func expandArmActionRuleConditions(input []interface{}) *alertsmanagement.Conditions {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-
-	return &alertsmanagement.Conditions{
-		AlertContext:       expandArmActionRuleCondition(v["alert_context"].([]interface{})),
-		AlertRuleID:        expandArmActionRuleCondition(v["alert_rule_id"].([]interface{})),
-		Description:        expandArmActionRuleCondition(v["description"].([]interface{})),
-		MonitorCondition:   expandArmActionRuleCondition(v["monitor"].([]interface{})),
-		MonitorService:     expandArmActionRuleCondition(v["monitor_service"].([]interface{})),
-		Severity:           expandArmActionRuleCondition(v["severity"].([]interface{})),
-		TargetResourceType: expandArmActionRuleCondition(v["target_resource_type"].([]interface{})),
-	}
 }
 
 func expandArmActionRuleSuppressionConfig(input []interface{}) (*alertsmanagement.SuppressionConfig, error) {
@@ -477,40 +447,6 @@ func expandArmActionRuleSuppressionScheduleRecurrenceWeekly(input []interface{})
 	return result
 }
 
-func flattenArmActionRuleScope(input *alertsmanagement.Scope) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	var scopeType alertsmanagement.ScopeType
-	if input.ScopeType != "" {
-		scopeType = input.ScopeType
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"type":         scopeType,
-			"resource_ids": utils.FlattenStringSlice(input.Values),
-		},
-	}
-}
-
-func flattenArmActionRuleConditions(input *alertsmanagement.Conditions) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-	return []interface{}{
-		map[string]interface{}{
-			"alert_context":        flattenArmActionRuleCondition(input.AlertContext),
-			"alert_rule_id":        flattenArmActionRuleCondition(input.AlertRuleID),
-			"description":          flattenArmActionRuleCondition(input.Description),
-			"monitor":              flattenArmActionRuleCondition(input.MonitorCondition),
-			"monitor_service":      flattenArmActionRuleCondition(input.MonitorService),
-			"severity":             flattenArmActionRuleCondition(input.Severity),
-			"target_resource_type": flattenArmActionRuleCondition(input.TargetResourceType),
-		},
-	}
-}
-
 func flattenArmActionRuleSuppression(input *alertsmanagement.SuppressionConfig) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
@@ -575,16 +511,6 @@ func flattenArmActionRuleSuppressionScheduleRecurrenceWeekly(input *[]int32) []i
 	if input != nil {
 		for _, item := range *input {
 			result = append(result, weekDays[int(item)])
-		}
-	}
-	return result
-}
-
-func FlattenInt32Slice(input *[]int32) []interface{} {
-	result := make([]interface{}, 0)
-	if input != nil {
-		for _, item := range *input {
-			result = append(result, item)
 		}
 	}
 	return result
