@@ -21,6 +21,7 @@ var services = mapOf(
         "datafactory" to "Data Factory",
         "datalake" to "Data Lake",
         "databasemigration" to "Database Migration",
+        "datashare" to "Data Share",
         "devspace" to "DevSpaces",
         "devtestlabs" to "Dev Test",
         "dns" to "DNS",
@@ -69,6 +70,7 @@ var services = mapOf(
         "storage" to "Storage",
         "streamanalytics" to "Stream Analytics",
         "subscription" to "Subscription",
+        "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
         "web" to "Web"
 )

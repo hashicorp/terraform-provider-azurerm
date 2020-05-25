@@ -55,7 +55,6 @@ func resourceServicePrincipal() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				ForceNew: true,
 				Set:      schema.HashString,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -113,6 +112,15 @@ func resourceServicePrincipalUpdate(d *schema.ResourceData, meta interface{}) er
 
 	if d.HasChange("app_role_assignment_required") {
 		properties.AppRoleAssignmentRequired = p.Bool(d.Get("app_role_assignment_required").(bool))
+	}
+
+	if d.HasChange("tags") {
+		if v, ok := d.GetOk("tags"); ok {
+			properties.Tags = tf.ExpandStringSlicePtr(v.(*schema.Set).List())
+		} else {
+			empty := []string{} // clear tags with empty array
+			properties.Tags = &empty
+		}
 	}
 
 	if _, err := client.Update(ctx, d.Id(), properties); err != nil {

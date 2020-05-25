@@ -39,7 +39,7 @@ resource "azurerm_storage_container" "example" {
 }
 
 resource "azurerm_eventhub_namespace" "example" {
-  name                = "example-namesapce"
+  name                = "example-namespace"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku                 = "Basic"

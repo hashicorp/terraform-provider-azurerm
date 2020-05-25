@@ -211,6 +211,18 @@ A `oms_agent` block exports the following:
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which the OMS Agent should send data to.
 
+* `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
+
+---
+
+The `oms_agent_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
+
 ---
 
 A `kube_dashboard` block supports the following:

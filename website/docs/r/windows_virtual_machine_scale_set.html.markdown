@@ -238,6 +238,8 @@ A `data_disk` block supports the following:
 
 * `caching` - (Required) The type of Caching which should be used for this Data Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
+* `create_option` - (Optional) The create option which should be used for this Data Disk. Possible values are `Empty` and `FromImage`. Defaults to `Empty`. (`FromImage` should only be used if the source image includes data disks).
+
 * `disk_size_gb` - (Required) The size of the Data Disk which should be created.
 
 * `lun` - (Required) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine.
@@ -409,6 +411,18 @@ A `winrm_listener` block supports the following:
 -> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
 
 * `protocol` - (Required) The Protocol of the WinRM Listener. Possible values are `Http` and `Https`.
+
+---
+
+`source_image_reference` supports the following:
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 ## Attributes Reference
 

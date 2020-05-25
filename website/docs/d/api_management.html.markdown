@@ -41,6 +41,8 @@ output "api_management_id" {
 
 * `gateway_regional_url` - The URL for the Gateway in the Default Region.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `hostname_configuration` - A `hostname_configuration` block as defined below.
 
 * `management_api_url` - The URL for the Management API.
@@ -73,11 +75,27 @@ A `additional_location` block exports the following:
 
 ---
 
+A `identity` block exports the following:
+
+~> **Note:** User Assigned Managed Identities are in Preview
+
+* `type` - Specifies the type of Managed Service Identity that is configured on this API Management Service.
+
+* `principal_id` - Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+
+* `tenant_id` - Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this API Management Service.
+
+* `identity_ids` - A list of IDs for User Assigned Managed Identity resources to be assigned.
+
+---
+
 A `hostname_configuration` block exports the following:
 
 * `management` - One or more `management` blocks as documented below.
 
 * `portal` - One or more `portal` blocks as documented below.
+
+* `developer_portal` - One or more `developer_portal` blocks as documented below.
 
 * `proxy` - One or more `proxy` blocks as documented below.
 
@@ -96,6 +114,16 @@ A `management` block exports the following:
 ---
 
 A `portal` block exports the following:
+
+* `host_name` - The Hostname used for the Portal.
+
+* `key_vault_id` - The ID of the Key Vault Secret which contains the SSL Certificate.
+
+* `negotiate_client_certificate` - Is Client Certificate Negotiation enabled?
+
+---
+
+A `developer_portal` block exports the following:
 
 * `host_name` - The Hostname used for the Portal.
 
