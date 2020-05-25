@@ -195,6 +195,37 @@ func TestAccAzureRMKustoCluster_vnet(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKustoCluster_languageExtensions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKustoCluster_languageExtensions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.0", "PYTHON"),
+					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.1", "R"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKustoCluster_languageExtensionsRemove(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "language_extensions.0", "R"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMKustoCluster_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -378,34 +409,59 @@ resource "azurerm_kusto_cluster" "test" {
     type = "SystemAssigned"
   }
 }
+  `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMKustoCluster_languageExtensions(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  language_extensions = ["PYTHON", "R"]
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testCheckAzureRMKustoClusterDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
-	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func testAccAzureRMKustoCluster_languageExtensionsRemove(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_kusto_cluster" {
-			continue
-		}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-		resp, err := client.Get(ctx, resourceGroup, name)
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
 
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return nil
-			}
-			return err
-		}
-
-		return nil
-	}
-
-	return nil
+  language_extensions = ["R"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMKustoCluster_vnet(data acceptance.TestData) string {
@@ -491,6 +547,33 @@ resource "azurerm_kusto_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString, data.RandomString)
+}
+
+func testCheckAzureRMKustoClusterDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_kusto_cluster" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		resp, err := client.Get(ctx, resourceGroup, name)
+
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+			return err
+		}
+
+		return nil
+	}
+
+	return nil
 }
 
 func testCheckAzureRMKustoClusterExists(resourceName string) resource.TestCheckFunc {

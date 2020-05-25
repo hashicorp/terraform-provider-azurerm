@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below.
 
+* `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON` and `R`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.

@@ -135,6 +135,18 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"language_extensions": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(kusto.PYTHON),
+						string(kusto.R),
+					}, false),
+				},
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -232,6 +244,46 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
+	if v, ok := d.GetOk("language_extensions"); ok {
+		languageExtensions := expandKustoClusterLanguageExtensions(v.([]interface{}))
+
+		currentLanguageExtensions, err := client.ListLanguageExtensions(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error reading current added language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		languageExtensionsToAdd := diffLanguageExtensions(*languageExtensions.Value, *currentLanguageExtensions.Value)
+		if len(languageExtensionsToAdd) > 0 {
+			languageExtensionsListToAdd := kusto.LanguageExtensionsList{
+				Value: &languageExtensionsToAdd,
+			}
+
+			addLanguageExtensionsFuture, err := client.AddLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToAdd)
+			if err != nil {
+				return fmt.Errorf("Error adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			if err = addLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		languageExtensionsToRemove := diffLanguageExtensions(*currentLanguageExtensions.Value, *languageExtensions.Value)
+		if len(languageExtensionsToRemove) > 0 {
+			languageExtensionsListToRemove := kusto.LanguageExtensionsList{
+				Value: &languageExtensionsToRemove,
+			}
+
+			removeLanguageExtensionsFuture, err := client.RemoveLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToRemove)
+			if err != nil {
+				return fmt.Errorf("Error removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+			if err = removeLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+	}
+
 	return resourceArmKustoClusterRead(d, meta)
 }
 
@@ -279,6 +331,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
 		d.Set("enable_purge", clusterProperties.EnablePurge)
 		d.Set("virtual_network_configuration", flatteKustoClusterVNET(clusterProperties.VirtualNetworkConfiguration))
+		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(clusterProperties.LanguageExtensions))
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
 	}
@@ -366,6 +419,24 @@ func expandKustoClusterVNET(input []interface{}) *kusto.VirtualNetworkConfigurat
 	}
 }
 
+func expandKustoClusterLanguageExtensions(input []interface{}) *kusto.LanguageExtensionsList {
+	if len(input) == 0 {
+		return nil
+	}
+
+	extensions := make([]kusto.LanguageExtension, 0)
+	for _, language := range input {
+		v := kusto.LanguageExtension{
+			LanguageExtensionName: kusto.LanguageExtensionName(language.(string)),
+		}
+		extensions = append(extensions, v)
+	}
+
+	return &kusto.LanguageExtensionsList{
+		Value: &extensions,
+	}
+}
+
 func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
 	if sku == nil {
 		return []interface{}{}
@@ -409,4 +480,33 @@ func flatteKustoClusterVNET(vnet *kusto.VirtualNetworkConfiguration) []interface
 	}
 
 	return []interface{}{output}
+}
+
+func flattenKustoClusterLanguageExtensions(extensions *kusto.LanguageExtensionsList) []interface{} {
+	if extensions == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+	for _, v := range *extensions.Value {
+		output = append(output, v.LanguageExtensionName)
+	}
+
+	return output
+}
+
+func diffLanguageExtensions(a, b []kusto.LanguageExtension) []kusto.LanguageExtension {
+	target := make(map[string]bool)
+	for _, x := range b {
+		target[string(x.LanguageExtensionName)] = true
+	}
+
+	diff := make([]kusto.LanguageExtension, 0)
+	for _, x := range a {
+		if _, ok := target[string(x.LanguageExtensionName)]; !ok {
+			diff = append(diff, x)
+		}
+	}
+
+	return diff
 }
