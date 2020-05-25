@@ -1041,7 +1041,7 @@ func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubsc
 
 func flattenEventGridEventSubscriptionAdvancedFilter(input *eventgrid.EventSubscriptionFilter) []interface{} {
 	results := make([]interface{}, 0)
-	if input == nil {
+	if input == nil || input.AdvancedFilters == nil {
 		return results
 	}
 
