@@ -1,5 +1,9 @@
 ## 2.12.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_dev_test_global_shutdown_schedule` [GH-5536]
+
 IMPROVEMENTS:
 
 * `azurerm_batch_pool` - support the `container_image_names` property [GH-6689]
