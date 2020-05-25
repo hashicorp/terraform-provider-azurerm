@@ -68,6 +68,26 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
+									"oms_agent_identity": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"client_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"object_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+												"user_assigned_identity_id": {
+													Type:     schema.TypeString,
+													Computed: true,
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -664,14 +684,17 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			enabled = *enabledVal
 		}
 
-		workspaceId := ""
+		workspaceID := ""
 		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceId = *workspaceResourceID
+			workspaceID = *workspaceResourceID
 		}
+
+		omsagentIdentity := flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(omsAgent.Identity)
 
 		output := map[string]interface{}{
 			"enabled":                    enabled,
-			"log_analytics_workspace_id": workspaceId,
+			"log_analytics_workspace_id": workspaceID,
+			"oms_agent_identity":         omsagentIdentity,
 		}
 		agents = append(agents, output)
 	}
@@ -706,6 +729,36 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	values["azure_policy"] = azurePolicies
 
 	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	identity := make([]interface{}, 0)
+	clientID := ""
+	if clientid := profile.ClientID; clientid != nil {
+		clientID = *clientid
+	}
+
+	objectID := ""
+	if objectid := profile.ObjectID; objectid != nil {
+		objectID = *objectid
+	}
+
+	userAssignedIdentityID := ""
+	if resourceid := profile.ResourceID; resourceid != nil {
+		userAssignedIdentityID = *resourceid
+	}
+
+	identity = append(identity, map[string]interface{}{
+		"client_id":                 clientID,
+		"object_id":                 objectID,
+		"user_assigned_identity_id": userAssignedIdentityID,
+	})
+
+	return identity
 }
 
 func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservice.ManagedClusterAgentPoolProfile) []interface{} {
@@ -865,8 +918,8 @@ func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containe
 
 	values := make(map[string]interface{})
 
-	if clientId := profile.ClientID; clientId != nil {
-		values["client_id"] = *clientId
+	if clientID := profile.ClientID; clientID != nil {
+		values["client_id"] = *clientID
 	}
 
 	return []interface{}{values}
