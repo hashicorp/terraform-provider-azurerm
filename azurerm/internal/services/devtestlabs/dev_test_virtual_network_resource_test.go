@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 )
 
 func TestValidateDevTestVirtualNetworkName(t *testing.T) {
@@ -21,7 +22,7 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 		"double-hyphen--valid",
 	}
 	for _, v := range validNames {
-		_, errors := ValidateDevTestVirtualNetworkName()(v, "example")
+		_, errors := devtestlabs.ValidateDevTestVirtualNetworkName()(v, "example")
 		if len(errors) != 0 {
 			t.Fatalf("%q should be a valid Dev Test Virtual Network Name: %q", v, errors)
 		}
@@ -32,7 +33,7 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 		"!@£",
 	}
 	for _, v := range invalidNames {
-		_, errors := ValidateDevTestVirtualNetworkName()(v, "name")
+		_, errors := devtestlabs.ValidateDevTestVirtualNetworkName()(v, "name")
 		if len(errors) == 0 {
 			t.Fatalf("%q should be an invalid Dev Test Virtual Network Name", v)
 		}
