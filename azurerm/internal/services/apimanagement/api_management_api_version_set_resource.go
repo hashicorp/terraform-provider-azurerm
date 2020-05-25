@@ -185,12 +185,12 @@ func resourceArmApiManagementApiVersionSetRead(d *schema.ResourceData, meta inte
 	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Api Version Set %q (Resource Group %q / Api Management Service %q) was not found - removing from state!", name, resourceGroup, serviceName)
+			log.Printf("[DEBUG] Api Version Set %q (Resource Group %q / Api Management Service %q) was not found - removing from state!", id.Name, id.ResourceGroup, id.ServiceName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request for Api Version Set %q (Resource Group %q / Api Management Service %q): %+v", name, resourceGroup, serviceName, err)
+		return fmt.Errorf("making Read request for Api Version Set %q (Resource Group %q / Api Management Service %q): %+v", id.Name, id.ResourceGroup, id.ServiceName, err)
 	}
 
 	d.Set("name", resp.Name)
