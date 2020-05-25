@@ -88,7 +88,7 @@ type Client struct {
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures
 
-	Advisor            *advisor.Client
+	Advisor               *advisor.Client
 	AnalysisServices      *analysisServices.Client
 	ApiManagement         *apiManagement.Client
 	AppConfiguration      *appConfiguration.Client
