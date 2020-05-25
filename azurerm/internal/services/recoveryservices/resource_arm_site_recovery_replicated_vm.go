@@ -386,6 +386,7 @@ func updateReplication(d *schema.ResourceData, client siterecovery.ReplicationPr
 			return fmt.Errorf("target_network_id must be set when a network_interface is configured")
 		}
 	}
+
 	var parameters = siterecovery.UpdateReplicationProtectedItemInput{
 		Properties: &siterecovery.UpdateReplicationProtectedItemInputProperties{
 			RecoveryAzureVMName:            &name,
