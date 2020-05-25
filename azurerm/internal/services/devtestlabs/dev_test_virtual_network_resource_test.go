@@ -40,18 +40,18 @@ func TestValidateDevTestVirtualNetworkName(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
+func TestAccDevTestVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
+		CheckDestroy: testCheckDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualNetwork_basic(data),
+				Config: testAccDevTestVirtualNetwork_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualNetworkExists(data.ResourceName),
+					testCheckDevTestVirtualNetworkExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
@@ -60,41 +60,41 @@ func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
+func TestAccDevTestVirtualNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
+		CheckDestroy: testCheckDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualNetwork_basic(data),
+				Config: testAccDevTestVirtualNetwork_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualNetworkExists(data.ResourceName),
+					testCheckDevTestVirtualNetworkExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{
-				Config:      testAccAzureRMDevTestVirtualNetwork_requiresImport(data),
+				Config:      testAccDevTestVirtualNetwork_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_virtual_network"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
+func TestAccDevTestVirtualNetwork_subnet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_virtual_network", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestVirtualNetworkDestroy,
+		CheckDestroy: testCheckDevTestVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestVirtualNetwork_subnets(data),
+				Config: testAccDevTestVirtualNetwork_subnets(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestVirtualNetworkExists(data.ResourceName),
+					testCheckDevTestVirtualNetworkExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "subnet.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "subnet.0.use_public_ip_address", "Deny"),
 					resource.TestCheckResourceAttr(data.ResourceName, "subnet.0.use_in_virtual_machine_creation", "Allow"),
@@ -106,7 +106,7 @@ func TestAccAzureRMDevTestVirtualNetwork_subnet(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
+func testCheckDevTestVirtualNetworkExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualNetworksClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -134,7 +134,7 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 	}
 }
 
-func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
+func testCheckDevTestVirtualNetworkDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualNetworksClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -163,7 +163,7 @@ func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMDevTestVirtualNetwork_basic(data acceptance.TestData) string {
+func testAccDevTestVirtualNetwork_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -188,8 +188,8 @@ resource "azurerm_dev_test_virtual_network" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDevTestVirtualNetwork_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDevTestVirtualNetwork_basic(data)
+func testAccDevTestVirtualNetwork_requiresImport(data acceptance.TestData) string {
+	template := testAccDevTestVirtualNetwork_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -201,7 +201,7 @@ resource "azurerm_dev_test_virtual_network" "import" {
 `, template)
 }
 
-func testAccAzureRMDevTestVirtualNetwork_subnets(data acceptance.TestData) string {
+func testAccDevTestVirtualNetwork_subnets(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
