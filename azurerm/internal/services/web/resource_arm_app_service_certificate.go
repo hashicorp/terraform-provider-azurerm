@@ -139,13 +139,6 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 	hostingEnvironmentProfileId := d.Get("hosting_environment_profile_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	var hep *web.HostingEnvironmentProfile
-	if len(hostingEnvironmentProfileId) > 0 {
-		hep = &web.HostingEnvironmentProfile{
-			ID: &hostingEnvironmentProfileId,
-		}
-	}
-
 	if pfxBlob == "" && keyVaultSecretId == "" {
 		return fmt.Errorf("Either `pfx_blob` or `key_vault_secret_id` must be set")
 	}
@@ -165,11 +158,16 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	certificate := web.Certificate{
 		CertificateProperties: &web.CertificateProperties{
-			Password:                  utils.String(password),
-			HostingEnvironmentProfile: hep,
+			Password: utils.String(password),
 		},
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
+	}
+
+	if len(hostingEnvironmentProfileId) > 0 {
+		certificate.CertificateProperties.HostingEnvironmentProfile = &web.HostingEnvironmentProfile{
+			ID: &hostingEnvironmentProfileId,
+		}
 	}
 
 	if pfxBlob != "" {
