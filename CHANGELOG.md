@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * `azurerm_eventgrid_event_subscription` - the `eventhub_endpoint` was deprecated in favour of the `eventhub_endpoint_id` property [GH-6860]
 * `azurerm_eventgrid_event_subscription` - the `hybrid_connection_endpoint` was deprecated in favour of the `hybrid_connection_endpoint_id` property [GH-6860]
 * `azurerm_kubernetes_cluster` - exposing the `oms_agent_identity` block within the `addon_profile` block [GH-7056]
+* `azurerm_logic_app_action_http` - support for the `run_after` property [GH-7079]
 
 BUG FIXES:
 
