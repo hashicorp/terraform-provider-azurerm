@@ -30,7 +30,7 @@ The following arguments are supported:
 
 * `group_id` - Specifies the name or UUID of this Management Group.
 
-~> **NOTE:** The field `group_id` has been deprecated in favor of `name`.
+~> **NOTE:** The field `group_id` has been deprecated in favour of `name`.
 
 ## Attributes Reference
 

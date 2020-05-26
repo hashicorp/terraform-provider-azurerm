@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region in which the Resource Group exists. Changing this forces a new resource to be created.
 
-* `compatibility_level` - (Required) Specifies the compatibility level for this job - which controls certain runtime behaviors of the streaming job. Possible values are `1.0` and `1.1`.
+* `compatibility_level` - (Required) Specifies the compatibility level for this job - which controls certain runtime behaviours of the streaming job. Possible values are `1.0` and `1.1`.
 
 -> **NOTE:** Support for Compatibility Level 1.2 is dependent on a new version of the Stream Analytics API, which [being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/5604).
 

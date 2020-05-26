@@ -192,7 +192,7 @@ func resourceArmHPCCacheNFSTargetRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("usage_model", nfs3.UsageModel)
 		}
 		if err := d.Set("namespace_junction", flattenNamespaceJunctions(props.Junctions)); err != nil {
-			return fmt.Errorf(`Error setting "namespace_junction" %q (Resource Group %q, Cahe %q): %w`, id.Name, id.ResourceGroup, id.Cache, err)
+			return fmt.Errorf(`Error setting "namespace_junction" %q (Resource Group %q, Cahe %q): %+v`, id.Name, id.ResourceGroup, id.Cache, err)
 		}
 	}
 

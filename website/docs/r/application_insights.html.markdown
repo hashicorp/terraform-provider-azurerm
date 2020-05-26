@@ -52,9 +52,11 @@ The following arguments are supported:
 
 * `daily_data_cap_notifications_disabled` - (Optional) Specifies if a notification email will be send when the daily data volume cap is met.
 
-* `retention_in_days` - (Optional) Specifies the retention period in days. Possible values are `30`, `60`, `90`, `120`, `180`, `270`, `365`, `550` or `730`.
+* `retention_in_days` - (Optional) Specifies the retention period in days. Possible values are `30`, `60`, `90`, `120`, `180`, `270`, `365`, `550` or `730`. Defaults to `90`.
 
 * `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
+
+* `disable_ip_masking` - (Optional) By default the real client ip is masked as `0.0.0.0` in the logs. Use this argument to disable masking and log the real client ip. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

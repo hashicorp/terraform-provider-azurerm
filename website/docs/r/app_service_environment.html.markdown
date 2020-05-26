@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-vnet1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
 }
 
@@ -61,15 +61,28 @@ resource "azurerm_app_service_environment" "example" {
 
 * `front_end_scale_factor` - (Optional) Scale factor for front end instances. Possible values are between `5` and `15`. Defaults to `15`.
 
+* `resource_group_name` - (Optional) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
+
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created. 
+
 ## Attribute Reference
 
 * `id` - The ID of the App Service Environment.
 
-* `resource_group_name` - The name of the Resource Group where the App Service Environment exists.
-
 * `location` - The location where the App Service Environment exists.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 4 hours) Used when creating the App Service Environment.
+* `update` - (Defaults to 4 hours) Used when updating the App Service Environment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.
+* `delete` - (Defaults to 4 hours) Used when deleting the App Service Environment.
+
 ## Import
+
+The App Service Environment can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_app_service_environment.myAppServiceEnv /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Web/hostingEnvironments/myAppServiceEnv

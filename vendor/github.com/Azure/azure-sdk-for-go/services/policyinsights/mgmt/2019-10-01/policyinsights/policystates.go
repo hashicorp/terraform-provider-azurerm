@@ -411,8 +411,7 @@ func (client PolicyStatesClient) ListQueryResultsForPolicySetDefinitionResponder
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-// expand - the $expand query parameter. For example, to expand policyEvaluationDetails, use
-// $expand=policyEvaluationDetails
+// expand - the $expand query parameter. For example, to expand components use $expand=components
 func (client PolicyStatesClient) ListQueryResultsForResource(ctx context.Context, policyStatesResource PolicyStatesResource, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, expand string) (result PolicyStatesQueryResults, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyStatesClient.ListQueryResultsForResource")

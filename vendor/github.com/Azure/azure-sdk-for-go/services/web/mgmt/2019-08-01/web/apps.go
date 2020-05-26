@@ -583,6 +583,93 @@ func (client AppsClient) ApplySlotConfigurationSlotResponder(resp *http.Response
 	return
 }
 
+// ApproveOrRejectPrivateEndpointConnection description for Approves or rejects a private endpoint connection
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the site.
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (result AppsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.ApproveOrRejectPrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "ApproveOrRejectPrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.ApproveOrRejectPrivateEndpointConnectionPreparer(ctx, resourceGroupName, name, privateEndpointConnectionName, privateEndpointWrapper)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "ApproveOrRejectPrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ApproveOrRejectPrivateEndpointConnectionSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "ApproveOrRejectPrivateEndpointConnection", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ApproveOrRejectPrivateEndpointConnectionPreparer prepares the ApproveOrRejectPrivateEndpointConnection request.
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":                          autorest.Encode("path", name),
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithJSON(privateEndpointWrapper),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ApproveOrRejectPrivateEndpointConnectionSender sends the ApproveOrRejectPrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionSender(req *http.Request) (future AppsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// ApproveOrRejectPrivateEndpointConnectionResponder handles the response to the ApproveOrRejectPrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnectionResource, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Backup description for Creates a backup of an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -6300,6 +6387,91 @@ func (client AppsClient) DeletePremierAddOnSlotResponder(resp *http.Response) (r
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
+	return
+}
+
+// DeletePrivateEndpointConnection description for Deletes a private endpoint connection
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the site.
+func (client AppsClient) DeletePrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (result AppsDeletePrivateEndpointConnectionFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.DeletePrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "DeletePrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.DeletePrivateEndpointConnectionPreparer(ctx, resourceGroupName, name, privateEndpointConnectionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeletePrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DeletePrivateEndpointConnectionSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeletePrivateEndpointConnection", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DeletePrivateEndpointConnectionPreparer prepares the DeletePrivateEndpointConnection request.
+func (client AppsClient) DeletePrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":                          autorest.Encode("path", name),
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsDelete(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DeletePrivateEndpointConnectionSender sends the DeletePrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) DeletePrivateEndpointConnectionSender(req *http.Request) (future AppsDeletePrivateEndpointConnectionFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// DeletePrivateEndpointConnectionResponder handles the response to the DeletePrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client AppsClient) DeletePrivateEndpointConnectionResponder(resp *http.Response) (result SetObject, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -13448,6 +13620,175 @@ func (client AppsClient) GetPrivateAccessSlotSender(req *http.Request) (*http.Re
 // GetPrivateAccessSlotResponder handles the response to the GetPrivateAccessSlot request. The method always
 // closes the http.Response Body.
 func (client AppsClient) GetPrivateAccessSlotResponder(resp *http.Response) (result PrivateAccess, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetPrivateEndpointConnection description for Gets a private endpoint connection
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the site.
+func (client AppsClient) GetPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (result PrivateEndpointConnectionResource, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.GetPrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetPrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.GetPrivateEndpointConnectionPreparer(ctx, resourceGroupName, name, privateEndpointConnectionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateEndpointConnectionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateEndpointConnection", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateEndpointConnectionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateEndpointConnection", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetPrivateEndpointConnectionPreparer prepares the GetPrivateEndpointConnection request.
+func (client AppsClient) GetPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":                          autorest.Encode("path", name),
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateEndpointConnectionSender sends the GetPrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetPrivateEndpointConnectionSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateEndpointConnectionResponder handles the response to the GetPrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetPrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnectionResource, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetPrivateLinkResources description for Gets the private link resources
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the site.
+func (client AppsClient) GetPrivateLinkResources(ctx context.Context, resourceGroupName string, name string) (result PrivateLinkResourcesWrapper, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.GetPrivateLinkResources")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetPrivateLinkResources", err.Error())
+	}
+
+	req, err := client.GetPrivateLinkResourcesPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateLinkResources", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateLinkResourcesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateLinkResources", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateLinkResourcesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateLinkResources", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetPrivateLinkResourcesPreparer prepares the GetPrivateLinkResources request.
+func (client AppsClient) GetPrivateLinkResourcesPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateLinkResources", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateLinkResourcesSender sends the GetPrivateLinkResources request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetPrivateLinkResourcesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateLinkResourcesResponder handles the response to the GetPrivateLinkResources request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetPrivateLinkResourcesResponder(resp *http.Response) (result PrivateLinkResourcesWrapper, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

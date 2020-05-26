@@ -84,6 +84,76 @@ func PossibleOperationOriginValues() []OperationOrigin {
 	return []OperationOrigin{NotSpecified, System, User}
 }
 
+// PrivateEndpointProvisioningState enumerates the values for private endpoint provisioning state.
+type PrivateEndpointProvisioningState string
+
+const (
+	// Approving ...
+	Approving PrivateEndpointProvisioningState = "Approving"
+	// Dropping ...
+	Dropping PrivateEndpointProvisioningState = "Dropping"
+	// Failed ...
+	Failed PrivateEndpointProvisioningState = "Failed"
+	// Ready ...
+	Ready PrivateEndpointProvisioningState = "Ready"
+	// Rejecting ...
+	Rejecting PrivateEndpointProvisioningState = "Rejecting"
+)
+
+// PossiblePrivateEndpointProvisioningStateValues returns an array of possible values for the PrivateEndpointProvisioningState const type.
+func PossiblePrivateEndpointProvisioningStateValues() []PrivateEndpointProvisioningState {
+	return []PrivateEndpointProvisioningState{Approving, Dropping, Failed, Ready, Rejecting}
+}
+
+// PrivateLinkServiceConnectionStateActionsRequire enumerates the values for private link service connection
+// state actions require.
+type PrivateLinkServiceConnectionStateActionsRequire string
+
+const (
+	// None ...
+	None PrivateLinkServiceConnectionStateActionsRequire = "None"
+)
+
+// PossiblePrivateLinkServiceConnectionStateActionsRequireValues returns an array of possible values for the PrivateLinkServiceConnectionStateActionsRequire const type.
+func PossiblePrivateLinkServiceConnectionStateActionsRequireValues() []PrivateLinkServiceConnectionStateActionsRequire {
+	return []PrivateLinkServiceConnectionStateActionsRequire{None}
+}
+
+// PrivateLinkServiceConnectionStateStatus enumerates the values for private link service connection state
+// status.
+type PrivateLinkServiceConnectionStateStatus string
+
+const (
+	// Approved ...
+	Approved PrivateLinkServiceConnectionStateStatus = "Approved"
+	// Disconnected ...
+	Disconnected PrivateLinkServiceConnectionStateStatus = "Disconnected"
+	// Pending ...
+	Pending PrivateLinkServiceConnectionStateStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateLinkServiceConnectionStateStatus = "Rejected"
+)
+
+// PossiblePrivateLinkServiceConnectionStateStatusValues returns an array of possible values for the PrivateLinkServiceConnectionStateStatus const type.
+func PossiblePrivateLinkServiceConnectionStateStatusValues() []PrivateLinkServiceConnectionStateStatus {
+	return []PrivateLinkServiceConnectionStateStatus{Approved, Disconnected, Pending, Rejected}
+}
+
+// PublicNetworkAccessEnum enumerates the values for public network access enum.
+type PublicNetworkAccessEnum string
+
+const (
+	// PublicNetworkAccessEnumDisabled ...
+	PublicNetworkAccessEnumDisabled PublicNetworkAccessEnum = "Disabled"
+	// PublicNetworkAccessEnumEnabled ...
+	PublicNetworkAccessEnumEnabled PublicNetworkAccessEnum = "Enabled"
+)
+
+// PossiblePublicNetworkAccessEnumValues returns an array of possible values for the PublicNetworkAccessEnum const type.
+func PossiblePublicNetworkAccessEnumValues() []PublicNetworkAccessEnum {
+	return []PublicNetworkAccessEnum{PublicNetworkAccessEnumDisabled, PublicNetworkAccessEnumEnabled}
+}
+
 // ServerSecurityAlertPolicyState enumerates the values for server security alert policy state.
 type ServerSecurityAlertPolicyState string
 
@@ -182,21 +252,21 @@ func PossibleStorageAutogrowValues() []StorageAutogrow {
 type VirtualNetworkRuleState string
 
 const (
-	// Deleting ...
-	Deleting VirtualNetworkRuleState = "Deleting"
-	// Initializing ...
-	Initializing VirtualNetworkRuleState = "Initializing"
-	// InProgress ...
-	InProgress VirtualNetworkRuleState = "InProgress"
-	// Ready ...
-	Ready VirtualNetworkRuleState = "Ready"
-	// Unknown ...
-	Unknown VirtualNetworkRuleState = "Unknown"
+	// VirtualNetworkRuleStateDeleting ...
+	VirtualNetworkRuleStateDeleting VirtualNetworkRuleState = "Deleting"
+	// VirtualNetworkRuleStateInitializing ...
+	VirtualNetworkRuleStateInitializing VirtualNetworkRuleState = "Initializing"
+	// VirtualNetworkRuleStateInProgress ...
+	VirtualNetworkRuleStateInProgress VirtualNetworkRuleState = "InProgress"
+	// VirtualNetworkRuleStateReady ...
+	VirtualNetworkRuleStateReady VirtualNetworkRuleState = "Ready"
+	// VirtualNetworkRuleStateUnknown ...
+	VirtualNetworkRuleStateUnknown VirtualNetworkRuleState = "Unknown"
 )
 
 // PossibleVirtualNetworkRuleStateValues returns an array of possible values for the VirtualNetworkRuleState const type.
 func PossibleVirtualNetworkRuleStateValues() []VirtualNetworkRuleState {
-	return []VirtualNetworkRuleState{Deleting, Initializing, InProgress, Ready, Unknown}
+	return []VirtualNetworkRuleState{VirtualNetworkRuleStateDeleting, VirtualNetworkRuleStateInitializing, VirtualNetworkRuleStateInProgress, VirtualNetworkRuleStateReady, VirtualNetworkRuleStateUnknown}
 }
 
 // Advisor represents a recommendation action advisor.
@@ -2348,6 +2418,34 @@ type ServerListResult struct {
 	Value *[]Server `json:"value,omitempty"`
 }
 
+// ServerPrivateEndpointConnection a private endpoint connection under a server
+type ServerPrivateEndpointConnection struct {
+	// ID - READ-ONLY; Resource Id of the private endpoint connection.
+	ID *string `json:"id,omitempty"`
+	// Properties - READ-ONLY; Private endpoint connection properties
+	Properties *ServerPrivateEndpointConnectionProperties `json:"properties,omitempty"`
+}
+
+// ServerPrivateEndpointConnectionProperties properties of a private endpoint connection.
+type ServerPrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - Private endpoint which the connection belongs to.
+	PrivateEndpoint *PrivateEndpointProperty `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - Connection state of the private endpoint connection.
+	PrivateLinkServiceConnectionState *ServerPrivateLinkServiceConnectionStateProperty `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - READ-ONLY; State of the private endpoint connection. Possible values include: 'Approving', 'Ready', 'Dropping', 'Failed', 'Rejecting'
+	ProvisioningState PrivateEndpointProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// ServerPrivateLinkServiceConnectionStateProperty ...
+type ServerPrivateLinkServiceConnectionStateProperty struct {
+	// Status - The private link service connection status. Possible values include: 'Approved', 'Pending', 'Rejected', 'Disconnected'
+	Status PrivateLinkServiceConnectionStateStatus `json:"status,omitempty"`
+	// Description - The private link service connection description.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - READ-ONLY; The actions required for private link service connection. Possible values include: 'None'
+	ActionsRequired PrivateLinkServiceConnectionStateActionsRequire `json:"actionsRequired,omitempty"`
+}
+
 // ServerProperties the properties of a server.
 type ServerProperties struct {
 	// AdministratorLogin - The administrator's login name of a server. Can only be specified when the server is being created (and is required for creation).
@@ -2370,6 +2468,10 @@ type ServerProperties struct {
 	MasterServerID *string `json:"masterServerId,omitempty"`
 	// ReplicaCapacity - The maximum number of replicas that a master server can have.
 	ReplicaCapacity *int32 `json:"replicaCapacity,omitempty"`
+	// PublicNetworkAccess - Whether or not public network access is allowed for this server. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnumEnabled', 'PublicNetworkAccessEnumDisabled'
+	PublicNetworkAccess PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; List of private endpoint connections on a server
+	PrivateEndpointConnections *[]ServerPrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 }
 
 // BasicServerPropertiesForCreate the properties used to create a new server.
@@ -2387,6 +2489,8 @@ type ServerPropertiesForCreate struct {
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
+	// PublicNetworkAccess - Whether or not public network access is allowed for this server. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnumEnabled', 'PublicNetworkAccessEnumDisabled'
+	PublicNetworkAccess PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
 	// StorageProfile - Storage profile of a server.
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore', 'CreateModeGeoRestore', 'CreateModeReplica'
@@ -2452,6 +2556,9 @@ func (spfc ServerPropertiesForCreate) MarshalJSON() ([]byte, error) {
 	if spfc.SslEnforcement != "" {
 		objectMap["sslEnforcement"] = spfc.SslEnforcement
 	}
+	if spfc.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = spfc.PublicNetworkAccess
+	}
 	if spfc.StorageProfile != nil {
 		objectMap["storageProfile"] = spfc.StorageProfile
 	}
@@ -2501,6 +2608,8 @@ type ServerPropertiesForDefaultCreate struct {
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
+	// PublicNetworkAccess - Whether or not public network access is allowed for this server. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnumEnabled', 'PublicNetworkAccessEnumDisabled'
+	PublicNetworkAccess PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
 	// StorageProfile - Storage profile of a server.
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore', 'CreateModeGeoRestore', 'CreateModeReplica'
@@ -2522,6 +2631,9 @@ func (spfdc ServerPropertiesForDefaultCreate) MarshalJSON() ([]byte, error) {
 	}
 	if spfdc.SslEnforcement != "" {
 		objectMap["sslEnforcement"] = spfdc.SslEnforcement
+	}
+	if spfdc.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = spfdc.PublicNetworkAccess
 	}
 	if spfdc.StorageProfile != nil {
 		objectMap["storageProfile"] = spfdc.StorageProfile
@@ -2571,6 +2683,8 @@ type ServerPropertiesForGeoRestore struct {
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
+	// PublicNetworkAccess - Whether or not public network access is allowed for this server. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnumEnabled', 'PublicNetworkAccessEnumDisabled'
+	PublicNetworkAccess PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
 	// StorageProfile - Storage profile of a server.
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore', 'CreateModeGeoRestore', 'CreateModeReplica'
@@ -2589,6 +2703,9 @@ func (spfgr ServerPropertiesForGeoRestore) MarshalJSON() ([]byte, error) {
 	}
 	if spfgr.SslEnforcement != "" {
 		objectMap["sslEnforcement"] = spfgr.SslEnforcement
+	}
+	if spfgr.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = spfgr.PublicNetworkAccess
 	}
 	if spfgr.StorageProfile != nil {
 		objectMap["storageProfile"] = spfgr.StorageProfile
@@ -2637,6 +2754,8 @@ type ServerPropertiesForReplica struct {
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
+	// PublicNetworkAccess - Whether or not public network access is allowed for this server. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnumEnabled', 'PublicNetworkAccessEnumDisabled'
+	PublicNetworkAccess PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
 	// StorageProfile - Storage profile of a server.
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore', 'CreateModeGeoRestore', 'CreateModeReplica'
@@ -2655,6 +2774,9 @@ func (spfr ServerPropertiesForReplica) MarshalJSON() ([]byte, error) {
 	}
 	if spfr.SslEnforcement != "" {
 		objectMap["sslEnforcement"] = spfr.SslEnforcement
+	}
+	if spfr.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = spfr.PublicNetworkAccess
 	}
 	if spfr.StorageProfile != nil {
 		objectMap["storageProfile"] = spfr.StorageProfile
@@ -2705,6 +2827,8 @@ type ServerPropertiesForRestore struct {
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
+	// PublicNetworkAccess - Whether or not public network access is allowed for this server. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnumEnabled', 'PublicNetworkAccessEnumDisabled'
+	PublicNetworkAccess PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
 	// StorageProfile - Storage profile of a server.
 	StorageProfile *StorageProfile `json:"storageProfile,omitempty"`
 	// CreateMode - Possible values include: 'CreateModeServerPropertiesForCreate', 'CreateModeDefault', 'CreateModePointInTimeRestore', 'CreateModeGeoRestore', 'CreateModeReplica'
@@ -2726,6 +2850,9 @@ func (spfr ServerPropertiesForRestore) MarshalJSON() ([]byte, error) {
 	}
 	if spfr.SslEnforcement != "" {
 		objectMap["sslEnforcement"] = spfr.SslEnforcement
+	}
+	if spfr.PublicNetworkAccess != "" {
+		objectMap["publicNetworkAccess"] = spfr.PublicNetworkAccess
 	}
 	if spfr.StorageProfile != nil {
 		objectMap["storageProfile"] = spfr.StorageProfile
@@ -3049,6 +3176,8 @@ type ServerUpdateParametersProperties struct {
 	Version ServerVersion `json:"version,omitempty"`
 	// SslEnforcement - Enable ssl enforcement or not when connect to server. Possible values include: 'SslEnforcementEnumEnabled', 'SslEnforcementEnumDisabled'
 	SslEnforcement SslEnforcementEnum `json:"sslEnforcement,omitempty"`
+	// PublicNetworkAccess - Whether or not public network access is allowed for this server. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'PublicNetworkAccessEnumEnabled', 'PublicNetworkAccessEnumDisabled'
+	PublicNetworkAccess PublicNetworkAccessEnum `json:"publicNetworkAccess,omitempty"`
 	// ReplicationRole - The replication role of the server.
 	ReplicationRole *string `json:"replicationRole,omitempty"`
 }
@@ -3546,7 +3675,7 @@ type VirtualNetworkRuleProperties struct {
 	VirtualNetworkSubnetID *string `json:"virtualNetworkSubnetId,omitempty"`
 	// IgnoreMissingVnetServiceEndpoint - Create firewall rule before the virtual network has vnet service endpoint enabled.
 	IgnoreMissingVnetServiceEndpoint *bool `json:"ignoreMissingVnetServiceEndpoint,omitempty"`
-	// State - READ-ONLY; Virtual Network Rule State. Possible values include: 'Initializing', 'InProgress', 'Ready', 'Deleting', 'Unknown'
+	// State - READ-ONLY; Virtual Network Rule State. Possible values include: 'VirtualNetworkRuleStateInitializing', 'VirtualNetworkRuleStateInProgress', 'VirtualNetworkRuleStateReady', 'VirtualNetworkRuleStateDeleting', 'VirtualNetworkRuleStateUnknown'
 	State VirtualNetworkRuleState `json:"state,omitempty"`
 }
 

@@ -93,7 +93,6 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdatePreparer(ctx context.Co
 	}
 
 	parameters.IdentityProperties = nil
-	parameters.Type = ""
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -546,7 +545,6 @@ func (client UserAssignedIdentitiesClient) UpdatePreparer(ctx context.Context, r
 	}
 
 	parameters.IdentityProperties = nil
-	parameters.Type = ""
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),

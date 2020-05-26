@@ -111,6 +111,8 @@ The following arguments are supported:
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
 
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
 ---
 
 A `private_service_connection` supports the following:
@@ -148,6 +150,12 @@ See the product [documentation](https://docs.microsoft.com/en-us/azure/private-l
 The following attributes are exported:
 
 * `id` - The ID of the Private Endpoint.
+
+## Example HCL Configurations
+
+* How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/cosmos-db)
+* How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/postgresql)
+* How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-link-service)
 
 ## Timeouts
 

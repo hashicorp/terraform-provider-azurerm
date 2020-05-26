@@ -164,10 +164,8 @@ func resourceArmStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, me
 		}
 
 		d.SetId(*read.ID)
-	} else {
-		if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
-			return fmt.Errorf("Error Updating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
-		}
+	} else if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
+		return fmt.Errorf("Error Updating Stream Analytics Output Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
 	}
 
 	return resourceArmStreamAnalyticsOutputBlobRead(d, meta)

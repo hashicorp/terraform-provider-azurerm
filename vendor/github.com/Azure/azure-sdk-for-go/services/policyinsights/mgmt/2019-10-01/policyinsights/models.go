@@ -70,6 +70,258 @@ type ComplianceDetail struct {
 	Count *int32 `json:"count,omitempty"`
 }
 
+// ComponentEventDetails component event details.
+type ComponentEventDetails struct {
+	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
+	AdditionalProperties map[string]interface{} `json:""`
+	// ID - Component Id.
+	ID *string `json:"id,omitempty"`
+	// Type - Component type.
+	Type *string `json:"type,omitempty"`
+	// Name - Component name.
+	Name *string `json:"name,omitempty"`
+	// Timestamp - Timestamp for component policy event record.
+	Timestamp *date.Time `json:"timestamp,omitempty"`
+	// TenantID - Tenant ID for the policy event record.
+	TenantID *string `json:"tenantId,omitempty"`
+	// PrincipalOid - Principal object ID for the user who initiated the resource component operation that triggered the policy event.
+	PrincipalOid *string `json:"principalOid,omitempty"`
+	// PolicyDefinitionAction - Policy definition action, i.e. effect.
+	PolicyDefinitionAction *string `json:"policyDefinitionAction,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ComponentEventDetails.
+func (ced ComponentEventDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ced.ID != nil {
+		objectMap["id"] = ced.ID
+	}
+	if ced.Type != nil {
+		objectMap["type"] = ced.Type
+	}
+	if ced.Name != nil {
+		objectMap["name"] = ced.Name
+	}
+	if ced.Timestamp != nil {
+		objectMap["timestamp"] = ced.Timestamp
+	}
+	if ced.TenantID != nil {
+		objectMap["tenantId"] = ced.TenantID
+	}
+	if ced.PrincipalOid != nil {
+		objectMap["principalOid"] = ced.PrincipalOid
+	}
+	if ced.PolicyDefinitionAction != nil {
+		objectMap["policyDefinitionAction"] = ced.PolicyDefinitionAction
+	}
+	for k, v := range ced.AdditionalProperties {
+		objectMap[k] = v
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ComponentEventDetails struct.
+func (ced *ComponentEventDetails) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		default:
+			if v != nil {
+				var additionalProperties interface{}
+				err = json.Unmarshal(*v, &additionalProperties)
+				if err != nil {
+					return err
+				}
+				if ced.AdditionalProperties == nil {
+					ced.AdditionalProperties = make(map[string]interface{})
+				}
+				ced.AdditionalProperties[k] = additionalProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ced.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ced.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ced.Name = &name
+			}
+		case "timestamp":
+			if v != nil {
+				var timestamp date.Time
+				err = json.Unmarshal(*v, &timestamp)
+				if err != nil {
+					return err
+				}
+				ced.Timestamp = &timestamp
+			}
+		case "tenantId":
+			if v != nil {
+				var tenantID string
+				err = json.Unmarshal(*v, &tenantID)
+				if err != nil {
+					return err
+				}
+				ced.TenantID = &tenantID
+			}
+		case "principalOid":
+			if v != nil {
+				var principalOid string
+				err = json.Unmarshal(*v, &principalOid)
+				if err != nil {
+					return err
+				}
+				ced.PrincipalOid = &principalOid
+			}
+		case "policyDefinitionAction":
+			if v != nil {
+				var policyDefinitionAction string
+				err = json.Unmarshal(*v, &policyDefinitionAction)
+				if err != nil {
+					return err
+				}
+				ced.PolicyDefinitionAction = &policyDefinitionAction
+			}
+		}
+	}
+
+	return nil
+}
+
+// ComponentStateDetails component state details.
+type ComponentStateDetails struct {
+	// AdditionalProperties - Unmatched properties from the message are deserialized this collection
+	AdditionalProperties map[string]interface{} `json:""`
+	// ID - Component Id.
+	ID *string `json:"id,omitempty"`
+	// Type - Component type.
+	Type *string `json:"type,omitempty"`
+	// Name - Component name.
+	Name *string `json:"name,omitempty"`
+	// Timestamp - Component compliance evaluation timestamp.
+	Timestamp *date.Time `json:"timestamp,omitempty"`
+	// ComplianceState - Component compliance state.
+	ComplianceState *string `json:"complianceState,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ComponentStateDetails.
+func (csd ComponentStateDetails) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if csd.ID != nil {
+		objectMap["id"] = csd.ID
+	}
+	if csd.Type != nil {
+		objectMap["type"] = csd.Type
+	}
+	if csd.Name != nil {
+		objectMap["name"] = csd.Name
+	}
+	if csd.Timestamp != nil {
+		objectMap["timestamp"] = csd.Timestamp
+	}
+	if csd.ComplianceState != nil {
+		objectMap["complianceState"] = csd.ComplianceState
+	}
+	for k, v := range csd.AdditionalProperties {
+		objectMap[k] = v
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ComponentStateDetails struct.
+func (csd *ComponentStateDetails) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		default:
+			if v != nil {
+				var additionalProperties interface{}
+				err = json.Unmarshal(*v, &additionalProperties)
+				if err != nil {
+					return err
+				}
+				if csd.AdditionalProperties == nil {
+					csd.AdditionalProperties = make(map[string]interface{})
+				}
+				csd.AdditionalProperties[k] = additionalProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				csd.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				csd.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				csd.Name = &name
+			}
+		case "timestamp":
+			if v != nil {
+				var timestamp date.Time
+				err = json.Unmarshal(*v, &timestamp)
+				if err != nil {
+					return err
+				}
+				csd.Timestamp = &timestamp
+			}
+		case "complianceState":
+			if v != nil {
+				var complianceState string
+				err = json.Unmarshal(*v, &complianceState)
+				if err != nil {
+					return err
+				}
+				csd.ComplianceState = &complianceState
+			}
+		}
+	}
+
+	return nil
+}
+
 // ErrorDefinition error definition.
 type ErrorDefinition struct {
 	// Code - READ-ONLY; Service specific error code which serves as the substatus for the HTTP error code.
@@ -253,10 +505,14 @@ type PolicyEvent struct {
 	ManagementGroupIds *string `json:"managementGroupIds,omitempty"`
 	// PolicyDefinitionReferenceID - Reference ID for the policy definition inside the policy set, if the policy assignment is for a policy set.
 	PolicyDefinitionReferenceID *string `json:"policyDefinitionReferenceId,omitempty"`
+	// ComplianceState - Compliance state of the resource.
+	ComplianceState *string `json:"complianceState,omitempty"`
 	// TenantID - Tenant ID for the policy event record.
 	TenantID *string `json:"tenantId,omitempty"`
 	// PrincipalOid - Principal object ID for the user who initiated the resource operation that triggered the policy event.
 	PrincipalOid *string `json:"principalOid,omitempty"`
+	// Components - Components events records populated only when URL contains $expand=components clause.
+	Components *[]ComponentEventDetails `json:"components,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PolicyEvent.
@@ -343,11 +599,17 @@ func (peVar PolicyEvent) MarshalJSON() ([]byte, error) {
 	if peVar.PolicyDefinitionReferenceID != nil {
 		objectMap["policyDefinitionReferenceId"] = peVar.PolicyDefinitionReferenceID
 	}
+	if peVar.ComplianceState != nil {
+		objectMap["complianceState"] = peVar.ComplianceState
+	}
 	if peVar.TenantID != nil {
 		objectMap["tenantId"] = peVar.TenantID
 	}
 	if peVar.PrincipalOid != nil {
 		objectMap["principalOid"] = peVar.PrincipalOid
+	}
+	if peVar.Components != nil {
+		objectMap["components"] = peVar.Components
 	}
 	for k, v := range peVar.AdditionalProperties {
 		objectMap[k] = v
@@ -619,6 +881,15 @@ func (peVar *PolicyEvent) UnmarshalJSON(body []byte) error {
 				}
 				peVar.PolicyDefinitionReferenceID = &policyDefinitionReferenceID
 			}
+		case "complianceState":
+			if v != nil {
+				var complianceState string
+				err = json.Unmarshal(*v, &complianceState)
+				if err != nil {
+					return err
+				}
+				peVar.ComplianceState = &complianceState
+			}
 		case "tenantId":
 			if v != nil {
 				var tenantID string
@@ -636,6 +907,15 @@ func (peVar *PolicyEvent) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				peVar.PrincipalOid = &principalOid
+			}
+		case "components":
+			if v != nil {
+				var components []ComponentEventDetails
+				err = json.Unmarshal(*v, &components)
+				if err != nil {
+					return err
+				}
+				peVar.Components = &components
 			}
 		}
 	}
@@ -982,6 +1262,14 @@ type PolicyState struct {
 	PolicyEvaluationDetails *PolicyEvaluationDetails `json:"policyEvaluationDetails,omitempty"`
 	// PolicyDefinitionGroupNames - Policy definition group names.
 	PolicyDefinitionGroupNames *[]string `json:"policyDefinitionGroupNames,omitempty"`
+	// Components - Components state compliance records populated only when URL contains $expand=components clause.
+	Components *[]ComponentStateDetails `json:"components,omitempty"`
+	// PolicyDefinitionVersion - READ-ONLY; Evaluated policy definition version.
+	PolicyDefinitionVersion *string `json:"policyDefinitionVersion,omitempty"`
+	// PolicySetDefinitionVersion - READ-ONLY; Evaluated policy set definition version.
+	PolicySetDefinitionVersion *string `json:"policySetDefinitionVersion,omitempty"`
+	// PolicyAssignmentVersion - READ-ONLY; Evaluated policy assignment version.
+	PolicyAssignmentVersion *string `json:"policyAssignmentVersion,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for PolicyState.
@@ -1076,6 +1364,9 @@ func (ps PolicyState) MarshalJSON() ([]byte, error) {
 	}
 	if ps.PolicyDefinitionGroupNames != nil {
 		objectMap["policyDefinitionGroupNames"] = ps.PolicyDefinitionGroupNames
+	}
+	if ps.Components != nil {
+		objectMap["components"] = ps.Components
 	}
 	for k, v := range ps.AdditionalProperties {
 		objectMap[k] = v
@@ -1373,6 +1664,42 @@ func (ps *PolicyState) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ps.PolicyDefinitionGroupNames = &policyDefinitionGroupNames
+			}
+		case "components":
+			if v != nil {
+				var components []ComponentStateDetails
+				err = json.Unmarshal(*v, &components)
+				if err != nil {
+					return err
+				}
+				ps.Components = &components
+			}
+		case "policyDefinitionVersion":
+			if v != nil {
+				var policyDefinitionVersion string
+				err = json.Unmarshal(*v, &policyDefinitionVersion)
+				if err != nil {
+					return err
+				}
+				ps.PolicyDefinitionVersion = &policyDefinitionVersion
+			}
+		case "policySetDefinitionVersion":
+			if v != nil {
+				var policySetDefinitionVersion string
+				err = json.Unmarshal(*v, &policySetDefinitionVersion)
+				if err != nil {
+					return err
+				}
+				ps.PolicySetDefinitionVersion = &policySetDefinitionVersion
+			}
+		case "policyAssignmentVersion":
+			if v != nil {
+				var policyAssignmentVersion string
+				err = json.Unmarshal(*v, &policyAssignmentVersion)
+				if err != nil {
+					return err
+				}
+				ps.PolicyAssignmentVersion = &policyAssignmentVersion
 			}
 		}
 	}

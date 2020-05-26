@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
@@ -86,11 +85,6 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 }
 
 func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "import")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -241,6 +235,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, atp)
 }
 
+// nolint unused - mistakenly marked as unused
 func testAccAzureRMAdvancedThreatProtection_cosmosAccount(data acceptance.TestData, hasResource, enabled bool) string {
 	atp := ""
 	if hasResource {

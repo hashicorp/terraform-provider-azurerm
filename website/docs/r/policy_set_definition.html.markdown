@@ -15,6 +15,10 @@ Manages a policy set definition.
 ## Example Usage
 
 ```hcl
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_policy_set_definition" "example" {
   name         = "testPolicySet"
   policy_type  = "Custom"
@@ -33,7 +37,6 @@ resource "azurerm_policy_set_definition" "example" {
     }
 PARAMETERS
 
-
   policy_definitions = <<POLICY_DEFINITIONS
     [
         {
@@ -46,7 +49,6 @@ PARAMETERS
         }
     ]
 POLICY_DEFINITIONS
-
 }
 ```
 
@@ -60,7 +62,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of the policy set definition.
 
-* `policy_definitions` - (Required) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions .
+* `policy_definitions` - (Required) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions.
 
 * `description` - (Optional) The description of the policy set definition.
 
