@@ -95,6 +95,8 @@ func resourceArmStorageAccount() *schema.Resource {
 					"ZRS",
 					"GRS",
 					"RAGRS",
+					"GZRS",
+					"RAGZRS",
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
