@@ -452,7 +452,6 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   gateway {
-    enabled  = true
     username = "acctestusrgw"
     password = "TerrAform123!"
   }
