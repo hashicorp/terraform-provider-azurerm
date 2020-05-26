@@ -43,12 +43,6 @@ func dataSourceArmKeyVaultCertificateIssuer() *schema.Resource {
 				Computed: true,
 			},
 
-			"password": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
 			"org_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -110,7 +104,6 @@ func dataSourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta int
 	d.Set("provider_name", resp.Provider)
 	d.Set("org_id", resp.OrganizationDetails.ID)
 	d.Set("account_id", resp.Credentials.AccountID)
-	d.Set("password", resp.Credentials.Password)
 	if resp.OrganizationDetails.AdminDetails != nil {
 		d.Set("admins", flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails))
 	}
