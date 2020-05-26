@@ -86,6 +86,7 @@ func resourceArmSignalRService() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(signalr.EnableConnectivityLogs),
+								string(signalr.EnableMessagingLogs),
 								string(signalr.ServiceMode),
 							}, false),
 						},
