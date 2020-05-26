@@ -42,7 +42,6 @@ func dataSourceArmNatGateway() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				Deprecated: "Deprecated in favor of `azurerm_nat_gateway_public_ip_association`",
 			},
 
 			"public_ip_prefix_ids": {
