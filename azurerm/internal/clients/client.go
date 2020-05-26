@@ -137,6 +137,7 @@ type Client struct {
 	MachineLearning       *machinelearning.Client
 	Maintenance           *maintenance.Client
 	ManagedApplication    *managedapplication.Client
+	ManagedServices       *managedservices.Client
 	ManagementGroups      *managementgroup.Client
 	Maps                  *maps.Client
 	MariaDB               *mariadb.Client
