@@ -220,6 +220,14 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"subject_contains": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 						"case_sensitive": {
 							Type:     schema.TypeBool,
 							Optional: true,
@@ -616,10 +624,22 @@ func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) *eventgrid.E
 		config := subjectFilter.([]interface{})[0].(map[string]interface{})
 		subjectBeginsWith := config["subject_begins_with"].(string)
 		subjectEndsWith := config["subject_ends_with"].(string)
+		subjectContainsValues := utils.ExpandStringSlice(config["subject_contains"].([]interface{}))
 		caseSensitive := config["case_sensitive"].(bool)
 
+		subjectContains := &eventgrid.StringContainsAdvancedFilter{}
+		subjectContains.Values = subjectContainsValues
+		key := "Subject"
+		subjectContains.Key = &key
+		subjectContains.OperatorType = eventgrid.OperatorTypeStringContains
+
+		var basicAdvancedFilter []eventgrid.BasicAdvancedFilter
+
+		basicAdvancedFilter = append(basicAdvancedFilter, subjectContains)
 		filter.SubjectBeginsWith = &subjectBeginsWith
 		filter.SubjectEndsWith = &subjectEndsWith
+		filter.AdvancedFilters = &basicAdvancedFilter
+
 		filter.IsSubjectCaseSensitive = &caseSensitive
 	}
 
@@ -713,7 +733,8 @@ func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubs
 }
 
 func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubscriptionFilter) []interface{} {
-	if (filter.SubjectBeginsWith != nil && *filter.SubjectBeginsWith == "") && (filter.SubjectEndsWith != nil && *filter.SubjectEndsWith == "") {
+	if (filter.SubjectBeginsWith != nil && *filter.SubjectBeginsWith == "") && (filter.SubjectEndsWith != nil && *filter.SubjectEndsWith == "") &&
+		(filter.AdvancedFilters == nil) {
 		return nil
 	}
 	result := make(map[string]interface{})
@@ -726,6 +747,14 @@ func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubsc
 		result["subject_ends_with"] = *filter.SubjectEndsWith
 	}
 
+	if filter.AdvancedFilters != nil {
+		for _, advancedFilter := range *filter.AdvancedFilters {
+			if stringContainsFilter, _ := advancedFilter.AsStringContainsAdvancedFilter(); stringContainsFilter != nil {
+				result["subject_contains"] = stringContainsFilter.Values
+			}
+			// Can check for other Advanced filters and flatten them
+		}
+	}
 	if filter.IsSubjectCaseSensitive != nil {
 		result["case_sensitive"] = *filter.IsSubjectCaseSensitive
 	}

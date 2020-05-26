@@ -180,6 +180,30 @@ func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventGridEventSubscription_filterStringContains(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridEventSubscription_filterStringContains(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
+					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_ends_with", ".jpg"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_begins_with", "test/test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_contains", "contains"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.1.subject_contains", "contains2"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
 func testCheckAzureRMEventGridEventSubscriptionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -532,6 +556,54 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   subject_filter {
     subject_begins_with = "test/test"
     subject_ends_with   = ".jpg"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMEventGridEventSubscription_filterStringContains(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%d"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name  = "acctest-eg-%d"
+  scope = "${azurerm_resource_group.test.id}"
+
+  storage_queue_endpoint {
+    storage_account_id = "${azurerm_storage_account.test.id}"
+    queue_name         = "${azurerm_storage_queue.test.name}"
+  }
+
+  included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
+
+  subject_filter {
+    subject_begins_with = "test/test"
+	subject_ends_with   = ".jpg"
+	subject_contains = ["contains", "contains2"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
