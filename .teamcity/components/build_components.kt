@@ -7,7 +7,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
 // unfortunately TeamCity's Go Test Json parser appears to be broken
 // as such for the moment let's use the old method with a feature-flag
-const val useTeamCityGoTest = true
+const val useTeamCityGoTest = false
 
 fun BuildFeatures.Golang() {
     if (useTeamCityGoTest) {
