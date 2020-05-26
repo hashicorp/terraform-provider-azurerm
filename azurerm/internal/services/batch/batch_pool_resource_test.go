@@ -1,4 +1,4 @@
-package tests
+package batch_test
 
 import (
 	"fmt"
@@ -15,18 +15,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMBatchPool_basic(t *testing.T) {
+func TestAccBatchPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_basic(data),
+				Config: testAccBatchPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -39,22 +39,23 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.#", "0"),
 				),
 			},
+			data.ImportStep("stop_pending_resize_operation"),
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_requiresImport(t *testing.T) {
+func TestAccBatchPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_basic(data),
+				Config: testAccBatchPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -68,25 +69,25 @@ func TestAccAzureRMBatchPool_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testaccAzureRMBatchPool_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_batch_account"),
+				Config:      testAccBatchPool_requiresImport(data),
+				ExpectError: acceptance.RequiresImportError("azurerm_batch_pool"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
+func TestAccBatchPool_fixedScale_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_fixedScale_complete(data),
+				Config: testAccBatchPool_fixedScale_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "max_tasks_per_node", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
@@ -103,22 +104,23 @@ func TestAccAzureRMBatchPool_fixedScale_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.#", "0"),
 				),
 			},
+			data.ImportStep("stop_pending_resize_operation"),
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_autoScale_complete(t *testing.T) {
+func TestAccBatchPool_autoScale_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_autoScale_complete(data),
+				Config: testAccBatchPool_autoScale_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -132,22 +134,23 @@ func TestAccAzureRMBatchPool_autoScale_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.#", "0"),
 				),
 			},
+			data.ImportStep("stop_pending_resize_operation"),
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
+func TestAccBatchPool_completeUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_fixedScale_complete(data),
+				Config: testAccBatchPool_fixedScale_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -163,10 +166,11 @@ func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.#", "0"),
 				),
 			},
+			data.ImportStep("stop_pending_resize_operation"),
 			{
-				Config: testaccAzureRMBatchPool_autoScale_complete(data),
+				Config: testAccBatchPool_autoScale_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -180,22 +184,23 @@ func TestAccAzureRMBatchPool_completeUpdated(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.#", "0"),
 				),
 			},
+			data.ImportStep("stop_pending_resize_operation"),
 		},
 	})
 }
 
-func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
+func TestAccBatchPoolStartTask_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPoolStartTask_basic(data),
+				Config: testAccBatchPoolStartTask_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -219,11 +224,12 @@ func TestAccAzureRMBatchPoolStartTask_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.0.user_identity.0.auto_user.0.elevation_level", "NonAdmin"),
 				),
 			},
+			data.ImportStep("stop_pending_resize_operation"),
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_certificates(t *testing.T) {
+func TestAccBatchPool_certificates(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
@@ -233,12 +239,12 @@ func TestAccAzureRMBatchPool_certificates(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPoolCertificates(data),
+				Config: testAccBatchPoolCertificates(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -256,109 +262,115 @@ func TestAccAzureRMBatchPool_certificates(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "certificate.1.visibility.4077195354", "RemoteUser"),
 				),
 			},
+			data.ImportStep("stop_pending_resize_operation"),
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_validateResourceFileWithoutSource(t *testing.T) {
+func TestAccBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testaccAzureRMBatchPoolValidateResourceFileWithoutSource(data),
+				Config:      testAccBatchPoolValidateResourceFileWithoutSource(data),
 				ExpectError: regexp.MustCompile("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_container(t *testing.T) {
+func TestAccBatchPool_container(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPoolContainerConfiguration(data),
+				Config: testAccBatchPoolContainerConfiguration(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.type", "DockerCompatible"),
+					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_image_names.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
 					resource.TestCheckResourceAttr(data.ResourceName, "container_configuration.0.container_registries.0.password", "myPassword"),
 				),
 			},
+			data.ImportStep(
+				"stop_pending_resize_operation",
+				"container_configuration.0.container_registries.0.password",
+			),
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_validateResourceFileWithMultipleSources(t *testing.T) {
+func TestAccBatchPool_validateResourceFileWithMultipleSources(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testaccAzureRMBatchPoolValidateResourceFileWithMultipleSources(data),
+				Config:      testAccBatchPoolValidateResourceFileWithMultipleSources(data),
 				ExpectError: regexp.MustCompile("Exactly one of auto_storage_container_name, storage_container_url and http_url must be specified"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_validateResourceFileBlobPrefixWithoutAutoStorageContainerUrl(t *testing.T) {
+func TestAccBatchPool_validateResourceFileBlobPrefixWithoutAutoStorageContainerUrl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testaccAzureRMBatchPoolValidateResourceFileBlobPrefixWithoutAutoStorageContainerName(data),
+				Config:      testAccBatchPoolValidateResourceFileBlobPrefixWithoutAutoStorageContainerName(data),
 				ExpectError: regexp.MustCompile("auto_storage_container_name or storage_container_url must be specified when using blob_prefix"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testing.T) {
+func TestAccBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testaccAzureRMBatchPoolValidateResourceFileHttpURLWithoutFilePath(data),
+				Config:      testAccBatchPoolValidateResourceFileHttpURLWithoutFilePath(data),
 				ExpectError: regexp.MustCompile("file_path must be specified when using http_url"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_customImage(t *testing.T) {
+func TestAccBatchPool_customImage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPoolCustomImageConfiguration(data),
+				Config: testAccBatchPoolCustomImageConfiguration(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "max_tasks_per_node", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
@@ -371,22 +383,23 @@ func TestAccAzureRMBatchPool_customImage(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "start_task.#", "0"),
 				),
 			},
+			data.ImportStep("stop_pending_resize_operation"),
 		},
 	})
 }
 
-func TestAccAzureRMBatchPool_frontEndPortRanges(t *testing.T) {
+func TestAccBatchPool_frontEndPortRanges(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		CheckDestroy: testCheckBatchPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testaccAzureRMBatchPool_networkConfiguration(data),
+				Config: testAccBatchPool_networkConfiguration(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchPoolExists(data.ResourceName),
+					testCheckBatchPoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -408,7 +421,7 @@ func TestAccAzureRMBatchPool_frontEndPortRanges(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
+func testCheckBatchPoolExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.PoolClient
@@ -437,7 +450,7 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
+func testCheckBatchPoolDestroy(s *terraform.State) error {
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.PoolClient
 
@@ -463,7 +476,7 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testaccAzureRMBatchPool_fixedScale_complete(data acceptance.TestData) string {
+func testAccBatchPool_fixedScale_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -521,7 +534,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPool_autoScale_complete(data acceptance.TestData) string {
+func testAccBatchPool_autoScale_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -584,7 +597,7 @@ EOF
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPool_basic(data acceptance.TestData) string {
+func testAccBatchPool_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -622,7 +635,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPool_requiresImport(data acceptance.TestData) string {
+func testAccBatchPool_requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -634,7 +647,7 @@ resource "azurerm_batch_pool" "import" {
   vm_size             = azurerm_batch_pool.test.vm_size
 
   fixed_scale {
-    target_dedicated_nodes = 1
+    target_dedicated_nodes = azurerm_batch_pool.test.fixed_scale[0].target_dedicated_nodes
   }
 
   storage_image_reference {
@@ -644,10 +657,10 @@ resource "azurerm_batch_pool" "import" {
     version   = "latest"
   }
 }
-`, testaccAzureRMBatchPool_basic(data))
+`, testAccBatchPool_basic(data))
 }
 
-func testaccAzureRMBatchPoolStartTask_basic(data acceptance.TestData) string {
+func testAccBatchPoolStartTask_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -708,7 +721,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPoolValidateResourceFileWithoutSource(data acceptance.TestData) string {
+func testAccBatchPoolValidateResourceFileWithoutSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -770,7 +783,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPoolValidateResourceFileWithMultipleSources(data acceptance.TestData) string {
+func testAccBatchPoolValidateResourceFileWithMultipleSources(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -832,7 +845,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPoolValidateResourceFileBlobPrefixWithoutAutoStorageContainerName(data acceptance.TestData) string {
+func testAccBatchPoolValidateResourceFileBlobPrefixWithoutAutoStorageContainerName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -894,7 +907,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPoolValidateResourceFileHttpURLWithoutFilePath(data acceptance.TestData) string {
+func testAccBatchPoolValidateResourceFileHttpURLWithoutFilePath(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -955,7 +968,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPoolCertificates(data acceptance.TestData) string {
+func testAccBatchPoolCertificates(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1024,7 +1037,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPoolContainerConfiguration(data acceptance.TestData) string {
+func testAccBatchPoolContainerConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1067,7 +1080,8 @@ resource "azurerm_batch_pool" "test" {
   }
 
   container_configuration {
-    type = "DockerCompatible"
+    type                  = "DockerCompatible"
+    container_image_names = ["centos7"]
     container_registries {
       registry_server = "myContainerRegistry.azurecr.io"
       user_name       = "myUserName"
@@ -1078,7 +1092,7 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPoolCustomImageConfiguration(data acceptance.TestData) string {
+func testAccBatchPoolCustomImageConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1230,15 +1244,15 @@ resource "azurerm_batch_pool" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
 }
 
-func testaccAzureRMBatchPool_networkConfiguration(data acceptance.TestData) string {
+func testAccBatchPool_networkConfiguration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testaccRG-%d-batchpool"
-  location = "%s"
+  name     = "testaccRG-%[1]d-batchpool"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestvirtnet%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1252,22 +1266,22 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctestpublicip-%d"
+  name                = "acctestpublicip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  domain_name_label   = "acctest-publicip"
+  domain_name_label   = "acctest-publicip-%[1]d"
 }
 
 resource "azurerm_batch_account" "test" {
-  name                = "testaccbatch%s"
+  name                = "testaccbatch%[3]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_batch_pool" "test" {
-  name                = "testaccpool%s"
+  name                = "testaccpool%[3]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_batch_account.test.name}"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
@@ -1302,5 +1316,5 @@ resource "azurerm_batch_pool" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

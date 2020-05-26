@@ -1,4 +1,4 @@
-package tests
+package devtestlabs_test
 
 import (
 	"fmt"
@@ -11,18 +11,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
-func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
+func TestAccDevTestVirtualMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
+		CheckDestroy: testCheckDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestWindowsVirtualMachine_basic(data),
+				Config: testAccDevTestWindowsVirtualMachine_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestWindowsVirtualMachineExists(data.ResourceName),
+					testCheckDevTestWindowsVirtualMachineExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "MicrosoftWindowsServer"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
@@ -37,40 +37,40 @@ func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
+func TestAccDevTestVirtualMachine_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
+		CheckDestroy: testCheckDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestWindowsVirtualMachine_basic(data),
+				Config: testAccDevTestWindowsVirtualMachine_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestWindowsVirtualMachineExists(data.ResourceName),
+					testCheckDevTestWindowsVirtualMachineExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMDevTestWindowsVirtualMachine_requiresImport(data),
+				Config:      testAccDevTestWindowsVirtualMachine_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_dev_test_windows_virtual_machine"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
+func TestAccDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
+		CheckDestroy: testCheckDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(data),
+				Config: testAccDevTestWindowsVirtualMachine_inboundNatRules(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestWindowsVirtualMachineExists(data.ResourceName),
+					testCheckDevTestWindowsVirtualMachineExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "disallow_public_ip_address", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "MicrosoftWindowsServer"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -88,27 +88,27 @@ func TestAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
+func TestAccDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_test_windows_virtual_machine", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDevTestWindowsVirtualMachineDestroy,
+		CheckDestroy: testCheckDevTestWindowsVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDevTestWindowsVirtualMachine_storage(data, "Standard"),
+				Config: testAccDevTestWindowsVirtualMachine_storage(data, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestWindowsVirtualMachineExists(data.ResourceName),
+					testCheckDevTestWindowsVirtualMachineExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "MicrosoftWindowsServer"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 			{
-				Config: testAccAzureRMDevTestWindowsVirtualMachine_storage(data, "Premium"),
+				Config: testAccDevTestWindowsVirtualMachine_storage(data, "Premium"),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDevTestWindowsVirtualMachineExists(data.ResourceName),
+					testCheckDevTestWindowsVirtualMachineExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gallery_image_reference.0.publisher", "MicrosoftWindowsServer"),
 					resource.TestCheckResourceAttr(data.ResourceName, "storage_type", "Premium"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -118,7 +118,7 @@ func TestAccAzureRMDevTestWindowsVirtualMachine_updateStorage(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName string) resource.TestCheckFunc {
+func testCheckDevTestWindowsVirtualMachineExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualMachinesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -146,7 +146,7 @@ func testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName string) res
 	}
 }
 
-func testCheckAzureRMDevTestWindowsVirtualMachineDestroy(s *terraform.State) error {
+func testCheckDevTestWindowsVirtualMachineDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).DevTestLabs.VirtualMachinesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -175,8 +175,8 @@ func testCheckAzureRMDevTestWindowsVirtualMachineDestroy(s *terraform.State) err
 	return nil
 }
 
-func testAccAzureRMDevTestWindowsVirtualMachine_basic(data acceptance.TestData) string {
-	template := testAccAzureRMDevTestWindowsVirtualMachine_template(data)
+func testAccDevTestWindowsVirtualMachine_basic(data acceptance.TestData) string {
+	template := testAccDevTestWindowsVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -202,8 +202,8 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, template, data.RandomInteger%1000000)
 }
 
-func testAccAzureRMDevTestWindowsVirtualMachine_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMDevTestWindowsVirtualMachine_basic(data)
+func testAccDevTestWindowsVirtualMachine_requiresImport(data acceptance.TestData) string {
+	template := testAccDevTestWindowsVirtualMachine_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -229,8 +229,8 @@ resource "azurerm_dev_test_windows_virtual_machine" "import" {
 `, template)
 }
 
-func testAccAzureRMDevTestWindowsVirtualMachine_inboundNatRules(data acceptance.TestData) string {
-	template := testAccAzureRMDevTestWindowsVirtualMachine_template(data)
+func testAccDevTestWindowsVirtualMachine_inboundNatRules(data acceptance.TestData) string {
+	template := testAccDevTestWindowsVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -271,8 +271,8 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, template, data.RandomInteger%1000000)
 }
 
-func testAccAzureRMDevTestWindowsVirtualMachine_storage(data acceptance.TestData, storageType string) string {
-	template := testAccAzureRMDevTestWindowsVirtualMachine_template(data)
+func testAccDevTestWindowsVirtualMachine_storage(data acceptance.TestData, storageType string) string {
+	template := testAccDevTestWindowsVirtualMachine_template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -298,7 +298,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
 `, template, data.RandomInteger%1000000, storageType)
 }
 
-func testAccAzureRMDevTestWindowsVirtualMachine_template(data acceptance.TestData) string {
+func testAccDevTestWindowsVirtualMachine_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

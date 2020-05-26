@@ -118,7 +118,7 @@ func dataSourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) err
 			// set empty keyvault reference which is not needed in Batch Service allocation mode.
 			d.Set("key_vault_reference", []interface{}{})
 		} else if poolAllocationMode == string(batch.UserSubscription) {
-			if err := d.Set("key_vault_reference", azure.FlattenBatchAccountKeyvaultReference(props.KeyVaultReference)); err != nil {
+			if err := d.Set("key_vault_reference", flattenBatchAccountKeyvaultReference(props.KeyVaultReference)); err != nil {
 				return fmt.Errorf("Error flattening `key_vault_reference`: %+v", err)
 			}
 		}

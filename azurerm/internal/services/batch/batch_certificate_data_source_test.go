@@ -1,4 +1,4 @@
-package tests
+package batch_test
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-func TestAccDataSourceAzureRMBatchCertificate_basic(t *testing.T) {
+func TestAccBatchCertificateDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_batch_certificate", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -16,7 +16,7 @@ func TestAccDataSourceAzureRMBatchCertificate_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMBatchCertificate_basic(data),
+				Config: testAccBatchCertificateDataSource_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "sha1-42c107874fd0e4a9583292a2f1098e8fe4b2edda"),
 					resource.TestCheckResourceAttr(data.ResourceName, "account_name", fmt.Sprintf("testaccbatch%s", data.RandomString)),
@@ -30,7 +30,7 @@ func TestAccDataSourceAzureRMBatchCertificate_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMBatchCertificate_basic(data acceptance.TestData) string {
+func testAccBatchCertificateDataSource_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

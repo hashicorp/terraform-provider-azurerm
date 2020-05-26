@@ -1,4 +1,4 @@
-package azure
+package batch
 
 import (
 	"fmt"
@@ -12,8 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// FlattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
-func FlattenBatchPoolAutoScaleSettings(settings *batch.AutoScaleSettings) []interface{} {
+// flattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
+func flattenBatchPoolAutoScaleSettings(settings *batch.AutoScaleSettings) []interface{} {
 	results := make([]interface{}, 0)
 
 	if settings == nil {
@@ -34,8 +34,8 @@ func FlattenBatchPoolAutoScaleSettings(settings *batch.AutoScaleSettings) []inte
 	return append(results, result)
 }
 
-// FlattenBatchPoolFixedScaleSettings flattens the fixed scale settings for a Batch pool
-func FlattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []interface{} {
+// flattenBatchPoolFixedScaleSettings flattens the fixed scale settings for a Batch pool
+func flattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []interface{} {
 	results := make([]interface{}, 0)
 
 	if settings == nil {
@@ -60,8 +60,8 @@ func FlattenBatchPoolFixedScaleSettings(settings *batch.FixedScaleSettings) []in
 	return append(results, result)
 }
 
-// FlattenBatchPoolImageReference flattens the Batch pool image reference
-func FlattenBatchPoolImageReference(image *batch.ImageReference) []interface{} {
+// flattenBatchPoolImageReference flattens the Batch pool image reference
+func flattenBatchPoolImageReference(image *batch.ImageReference) []interface{} {
 	results := make([]interface{}, 0)
 	if image == nil {
 		log.Printf("[DEBUG] image is nil")
@@ -88,8 +88,8 @@ func FlattenBatchPoolImageReference(image *batch.ImageReference) []interface{} {
 	return append(results, result)
 }
 
-// FlattenBatchPoolStartTask flattens a Batch pool start task
-func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
+// flattenBatchPoolStartTask flattens a Batch pool start task
+func flattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 	results := make([]interface{}, 0)
 
 	if startTask == nil {
@@ -166,8 +166,8 @@ func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 	return append(results, result)
 }
 
-// FlattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
-func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateReference) []interface{} {
+// flattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
+func flattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateReference) []interface{} {
 	if armCertificates == nil {
 		return []interface{}{}
 	}
@@ -194,8 +194,8 @@ func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateR
 	return output
 }
 
-// FlattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
-func FlattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainerConfiguration *batch.ContainerConfiguration) interface{} {
+// flattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
+func flattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainerConfiguration *batch.ContainerConfiguration) interface{} {
 	result := make(map[string]interface{})
 
 	if armContainerConfiguration == nil {
@@ -205,6 +205,15 @@ func FlattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainer
 	if armContainerConfiguration.Type != nil {
 		result["type"] = *armContainerConfiguration.Type
 	}
+
+	names := &schema.Set{F: schema.HashString}
+	if armContainerConfiguration.ContainerImageNames != nil {
+		for _, armName := range *armContainerConfiguration.ContainerImageNames {
+			names.Add(armName)
+		}
+	}
+	result["container_image_names"] = names
+
 	result["container_registries"] = flattenBatchPoolContainerRegistries(d, armContainerConfiguration.ContainerRegistries)
 
 	return []interface{}{result}
@@ -306,23 +315,24 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 
 // ExpandBatchPoolContainerConfiguration expands the Batch pool container configuration
 func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.ContainerConfiguration, error) {
-	if len(list) == 0 {
+	if len(list) == 0 || list[0] == nil {
 		return nil, nil
 	}
 
-	containerConfiguration := list[0].(map[string]interface{})
-	containerType := containerConfiguration["type"].(string)
-	containerRegistries, err := expandBatchPoolContainerRegistries(containerConfiguration["container_registries"].([]interface{}))
+	block := list[0].(map[string]interface{})
+
+	containerRegistries, err := expandBatchPoolContainerRegistries(block["container_registries"].([]interface{}))
 	if err != nil {
 		return nil, err
 	}
 
-	containerConf := &batch.ContainerConfiguration{
-		Type:                &containerType,
+	obj := &batch.ContainerConfiguration{
+		Type:                utils.String(block["type"].(string)),
 		ContainerRegistries: containerRegistries,
+		ContainerImageNames: utils.ExpandStringSlice(block["container_image_names"].(*schema.Set).List()),
 	}
 
-	return containerConf, nil
+	return obj, nil
 }
 
 func expandBatchPoolContainerRegistries(list []interface{}) (*[]batch.ContainerRegistry, error) {

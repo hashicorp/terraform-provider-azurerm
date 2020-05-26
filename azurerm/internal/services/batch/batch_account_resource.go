@@ -143,7 +143,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
 	if poolAllocationMode == string(batch.UserSubscription) {
 		keyVaultReferenceSet := d.Get("key_vault_reference").([]interface{})
-		keyVaultReference, err := azure.ExpandBatchAccountKeyVaultReference(keyVaultReferenceSet)
+		keyVaultReference, err := expandBatchAccountKeyVaultReference(keyVaultReferenceSet)
 		if err != nil {
 			return fmt.Errorf("Error creating Batch account %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}

@@ -1,4 +1,4 @@
-package tests
+package batch_test
 
 import (
 	"fmt"
@@ -42,18 +42,18 @@ func TestValidateBatchAccountName(t *testing.T) {
 	}
 }
 
-func TestAccAzureRMBatchAccount_basic(t *testing.T) {
+func TestAccBatchAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		CheckDestroy: testCheckBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBatchAccount_basic(data),
+				Config: testAccBatchAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(data.ResourceName),
+					testCheckBatchAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
 				),
 			},
@@ -61,49 +61,49 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
+func TestAccBatchAccount_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		CheckDestroy: testCheckBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBatchAccount_basic(data),
+				Config: testAccBatchAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(data.ResourceName),
+					testCheckBatchAccountExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMBatchAccount_requiresImport(data),
+				Config:      testAccBatchAccount_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_batch_account"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMBatchAccount_complete(t *testing.T) {
+func TestAccBatchAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		CheckDestroy: testCheckBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBatchAccount_complete(data),
+				Config: testAccBatchAccount_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(data.ResourceName),
+					testCheckBatchAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
 				),
 			},
 			{
-				Config: testAccAzureRMBatchAccount_completeUpdated(data),
+				Config: testAccBatchAccount_completeUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(data.ResourceName),
+					testCheckBatchAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "BatchService"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
@@ -114,19 +114,19 @@ func TestAccAzureRMBatchAccount_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
+func TestAccBatchAccount_userSubscription(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	tenantID := os.Getenv("ARM_TENANT_ID")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMBatchAccountDestroy,
+		CheckDestroy: testCheckBatchAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMBatchAccount_userSubscription(data, tenantID),
+				Config: testAccBatchAccount_userSubscription(data, tenantID),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBatchAccountExists(data.ResourceName),
+					testCheckBatchAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "pool_allocation_mode", "UserSubscription"),
 				),
 			},
@@ -134,7 +134,7 @@ func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckFunc {
+func testCheckBatchAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.AccountClient
@@ -165,7 +165,7 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 	}
 }
 
-func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
+func testCheckBatchAccountDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Batch.AccountClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -192,7 +192,7 @@ func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMBatchAccount_basic(data acceptance.TestData) string {
+func testAccBatchAccount_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -212,8 +212,8 @@ resource "azurerm_batch_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMBatchAccount_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMBatchAccount_basic(data)
+func testAccBatchAccount_requiresImport(data acceptance.TestData) string {
+	template := testAccBatchAccount_basic(data)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_batch_account" "import" {
@@ -225,7 +225,7 @@ resource "azurerm_batch_account" "import" {
 `, template)
 }
 
-func testAccAzureRMBatchAccount_complete(data acceptance.TestData) string {
+func testAccBatchAccount_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -258,7 +258,7 @@ resource "azurerm_batch_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMBatchAccount_completeUpdated(data acceptance.TestData) string {
+func testAccBatchAccount_completeUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -292,7 +292,7 @@ resource "azurerm_batch_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
-func testAccAzureRMBatchAccount_userSubscription(data acceptance.TestData, tenantID string) string {
+func testAccBatchAccount_userSubscription(data acceptance.TestData, tenantID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

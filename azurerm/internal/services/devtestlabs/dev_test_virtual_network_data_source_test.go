@@ -1,4 +1,4 @@
-package tests
+package devtestlabs_test
 
 import (
 	"fmt"
