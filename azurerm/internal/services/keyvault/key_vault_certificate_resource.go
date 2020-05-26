@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -450,6 +451,10 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			Refresh:    keyVaultCertificateCreationRefreshFunc(ctx, client, keyVaultBaseUrl, name),
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(schema.TimeoutCreate),
+		}
+		if policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
+			stateConf.PollInterval = 30 * time.Second
+			stateConf.NotFoundChecks = int(math.Round(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
