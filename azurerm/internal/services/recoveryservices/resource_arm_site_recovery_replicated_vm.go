@@ -582,7 +582,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *schema.ResourceData, meta inter
 		}
 
 		if resp.Properties.ReplicationHealth == nil {
-			fmt.Errorf("Missing ReplicationHealth in response when making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
+			return nil, "", fmt.Errorf("Missing ReplicationHealth in response when making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 		}
 		return resp, *resp.Properties.ReplicationHealth, nil
 	}
