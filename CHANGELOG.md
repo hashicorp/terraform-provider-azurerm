@@ -1,7 +1,7 @@
 ## 2.12.0 (Unreleased)
 
 FEATURES:
-
+* **New Data Source:** `azurerm_advisor_recommendations` [GH-6867]
 * **New Resource:** `azurerm_dev_test_global_shutdown_schedule` [GH-5536]
 
 IMPROVEMENTS:
