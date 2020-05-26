@@ -62,8 +62,9 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 			},
 
 			"password": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
 			},
 
 			"org_id": {
