@@ -231,6 +231,12 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"disk_encryption_set": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"private_link_enabled": {
 				Type:          schema.TypeBool,
 				Computed:      true,
@@ -553,6 +559,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	if props := resp.ManagedClusterProperties; props != nil {
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
+		d.Set("disk_encryption_set", props.DiskEncryptionSetID)
 		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
