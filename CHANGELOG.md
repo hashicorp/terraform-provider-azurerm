@@ -24,6 +24,7 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
 * `azurerm_linux_virtual_machine` - allow setting `virtual_machine_scale_set_id` in non-zonal deployment [GH-7057]
 * `azurerm_servicebus_topic` - support for numbers in the `name` field [GH-7027]
+* `azurerm_shared_image_version` - `target_region.x.storage_account_type` is now defaulted and multiple `target_region`s can be added/removed [GH-6940]
 * `azurerm_sql_virtual_network_rule` - updating the validation for the `name` field [GH-6968]
 * `azurerm_windows_virtual_machine` - allow setting `virtual_machine_scale_set_id` in non-zonal deployment [GH-7057]
 * `azurerm_windows_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
