@@ -10,6 +10,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+var kubernetesOtherTests = map[string]func(t *testing.T) {
+	"basicAvailabilitySet":           testAccAzureRMKubernetesCluster_basicAvailabilitySet,
+	"basicVMSS":                      testAccAzureRMKubernetesCluster_basicVMSS,
+	"requiresImport":                 testAccAzureRMKubernetesCluster_requiresImport,
+	"linuxProfile":                   testAccAzureRMKubernetesCluster_linuxProfile,
+	"nodeLabels":                     testAccAzureRMKubernetesCluster_nodeLabels,
+	"nodeTaints":                     testAccAzureRMKubernetesCluster_nodeTaints,
+	"nodeResourceGroup":              testAccAzureRMKubernetesCluster_nodeResourceGroup,
+	"upgradeConfig":                  testAccAzureRMKubernetesCluster_upgrade,
+	"tags":                           testAccAzureRMKubernetesCluster_tags,
+	"windowsProfile":                 testAccAzureRMKubernetesCluster_windowsProfile,
+	"outboundTypeLoadBalancer":       testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
+	"outboundTypeUserDefinedRouting": testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting,
+	"privateClusterOn":               testAccAzureRMKubernetesCluster_privateClusterOn,
+	"privateClusterOff":              testAccAzureRMKubernetesCluster_privateClusterOff,
+}
+
 func TestAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_basicAvailabilitySet(t)

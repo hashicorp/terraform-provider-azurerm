@@ -8,6 +8,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+var kubernetesAuthTests = map[string]func(t *testing.T){
+	"apiServerAuthorizedIPRanges": testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges,
+	"enablePodSecurityPolicy":     testAccAzureRMKubernetesCluster_enablePodSecurityPolicy,
+	"managedClusterIdentity":      testAccAzureRMKubernetesCluster_managedClusterIdentity,
+	"roleBasedAccessControl":      testAccAzureRMKubernetesCluster_roleBasedAccessControl,
+	"roleBasedAccessControlAAD":   testAccAzureRMKubernetesCluster_roleBasedAccessControlAAD,
+	"servicePrincipal":            testAccAzureRMKubernetesCluster_servicePrincipal,
+}
+
 func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t)

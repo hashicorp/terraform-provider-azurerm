@@ -16,6 +16,28 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var kubernetesNodePoolTests = map[string]func(t *testing.T){
+	"autoScale":                      testAccAzureRMKubernetesClusterNodePool_autoScale,
+	"autoScaleUpdate":                testAccAzureRMKubernetesClusterNodePool_autoScaleUpdate,
+	"availabilityZones":              testAccAzureRMKubernetesClusterNodePool_availabilityZones,
+	"errorForAvailabilitySet":        testAccAzureRMKubernetesClusterNodePool_errorForAvailabilitySet,
+	"multiplePools":                  testAccAzureRMKubernetesClusterNodePool_multiplePools,
+	"manualScale":                    testAccAzureRMKubernetesClusterNodePool_manualScale,
+	"manualScaleMultiplePools":       testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePools,
+	"manualScaleMultiplePoolsUpdate": testAccAzureRMKubernetesClusterNodePool_manualScaleMultiplePoolsUpdate,
+	"manualScaleUpdate":              testAccAzureRMKubernetesClusterNodePool_manualScaleUpdate,
+	"manualScaleVMSku":               testAccAzureRMKubernetesClusterNodePool_manualScaleVMSku,
+	"nodeLabels":                     testAccAzureRMKubernetesClusterNodePool_nodeLabels,
+	"nodePublicIP":                   testAccAzureRMKubernetesClusterNodePool_nodePublicIP,
+	"nodeTaints":                     testAccAzureRMKubernetesClusterNodePool_nodeTaints,
+	"requiresImport":                 testAccAzureRMKubernetesClusterNodePool_requiresImport,
+	"osDiskSizeGB":                   testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB,
+	"virtualNetworkAutomatic":        testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic,
+	"virtualNetworkManual":           testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual,
+	"windows":                        testAccAzureRMKubernetesClusterNodePool_windows,
+	"windowsAndLinux":                testAccAzureRMKubernetesClusterNodePool_windowsAndLinux,
+}
+
 func TestAccAzureRMKubernetesClusterNodePool_autoScale(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesClusterNodePool_autoScale(t)

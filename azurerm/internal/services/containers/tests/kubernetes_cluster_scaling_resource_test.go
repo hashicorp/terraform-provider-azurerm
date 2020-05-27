@@ -8,6 +8,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+var kubernetesScalingTests = map[string]func(t *testing.T) {
+		"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
+		"manualScaleIgnoreChanges":         testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges,
+		"removeAgent":                      testAccAzureRMKubernetesCluster_removeAgent,
+		"autoScalingEnabledError":          testAccAzureRMKubernetesCluster_autoScalingError,
+		"autoScalingEnabledErrorMax":       testAccAzureRMKubernetesCluster_autoScalingErrorMax,
+		"autoScalingEnabledErrorMin":       testAccAzureRMKubernetesCluster_autoScalingErrorMin,
+		"autoScalingNodeCountUnset":        testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset,
+		"autoScalingNoAvailabilityZones":   testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones,
+		"autoScalingWithAvailabilityZones": testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones,
+}
+
 func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_addAgent(t)

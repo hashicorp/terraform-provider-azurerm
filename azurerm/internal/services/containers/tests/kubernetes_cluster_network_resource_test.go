@@ -10,6 +10,27 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+var kubernetesNetworkAuthTests = map[string]func(t *testing.T){
+	"enableNodePublicIP":                          testAccAzureRMKubernetesCluster_enableNodePublicIP,
+	"internalNetwork":                             testAccAzureRMKubernetesCluster_internalNetwork,
+	"changingLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_changingLoadBalancerProfile,
+	"prefixedLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
+	"standardLoadBalancer":                        testAccAzureRMKubernetesCluster_standardLoadBalancer,
+	"standardLoadBalancerComplete":                testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
+	"standardLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_standardLoadBalancerProfile,
+	"standardLoadBalancerProfileComplete":         testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete,
+	"advancedNetworkingKubenet":                     testAccAzureRMKubernetesCluster_advancedNetworkingKubenet,
+	"advancedNetworkingKubenetComplete":             testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete,
+	"advancedNetworkingAzure":                       testAccAzureRMKubernetesCluster_advancedNetworkingAzure,
+	"advancedNetworkingAzureComplete":               testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete,
+	"advancedNetworkingAzureCalicoPolicy":           testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
+	"advancedNetworkingAzureCalicoPolicyComplete":   testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
+	"advancedNetworkingAzureNPMPolicy":              testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy,
+	"advancedNetworkingAzureNPMPolicyComplete":      testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
+	"basicLoadBalancerProfile":                      testAccAzureRMKubernetesCluster_basicLoadBalancerProfile,
+	"standardLoadBalancerProfileWithPortAndTimeout": testAccAzureRMKubernetesCluster_standardLoadBalancerProfileWithPortAndTimeout,
+}
+
 func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t)
