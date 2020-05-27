@@ -688,11 +688,6 @@ func testCheckAzureRMKubernetesNodePoolExists(resourceName string) resource.Test
 			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
 		}
 
-		OrchestratorVersion := rs.Primary.Attributes["orchestrator_version"]
-		if OrchestratorVersion == "" {
-			return fmt.Errorf("Error parsing orchestrator version")
-		}
-
 		agentPool, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on kubernetesClustersClient: %+v", err)

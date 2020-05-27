@@ -11,14 +11,14 @@ import (
 )
 
 var kubernetesNetworkAuthTests = map[string]func(t *testing.T){
-	"enableNodePublicIP":                          testAccAzureRMKubernetesCluster_enableNodePublicIP,
-	"internalNetwork":                             testAccAzureRMKubernetesCluster_internalNetwork,
-	"changingLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_changingLoadBalancerProfile,
-	"prefixedLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
-	"standardLoadBalancer":                        testAccAzureRMKubernetesCluster_standardLoadBalancer,
-	"standardLoadBalancerComplete":                testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
-	"standardLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_standardLoadBalancerProfile,
-	"standardLoadBalancerProfileComplete":         testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete,
+	"enableNodePublicIP":                            testAccAzureRMKubernetesCluster_enableNodePublicIP,
+	"internalNetwork":                               testAccAzureRMKubernetesCluster_internalNetwork,
+	"changingLoadBalancerProfile":                   testAccAzureRMKubernetesCluster_changingLoadBalancerProfile,
+	"prefixedLoadBalancerProfile":                   testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfile,
+	"standardLoadBalancer":                          testAccAzureRMKubernetesCluster_standardLoadBalancer,
+	"standardLoadBalancerComplete":                  testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
+	"standardLoadBalancerProfile":                   testAccAzureRMKubernetesCluster_standardLoadBalancerProfile,
+	"standardLoadBalancerProfileComplete":           testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete,
 	"advancedNetworkingKubenet":                     testAccAzureRMKubernetesCluster_advancedNetworkingKubenet,
 	"advancedNetworkingKubenetComplete":             testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete,
 	"advancedNetworkingAzure":                       testAccAzureRMKubernetesCluster_advancedNetworkingAzure,
@@ -1209,11 +1209,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name                 = "default"
-    node_count           = 2
-    vm_size              = "Standard_DS2_v2"
-    vnet_subnet_id       = azurerm_subnet.test.id
-    orchestrator_version = "%s"
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -1225,7 +1224,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "Standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(data acceptance.TestData) string {
@@ -1287,11 +1286,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name                 = "default"
-    node_count           = 2
-    vm_size              = "Standard_DS2_v2"
-    vnet_subnet_id       = azurerm_subnet.test.id
-    orchestrator_version = "%s"
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -1350,11 +1348,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name                 = "default"
-    node_count           = 2
-    vm_size              = "Standard_DS2_v2"
-    vnet_subnet_id       = azurerm_subnet.test.id
-    orchestrator_version = "%s"
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -1369,7 +1366,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerProfileCompleteConfig(data acceptance.TestData) string {
@@ -1533,11 +1530,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name                 = "default"
-    node_count           = 2
-    vm_size              = "Standard_DS2_v2"
-    vnet_subnet_id       = azurerm_subnet.test.id
-    orchestrator_version = "%s"
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -1552,7 +1548,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_prefixedLoadBalancerProfileConfig(data acceptance.TestData) string {
@@ -1603,11 +1599,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name                 = "default"
-    node_count           = 2
-    vm_size              = "Standard_DS2_v2"
-    vnet_subnet_id       = azurerm_subnet.test.id
-    orchestrator_version = "%s"
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -1622,7 +1617,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
 }
 
 func testAccAzureRMKubernetesCluster_changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData) string {
