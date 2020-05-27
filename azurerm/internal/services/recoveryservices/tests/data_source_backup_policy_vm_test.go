@@ -22,7 +22,6 @@ func TestAccDataSourceAzureRMBackupPolicyVm_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "recovery_vault_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},
 		},
