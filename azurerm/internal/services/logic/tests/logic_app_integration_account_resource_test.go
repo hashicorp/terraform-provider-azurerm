@@ -96,6 +96,7 @@ func TestAccAzureRMLogicAppIntegrationAccount_update(t *testing.T) {
 					testCheckAzureRMLogicAppIntegrationAccountExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMLogicAppIntegrationAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
