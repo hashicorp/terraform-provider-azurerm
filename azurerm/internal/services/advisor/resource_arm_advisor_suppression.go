@@ -3,13 +3,14 @@ package advisor
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -51,7 +52,7 @@ func resourceArmAdvisorSuppression() *schema.Resource {
 				ValidateFunc: validate.AdvisorRecommendationID,
 			},
 
-			"suppressed_duration": {
+			"duration_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
@@ -82,9 +83,11 @@ func resourceArmAdvisorSuppressionCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	props := advisor.SuppressionContract{
-		SuppressionProperties: &advisor.SuppressionProperties{
-			TTL: utils.String(helper.FormatSuppressionTTL(d.Get("suppressed_duration").(int))),
-		},
+		SuppressionProperties: &advisor.SuppressionProperties{},
+	}
+
+	if v, ok := d.GetOk("duration_days"); ok && v.(int) != -1 {
+		props.SuppressionProperties.TTL = utils.String(strconv.Itoa(v.(int)))
 	}
 
 	if _, err := client.Create(ctx, recommendation.ResourceUri, recommendation.Name, name, props); err != nil {
@@ -130,13 +133,13 @@ func resourceArmAdvisorSuppressionRead(d *schema.ResourceData, meta interface{})
 	}
 	d.Set("name", id.Name)
 	d.Set("recommendation_id", rResp.ID)
-	if props := resp.SuppressionProperties; props != nil {
-		ttl, err := helper.ParseSuppresionTTL(*props.TTL)
-		if err != nil {
-			return fmt.Errorf("failure in parsing Advisor Suppression %q TTL %q: %+v", id.Name, ttl, err)
-		}
-		d.Set("suppressed_duration", ttl)
+	// ttl from api is in format dd.hh:mm:ss, we set only the day number into duration_days
+	durationDays, err := strconv.Atoi(strings.Split(*resp.TTL, ".")[0])
+	if err != nil {
+		return fmt.Errorf("can't convert string to int of field `duration_days` in Advisor Suppression %q: %+v", id.Name, err)
 	}
+	d.Set("duration_days", durationDays)
+
 	return nil
 }
 

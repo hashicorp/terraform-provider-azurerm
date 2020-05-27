@@ -40,8 +40,8 @@ func AdvisorSuppresionTTL(i interface{}, k string) (warnings []string, errors []
 		return warnings, errors
 	}
 
-	if v <= 0 || v > 24855*24*3600 {
-		errors = append(errors, fmt.Errorf("%q is expected to be between 0 and 2147472000 or -1", k))
+	if v <= 0 || v > 24855 {
+		errors = append(errors, fmt.Errorf("%q is expected to be between 0 and 24855 or -1", k))
 		return warnings, errors
 	}
 

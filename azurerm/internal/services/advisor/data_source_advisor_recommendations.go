@@ -2,6 +2,7 @@ package advisor
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -59,7 +60,7 @@ func dataSourceArmAdvisorRecommendations() *schema.Resource {
 							Computed: true,
 						},
 
-						"recommendation_name": {
+						"recommendation_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -111,17 +112,17 @@ func dataSourceArmAdvisorRecommendationsRead(d *schema.ResourceData, meta interf
 		filterList = append(filterList, resGroups)
 	}
 
-	var recommends []advisor.ResourceRecommendationBase
+	recommends := make(map[string]advisor.ResourceRecommendationBase)
 	for recommendationIterator, err := client.ListComplete(ctx, strings.Join(filterList, " and "), nil, ""); recommendationIterator.NotDone(); err = recommendationIterator.NextWithContext(ctx) {
 		if err != nil {
 			return fmt.Errorf("loading Advisor Recommendation List: %+v", err)
 		}
 
-		if recommendationIterator.Value().Name == nil || *recommendationIterator.Value().Name == "" {
-			return fmt.Errorf("advisor Recommendation Name was nil or empty")
+		if recommendationIterator.Value().ID == nil || *recommendationIterator.Value().ID == "" {
+			return fmt.Errorf("advisor Recommendation Id was nil or empty")
 		}
 
-		recommends = append(recommends, recommendationIterator.Value())
+		recommends[*recommendationIterator.Value().ID] = recommendationIterator.Value()
 	}
 
 	if err := d.Set("recommendations", flattenAzureRmAdvisorRecommendations(recommends)); err != nil {
@@ -133,14 +134,23 @@ func dataSourceArmAdvisorRecommendationsRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func flattenAzureRmAdvisorRecommendations(recommends []advisor.ResourceRecommendationBase) []interface{} {
+func flattenAzureRmAdvisorRecommendations(recommends map[string]advisor.ResourceRecommendationBase) []interface{} {
 	result := make([]interface{}, 0)
 
 	if len(recommends) == 0 {
 		return result
 	}
 
-	for _, v := range recommends {
+	keys := make([]string, 0, len(recommends))
+
+	for k := range recommends {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		v := recommends[k]
 		var category, description, impact, recTypeId, resourceName, resourceType, updatedTime string
 		var suppressionIds []interface{}
 		if v.Category != "" {
@@ -178,7 +188,7 @@ func flattenAzureRmAdvisorRecommendations(recommends []advisor.ResourceRecommend
 			"category":               category,
 			"description":            description,
 			"impact":                 impact,
-			"recommendation_name":    *v.Name,
+			"recommendation_id":      *v.ID,
 			"recommendation_type_id": recTypeId,
 			"resource_name":          resourceName,
 			"resource_type":          resourceType,

@@ -53,7 +53,7 @@ A `recommendations` block exports the following:
 
 * `impact` - The business impact of the recommendation.
 
-* `recommendation_name` - The name of the Advisor Recommendation.
+* `recommendation_id` - The id of the Advisor Recommendation.
 
 * `recommendation_type_id` - The recommendation type id of the Advisor Recommendation.
 

@@ -1,9 +1,7 @@
 package tests
 
 import (
-	"context"
 	"fmt"
-	"sync"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -14,14 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var (
-	recommendationId string
-	once             sync.Once
-)
-
 func TestAccAzureRMAdvisorSuppression_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
-	recommendationId = buildAzureRMAdvisorRecommendationData(t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -29,7 +21,7 @@ func TestAccAzureRMAdvisorSuppression_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAdvisorSuppressionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAdvisorSuppression_basic(data, recommendationId),
+				Config: testAccAzureRMAdvisorSuppression_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
 				),
@@ -41,7 +33,6 @@ func TestAccAzureRMAdvisorSuppression_basic(t *testing.T) {
 
 func TestAccAzureRMAdvisorSuppression_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
-	recommendationId = buildAzureRMAdvisorRecommendationData(t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -49,22 +40,18 @@ func TestAccAzureRMAdvisorSuppression_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAdvisorSuppressionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAdvisorSuppression_basic(data, recommendationId),
+				Config: testAccAzureRMAdvisorSuppression_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMAdvisorSuppression_requiresImport(data, recommendationId),
-				ExpectError: acceptance.RequiresImportError("azurerm_advisor_suppression"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMAdvisorSuppression_requiresImport),
 		},
 	})
 }
 
 func TestAccAzureRMAdvisorSuppression_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
-	recommendationId = buildAzureRMAdvisorRecommendationData(t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -72,26 +59,23 @@ func TestAccAzureRMAdvisorSuppression_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAdvisorSuppressionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAdvisorSuppression_complete(data, recommendationId),
+				Config: testAccAzureRMAdvisorSuppression_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "suppressed_duration", "3000"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAdvisorSuppression_update(data, recommendationId),
+				Config: testAccAzureRMAdvisorSuppression_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "suppressed_duration", "259200"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAdvisorSuppression_basic(data, recommendationId),
+				Config: testAccAzureRMAdvisorSuppression_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "suppressed_duration", "-1"),
 				),
 			},
 			data.ImportStep(),
@@ -151,65 +135,23 @@ func testCheckAzureRMAdvisorSuppressionDestroy(s *terraform.State) error {
 	return nil
 }
 
-// Here we build test data advisor Recommendation ID.
-// Because if we refer the recommendation ID from datasource in acctest, we can't assure the returned recommendation list always the same for initial step and step "terraform plan -refresh=false".
-func buildAzureRMAdvisorRecommendationData(t *testing.T) string {
-	once.Do(func() {
-		config := acceptance.GetAuthConfig(t)
-		if config == nil {
-			t.SkipNow()
-			t.Fatalf("bad: Failure in building ARM Client")
-		}
-
-		builder := clients.ClientBuilder{
-			AuthConfig:                  config,
-			TerraformVersion:            "0.0.0",
-			PartnerId:                   "",
-			DisableCorrelationRequestID: true,
-			DisableTerraformPartnerID:   false,
-			SkipProviderRegistration:    false,
-		}
-		client, err := clients.Build(context.Background(), builder)
-		if err != nil {
-			t.Fatal(fmt.Errorf("bad: Failure in building ARM Client: %+v", err))
-		}
-
-		client.StopContext = acceptance.AzureProvider.StopContext()
-
-		rclient := client.Advisor.RecommendationsClient
-		ctx := client.StopContext
-		recommendationIterator, err := rclient.ListComplete(ctx, "", nil, "")
-		if err != nil {
-			t.Fatalf("failure in retrieving Advisor Recommendations: %+v", err)
-		}
-
-		if !recommendationIterator.NotDone() {
-			t.Fatalf("bad: Advisor Recommendations are empty")
-		}
-
-		recommendationId = *recommendationIterator.Value().ID
-		if recommendationId == "" {
-			t.Fatalf("advisor Recommendation ID is empty")
-		}
-	})
-	return recommendationId
-}
-
-func testAccAzureRMAdvisorSuppression_basic(data acceptance.TestData, recommendationId string) string {
+func testAccAzureRMAdvisorSuppression_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+data "azurerm_advisor_recommendations" "test" {}
+
 resource "azurerm_advisor_suppression" "test" {
   name              = "acctest-sp-%d"
-  recommendation_id = "%s"
+  recommendation_id = data.azurerm_advisor_recommendations.test.recommendations.0.recommendation_id
 }
-`, data.RandomInteger, recommendationId)
+`, data.RandomInteger)
 }
 
-func testAccAzureRMAdvisorSuppression_requiresImport(data acceptance.TestData, recommendationId string) string {
-	template := testAccAzureRMAdvisorSuppression_basic(data, recommendationId)
+func testAccAzureRMAdvisorSuppression_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAdvisorSuppression_basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -220,30 +162,34 @@ resource "azurerm_advisor_suppression" "import" {
 `, template)
 }
 
-func testAccAzureRMAdvisorSuppression_complete(data acceptance.TestData, recommendationId string) string {
+func testAccAzureRMAdvisorSuppression_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+data "azurerm_advisor_recommendations" "test" {}
+
 resource "azurerm_advisor_suppression" "test" {
-  name                = "acctest-sp-%d"
-  recommendation_id   = "%s"
-  suppressed_duration = "3000"
+  name              = "acctest-sp-%d"
+  recommendation_id = data.azurerm_advisor_recommendations.test.recommendations.0.recommendation_id
+  duration_days     = 1
 }
-`, data.RandomInteger, recommendationId)
+`, data.RandomInteger)
 }
 
-func testAccAzureRMAdvisorSuppression_update(data acceptance.TestData, recommendationId string) string {
+func testAccAzureRMAdvisorSuppression_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
+data "azurerm_advisor_recommendations" "test" {}
+
 resource "azurerm_advisor_suppression" "test" {
-  name                = "acctest-sp-%d"
-  recommendation_id   = "%s"
-  suppressed_duration = "259200"
+  name              = "acctest-sp-%d"
+  recommendation_id = data.azurerm_advisor_recommendations.test.recommendations.0.recommendation_id
+  duration_days     = 2
 }
-`, data.RandomInteger, recommendationId)
+`, data.RandomInteger)
 }

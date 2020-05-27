@@ -17,10 +17,12 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_advisor_suppression" "test" {
-  name                = "example-sp"
-  recommendation_id   = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/microsoft.web/sites/site1/providers/Microsoft.Advisor/recommendations/recommendation1"
-  suppressed_duration = "259200"
+data "azurerm_advisor_recommendations" "example" {}
+
+resource "azurerm_advisor_suppression" "example" {
+  name              = "example-as"
+  recommendation_id = data.azurerm_advisor_recommendations.example.recommendations.0.recommendation_id
+  duration_days     = "3"
 }
 ```
 
@@ -34,7 +36,7 @@ The following arguments are supported:
 
 ---
 
-* `suppressed_duration` - (Optional) The interval in seconds during which the Advisor Recommendation will be suppressed. Specifying `-1` will suppress forever.
+* `duration_days` - (Optional) The interval in seconds during which the Advisor Recommendation will be suppressed. Specifying `-1` will suppress forever.
 
 ## Attributes Reference
 
