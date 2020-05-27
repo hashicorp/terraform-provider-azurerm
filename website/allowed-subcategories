@@ -20,6 +20,7 @@ DNS
 Data Explorer
 Data Factory
 Data Lake
+Data Share
 Database
 Database Migration
 Databricks
@@ -34,6 +35,7 @@ Load Balancer
 Log Analytics
 Logic App
 Machine Learning
+Maintenance
 Managed Applications
 Management
 Maps
@@ -51,8 +53,10 @@ Recovery Services
 Redis
 Search
 Security Center
+Sentinel
 Service Fabric
 Spring Cloud
 Storage
 Stream Analytics
 Template
+Time Series Insights

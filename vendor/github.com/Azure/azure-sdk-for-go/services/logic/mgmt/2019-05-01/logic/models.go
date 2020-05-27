@@ -525,6 +525,19 @@ func PossibleMessageFilterTypeValues() []MessageFilterType {
 	return []MessageFilterType{MessageFilterTypeExclude, MessageFilterTypeInclude, MessageFilterTypeNotSpecified}
 }
 
+// OpenAuthenticationProviderType enumerates the values for open authentication provider type.
+type OpenAuthenticationProviderType string
+
+const (
+	// AAD ...
+	AAD OpenAuthenticationProviderType = "AAD"
+)
+
+// PossibleOpenAuthenticationProviderTypeValues returns an array of possible values for the OpenAuthenticationProviderType const type.
+func PossibleOpenAuthenticationProviderTypeValues() []OpenAuthenticationProviderType {
+	return []OpenAuthenticationProviderType{AAD}
+}
+
 // ParameterType enumerates the values for parameter type.
 type ParameterType string
 
@@ -838,16 +851,22 @@ const (
 	WorkflowProvisioningStateDeleting WorkflowProvisioningState = "Deleting"
 	// WorkflowProvisioningStateFailed ...
 	WorkflowProvisioningStateFailed WorkflowProvisioningState = "Failed"
+	// WorkflowProvisioningStateInProgress ...
+	WorkflowProvisioningStateInProgress WorkflowProvisioningState = "InProgress"
 	// WorkflowProvisioningStateMoving ...
 	WorkflowProvisioningStateMoving WorkflowProvisioningState = "Moving"
 	// WorkflowProvisioningStateNotSpecified ...
 	WorkflowProvisioningStateNotSpecified WorkflowProvisioningState = "NotSpecified"
+	// WorkflowProvisioningStatePending ...
+	WorkflowProvisioningStatePending WorkflowProvisioningState = "Pending"
 	// WorkflowProvisioningStateReady ...
 	WorkflowProvisioningStateReady WorkflowProvisioningState = "Ready"
 	// WorkflowProvisioningStateRegistered ...
 	WorkflowProvisioningStateRegistered WorkflowProvisioningState = "Registered"
 	// WorkflowProvisioningStateRegistering ...
 	WorkflowProvisioningStateRegistering WorkflowProvisioningState = "Registering"
+	// WorkflowProvisioningStateRenewing ...
+	WorkflowProvisioningStateRenewing WorkflowProvisioningState = "Renewing"
 	// WorkflowProvisioningStateRunning ...
 	WorkflowProvisioningStateRunning WorkflowProvisioningState = "Running"
 	// WorkflowProvisioningStateSucceeded ...
@@ -858,11 +877,13 @@ const (
 	WorkflowProvisioningStateUnregistering WorkflowProvisioningState = "Unregistering"
 	// WorkflowProvisioningStateUpdating ...
 	WorkflowProvisioningStateUpdating WorkflowProvisioningState = "Updating"
+	// WorkflowProvisioningStateWaiting ...
+	WorkflowProvisioningStateWaiting WorkflowProvisioningState = "Waiting"
 )
 
 // PossibleWorkflowProvisioningStateValues returns an array of possible values for the WorkflowProvisioningState const type.
 func PossibleWorkflowProvisioningStateValues() []WorkflowProvisioningState {
-	return []WorkflowProvisioningState{WorkflowProvisioningStateAccepted, WorkflowProvisioningStateCanceled, WorkflowProvisioningStateCompleted, WorkflowProvisioningStateCreated, WorkflowProvisioningStateCreating, WorkflowProvisioningStateDeleted, WorkflowProvisioningStateDeleting, WorkflowProvisioningStateFailed, WorkflowProvisioningStateMoving, WorkflowProvisioningStateNotSpecified, WorkflowProvisioningStateReady, WorkflowProvisioningStateRegistered, WorkflowProvisioningStateRegistering, WorkflowProvisioningStateRunning, WorkflowProvisioningStateSucceeded, WorkflowProvisioningStateUnregistered, WorkflowProvisioningStateUnregistering, WorkflowProvisioningStateUpdating}
+	return []WorkflowProvisioningState{WorkflowProvisioningStateAccepted, WorkflowProvisioningStateCanceled, WorkflowProvisioningStateCompleted, WorkflowProvisioningStateCreated, WorkflowProvisioningStateCreating, WorkflowProvisioningStateDeleted, WorkflowProvisioningStateDeleting, WorkflowProvisioningStateFailed, WorkflowProvisioningStateInProgress, WorkflowProvisioningStateMoving, WorkflowProvisioningStateNotSpecified, WorkflowProvisioningStatePending, WorkflowProvisioningStateReady, WorkflowProvisioningStateRegistered, WorkflowProvisioningStateRegistering, WorkflowProvisioningStateRenewing, WorkflowProvisioningStateRunning, WorkflowProvisioningStateSucceeded, WorkflowProvisioningStateUnregistered, WorkflowProvisioningStateUnregistering, WorkflowProvisioningStateUpdating, WorkflowProvisioningStateWaiting}
 }
 
 // WorkflowState enumerates the values for workflow state.
@@ -1406,7 +1427,7 @@ type APIResourceMetadata struct {
 	WsdlImportMethod WsdlImportMethod `json:"wsdlImportMethod,omitempty"`
 	// ConnectionType - The connection type.
 	ConnectionType *string `json:"connectionType,omitempty"`
-	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted'
+	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted', 'WorkflowProvisioningStateRenewing', 'WorkflowProvisioningStatePending', 'WorkflowProvisioningStateWaiting', 'WorkflowProvisioningStateInProgress'
 	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentParameters - The connector deployment parameters metadata.
 	DeploymentParameters *APIDeploymentParameterMetadataSet `json:"deploymentParameters,omitempty"`
@@ -1480,7 +1501,7 @@ type APIResourceProperties struct {
 	APIDefinitions *APIResourceDefinitions `json:"apiDefinitions,omitempty"`
 	// IntegrationServiceEnvironment - The integration service environment reference.
 	IntegrationServiceEnvironment *ResourceReference `json:"integrationServiceEnvironment,omitempty"`
-	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted'
+	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted', 'WorkflowProvisioningStateRenewing', 'WorkflowProvisioningStatePending', 'WorkflowProvisioningStateWaiting', 'WorkflowProvisioningStateInProgress'
 	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
 	// Category - The category. Possible values include: 'APITierNotSpecified', 'APITierEnterprise', 'APITierStandard', 'APITierPremium'
 	Category APITier `json:"category,omitempty"`
@@ -2276,6 +2297,26 @@ type ExtendedErrorInfo struct {
 	Details *[]ExtendedErrorInfo `json:"details,omitempty"`
 	// InnerError - The inner error.
 	InnerError interface{} `json:"innerError,omitempty"`
+}
+
+// FlowAccessControlConfiguration the access control configuration.
+type FlowAccessControlConfiguration struct {
+	// Triggers - The access control configuration for invoking workflow triggers.
+	Triggers *FlowAccessControlConfigurationPolicy `json:"triggers,omitempty"`
+	// Contents - The access control configuration for accessing workflow run contents.
+	Contents *FlowAccessControlConfigurationPolicy `json:"contents,omitempty"`
+	// Actions - The access control configuration for workflow actions.
+	Actions *FlowAccessControlConfigurationPolicy `json:"actions,omitempty"`
+	// WorkflowManagement - The access control configuration for workflow management.
+	WorkflowManagement *FlowAccessControlConfigurationPolicy `json:"workflowManagement,omitempty"`
+}
+
+// FlowAccessControlConfigurationPolicy the access control configuration policy.
+type FlowAccessControlConfigurationPolicy struct {
+	// AllowedCallerIPAddresses - The allowed caller IP address ranges.
+	AllowedCallerIPAddresses *[]IPAddressRange `json:"allowedCallerIpAddresses,omitempty"`
+	// OpenAuthenticationPolicies - The authentication policies for workflow.
+	OpenAuthenticationPolicies *OpenAuthenticationAccessPolicies `json:"openAuthenticationPolicies,omitempty"`
 }
 
 // FlowEndpoints the flow endpoints configuration.
@@ -4483,7 +4524,7 @@ type IntegrationServiceEnvironmentNetworkEndpoint struct {
 
 // IntegrationServiceEnvironmentProperties the integration service environment properties.
 type IntegrationServiceEnvironmentProperties struct {
-	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted'
+	// ProvisioningState - The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted', 'WorkflowProvisioningStateRenewing', 'WorkflowProvisioningStatePending', 'WorkflowProvisioningStateWaiting', 'WorkflowProvisioningStateInProgress'
 	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
 	// State - The integration service environment state. Possible values include: 'WorkflowStateNotSpecified', 'WorkflowStateCompleted', 'WorkflowStateEnabled', 'WorkflowStateDisabled', 'WorkflowStateDeleted', 'WorkflowStateSuspended'
 	State WorkflowState `json:"state,omitempty"`
@@ -4756,6 +4797,12 @@ type IPAddress struct {
 	Address *string `json:"address,omitempty"`
 }
 
+// IPAddressRange the ip address range.
+type IPAddressRange struct {
+	// AddressRange - The IP address range.
+	AddressRange *string `json:"addressRange,omitempty"`
+}
+
 // JSONSchema the JSON schema.
 type JSONSchema struct {
 	autorest.Response `json:"-"`
@@ -5018,12 +5065,47 @@ type NetworkConfiguration struct {
 	Subnets *[]ResourceReference `json:"subnets,omitempty"`
 }
 
+// OpenAuthenticationAccessPolicies authenticationPolicy of type Open.
+type OpenAuthenticationAccessPolicies struct {
+	// Policies - Open authentication policies.
+	Policies map[string]*OpenAuthenticationAccessPolicy `json:"policies"`
+}
+
+// MarshalJSON is the custom marshaler for OpenAuthenticationAccessPolicies.
+func (oaap OpenAuthenticationAccessPolicies) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if oaap.Policies != nil {
+		objectMap["policies"] = oaap.Policies
+	}
+	return json.Marshal(objectMap)
+}
+
+// OpenAuthenticationAccessPolicy open authentication access policy defined by user.
+type OpenAuthenticationAccessPolicy struct {
+	// Type - READ-ONLY; Type of provider for OAuth. Possible values include: 'AAD'
+	Type OpenAuthenticationProviderType `json:"type,omitempty"`
+	// Claims - The access policy claims.
+	Claims *[]OpenAuthenticationPolicyClaim `json:"claims,omitempty"`
+}
+
+// OpenAuthenticationPolicyClaim open authentication policy claim.
+type OpenAuthenticationPolicyClaim struct {
+	// Name - The name of the claim.
+	Name *string `json:"name,omitempty"`
+	// Value - The value of the claim.
+	Value *string `json:"value,omitempty"`
+}
+
 // Operation logic REST API operation
 type Operation struct {
+	// Origin - Operation: origin
+	Origin *string `json:"origin,omitempty"`
 	// Name - Operation name: {provider}/{resource}/{operation}
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
+	// Properties - The properties.
+	Properties interface{} `json:"properties,omitempty"`
 }
 
 // OperationDisplay the object that represents the operation.
@@ -5034,6 +5116,8 @@ type OperationDisplay struct {
 	Resource *string `json:"resource,omitempty"`
 	// Operation - Operation type: Read, write, delete, etc.
 	Operation *string `json:"operation,omitempty"`
+	// Description - Operation: description.
+	Description *string `json:"description,omitempty"`
 }
 
 // OperationListResult result of the request to list Logic operations. It contains a list of operations and
@@ -5574,7 +5658,7 @@ type SetObject struct {
 // SetTriggerStateActionDefinition the set trigger state action definition.
 type SetTriggerStateActionDefinition struct {
 	// Source - The source.
-	Source *WorkflowTrigger `json:"source,omitempty"`
+	Source *WorkflowTriggerReference `json:"source,omitempty"`
 }
 
 // Sku the sku type.
@@ -5943,6 +6027,8 @@ type TrackingEvent struct {
 	EventTime *date.Time `json:"eventTime,omitempty"`
 	// RecordType - The record type. Possible values include: 'TrackingRecordTypeNotSpecified', 'TrackingRecordTypeCustom', 'TrackingRecordTypeAS2Message', 'TrackingRecordTypeAS2MDN', 'TrackingRecordTypeX12Interchange', 'TrackingRecordTypeX12FunctionalGroup', 'TrackingRecordTypeX12TransactionSet', 'TrackingRecordTypeX12InterchangeAcknowledgment', 'TrackingRecordTypeX12FunctionalGroupAcknowledgment', 'TrackingRecordTypeX12TransactionSetAcknowledgment', 'TrackingRecordTypeEdifactInterchange', 'TrackingRecordTypeEdifactFunctionalGroup', 'TrackingRecordTypeEdifactTransactionSet', 'TrackingRecordTypeEdifactInterchangeAcknowledgment', 'TrackingRecordTypeEdifactFunctionalGroupAcknowledgment', 'TrackingRecordTypeEdifactTransactionSetAcknowledgment'
 	RecordType TrackingRecordType `json:"recordType,omitempty"`
+	// Record - The record.
+	Record interface{} `json:"record,omitempty"`
 	// Error - The error.
 	Error *TrackingEventErrorInfo `json:"error,omitempty"`
 }
@@ -6246,7 +6332,7 @@ type WorkflowParameter struct {
 
 // WorkflowProperties the workflow properties.
 type WorkflowProperties struct {
-	// ProvisioningState - READ-ONLY; Gets the provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted'
+	// ProvisioningState - READ-ONLY; Gets the provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted', 'WorkflowProvisioningStateRenewing', 'WorkflowProvisioningStatePending', 'WorkflowProvisioningStateWaiting', 'WorkflowProvisioningStateInProgress'
 	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
 	// CreatedTime - READ-ONLY; Gets the created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
@@ -6260,7 +6346,9 @@ type WorkflowProperties struct {
 	AccessEndpoint *string `json:"accessEndpoint,omitempty"`
 	// EndpointsConfiguration - The endpoints configuration.
 	EndpointsConfiguration *FlowEndpointsConfiguration `json:"endpointsConfiguration,omitempty"`
-	// Sku - The sku.
+	// AccessControl - The access control configuration.
+	AccessControl *FlowAccessControlConfiguration `json:"accessControl,omitempty"`
+	// Sku - READ-ONLY; The sku.
 	Sku *Sku `json:"sku,omitempty"`
 	// IntegrationAccount - The integration account.
 	IntegrationAccount *ResourceReference `json:"integrationAccount,omitempty"`
@@ -6281,8 +6369,8 @@ func (wp WorkflowProperties) MarshalJSON() ([]byte, error) {
 	if wp.EndpointsConfiguration != nil {
 		objectMap["endpointsConfiguration"] = wp.EndpointsConfiguration
 	}
-	if wp.Sku != nil {
-		objectMap["sku"] = wp.Sku
+	if wp.AccessControl != nil {
+		objectMap["accessControl"] = wp.AccessControl
 	}
 	if wp.IntegrationAccount != nil {
 		objectMap["integrationAccount"] = wp.IntegrationAccount
@@ -6297,6 +6385,16 @@ func (wp WorkflowProperties) MarshalJSON() ([]byte, error) {
 		objectMap["parameters"] = wp.Parameters
 	}
 	return json.Marshal(objectMap)
+}
+
+// WorkflowReference the workflow reference.
+type WorkflowReference struct {
+	// ID - The resource id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Gets the resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Gets the resource type.
+	Type *string `json:"type,omitempty"`
 }
 
 // WorkflowRun the workflow run.
@@ -6612,7 +6710,7 @@ type WorkflowRunActionProperties struct {
 	// TrackingID - READ-ONLY; Gets the tracking id.
 	TrackingID *string `json:"trackingId,omitempty"`
 	// Correlation - The correlation properties.
-	Correlation *Correlation `json:"correlation,omitempty"`
+	Correlation *RunActionCorrelation `json:"correlation,omitempty"`
 	// InputsLink - READ-ONLY; Gets the link to inputs.
 	InputsLink *ContentLink `json:"inputsLink,omitempty"`
 	// OutputsLink - READ-ONLY; Gets the link to outputs.
@@ -7336,6 +7434,8 @@ type WorkflowTriggerHistoryProperties struct {
 	StartTime *date.Time `json:"startTime,omitempty"`
 	// EndTime - READ-ONLY; Gets the end time.
 	EndTime *date.Time `json:"endTime,omitempty"`
+	// ScheduledTime - READ-ONLY; The scheduled time.
+	ScheduledTime *date.Time `json:"scheduledTime,omitempty"`
 	// Status - READ-ONLY; Gets the status. Possible values include: 'WorkflowStatusNotSpecified', 'WorkflowStatusPaused', 'WorkflowStatusRunning', 'WorkflowStatusWaiting', 'WorkflowStatusSucceeded', 'WorkflowStatusSkipped', 'WorkflowStatusSuspended', 'WorkflowStatusCancelled', 'WorkflowStatusFailed', 'WorkflowStatusFaulted', 'WorkflowStatusTimedOut', 'WorkflowStatusAborted', 'WorkflowStatusIgnored'
 	Status WorkflowStatus `json:"status,omitempty"`
 	// Code - READ-ONLY; Gets the code.
@@ -7552,6 +7652,20 @@ type WorkflowTriggerRecurrence struct {
 	TimeZone *string `json:"timeZone,omitempty"`
 	// Schedule - The recurrence schedule.
 	Schedule *RecurrenceSchedule `json:"schedule,omitempty"`
+}
+
+// WorkflowTriggerReference the workflow trigger reference.
+type WorkflowTriggerReference struct {
+	// FlowName - The workflow name.
+	FlowName *string `json:"flowName,omitempty"`
+	// TriggerName - The workflow trigger name.
+	TriggerName *string `json:"triggerName,omitempty"`
+	// ID - The resource id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Gets the resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Gets the resource type.
+	Type *string `json:"type,omitempty"`
 }
 
 // WorkflowVersion the workflow version.
@@ -7803,6 +7917,8 @@ func NewWorkflowVersionListResultPage(getNextPage func(context.Context, Workflow
 
 // WorkflowVersionProperties the workflow version properties.
 type WorkflowVersionProperties struct {
+	// ProvisioningState - READ-ONLY; The provisioning state. Possible values include: 'WorkflowProvisioningStateNotSpecified', 'WorkflowProvisioningStateAccepted', 'WorkflowProvisioningStateRunning', 'WorkflowProvisioningStateReady', 'WorkflowProvisioningStateCreating', 'WorkflowProvisioningStateCreated', 'WorkflowProvisioningStateDeleting', 'WorkflowProvisioningStateDeleted', 'WorkflowProvisioningStateCanceled', 'WorkflowProvisioningStateFailed', 'WorkflowProvisioningStateSucceeded', 'WorkflowProvisioningStateMoving', 'WorkflowProvisioningStateUpdating', 'WorkflowProvisioningStateRegistering', 'WorkflowProvisioningStateRegistered', 'WorkflowProvisioningStateUnregistering', 'WorkflowProvisioningStateUnregistered', 'WorkflowProvisioningStateCompleted', 'WorkflowProvisioningStateRenewing', 'WorkflowProvisioningStatePending', 'WorkflowProvisioningStateWaiting', 'WorkflowProvisioningStateInProgress'
+	ProvisioningState WorkflowProvisioningState `json:"provisioningState,omitempty"`
 	// CreatedTime - READ-ONLY; Gets the created time.
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
 	// ChangedTime - READ-ONLY; Gets the changed time.
@@ -7813,7 +7929,11 @@ type WorkflowVersionProperties struct {
 	Version *string `json:"version,omitempty"`
 	// AccessEndpoint - READ-ONLY; Gets the access endpoint.
 	AccessEndpoint *string `json:"accessEndpoint,omitempty"`
-	// Sku - The sku.
+	// EndpointsConfiguration - The endpoints configuration.
+	EndpointsConfiguration *FlowEndpointsConfiguration `json:"endpointsConfiguration,omitempty"`
+	// AccessControl - The access control configuration.
+	AccessControl *FlowAccessControlConfiguration `json:"accessControl,omitempty"`
+	// Sku - READ-ONLY; The sku.
 	Sku *Sku `json:"sku,omitempty"`
 	// IntegrationAccount - The integration account.
 	IntegrationAccount *ResourceReference `json:"integrationAccount,omitempty"`
@@ -7829,8 +7949,11 @@ func (wvp WorkflowVersionProperties) MarshalJSON() ([]byte, error) {
 	if wvp.State != "" {
 		objectMap["state"] = wvp.State
 	}
-	if wvp.Sku != nil {
-		objectMap["sku"] = wvp.Sku
+	if wvp.EndpointsConfiguration != nil {
+		objectMap["endpointsConfiguration"] = wvp.EndpointsConfiguration
+	}
+	if wvp.AccessControl != nil {
+		objectMap["accessControl"] = wvp.AccessControl
 	}
 	if wvp.IntegrationAccount != nil {
 		objectMap["integrationAccount"] = wvp.IntegrationAccount

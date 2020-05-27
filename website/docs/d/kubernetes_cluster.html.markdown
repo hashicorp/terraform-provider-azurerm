@@ -62,9 +62,7 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
-* `private_link_enabled` - Does this Kubernetes Cluster have the Kubernetes API exposed via Private Link?                           
-
--> **NOTE:** At this time Private Link is in Public Preview
+* `private_cluster_enabled` - If the cluster has the Kubernetes API only exposed on internal IP addresses.                           
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
@@ -79,6 +77,10 @@ The following attributes are exported:
 * `role_based_access_control` - A `role_based_access_control` block as documented below.
 
 * `service_principal` - A `service_principal` block as documented below.
+
+* `identity` - A `identity` block as documented below.
+
+* `kubelet_identity` - A `kubelet_identity` block as documented below.  
 
 * `tags` - A mapping of tags assigned to this resource.
 
@@ -213,6 +215,18 @@ A `oms_agent` block exports the following:
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which the OMS Agent should send data to.
 
+* `oms_agent_identity` - An `oms_agent_identity` block as defined below.  
+
+---
+
+The `oms_agent_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `object_id` - The Object ID of the user-defined Managed Identity used by the OMS Agents.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity used by the OMS Agents.
+
 ---
 
 A `kube_dashboard` block supports the following:
@@ -238,6 +252,26 @@ A `role_based_access_control` block exports the following:
 A `service_principal` block supports the following:
 
 * `client_id` - The Client ID of the Service Principal used by this Managed Kubernetes Cluster.
+
+---
+
+The `identity` block exports the following:
+
+* `type` - The type of identity used for the managed cluster.
+
+* `principal_id` - The principal id of the system assigned identity which is used by master components.
+
+* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+
+---
+
+The `kubelet_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
 
 ---
 

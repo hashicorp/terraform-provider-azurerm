@@ -268,7 +268,9 @@ func (client RecommendationsClient) GetGenerateStatusResponder(resp *http.Respon
 // List obtains cached recommendations for a subscription. The recommendations are generated or computed by invoking
 // generateRecommendations.
 // Parameters:
-// filter - the filter to apply to the recommendations.
+// filter - the filter to apply to the recommendations.<br>Filter can be applied to properties ['ResourceId',
+// 'ResourceGroup', 'RecommendationTypeGuid', '[Category](#category)'] with operators ['eq', 'and',
+// 'or'].<br>Example:<br>- $filter=Category eq 'Cost' and ResourceGroup eq 'MyResourceGroup'
 // top - the number of recommendations per page if a paged version of this API is being used.
 // skipToken - the page-continuation token to use with a paged version of this API.
 func (client RecommendationsClient) List(ctx context.Context, filter string, top *int32, skipToken string) (result ResourceRecommendationBaseListResultPage, err error) {

@@ -69,6 +69,59 @@ func PossibleAuthTypeBasicResourceCertificateDetailsValues() []AuthTypeBasicReso
 	return []AuthTypeBasicResourceCertificateDetails{AuthTypeAccessControlService, AuthTypeAzureActiveDirectory, AuthTypeResourceCertificateDetails}
 }
 
+// PrivateEndpointConnectionStatus enumerates the values for private endpoint connection status.
+type PrivateEndpointConnectionStatus string
+
+const (
+	// Approved ...
+	Approved PrivateEndpointConnectionStatus = "Approved"
+	// Disconnected ...
+	Disconnected PrivateEndpointConnectionStatus = "Disconnected"
+	// Pending ...
+	Pending PrivateEndpointConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateEndpointConnectionStatus = "Rejected"
+)
+
+// PossiblePrivateEndpointConnectionStatusValues returns an array of possible values for the PrivateEndpointConnectionStatus const type.
+func PossiblePrivateEndpointConnectionStatusValues() []PrivateEndpointConnectionStatus {
+	return []PrivateEndpointConnectionStatus{Approved, Disconnected, Pending, Rejected}
+}
+
+// ProvisioningState enumerates the values for provisioning state.
+type ProvisioningState string
+
+const (
+	// ProvisioningStateDeleting ...
+	ProvisioningStateDeleting ProvisioningState = "Deleting"
+	// ProvisioningStateFailed ...
+	ProvisioningStateFailed ProvisioningState = "Failed"
+	// ProvisioningStatePending ...
+	ProvisioningStatePending ProvisioningState = "Pending"
+	// ProvisioningStateSucceeded ...
+	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
+)
+
+// PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
+func PossibleProvisioningStateValues() []ProvisioningState {
+	return []ProvisioningState{ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStatePending, ProvisioningStateSucceeded}
+}
+
+// ResourceIdentityType enumerates the values for resource identity type.
+type ResourceIdentityType string
+
+const (
+	// None ...
+	None ResourceIdentityType = "None"
+	// SystemAssigned ...
+	SystemAssigned ResourceIdentityType = "SystemAssigned"
+)
+
+// PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
+func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
+	return []ResourceIdentityType{None, SystemAssigned}
+}
+
 // SkuName enumerates the values for sku name.
 type SkuName string
 
@@ -122,6 +175,21 @@ func PossibleUsagesUnitValues() []UsagesUnit {
 	return []UsagesUnit{Bytes, BytesPerSecond, Count, CountPerSecond, Percent, Seconds}
 }
 
+// VaultPrivateEndpointState enumerates the values for vault private endpoint state.
+type VaultPrivateEndpointState string
+
+const (
+	// VaultPrivateEndpointStateEnabled ...
+	VaultPrivateEndpointStateEnabled VaultPrivateEndpointState = "Enabled"
+	// VaultPrivateEndpointStateNone ...
+	VaultPrivateEndpointStateNone VaultPrivateEndpointState = "None"
+)
+
+// PossibleVaultPrivateEndpointStateValues returns an array of possible values for the VaultPrivateEndpointState const type.
+func PossibleVaultPrivateEndpointStateValues() []VaultPrivateEndpointState {
+	return []VaultPrivateEndpointState{VaultPrivateEndpointStateEnabled, VaultPrivateEndpointStateNone}
+}
+
 // VaultUpgradeState enumerates the values for vault upgrade state.
 type VaultUpgradeState string
 
@@ -158,25 +226,10 @@ type CheckNameAvailabilityParameters struct {
 // CheckNameAvailabilityResult response for check name availability API. Resource provider will set
 // availability as true | false.
 type CheckNameAvailabilityResult struct {
-	NameAvailable *bool   `json:"nameAvailable,omitempty"`
-	Reason        *string `json:"reason,omitempty"`
-	Message       *string `json:"message,omitempty"`
-}
-
-// CheckNameAvailabilityResultResource response for check name availability API. Resource provider will set
-// availability as true | false.
-type CheckNameAvailabilityResultResource struct {
 	autorest.Response `json:"-"`
-	// Properties - CheckNameAvailabilityResultResource properties
-	Properties *CheckNameAvailabilityResult `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource Id represents the complete path to the resource.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name associated with the resource.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type represents the complete path of the form Namespace/ResourceType/ResourceType/...
-	Type *string `json:"type,omitempty"`
-	// ETag - Optional ETag.
-	ETag *string `json:"eTag,omitempty"`
+	NameAvailable     *bool   `json:"nameAvailable,omitempty"`
+	Reason            *string `json:"reason,omitempty"`
+	Message           *string `json:"message,omitempty"`
 }
 
 // ClientDiscoveryDisplay localized display information of an operation.
@@ -374,6 +427,16 @@ type ClientDiscoveryValueForSingleAPI struct {
 	Properties *ClientDiscoveryForProperties `json:"properties,omitempty"`
 }
 
+// IdentityData identity for the resource.
+type IdentityData struct {
+	// PrincipalID - READ-ONLY; The principal ID of resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of resource.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The identity type. Possible values include: 'SystemAssigned', 'None'
+	Type ResourceIdentityType `json:"type,omitempty"`
+}
+
 // JobsSummary summary of the replication job data for this vault.
 type JobsSummary struct {
 	// FailedJobs - Count of failed jobs.
@@ -476,6 +539,267 @@ func (pv PatchVault) MarshalJSON() ([]byte, error) {
 		objectMap["eTag"] = pv.ETag
 	}
 	return json.Marshal(objectMap)
+}
+
+// PrivateEndpoint the Private Endpoint network resource that is linked to the Private Endpoint connection.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; Gets or sets id.
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection private Endpoint Connection Response Properties.
+type PrivateEndpointConnection struct {
+	// ProvisioningState - READ-ONLY; Gets or sets provisioning state of the private endpoint connection. Possible values include: 'ProvisioningStateSucceeded', 'ProvisioningStateDeleting', 'ProvisioningStateFailed', 'ProvisioningStatePending'
+	ProvisioningState                 ProvisioningState                  `json:"provisioningState,omitempty"`
+	PrivateEndpoint                   *PrivateEndpoint                   `json:"privateEndpoint,omitempty"`
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+}
+
+// PrivateEndpointConnectionVaultProperties information to be stored in Vault properties as an element of
+// privateEndpointConnections List.
+type PrivateEndpointConnectionVaultProperties struct {
+	// ID - READ-ONLY; Format of id subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.[Service]/{resource}/{resourceName}/privateEndpointConnections/{connectionName}.
+	ID         *string                    `json:"id,omitempty"`
+	Properties *PrivateEndpointConnection `json:"properties,omitempty"`
+}
+
+// PrivateLinkResource information of the private link resource.
+type PrivateLinkResource struct {
+	autorest.Response `json:"-"`
+	// PrivateLinkResourceProperties - Resource properties
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified identifier of the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; e.g. Microsoft.RecoveryServices/vaults/privateLinkResources
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceProperties properties of the private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; e.g. f9ad6492-33d4-4690-9999-6bfd52a0d081 (Backup) or f9ad6492-33d4-4690-9999-6bfd52a0d082 (SiteRecovery)
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; [backup-ecs1, backup-prot1, backup-prot1b, backup-prot1c, backup-id1]
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - READ-ONLY; The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkResources class which represent the stamps associated with the vault.
+type PrivateLinkResources struct {
+	autorest.Response `json:"-"`
+	// Value - A collection of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+	// NextLink - Link to the next chunk of the response
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// PrivateLinkResourcesIterator provides access to a complete listing of PrivateLinkResource values.
+type PrivateLinkResourcesIterator struct {
+	i    int
+	page PrivateLinkResourcesPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *PrivateLinkResourcesIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PrivateLinkResourcesIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter PrivateLinkResourcesIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter PrivateLinkResourcesIterator) Response() PrivateLinkResources {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter PrivateLinkResourcesIterator) Value() PrivateLinkResource {
+	if !iter.page.NotDone() {
+		return PrivateLinkResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the PrivateLinkResourcesIterator type.
+func NewPrivateLinkResourcesIterator(page PrivateLinkResourcesPage) PrivateLinkResourcesIterator {
+	return PrivateLinkResourcesIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (plr PrivateLinkResources) IsEmpty() bool {
+	return plr.Value == nil || len(*plr.Value) == 0
+}
+
+// privateLinkResourcesPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (plr PrivateLinkResources) privateLinkResourcesPreparer(ctx context.Context) (*http.Request, error) {
+	if plr.NextLink == nil || len(to.String(plr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(plr.NextLink)))
+}
+
+// PrivateLinkResourcesPage contains a page of PrivateLinkResource values.
+type PrivateLinkResourcesPage struct {
+	fn  func(context.Context, PrivateLinkResources) (PrivateLinkResources, error)
+	plr PrivateLinkResources
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *PrivateLinkResourcesPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PrivateLinkResourcesPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.plr)
+	if err != nil {
+		return err
+	}
+	page.plr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PrivateLinkResourcesPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page PrivateLinkResourcesPage) NotDone() bool {
+	return !page.plr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page PrivateLinkResourcesPage) Response() PrivateLinkResources {
+	return page.plr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page PrivateLinkResourcesPage) Values() []PrivateLinkResource {
+	if page.plr.IsEmpty() {
+		return nil
+	}
+	return *page.plr.Value
+}
+
+// Creates a new instance of the PrivateLinkResourcesPage type.
+func NewPrivateLinkResourcesPage(getNextPage func(context.Context, PrivateLinkResources) (PrivateLinkResources, error)) PrivateLinkResourcesPage {
+	return PrivateLinkResourcesPage{fn: getNextPage}
+}
+
+// PrivateLinkServiceConnectionState gets or sets private link service connection state.
+type PrivateLinkServiceConnectionState struct {
+	// Status - READ-ONLY; Gets or sets the status. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	Status PrivateEndpointConnectionStatus `json:"status,omitempty"`
+	// Description - READ-ONLY; Gets or sets description.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - READ-ONLY; Gets or sets actions required.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
 }
 
 // RawCertificateData raw certificate data.
@@ -899,6 +1223,7 @@ type UpgradeDetails struct {
 // Vault resource information, as returned by the resource provider.
 type Vault struct {
 	autorest.Response `json:"-"`
+	Identity          *IdentityData    `json:"identity,omitempty"`
 	Properties        *VaultProperties `json:"properties,omitempty"`
 	Sku               *Sku             `json:"sku,omitempty"`
 	// Location - Resource location.
@@ -918,6 +1243,9 @@ type Vault struct {
 // MarshalJSON is the custom marshaler for Vault.
 func (vVar Vault) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if vVar.Identity != nil {
+		objectMap["identity"] = vVar.Identity
+	}
 	if vVar.Properties != nil {
 		objectMap["properties"] = vVar.Properties
 	}
@@ -1247,6 +1575,12 @@ type VaultProperties struct {
 	// ProvisioningState - READ-ONLY; Provisioning State.
 	ProvisioningState *string         `json:"provisioningState,omitempty"`
 	UpgradeDetails    *UpgradeDetails `json:"upgradeDetails,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; List of private endpoint connection.
+	PrivateEndpointConnections *[]PrivateEndpointConnectionVaultProperties `json:"privateEndpointConnections,omitempty"`
+	// PrivateEndpointStateForBackup - READ-ONLY; Private endpoint state for backup. Possible values include: 'VaultPrivateEndpointStateNone', 'VaultPrivateEndpointStateEnabled'
+	PrivateEndpointStateForBackup VaultPrivateEndpointState `json:"privateEndpointStateForBackup,omitempty"`
+	// PrivateEndpointStateForSiteRecovery - READ-ONLY; Private endpoint state for site recovery. Possible values include: 'VaultPrivateEndpointStateNone', 'VaultPrivateEndpointStateEnabled'
+	PrivateEndpointStateForSiteRecovery VaultPrivateEndpointState `json:"privateEndpointStateForSiteRecovery,omitempty"`
 }
 
 // VaultUsage usages of a vault.

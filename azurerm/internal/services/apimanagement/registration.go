@@ -52,6 +52,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_api_management_identity_provider_microsoft": resourceArmApiManagementIdentityProviderMicrosoft(),
 		"azurerm_api_management_identity_provider_twitter":   resourceArmApiManagementIdentityProviderTwitter(),
 		"azurerm_api_management_logger":                      resourceArmApiManagementLogger(),
+		"azurerm_api_management_named_value":                 resourceArmApiManagementNamedValue(),
 		"azurerm_api_management_openid_connect_provider":     resourceArmApiManagementOpenIDConnectProvider(),
 		"azurerm_api_management_product":                     resourceArmApiManagementProduct(),
 		"azurerm_api_management_product_api":                 resourceArmApiManagementProductApi(),

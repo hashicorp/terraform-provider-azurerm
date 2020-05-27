@@ -41,6 +41,8 @@ output "servicebus_endpoint" {
 
 * `enabled` - Is this Notification Hub Namespace enabled?
 
+* `tags` - A mapping of tags to assign to the resource.
+
 ---
 
 A `sku` block exports the following:
