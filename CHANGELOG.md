@@ -3,6 +3,7 @@
 FEATURES:
 * **New Data Source:** `azurerm_advisor_recommendations` [GH-6867]
 * **New Resource:** `azurerm_dev_test_global_shutdown_schedule` [GH-5536]
+* **New Resource:** `azurerm_nat_gateway_public_ip_association` [GH-6450]
 
 IMPROVEMENTS:
 
