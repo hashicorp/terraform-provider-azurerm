@@ -56,6 +56,29 @@ func TestAccAzureRMEventGridTopic_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventGridTopic_mapping(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventGridTopicDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridTopic_mapping(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridTopicExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_fields.0.topic", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_fields.0.topic", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_default_values.0.data_version", "1.0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "input_mapping_default_values.0.subject", "DefaultSubject"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
 
@@ -172,6 +195,32 @@ resource "azurerm_eventgrid_topic" "import" {
   resource_group_name = azurerm_eventgrid_topic.test.resource_group_name
 }
 `, template)
+}
+
+func testAccAzureRMEventGridTopic_mapping(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  input_schema        = "CustomEventSchema"
+  input_mapping_fields {
+    topic      = "test"
+    event_type = "test"
+  }
+  input_mapping_default_values {
+    data_version = "1.0"
+    subject      = "DefaultSubject"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func testAccAzureRMEventGridTopic_basicWithTags(data acceptance.TestData) string {

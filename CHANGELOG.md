@@ -1,18 +1,32 @@
 ## 2.12.0 (Unreleased)
 
+FEATURES:
+* **New Data Source:** `azurerm_advisor_recommendations` [GH-6867]
+* **New Resource:** `azurerm_dev_test_global_shutdown_schedule` [GH-5536]
+* **New Resource:** `azurerm_nat_gateway_public_ip_association` [GH-6450]
+
 IMPROVEMENTS:
 
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `oms_agent_identity` block within the `addon_profile` block [GH-7056]
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `identity` and `kubelet_identity` properties [GH-6527]
+* `azurerm_batch_pool` - support the `container_image_names` property [GH-6689]
 * `azurerm_eventgrid_event_subscription` - support for the `expiration_time_utc`, `service_bus_topic_endpoint`, and `service_bus_queue_endpoint`, property [GH-6860]
 * `azurerm_eventgrid_event_subscription` - the `eventhub_endpoint` was deprecated in favour of the `eventhub_endpoint_id` property [GH-6860]
 * `azurerm_eventgrid_event_subscription` - the `hybrid_connection_endpoint` was deprecated in favour of the `hybrid_connection_endpoint_id` property [GH-6860]
+* `azurerm_eventgrid_topic` - support for `input_schema`, `input_mapping_fields`, and `input_mapping_default_values` [GH-6858]
+* `azurerm_kubernetes_cluster` - exposing the `oms_agent_identity` block within the `addon_profile` block [GH-7056]
+* `azurerm_logic_app_action_http` - support for the `run_after` property [GH-7079]
 
 BUG FIXES:
 
-* `azurern_linux_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
+* `azurerm_api_management_api_version_set` - handling changes to the Azure Resource ID [GH-7071]
+* `azurerm_key_vault_certificate` - fixing a bug when using externally-signed certificates (using the `Unknown` issuer) where polling would continue indefinitely [GH-6979]
+* `azurerm_linux_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
 * `azurerm_linux_virtual_machine` - allow setting `virtual_machine_scale_set_id` in non-zonal deployment [GH-7057]
+* `azurerm_servicebus_topic` - support for numbers in the `name` field [GH-7027]
+* `azurerm_sql_virtual_network_rule` - updating the validation for the `name` field [GH-6968]
 * `azurerm_windows_virtual_machine` - allow setting `virtual_machine_scale_set_id` in non-zonal deployment [GH-7057]
-* `azurern_windows_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
-
+* `azurerm_windows_virtual_machine` - correctly validating the rsa ssh `public_key` properties length [GH-7061]
 
 ## 2.11.0 (May 21, 2020)
 
@@ -67,6 +81,6 @@ BUG FIXES:
 
 ---
 
-For information on changes between the v2.10.0 and v2.0.0 releases, please see [the v2.10.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/v2.10.0/CHANGELOG.md).
+For information on changes between the v2.10.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v2.md).
 
-For information on changes in version v1.44.0 and prior releases, please see [the v1.44.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/v1.44.0/CHANGELOG.md).
+For information on changes in version v1.44.0 and prior releases, please see [the v1.44.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v1.md).

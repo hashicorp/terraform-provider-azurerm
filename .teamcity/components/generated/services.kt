@@ -1,6 +1,7 @@
 // NOTE: this is Generated from the Service Definitions - manual changes will be lost
 //       to re-generate this file, run 'make generate' in the root of the repository
 var services = mapOf(
+        "advisor" to "Advisor",
         "analysisservices" to "Analysis Services",
         "apimanagement" to "API Management",
         "appconfiguration" to "App Configuration",
@@ -70,6 +71,7 @@ var services = mapOf(
         "storage" to "Storage",
         "streamanalytics" to "Stream Analytics",
         "subscription" to "Subscription",
+        "iottimeseriesinsights" to "Time Series Insights",
         "trafficmanager" to "Traffic Manager",
         "web" to "Web"
 )

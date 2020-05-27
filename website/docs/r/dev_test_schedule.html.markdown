@@ -14,22 +14,22 @@ Manages automated startup and shutdown schedules for Azure Dev Test Lab.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "sample" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_dev_test_lab" "sample" {
+resource "azurerm_dev_test_lab" "example" {
   name                = "YourDevTestLab"
-  location            = azurerm_resource_group.sample.location
-  resource_group_name = azurerm_resource_group.sample.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_dev_test_schedule" "sample" {
+resource "azurerm_dev_test_schedule" "example" {
   name                = "LabVmAutoStart"
-  location            = azurerm_resource_group.sample.location
-  resource_group_name = azurerm_resource_group.sample.name
-  lab_name            = azurerm_dev_test_lab.sample.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  lab_name            = azurerm_dev_test_lab.example.name
 
   weekly_recurrence {
     time      = "1100"

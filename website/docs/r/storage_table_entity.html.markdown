@@ -40,7 +40,7 @@ resource "azurerm_storage_table_entity" "example" {
   row_key       = "exmamplerow"
 
   entity = {
-    example = "sample"
+    example = "example"
   }
 }
 ```

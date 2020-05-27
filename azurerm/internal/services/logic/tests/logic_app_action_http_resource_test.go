@@ -98,6 +98,32 @@ func TestAccAzureRMLogicAppActionHttp_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogicAppActionHttp_runAfter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_action_http", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogicAppActionHttp_runAfterCondition(data, "Succeeded"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppActionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMLogicAppActionHttp_runAfterCondition(data, "Failed"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppActionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMLogicAppActionHttp_basic(data acceptance.TestData) string {
 	template := testAccAzureRMLogicAppActionHttp_template(data)
 	return fmt.Sprintf(`
@@ -143,6 +169,42 @@ resource "azurerm_logic_app_action_http" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func testAccAzureRMLogicAppActionHttp_runAfterCondition(data acceptance.TestData, condition string) string {
+	template := testAccAzureRMLogicAppActionHttp_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_action_http" "testp1" {
+  name         = "action%dp1"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  method       = "GET"
+  uri          = "http://example.com/hello"
+}
+
+resource "azurerm_logic_app_action_http" "testp2" {
+  name         = "action%dp2"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  method       = "GET"
+  uri          = "http://example.com/hello"
+}
+
+resource "azurerm_logic_app_action_http" "test" {
+  name         = "action%d"
+  logic_app_id = azurerm_logic_app_workflow.test.id
+  method       = "GET"
+  uri          = "http://example.com/hello"
+  run_after {
+    action_name   = azurerm_logic_app_action_http.testp1.name
+    action_result = "%s"
+  }
+  run_after {
+    action_name   = azurerm_logic_app_action_http.testp2.name
+    action_result = "%s"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, condition, condition)
 }
 
 func testAccAzureRMLogicAppActionHttp_template(data acceptance.TestData) string {
