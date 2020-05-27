@@ -180,7 +180,7 @@ func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventGridEventSubscription_filterStringContains(t *testing.T) {
+func TestAccAzureRMEventGridEventSubscription_advancedFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -189,15 +189,15 @@ func TestAccAzureRMEventGridEventSubscription_filterStringContains(t *testing.T)
 		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMEventGridEventSubscription_filterStringContains(data),
+				Config: testAccAzureRMEventGridEventSubscription_advancedFilter(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.0", "Microsoft.Storage.BlobCreated"),
 					resource.TestCheckResourceAttr(data.ResourceName, "included_event_types.1", "Microsoft.Storage.BlobDeleted"),
 					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_ends_with", ".jpg"),
 					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_begins_with", "test/test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.0.subject_contains", "contains"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subject_filter.1.subject_contains", "contains2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.values.0", "contains"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.values.1", "contains2"),
 				),
 			},
 			data.ImportStep(),
@@ -561,7 +561,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMEventGridEventSubscription_filterStringContains(data acceptance.TestData) string {
+func testAccAzureRMEventGridEventSubscription_advancedFilter(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -604,6 +604,67 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     subject_begins_with = "test/test"
 	subject_ends_with   = ".jpg"
 	subject_contains = ["contains", "contains2"]
+  }
+
+  advanced_filter {
+	key = "Subject"
+	operator_type = "StringContains"
+	values =  ["contains", "contains2"]       
+  }
+
+  advanced_filter {
+	key = "Subject"
+	operator_type = "BoolEquals"
+	value = "true"
+  }
+
+  advanced_filter {
+	key = "Subject"
+	operator_type = "NumberGreaterThan"
+	value = "50"
+  }
+  advanced_filter {
+	key = "Subject"
+	operator_type = "NumberGreaterThanOrEquals"
+	value = "50"
+  }
+  advanced_filter {
+	key = "Subject"
+	operator_type = "NumberLessThan"
+	value = "50"
+  }
+  advanced_filter {
+	key = "Subject"
+	operator_type = "NumberLessThanOrEquals"
+	value = "50"
+  }
+
+  advanced_filter {
+	key = "Subject"
+	operator_type = "NumberIn"
+	values =  ["60", "70"]       
+  }
+
+  advanced_filter {
+	key = "Subject"
+	operator_type = "StringBeginsWith"
+	values =  ["contains", "contains2"]       
+  }
+
+  advanced_filter {
+	key = "Subject"
+	operator_type = "StringEndsWith"
+	values =  ["contains", "contains2"]       
+  }
+  advanced_filter {
+	key = "Subject"
+	operator_type = "StringIn"
+	values =  ["contains", "contains2"]       
+  }
+  advanced_filter {
+	key = "Subject"
+	operator_type = "StringNotIn"
+	values =  ["xyz", "abc"]       
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)

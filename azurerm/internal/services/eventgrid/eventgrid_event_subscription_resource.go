@@ -3,6 +3,8 @@ package eventgrid
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid"
@@ -220,7 +222,31 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"subject_contains": {
+						"case_sensitive": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"advanced_filter": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"value": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"values": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -228,9 +254,23 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 						},
-						"case_sensitive": {
-							Type:     schema.TypeBool,
-							Optional: true,
+						"operator_type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(eventgrid.OperatorTypeBoolEquals),
+								string(eventgrid.OperatorTypeNumberGreaterThan),
+								string(eventgrid.OperatorTypeNumberGreaterThanOrEquals),
+								string(eventgrid.OperatorTypeNumberIn),
+								string(eventgrid.OperatorTypeNumberLessThan),
+								string(eventgrid.OperatorTypeNumberLessThanOrEquals),
+								string(eventgrid.OperatorTypeNumberNotIn),
+								string(eventgrid.OperatorTypeStringBeginsWith),
+								string(eventgrid.OperatorTypeStringContains),
+								string(eventgrid.OperatorTypeStringEndsWith),
+								string(eventgrid.OperatorTypeStringIn),
+								string(eventgrid.OperatorTypeStringNotIn),
+							}, false),
 						},
 					},
 				},
@@ -315,6 +355,14 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 	}
 
 	filter := expandEventGridEventSubscriptionFilter(d)
+
+	advancedFilters, err := expandEventGridEventSubscriptionAdvancedFilter(d)
+	if err != nil {
+		return fmt.Errorf("Error creating/updating EventGrid Event Subscription %q (Scope %q): %s Advanced Filters", name, scope, err)
+	}
+	if advancedFilters != nil {
+		filter.AdvancedFilters = advancedFilters
+	}
 
 	expirationTime, err := expandEventGridExpirationTime(d)
 	if err != nil {
@@ -442,6 +490,10 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			if err := d.Set("subject_filter", flattenEventGridEventSubscriptionSubjectFilter(filter)); err != nil {
 				return fmt.Errorf("Error setting `subject_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
 			}
+			if err := d.Set("advanced_filter", flattenEventGridEventSubscriptionAdvancedFilter(filter)); err != nil {
+				return fmt.Errorf("Error setting `advanced_filter` for EventGrid Event Subscription %q (Scope %q): %s", id.Name, id.Scope, err)
+			}
+
 		}
 
 		if props.DeadLetterDestination != nil {
@@ -624,26 +676,152 @@ func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) *eventgrid.E
 		config := subjectFilter.([]interface{})[0].(map[string]interface{})
 		subjectBeginsWith := config["subject_begins_with"].(string)
 		subjectEndsWith := config["subject_ends_with"].(string)
-		subjectContainsValues := utils.ExpandStringSlice(config["subject_contains"].([]interface{}))
 		caseSensitive := config["case_sensitive"].(bool)
 
-		subjectContains := &eventgrid.StringContainsAdvancedFilter{}
-		subjectContains.Values = subjectContainsValues
-		key := "Subject"
-		subjectContains.Key = &key
-		subjectContains.OperatorType = eventgrid.OperatorTypeStringContains
-
-		var basicAdvancedFilter []eventgrid.BasicAdvancedFilter
-
-		basicAdvancedFilter = append(basicAdvancedFilter, subjectContains)
 		filter.SubjectBeginsWith = &subjectBeginsWith
 		filter.SubjectEndsWith = &subjectEndsWith
-		filter.AdvancedFilters = &basicAdvancedFilter
-
 		filter.IsSubjectCaseSensitive = &caseSensitive
 	}
 
 	return filter
+}
+
+func expandEventGridEventSubscriptionAdvancedFilter(d *schema.ResourceData) (*[]eventgrid.BasicAdvancedFilter, error) {
+	advFilters := d.Get("advanced_filter").([]interface{})
+	advancedFilters := make([]eventgrid.BasicAdvancedFilter, 0, len(advFilters))
+
+	for _, advFilter := range advFilters {
+		advfilterconfig := advFilter.(map[string]interface{})
+		key := advfilterconfig["key"].(string)
+		operatorType := advfilterconfig["operator_type"].(string)
+		value := advfilterconfig["value"].(string)
+		values := utils.ExpandStringSlice(advfilterconfig["values"].([]interface{}))
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeBoolEquals)) == 0 {
+			boolEquals := &eventgrid.BoolEqualsAdvancedFilter{}
+			boolValue, err := strconv.ParseBool(value)
+			if err != nil {
+				return nil, err
+			}
+			boolEquals.Value = &boolValue
+			boolEquals.Key = &key
+			boolEquals.OperatorType = eventgrid.OperatorTypeBoolEquals
+			advancedFilters = append(advancedFilters, boolEquals)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeNumberGreaterThan)) == 0 {
+			numberGreaterThan := &eventgrid.NumberGreaterThanAdvancedFilter{}
+			numberValue, err := strconv.ParseFloat(value, 64)
+			if err != nil {
+				return nil, err
+			}
+			numberGreaterThan.Value = &numberValue
+			numberGreaterThan.Key = &key
+			numberGreaterThan.OperatorType = eventgrid.OperatorTypeNumberGreaterThan
+			advancedFilters = append(advancedFilters, numberGreaterThan)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeNumberGreaterThanOrEquals)) == 0 {
+			numberGreaterThanEquals := &eventgrid.NumberGreaterThanOrEqualsAdvancedFilter{}
+			numberValue, err := strconv.ParseFloat(value, 64)
+			if err != nil {
+				return nil, err
+			}
+			numberGreaterThanEquals.Value = &numberValue
+			numberGreaterThanEquals.Key = &key
+			numberGreaterThanEquals.OperatorType = eventgrid.OperatorTypeNumberGreaterThanOrEquals
+			advancedFilters = append(advancedFilters, numberGreaterThanEquals)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeNumberIn)) == 0 {
+			numberIn := &eventgrid.NumberInAdvancedFilter{}
+			floatValues, err := sliceAtof(*values)
+			if err != nil {
+				return nil, err
+			}
+			numberIn.Values = &floatValues
+			numberIn.Key = &key
+			numberIn.OperatorType = eventgrid.OperatorTypeNumberIn
+			advancedFilters = append(advancedFilters, numberIn)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeNumberLessThan)) == 0 {
+			numberLessThan := &eventgrid.NumberLessThanAdvancedFilter{}
+			numberValue, err := strconv.ParseFloat(value, 64)
+			if err != nil {
+				return nil, err
+			}
+			numberLessThan.Value = &numberValue
+			numberLessThan.Key = &key
+			numberLessThan.OperatorType = eventgrid.OperatorTypeNumberLessThan
+			advancedFilters = append(advancedFilters, numberLessThan)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeNumberLessThanOrEquals)) == 0 {
+			numberLessThanEquals := &eventgrid.NumberLessThanOrEqualsAdvancedFilter{}
+			numberValue, err := strconv.ParseFloat(value, 64)
+			if err != nil {
+				return nil, err
+			}
+			numberLessThanEquals.Value = &numberValue
+			numberLessThanEquals.Key = &key
+			numberLessThanEquals.OperatorType = eventgrid.OperatorTypeNumberLessThanOrEquals
+			advancedFilters = append(advancedFilters, numberLessThanEquals)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeNumberNotIn)) == 0 {
+			numberNotIn := &eventgrid.NumberNotInAdvancedFilter{}
+			floatValues, err := sliceAtof(*values)
+			if err != nil {
+				return nil, err
+			}
+			numberNotIn.Values = &floatValues
+			numberNotIn.Key = &key
+			numberNotIn.OperatorType = eventgrid.OperatorTypeNumberNotIn
+			advancedFilters = append(advancedFilters, numberNotIn)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeStringBeginsWith)) == 0 {
+			stringBeginsWith := &eventgrid.StringBeginsWithAdvancedFilter{}
+			stringBeginsWith.Values = values
+			stringBeginsWith.Key = &key
+			stringBeginsWith.OperatorType = eventgrid.OperatorTypeStringBeginsWith
+			advancedFilters = append(advancedFilters, stringBeginsWith)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeStringContains)) == 0 {
+			stringContains := &eventgrid.StringContainsAdvancedFilter{}
+			stringContains.Values = values
+			stringContains.Key = &key
+			stringContains.OperatorType = eventgrid.OperatorTypeStringContains
+			advancedFilters = append(advancedFilters, stringContains)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeStringEndsWith)) == 0 {
+			stringEndsWith := &eventgrid.StringEndsWithAdvancedFilter{}
+			stringEndsWith.Values = values
+			stringEndsWith.Key = &key
+			stringEndsWith.OperatorType = eventgrid.OperatorTypeStringEndsWith
+			advancedFilters = append(advancedFilters, stringEndsWith)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeStringIn)) == 0 {
+			stringIn := &eventgrid.StringEndsWithAdvancedFilter{}
+			stringIn.Values = values
+			stringIn.Key = &key
+			stringIn.OperatorType = eventgrid.OperatorTypeStringIn
+			advancedFilters = append(advancedFilters, stringIn)
+		}
+
+		if strings.Compare(operatorType, string(eventgrid.OperatorTypeStringNotIn)) == 0 {
+			stringNotIn := &eventgrid.StringEndsWithAdvancedFilter{}
+			stringNotIn.Values = values
+			stringNotIn.Key = &key
+			stringNotIn.OperatorType = eventgrid.OperatorTypeStringNotIn
+			advancedFilters = append(advancedFilters, stringNotIn)
+		}
+	}
+	return &advancedFilters, nil
 }
 
 func expandEventGridEventSubscriptionStorageBlobDeadLetterDestination(d *schema.ResourceData) eventgrid.BasicDeadLetterDestination {
@@ -733,8 +911,7 @@ func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubs
 }
 
 func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubscriptionFilter) []interface{} {
-	if (filter.SubjectBeginsWith != nil && *filter.SubjectBeginsWith == "") && (filter.SubjectEndsWith != nil && *filter.SubjectEndsWith == "") &&
-		(filter.AdvancedFilters == nil) {
+	if (filter.SubjectBeginsWith != nil && *filter.SubjectBeginsWith == "") && (filter.SubjectEndsWith != nil && *filter.SubjectEndsWith == "") {
 		return nil
 	}
 	result := make(map[string]interface{})
@@ -747,19 +924,87 @@ func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubsc
 		result["subject_ends_with"] = *filter.SubjectEndsWith
 	}
 
-	if filter.AdvancedFilters != nil {
-		for _, advancedFilter := range *filter.AdvancedFilters {
-			if stringContainsFilter, _ := advancedFilter.AsStringContainsAdvancedFilter(); stringContainsFilter != nil {
-				result["subject_contains"] = stringContainsFilter.Values
-			}
-			// Can check for other Advanced filters and flatten them
-		}
-	}
-	if filter.IsSubjectCaseSensitive != nil {
-		result["case_sensitive"] = *filter.IsSubjectCaseSensitive
+	return []interface{}{result}
+}
+
+func flattenEventGridEventSubscriptionAdvancedFilter(filter *eventgrid.EventSubscriptionFilter) []interface{} {
+	if filter.AdvancedFilters == nil {
+		return nil
 	}
 
-	return []interface{}{result}
+	filterResult := make([]interface{}, 0, len(*filter.AdvancedFilters))
+	for _, advancedFilter := range *filter.AdvancedFilters {
+		advFilter := make(map[string]interface{})
+		if boolEqualsFilter, _ := advancedFilter.AsBoolEqualsAdvancedFilter(); boolEqualsFilter != nil {
+			advFilter["key"] = boolEqualsFilter.Key
+			advFilter["operator_type"] = boolEqualsFilter.OperatorType
+			advFilter["value"] = strconv.FormatBool(*boolEqualsFilter.Value)
+		}
+
+		if numberGreaterThanFilter, _ := advancedFilter.AsNumberGreaterThanAdvancedFilter(); numberGreaterThanFilter != nil {
+			advFilter["key"] = numberGreaterThanFilter.Key
+			advFilter["operator_type"] = numberGreaterThanFilter.OperatorType
+			advFilter["value"] = strconv.FormatFloat(*numberGreaterThanFilter.Value, 'f', 0, 64)
+		}
+
+		if numberGreaterThanOrEqualsFilter, _ := advancedFilter.AsNumberGreaterThanOrEqualsAdvancedFilter(); numberGreaterThanOrEqualsFilter != nil {
+			advFilter["key"] = numberGreaterThanOrEqualsFilter.Key
+			advFilter["operator_type"] = numberGreaterThanOrEqualsFilter.OperatorType
+			advFilter["value"] = strconv.FormatFloat(*numberGreaterThanOrEqualsFilter.Value, 'f', 0, 64)
+		}
+
+		if numberInFilter, _ := advancedFilter.AsNumberInAdvancedFilter(); numberInFilter != nil {
+			advFilter["key"] = numberInFilter.Key
+			advFilter["operator_type"] = numberInFilter.OperatorType
+			advFilter["values"] = sliceFtoa(*numberInFilter.Values)
+		}
+
+		if numberLessThanFilter, _ := advancedFilter.AsNumberLessThanAdvancedFilter(); numberLessThanFilter != nil {
+			advFilter["key"] = numberLessThanFilter.Key
+			advFilter["operator_type"] = numberLessThanFilter.OperatorType
+			advFilter["value"] = strconv.FormatFloat(*numberLessThanFilter.Value, 'f', 0, 64)
+		}
+
+		if numberLessThanOrEqualsFilter, _ := advancedFilter.AsNumberLessThanOrEqualsAdvancedFilter(); numberLessThanOrEqualsFilter != nil {
+			advFilter["key"] = numberLessThanOrEqualsFilter.Key
+			advFilter["operator_type"] = numberLessThanOrEqualsFilter.OperatorType
+			advFilter["value"] = strconv.FormatFloat(*numberLessThanOrEqualsFilter.Value, 'f', 0, 64)
+		}
+
+		if numberNotInFilter, _ := advancedFilter.AsNumberNotInAdvancedFilter(); numberNotInFilter != nil {
+			advFilter["key"] = numberNotInFilter.Key
+			advFilter["operator_type"] = numberNotInFilter.OperatorType
+			advFilter["values"] = sliceFtoa(*numberNotInFilter.Values)
+		}
+
+		if stringBeginsWithFilter, _ := advancedFilter.AsStringBeginsWithAdvancedFilter(); stringBeginsWithFilter != nil {
+			advFilter["key"] = stringBeginsWithFilter.Key
+			advFilter["operator_type"] = stringBeginsWithFilter.OperatorType
+			advFilter["values"] = stringBeginsWithFilter.Values
+		}
+
+		if stringContainsFilter, _ := advancedFilter.AsStringContainsAdvancedFilter(); stringContainsFilter != nil {
+			advFilter["key"] = stringContainsFilter.Key
+			advFilter["operator_type"] = stringContainsFilter.OperatorType
+			advFilter["values"] = stringContainsFilter.Values
+		}
+
+		if stringEndsWithFilter, _ := advancedFilter.AsStringEndsWithAdvancedFilter(); stringEndsWithFilter != nil {
+			advFilter["key"] = stringEndsWithFilter.Key
+			advFilter["operator_type"] = stringEndsWithFilter.OperatorType
+			advFilter["values"] = stringEndsWithFilter.Values
+		}
+
+		if stringInFilter, _ := advancedFilter.AsStringInAdvancedFilter(); stringInFilter != nil {
+			advFilter["key"] = stringInFilter.Key
+			advFilter["operator_type"] = stringInFilter.OperatorType
+			advFilter["values"] = stringInFilter.Values
+		}
+
+		filterResult = append(filterResult, advFilter)
+	}
+
+	return filterResult
 }
 
 func flattenEventGridEventSubscriptionStorageBlobDeadLetterDestination(dest *eventgrid.StorageBlobDeadLetterDestination) []interface{} {
@@ -791,4 +1036,26 @@ func flattenEventGridEventSubscriptionRetryPolicy(retryPolicy *eventgrid.RetryPo
 	}
 
 	return []interface{}{result}
+}
+
+func sliceAtof(strvalues []string) ([]float64, error) {
+	floatvalues := make([]float64, 0, len(strvalues))
+	for _, a := range strvalues {
+		i, err := strconv.ParseFloat(a, 64)
+		if err != nil {
+			return floatvalues, err
+		}
+		floatvalues = append(floatvalues, i)
+	}
+	return floatvalues, nil
+}
+
+func sliceFtoa(floatvalues []float64) []string {
+	valuesText := []string{}
+
+	for _, number := range floatvalues {
+		text := strconv.FormatFloat(number, 'f', 0, 64)
+		valuesText = append(valuesText, text)
+	}
+	return valuesText
 }
