@@ -114,6 +114,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `disk_encryption_set` - (Optional) Id of the disk encryption set used for the nodes. See:[Documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys)
+
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
 

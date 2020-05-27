@@ -393,6 +393,14 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"disk_encryption_set": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"private_link_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
@@ -649,6 +657,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
+	diskEncryptionSet := d.Get("disk_encryption_set").(string)
 
 	linuxProfileRaw := d.Get("linux_profile").([]interface{})
 	linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
@@ -717,6 +726,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			AgentPoolProfiles:       agentProfiles,
 			AutoScalerProfile:       autoScalerProfile,
 			DNSPrefix:               utils.String(dnsPrefix),
+			DiskEncryptionSetID:     utils.String(diskEncryptionSet),
 			EnableRBAC:              utils.Bool(rbacEnabled),
 			KubernetesVersion:       utils.String(kubernetesVersion),
 			LinuxProfile:            linuxProfile,
@@ -904,6 +914,12 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.AutoScalerProfile = autoScalerProfile
 	}
 
+	if d.HasChange("disk_encryption_set") {
+		updateCluster = true
+		diskEncryptionSet := d.Get("disk_encryption_set").(string)
+		existing.ManagedClusterProperties.DiskEncryptionSetID = utils.String(diskEncryptionSet)
+	}
+
 	if d.HasChange("enable_pod_security_policy") {
 		updateCluster = true
 		enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
@@ -1069,6 +1085,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
 		d.Set("private_fqdn", props.PrivateFQDN)
+		d.Set("disk_encryption_set", props.DiskEncryptionSetID)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
