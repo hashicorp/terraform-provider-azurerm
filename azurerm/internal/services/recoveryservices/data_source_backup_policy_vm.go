@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,6 +35,8 @@ func dataSourceArmBackupPolicyVm() *schema.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -61,5 +64,5 @@ func dataSourceArmBackupPolicyVmRead(d *schema.ResourceData, meta interface{}) e
 	id := strings.Replace(*protectionPolicy.ID, "Subscriptions", "subscriptions", 1)
 	d.SetId(id)
 
-	return nil
+	return tags.FlattenAndSet(d, protectionPolicy.Tags)
 }

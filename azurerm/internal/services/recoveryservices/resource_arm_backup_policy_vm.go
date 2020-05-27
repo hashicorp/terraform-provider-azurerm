@@ -19,6 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -244,6 +245,16 @@ func resourceArmBackupProtectionPolicyVM() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				ValidateFunc: tags.Validate,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Deprecated: "The Service API doesn't support `tags`. See more details from https://github.com/Azure/azure-rest-api-specs/issues/9251.",
 			},
 		},
 
