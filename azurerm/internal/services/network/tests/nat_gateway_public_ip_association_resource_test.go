@@ -32,6 +32,32 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMNatGatewayPublicIpAssociation_updateNatGateway(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		// intentional as this is a Virtual Resource
+		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNatGatewayPublicIpAssociation_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNatGatewayPublicIpAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMNatGatewayPublicIpAssociation_updateNatGateway(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNatGatewayPublicIpAssociationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -154,11 +180,18 @@ func testAccAzureRMNatGatewayPublicIpAssociation_basic(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctest-NatGateway-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard"
+}
+
 resource "azurerm_nat_gateway_public_ip_association" "test" {
   nat_gateway_id       = azurerm_nat_gateway.test.id
   public_ip_address_id = azurerm_public_ip.test.id
 }
-`, template)
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMNatGatewayPublicIpAssociation_requiresImport(data acceptance.TestData) string {
@@ -171,6 +204,28 @@ resource "azurerm_nat_gateway_public_ip_association" "import" {
   public_ip_address_id = azurerm_nat_gateway_public_ip_association.test.public_ip_address_id
 }
 `, template)
+}
+
+func testAccAzureRMNatGatewayPublicIpAssociation_updateNatGateway(data acceptance.TestData) string {
+	template := testAccAzureRMNatGatewayPublicIpAssociation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_nat_gateway" "test" {
+  name                = "acctest-NatGateway-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Standard"
+  tags                = {
+    Hello = "World"
+  }
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "test" {
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMNatGatewayPublicIpAssociation_template(data acceptance.TestData) string {
@@ -191,12 +246,5 @@ resource "azurerm_public_ip" "test" {
   allocation_method   = "Static"
   sku                 = "Standard"
 }
-
-resource "azurerm_nat_gateway" "test" {
-  name                = "acctest-NatGateway-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
