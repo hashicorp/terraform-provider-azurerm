@@ -155,7 +155,7 @@ func testCheckAzureRMNatGatewayPublicIpAssociationDisappears(resourceName string
 		updatedAddresses := make([]network.SubResource, 0)
 		if publicIpAddresses := resp.PublicIPAddresses; publicIpAddresses != nil {
 			for _, publicIpAddress := range *publicIpAddresses {
-				if strings.EqualFold(*publicIpAddress.ID, id.PublicIPAddressID) {
+				if !strings.EqualFold(*publicIpAddress.ID, id.PublicIPAddressID) {
 					updatedAddresses = append(updatedAddresses, publicIpAddress)
 				}
 			}
