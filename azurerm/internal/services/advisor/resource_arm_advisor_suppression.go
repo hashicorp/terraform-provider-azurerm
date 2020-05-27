@@ -98,8 +98,8 @@ func resourceArmAdvisorSuppressionCreateUpdate(d *schema.ResourceData, meta inte
 	if err != nil {
 		return fmt.Errorf("failure in retrieving Advisor Suppressions %q: %+v", name, err)
 	}
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read Advisor Suppressions %q ID", name)
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("nil or Empty ID of Advisor Suppressions %q ID", name)
 	}
 	d.SetId(*resp.ID)
 
@@ -133,10 +133,11 @@ func resourceArmAdvisorSuppressionRead(d *schema.ResourceData, meta interface{})
 	}
 	d.Set("name", id.Name)
 	d.Set("recommendation_id", rResp.ID)
+
 	// ttl from api is in format dd.hh:mm:ss, we set only the day number into duration_days
 	durationDays, err := strconv.Atoi(strings.Split(*resp.TTL, ".")[0])
 	if err != nil {
-		return fmt.Errorf("can't convert string to int of field `duration_days` in Advisor Suppression %q: %+v", id.Name, err)
+		return fmt.Errorf("can't convert %s to int of field `duration_days` in Advisor Suppression %q: %+v", strings.Split(*resp.TTL, ".")[0], id.Name, err)
 	}
 	d.Set("duration_days", durationDays)
 

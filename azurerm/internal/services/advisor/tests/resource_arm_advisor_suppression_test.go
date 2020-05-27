@@ -65,6 +65,32 @@ func TestAccAzureRMAdvisorSuppression_complete(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMAdvisorSuppression_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_advisor_suppression", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAdvisorSuppressionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAdvisorSuppression_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMAdvisorSuppression_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvisorSuppressionExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAdvisorSuppression_update(data),
 				Check: resource.ComposeTestCheckFunc(
