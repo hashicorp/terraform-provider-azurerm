@@ -260,6 +260,13 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 		}
 	}
 
+	appInsightsID, err := azure.ParseAzureResourceID(d.Get("application_insights_id").(string))
+	if err != nil {
+		return err
+	}
+	tagKey := fmt.Sprintf("hidden-link:/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsID.Path["components"])
+	delete(resp.Tags, tagKey)
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
