@@ -267,6 +267,18 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"outbound_ports_allocated": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      0,
+										ValidateFunc: validation.IntBetween(0, 64000),
+									},
+									"idle_timeout_in_minutes": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      30,
+										ValidateFunc: validation.IntBetween(4, 120),
+									},
 									"managed_outbound_ip_count": {
 										Type:          schema.TypeInt,
 										Optional:      true,
@@ -1277,9 +1289,15 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, ipCount
 
 	config := d[0].(map[string]interface{})
 
-	var managedOutboundIps *containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs
-	var outboundIpPrefixes *containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes
-	var outboundIps *containerservice.ManagedClusterLoadBalancerProfileOutboundIPs
+	profile := &containerservice.ManagedClusterLoadBalancerProfile{}
+
+	if port, ok := config["outbound_ports_allocated"].(int); ok {
+		profile.AllocatedOutboundPorts = utils.Int32(int32(port))
+	}
+
+	if idleTimeout, ok := config["idle_timeout_in_minutes"].(int); ok {
+		profile.IdleTimeoutInMinutes = utils.Int32(int32(idleTimeout))
+	}
 
 	noChangesForLoadBalancerIps := !ipCountChanges && !ipPrefixesChanges && !outboundIpChanges
 	allowToSetIpCount := ipCountChanges || noChangesForLoadBalancerIps
@@ -1288,23 +1306,19 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, ipCount
 
 	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil && allowToSetIpCount {
 		if c := int32(ipCount.(int)); c > 0 {
-			managedOutboundIps = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
+			profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
 		}
 	}
 
 	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil && allowToSetIpPrefixes {
-		outboundIpPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
+		profile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
 	}
 
 	if outIps := idsToResourceReferences(config["outbound_ip_address_ids"]); outIps != nil && allowToSetOutboundIp {
-		outboundIps = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
+		profile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
 	}
 
-	return &containerservice.ManagedClusterLoadBalancerProfile{
-		ManagedOutboundIPs: managedOutboundIps,
-		OutboundIPPrefixes: outboundIpPrefixes,
-		OutboundIPs:        outboundIps,
-	}, nil
+	return profile, nil
 }
 
 func idsToResourceReferences(set interface{}) *[]containerservice.ResourceReference {
@@ -1375,6 +1389,14 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	lbProfiles := make([]interface{}, 0)
 	if lbp := profile.LoadBalancerProfile; lbp != nil {
 		lb := make(map[string]interface{})
+
+		if v := lbp.AllocatedOutboundPorts; v != nil {
+			lb["outbound_ports_allocated"] = v
+		}
+
+		if v := lbp.IdleTimeoutInMinutes; v != nil {
+			lb["idle_timeout_in_minutes"] = v
+		}
 
 		if ips := lbp.ManagedOutboundIPs; ips != nil {
 			if count := ips.Count; count != nil {
