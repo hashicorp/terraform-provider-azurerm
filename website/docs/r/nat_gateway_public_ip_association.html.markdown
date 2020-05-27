@@ -14,10 +14,6 @@ Manages the association between a Nat Gateway and a Public IP.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -71,5 +67,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Associations between Nat Gateway and Public IP Addresses can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_nat_gateway_public_ip_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1
+terraform import azurerm_nat_gateway_public_ip_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPAddresses/myPublicIpAddress1"
 ```
+
+-> **Note:** This is a Terraform Specific ID in the format `{natGatewayID}|{publicIPAddressID}`

@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
@@ -26,8 +27,7 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_basic(t *testing.T) {
 					testCheckAzureRMNatGatewayPublicIpAssociationExists(data.ResourceName),
 				),
 			},
-			// `public_ip_address_id` cannot be retrieved in read function while importing.
-			data.ImportStep("public_ip_address_id"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -47,51 +47,6 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMNatGatewayPublicIpAssociation_requiresImport),
-		},
-	})
-}
-
-func TestAccAzureRMNatGatewayPublicIpAssociation_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNatGatewayPublicIpAssociation_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNatGatewayPublicIpAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("public_ip_address_id"),
-		},
-	})
-}
-
-func TestAccAzureRMNatGatewayPublicIpAssociation_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// intentional as this is a Virtual Resource
-		CheckDestroy: testCheckAzureRMNatGatewayDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNatGatewayPublicIpAssociation_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNatGatewayPublicIpAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("public_ip_address_id"),
-			{
-				Config: testAccAzureRMNatGatewayPublicIpAssociation_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNatGatewayPublicIpAssociationExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("public_ip_address_id"),
 		},
 	})
 }
@@ -117,18 +72,6 @@ func TestAccAzureRMNatGatewayPublicIpAssociation_deleted(t *testing.T) {
 	})
 }
 
-func testAccAzureRMNatGatewayPublicIpAssociation_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMNatGatewayPublicIpAssociation_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_nat_gateway_public_ip_association" "import" {
-  nat_gateway_id       = azurerm_nat_gateway_public_ip_association.test.nat_gateway_id
-  public_ip_address_id = azurerm_nat_gateway_public_ip_association.test.public_ip_address_id
-}
-`, template)
-}
-
 func testCheckAzureRMNatGatewayPublicIpAssociationExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.NatGatewayClient
@@ -140,26 +83,25 @@ func testCheckAzureRMNatGatewayPublicIpAssociationExists(resourceName string) re
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.NatGatewayID(rs.Primary.ID)
+		id, err := parse.NatGatewayPublicIPAddressAssociationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		publicIpAddressId := rs.Primary.Attributes["public_ip_address_id"]
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		resp, err := client.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
 		if err != nil {
-			return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
 		}
 
 		if publicIpAddresses := resp.PublicIPAddresses; publicIpAddresses != nil {
 			for _, publicIpAddress := range *publicIpAddresses {
-				if *publicIpAddress.ID == publicIpAddressId {
+				if strings.EqualFold(*publicIpAddress.ID, id.PublicIPAddressID) {
 					return nil
 				}
 			}
 		}
 
-		return fmt.Errorf("Association between Nat Gateway %q and Public Ip %q was not found.", id.Name, publicIpAddressId)
+		return fmt.Errorf("Association between Nat Gateway %q and Public IP %q was not found.", id.NatGateway.Name, id.PublicIPAddressID)
 	}
 }
 
@@ -174,34 +116,33 @@ func testCheckAzureRMNatGatewayPublicIpAssociationDisappears(resourceName string
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parse.NatGatewayID(rs.Primary.ID)
+		id, err := parse.NatGatewayPublicIPAddressAssociationID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		publicIpAddressId := rs.Primary.Attributes["public_ip_address_id"]
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		resp, err := client.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
 		if err != nil {
-			return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("failed to retrieve Nat Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
 		}
 
 		updatedAddresses := make([]network.SubResource, 0)
 		if publicIpAddresses := resp.PublicIPAddresses; publicIpAddresses != nil {
 			for _, publicIpAddress := range *publicIpAddresses {
-				if *publicIpAddress.ID != publicIpAddressId {
+				if strings.EqualFold(*publicIpAddress.ID, id.PublicIPAddressID) {
 					updatedAddresses = append(updatedAddresses, publicIpAddress)
 				}
 			}
 		}
 		resp.PublicIPAddresses = &updatedAddresses
 
-		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, resp)
+		future, err := client.CreateOrUpdate(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, resp)
 		if err != nil {
-			return fmt.Errorf("failed to remove Nat Gateway Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("failed to remove Nat Gateway Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
 		}
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("failed to wait for removal of Nat Gateway Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			return fmt.Errorf("failed to wait for removal of Nat Gateway Public Ip Association for Nat Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
 		}
 
 		return nil
@@ -220,48 +161,16 @@ resource "azurerm_nat_gateway_public_ip_association" "test" {
 `, template)
 }
 
-func testAccAzureRMNatGatewayPublicIpAssociation_complete(data acceptance.TestData) string {
-	template := testAccAzureRMNatGatewayPublicIpAssociation_template(data)
+func testAccAzureRMNatGatewayPublicIpAssociation_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMNatGatewayPublicIpAssociation_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_nat_gateway_public_ip_association" "test" {
-  nat_gateway_id       = azurerm_nat_gateway.test.id
-  public_ip_address_id = azurerm_public_ip.test.id
+resource "azurerm_nat_gateway_public_ip_association" "import" {
+  nat_gateway_id       = azurerm_nat_gateway_public_ip_association.test.nat_gateway_id
+  public_ip_address_id = azurerm_nat_gateway_public_ip_association.test.public_ip_address_id
 }
-
-resource "azurerm_public_ip" "test2" {
-  name                = "acctest-PIP2-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_nat_gateway_public_ip_association" "test2" {
-  nat_gateway_id       = azurerm_nat_gateway.test.id
-  public_ip_address_id = azurerm_public_ip.test2.id
-}
-`, template, data.RandomInteger)
-}
-
-func testAccAzureRMNatGatewayPublicIpAssociation_update(data acceptance.TestData) string {
-	template := testAccAzureRMNatGatewayPublicIpAssociation_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_nat_gateway" "test2" {
-  name                = "acctest-NatGateway2-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard"
-}
-
-resource "azurerm_nat_gateway_public_ip_association" "test" {
-  nat_gateway_id       = azurerm_nat_gateway.test2.id
-  public_ip_address_id = azurerm_public_ip.test.id
-}
-`, template, data.RandomInteger)
+`, template)
 }
 
 func testAccAzureRMNatGatewayPublicIpAssociation_template(data acceptance.TestData) string {
