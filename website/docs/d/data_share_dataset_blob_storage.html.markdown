@@ -19,7 +19,7 @@ provider "azurerm" {
 
 data "azurerm_data_share_dataset_blob_storage" "example" {
   name     = "example-dsbsds"
-  share_id = "example-share-id"
+  data_share_id = "example-share-id"
 }
 
 output "id" {
@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Data Share Blob Storage Dataset.
 
-* `share_id` - (Required) The ID of the Data Share in which this Data Share Blob Storage Dataset should be created.
+* `data_share_id` - (Required) The ID of the Data Share in which this Data Share Blob Storage Dataset should be created.
 
 ## Attributes Reference
 

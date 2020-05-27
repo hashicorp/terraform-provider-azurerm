@@ -39,7 +39,7 @@ func testAccDataSourceDataShareDatasetBlobStorage_basic(data acceptance.TestData
 
 data "azurerm_data_share_dataset_blob_storage" "test" {
   name     = azurerm_data_share_dataset_blob_storage.test.name
-  share_id = azurerm_data_share_dataset_blob_storage.test.share_id
+  data_share_id = azurerm_data_share_dataset_blob_storage.test.data_share_id
 }
 `, config)
 }

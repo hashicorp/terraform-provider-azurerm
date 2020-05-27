@@ -46,7 +46,7 @@ func resourceArmDataShareDataSetBlobStorage() *schema.Resource {
 				ValidateFunc: validate.DatashareDataSetName(),
 			},
 
-			"share_id": {
+			"data_share_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -105,7 +105,7 @@ func resourceArmDataShareDataSetBlobStorageCreate(d *schema.ResourceData, meta i
 	defer cancel()
 
 	name := d.Get("name").(string)
-	shareId, err := parse.DataShareID(d.Get("share_id").(string))
+	shareId, err := parse.DataShareID(d.Get("data_share_id").(string))
 	if err != nil {
 		return err
 	}
@@ -204,7 +204,7 @@ func resourceArmDataShareDataSetBlobStorageRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("empty or nil ID returned for DataShare %q (Resource Group %q / accountName %q)", id.ShareName, id.ResourceGroup, id.AccountName)
 	}
 
-	d.Set("share_id", shareResp.ID)
+	d.Set("data_share_id", shareResp.ID)
 
 	switch resp := resp.Value.(type) {
 	case datashare.BlobDataSet:

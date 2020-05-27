@@ -28,7 +28,7 @@ func dataSourceDataShareDatasetBlobStorage() *schema.Resource {
 				ValidateFunc: validate.DatashareDataSetName(),
 			},
 
-			"share_id": {
+			"data_share_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validate.DataShareID,
@@ -78,7 +78,7 @@ func dataSourceArmDataShareDatasetBlobStorageRead(d *schema.ResourceData, meta i
 	defer cancel()
 
 	name := d.Get("name").(string)
-	shareID := d.Get("share_id").(string)
+	shareID := d.Get("data_share_id").(string)
 	shareId, err := parse.DataShareID(shareID)
 	if err != nil {
 		return err
@@ -96,7 +96,7 @@ func dataSourceArmDataShareDatasetBlobStorageRead(d *schema.ResourceData, meta i
 
 	d.SetId(*respId)
 	d.Set("name", name)
-	d.Set("share_id", shareID)
+	d.Set("data_share_id", shareID)
 
 	switch resp := respModel.Value.(type) {
 	case datashare.BlobDataSet:

@@ -63,7 +63,7 @@ resource "azurerm_role_assignment" "example" {
 
 resource "azurerm_data_share_dataset_blob_storage" "example" {
   name                                = "example-dsbsds-file"
-  share_id                            = azurerm_data_share.example.id
+  data_share_id                            = azurerm_data_share.example.id
   container_name                      = azurerm_storage_container.example.name
   storage_account_name                = azurerm_storage_account.example.name
   storage_account_resource_group_name = azurerm_storage_account.example.resource_group_name
@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Data Share Blob Storage Dataset. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
-* `share_id` - (Required) The ID of the Data Share in which this Data Share Blob Storage Dataset should be created. Changing this forces a new Data Share Blob Storage Dataset to be created.
+* `data_share_id` - (Required) The ID of the Data Share in which this Data Share Blob Storage Dataset should be created. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
 * `container_name` - (Required) The name of the storage account container to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
