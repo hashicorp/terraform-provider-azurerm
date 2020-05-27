@@ -22,6 +22,7 @@ var natGatewayResourceName = "azurerm_nat_gateway"
 
 func resourceArmNatGateway() *schema.Resource {
 	return &schema.Resource{
+		// TODO: split the create/update
 		Create: resourceArmNatGatewayCreateUpdate,
 		Read:   resourceArmNatGatewayRead,
 		Update: resourceArmNatGatewayCreateUpdate,
@@ -65,7 +66,8 @@ func resourceArmNatGateway() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
-				Deprecated: "Deprecated in favor of `azurerm_nat_gateway_public_ip_association`. The dependency relation between `azurerm_nat_gateway` and `azurerm_public_ip` isn't detected by implicit dependency. So `azurerm_nat_gateway_public_ip_association` is added to resolve this issue.",
+				// TODO: remove in 3.0
+				Deprecated: "Inline Public IP Address ID Deprecations have been deprecated in favour of the `azurerm_nat_gateway_public_ip_association` resource. This field will be removed in the next major version of the Azure Provider.",
 			},
 
 			"public_ip_prefix_ids": {
