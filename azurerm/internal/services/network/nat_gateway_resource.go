@@ -60,10 +60,12 @@ func resourceArmNatGateway() *schema.Resource {
 			"public_ip_address_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
+				Deprecated: "Deprecated in favor of `azurerm_nat_gateway_public_ip_association`. The dependency relation between `azurerm_nat_gateway` and `azurerm_public_ip` isn't detected by implicit dependency. So `azurerm_nat_gateway_public_ip_association` is added to resolve this issue.",
 			},
 
 			"public_ip_prefix_ids": {

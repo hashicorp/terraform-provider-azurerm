@@ -51,6 +51,85 @@ func resourceArmEventGridTopic() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"input_schema": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(eventgrid.InputSchemaEventGridSchema),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(eventgrid.InputSchemaCloudEventSchemaV10),
+					string(eventgrid.InputSchemaCustomEventSchema),
+					string(eventgrid.InputSchemaEventGridSchema),
+				}, false),
+			},
+
+			"input_mapping_fields": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+						"topic": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+						"event_time": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+						"event_type": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+						"subject": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+						"data_version": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+					},
+				},
+			},
+
+			"input_mapping_default_values": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"event_type": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+						"subject": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+						"data_version": {
+							Type:     schema.TypeString,
+							ForceNew: true,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -97,9 +176,14 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
+	topicProperties := &eventgrid.TopicProperties{
+		InputSchemaMapping: expandAzureRmEventgridTopicInputMapping(d),
+		InputSchema:        eventgrid.InputSchema(d.Get("input_schema").(string)),
+	}
+
 	properties := eventgrid.Topic{
 		Location:        &location,
-		TopicProperties: &eventgrid.TopicProperties{},
+		TopicProperties: topicProperties,
 		Tags:            tags.Expand(t),
 	}
 
@@ -146,6 +230,27 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		return fmt.Errorf("Error making Read request on EventGrid Topic '%s': %+v", id.Name, err)
+	}
+	if props := resp.TopicProperties; props != nil {
+		d.Set("endpoint", props.Endpoint)
+
+		d.Set("input_schema", string(props.InputSchema))
+
+		inputMappingFields, err := flattenAzureRmEventgridTopicInputMapping(props.InputSchemaMapping)
+		if err != nil {
+			return fmt.Errorf("Unable to flatten `input_schema_mapping_fields` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		}
+		if err := d.Set("input_mapping_fields", inputMappingFields); err != nil {
+			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		}
+
+		inputMappingDefaultValues, err := flattenAzureRmEventgridTopicInputMappingDefaultValues(props.InputSchemaMapping)
+		if err != nil {
+			return fmt.Errorf("Unable to flatten `input_schema_mapping_default_values` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		}
+		if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
+			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Topic %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	keys, err := client.ListSharedAccessKeys(ctx, id.ResourceGroup, id.Name)
@@ -195,4 +300,139 @@ func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
+}
+
+func expandAzureRmEventgridTopicInputMapping(d *schema.ResourceData) *eventgrid.JSONInputSchemaMapping {
+	imf, imfok := d.GetOk("input_mapping_fields")
+
+	imdv, imdvok := d.GetOk("input_mapping_default_values")
+
+	if !imfok && !imdvok {
+		return nil
+	}
+
+	jismp := eventgrid.JSONInputSchemaMappingProperties{}
+
+	if imfok {
+		mappings := imf.([]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			if mapping := mappings[0].(map[string]interface{}); mapping != nil {
+				if id := mapping["id"].(string); id != "" {
+					jismp.ID = &eventgrid.JSONField{SourceField: &id}
+				}
+
+				if eventTime := mapping["event_time"].(string); eventTime != "" {
+					jismp.EventTime = &eventgrid.JSONField{SourceField: &eventTime}
+				}
+
+				if topic := mapping["topic"].(string); topic != "" {
+					jismp.Topic = &eventgrid.JSONField{SourceField: &topic}
+				}
+
+				if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+					jismp.DataVersion = &eventgrid.JSONFieldWithDefault{SourceField: &dataVersion}
+				}
+
+				if subject := mapping["subject"].(string); subject != "" {
+					jismp.Subject = &eventgrid.JSONFieldWithDefault{SourceField: &subject}
+				}
+
+				if eventType := mapping["event_type"].(string); eventType != "" {
+					jismp.EventType = &eventgrid.JSONFieldWithDefault{SourceField: &eventType}
+				}
+			}
+		}
+	}
+
+	if imdvok {
+		mappings := imdv.([]interface{})
+		if len(mappings) > 0 && mappings[0] != nil {
+			if mapping := mappings[0].(map[string]interface{}); mapping != nil {
+				if dataVersion := mapping["data_version"].(string); dataVersion != "" {
+					jismp.DataVersion = &eventgrid.JSONFieldWithDefault{DefaultValue: &dataVersion}
+				}
+
+				if subject := mapping["subject"].(string); subject != "" {
+					jismp.Subject = &eventgrid.JSONFieldWithDefault{DefaultValue: &subject}
+				}
+
+				if eventType := mapping["event_type"].(string); eventType != "" {
+					jismp.EventType = &eventgrid.JSONFieldWithDefault{DefaultValue: &eventType}
+				}
+			}
+		}
+	}
+
+	jsonMapping := eventgrid.JSONInputSchemaMapping{
+		JSONInputSchemaMappingProperties: &jismp,
+		InputSchemaMappingType:           eventgrid.InputSchemaMappingTypeJSON,
+	}
+
+	return &jsonMapping
+}
+
+func flattenAzureRmEventgridTopicInputMapping(input eventgrid.BasicInputSchemaMapping) ([]interface{}, error) {
+	if input == nil {
+		return nil, nil
+	}
+	result := make(map[string]interface{})
+
+	jsonValues, ok := input.(eventgrid.JSONInputSchemaMapping)
+	if !ok {
+		return nil, fmt.Errorf("Unable to read JSONInputSchemaMapping")
+	}
+	props := jsonValues.JSONInputSchemaMappingProperties
+
+	if props.EventTime != nil && props.EventTime.SourceField != nil {
+		result["event_time"] = *props.EventTime.SourceField
+	}
+
+	if props.ID != nil && props.ID.SourceField != nil {
+		result["id"] = *props.ID.SourceField
+	}
+
+	if props.Topic != nil && props.Topic.SourceField != nil {
+		result["topic"] = *props.Topic.SourceField
+	}
+
+	if props.DataVersion != nil && props.DataVersion.SourceField != nil {
+		result["data_version"] = *props.DataVersion.SourceField
+	}
+
+	if props.EventType != nil && props.EventType.SourceField != nil {
+		result["event_type"] = *props.EventType.SourceField
+	}
+
+	if props.Subject != nil && props.Subject.SourceField != nil {
+		result["subject"] = *props.Subject.SourceField
+	}
+
+	return []interface{}{result}, nil
+}
+
+func flattenAzureRmEventgridTopicInputMappingDefaultValues(input eventgrid.BasicInputSchemaMapping) ([]interface{}, error) {
+	if input == nil {
+		return nil, nil
+	}
+	result := make(map[string]interface{})
+
+	jsonValues, ok := input.(eventgrid.JSONInputSchemaMapping)
+	if !ok {
+		return nil, fmt.Errorf("Unable to read JSONInputSchemaMapping")
+	}
+	props := jsonValues.JSONInputSchemaMappingProperties
+
+	if props.DataVersion != nil && props.DataVersion.DefaultValue != nil {
+		result["data_version"] = *props.DataVersion.DefaultValue
+	}
+
+	if props.EventType != nil && props.EventType.DefaultValue != nil {
+		result["event_type"] = *props.EventType.DefaultValue
+	}
+
+	if props.Subject != nil && props.Subject.DefaultValue != nil {
+		result["subject"] = *props.Subject.DefaultValue
+	}
+
+	return []interface{}{result}, nil
 }
