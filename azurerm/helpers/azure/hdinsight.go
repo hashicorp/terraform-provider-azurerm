@@ -116,7 +116,7 @@ func SchemaHDInsightsGateway() *schema.Schema {
 				"password": {
 					Type:      schema.TypeString,
 					Required:  true,
-					ForceNew:  true,
+					ForceNew:  false,
 					Sensitive: true,
 					// Azure returns the key as *****. We'll suppress that here.
 					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
