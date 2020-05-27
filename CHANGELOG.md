@@ -81,6 +81,6 @@ BUG FIXES:
 
 ---
 
-For information on changes between the v2.10.0 and v2.0.0 releases, please see [the v2.10.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/v2.10.0/CHANGELOG.md).
+For information on changes between the v2.10.0 and v2.0.0 releases, please see [the previous v2.x changelog entries](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v2.md).
 
-For information on changes in version v1.44.0 and prior releases, please see [the v1.44.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/v1.44.0/CHANGELOG.md).
+For information on changes in version v1.44.0 and prior releases, please see [the v1.44.0 changelog](https://github.com/terraform-providers/terraform-provider-azurerm/blob/master/CHANGELOG-v1.md).
