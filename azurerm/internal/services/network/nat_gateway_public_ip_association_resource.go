@@ -122,7 +122,7 @@ func resourceArmNATGatewayPublicIpAssociationRead(d *schema.ResourceData, meta i
 		return err
 	}
 
-	natGateway, err := client.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.ResourceGroup, "")
+	natGateway, err := client.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(natGateway.Response) {
 			log.Printf("[DEBUG] NAT Gateway %q (Resource Group %q) could not be found - removing from state!", id.NatGateway.Name, id.NatGateway.ResourceGroup)
@@ -186,11 +186,14 @@ func resourceArmNATGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta
 			return fmt.Errorf("NAT Gateway %q (Resource Group %q) was not found", id.NatGateway.Name, id.NatGateway.ResourceGroup)
 		}
 
-		return fmt.Errorf("failed to retrieve NAT Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
+		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
+	}
+	if natGateway.NatGatewayPropertiesFormat == nil {
+		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): `properties` was nil", id.NatGateway.Name, id.NatGateway.ResourceGroup)
 	}
 
 	publicIpAddresses := make([]network.SubResource, 0)
-	if publicIPAddresses := natGateway.PublicIPAddresses; publicIPAddresses != nil {
+	if publicIPAddresses := natGateway.NatGatewayPropertiesFormat.PublicIPAddresses; publicIPAddresses != nil {
 		for _, publicIPAddress := range *publicIPAddresses {
 			if publicIPAddress.ID == nil {
 				continue
@@ -201,7 +204,7 @@ func resourceArmNATGatewayPublicIpAssociationDelete(d *schema.ResourceData, meta
 			}
 		}
 	}
-	natGateway.PublicIPAddresses = &publicIpAddresses
+	natGateway.NatGatewayPropertiesFormat.PublicIPAddresses = &publicIpAddresses
 
 	future, err := client.CreateOrUpdate(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, natGateway)
 	if err != nil {
