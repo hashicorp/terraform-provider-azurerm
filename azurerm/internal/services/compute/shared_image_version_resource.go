@@ -85,10 +85,13 @@ func resourceArmSharedImageVersion() *schema.Resource {
 							Required: true,
 						},
 
+						// The Service API doesn't support to update `storage_account_type`. So it has to recreate the resource for updating `storage_account_type`.
+						// However, `ForceNew` cannot be used since resource would be recreated while adding or removing `target_region`.
+						// And `CustomizeDiff` also cannot be used since it doesn't support in a `Set`.
+						// So currently terraform would directly return the error message from Service API while updating this property. If this property needs to be updated, please recreate this resource.
 						"storage_account_type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.StorageAccountTypeStandardLRS),
 								string(compute.StorageAccountTypeStandardZRS),
