@@ -686,8 +686,8 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("setting `sign_up`: %+v", err)
 		}
 	} else {
-		d.Set("sign_in",[]interface{}{})
-		d.Set("sign_up",[]interface{}{})
+		d.Set("sign_in", []interface{}{})
+		d.Set("sign_up", []interface{}{})
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
