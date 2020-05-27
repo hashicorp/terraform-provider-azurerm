@@ -201,13 +201,13 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 
 						"node_taints": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 
 						"enable_node_public_ip": {
 							Type:     schema.TypeBool,
-							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -234,14 +234,12 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 			"private_link_enabled": {
 				Type:          schema.TypeBool,
 				Computed:      true,
-				Optional:      true,
 				ConflictsWith: []string{"private_cluster_enabled"},
 				Deprecated:    "Deprecated in favor of `private_cluster_enabled`", // TODO -- remove this in next major version
 			},
 
 			"private_cluster_enabled": {
 				Type:          schema.TypeBool,
-				Optional:      true,
 				Computed:      true, // TODO -- remove this when deprecation resolves
 				ConflictsWith: []string{"private_link_enabled"},
 			},
