@@ -56,8 +56,6 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) Specifies the id of the backup policy to use.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ## Attributes Reference
 
 The following attributes are exported:

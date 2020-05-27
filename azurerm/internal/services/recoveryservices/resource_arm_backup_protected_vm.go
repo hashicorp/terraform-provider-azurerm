@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -60,8 +59,6 @@ func resourceArmRecoveryServicesBackupProtectedVM() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -72,7 +69,6 @@ func resourceArmRecoveryServicesBackupProtectedVMCreateUpdate(d *schema.Resource
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	vaultName := d.Get("recovery_vault_name").(string)
 	vmId := d.Get("source_vm_id").(string)
@@ -107,7 +103,6 @@ func resourceArmRecoveryServicesBackupProtectedVMCreateUpdate(d *schema.Resource
 	}
 
 	item := backup.ProtectedItemResource{
-		Tags: tags.Expand(t),
 		Properties: &backup.AzureIaaSComputeVMProtectedItem{
 			PolicyID:          &policyId,
 			ProtectedItemType: backup.ProtectedItemTypeMicrosoftClassicComputevirtualMachines,
@@ -173,7 +168,7 @@ func resourceArmRecoveryServicesBackupProtectedVMRead(d *schema.ResourceData, me
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmRecoveryServicesBackupProtectedVMDelete(d *schema.ResourceData, meta interface{}) error {
