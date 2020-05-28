@@ -114,6 +114,7 @@ func testCheckAzureRMDataShareDataSetExists(resourceName string) resource.TestCh
 	}
 }
 
+// nolint
 func testCheckAzureRMDataShareDataSetDestroy(resourceTypeName string) func(s *terraform.State) error {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataShare.DataSetClient
