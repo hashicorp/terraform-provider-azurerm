@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_eventgrid_topic` - support for `input_schema`, `input_mapping_fields`, and `input_mapping_default_values` [GH-6858]
 * `azurerm_kubernetes_cluster` - exposing the `oms_agent_identity` block within the `addon_profile` block [GH-7056]
 * `azurerm_logic_app_action_http` - support for the `run_after` property [GH-7079]
+* `azurerm_storage_account` - support `RAGZRS` and `GZRS` for the `account_replication_type` property [GH-7080]
 
 BUG FIXES:
 
