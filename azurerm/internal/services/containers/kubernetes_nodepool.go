@@ -155,6 +155,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			EnableNodePublicIP:     defaultCluster.EnableNodePublicIP,
 			ScaleSetPriority:       defaultCluster.ScaleSetPriority,
 			ScaleSetEvictionPolicy: defaultCluster.ScaleSetEvictionPolicy,
+			SpotMaxPrice:           defaultCluster.SpotMaxPrice,
 			NodeLabels:             defaultCluster.NodeLabels,
 			NodeTaints:             defaultCluster.NodeTaints,
 			Tags:                   defaultCluster.Tags,
