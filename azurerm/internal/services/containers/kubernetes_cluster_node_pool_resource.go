@@ -162,8 +162,9 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 }
 
 func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*clients.Client).Containers.KubernetesClustersClient
-	poolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
+	containersClient := meta.(*clients.Client).Containers
+	clustersClient := containersClient.KubernetesClustersClient
+	poolsClient := containersClient.AgentPoolsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -235,6 +236,10 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	orchestratorVersion := d.Get("orchestrator_version").(string)
 	if orchestratorVersion != "" {
+		if err := validateNodePoolSupportsVersion(ctx, containersClient, resourceGroup, clusterName, name, orchestratorVersion); err != nil {
+			return err
+		}
+
 		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
 
@@ -322,7 +327,8 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.AgentPoolsClient
+	containersClient := meta.(*clients.Client).Containers
+	client := containersClient.AgentPoolsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -390,13 +396,18 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 		props.NodeTaints = nodeTaints
 	}
 
+	if d.HasChange("orchestrator_version") {
+		orchestratorVersion := d.Get("orchestrator_version").(string)
+		if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ClusterName, id.Name, orchestratorVersion); err != nil {
+			return err
+		}
+
+		props.OrchestratorVersion = utils.String(orchestratorVersion)
+	}
+
 	if d.HasChange("tags") {
 		t := d.Get("tags").(map[string]interface{})
 		props.Tags = tags.Expand(t)
-	}
-
-	if d.HasChange("orchestrator_version") {
-		props.OrchestratorVersion = utils.String(d.Get("orchestrator_version").(string))
 	}
 
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
@@ -522,6 +533,7 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
+		d.Set("orchestrator_version", props.OrchestratorVersion)
 		osDiskSizeGB := 0
 		if props.OsDiskSizeGB != nil {
 			osDiskSizeGB = int(*props.OsDiskSizeGB)
@@ -530,10 +542,6 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		d.Set("os_type", string(props.OsType))
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))
-
-		if props.OrchestratorVersion != nil {
-			d.Set("orchestrator_version", props.OrchestratorVersion)
-		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

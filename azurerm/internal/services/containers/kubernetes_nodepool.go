@@ -189,7 +189,6 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		OsType: containerservice.Linux,
 
 		// // TODO: support these in time
-		// OrchestratorVersion:    nil,
 		// ScaleSetEvictionPolicy: "",
 		// ScaleSetPriority:       "",
 	}

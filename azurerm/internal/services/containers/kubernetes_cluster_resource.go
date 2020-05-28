@@ -575,6 +575,8 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	linuxProfileRaw := d.Get("linux_profile").([]interface{})
 	linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
 
+	// NOTE: we /could/ validate the default node pool version here - but since the entire cluster deployment
+	// will fail here this should be fine to omit for the Create
 	agentProfiles, err := ExpandDefaultNodePool(d)
 	if err != nil {
 		return fmt.Errorf("expanding `default_node_pool`: %+v", err)
@@ -686,9 +688,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	nodePoolsClient := meta.(*clients.Client).Containers.AgentPoolsClient
-	clusterClient := meta.(*clients.Client).Containers.KubernetesClustersClient
-	env := meta.(*clients.Client).Containers.Environment
+	containersClient := meta.(*clients.Client).Containers
+	nodePoolsClient := containersClient.AgentPoolsClient
+	clusterClient := containersClient.KubernetesClustersClient
+	env := containersClient.Environment
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	tenantId := meta.(*clients.Client).Account.TenantId
@@ -905,7 +908,16 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		}
 
 		agentProfile := ConvertDefaultNodePoolToAgentPool(agentProfiles)
-		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *agentProfile.Name, agentProfile)
+		nodePoolName := *agentProfile.Name
+
+		// if a users specified a version - confirm that version is supported on the cluster
+		if nodePoolVersion := agentProfile.ManagedClusterAgentPoolProfileProperties.OrchestratorVersion; nodePoolVersion != nil {
+			if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.Name, nodePoolName, *nodePoolVersion); err != nil {
+				return err
+			}
+		}
+
+		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, nodePoolName, agentProfile)
 		if err != nil {
 			return fmt.Errorf("updating Default Node Pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}

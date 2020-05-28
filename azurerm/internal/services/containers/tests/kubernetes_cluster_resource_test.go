@@ -29,6 +29,7 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 		"nodePool":     kubernetesNodePoolTests,
 		"other":        kubernetesOtherTests,
 		"scaling":      kubernetesScalingTests,
+		"upgrade":      kubernetesUpgradeTests,
 	}
 
 	for group, m := range testCases {
