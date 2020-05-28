@@ -269,6 +269,12 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				},
 			},
 
+			"enable_analytic_storage": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -304,6 +310,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableAnalyticalStorage := d.Get("enable_analytical_storage").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -332,6 +339,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
+			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -381,6 +389,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableAnalyticalStorage := d.Get("enable_analytical_storage").(bool)
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(name, d)
 	if err != nil {
@@ -421,6 +430,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			Locations:                     &oldLocations,
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
+			EnableAnalyticalStorage:       utils.Bool(enableAnalyticalStorage),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -542,6 +552,10 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	if err = d.Set("virtual_network_rule", flattenAzureRmCosmosDBAccountVirtualNetworkRules(resp.VirtualNetworkRules)); err != nil {
 		return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
+	}
+
+	if v := resp.EnableAnalyticalStorage; v != nil {
+		d.Set("enable_analytical_storage", resp.EnableAnalyticalStorage)
 	}
 
 	readEndpoints := make([]string, 0)
