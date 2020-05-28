@@ -12,7 +12,7 @@ import (
 	nw "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 )
 
-func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
+func TestAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -39,7 +39,7 @@ func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
+func TestAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -66,7 +66,7 @@ func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 	})
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
+func TestAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -107,7 +107,7 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 	})
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
+func TestAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -149,7 +149,7 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 	})
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
+func TestAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -191,7 +191,7 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	})
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
+func TestAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 
 	resource.Test(t, resource.TestCase{
@@ -290,7 +290,7 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	})
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_version(t *testing.T) {
+func TestAccAzureRMNetworkWatcherFlowLog_version(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_watcher_flow_log", "test")
 
 	resource.Test(t, resource.TestCase{
