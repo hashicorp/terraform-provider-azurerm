@@ -90,6 +90,8 @@ The following arguments are supported:
 
 * `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade)
 
+-> **Note:** This version must be supported by the Kubernetes Cluster - as such the version of Kubernetes used on the Cluster/Control Plane may need to be upgraded first.
+
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist.
 
 -> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
@@ -119,8 +121,6 @@ The following attributes are exported:
 * `id` - The ID of the Kubernetes Cluster Node Pool.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

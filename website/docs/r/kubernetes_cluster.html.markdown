@@ -233,6 +233,8 @@ If `enable_auto_scaling` is set to `false`, then the following fields can also b
 
 * `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade)
 
+-> **Note:** This version must be supported by the Kubernetes Cluster - as such the version of Kubernetes used on the Cluster/Control Plane may need to be upgraded first.
+
 ---
 
 A `http_application_routing` block supports the following:
