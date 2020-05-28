@@ -194,7 +194,7 @@ resource "azurerm_application_insights_web_test" "test" {
 </WebTest>
 XML
 
-tags = {
+  tags = {
     Environment = "test"
     Application = "apptest"
   }
