@@ -6,14 +6,19 @@ import (
 )
 
 type Client struct {
-	EnvironmentsClient *timeseriesinsights.EnvironmentsClient
+	AccessPoliciesClient *timeseriesinsights.AccessPoliciesClient
+	EnvironmentsClient   *timeseriesinsights.EnvironmentsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	EnvironmentsClient := timeseriesinsights.NewEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&EnvironmentsClient.Client, o.ResourceManagerAuthorizer)
 
+	AccessPoliciesClient := timeseriesinsights.NewAccessPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&EnvironmentsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		EnvironmentsClient: &EnvironmentsClient,
+		AccessPoliciesClient: &AccessPoliciesClient,
+		EnvironmentsClient:   &EnvironmentsClient,
 	}
 }
