@@ -111,7 +111,7 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 		if err != nil {
 			return resource.RetryableError(fmt.Errorf("Expected instance of the authorization rule %q (event Hub %q / Namespace %q / Resource Group %q) to be created but was in non existent state, retrying", name, eventHubName, namespaceName, resourceGroup))
 		}
-		
+
 		if read.ID == nil {
 			return resource.NonRetryableError(fmt.Errorf("Cannot read Authorization Rule %q (event Hub %q / Namespace %q / Resource Group %q) ID", name, eventHubName, namespaceName, resourceGroup))
 		}
