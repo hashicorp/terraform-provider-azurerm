@@ -124,11 +124,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 					Type: schema.TypeString,
 				},
 				DiffSuppressFunc: func(k, old, new string, _ *schema.ResourceData) bool {
-					if strings.Contains(k, "hidden-link:") {
-						return true
-					}
-
-					return false
+					return strings.Contains(k, "hidden-link:")
 				},
 			},
 
