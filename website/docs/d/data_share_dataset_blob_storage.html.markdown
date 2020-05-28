@@ -18,7 +18,7 @@ provider "azurerm" {
 }
 
 data "azurerm_data_share_dataset_blob_storage" "example" {
-  name     = "example-dsbsds"
+  name          = "example-dsbsds"
   data_share_id = "example-share-id"
 }
 

@@ -200,7 +200,7 @@ func testAccAzureRMDataShareDataSetBlobStorageFile_basic(data acceptance.TestDat
 
 resource "azurerm_data_share_dataset_blob_storage" "test" {
   name                                = "acctest-dsbds-file-%[2]d"
-  data_share_id                            = azurerm_data_share.test.id
+  data_share_id                       = azurerm_data_share.test.id
   container_name                      = azurerm_storage_container.test.name
   storage_account_name                = azurerm_storage_account.test.name
   storage_account_resource_group_name = azurerm_storage_account.test.resource_group_name
@@ -220,7 +220,7 @@ func testAccAzureRMDataShareDataSetBlobStorageFolder_basic(data acceptance.TestD
 
 resource "azurerm_data_share_dataset_blob_storage" "test" {
   name                                = "acctest-dsbds-folder-%[2]d"
-  data_share_id                            = azurerm_data_share.test.id
+  data_share_id                       = azurerm_data_share.test.id
   container_name                      = azurerm_storage_container.test.name
   storage_account_name                = azurerm_storage_account.test.name
   storage_account_resource_group_name = azurerm_storage_account.test.resource_group_name
@@ -240,7 +240,7 @@ func testAccAzureRMDataShareDataSetBlobStorageContainer_basic(data acceptance.Te
 
 resource "azurerm_data_share_dataset_blob_storage" "test" {
   name                                = "acctest-dsbds-folder-%[2]d"
-  data_share_id                            = azurerm_data_share.test.id
+  data_share_id                       = azurerm_data_share.test.id
   container_name                      = azurerm_storage_container.test.name
   storage_account_name                = azurerm_storage_account.test.name
   storage_account_resource_group_name = azurerm_storage_account.test.resource_group_name
@@ -259,7 +259,7 @@ func testAccAzureRMDataShareDataSetBlobStorage_requiresImport(data acceptance.Te
 
 resource "azurerm_data_share_dataset_blob_storage" "import" {
   name                                = azurerm_data_share_dataset_blob_storage.test.name
-  data_share_id                            = azurerm_data_share.test.id
+  data_share_id                       = azurerm_data_share.test.id
   container_name                      = azurerm_data_share_dataset_blob_storage.test.container_name
   storage_account_name                = azurerm_data_share_dataset_blob_storage.test.storage_account_name
   storage_account_resource_group_name = azurerm_data_share_dataset_blob_storage.test.storage_account_resource_group_name
