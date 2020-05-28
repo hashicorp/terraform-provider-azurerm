@@ -116,7 +116,21 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				DiffSuppressFunc: suppress.XmlDiff,
 			},
 
-			"tags": tags.Schema(),
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				ValidateFunc: tags.Validate,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				DiffSuppressFunc: func(k, old, new string, _ *schema.ResourceData) bool {
+					if strings.Contains(k, "hidden-link:") {
+						return true
+					}
+
+					return false
+				},
+			},
 
 			"synthetic_monitor_id": {
 				Type:     schema.TypeString,
@@ -259,13 +273,6 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 			return fmt.Errorf("Error setting `geo_locations`: %+v", err)
 		}
 	}
-
-	appInsightsID, err := azure.ParseAzureResourceID(d.Get("application_insights_id").(string))
-	if err != nil {
-		return err
-	}
-	tagKey := fmt.Sprintf("hidden-link:/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsID.Path["components"])
-	delete(resp.Tags, tagKey)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
