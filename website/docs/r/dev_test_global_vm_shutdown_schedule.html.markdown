@@ -76,11 +76,8 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "example" {
   location           = azurerm_resource_group.example.location
   status             = "Enabled"
 
-  daily_recurrence {
-    time = "1100"
-  }
-
-  time_zone_id = "Pacific Standard Time"
+  daily_recurrence_time = "1100"
+  time_zone_id          = "Pacific Standard Time"
 
   notification_settings {
     status          = "Enabled"
