@@ -14,7 +14,7 @@ Use this data source to access information about an existing Virtual Machine Sca
 
 ```hcl
 data "azurerm_virtual_machine_scale_set" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 
