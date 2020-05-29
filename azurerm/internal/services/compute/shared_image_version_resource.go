@@ -8,12 +8,16 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -24,9 +28,11 @@ func resourceArmSharedImageVersion() *schema.Resource {
 		Read:   resourceArmSharedImageVersionRead,
 		Update: resourceArmSharedImageVersionCreateUpdate,
 		Delete: resourceArmSharedImageVersionDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SharedImageVersionID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -40,32 +46,26 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SharedImageVersionName,
+				ValidateFunc: azValidate.SharedImageVersionName,
 			},
 
 			"gallery_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SharedImageGalleryName,
+				ValidateFunc: azValidate.SharedImageGalleryName,
 			},
 
 			"image_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SharedImageName,
+				ValidateFunc: azValidate.SharedImageName,
 			},
 
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"managed_image_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
 
 			"target_region": {
 				Type:     schema.TypeSet,
@@ -94,6 +94,40 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				},
 			},
 
+			"os_disk_snapshot": {
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"source_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							// TODO -- add a validation function when snapshot has its own validation function
+						},
+
+						"host_caching": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(compute.HostCachingReadWrite),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(compute.HostCachingNone),
+								string(compute.HostCachingReadOnly),
+								string(compute.HostCachingReadWrite),
+							}, false),
+						},
+					},
+				},
+			},
+
+			"managed_image_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ImageID,
+			},
+
 			"exclude_from_latest": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -115,7 +149,6 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	galleryName := d.Get("gallery_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	managedImageId := d.Get("managed_image_id").(string)
 	excludeFromLatest := d.Get("exclude_from_latest").(bool)
 
 	if d.IsNewResource() {
@@ -141,13 +174,19 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 				ExcludeFromLatest: utils.Bool(excludeFromLatest),
 				TargetRegions:     targetRegions,
 			},
-			StorageProfile: &compute.GalleryImageVersionStorageProfile{
-				Source: &compute.GalleryArtifactVersionSource{
-					ID: utils.String(managedImageId),
-				},
-			},
+			StorageProfile: &compute.GalleryImageVersionStorageProfile{},
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("managed_image_id"); ok {
+		version.GalleryImageVersionProperties.StorageProfile.Source = &compute.GalleryArtifactVersionSource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("os_disk_snapshot"); ok {
+		version.GalleryImageVersionProperties.StorageProfile.OsDiskImage = expandSharedImageVersionOsDiskImage(v.([]interface{}))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, imageName, imageVersion, version)
@@ -207,8 +246,7 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 		if profile := props.PublishingProfile; profile != nil {
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
 
-			flattenedRegions := flattenSharedImageVersionTargetRegions(profile.TargetRegions)
-			if err := d.Set("target_region", flattenedRegions); err != nil {
+			if err := d.Set("target_region", flattenSharedImageVersionTargetRegions(profile.TargetRegions)); err != nil {
 				return fmt.Errorf("Error setting `target_region`: %+v", err)
 			}
 		}
@@ -216,6 +254,10 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 		if profile := props.StorageProfile; profile != nil {
 			if source := profile.Source; source != nil {
 				d.Set("managed_image_id", source.ID)
+			}
+
+			if err := d.Set("os_disk_snapshot", flattenSharedImageVersionOsDiskImage(profile.OsDiskImage)); err != nil {
+				return fmt.Errorf("Error setting `os_disk_snapshot`: %+v", err)
 			}
 		}
 	}
@@ -299,4 +341,36 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 	}
 
 	return results
+}
+
+func expandSharedImageVersionOsDiskImage(input []interface{}) *compute.GalleryOSDiskImage {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	return &compute.GalleryOSDiskImage{
+		Source: &compute.GalleryArtifactVersionSource{
+			ID: utils.String(v["source_id"].(string)),
+		},
+		HostCaching: compute.HostCaching(v["host_caching"].(string)),
+	}
+}
+
+func flattenSharedImageVersionOsDiskImage(input *compute.GalleryOSDiskImage) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	sourceId := ""
+	if input.Source != nil && input.Source.ID != nil {
+		sourceId = *input.Source.ID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"source_id":    sourceId,
+			"host_caching": string(input.HostCaching),
+		},
+	}
 }
