@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+~> **Note:** `tags` has been deprecated and will be removed since the Service API doesn't support it. See more details from https://github.com/Azure/azure-rest-api-specs/issues/9251.
+
 ---
 
 The `backup` block supports:
