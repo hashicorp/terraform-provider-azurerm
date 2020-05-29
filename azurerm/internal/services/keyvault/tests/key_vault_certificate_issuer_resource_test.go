@@ -256,12 +256,12 @@ func testAccAzureRMKeyVaultCertificateIssuer_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_key_vault_certificate_issuer" "import" {
-  name          = "acctestKVCI-%[1]d"
+  name          = "acctestKVCI-%[2]d"
   key_vault_id  = azurerm_key_vault.test.id
   account_id    = "test-account"
-  password      = "test"
-  org_id        = "%[1]d"
+  password      = "test-password"
+  org_id        = "test-org"
   provider_name = "DigiCert"
 }
-`, template)
+`, template, data.RandomInteger)
 }
