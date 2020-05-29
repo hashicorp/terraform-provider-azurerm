@@ -392,12 +392,13 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 			computerNamePrefix = name
 		}
 
-		if _, ok := d.GetOk("admin_username"); !ok {
+		adminUsername := d.Get("admin_username").(string)
+		if adminUsername == "" {
 			return fmt.Errorf("`admin_username` is required when using platform image, image or generalized shared image")
 		}
 
 		virtualMachineProfile.OsProfile = &compute.VirtualMachineScaleSetOSProfile{
-			AdminUsername:      utils.String(d.Get("admin_username").(string)),
+			AdminUsername:      utils.String(adminUsername),
 			ComputerNamePrefix: utils.String(computerNamePrefix),
 			LinuxConfiguration: &compute.LinuxConfiguration{
 				DisablePasswordAuthentication: utils.Bool(disablePasswordAuthentication),
