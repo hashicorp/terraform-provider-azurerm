@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -144,6 +145,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"disk_encryption_set_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: computeValidate.DiskEncryptionSetID,
 			},
 
 			"enable_pod_security_policy": {
@@ -391,14 +399,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"private_fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"disk_encryption_set": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"private_link_enabled": {
@@ -657,7 +657,6 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
-	diskEncryptionSet := d.Get("disk_encryption_set").(string)
 
 	linuxProfileRaw := d.Get("linux_profile").([]interface{})
 	linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
@@ -726,7 +725,6 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			AgentPoolProfiles:       agentProfiles,
 			AutoScalerProfile:       autoScalerProfile,
 			DNSPrefix:               utils.String(dnsPrefix),
-			DiskEncryptionSetID:     utils.String(diskEncryptionSet),
 			EnableRBAC:              utils.Bool(rbacEnabled),
 			KubernetesVersion:       utils.String(kubernetesVersion),
 			LinuxProfile:            linuxProfile,
@@ -758,6 +756,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
 			Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
 		}
+	}
+
+	if v, ok := d.GetOk("disk_encryption_set_id"); ok && v.(string) != "" {
+		parameters.ManagedClusterProperties.DiskEncryptionSetID = utils.String(v.(string))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -912,12 +914,6 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 		autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 		existing.ManagedClusterProperties.AutoScalerProfile = autoScalerProfile
-	}
-
-	if d.HasChange("disk_encryption_set") {
-		updateCluster = true
-		diskEncryptionSet := d.Get("disk_encryption_set").(string)
-		existing.ManagedClusterProperties.DiskEncryptionSetID = utils.String(diskEncryptionSet)
 	}
 
 	if d.HasChange("enable_pod_security_policy") {

@@ -66,7 +66,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
-* `disk_encryption_set` - The id of the disk encruption set used for the nodes and volumes (only present if disk encryption enabled), See:[Documentation](https://docs.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys)
+* `disk_encryption_set_id` - The ID of the Disk Encryption Set used for the Nodes and Volumes.
 
 * `linux_profile` - A `linux_profile` block as documented below.
 

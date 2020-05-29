@@ -1103,11 +1103,11 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  disk_encryption_set = azurerm_disk_encryption_set.test.id
+  name                   = "acctestaks%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  dns_prefix             = "acctestaks%d"
+  disk_encryption_set_id = azurerm_disk_encryption_set.test.id
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1136,7 +1136,8 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   depends_on = [
-    azurerm_key_vault_access_policy.disk-encryption-perm
+    azurerm_key_vault_access_policy.disk-encryption-perm,
+    azurerm_role_assignment.disk-encryption-read-keyvault
   ]
 
 }
