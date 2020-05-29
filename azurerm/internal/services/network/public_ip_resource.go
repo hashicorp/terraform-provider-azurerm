@@ -152,6 +152,12 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	ipVersion := network.IPVersion(d.Get("ip_version").(string))
 	ipAllocationMethod := d.Get("allocation_method").(string)
 
+	if strings.EqualFold(sku, "basic") {
+		if zones != nil {
+			return fmt.Errorf("Basic SKU does not support Availability Zone scenarios. You need to use Standard SKU public IP for Availability Zone scenarios.")
+		}
+	}
+
 	if strings.EqualFold(sku, "standard") {
 		if !strings.EqualFold(ipAllocationMethod, "static") {
 			return fmt.Errorf("Static IP allocation must be used when creating Standard SKU public IP addresses.")

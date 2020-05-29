@@ -55,17 +55,27 @@ The following arguments are supported:
 
 * `scope` - (Required) Specifies the scope at which the EventGrid Event Subscription should be created. Changing this forces a new resource to be created.
 
+* `expiration_time_utc` - (Optional) Specifies the expiration time of the event subscription (Datetime Format `RFC 3339`).
+
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
+
+* `eventhub_endpoint` - (Optional / **Deprecated in favour of `eventhub_endpoint_id`**) A `eventhub_endpoint` block as defined below.
+
+* `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
+
+* `hybrid_connection_endpoint` - (Optional / **Deprecated in favour of `hybrid_connection_endpoint_id`**) A `hybrid_connection_endpoint` block as defined below.
+
+* `hybrid_connection_endpoint_id` - (Optional) Specifies the id where the Hybrid Connection is located.
+
+* `service_bus_queue_endpoint_id` - (Optional) Specifies the id where the Service Bus Queue is located.
+
+* `service_bus_topic_endpoint_id` - (Optional) Specifies the id where the Service Bus Topic is located.
 
 * `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
 
-* `eventhub_endpoint` - (Optional) A `eventhub_endpoint` block as defined below.
-
-* `hybrid_connection_endpoint` - (Optional) A `hybrid_connection_endpoint` block as defined below.
-
 * `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
 
-~> **NOTE:** One of `storage_queue_endpoint`, `eventhub_endpoint`, `hybrid_connection_endpoint` or `webhook_endpoint` must be specified.
+~> **NOTE:** One of `eventhub_endpoint`, `eventhub_endpoint_id`, `hybrid_connection_endpoint`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint` or `webhook_endpoint` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -119,7 +129,7 @@ A `storage_blob_dead_letter_destination` supports the following:
 
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage blob is located.
 
-* `storage_blob_container_name` - (Required) Specifies the name of the Storage blob container that is the destination of the deadletter events
+* `storage_blob_container_name` - (Required) Specifies the name of the Storage blob container that is the destination of the deadletter events.
 
 ---
 
@@ -148,9 +158,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-EventGrid Domain's can be imported using the `resource id`, e.g.
+EventGrid Event Subscription's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_eventgrid_event_subscription.eventSubscription1
-/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
+/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/topics/topic1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
 ```

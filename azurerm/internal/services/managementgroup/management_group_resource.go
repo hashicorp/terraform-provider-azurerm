@@ -90,12 +90,16 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	defer cancel()
 	armTenantID := meta.(*clients.Client).Account.TenantId
 
-	groupName := uuid.New().String()
-	if v, ok := d.GetOk("group_name"); ok {
+	var groupName string
+	if v := d.Get("group_id"); v != "" {
 		groupName = v.(string)
 	}
-	if v, ok := d.GetOk("group_id"); ok {
+	if v := d.Get("name"); v != "" {
 		groupName = v.(string)
+	}
+
+	if groupName == "" {
+		groupName = uuid.New().String()
 	}
 
 	parentManagementGroupId := d.Get("parent_management_group_id").(string)
@@ -107,11 +111,11 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			// 403 is returned if group does not exist, bug tracked at: https://github.com/Azure/azure-rest-api-specs/issues/9549
+			if !utils.ResponseWasNotFound(existing.Response) && !utils.ResponseWasForbidden(existing.Response) {
 				return fmt.Errorf("unable to check for presence of existing Management Group %q: %s", groupName, err)
 			}
 		}
-
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_management_group", *existing.ID)
 		}
@@ -131,7 +135,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	if v, ok := d.GetOk("display_name"); ok {
+	if v := d.Get("display_name"); v != "" {
 		properties.CreateManagementGroupProperties.DisplayName = utils.String(v.(string))
 	}
 
@@ -199,7 +203,7 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 	recurse := true
 	resp, err := client.Get(ctx, id.GroupId, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if utils.ResponseWasForbidden(resp.Response) || utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Management Group %q doesn't exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -248,7 +252,7 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 	recurse := true
 	group, err := client.Get(ctx, id.GroupId, "children", &recurse, "", managementGroupCacheControl)
 	if err != nil {
-		if utils.ResponseWasNotFound(group.Response) {
+		if utils.ResponseWasNotFound(group.Response) || utils.ResponseWasForbidden(group.Response) {
 			log.Printf("[DEBUG] Management Group %q doesn't exist in Azure - nothing to do!", id.GroupId)
 			return nil
 		}

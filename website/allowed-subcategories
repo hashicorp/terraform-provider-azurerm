@@ -1,4 +1,5 @@
 API Management
+Advisor
 Analysis Services
 App Configuration
 App Service (Web Apps)
@@ -58,3 +59,4 @@ Spring Cloud
 Storage
 Stream Analytics
 Template
+Time Series Insights

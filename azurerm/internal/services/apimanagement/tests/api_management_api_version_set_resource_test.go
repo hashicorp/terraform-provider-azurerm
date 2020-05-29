@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -125,12 +126,12 @@ func testCheckAzureRMApiManagementApiVersionSetDestroy(s *terraform.State) error
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
+		id, err := parse.APIVersionSetID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
-
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -152,14 +153,15 @@ func testCheckAzureRMApiManagementApiVersionSetExists(resourceName string) resou
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		serviceName := rs.Primary.Attributes["api_management_name"]
+		id, err := parse.APIVersionSetID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceName, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Api Management Api Version Set %q (Resource Group %q / Api Management Service %q) does not exist", name, resourceGroup, serviceName)
+				return fmt.Errorf("Bad: Api Management Api Version Set %q (Resource Group %q / Api Management Service %q) does not exist", id.Name, id.ResourceGroup, id.ServiceName)
 			}
 			return fmt.Errorf("Bad: Get on apiManagementApiVersionSetClient: %+v", err)
 		}

@@ -6,7 +6,7 @@ description: |-
   Gets information about Service Tags for a specific service type.
 ---
 
-# Data Source: azurerm__network_service_tags
+# Data Source: azurerm_network_service_tags
 
 Use this data source to access information about Service Tags.
 

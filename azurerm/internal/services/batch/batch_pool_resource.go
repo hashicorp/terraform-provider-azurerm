@@ -47,7 +47,7 @@ func resourceArmBatchPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
+				ValidateFunc: ValidateAzureRMBatchPoolName,
 			},
 
 			// TODO: make this case sensitive once this API bug has been fixed:
@@ -136,6 +136,15 @@ func resourceArmBatchPool() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"container_image_names": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							ForceNew: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
 						},
 						"container_registries": {
 							Type:       schema.TypeList,
@@ -524,7 +533,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	nodeAgentSkuID := d.Get("node_agent_sku_id").(string)
 
 	storageImageReferenceSet := d.Get("storage_image_reference").([]interface{})
-	imageReference, err := azure.ExpandBatchPoolImageReference(storageImageReferenceSet)
+	imageReference, err := ExpandBatchPoolImageReference(storageImageReferenceSet)
 	if err != nil {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
@@ -542,7 +551,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
 		startTaskList := startTaskValue.([]interface{})
-		startTask, startTaskErr := azure.ExpandBatchPoolStartTask(startTaskList)
+		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
 			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, startTaskErr)
@@ -557,8 +566,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.StartTask = startTask
 	}
 
-	containerConfigurationSet := d.Get("container_configuration").([]interface{})
-	containerConfiguration, err := azure.ExpandBatchPoolContainerConfiguration(containerConfigurationSet)
+	containerConfiguration, err := ExpandBatchPoolContainerConfiguration(d.Get("container_configuration").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
 	}
@@ -572,7 +580,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	certificates := d.Get("certificate").([]interface{})
-	certificateReferences, err := azure.ExpandBatchPoolCertificateReferences(certificates)
+	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
 		return fmt.Errorf("Error expanding `certificate`: %+v", err)
 	}
@@ -583,10 +591,10 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	parameters.PoolProperties.Metadata = azure.ExpandBatchMetaData(metaDataRaw)
+	parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
 
 	networkConfiguration := d.Get("network_configuration").([]interface{})
-	parameters.PoolProperties.NetworkConfiguration, err = azure.ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
 	if err != nil {
 		return fmt.Errorf("Error expanding `network_configuration`: %+v", err)
 	}
@@ -667,7 +675,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
 		startTaskList := startTaskValue.([]interface{})
-		startTask, startTaskErr := azure.ExpandBatchPoolStartTask(startTaskList)
+		startTask, startTaskErr := ExpandBatchPoolStartTask(startTaskList)
 
 		if startTaskErr != nil {
 			return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, startTaskErr)
@@ -682,7 +690,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.StartTask = startTask
 	}
 	certificates := d.Get("certificate").([]interface{})
-	certificateReferences, err := azure.ExpandBatchPoolCertificateReferences(certificates)
+	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
 	if err != nil {
 		return fmt.Errorf("Error expanding `certificate`: %+v", err)
 	}
@@ -696,11 +704,11 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		log.Printf("[DEBUG] Updating the MetaData for Batch pool %q (Account name %q / Resource Group %q)..", id.Name, id.AccountName, id.ResourceGroup)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 
-		parameters.PoolProperties.Metadata = azure.ExpandBatchMetaData(metaDataRaw)
+		parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}
 
 	networkConfiguration := d.Get("network_configuration").([]interface{})
-	parameters.PoolProperties.NetworkConfiguration, err = azure.ExpandBatchPoolNetworkConfiguration(networkConfiguration)
+	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
 	if err != nil {
 		return fmt.Errorf("Error expanding `network_configuration`: %+v", err)
 	}
@@ -743,13 +751,14 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", id.ResourceGroup)
 
 	if props := resp.PoolProperties; props != nil {
+		d.Set("display_name", props.DisplayName)
 		d.Set("vm_size", props.VMSize)
 
 		if scaleSettings := props.ScaleSettings; scaleSettings != nil {
-			if err := d.Set("auto_scale", azure.FlattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
+			if err := d.Set("auto_scale", flattenBatchPoolAutoScaleSettings(scaleSettings.AutoScale)); err != nil {
 				return fmt.Errorf("Error flattening `auto_scale`: %+v", err)
 			}
-			if err := d.Set("fixed_scale", azure.FlattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
+			if err := d.Set("fixed_scale", flattenBatchPoolFixedScaleSettings(scaleSettings.FixedScale)); err != nil {
 				return fmt.Errorf("Error flattening `fixed_scale `: %+v", err)
 			}
 		}
@@ -761,25 +770,25 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
 			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
 
-			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
+			d.Set("storage_image_reference", flattenBatchPoolImageReference(imageReference))
 			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
 		}
 
 		if dcfg := props.DeploymentConfiguration; dcfg != nil {
 			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-				d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
+				d.Set("container_configuration", flattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
 			}
 		}
 
-		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+		if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
 			return fmt.Errorf("Error flattening `certificate`: %+v", err)
 		}
 
-		d.Set("start_task", azure.FlattenBatchPoolStartTask(props.StartTask))
-		d.Set("metadata", azure.FlattenBatchMetaData(props.Metadata))
+		d.Set("start_task", flattenBatchPoolStartTask(props.StartTask))
+		d.Set("metadata", FlattenBatchMetaData(props.Metadata))
 
 		if props.NetworkConfiguration != nil {
-			if err := d.Set("network_configuration", azure.FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
+			if err := d.Set("network_configuration", FlattenBatchPoolNetworkConfiguration(props.NetworkConfiguration)); err != nil {
 				return fmt.Errorf("error setting `network_configuration`: %v", err)
 			}
 		}

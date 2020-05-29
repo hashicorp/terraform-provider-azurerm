@@ -1,8 +1,8 @@
 package compute
 
 import (
+	"crypto/rsa"
 	"encoding/base64"
-	"encoding/binary"
 	"fmt"
 	"regexp"
 	"strings"
@@ -138,13 +138,15 @@ func ValidateSSHKey(i interface{}, k string) (warnings []string, errors []error)
 		}
 
 		if pubKey.Type() != ssh.KeyAlgoRSA {
-			return nil, []error{fmt.Errorf("Error - only ssh-rsa keys with 2048 bits or higher are supported by Azure")}
+			return nil, []error{fmt.Errorf("Error - the provided %s SSH key is not supported. Only RSA SSH keys are supported by Azure", pubKey.Type())}
 		} else {
-			// check length - held at bytes 20 and 21 for ssh-rsa
-			sizeRaw := []byte{byteStr[20], byteStr[21]}
-			sizeDec := binary.BigEndian.Uint16(sizeRaw)
-			if sizeDec < 257 {
-				return nil, []error{fmt.Errorf("Error - only ssh-rsa keys with 2048 bits or higher are supported by azure")}
+			rsaPubKey, ok := pubKey.(ssh.CryptoPublicKey).CryptoPublicKey().(*rsa.PublicKey)
+			if !ok {
+				return nil, []error{fmt.Errorf("Error - could not retrieve the RSA public key from the SSH public key")}
+			}
+			rsaPubKeyBits := rsaPubKey.Size() * 8
+			if rsaPubKeyBits < 2048 {
+				return nil, []error{fmt.Errorf("Error - the provided RSA SSH key has %d bits. Only ssh-rsa keys with 2048 bits or higher are supported by Azure", rsaPubKeyBits)}
 			}
 		}
 	} else {

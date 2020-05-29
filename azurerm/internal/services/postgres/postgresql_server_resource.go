@@ -620,8 +620,10 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	tier := postgresql.Basic
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
+		tier = sku.Tier
 	}
 
 	if props := resp.ServerProperties; props != nil {
@@ -649,15 +651,18 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 	}
 
-	secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
-		return fmt.Errorf("error making read request to postgres server security alert policy: %+v", err)
-	}
+	// the basic does not support threat detection policies
+	if tier == postgresql.GeneralPurpose || tier == postgresql.MemoryOptimized {
+		secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
+			return fmt.Errorf("error making read request to postgres server security alert policy: %+v", err)
+		}
 
-	if !utils.ResponseWasNotFound(secResp.Response) {
-		block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, d.Get("threat_detection_policy.0.storage_account_access_key").(string))
-		if err := d.Set("threat_detection_policy", block); err != nil {
-			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
+		if !utils.ResponseWasNotFound(secResp.Response) {
+			block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, d.Get("threat_detection_policy.0.storage_account_access_key").(string))
+			if err := d.Set("threat_detection_policy", block); err != nil {
+				return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
+			}
 		}
 	}
 

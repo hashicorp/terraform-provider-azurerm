@@ -239,6 +239,8 @@ A `certificate` block supports the following:
 * `url` - (Required) The Secret URL of a Key Vault Certificate.
 
 -> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
+~> **NOTE:** The certificate must have been uploaded/created in PFX format, PEM certificates are not currently supported by Azure.
+
 
 ---
 
