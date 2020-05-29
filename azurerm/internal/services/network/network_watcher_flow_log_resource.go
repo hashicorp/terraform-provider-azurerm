@@ -304,7 +304,7 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	//Get current flow log status
+	// Get current flow log status
 	statusParameters := network.FlowLogStatusParameters{
 		TargetResourceID: &id.NetworkSecurityGroupID,
 	}
@@ -322,7 +322,7 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
 	}
 
-	//There is no delete in Azure API. Disabling flow log is effectively a delete in Terraform.
+	// There is no delete in Azure API. Disabling flow log is effectively a delete in Terraform.
 	if props := fli.FlowLogProperties; props != nil {
 		if props.Enabled != nil && *props.Enabled {
 			props.Enabled = utils.Bool(false)
