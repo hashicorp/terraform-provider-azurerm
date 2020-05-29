@@ -8,16 +8,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-var kubernetesScalingTests = map[string]func(t *testing.T) {
-		"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
-		"manualScaleIgnoreChanges":         testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges,
-		"removeAgent":                      testAccAzureRMKubernetesCluster_removeAgent,
-		"autoScalingEnabledError":          testAccAzureRMKubernetesCluster_autoScalingError,
-		"autoScalingEnabledErrorMax":       testAccAzureRMKubernetesCluster_autoScalingErrorMax,
-		"autoScalingEnabledErrorMin":       testAccAzureRMKubernetesCluster_autoScalingErrorMin,
-		"autoScalingNodeCountUnset":        testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset,
-		"autoScalingNoAvailabilityZones":   testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones,
-		"autoScalingWithAvailabilityZones": testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones,
+var kubernetesScalingTests = map[string]func(t *testing.T){
+	"addAgent":                         testAccAzureRMKubernetesCluster_addAgent,
+	"manualScaleIgnoreChanges":         testAccAzureRMKubernetesCluster_manualScaleIgnoreChanges,
+	"removeAgent":                      testAccAzureRMKubernetesCluster_removeAgent,
+	"autoScalingEnabledError":          testAccAzureRMKubernetesCluster_autoScalingError,
+	"autoScalingEnabledErrorMax":       testAccAzureRMKubernetesCluster_autoScalingErrorMax,
+	"autoScalingEnabledErrorMin":       testAccAzureRMKubernetesCluster_autoScalingErrorMin,
+	"autoScalingNodeCountUnset":        testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset,
+	"autoScalingNoAvailabilityZones":   testAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones,
+	"autoScalingWithAvailabilityZones": testAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones,
 }
 
 func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
@@ -480,7 +480,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   auto_scaler_profile {
-    # balance_similar_node_groups      = "true"
+    balance_similar_node_groups      = true
     max_graceful_termination_sec     = 15
     scan_interval                    = "10s"
     scale_down_delay_after_add       = "10m"

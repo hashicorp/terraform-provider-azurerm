@@ -3,6 +3,7 @@ package containers
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -90,11 +91,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						// "balance_similar_node_groups": {
-						// 	Type:     schema.TypeBool,
-						//	Optional: true,
-						//	Default:  false,
-						// },
+						"balance_similar_node_groups": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"max_graceful_termination_sec": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -1758,10 +1759,12 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 		return []interface{}{}
 	}
 
-	// balanceSimilarNodeGroups := false
-	// if profile.BalanceSimilarNodeGroups != nil {
-	// 	balanceSimilarNodeGroups = *profile.BalanceSimilarNodeGroups
-	// }
+	balanceSimilarNodeGroups := false
+	if profile.BalanceSimilarNodeGroups != nil {
+		// @tombuildsstuff: presumably this'll get converted to a Boolean at some point
+		//					at any rate we should use the proper type users expect here
+		balanceSimilarNodeGroups = strings.EqualFold(*profile.BalanceSimilarNodeGroups, "true")
+	}
 
 	maxGracefulTerminationSec := ""
 	if profile.MaxGracefulTerminationSec != nil {
@@ -1805,7 +1808,7 @@ func flattenKubernetesClusterAutoScalerProfile(profile *containerservice.Managed
 
 	return []interface{}{
 		map[string]interface{}{
-			// "balance_similar_node_groups":     balanceSimilarNodeGroups,
+			"balance_similar_node_groups":      balanceSimilarNodeGroups,
 			"max_graceful_termination_sec":     maxGracefulTerminationSec,
 			"scale_down_delay_after_add":       scaleDownDelayAfterAdd,
 			"scale_down_delay_after_delete":    scaleDownDelayAfterDelete,
@@ -1825,8 +1828,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 
 	config := input[0].(map[string]interface{})
 
-	// TODO: re-enable once the sdk's been upgraded
-	// balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
+	balanceSimilarNodeGroups := config["balance_similar_node_groups"].(bool)
 	maxGracefulTerminationSec := config["max_graceful_termination_sec"].(string)
 	scaleDownDelayAfterAdd := config["scale_down_delay_after_add"].(string)
 	scaleDownDelayAfterDelete := config["scale_down_delay_after_delete"].(string)
@@ -1837,7 +1839,7 @@ func expandKubernetesClusterAutoScalerProfile(input []interface{}) *containerser
 	scanInterval := config["scan_interval"].(string)
 
 	return &containerservice.ManagedClusterPropertiesAutoScalerProfile{
-		// BalanceSimilarNodeGroups:      utils.Bool(balanceSimilarNodeGroups),
+		BalanceSimilarNodeGroups:      utils.String(strconv.FormatBool(balanceSimilarNodeGroups)),
 		MaxGracefulTerminationSec:     utils.String(maxGracefulTerminationSec),
 		ScaleDownDelayAfterAdd:        utils.String(scaleDownDelayAfterAdd),
 		ScaleDownDelayAfterDelete:     utils.String(scaleDownDelayAfterDelete),
