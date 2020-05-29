@@ -448,7 +448,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)
-		if osType == "Linux" {
+		if osType == "linux" {
 			kind = "functionapp,linux"
 		}
 	}
