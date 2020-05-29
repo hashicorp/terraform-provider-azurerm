@@ -130,7 +130,6 @@ A `agent_pool_profile` block exports the following:
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
-
 ---
 
 A `azure_active_directory` block exports the following:
@@ -140,28 +139,6 @@ A `azure_active_directory` block exports the following:
 * `server_app_id` - The Server ID of an Azure Active Directory Application.
 
 * `tenant_id` - The Tenant ID used for Azure Active Directory Application.
-
----
-
-A `auto_scaler_profile` block exports the following:
-
-* `scan_interval` - (Defaults to `10s`) How often the AKS cluster is reevaluated for scale up or down.
-
-* `scale_down_delay_after_add` - (Defaults to `10m`) How long after the scale up of AKS nodes the scale down evaluation resumes.
-
-* `scale_down_delay_after_delete` - (Defaults to `scan_interval`) How long after node deletion that scale down evaluation resumes.
-
-* `scale_down_delay_after_failure` - (Defaults to `3m`) How long after scale down failure that scale down evaluation resumes.
-
-* `scale_down_unneeded` - (Defaults to `10m`) How long a node should be unneeded before it is eligible for scale down.
-
-* `scale_down_unready` - (Defaults to `20m`) How long an unready node should be unneeded before it is eligible for scale down.
-
-* `scale_down_utilization_treshold` - (Defaults to `0.5`) Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down
-
-* `max_graceful_termination_sec` - (Defaults to `600`) Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node.
-
-<!-- * `balance_similar_node_groups` - (Defaults to `false`) Detect similar node groups and balance the number of nodes between them  -->
 
 ---
 

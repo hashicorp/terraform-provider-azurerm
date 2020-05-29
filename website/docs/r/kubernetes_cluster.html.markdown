@@ -70,13 +70,15 @@ The following arguments are supported:
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
-In addition, one of either `identity` or `service_principal` must be specified.
+In addition, one of either `identity` or `service_principal` blocks must be specified.
 
 ---
 
 * `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
 * `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
+
+* `auto_scaler_profile` - (Optional) A `auto_scaler_profile` block as defined below.
 
 * `enable_pod_security_policy` - (Optional) Whether Pod Security Policies are enabled. Note that this also requires role based access control to be enabled.
 
@@ -160,6 +162,29 @@ A `addon_profile` block supports the following:
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
+
+---
+
+A `auto_scaler_profile` block supports the following:
+
+* `balance_similar_node_groups` - Detect similar node groups and balance the number of nodes between them. Defaults to `false`.
+
+* `max_graceful_termination_sec` - Maximum number of seconds the cluster autoscaler waits for pod termination when trying to scale down a node. Defaults to `600`.
+
+* `scale_down_delay_after_add` - How long after the scale up of AKS nodes the scale down evaluation resumes. Defaults to `10m`.
+
+* `scale_down_delay_after_delete` - How long after node deletion that scale down evaluation resumes. Defaults to the value used for `scan_interval`.
+
+* `scale_down_delay_after_failure` - How long after scale down failure that scale down evaluation resumes. Defaults to `3m`.
+
+* `scan_interval` - How often the AKS Cluster should be re-evaluated for scale up/down. Defaults to `10s`.
+
+* `scale_down_unneeded` - How long a node should be unneeded before it is eligible for scale down. Defaults to `10m`.
+
+* `scale_down_unready` - How long an unready node should be unneeded before it is eligible for scale down. Defaults to `20m`.
+
+* `scale_down_utilization_threshold` - Node utilization level, defined as sum of requested resources divided by capacity, below which a node can be considered for scale down. Defaults to `0.5`.
+
 ---
 
 A `azure_active_directory` block supports the following:
@@ -171,7 +196,6 @@ A `azure_active_directory` block supports the following:
 * `server_app_secret` - (Required) The Server Secret of an Azure Active Directory Application.
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used.
-
 
 ---
 

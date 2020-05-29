@@ -138,7 +138,7 @@ func testAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_failure", "3m"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_unneeded", "10m"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_unready", "20m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_utilization_treshold", "0.5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_utilization_threshold", "0.5"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scan_interval", "10s"),
 				),
 			},
@@ -230,7 +230,7 @@ func testAccAzureRMKubernetesCluster_autoScalingProfile(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_delay_after_failure", "15m"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_unneeded", "15m"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_unready", "15m"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_utilization_treshold", "0.5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scale_down_utilization_threshold", "0.5"),
 					resource.TestCheckResourceAttr(data.ResourceName, "auto_scaler_profile.0.scan_interval", "10s"),
 				),
 			},
@@ -480,15 +480,15 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   auto_scaler_profile {
-    scan_interval                   = "10s"
-    scale_down_delay_after_add      = "10m"
-    scale_down_delay_after_delete   = "10s"
-    scale_down_delay_after_failure  = "15m"
-    scale_down_unneeded             = "15m"
-    scale_down_unready              = "15m"
-    scale_down_utilization_treshold = "0.5"
-    max_graceful_termination_sec    = 15
-    // balance_similar_node_groups     = "true"
+    # balance_similar_node_groups      = "true"
+    max_graceful_termination_sec     = 15
+    scan_interval                    = "10s"
+    scale_down_delay_after_add       = "10m"
+    scale_down_delay_after_delete    = "10s"
+    scale_down_delay_after_failure   = "15m"
+    scale_down_unneeded              = "15m"
+    scale_down_unready               = "15m"
+    scale_down_utilization_threshold = "0.5"
   }
 
   identity {
