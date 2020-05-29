@@ -23,10 +23,6 @@ Manages a Linux Virtual Machine Scale Set.
 This example provisions a basic Linux Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine_scale_set` resource can be found [in the ./examples/vm-scale-set/linux` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/vm-scale-set/linux).
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -94,8 +90,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Linux Virtual Machine Scale Set should be exist. Changing this forces a new resource to be created.
 
-* `admin_username` - (Required) The username of the local administrator on each Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
-
 * `instances` - (Required) The number of Virtual Machines in the Scale Set.
 
 -> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
@@ -114,11 +108,19 @@ The following arguments are supported:
 
 -> **NOTE:** When an `admin_password` is specified `disable_password_authentication` must be set to `false`.
 
-~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
+~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified when `admin_username` is specified.
+
+~> **NOTE:** `admin_password` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
 
 * `admin_ssh_key` - (Optional) One or more `admin_ssh_key` blocks as defined below.
 
-~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
+~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified when `admin_username` is specified.
+
+~> **NOTE:** `admin_ssh_key` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
+
+* `admin_username` - (Optional) The username of the local administrator on each Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
+
+~> **NOTE:** `admin_username` is required when `source_image_reference` is assigned, or when the assigned `source_image_id` is a generalized shared image version.
 
 * `automatic_os_upgrade_policy` - (Optional) A `automatic_os_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic`.
 
@@ -132,7 +134,9 @@ The following arguments are supported:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine Scale Set.
 
--> **NOTE:** When Custom Data has been configured, it's not possible to remove it without tainting the Virtual Machine Scale Set, due to a limitation of the Azure API.
+-> **NOTE:** When `custom_data` has been configured, it's not possible to remove it without tainting the Virtual Machine Scale Set, due to a limitation of the Azure API.
+
+~> **NOTE:** `custom_data` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
 
@@ -171,6 +175,8 @@ The following arguments are supported:
 * `scale_in_policy` - (Optional) The scale-in policy rule that decides which virtual machines are chosen for removal when a Virtual Machine Scale Set is scaled in. Possible values for the scale-in policy rules are `Default`, `NewestVM` and `OldestVM`, defaults to `Default`. For more information about scale in policy, please [refer to this doc](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-scale-in-policy).
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
+
+~> **NOTE:** `secret` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
 
 * `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Defaults to `true`.
 

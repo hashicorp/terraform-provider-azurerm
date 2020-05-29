@@ -23,10 +23,6 @@ Manages a Windows Virtual Machine Scale Set.
 This example provisions a basic Windows Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_windows_virtual_machine_scale_set` resource can be found [in the ./examples/vm-scale-set/windows` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/vm-scale-set/windows).
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -90,10 +86,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Windows Virtual Machine Scale Set should be exist. Changing this forces a new resource to be created.
 
-* `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
-
-* `admin_username` - (Required) The username of the local administrator on each Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
-
 * `instances` - (Required) The number of Virtual Machines in the Scale Set.
 
 -> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
@@ -110,6 +102,16 @@ The following arguments are supported:
 
 * `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below.
 
+~> **NOTE:** `additional_unattend_content` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
+
+* `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
+
+~> **NOTE:** `admin_password` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
+
+* `admin_username` - (Optional) The username of the local administrator on each Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
+
+~> **NOTE:** `admin_username` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
+
 * `automatic_os_upgrade_policy` - (Optional) A `automatic_os_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic`.
 
 * `automatic_instance_repair` - (Optional) A `automatic_instance_repair` block as defined below. To enable the automatic instance repair, this Virtual Machine Scale Set must have a valid `health_probe_id` or an [Application Health Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
@@ -122,7 +124,9 @@ The following arguments are supported:
 
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine Scale Set.
 
--> **NOTE:** When Custom Data has been configured, it's not possible to remove it without tainting the Virtual Machine Scale Set, due to a limitation of the Azure API.
+-> **NOTE:** When `custom_data` has been configured, it's not possible to remove it without tainting the Virtual Machine Scale Set, due to a limitation of the Azure API.
+
+~> **NOTE:** `custom_data` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
 
@@ -175,6 +179,8 @@ The following arguments are supported:
 * `terminate_notification` - (Optional) A `terminate_notification` block as defined below.
 
 * `timezone` - (Optional) Specifies the time zone of the virtual machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
+
+~> **NOTE:** `timezone` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
 
 * `upgrade_mode` - (Optional) Specifies how Upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances. Possible values are `Automatic`, `Manual` and `Rolling`. Defaults to `Manual`.
 

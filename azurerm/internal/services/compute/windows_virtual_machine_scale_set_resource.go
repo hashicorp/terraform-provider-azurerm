@@ -57,22 +57,6 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			// Required
-			"admin_username": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"admin_password": {
-				Type:             schema.TypeString,
-				Required:         true,
-				ForceNew:         true,
-				Sensitive:        true,
-				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				ValidateFunc:     validation.StringIsNotEmpty,
-			},
-
 			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
 
 			"os_disk": VirtualMachineScaleSetOSDiskSchema(),
@@ -93,6 +77,22 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			"additional_capabilities": VirtualMachineScaleSetAdditionalCapabilitiesSchema(),
 
 			"additional_unattend_content": additionalUnattendContentSchema(),
+
+			"admin_username": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"admin_password": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				Sensitive:        true,
+				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
+				ValidateFunc:     validation.StringIsNotEmpty,
+			},
 
 			"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
 
@@ -366,17 +366,6 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	zonesRaw := d.Get("zones").([]interface{})
 	zones := azure.ExpandZones(zonesRaw)
 
-	var computerNamePrefix string
-	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
-		computerNamePrefix = v.(string)
-	} else {
-		_, errs := ValidateWindowsComputerNamePrefix(d.Get("name"), "computer_name_prefix")
-		if len(errs) > 0 {
-			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
-		}
-		computerNamePrefix = name
-	}
-
 	networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
 		NetworkInterfaceConfigurations: networkInterfaces,
 	}
@@ -394,17 +383,7 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	}
 
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
-		Priority: priority,
-		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
-			AdminPassword:      utils.String(d.Get("admin_password").(string)),
-			AdminUsername:      utils.String(d.Get("admin_username").(string)),
-			ComputerNamePrefix: utils.String(computerNamePrefix),
-			WindowsConfiguration: &compute.WindowsConfiguration{
-				ProvisionVMAgent: utils.Bool(d.Get("provision_vm_agent").(bool)),
-				WinRM:            winRmListeners,
-			},
-			Secrets: secrets,
-		},
+		Priority:           priority,
 		DiagnosticsProfile: bootDiagnostics,
 		NetworkProfile:     networkProfile,
 		StorageProfile: &compute.VirtualMachineScaleSetStorageProfile{
@@ -414,11 +393,78 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		},
 	}
 
-	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
-	if upgradeMode != compute.Automatic {
-		virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(enableAutomaticUpdates)
-	} else if !enableAutomaticUpdates {
-		return fmt.Errorf("`enable_automatic_updates` must be set to `true` when `upgrade_mode` is set to `Automatic`")
+	// specialized image does not allow OSProfile assinged, check if the image id is specialized
+	validateResult, err := validateImageOsState(ctx, meta.(*clients.Client).Compute, sourceImageReference)
+	if err != nil {
+		return fmt.Errorf("Error creating Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if !validateResult.isSharedImage || validateResult.osState == compute.Generalized {
+		var computerNamePrefix string
+		if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
+			computerNamePrefix = v.(string)
+		} else {
+			_, errs := ValidateWindowsComputerNamePrefix(d.Get("name"), "computer_name_prefix")
+			if len(errs) > 0 {
+				return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
+			}
+			computerNamePrefix = name
+		}
+
+		// admin_username and admin_password should be required in this case
+		adminPassword := d.Get("admin_password").(string)
+		if adminPassword == "" {
+			return fmt.Errorf("`admin_password` is required when using platform image, image or generalized shared image")
+		}
+		adminUserName := d.Get("admin_username").(string)
+		if adminUserName == "" {
+			return fmt.Errorf("`admin_username` is required when using platform image, image or generalized shared image")
+		}
+		virtualMachineProfile.OsProfile = &compute.VirtualMachineScaleSetOSProfile{
+			AdminPassword:      utils.String(adminUserName),
+			AdminUsername:      utils.String(adminPassword),
+			ComputerNamePrefix: utils.String(computerNamePrefix),
+			WindowsConfiguration: &compute.WindowsConfiguration{
+				ProvisionVMAgent: utils.Bool(d.Get("provision_vm_agent").(bool)),
+				WinRM:            winRmListeners,
+			},
+			Secrets: secrets,
+		}
+
+		if v, ok := d.GetOk("custom_data"); ok {
+			virtualMachineProfile.OsProfile.CustomData = utils.String(v.(string))
+		}
+
+		enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
+		if upgradeMode != compute.Automatic {
+			virtualMachineProfile.OsProfile.WindowsConfiguration.EnableAutomaticUpdates = utils.Bool(enableAutomaticUpdates)
+		} else if !enableAutomaticUpdates {
+			return fmt.Errorf("`enable_automatic_updates` must be set to `true` when `upgrade_mode` is set to `Automatic`")
+		}
+
+		if len(additionalUnattendContentRaw) > 0 {
+			virtualMachineProfile.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
+		}
+
+		if v, ok := d.GetOk("timezone"); ok {
+			virtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
+		}
+	} else {
+		// throw errors when the image is specialized but the attributes in OSProfile were set
+		if _, ok := d.GetOk("admin_username"); ok {
+			return fmt.Errorf("`admin_username` must not be set when using a specialized shared image")
+		}
+		if _, ok := d.GetOk("admin_password"); ok {
+			return fmt.Errorf("`admin_password` must not be set when using a specialized shared image")
+		}
+		if _, ok := d.GetOk("custom_data"); ok {
+			return fmt.Errorf("`custom_data` must not be set when using a specialized shared image")
+		}
+		if len(additionalUnattendContentRaw) > 0 {
+			return fmt.Errorf("`additional_unattend_content` must not be set when using a specialized shared image")
+		}
+		if _, ok := d.GetOk("timezone"); ok {
+			return fmt.Errorf("`timezone` must not be set when using a specialized shared image")
+		}
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
@@ -431,10 +477,6 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		}
 	}
 
-	if v, ok := d.GetOk("custom_data"); ok {
-		virtualMachineProfile.OsProfile.CustomData = utils.String(v.(string))
-	}
-
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if virtualMachineProfile.Priority != compute.Spot {
 			return fmt.Errorf("An `eviction_policy` can only be specified when `priority` is set to `Spot`")
@@ -444,16 +486,8 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		return fmt.Errorf("An `eviction_policy` must be specified when `priority` is set to `Spot`")
 	}
 
-	if len(additionalUnattendContentRaw) > 0 {
-		virtualMachineProfile.OsProfile.WindowsConfiguration.AdditionalUnattendContent = additionalUnattendContent
-	}
-
 	if v, ok := d.GetOk("license_type"); ok {
 		virtualMachineProfile.LicenseType = utils.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("timezone"); ok {
-		virtualMachineProfile.OsProfile.WindowsConfiguration.TimeZone = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("terminate_notification"); ok {

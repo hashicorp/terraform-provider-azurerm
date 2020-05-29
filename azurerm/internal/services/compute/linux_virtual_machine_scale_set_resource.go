@@ -57,13 +57,6 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			// Required
-			"admin_username": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"network_interface": VirtualMachineScaleSetNetworkInterfaceSchema(),
 
 			"os_disk": VirtualMachineScaleSetOSDiskSchema(),
@@ -92,6 +85,13 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"admin_ssh_key": SSHKeysSchema(false),
+
+			"admin_username": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 
 			"automatic_os_upgrade_policy": VirtualMachineScaleSetAutomatedOSUpgradePolicySchema(),
 
@@ -347,17 +347,6 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	zonesRaw := d.Get("zones").([]interface{})
 	zones := azure.ExpandZones(zonesRaw)
 
-	var computerNamePrefix string
-	if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
-		computerNamePrefix = v.(string)
-	} else {
-		_, errs := ValidateLinuxComputerNamePrefix(d.Get("name"), "computer_name_prefix")
-		if len(errs) > 0 {
-			return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
-		}
-		computerNamePrefix = name
-	}
-
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
 	networkProfile := &compute.VirtualMachineScaleSetNetworkProfile{
 		NetworkInterfaceConfigurations: networkInterfaces,
@@ -376,8 +365,38 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	}
 
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
-		Priority: priority,
-		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
+		Priority:           priority,
+		DiagnosticsProfile: bootDiagnostics,
+		NetworkProfile:     networkProfile,
+		StorageProfile: &compute.VirtualMachineScaleSetStorageProfile{
+			ImageReference: sourceImageReference,
+			OsDisk:         osDisk,
+			DataDisks:      dataDisks,
+		},
+	}
+
+	// specialized image does not allow OSProfile assigned, check if the image id is specialized
+	validateResult, err := validateImageOsState(ctx, meta.(*clients.Client).Compute, sourceImageReference)
+	if err != nil {
+		return fmt.Errorf("Error creating Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if !validateResult.isSharedImage || validateResult.osState == compute.Generalized {
+		var computerNamePrefix string
+		if v, ok := d.GetOk("computer_name_prefix"); ok && len(v.(string)) > 0 {
+			computerNamePrefix = v.(string)
+		} else {
+			_, errs := ValidateLinuxComputerNamePrefix(d.Get("name"), "computer_name_prefix")
+			if len(errs) > 0 {
+				return fmt.Errorf("unable to assume default computer name prefix %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name_prefix")
+			}
+			computerNamePrefix = name
+		}
+
+		if _, ok := d.GetOk("admin_username"); !ok {
+			return fmt.Errorf("`admin_username` is required when using platform image, image or generalized shared image")
+		}
+
+		virtualMachineProfile.OsProfile = &compute.VirtualMachineScaleSetOSProfile{
 			AdminUsername:      utils.String(d.Get("admin_username").(string)),
 			ComputerNamePrefix: utils.String(computerNamePrefix),
 			LinuxConfiguration: &compute.LinuxConfiguration{
@@ -388,18 +407,31 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 				},
 			},
 			Secrets: secrets,
-		},
-		DiagnosticsProfile: bootDiagnostics,
-		NetworkProfile:     networkProfile,
-		StorageProfile: &compute.VirtualMachineScaleSetStorageProfile{
-			ImageReference: sourceImageReference,
-			OsDisk:         osDisk,
-			DataDisks:      dataDisks,
-		},
-	}
+		}
+		if adminPassword, ok := d.GetOk("admin_password"); ok {
+			virtualMachineProfile.OsProfile.AdminPassword = utils.String(adminPassword.(string))
+		}
 
-	if adminPassword, ok := d.GetOk("admin_password"); ok {
-		virtualMachineProfile.OsProfile.AdminPassword = utils.String(adminPassword.(string))
+		if v, ok := d.GetOk("custom_data"); ok {
+			virtualMachineProfile.OsProfile.CustomData = utils.String(v.(string))
+		}
+	} else {
+		// throw errors when the image is specialized but username, custom_data, password still assigned
+		if _, ok := d.GetOk("admin_username"); ok {
+			return fmt.Errorf("`admin_username` must not be set when using a specialized shared image")
+		}
+		if _, ok := d.GetOk("admin_password"); ok {
+			return fmt.Errorf("`admin_password` must not be set when using a specialized shared image")
+		}
+		if _, ok := d.GetOk("custom_data"); ok {
+			return fmt.Errorf("`custom_data` must not be set when using a specialized shared image")
+		}
+		if len(sshKeys) > 0 {
+			return fmt.Errorf("`admin_ssh_key` must not be set when using a specialized shared image")
+		}
+		if secrets != nil && len(*secrets) > 0 {
+			return fmt.Errorf("`secret` must not be set when using a specialized shared image")
+		}
 	}
 
 	if v, ok := d.Get("max_bid_price").(float64); ok && v > 0 {
@@ -412,12 +444,8 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 		}
 	}
 
-	if v, ok := d.GetOk("custom_data"); ok {
-		virtualMachineProfile.OsProfile.CustomData = utils.String(v.(string))
-	}
-
 	// Azure API: "Authentication using either SSH or by user name and password must be enabled in Linux profile."
-	if disablePasswordAuthentication && virtualMachineProfile.OsProfile.AdminPassword == nil && len(sshKeys) == 0 {
+	if virtualMachineProfile.OsProfile != nil && disablePasswordAuthentication && virtualMachineProfile.OsProfile.AdminPassword == nil && len(sshKeys) == 0 {
 		return fmt.Errorf("At least one SSH key must be specified if `disable_password_authentication` is enabled")
 	}
 

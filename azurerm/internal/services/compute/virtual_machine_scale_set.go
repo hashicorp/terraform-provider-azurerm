@@ -1,13 +1,17 @@
 package compute
 
 import (
+	"context"
 	"fmt"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -31,6 +35,56 @@ func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *schema.Schema {
 			},
 		},
 	}
+}
+
+type imageReferenceValidateResult struct {
+	isSharedImage bool
+	osState       compute.OperatingSystemStateTypes
+}
+
+func validateImageOsState(ctx context.Context, client *client.Client, imageReference *compute.ImageReference) (imageReferenceValidateResult, error) {
+	if imageReference == nil || imageReference.ID == nil {
+		return imageReferenceValidateResult{}, nil
+	}
+	imageID := *imageReference.ID
+	log.Printf("[DEBUG] validating source image ID %q", imageID)
+	// image cannot be specialized
+	if _, err := parse.ImageID(imageID); err == nil {
+		return imageReferenceValidateResult{}, nil
+	}
+	// shared image can be specialized
+	if id, err := parse.SharedImageID(imageID); err == nil {
+		image, err := client.GalleryImagesClient.Get(ctx, id.ResourceGroup, id.Gallery, id.Name)
+		if err != nil {
+			return imageReferenceValidateResult{}, fmt.Errorf("validating source image ID %q: %+v", imageID, err)
+		}
+		if image.GalleryImageProperties == nil {
+			return imageReferenceValidateResult{}, fmt.Errorf("cannot validate source image ID %q: `properties` is nil", imageID)
+		}
+		return imageReferenceValidateResult{
+			isSharedImage: true,
+			osState:       image.GalleryImageProperties.OsState,
+		}, nil
+	}
+	// shared image version can also be specialized
+	if id, err := parse.SharedImageVersionID(imageID); err == nil {
+		_, err := client.GalleryImageVersionsClient.Get(ctx, id.ResourceGroup, id.Gallery, id.Name, id.Version, compute.ReplicationStatusTypesReplicationStatus)
+		if err != nil {
+			return imageReferenceValidateResult{}, fmt.Errorf("validating source image ID %q: %+v", imageID, err)
+		}
+		image, err := client.GalleryImagesClient.Get(ctx, id.ResourceGroup, id.Gallery, id.Name)
+		if err != nil {
+			return imageReferenceValidateResult{}, fmt.Errorf("validating source image ID %q: %+v", imageID, err)
+		}
+		if image.GalleryImageProperties == nil {
+			return imageReferenceValidateResult{}, fmt.Errorf("cannot validate source image ID %q: `properties` is nil", imageID)
+		}
+		return imageReferenceValidateResult{
+			isSharedImage: true,
+			osState:       image.GalleryImageProperties.OsState,
+		}, nil
+	}
+	return imageReferenceValidateResult{}, fmt.Errorf("cannot parse the `source_image_id` (%q) as a Resource ID", imageID)
 }
 
 func ExpandVirtualMachineScaleSetAdditionalCapabilities(input []interface{}) *compute.AdditionalCapabilities {
