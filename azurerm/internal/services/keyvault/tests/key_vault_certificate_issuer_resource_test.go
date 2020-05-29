@@ -249,19 +249,3 @@ resource "azurerm_key_vault_certificate_issuer" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
-
-func testAccAzureRMKeyVaultCertificateIssuer_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultCertificateIssuer_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_key_vault_certificate_issuer" "import" {
-  name          = "acctestKVCI-%[2]d"
-  key_vault_id  = azurerm_key_vault.test.id
-  account_id    = "test-account"
-  password      = "test-password"
-  org_id        = "test-org"
-  provider_name = "DigiCert"
-}
-`, template, data.RandomInteger)
-}
