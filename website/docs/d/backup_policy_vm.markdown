@@ -36,6 +36,10 @@ The following attributes are exported:
 
 * `id` - The ID of the Backup VM Protection Policy.
 
+* `tags` - A mapping of tags assigned to the resource.
+
+~> **Note:** `tags` has been deprecated and will be removed since the Service API doesn't support it. See more details from https://github.com/Azure/azure-rest-api-specs/issues/9251.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:

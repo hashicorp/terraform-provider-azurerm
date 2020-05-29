@@ -34,6 +34,15 @@ func dataSourceArmBackupPolicyVm() *schema.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"tags": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Deprecated: "The Service API doesn't support `tags`. See more details from https://github.com/Azure/azure-rest-api-specs/issues/9251.",
+			},
 		},
 	}
 }
