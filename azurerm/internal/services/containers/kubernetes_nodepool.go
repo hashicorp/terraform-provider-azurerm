@@ -156,6 +156,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			ScaleSetPriority:       defaultCluster.ScaleSetPriority,
 			ScaleSetEvictionPolicy: defaultCluster.ScaleSetEvictionPolicy,
 			SpotMaxPrice:           defaultCluster.SpotMaxPrice,
+			Mode:                   defaultCluster.Mode,
 			NodeLabels:             defaultCluster.NodeLabels,
 			NodeTaints:             defaultCluster.NodeTaints,
 			Tags:                   defaultCluster.Tags,
@@ -188,6 +189,11 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
 		// Windows agents can be configured via the separate node pool resource
 		OsType: containerservice.Linux,
+
+		// without this set the API returns:
+		// Code="MustDefineAtLeastOneSystemPool" Message="Must define at least one system pool."
+		// since this is the "default" node pool we can assume this is a system node pool
+		Mode: containerservice.System,
 
 		// // TODO: support these in time
 		// ScaleSetEvictionPolicy: "",

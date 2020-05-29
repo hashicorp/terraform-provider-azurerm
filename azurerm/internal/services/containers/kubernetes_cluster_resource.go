@@ -482,6 +482,21 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"sku_tier": {
+				Type:     schema.TypeString,
+				Optional: true,
+				// @tombuildsstuff (2020-05-29) - Preview limitations:
+				//  * Currently, cannot convert as existing cluster to enable the Uptime SLA.
+				//  * Currently, there is no way to remove Uptime SLA from an AKS cluster after creation with it enabled.
+				//  * Private clusters aren't currently supported.
+				ForceNew: true,
+				Default:  string(containerservice.Free),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.Free),
+					string(containerservice.Paid),
+				}, false),
+			},
+
 			"tags": tags.Schema(),
 
 			"windows_profile": {
@@ -690,6 +705,10 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
+		Sku: &containerservice.ManagedClusterSKU{
+			Name: containerservice.ManagedClusterSKUNameBasic, // the only possible value at this point
+			Tier: containerservice.ManagedClusterSKUTier(d.Get("sku_tier").(string)),
+		},
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
 			APIServerAccessProfile:  &apiAccessProfile,
 			AadProfile:              azureADProfile,
@@ -1038,6 +1057,12 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
+	skuTier := string(containerservice.Free)
+	if resp.Sku != nil && resp.Sku.Tier != "" {
+		skuTier = string(resp.Sku.Tier)
+	}
+	d.Set("sku_tier", skuTier)
 
 	if props := resp.ManagedClusterProperties; props != nil {
 		d.Set("dns_prefix", props.DNSPrefix)

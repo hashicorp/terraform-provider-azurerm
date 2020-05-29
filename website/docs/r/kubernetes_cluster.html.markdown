@@ -108,6 +108,10 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **NOTE:** One of either `identity` or `service_principal` must be specified.
 
+* `sku_tier` - (Optional) The SKU Tier that should be used for this Kubernetes Cluster. Changing this forces a new resource to be created. Possible values are `Free` and `Paid` (which includes the Uptime SLA). Defaults to `Free`.
+
+~> **Note:** This functionality is in Preview and has [several limitations](https://docs.microsoft.com/en-us/azure/aks/uptime-sla).
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
