@@ -14,7 +14,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,9 +27,11 @@ func resourceArmSharedImage() *schema.Resource {
 		Read:   resourceArmSharedImageRead,
 		Update: resourceArmSharedImageCreateUpdate,
 		Delete: resourceArmSharedImageDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.SharedImageID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -61,6 +65,16 @@ func resourceArmSharedImage() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Linux),
 					string(compute.Windows),
+				}, false),
+			},
+
+			"os_state": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(compute.Generalized),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(compute.Generalized),
+					string(compute.Specialized),
 				}, false),
 			},
 
@@ -167,7 +181,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 			PrivacyStatementURI: utils.String(privacyStatementUri),
 			ReleaseNoteURI:      utils.String(releaseNoteURI),
 			OsType:              compute.OperatingSystemTypes(osType),
-			OsState:             compute.Generalized,
+			OsState:             compute.OperatingSystemStateTypes(d.Get("os_state").(string)),
 			HyperVGeneration:    compute.HyperVGeneration(hyperVGeneration),
 		},
 		Tags: tags.Expand(t),
@@ -232,6 +246,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
+		d.Set("os_state", string(props.OsState))
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)

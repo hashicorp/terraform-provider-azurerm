@@ -74,6 +74,8 @@ The following arguments are supported:
 
 * `release_note_uri` - (Optional) The URI containing the Release Notes associated with this Shared Image.
 
+* `os_state` - (Optional) The state of Operating System present in this Shared Image. Possible values are `Generalized` and `Specialized`. Defaults to `Generalized`.
+
 * `tags` - (Optional) A mapping of tags to assign to the Shared Image.
 
 ---
