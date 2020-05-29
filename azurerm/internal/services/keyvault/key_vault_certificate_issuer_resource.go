@@ -2,6 +2,7 @@ package keyvault
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -16,21 +17,20 @@ import (
 
 func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 	return &schema.Resource{
-		// TODO: support Updating once we have more information about what can be updated
 		Create: resourceArmKeyVaultCertificateIssuerCreate,
 		Update: resourceArmKeyVaultCertificateIssuerUpdate,
 		Read:   resourceArmKeyVaultCertificateIssuerRead,
 		Delete: resourceArmKeyVaultCertificateIssuerDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
-		// Importer: &schema.ResourceImporter{
-		// 	State: resourceArmKeyVaultChildResourceImporter,
-		// },
-
-		// Timeouts: &schema.ResourceTimeout{
-		// 	Create: schema.DefaultTimeout(60 * time.Minute),
-		// 	Read:   schema.DefaultTimeout(5 * time.Minute),
-		// 	Delete: schema.DefaultTimeout(30 * time.Minute),
-		// },
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"key_vault_id": {
@@ -191,7 +191,6 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error looking up Certificate Issuer %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	// we always want to get the latest version
 	resp, err := client.GetCertificateIssuer(ctx, keyVaultBaseUri, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -212,10 +211,6 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 
 	return nil
 }
-
-// func expandKeyVaultCertificateIssuerAdmins(d *schema.ResourceData) *[]keyvault.AdministratorDetails {
-//
-// }
 
 func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetails) []interface{} {
 	results := make([]interface{}, 0)
