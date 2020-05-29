@@ -55,9 +55,10 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			},
 
 			"node_count": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+				// TODO: this can go to 0 after the next version of the Azure SDK
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
@@ -103,6 +104,17 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(containerservice.User),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.System),
+					string(containerservice.User),
+				}, false),
+			},
+
 			"min_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -123,6 +135,13 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"orchestrator_version": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"os_disk_size_gb": {
@@ -149,13 +168,6 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"orchestrator_version": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 	}
@@ -218,6 +230,7 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	count := d.Get("node_count").(int)
 	enableAutoScaling := d.Get("enable_auto_scaling").(bool)
+	mode := containerservice.AgentPoolMode(d.Get("mode").(string))
 	osType := d.Get("os_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
@@ -226,6 +239,7 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 		OsType:             containerservice.OSType(osType),
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(d.Get("enable_node_public_ip").(bool)),
+		Mode:               mode,
 		Tags:               tags.Expand(t),
 		Type:               containerservice.VirtualMachineScaleSets,
 		VMSize:             containerservice.VMSizeTypes(vmSize),
@@ -518,6 +532,12 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 			minCount = int(*props.MinCount)
 		}
 		d.Set("min_count", minCount)
+
+		mode := string(containerservice.User)
+		if props.Mode != "" {
+			mode = string(props.Mode)
+		}
+		d.Set("mode", mode)
 
 		count := 0
 		if props.Count != nil {
