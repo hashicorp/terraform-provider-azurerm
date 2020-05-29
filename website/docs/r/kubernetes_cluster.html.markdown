@@ -62,9 +62,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `default_node_pool` - (Optional) A `default_node_pool` block as defined below.
-
--> **NOTE:** The `default_node_pool` block will become required in 2.0
+* `default_node_pool` - (Required) A `default_node_pool` block as defined below.
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 

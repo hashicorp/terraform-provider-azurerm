@@ -71,6 +71,18 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"default_node_pool": SchemaDefaultNodePool(),
 
+			// Optional
+			"addon_profile": schemaKubernetesAddOnProfiles(),
+
+			"api_server_authorized_ip_ranges": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.CIDR,
+				},
+			},
+
 			"auto_scaler_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -131,23 +143,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			// Optional
-			"addon_profile": schemaKubernetesAddOnProfiles(),
-
-			"api_server_authorized_ip_ranges": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.CIDR,
-				},
-			},
-
-			"private_fqdn": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"enable_pod_security_policy": {
@@ -390,6 +385,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+			},
+
+			"private_fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"private_link_enabled": {
