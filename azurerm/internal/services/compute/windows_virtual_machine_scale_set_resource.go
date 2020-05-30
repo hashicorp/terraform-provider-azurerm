@@ -159,9 +159,10 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"max_bid_price": {
-				Type:     schema.TypeFloat,
-				Optional: true,
-				Default:  -1,
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Default:      -1,
+				ValidateFunc: validate.MaxBidPrice,
 			},
 
 			"overprovision": {

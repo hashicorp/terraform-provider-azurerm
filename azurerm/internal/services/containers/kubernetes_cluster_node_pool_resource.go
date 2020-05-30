@@ -1,6 +1,7 @@
 package containers
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -38,6 +39,8 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			Update: schema.DefaultTimeout(60 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
+
+		CustomizeDiff: customizeDiff,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -113,15 +116,16 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"node_labels": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
 			"node_taints": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
+				ForceNew: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
@@ -150,8 +154,64 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+
+			"priority": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(containerservice.Regular),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.Regular),
+					string(containerservice.Spot),
+				}, false),
+			},
+
+			"eviction_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.Delete),
+					string(containerservice.Deallocate),
+				}, false),
+			},
+
+			"max_bid_price": {
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.MaxBidPrice,
+			},
 		},
 	}
+}
+
+func customizeDiff(d *schema.ResourceDiff, v interface{}) error {
+	priority, _ := d.GetOk("priority")
+	_, hasEvictionPolicy := d.GetOk("eviction_policy")
+	_, hasMaxBidPrice := d.GetOk("max_bid_price")
+
+	errMsg := ""
+
+	if priority.(string) == string(containerservice.Regular) {
+		if hasMaxBidPrice {
+			errMsg = "`priority` must be set to `Spot` if `max_bid_price` is specified"
+		}
+
+		if hasEvictionPolicy {
+			if errMsg != "" {
+				errMsg = fmt.Sprintf("%s, `priority` must be set to `Spot` if `eviction_policy` is specified", errMsg)
+			} else {
+				errMsg = "`priority` must be set to `Spot` if `eviction_policy` is specified"
+			}
+		}
+	}
+
+	if errMsg != "" {
+		return errors.New(errMsg)
+	}
+
+	return nil
 }
 
 func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
@@ -213,6 +273,7 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	osType := d.Get("os_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
+	scaleSetPriority := d.Get("priority").(string)
 
 	profile := containerservice.ManagedClusterAgentPoolProfileProperties{
 		OsType:             containerservice.OSType(osType),
@@ -221,6 +282,7 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 		Tags:               tags.Expand(t),
 		Type:               containerservice.VirtualMachineScaleSets,
 		VMSize:             containerservice.VMSizeTypes(vmSize),
+		ScaleSetPriority:   containerservice.ScaleSetPriority(scaleSetPriority),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int32(int32(count)),
@@ -251,6 +313,14 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	if vnetSubnetID := d.Get("vnet_subnet_id").(string); vnetSubnetID != "" {
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
+	}
+
+	if scaleSetEvictionPolicy := d.Get("eviction_policy").(string); scaleSetEvictionPolicy != "" {
+		profile.ScaleSetEvictionPolicy = containerservice.ScaleSetEvictionPolicy(scaleSetEvictionPolicy)
+	}
+
+	if spotPrice := d.Get("max_bid_price").(float64); spotPrice != 0 {
+		profile.SpotMaxPrice = utils.Float(spotPrice)
 	}
 
 	maxCount := d.Get("max_count").(int)
@@ -370,12 +440,6 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 
 	if d.HasChange("node_count") {
 		props.Count = utils.Int32(int32(d.Get("node_count").(int)))
-	}
-
-	if d.HasChange("node_taints") {
-		nodeTaintsRaw := d.Get("node_taints").([]interface{})
-		nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
-		props.NodeTaints = nodeTaints
 	}
 
 	if d.HasChange("tags") {
@@ -514,6 +578,10 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		d.Set("os_type", string(props.OsType))
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))
+
+		d.Set("priority", string(props.ScaleSetPriority))
+		d.Set("eviction_policy", string(props.ScaleSetEvictionPolicy))
+		d.Set("max_bid_price", props.SpotMaxPrice)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

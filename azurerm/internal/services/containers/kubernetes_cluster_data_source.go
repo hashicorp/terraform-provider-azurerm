@@ -209,6 +209,21 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeBool,
 							Optional: true,
 						},
+
+						"priority": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"eviction_policy": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+
+						"max_bid_price": {
+							Type:     schema.TypeFloat,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -882,6 +897,24 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.Tags != nil {
 			agentPoolProfile["tags"] = tags.Flatten(profile.Tags)
+		}
+
+		if profile.ScaleSetEvictionPolicy != "" {
+			agentPoolProfile["eviction_policy"] = string(profile.ScaleSetEvictionPolicy)
+		} else {
+			agentPoolProfile["eviction_policy"] = string(containerservice.Delete)
+		}
+
+		if profile.ScaleSetPriority != "" {
+			agentPoolProfile["priority"] = string(profile.ScaleSetPriority)
+		} else {
+			agentPoolProfile["priority"] = string(containerservice.Regular)
+		}
+
+		if profile.SpotMaxPrice != nil {
+			agentPoolProfile["max_bid_price"] = *profile.SpotMaxPrice
+		} else {
+			agentPoolProfile["max_bid_price"] = -1.0
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)

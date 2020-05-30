@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -169,7 +170,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Type:         schema.TypeFloat,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validation.FloatAtLeast(-1.0),
+				ValidateFunc: validate.MaxBidPrice,
 			},
 
 			"plan": planSchema(),

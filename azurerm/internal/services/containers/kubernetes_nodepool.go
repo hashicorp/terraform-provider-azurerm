@@ -97,14 +97,15 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Type:     schema.TypeMap,
 					ForceNew: true,
 					Optional: true,
-					Elem: &schema.Schema{
-						Type: schema.TypeString,
-					},
+					Computed: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
 
 				"node_taints": {
 					Type:     schema.TypeList,
+					ForceNew: true,
 					Optional: true,
+					Computed: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
 
@@ -134,24 +135,22 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 	return containerservice.AgentPool{
 		Name: defaultCluster.Name,
 		ManagedClusterAgentPoolProfileProperties: &containerservice.ManagedClusterAgentPoolProfileProperties{
-			Count:                  defaultCluster.Count,
-			VMSize:                 defaultCluster.VMSize,
-			OsDiskSizeGB:           defaultCluster.OsDiskSizeGB,
-			VnetSubnetID:           defaultCluster.VnetSubnetID,
-			MaxPods:                defaultCluster.MaxPods,
-			OsType:                 defaultCluster.OsType,
-			MaxCount:               defaultCluster.MaxCount,
-			MinCount:               defaultCluster.MinCount,
-			EnableAutoScaling:      defaultCluster.EnableAutoScaling,
-			Type:                   defaultCluster.Type,
-			OrchestratorVersion:    defaultCluster.OrchestratorVersion,
-			AvailabilityZones:      defaultCluster.AvailabilityZones,
-			EnableNodePublicIP:     defaultCluster.EnableNodePublicIP,
-			ScaleSetPriority:       defaultCluster.ScaleSetPriority,
-			ScaleSetEvictionPolicy: defaultCluster.ScaleSetEvictionPolicy,
-			NodeLabels:             defaultCluster.NodeLabels,
-			NodeTaints:             defaultCluster.NodeTaints,
-			Tags:                   defaultCluster.Tags,
+			Count:               defaultCluster.Count,
+			VMSize:              defaultCluster.VMSize,
+			OsDiskSizeGB:        defaultCluster.OsDiskSizeGB,
+			VnetSubnetID:        defaultCluster.VnetSubnetID,
+			MaxPods:             defaultCluster.MaxPods,
+			OsType:              defaultCluster.OsType,
+			MaxCount:            defaultCluster.MaxCount,
+			MinCount:            defaultCluster.MinCount,
+			EnableAutoScaling:   defaultCluster.EnableAutoScaling,
+			Type:                defaultCluster.Type,
+			OrchestratorVersion: defaultCluster.OrchestratorVersion,
+			AvailabilityZones:   defaultCluster.AvailabilityZones,
+			EnableNodePublicIP:  defaultCluster.EnableNodePublicIP,
+			NodeLabels:          defaultCluster.NodeLabels,
+			NodeTaints:          defaultCluster.NodeTaints,
+			Tags:                defaultCluster.Tags,
 		},
 	}
 }
@@ -184,8 +183,6 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 		// // TODO: support these in time
 		// OrchestratorVersion:    nil,
-		// ScaleSetEvictionPolicy: "",
-		// ScaleSetPriority:       "",
 	}
 
 	availabilityZonesRaw := raw["availability_zones"].([]interface{})

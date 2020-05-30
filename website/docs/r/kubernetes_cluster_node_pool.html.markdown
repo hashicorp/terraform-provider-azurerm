@@ -84,6 +84,18 @@ The following arguments are supported:
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
+* `priority` - (Optional) The Priority of this Node Pool. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource to be created.
+
+-> **NOTE:** Support for Spot `priority` is currently in Preview on an opt-in basis. To use it, enable feature `spotpoolpreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register spotpoolpreview preview feature](https://docs.microsoft.com/en-us/azure/aks/spot-node-pool#register-spotpoolpreview-preview-feature).
+
+* `eviction_policy` - (Optional) The Policy which should be used for this Node Pool. Possible values are `Delete` and `Deallocate`. Defaults to `Delete`. Changing this forces a new resource to be created.
+
+-> **NOTE:** This can only be configured when `priority` is set to `Spot`.
+
+* `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Node Pool (US Dollars). It must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Node Pool will be evicted using the `eviction_policy`. Defaults to `-1`, which means that each Virtual Machine in the Scale Set should not be evicted for price reasons.
+
+-> **NOTE:** This can only be configured when `priority` is set to `Spot`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
