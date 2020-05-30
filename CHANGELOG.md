@@ -1,4 +1,9 @@
 ## 2.13.0 (Unreleased)
+
+BUG FIXES:
+
+* `azuerm_function_app` - correctly set `Kind` when `os_type` is `linux` [GH-7140]
+
 ## 2.12.0 (May 28, 2020)
 
 FEATURES:
