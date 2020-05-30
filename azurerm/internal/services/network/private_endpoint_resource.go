@@ -432,20 +432,26 @@ func flattenArmPrivateDnsZoneConfigs(input *[]network.PrivateDNSZoneConfig) []in
 	if input == nil {
 		return output
 	}
-
+	log.Printf("\n\n\n\n\n\n\n********************************\n")
 	for _, v := range *input {
 		result := make(map[string]interface{})
 
 		if name := v.Name; name != nil {
 			result["name"] = *name
 		}
-		if zoneId := v.PrivateDNSZoneID; zoneId != nil {
+		if zoneId := v.PrivateDNSZonePropertiesFormat.PrivateDNSZoneID; zoneId != nil {
 			result["private_dns_zone_id"] = *zoneId
+		}
+
+		log.Printf("\nRS LEN  == %d\n", len(*v.PrivateDNSZonePropertiesFormat.RecordSets))
+
+		for _, rs := range *v.PrivateDNSZonePropertiesFormat.RecordSets {
+			log.Printf("\nFQDN  == %s\nIPAddresses == %+v\n\n", *rs.Fqdn, rs.IPAddresses)
 		}
 
 		output = append(output, result)
 	}
-
+	log.Printf("********************************\n\n\n\n\n\n\n\n\n\n\n\n")
 	return output
 }
 
