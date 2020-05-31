@@ -453,6 +453,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 		case insights.WebtestLocationAvailabilityCriteria:
 			criteriaSchema = "webtest_location_availability_criteria"
 		}
+		// lintignore:R001
 		if err := d.Set(criteriaSchema, flattenMonitorMetricAlertCriteria(alert.Criteria)); err != nil {
 			return fmt.Errorf("Error setting `%s`: %+v", criteriaSchema, err)
 		}
@@ -502,11 +503,11 @@ func expandMonitorMetricAlertCriteria(d *schema.ResourceData) insights.BasicMetr
 }
 
 func expandMonitorMetricAlertMetricCriteria(input []interface{}) insights.BasicMetricAlertCriteria {
-	criterias := make([]insights.BasicMultiMetricCriteria, 0)
+	criteria := make([]insights.BasicMultiMetricCriteria, 0)
 	for i, item := range input {
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricAlertMultiMetricCriteriaDimension(v["dimension"].([]interface{}))
-		criterias = append(criterias, insights.MetricCriteria{
+		criteria = append(criteria, insights.MetricCriteria{
 			Name:            utils.String(fmt.Sprintf("Metric%d", i+1)),
 			MetricNamespace: utils.String(v["metric_namespace"].(string)),
 			MetricName:      utils.String(v["metric_name"].(string)),
@@ -517,12 +518,12 @@ func expandMonitorMetricAlertMetricCriteria(input []interface{}) insights.BasicM
 		})
 	}
 	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
-		AllOf:     &criterias,
+		AllOf:     &criteria,
 		OdataType: insights.OdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
 	}
 }
 func expandMonitorMetricAlertDynamicMetricCriteria(input []interface{}) insights.BasicMetricAlertCriteria {
-	criterias := make([]insights.BasicMultiMetricCriteria, 0)
+	criteria := make([]insights.BasicMultiMetricCriteria, 0)
 	for i, item := range input {
 		v := item.(map[string]interface{})
 		dimensions := expandMonitorMetricAlertMultiMetricCriteriaDimension(v["dimension"].([]interface{}))
@@ -532,7 +533,7 @@ func expandMonitorMetricAlertDynamicMetricCriteria(input []interface{}) insights
 			t, _ := time.Parse(time.RFC3339, v)
 			ignoreDataBefore = &date.Time{Time: t}
 		}
-		criterias = append(criterias, insights.DynamicMetricCriteria{
+		criteria = append(criteria, insights.DynamicMetricCriteria{
 			Name:             utils.String(fmt.Sprintf("Metric%d", i+1)),
 			MetricNamespace:  utils.String(v["metric_namespace"].(string)),
 			MetricName:       utils.String(v["metric_name"].(string)),
@@ -548,7 +549,7 @@ func expandMonitorMetricAlertDynamicMetricCriteria(input []interface{}) insights
 		})
 	}
 	return &insights.MetricAlertMultipleResourceMultipleMetricCriteria{
-		AllOf:     &criterias,
+		AllOf:     &criteria,
 		OdataType: insights.OdataTypeMicrosoftAzureMonitorMultipleResourceMultipleMetricCriteria,
 	}
 }
