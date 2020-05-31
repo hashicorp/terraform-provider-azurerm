@@ -22,6 +22,7 @@ import (
 
 func enpointPropertyNames() []string {
 	return []string{
+		"azure_function_endpoint",
 		"eventhub_endpoint",
 		"eventhub_endpoint_id",
 		"hybrid_connection_endpoint",
@@ -89,6 +90,30 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+			},
+
+			"azure_function_endpoint": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: utils.RemoveFromStringArray(enpointPropertyNames(), "azure_function_endpoint"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"max_events_per_batch": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"preferred_batch_size_in_kilobytes": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
 			},
 
 			"eventhub_endpoint_id": {
@@ -386,6 +411,11 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			d.Set("topic_name", props.Topic)
 		}
 
+		if azureFunctionEndpoint, ok := props.Destination.AsAzureFunctionEventSubscriptionDestination(); ok {
+			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {
+				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "azure_function_endpoint", id.Name, id.Scope, err)
+			}
+		}
 		if v, ok := props.Destination.AsEventHubEventSubscriptionDestination(); ok {
 			if err := d.Set("eventhub_endpoint_id", v.ResourceID); err != nil {
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "eventhub_endpoint_id", id.Name, id.Scope, err)
@@ -504,6 +534,10 @@ func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
 }
 
 func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+	if v, ok := d.GetOk("azure_function_endpoint"); ok {
+		return expandEventGridEventSubscriptionAzureFunctionEndpoint(v)
+	}
+
 	if v, ok := d.GetOk("eventhub_endpoint_id"); ok {
 		return &eventgrid.EventHubEventSubscriptionDestination{
 			EndpointType: eventgrid.EndpointTypeEventHub,
@@ -591,6 +625,36 @@ func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *schema.Resource
 			ResourceID: &hybridConnectionID,
 		},
 	}
+}
+
+func expandEventGridEventSubscriptionAzureFunctionEndpoint(input interface{}) eventgrid.BasicEventSubscriptionDestination {
+	configs := input.([]interface{})
+
+	props := eventgrid.AzureFunctionEventSubscriptionDestinationProperties{}
+	azureFunctionDestination := &eventgrid.AzureFunctionEventSubscriptionDestination{
+		EndpointType: eventgrid.EndpointTypeAzureFunction,
+		AzureFunctionEventSubscriptionDestinationProperties: &props,
+	}
+
+	if len(configs) == 0 {
+		return azureFunctionDestination
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["id"]; ok {
+		props.ResourceID = utils.String(v.(string))
+	}
+
+	if v, ok := config["max_events_per_batch"]; ok {
+		props.MaxEventsPerBatch = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := config["preferred_batch_size_in_kilobytes"]; ok {
+		props.PreferredBatchSizeInKilobytes = utils.Int32(int32(v.(int)))
+	}
+
+	return azureFunctionDestination
 }
 
 func expandEventGridEventSubscriptionWebhookEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
@@ -697,6 +761,30 @@ func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.Stor
 	}
 
 	return []interface{}{result}
+}
+
+func flattenEventGridEventSubscriptionAzureFunctionEndpoint(input *eventgrid.AzureFunctionEventSubscriptionDestination) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	if input.ResourceID != nil {
+		result["id"] = *input.ResourceID
+	}
+
+	if input.MaxEventsPerBatch != nil {
+		result["max_events_per_batch"] = *input.MaxEventsPerBatch
+	}
+
+	if input.PreferredBatchSizeInKilobytes != nil {
+		result["preferred_batch_size_in_kilobytes"] = *input.PreferredBatchSizeInKilobytes
+	}
+
+	return append(results, result)
 }
 
 func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubscriptionFullURL) []interface{} {
