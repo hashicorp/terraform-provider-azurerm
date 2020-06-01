@@ -29,7 +29,6 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-
 		"azurerm_logic_app_action_custom":        resourceArmLogicAppActionCustom(),
 		"azurerm_logic_app_action_http":          resourceArmLogicAppActionHTTP(),
 		"azurerm_logic_app_integration_account":  resourceArmLogicAppIntegrationAccount(),
