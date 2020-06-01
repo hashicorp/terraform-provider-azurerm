@@ -89,6 +89,13 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccAzureRMCdnEndpoint_hostHeader(data, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", ""),
+				),
+			},
+			{
 				Config: testAccAzureRMCdnEndpoint_hostHeader(data, "www.example2.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
@@ -517,7 +524,7 @@ resource "azurerm_cdn_endpoint" "test" {
     cost_center = "MSFT"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, domain)
+`, data.RandomInteger, "westus", data.RandomInteger, data.RandomInteger, domain)
 }
 
 func testAccAzureRMCdnEndpoint_withTags(data acceptance.TestData) string {
