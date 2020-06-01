@@ -23,8 +23,6 @@ func TestAccAzureRMDataFactoryPipeline_basic(t *testing.T) {
 				Config: testAccAzureRMDataFactoryPipeline_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "activities_json"),
-					testCheckAzureRMDataFactoryPipelineHasAppenVarActivity(data.ResourceName, "Append variable1"),
 				),
 			},
 			data.ImportStep(),
@@ -58,6 +56,45 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "variables.%", "3"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMDataFactoryPipeline_activities(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryPipelineDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataFactoryPipeline_activities(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "activities_json"),
+					testCheckAzureRMDataFactoryPipelineHasAppenVarActivity(data.ResourceName, "Append variable1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDataFactoryPipeline_activitiesUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "activities_json"),
+					testCheckAzureRMDataFactoryPipelineHasAppenVarActivity(data.ResourceName, "Append variable1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMDataFactoryPipeline_activities(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryPipelineExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "activities_json"),
+					testCheckAzureRMDataFactoryPipelineHasAppenVarActivity(data.ResourceName, "Append variable1"),
 				),
 			},
 			data.ImportStep(),
@@ -140,6 +177,9 @@ func testCheckAzureRMDataFactoryPipelineHasAppenVarActivity(resourceName string,
 		}
 
 		activities := *resp.Activities
+		if len(activities) == 0 {
+			return fmt.Errorf("Bad: No activities associated with Data Factory Pipeline %q (Resource Group %q / Data Factory %q)", name, resourceGroup, dataFactoryName)
+		}
 		appvarActivity, _ := activities[0].AsAppendVariableActivity()
 		if *appvarActivity.Name != activityName {
 			return fmt.Errorf("Bad: Data Factory Pipeline %q (Resource Group %q / Data Factory %q) could not cast as activity", name, resourceGroup, dataFactoryName)
@@ -149,18 +189,7 @@ func testCheckAzureRMDataFactoryPipelineHasAppenVarActivity(resourceName string,
 	}
 }
 
-var activities_json = `[
-	{
-		"name": "Append variable1",
-		"type": "AppendVariable",
-		"dependsOn": [],
-		"userProperties": [],
-		"typeProperties": {
-			"variableName": "bob",
-			"value": "something"
-		}
-	}
-]`
+var activities_json = ``
 
 func testAccAzureRMDataFactoryPipeline_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
@@ -183,14 +212,8 @@ resource "azurerm_data_factory_pipeline" "test" {
   name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  variables = {
-	  "bob" = "item1"
-  }
-  activities_json = <<JSON
-%s
-  JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, activities_json)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMDataFactoryPipeline_update1(data acceptance.TestData) string {
@@ -263,6 +286,90 @@ resource "azurerm_data_factory_pipeline" "test" {
     bar = "test2"
     baz = "test3"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMDataFactoryPipeline_activities(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfv2%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_pipeline" "test" {
+  name                = "acctest%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  variables = {
+	  "bob" = "item1"
+  }
+  activities_json = <<JSON
+[
+  {
+    "name": "Append variable1",
+    "type": "AppendVariable",
+    "dependsOn": [],
+    "userProperties": [],
+    "typeProperties": {
+      "variableName": "bob",
+      "value": "something"
+    }
+  }
+]
+JSON
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMDataFactoryPipeline_activitiesUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfv2%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_pipeline" "test" {
+  name                = "acctest%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  variables = {
+	  "bob" = "item1"
+  }
+  activities_json = <<JSON
+[
+  {
+    "name": "Append variable1",
+    "type": "AppendVariable",
+    "dependsOn": [],
+    "userProperties": [],
+    "typeProperties": {
+      "variableName": "bob",
+      "value": "something"
+    }
+  }
+]
+JSON
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
