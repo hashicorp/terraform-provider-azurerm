@@ -71,7 +71,7 @@ The following arguments are supported:
 
 The `os_disk_snapshot` block supports the following:
 
-* `source_id` - (Required) The ID of the OS disk snapshot.
+* `source_id` - (Required) The ID of the OS disk snapshot. Changing this forces a new resource to be created.
 
 * `host_caching` - (Optional) The host caching type of the OS disk. Possible values are `None`, `ReadOnly`, and `ReadWrite`. Defaults to `ReadWrite`.
 

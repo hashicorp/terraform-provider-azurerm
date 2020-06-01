@@ -105,6 +105,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 						"source_id": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							// TODO -- add a validation function when snapshot has its own validation function
 						},
 
