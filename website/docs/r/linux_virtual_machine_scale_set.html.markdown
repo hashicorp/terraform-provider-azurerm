@@ -110,17 +110,13 @@ The following arguments are supported:
 
 ~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified when `admin_username` is specified.
 
-~> **NOTE:** `admin_password` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
-
 * `admin_ssh_key` - (Optional) One or more `admin_ssh_key` blocks as defined below.
 
 ~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified when `admin_username` is specified.
 
-~> **NOTE:** `admin_ssh_key` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
-
 * `admin_username` - (Optional) The username of the local administrator on each Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
 
-~> **NOTE:** `admin_username` is required when `source_image_reference` is assigned, or when the assigned `source_image_id` is a generalized shared image version.
+~> **NOTE:** `admin_username` is required when `source_image_reference` is assigned, or when the assigned `source_image_id` is a generalized shared image or shared image version.
 
 * `automatic_os_upgrade_policy` - (Optional) A `automatic_os_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic`.
 
@@ -135,8 +131,6 @@ The following arguments are supported:
 * `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine Scale Set.
 
 -> **NOTE:** When `custom_data` has been configured, it's not possible to remove it without tainting the Virtual Machine Scale Set, due to a limitation of the Azure API.
-
-~> **NOTE:** `custom_data` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
 
@@ -176,13 +170,13 @@ The following arguments are supported:
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
-~> **NOTE:** `secret` must not be specified when the `source_image_id` is specified and it is a specialized shared image or shared image version.
-
 * `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Defaults to `true`.
 
 * `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on.
 
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
+
+~> **NOTE:** If `source_image_id` is set to a shared image with `os_state` of `Specialized`, or a shared image version created by a specialized shared image, `admin_username`, `admin_password`, `custom_data`, `admin_ssh_key` and `secret` must not be specified.
 
 * `source_image_reference` - (Optional) A `source_image_reference` block as defined below.
 

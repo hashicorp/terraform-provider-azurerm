@@ -44,22 +44,26 @@ type imageReferenceValidateResult struct {
 
 func validateImageOsState(ctx context.Context, client *client.Client, imageReference *compute.ImageReference) (imageReferenceValidateResult, error) {
 	if imageReference == nil || imageReference.ID == nil {
-		return imageReferenceValidateResult{}, nil
+		return imageReferenceValidateResult{
+			isSharedImage: false,
+		}, nil
 	}
 	imageID := *imageReference.ID
-	log.Printf("[DEBUG] validating source image ID %q", imageID)
+	log.Printf("[DEBUG] validating `source_image_id` %q", imageID)
 	// image cannot be specialized
 	if _, err := parse.ImageID(imageID); err == nil {
-		return imageReferenceValidateResult{}, nil
+		return imageReferenceValidateResult{
+			isSharedImage: false,
+		}, nil
 	}
 	// shared image can be specialized
 	if id, err := parse.SharedImageID(imageID); err == nil {
 		image, err := client.GalleryImagesClient.Get(ctx, id.ResourceGroup, id.Gallery, id.Name)
 		if err != nil {
-			return imageReferenceValidateResult{}, fmt.Errorf("validating source image ID %q: %+v", imageID, err)
+			return imageReferenceValidateResult{}, fmt.Errorf("validating `source_image_id` %q: %+v", imageID, err)
 		}
 		if image.GalleryImageProperties == nil {
-			return imageReferenceValidateResult{}, fmt.Errorf("cannot validate source image ID %q: `properties` is nil", imageID)
+			return imageReferenceValidateResult{}, fmt.Errorf("cannot validate `source_image_id` %q: `properties` is nil", imageID)
 		}
 		return imageReferenceValidateResult{
 			isSharedImage: true,
@@ -68,23 +72,26 @@ func validateImageOsState(ctx context.Context, client *client.Client, imageRefer
 	}
 	// shared image version can also be specialized
 	if id, err := parse.SharedImageVersionID(imageID); err == nil {
-		_, err := client.GalleryImageVersionsClient.Get(ctx, id.ResourceGroup, id.Gallery, id.Name, id.Version, compute.ReplicationStatusTypesReplicationStatus)
+		version, err := client.GalleryImageVersionsClient.Get(ctx, id.ResourceGroup, id.Gallery, id.Name, id.Version, compute.ReplicationStatusTypesReplicationStatus)
 		if err != nil {
-			return imageReferenceValidateResult{}, fmt.Errorf("validating source image ID %q: %+v", imageID, err)
+			if !utils.ResponseWasNotFound(version.Response) {
+				return imageReferenceValidateResult{}, fmt.Errorf("shared image version %q does not exist: %+v", imageID, err)
+			}
+			return imageReferenceValidateResult{}, fmt.Errorf("validating `source_image_id` %q: %+v", imageID, err)
 		}
 		image, err := client.GalleryImagesClient.Get(ctx, id.ResourceGroup, id.Gallery, id.Name)
 		if err != nil {
-			return imageReferenceValidateResult{}, fmt.Errorf("validating source image ID %q: %+v", imageID, err)
+			return imageReferenceValidateResult{}, fmt.Errorf("validating `source_image_id` %q: %+v", imageID, err)
 		}
 		if image.GalleryImageProperties == nil {
-			return imageReferenceValidateResult{}, fmt.Errorf("cannot validate source image ID %q: `properties` is nil", imageID)
+			return imageReferenceValidateResult{}, fmt.Errorf("cannot validate `source_image_id` %q: `properties` is nil", imageID)
 		}
 		return imageReferenceValidateResult{
 			isSharedImage: true,
 			osState:       image.GalleryImageProperties.OsState,
 		}, nil
 	}
-	return imageReferenceValidateResult{}, fmt.Errorf("cannot parse the `source_image_id` (%q) as a Resource ID", imageID)
+	return imageReferenceValidateResult{}, fmt.Errorf("cannot parse the `source_image_id` (%q) as an valid image ID", imageID)
 }
 
 func ExpandVirtualMachineScaleSetAdditionalCapabilities(input []interface{}) *compute.AdditionalCapabilities {

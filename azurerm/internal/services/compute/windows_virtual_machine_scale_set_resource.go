@@ -462,6 +462,9 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		if len(additionalUnattendContentRaw) > 0 {
 			return fmt.Errorf("`additional_unattend_content` must not be set when using a specialized shared image")
 		}
+		if secrets != nil && len(*secrets) > 0 {
+			return fmt.Errorf("`secret` must not be set when using a specialized shared image")
+		}
 		if _, ok := d.GetOk("timezone"); ok {
 			return fmt.Errorf("`timezone` must not be set when using a specialized shared image")
 		}
