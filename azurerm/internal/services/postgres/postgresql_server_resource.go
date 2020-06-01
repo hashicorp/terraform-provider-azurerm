@@ -68,6 +68,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"sku_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"B_Gen4_1",
 					"B_Gen4_2",
