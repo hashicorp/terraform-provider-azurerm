@@ -2,6 +2,7 @@
 
 BUG FIXES:
 
+* `azurerm_app_service` - default priority now set on ip restricitons when not explicitly specified [GH-7059]
 * `azuerm_function_app` - correctly set `Kind` when `os_type` is `linux` [GH-7140]
 
 ## 2.12.0 (May 28, 2020)
