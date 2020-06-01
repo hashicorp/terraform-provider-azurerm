@@ -524,7 +524,7 @@ resource "azurerm_cdn_endpoint" "test" {
     cost_center = "MSFT"
   }
 }
-`, data.RandomInteger, "westus", data.RandomInteger, data.RandomInteger, domain)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, domain)
 }
 
 func testAccAzureRMCdnEndpoint_withTags(data acceptance.TestData) string {
