@@ -255,10 +255,6 @@ func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	//resourceGroup := id.ResourceGroup
-	//galleryName := id.Path["galleries"]
-	//name := id.Path["images"]
-
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Gallery, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting Shared Image %q (Gallery %q / Resource Group %q): %+v", id.Name, id.Gallery, id.ResourceGroup, err)
