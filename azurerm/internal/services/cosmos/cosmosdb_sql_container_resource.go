@@ -78,7 +78,6 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 			"default_ttl": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
