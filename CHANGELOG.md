@@ -1,5 +1,9 @@
 ## 2.13.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* `azurerm_signalr_service` - support for `EnableMessagingLogs` feature [GH-7094]
+
 BUG FIXES:
 
 * `azurerm_app_service` - default priority now set on ip restricitons when not explicitly specified [GH-7059]
