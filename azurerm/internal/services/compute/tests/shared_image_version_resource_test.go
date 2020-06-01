@@ -131,11 +131,9 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 func TestAccAzureRMSharedImageVersion_specializedImageVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
 
-	//resourceGroup := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 	userName := "testadmin"
 	password := "Password1234!"
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
-	//sshPort := "22"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },

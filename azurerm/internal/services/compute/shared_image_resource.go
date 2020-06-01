@@ -338,9 +338,9 @@ func flattenGalleryImageIdentifier(input *compute.GalleryImageIdentifier) []inte
 
 	return []interface{}{
 		map[string]interface{}{
-			"offer": offer,
+			"offer":     offer,
 			"publisher": publisher,
-			"sku": sku,
+			"sku":       sku,
 		},
 	}
 }
