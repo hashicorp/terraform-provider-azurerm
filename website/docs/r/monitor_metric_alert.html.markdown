@@ -71,10 +71,10 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance.
 * `scopes` - (Required) A set of strings of resource IDs at which the metric criteria should be applied.
 * `criteria` - (Optional) One or more (static) `criteria` blocks as defined below.
-* `dynamic_criteria` - (Optional) One or more `dynamic_criteria` blocks as defined below.
-* `webtest_location_availability_criteria` - (Optional) One or more `webtest_location_availability_criteria` blocks as defined below.
+* `dynamic_criteria` - (Optional) A `dynamic_criteria` block as defined below.
+* `webtest_location_availability_criteria` - (Optional) A `webtest_location_availability_criteria` block as defined below.
 
--> **NOTE** At least one of `criteria`, `dynamic_criteria` or `webtest_location_availability_criteria` need to be specified.
+-> **NOTE** One and exactly one of `criteria`, `dynamic_criteria` or `webtest_location_availability_criteria` must to be specified.
 
 * `action` - (Optional) One or more `action` blocks as defined below.
 * `enabled` - (Optional) Should this Metric Alert be enabled? Defaults to `true`.

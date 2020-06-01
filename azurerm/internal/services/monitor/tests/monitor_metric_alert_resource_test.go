@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -111,21 +110,21 @@ func TestAccAzureRMMonitorMetricAlert_multiScope(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, "azurerm_linux_virtual_machine.test1.id", "azurerm_linux_virtual_machine.test2.id"),
+				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, "azurerm_linux_virtual_machine.test1.id"),
+				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, "azurerm_linux_virtual_machine.test1.id", "azurerm_linux_virtual_machine.test2.id"),
+				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
 				),
@@ -312,28 +311,47 @@ resource "azurerm_monitor_metric_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMMonitorMetricAlert_vmTemplate(data acceptance.TestData, n int) string {
+func testAccAzureRMMonitorMetricAlert_multiVMTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_subnet" "test%[2]d" {
-  name                 = "internal%[2]d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.%[2]d.0/24"
+provider "azurerm" {
+  features {}
 }
 
-resource "azurerm_network_interface" "test%[2]d" {
-  name                = "acctestnic%[2]d-%[1]d"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+#######################
+# VM - 1
+#######################
+resource "azurerm_subnet" "test1" {
+  name                 = "internal1"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_network_interface" "test1" {
+  name                = "acctestnic%[1]d-1"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.test%d.id
+    subnet_id                     = azurerm_subnet.test1.id
     private_ip_address_allocation = "Dynamic"
   }
 }
 
-resource "azurerm_linux_virtual_machine" "test%[2]d" {
-  name                            = "acctestVM%[2]d-%[1]d"
+resource "azurerm_linux_virtual_machine" "test1" {
+  name                            = "acctestVM1-%[1]d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
   size                            = "Standard_F2"
@@ -341,7 +359,7 @@ resource "azurerm_linux_virtual_machine" "test%[2]d" {
   admin_password                  = "P@$$w0rd1234!"
   disable_password_authentication = false
   network_interface_ids = [
-    azurerm_network_interface.test%d.id,
+    azurerm_network_interface.test1.id,
   ]
 
   os_disk {
@@ -356,46 +374,71 @@ resource "azurerm_linux_virtual_machine" "test%[2]d" {
     version   = "latest"
   }
 }
-`, data.RandomInteger, n, n, n)
+
+#######################
+# VM - 2
+#######################
+resource "azurerm_subnet" "test2" {
+  name                 = "internal2"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
 }
 
-func testAccAzureRMMonitorMetricAlert_multiVMTemplate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestnw-%d"
-  address_space       = ["10.0.0.0/16"]
+resource "azurerm_network_interface" "test2" {
+  name                = "acctestnic%[1]d-2"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test2.id
+    private_ip_address_allocation = "Dynamic"
+  }
 }
 
-%s
+resource "azurerm_linux_virtual_machine" "test2" {
+  name                            = "acctestVM2-%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@$$w0rd1234!"
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test2.id,
+  ]
 
-%s
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger,
-		testAccAzureRMMonitorMetricAlert_vmTemplate(data, 1),
-		testAccAzureRMMonitorMetricAlert_vmTemplate(data, 2),
-	)
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMMonitorMetricAlert_multiScope(data acceptance.TestData, scopes ...string) string {
+func testAccAzureRMMonitorMetricAlert_multiScope(data acceptance.TestData, multiScope bool) string {
+	scope := `
+azurerm_linux_virtual_machine.test1.id,
+azurerm_linux_virtual_machine.test2.id,
+`
+	if !multiScope {
+		scope = "azurerm_linux_virtual_machine.test1.id"
+	}
+
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_monitor_metric_alert" "test" {
   name                = "acctestMetricAlert-%d"
   resource_group_name = azurerm_resource_group.test.name
-  scopes = [
-	%s
-  ]
+  scopes              = [%s]
   dynamic_criteria {
     metric_namespace = "Microsoft.Compute/virtualMachines"
     metric_name      = "Network In"
@@ -409,45 +452,5 @@ resource "azurerm_monitor_metric_alert" "test" {
   target_resource_type     = "Microsoft.Compute/virtualMachines"
   target_resource_location = "%s"
 }
-`, testAccAzureRMMonitorMetricAlert_multiVMTemplate(data), data.RandomInteger, strings.Join(scopes, ",\n"), data.Locations.Primary)
-}
-
-func testAccAzureRMMonitorMetricAlert_vmScopeDynamicCriteria(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestnw-%d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-%s
-
-resource "azurerm_monitor_metric_alert" "test" {
-  name                = "acctestMetricAlert-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  scopes              = [azurerm_linux_virtual_machine.test1.id]
-  dynamic_criteria {
-    metric_namespace = "Microsoft.Compute/virtualMachines"
-    metric_name      = "Network In"
-    aggregation      = "Total"
-
-    operator          = "GreaterOrLessThan"
-    alert_sensitivity = "Medium"
-  }
-  window_size              = "PT1H"
-  frequency                = "PT5M"
-  target_resource_type     = "Microsoft.Compute/virtualMachines"
-  target_resource_location = "eastus"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, testAccAzureRMMonitorMetricAlert_vmTemplate(data, 1), data.RandomInteger)
+`, testAccAzureRMMonitorMetricAlert_multiVMTemplate(data), data.RandomInteger, scope, data.Locations.Primary)
 }

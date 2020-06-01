@@ -24,7 +24,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func monitorMetricAlertMultiMetricCriteriaSchema(override map[string]*schema.Schema) map[string]*schema.Schema {
+func buildMonitorMetricAlertMultiMetricCriteriaSchema(extra map[string]*schema.Schema) map[string]*schema.Schema {
 	base := map[string]*schema.Schema{
 		"metric_namespace": {
 			Type:         schema.TypeString,
@@ -77,14 +77,14 @@ func monitorMetricAlertMultiMetricCriteriaSchema(override map[string]*schema.Sch
 			},
 		},
 	}
-	for k, v := range override {
+	for k, v := range extra {
 		base[k] = v
 	}
 	return base
 }
 
 var (
-	monitorMetricAlertStaticMetricCriteriaSchema = monitorMetricAlertMultiMetricCriteriaSchema(
+	monitorMetricAlertStaticMetricCriteriaSchema = buildMonitorMetricAlertMultiMetricCriteriaSchema(
 		map[string]*schema.Schema{
 			"operator": {
 				Type:     schema.TypeString,
@@ -104,7 +104,7 @@ var (
 			},
 		},
 	)
-	monitorMetricAlertDynamicMetricCriteriaSchema = monitorMetricAlertMultiMetricCriteriaSchema(
+	monitorMetricAlertDynamicMetricCriteriaSchema = buildMonitorMetricAlertMultiMetricCriteriaSchema(
 		map[string]*schema.Schema{
 			"operator": {
 				Type:     schema.TypeString,
@@ -208,17 +208,19 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Type:         schema.TypeSet,
 				Optional:     true,
 				MinItems:     1,
-				AtLeastOneOf: []string{"dynamic_criteria", "webtest_location_availability_criteria"},
+				ExactlyOneOf: []string{"dynamic_criteria", "webtest_location_availability_criteria"},
 				Elem: &schema.Resource{
 					Schema: monitorMetricAlertStaticMetricCriteriaSchema,
 				},
 			},
 
 			"dynamic_criteria": {
-				Type:         schema.TypeSet,
-				Optional:     true,
-				MinItems:     1,
-				AtLeastOneOf: []string{"criteria", "webtest_location_availability_criteria"},
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				// Curently, it allows to define only one dynamic criteria in one metric alert.
+				MaxItems:     1,
+				ExactlyOneOf: []string{"criteria", "webtest_location_availability_criteria"},
 				Elem: &schema.Resource{
 					Schema: monitorMetricAlertDynamicMetricCriteriaSchema,
 				},
@@ -229,7 +231,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Optional:     true,
 				MinItems:     1,
 				MaxItems:     1,
-				AtLeastOneOf: []string{"criteria", "dynamic_criteria"},
+				ExactlyOneOf: []string{"criteria", "dynamic_criteria"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"webtest_id": {
@@ -442,8 +444,9 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 			criteriaSchema = "criteria"
 		case insights.MetricAlertMultipleResourceMultipleMetricCriteria:
 			if c.AllOf == nil || len(*c.AllOf) == 0 {
-				return errors.New("nil or empty contained criterias of MultipleResourceMultipleMetricCriteria")
+				return errors.New("nil or empty contained criteria of MultipleResourceMultipleMetricCriteria")
 			}
+			// `MinItems` defined in schema guaranteed there is at least one element.
 			switch (*c.AllOf)[0].(type) {
 			case insights.DynamicMetricCriteria:
 				criteriaSchema = "dynamic_criteria"
