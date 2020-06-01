@@ -189,8 +189,6 @@ func testCheckAzureRMDataFactoryPipelineHasAppenVarActivity(resourceName string,
 	}
 }
 
-var activities_json = ``
-
 func testAccAzureRMDataFactoryPipeline_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -312,7 +310,7 @@ resource "azurerm_data_factory_pipeline" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   variables = {
-	  "bob" = "item1"
+    "bob" = "item1"
   }
   activities_json = <<JSON
 [
@@ -354,7 +352,7 @@ resource "azurerm_data_factory_pipeline" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   variables = {
-	  "bob" = "item1"
+    "bob" = "item1"
   }
   activities_json = <<JSON
 [
