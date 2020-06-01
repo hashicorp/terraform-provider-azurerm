@@ -1,238 +1,229 @@
 package datafactory
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
-	"time"
+	"regexp"
+	"sort"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryPipeline() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmDataFactoryPipelineCreateUpdate,
-		Read:   resourceArmDataFactoryPipelineRead,
-		Update: resourceArmDataFactoryPipelineCreateUpdate,
-		Delete: resourceArmDataFactoryPipelineDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+func validateAzureRMDataFactoryLinkedServiceDatasetName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+	if regexp.MustCompile(`^[-.+?/<>*%&:\\]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("any of '-' '.', '+', '?', '/', '<', '>', '*', '%%', '&', ':', '\\', are not allowed in %q: %q", k, value))
+	}
 
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
+	return warnings, errors
+}
 
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
-			},
+func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName string) *datafactory.IntegrationRuntimeReference {
+	typeString := "IntegrationRuntimeReference"
 
-			"data_factory_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DataFactoryName(),
-			},
-
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			"parameters": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
-			"variables": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
-			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"activities_json": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				StateFunc:        azure.NormalizeJson,
-				DiffSuppressFunc: suppressJsonOrderingDifference,
-			},
-
-			"annotations": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-		},
+	return &datafactory.IntegrationRuntimeReference{
+		ReferenceName: &integrationRuntimeName,
+		Type:          &typeString,
 	}
 }
 
-func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.PipelinesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+// Because the password isn't returned from the api in the connection string, we'll check all
+// but the password string and return true if they match.
+func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *schema.ResourceData) bool {
+	oldSplit := strings.Split(strings.ToLower(old), ";")
+	newSplit := strings.Split(strings.ToLower(new), ";")
 
-	log.Printf("[INFO] preparing arguments for Data Factory Pipeline creation.")
+	sort.Strings(oldSplit)
+	sort.Strings(newSplit)
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	name := d.Get("name").(string)
-	dataFactoryName := d.Get("data_factory_name").(string)
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, dataFactoryName, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %s", name, resourceGroupName, dataFactoryName, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_pipeline", *existing.ID)
+	// We need to remove the password from the new string since it isn't returned from the api
+	for i, v := range newSplit {
+		if strings.HasPrefix(v, "password") {
+			newSplit = append(newSplit[:i], newSplit[i+1:]...)
 		}
 	}
 
-	description := d.Get("description").(string)
-	pipeline := &datafactory.Pipeline{
-		Parameters:  expandDataFactoryParameters(d.Get("parameters").(map[string]interface{})),
-		Variables:   expandDataFactoryVariables(d.Get("variables").(map[string]interface{})),
-		Description: &description,
+	if len(oldSplit) != len(newSplit) {
+		return false
 	}
 
-	if v, ok := d.GetOk("activities_json"); ok {
-		activities, err := deserializeDataFactoryPipelineActivities(v.(string))
-		if err != nil {
-			return fmt.Errorf("parsing 'activities_json' for Data Factory Pipeline %q (Resource Group %q / Data Factory %q) ID: %+v", name, resourceGroupName, dataFactoryName, err)
+	// We'll error out if we find any differences between the old and the new connection strings
+	for i := range oldSplit {
+		if !strings.EqualFold(oldSplit[i], newSplit[i]) {
+			return false
 		}
-		pipeline.Activities = activities
 	}
 
-	if v, ok := d.GetOk("annotations"); ok {
-		annotations := v.([]interface{})
-		pipeline.Annotations = &annotations
-	} else {
-		annotations := make([]interface{}, 0)
-		pipeline.Annotations = &annotations
-	}
-
-	config := datafactory.PipelineResource{
-		Pipeline: pipeline,
-	}
-
-	if _, err := client.CreateOrUpdate(ctx, resourceGroupName, dataFactoryName, name, config, ""); err != nil {
-		return fmt.Errorf("creating Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroupName, dataFactoryName, name, "")
-	if err != nil {
-		return fmt.Errorf("retrieving Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("cannot read Data Factory Pipeline %q (Resource Group %q / Data Factory %q) ID", name, resourceGroupName, dataFactoryName)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmDataFactoryPipelineRead(d, meta)
+	return true
 }
 
-func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.PipelinesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func expandDataFactoryParameters(input map[string]interface{}) map[string]*datafactory.ParameterSpecification {
+	output := make(map[string]*datafactory.ParameterSpecification)
 
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return err
-	}
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["pipelines"]
-
-	resp, err := client.Get(ctx, id.ResourceGroup, dataFactoryName, name, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			log.Printf("[DEBUG] Data Factory Pipeline %q was not found in Resource Group %q - removing from state!", name, id.ResourceGroup)
-			return nil
-		}
-		return fmt.Errorf("reading the state of Data Factory Pipeline %q: %+v", name, err)
-	}
-
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("data_factory_name", dataFactoryName)
-
-	if props := resp.Pipeline; props != nil {
-		d.Set("description", props.Description)
-
-		parameters := flattenDataFactoryParameters(props.Parameters)
-		if err := d.Set("parameters", parameters); err != nil {
-			return fmt.Errorf("setting `parameters`: %+v", err)
-		}
-
-		annotations := flattenDataFactoryAnnotations(props.Annotations)
-		if err := d.Set("annotations", annotations); err != nil {
-			return fmt.Errorf("setting `annotations`: %+v", err)
-		}
-
-		variables := flattenDataFactoryVariables(props.Variables)
-		if err := d.Set("variables", variables); err != nil {
-			return fmt.Errorf("setting `variables`: %+v", err)
-		}
-
-		if activities := props.Activities; activities != nil {
-			activitiesJson, err := serializeDataFactoryPipelineActivities(activities)
-			if err != nil {
-				return fmt.Errorf("serializing `activities_json`: %+v", err)
-			}
-			if err := d.Set("activities_json", activitiesJson); err != nil {
-				return fmt.Errorf("setting `activities_json`: %+v", err)
-			}
+	for k, v := range input {
+		output[k] = &datafactory.ParameterSpecification{
+			Type:         datafactory.ParameterTypeString,
+			DefaultValue: v.(string),
 		}
 	}
 
-	return nil
+	return output
 }
 
-func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).DataFactory.PipelinesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func flattenDataFactoryParameters(input map[string]*datafactory.ParameterSpecification) map[string]interface{} {
+	output := make(map[string]interface{})
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	for k, v := range input {
+		if v != nil {
+			// we only support string parameters at this time
+			val, ok := v.DefaultValue.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping parameter %q since it's not a string", k)
+			}
+
+			output[k] = val
+		}
+	}
+
+	return output
+}
+
+func flattenDataFactoryAnnotations(input *[]interface{}) []string {
+	annotations := make([]string, 0)
+	if input == nil {
+		return annotations
+	}
+
+	for _, annotation := range *input {
+		val, ok := annotation.(string)
+		if !ok {
+			log.Printf("[DEBUG] Skipping annotation %q since it's not a string", val)
+		}
+		annotations = append(annotations, val)
+	}
+	return annotations
+}
+
+func expandDataFactoryVariables(input map[string]interface{}) map[string]*datafactory.VariableSpecification {
+	output := make(map[string]*datafactory.VariableSpecification)
+
+	for k, v := range input {
+		output[k] = &datafactory.VariableSpecification{
+			Type:         datafactory.VariableTypeString,
+			DefaultValue: v.(string),
+		}
+	}
+
+	return output
+}
+
+func flattenDataFactoryVariables(input map[string]*datafactory.VariableSpecification) map[string]interface{} {
+	output := make(map[string]interface{})
+
+	for k, v := range input {
+		if v != nil {
+			// we only support string parameters at this time
+			val, ok := v.DefaultValue.(string)
+			if !ok {
+				log.Printf("[DEBUG] Skipping variable %q since it's not a string", k)
+			}
+
+			output[k] = val
+		}
+	}
+
+	return output
+}
+
+// DatasetColumn describes the attributes needed to specify a structure column for a dataset
+type DatasetColumn struct {
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Type        string `json:"type,omitempty"`
+}
+
+func expandDataFactoryDatasetStructure(input []interface{}) interface{} {
+	columns := make([]DatasetColumn, 0)
+	for _, column := range input {
+		attrs := column.(map[string]interface{})
+
+		datasetColumn := DatasetColumn{
+			Name: attrs["name"].(string),
+		}
+		if attrs["description"] != nil {
+			datasetColumn.Description = attrs["description"].(string)
+		}
+		if attrs["type"] != nil {
+			datasetColumn.Type = attrs["type"].(string)
+		}
+		columns = append(columns, datasetColumn)
+	}
+	return columns
+}
+
+func flattenDataFactoryStructureColumns(input interface{}) []interface{} {
+	output := make([]interface{}, 0)
+
+	columns, ok := input.([]interface{})
+	if !ok {
+		return columns
+	}
+
+	for _, v := range columns {
+		column, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		result := make(map[string]interface{})
+		if column["name"] != nil {
+			result["name"] = column["name"]
+		}
+		if column["type"] != nil {
+			result["type"] = column["type"]
+		}
+		if column["description"] != nil {
+			result["description"] = column["description"]
+		}
+		output = append(output, result)
+	}
+	return output
+}
+
+func deserializeDataFactoryPipelineActivities(jsonData string) (*[]datafactory.BasicActivity, error) {
+	jsonData = fmt.Sprintf(`{ "activities": %s }`, jsonData)
+	pipeline := &datafactory.Pipeline{}
+	err := pipeline.UnmarshalJSON([]byte(jsonData))
 	if err != nil {
-		return err
+		return nil, err
 	}
-	dataFactoryName := id.Path["factories"]
-	name := id.Path["pipelines"]
-	resourceGroupName := id.ResourceGroup
+	return pipeline.Activities, nil
+}
 
-	if _, err = client.Delete(ctx, resourceGroupName, dataFactoryName, name); err != nil {
-		return fmt.Errorf("deleting Data Factory Pipeline %q (Resource Group %q / Data Factory %q): %+v", name, resourceGroupName, dataFactoryName, err)
+func serializeDataFactoryPipelineActivities(activities *[]datafactory.BasicActivity) (string, error) {
+	pipeline := &datafactory.Pipeline{Activities: activities}
+	result, err := pipeline.MarshalJSON()
+	if err != nil {
+		return "nil", err
 	}
 
-	return nil
+	var m map[string]*json.RawMessage
+	err = json.Unmarshal(result, &m)
+	if err != nil {
+		return "", err
+	}
+
+	activitiesJson, err := json.Marshal(m["activities"])
+	if err != nil {
+		return "", err
+	}
+
+	return string(activitiesJson), nil
+}
+
+func suppressJsonOrderingDifference(_, old, new string, _ *schema.ResourceData) bool {
+	return azure.NormalizeJson(old) == azure.NormalizeJson(new)
 }
