@@ -95,10 +95,11 @@ func resourceArmSharedImageVersion() *schema.Resource {
 			},
 
 			"os_disk_snapshot": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
+				Type:         schema.TypeList,
+				Optional:     true,
+				ForceNew:     true,
+				MaxItems:     1,
+				ExactlyOneOf: []string{"os_disk_snapshot", "managed_image_id"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"source_id": {
@@ -126,6 +127,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ImageID,
+				ExactlyOneOf: []string{"os_disk_snapshot", "managed_image_id"},
 			},
 
 			"exclude_from_latest": {
