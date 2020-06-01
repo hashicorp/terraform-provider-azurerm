@@ -50,7 +50,17 @@ The following attributes are exported:
 
 * `target_region` - One or more `target_region` blocks as documented below.
 
+* `os_disk_snapshot` - A `os_disk_snapshot` block as documented below.
+
 * `tags` - A mapping of tags assigned to the Shared Image.
+
+---
+
+The `os_disk_snapshot` block exports the following:
+
+* `source_id` - The ID of the OS disk snapshot.
+
+* `host_caching` - The host caching type of the OS disk. 
 
 ---
 
