@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `identifier` - (Required) An `identifier` block as defined below.
 
-* `os_type` - (Required) The type of Operating System present in this Shared Image. Possible values are `Linux` and `Windows`.
+* `os_type` - (Required) The type of Operating System present in this Shared Image. Possible values are `Linux` and `Windows`. Changing this forces a new resource to be created.
 
 ---
 
@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `release_note_uri` - (Optional) The URI containing the Release Notes associated with this Shared Image.
 
-* `os_state` - (Optional) The state of Operating System present in this Shared Image. Possible values are `Generalized` and `Specialized`. Defaults to `Generalized`.
+* `os_state` - (Optional) The state of Operating System present in this Shared Image. Possible values are `Generalized` and `Specialized`. Defaults to `Generalized`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Shared Image.
 

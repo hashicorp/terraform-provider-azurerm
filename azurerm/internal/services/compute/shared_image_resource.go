@@ -62,6 +62,7 @@ func resourceArmSharedImage() *schema.Resource {
 			"os_type": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Linux),
 					string(compute.Windows),
@@ -72,6 +73,7 @@ func resourceArmSharedImage() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(compute.Generalized),
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(compute.Generalized),
 					string(compute.Specialized),
