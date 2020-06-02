@@ -86,7 +86,7 @@ func ExpandDevTestLabVirtualMachineGalleryImageReference(input []interface{}, os
 func SchemaDevTestVirtualMachineGalleryImageReference() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Optional: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
