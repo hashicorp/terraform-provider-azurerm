@@ -89,6 +89,13 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccAzureRMCdnEndpoint_hostHeader(data, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", ""),
+				),
+			},
+			{
 				Config: testAccAzureRMCdnEndpoint_hostHeader(data, "www.example2.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
