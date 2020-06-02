@@ -49,7 +49,7 @@ func VersionID(input string) (*VersionId, error) {
 	case "subscriptions":
 		id, err := azure.ParseAzureResourceID(input)
 		if err != nil {
-			return nil, fmt.Errorf("[ERROR] Unable to parse Image ID %q: %+v", input, err)
+			return nil, fmt.Errorf("unable to parse Resource ID %q: %+v", input, err)
 		}
 
 		versionId.Scope = fmt.Sprintf("subscriptions/%s", id.SubscriptionID)
