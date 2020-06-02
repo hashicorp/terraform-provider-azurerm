@@ -2,8 +2,10 @@
 
 IMPROVEMENTS:
 
-* `azurerm_signalr_service` - support for `EnableMessagingLogs` feature [GH-7094]
+* `azurerm_data_factory_pipeline`: Support for `activities` [GH-6224]
 * `azurerm_eventgrid_event_subscription` - support for advanced filtering [GH-6861]
+* `azurerm_signalr_service` - support for `EnableMessagingLogs` feature [GH-7094]
+
 
 BUG FIXES:
 
