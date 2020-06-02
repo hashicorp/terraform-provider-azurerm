@@ -47,7 +47,7 @@ A `identity` block exports the following:
 
 * `principal_id` - The ID of the System Managed Service Principal assigned to the Virtual Machine Scale Set.
 
-* `type` - The identity types of the Managed Identity assigned to the Virtual Machine Scale Set.
+* `type` - The identity type of the Managed Identity assigned to the Virtual Machine Scale Set.
 
 ## Timeouts
 

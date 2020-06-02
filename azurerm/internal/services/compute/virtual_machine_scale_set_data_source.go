@@ -77,6 +77,9 @@ func dataSourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error making Read request on Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("Error reading Virtual Machine Scale Set %q (Resource Group %q): ID is empty or nil", name, resourceGroup)
+	}
 	d.SetId(*resp.ID)
 
 	if err := d.Set("identity", FlattenVirtualMachineScaleSetIdentity(resp.Identity)); err != nil {
