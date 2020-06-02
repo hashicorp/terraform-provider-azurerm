@@ -338,37 +338,3 @@ func flattenSharedImageVersionTargetRegions(input *[]compute.TargetRegion) []int
 
 	return results
 }
-
-func expandSharedImageVersionOsDiskImage(input []interface{}) *compute.GalleryOSDiskImage {
-	if len(input) == 0 {
-		return nil
-	}
-
-	v := input[0].(map[string]interface{})
-	return &compute.GalleryOSDiskImage{
-		Source: &compute.GalleryArtifactVersionSource{
-			ID: utils.String(v["source_id"].(string)),
-		},
-		HostCaching: compute.HostCaching(v["host_caching"].(string)),
-	}
-}
-
-func flattenSharedImageVersionOsDiskImage(input *compute.GalleryOSDiskImage) []interface{} {
-	if input == nil {
-		return nil
-	}
-
-	// the service will return a block of GalleryOSDiskImage with empty source id if we did not assign the `os_disk_snapshot` block,
-	// mainly for the `SizeInGB` field. Since we did not expose this field, and this would cause unnecessary diff,
-	// we need to explicitly check if the source id is nil
-	if input.Source == nil || input.Source.ID == nil {
-		return nil
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"source_id":    *input.Source.ID,
-			"host_caching": string(input.HostCaching),
-		},
-	}
-}
