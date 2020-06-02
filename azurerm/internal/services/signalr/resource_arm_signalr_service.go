@@ -85,6 +85,9 @@ func resourceArmSignalRService() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								// Looks like the default has changed, ours will need to be updated in AzureRM 3.0.
+								// issue has been created https://github.com/Azure/azure-sdk-for-go/issues/9619
+								"EnableMessagingLogs",
 								string(signalr.EnableConnectivityLogs),
 								string(signalr.ServiceMode),
 							}, false),
