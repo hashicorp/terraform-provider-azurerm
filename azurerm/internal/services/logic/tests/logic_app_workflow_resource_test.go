@@ -110,21 +110,21 @@ func TestAccAzureRMLogicAppWorkflow_integrationAccount(t *testing.T) {
 					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("logic_app_integration_account_id"),
 			{
 				Config: testAccAzureRMLogicAppWorkflow_integrationAccountUpdated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("logic_app_integration_account_id"),
 			{
 				Config: testAccAzureRMLogicAppWorkflow_empty(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("logic_app_integration_account_id"),
 		},
 	})
 }

@@ -140,11 +140,10 @@ func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{})
 			}
 		}
 
-		var integrationAcc string
 		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
-			integrationAcc = *props.IntegrationAccount.ID
+			d.Set("logic_app_integration_account_id", props.IntegrationAccount.ID)
 		}
-		d.Set("logic_app_integration_account_id", integrationAcc)
+
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
