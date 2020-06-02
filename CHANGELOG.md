@@ -1,5 +1,9 @@
 ## 2.13.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource/Data Source**: `azurerm_logic_app_integration_account`  [GH-7099]
+
 IMPROVEMENTS:
 
 * `azurerm_data_factory_pipeline`: Support for `activities` [GH-6224]
