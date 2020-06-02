@@ -48,5 +48,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_app_service":                                       resourceArmAppService(),
 		"azurerm_function_app":                                      resourceArmFunctionApp(),
 		"azurerm_function_app_slot":                                 resourceArmFunctionAppSlot(),
+		"azurerm_function":                                          resourceArmFunction(),
 	}
 }
