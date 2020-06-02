@@ -63,17 +63,11 @@ The following arguments are supported:
 
 -> **NOTE:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html).
 
-* `os_disk_snapshot` - (Optional) A `os_disk_snapshot` block as documented below.
+* `os_disk_snapshot_id` - (Optional) The ID of the OS disk snapshot which should be used for this Shared Image Version. Changing this forces a new resource to be created.
+
+-> **NOTE:** You must specify exact one of `managed_image_id` and `os_disk_snapshot_id`.
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
-
----
-
-The `os_disk_snapshot` block supports the following:
-
-* `source_id` - (Required) The ID of the OS disk snapshot. Changing this forces a new resource to be created.
-
-* `host_caching` - (Optional) The host caching type of the OS disk. Possible values are `None`, `ReadOnly`, and `ReadWrite`. Defaults to `ReadWrite`.
 
 ---
 
