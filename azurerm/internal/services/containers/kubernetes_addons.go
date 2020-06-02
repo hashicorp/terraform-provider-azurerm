@@ -34,6 +34,7 @@ var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.USGovernmentCloud.Name: {
 		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6702
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
+		kubernetesDashboardKey,    // https://github.com/terraform-providers/terraform-provider-azurerm/issues/7136
 	},
 }
 
