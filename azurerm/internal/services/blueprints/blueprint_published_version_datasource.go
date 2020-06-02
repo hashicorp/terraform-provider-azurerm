@@ -119,9 +119,9 @@ func dataSourceArmBlueprintPublishedVersionRead(d *schema.ResourceData, meta int
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		d.SetId(*resp.ID)
-	} else {
 		return fmt.Errorf("Failed to retrieve ID for Blueprint %q Version %q", blueprintName, versionID)
+	} else {
+		d.SetId(*resp.ID)
 	}
 
 	if resp.Type == nil {

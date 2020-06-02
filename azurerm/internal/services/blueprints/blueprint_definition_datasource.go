@@ -105,9 +105,9 @@ func dataSourceArmBlueprintDefinitionRead(d *schema.ResourceData, meta interface
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		d.SetId(*resp.ID)
-	} else {
 		return fmt.Errorf("Failed to retrieve ID for Blueprint %q", name)
+	} else {
+		d.SetId(*resp.ID)
 	}
 
 	if resp.Description != nil {
