@@ -246,6 +246,8 @@ A `azure_policy` block supports the following:
 
 * `enabled` - Is Azure Policy for Kubernetes enabled?
 
+* `version`- The version of Azure Policy being used.
+
 ---
 
 A `role_based_access_control` block exports the following:

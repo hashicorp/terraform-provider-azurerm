@@ -114,6 +114,10 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 										Type:     schema.TypeBool,
 										Computed: true,
 									},
+									"version": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
 								},
 							},
 						},
@@ -808,8 +812,14 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 			enabled = *enabledVal
 		}
 
+		version := "v1"
+		if versionVal, ok := azurePolicy.Config["version"]; ok && *versionVal != "" {
+			version = *versionVal
+		}
+
 		output := map[string]interface{}{
 			"enabled": enabled,
+			"version": version,
 		}
 		azurePolicies = append(azurePolicies, output)
 	}

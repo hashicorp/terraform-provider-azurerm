@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
-var kubernetesDataSourceTests = map[string]func(t *testing.T) {
+var kubernetesDataSourceTests = map[string]func(t *testing.T){
 	"basic":                                       testAccDataSourceAzureRMKubernetesCluster_basic,
 	"roleBasedAccessControl":                      testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl,
 	"roleBasedAccessControlAAD":                   testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD,
@@ -500,6 +500,7 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy(t *testin
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.version", "v2"),
 				),
 			},
 		},
@@ -833,7 +834,7 @@ data "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicyConfig(data acceptance.TestData) string {
-	r := testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data)
+	r := testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, "v2")
 	return fmt.Sprintf(`
 %s
 

@@ -155,7 +155,7 @@ A `addon_profile` block supports the following:
 
 -> **NOTE:** At this time Azure Policy is not supported in Azure US Government.
 
--> **NOTE**: Azure Policy for Azure Kubernetes Service is currently in preview and not available to subscriptions that have not [opted-in](https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks?toc=/azure/aks/toc.json) to join `Azure Policy` preview.
+~> **Note:** Azure Policy is in Public Preview - more information and details on how to opt into the Preview [can be found in this article](https://docs.microsoft.com/en-gb/azure/governance/policy/concepts/policy-for-kubernetes).
 
 * `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
 
@@ -215,6 +215,10 @@ When `managed` is set to `false` the following properties can be specified:
 A `azure_policy` block supports the following:
 
 * `enabled` - (Required) Is the Azure Policy for Kubernetes Add On enabled?
+
+* `version` - (Required) The Version of Azure Policy which should be installed on this Kubernetes Cluster. Possible values are `v1` and `v2`.
+
+!> **Note:** Support for `v1` is in Private Preview will be removed by AKS "after Spring 2020".
 
 ---
 

@@ -12,6 +12,8 @@ var kubernetesAddOnTests = map[string]func(t *testing.T){
 	"addonProfileAciConnectorLinux":         testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux,
 	"addonProfileAciConnectorLinuxDisabled": testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled,
 	"addonProfileAzurePolicy":               testAccAzureRMKubernetesCluster_addonProfileAzurePolicy,
+	"addonProfileAzurePolicyV1ToV2":         testAccAzureRMKubernetesCluster_addonProfileAzurePolicyV1ToV2,
+	"addonProfileAzurePolicyV2":             testAccAzureRMKubernetesCluster_addonProfileAzurePolicyV2,
 	"addonProfileKubeDashboard":             testAccAzureRMKubernetesCluster_addonProfileKubeDashboard,
 	"addonProfileOMS":                       testAccAzureRMKubernetesCluster_addonProfileOMS,
 	"addonProfileOMSToggle":                 testAccAzureRMKubernetesCluster_addonProfileOMSToggle,
@@ -89,11 +91,22 @@ func testAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data),
+				Config: testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, "v1"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.version", "v1"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, "v2"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.version", "v2"),
 				),
 			},
 			data.ImportStep(),
@@ -382,7 +395,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data acceptance.TestData) string {
+func testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -416,6 +429,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   addon_profile {
     azure_policy {
       enabled = true
+      version = "%s"
     }
   }
 
@@ -423,7 +437,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, version)
 }
 
 func testAccAzureRMKubernetesCluster_addonProfileKubeDashboardConfig(data acceptance.TestData) string {
