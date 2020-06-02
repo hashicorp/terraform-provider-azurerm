@@ -110,6 +110,12 @@ func resourceArmDevTestWindowsVirtualMachine() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"custom_image_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"gallery_image_reference": azure.SchemaDevTestVirtualMachineGalleryImageReference(),
 
 			"inbound_nat_rule": azure.SchemaDevTestVirtualMachineInboundNatRule(),
@@ -171,8 +177,16 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 	storageType := d.Get("storage_type").(string)
 	username := d.Get("username").(string)
 
-	galleryImageReferenceRaw := d.Get("gallery_image_reference").([]interface{})
-	galleryImageReference := azure.ExpandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw, "Windows")
+	customImageId, existsCustomImageId := d.GetOk("custom_image_id")
+	galleryImageReferenceRaw, existsGalleryImageReferenceRaw := d.GetOk("gallery_image_reference")
+	galleryImageReference := azure.ExpandDevTestLabVirtualMachineGalleryImageReference(galleryImageReferenceRaw.([]interface{}), "Windows")
+	if existsCustomImageId == existsGalleryImageReferenceRaw {
+		return fmt.Errorf("Either `custom_image_id` or `gallery_image_reference` shall be specified")
+	}
+	var customImageIdRef *string = nil
+	if customImageId != "" {
+		customImageIdRef = utils.String(customImageId.(string))
+	}
 
 	natRulesRaw := d.Get("inbound_nat_rule").(*schema.Set)
 	natRules := azure.ExpandDevTestLabVirtualMachineNatRules(natRulesRaw)
@@ -194,6 +208,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 			AllowClaim:                 utils.Bool(allowClaim),
 			IsAuthenticationWithSSHKey: utils.Bool(false),
 			DisallowPublicIPAddress:    utils.Bool(disallowPublicIPAddress),
+			CustomImageID:              customImageIdRef,
 			GalleryImageReference:      galleryImageReference,
 			LabSubnetName:              utils.String(labSubnetName),
 			LabVirtualNetworkID:        utils.String(labVirtualNetworkId),
