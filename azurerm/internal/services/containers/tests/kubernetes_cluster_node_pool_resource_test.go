@@ -33,6 +33,7 @@ var kubernetesNodePoolTests = map[string]func(t *testing.T){
 	"requiresImport":                 testAccAzureRMKubernetesClusterNodePool_requiresImport,
 	"osDiskSizeGB":                   testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB,
 	"modeSystem":                     testAccAzureRMKubernetesClusterNodePool_modeSystem,
+	"modeUpdate":                     testAccAzureRMKubernetesClusterNodePool_modeUpdate,
 	"virtualNetworkAutomatic":        testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic,
 	"virtualNetworkManual":           testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual,
 	"windows":                        testAccAzureRMKubernetesClusterNodePool_windows,
@@ -412,6 +413,44 @@ func testAccAzureRMKubernetesClusterNodePool_modeSystem(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMKubernetesClusterNodePool_modeSystemConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_modeUpdate(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_modeUpdate(t)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_modeUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_modeUserConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_modeSystemConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_modeUserConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
 				),
@@ -1126,6 +1165,25 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   mode                  = "System"
+}
+`, template)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_modeUserConfig(data acceptance.TestData) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  mode                  = "User"
 }
 `, template)
 }

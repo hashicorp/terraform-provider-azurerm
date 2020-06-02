@@ -107,8 +107,8 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
-				Default:  string(containerservice.User),
+				//ForceNew: true,
+				Default: string(containerservice.User),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.System),
 					string(containerservice.User),
@@ -394,6 +394,10 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 
 	if d.HasChange("max_count") {
 		props.MaxCount = utils.Int32(int32(d.Get("max_count").(int)))
+	}
+
+	if d.HasChange("mode") {
+		props.Mode = containerservice.AgentPoolMode(d.Get("mode").(string))
 	}
 
 	if d.HasChange("min_count") {
