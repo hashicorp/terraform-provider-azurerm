@@ -104,7 +104,7 @@ func dataSourceArmBlueprintDefinitionRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Read failed for Blueprint Definition (%q) in Sccope (%q): %+v", name, scope, err)
 	}
 
-	if resp.ID != nil {
+	if resp.ID == nil || *resp.ID == "" {
 		d.SetId(*resp.ID)
 	} else {
 		return fmt.Errorf("Failed to retrieve ID for Blueprint %q", name)
