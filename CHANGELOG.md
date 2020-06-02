@@ -15,6 +15,7 @@ BUG FIXES:
 
 * `azurerm_app_service` - default priority now set on ip restricitons when not explicitly specified [GH-7059]
 * `azurerm_app_service` - App Services check correct scope for name availability in ASE [GH-7157]
+* `azurerm_cdn_endpoint` - `origin_host_header` can now be set to empty [GH-7164]
 * `azurerm_eventhub_authorization_rule` - Fix intermittent 404 errors [GH-7122]
 * `azuerm_function_app` - correctly set `Kind` when `os_type` is `linux` [GH-7140]
 * `azurerm_virtual_network_gatway` - `vpn_client_protocols` is now also computed to prevent permanent diffs [GH-7168]
