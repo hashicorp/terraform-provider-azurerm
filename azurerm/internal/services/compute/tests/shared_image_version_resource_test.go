@@ -21,6 +21,9 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
 	sshPort := "22"
 
+	c := testAccAzureRMSharedImageVersion_imageVersionUpdated(data, userName, password, hostName)
+	t.Log(c)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -441,9 +444,7 @@ resource "azurerm_shared_image_version" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  os_disk_snapshot {
-    source_id = azurerm_snapshot.test.id
-  }
+  os_disk_snapshot_id = azurerm_snapshot.test.id
 
   target_region {
     name                   = azurerm_resource_group.test.location

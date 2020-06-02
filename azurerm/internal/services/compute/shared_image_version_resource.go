@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -94,33 +93,12 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				},
 			},
 
-			"os_disk_snapshot": {
-				Type:         schema.TypeList,
+			"os_disk_snapshot_id": {
+				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				MaxItems:     1,
-				ExactlyOneOf: []string{"os_disk_snapshot", "managed_image_id"},
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"source_id": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							// TODO -- add a validation function when snapshot has its own validation function
-						},
-
-						"host_caching": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(compute.HostCachingReadWrite),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(compute.HostCachingNone),
-								string(compute.HostCachingReadOnly),
-								string(compute.HostCachingReadWrite),
-							}, false),
-						},
-					},
-				},
+				ExactlyOneOf: []string{"os_disk_snapshot_id", "managed_image_id"},
+				// TODO -- add a validation function when snapshot has its own validation function
 			},
 
 			"managed_image_id": {
@@ -128,7 +106,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ImageID,
-				ExactlyOneOf: []string{"os_disk_snapshot", "managed_image_id"},
+				ExactlyOneOf: []string{"os_disk_snapshot_id", "managed_image_id"},
 			},
 
 			"exclude_from_latest": {
@@ -188,8 +166,12 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	if v, ok := d.GetOk("os_disk_snapshot"); ok {
-		version.GalleryImageVersionProperties.StorageProfile.OsDiskImage = expandSharedImageVersionOsDiskImage(v.([]interface{}))
+	if v, ok := d.GetOk("os_disk_snapshot_id"); ok {
+		version.GalleryImageVersionProperties.StorageProfile.OsDiskImage = &compute.GalleryOSDiskImage{
+			Source: &compute.GalleryArtifactVersionSource{
+				ID: utils.String(v.(string)),
+			},
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, imageName, imageVersion, version)
@@ -259,9 +241,11 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 				d.Set("managed_image_id", source.ID)
 			}
 
-			if err := d.Set("os_disk_snapshot", flattenSharedImageVersionOsDiskImage(profile.OsDiskImage)); err != nil {
-				return fmt.Errorf("Error setting `os_disk_snapshot`: %+v", err)
+			osDiskSnapShotID := ""
+			if profile.OsDiskImage != nil && profile.OsDiskImage.Source != nil && profile.OsDiskImage.Source.ID != nil {
+				osDiskSnapShotID = *profile.OsDiskImage.Source.ID
 			}
+			d.Set("os_disk_snapshot_id", osDiskSnapShotID)
 		}
 	}
 
@@ -300,6 +284,7 @@ func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{
 
 	return nil
 }
+
 func expandSharedImageVersionTargetRegions(d *schema.ResourceData) *[]compute.TargetRegion {
 	vs := d.Get("target_region").(*schema.Set)
 	results := make([]compute.TargetRegion, 0)
@@ -362,17 +347,19 @@ func expandSharedImageVersionOsDiskImage(input []interface{}) *compute.GalleryOS
 
 func flattenSharedImageVersionOsDiskImage(input *compute.GalleryOSDiskImage) []interface{} {
 	if input == nil {
-		return []interface{}{}
+		return nil
 	}
 
-	sourceId := ""
-	if input.Source != nil && input.Source.ID != nil {
-		sourceId = *input.Source.ID
+	// the service will return a block of GalleryOSDiskImage with empty source id if we did not assign the `os_disk_snapshot` block,
+	// mainly for the `SizeInGB` field. Since we did not expose this field, and this would cause unnecessary diff,
+	// we need to explicitly check if the source id is nil
+	if input.Source == nil || input.Source.ID == nil {
+		return nil
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"source_id":    sourceId,
+			"source_id":    *input.Source.ID,
 			"host_caching": string(input.HostCaching),
 		},
 	}

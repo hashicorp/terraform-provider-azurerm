@@ -51,22 +51,9 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 				Computed: true,
 			},
 
-			"os_disk_snapshot": {
-				Type:     schema.TypeList,
+			"os_disk_snapshot_id": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"source_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"host_caching": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 
 			"target_region": {
@@ -141,9 +128,11 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 				d.Set("managed_image_id", source.ID)
 			}
 
-			if err := d.Set("os_disk_snapshot", flattenSharedImageVersionOsDiskImage(profile.OsDiskImage)); err != nil {
-				return fmt.Errorf("Error setting `os_disk_snapshot`: %+v", err)
+			osDiskSnapShotID := ""
+			if profile.OsDiskImage != nil && profile.OsDiskImage.Source != nil && profile.OsDiskImage.Source.ID != nil {
+				osDiskSnapShotID = *profile.OsDiskImage.Source.ID
 			}
+			d.Set("os_disk_snapshot_id", osDiskSnapShotID)
 		}
 	}
 
