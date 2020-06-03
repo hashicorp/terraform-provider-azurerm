@@ -31,6 +31,7 @@ var kubernetesNodePoolTests = map[string]func(t *testing.T){
 	"nodePublicIP":                   testAccAzureRMKubernetesClusterNodePool_nodePublicIP,
 	"nodeTaints":                     testAccAzureRMKubernetesClusterNodePool_nodeTaints,
 	"requiresImport":                 testAccAzureRMKubernetesClusterNodePool_requiresImport,
+	"spot":                           testAccAzureRMKubernetesClusterNodePool_spot,
 	"osDiskSizeGB":                   testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB,
 	"modeSystem":                     testAccAzureRMKubernetesClusterNodePool_modeSystem,
 	"modeUpdate":                     testAccAzureRMKubernetesClusterNodePool_modeUpdate,
@@ -546,6 +547,30 @@ func testAccAzureRMKubernetesClusterNodePool_nodeTaints(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_osDiskSizeGBConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesClusterNodePool_requiresImport(t)
@@ -573,12 +598,12 @@ func testAccAzureRMKubernetesClusterNodePool_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
+func TestAccAzureRMKubernetesClusterNodePool_spot(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
-	testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t)
+	testAccAzureRMKubernetesClusterNodePool_spot(t)
 }
 
-func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
+func testAccAzureRMKubernetesClusterNodePool_spot(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -587,7 +612,7 @@ func testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesClusterNodePool_osDiskSizeGBConfig(data),
+				Config: testAccAzureRMKubernetesClusterNodePool_spotConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
 				),
@@ -1310,6 +1335,33 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   os_disk_size_gb       = 100
+}
+`, template)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_spotConfig(data acceptance.TestData) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  priority              = "Spot"
+  eviction_policy       = "Delete"
+  spot_max_price        = 0.5 # high, but this is a maximum (we pay less) so ensures this won't fail
+  node_labels = [
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  ]
+  node_taints = [
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
 }
 `, template)
 }

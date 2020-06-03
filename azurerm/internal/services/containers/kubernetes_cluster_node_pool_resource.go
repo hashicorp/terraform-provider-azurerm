@@ -91,6 +91,16 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Optional: true,
 			},
 
+			"eviction_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.Delete),
+					string(containerservice.Deallocate),
+				}, false),
+			},
+
 			"max_count": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -164,6 +174,25 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				}, false),
 			},
 
+			"priority": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(containerservice.Regular),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(containerservice.Regular),
+					string(containerservice.Spot),
+				}, false),
+			},
+
+			"spot_max_price": {
+				Type:     schema.TypeFloat,
+				Optional: true,
+				ForceNew: true,
+				Default:  -1.0,
+				// TODO: validation function
+			},
+
 			"vnet_subnet_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -216,23 +245,24 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("The Default Node Pool for Kubernetes Cluster %q (Resource Group %q) must be a VirtualMachineScaleSet to attach multiple node pools!", clusterName, resourceGroup)
 	}
 
-	if d.IsNewResource() {
-		existing, err := poolsClient.Get(ctx, resourceGroup, clusterName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Agent Pool %q (Kubernetes Cluster %q / Resource Group %q): %s", name, clusterName, resourceGroup, err)
-			}
+	existing, err := poolsClient.Get(ctx, resourceGroup, clusterName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing Agent Pool %q (Kubernetes Cluster %q / Resource Group %q): %s", name, clusterName, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_kubernetes_cluster_node_pool", *existing.ID)
 	}
 
 	count := d.Get("node_count").(int)
 	enableAutoScaling := d.Get("enable_auto_scaling").(bool)
+	evictionPolicy := d.Get("eviction_policy").(string)
 	mode := containerservice.AgentPoolMode(d.Get("mode").(string))
 	osType := d.Get("os_type").(string)
+	priority := d.Get("priority").(string)
+	spotMaxPrice := d.Get("spot_max_price").(float64)
 	t := d.Get("tags").(map[string]interface{})
 	vmSize := d.Get("vm_size").(string)
 
@@ -241,12 +271,22 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(d.Get("enable_node_public_ip").(bool)),
 		Mode:               mode,
+		ScaleSetPriority:   containerservice.ScaleSetPriority(priority),
 		Tags:               tags.Expand(t),
 		Type:               containerservice.VirtualMachineScaleSets,
 		VMSize:             containerservice.VMSizeTypes(vmSize),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
 		Count: utils.Int32(int32(count)),
+	}
+
+	if priority == string(containerservice.Spot) {
+		profile.ScaleSetEvictionPolicy = containerservice.ScaleSetEvictionPolicy(evictionPolicy)
+		profile.SpotMaxPrice = utils.Float(spotMaxPrice)
+	} else if evictionPolicy != "" {
+		return fmt.Errorf("`eviction_policy` can only be set when `priority` is set to `Spot`")
+	} else if spotMaxPrice != -1.0 {
+		return fmt.Errorf("`spot_max_price` can only be set when `priority` is set to `Spot`")
 	}
 
 	orchestratorVersion := d.Get("orchestrator_version").(string)
@@ -530,6 +570,12 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		d.Set("enable_auto_scaling", props.EnableAutoScaling)
 		d.Set("enable_node_public_ip", props.EnableNodePublicIP)
 
+		evictionPolicy := ""
+		if props.ScaleSetEvictionPolicy != "" {
+			evictionPolicy = string(props.ScaleSetEvictionPolicy)
+		}
+		d.Set("eviction_policy", evictionPolicy)
+
 		maxCount := 0
 		if props.MaxCount != nil {
 			maxCount = int(*props.MaxCount)
@@ -575,6 +621,20 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 		}
 		d.Set("os_disk_size_gb", osDiskSizeGB)
 		d.Set("os_type", string(props.OsType))
+
+		// not returned from the API if not Spot
+		priority := string(containerservice.Regular)
+		if props.ScaleSetPriority != "" {
+			priority = string(props.ScaleSetPriority)
+		}
+		d.Set("priority", priority)
+
+		spotMaxPrice := -1.0
+		if props.SpotMaxPrice != nil {
+			spotMaxPrice = *props.SpotMaxPrice
+		}
+		d.Set("spot_max_price", spotMaxPrice)
+
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))
 	}

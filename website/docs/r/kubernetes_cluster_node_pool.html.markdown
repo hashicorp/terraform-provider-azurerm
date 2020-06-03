@@ -14,6 +14,9 @@ Manages a Node Pool within a Kubernetes Cluster
 
 ## Example Usage
 
+This example provisions a basic Kubernetes Node Pool. Other examples of the `azurerm_kubernetes_cluster_node_pool` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes)
+
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -74,6 +77,10 @@ The following arguments are supported:
 
 * `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Defaults to `false`.
 
+* `eviction_policy` - (Optional) The Eviction Policy which should be used for Virtual Machines within the Virtual Machine Scale Set powering this Node Pool. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
+
+-> **Note:** An Eviction Policy can only be configured when `priority` is set to `Spot`.
+
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
@@ -82,17 +89,25 @@ The following arguments are supported:
 
 * `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
 
+* `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade)
+
+-> **Note:** This version must be supported by the Kubernetes Cluster - as such the version of Kubernetes used on the Cluster/Control Plane may need to be upgraded first.
+
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
+* `priority` - (Optional) The Priority for Virtual Machines within the Virtual Machine Scale Set that powers this Node Pool. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
+
+-> **Note:** When setting `priority` to Spot - you must configure an `eviction_policy`, `spot_max_price` and add the applicable `node_labels` and `node_taints` [as per the Azure Documentation](https://docs.microsoft.com/en-us/azure/aks/spot-node-pool).
+
+* `spot_max_price` - (Optional) The maximum price you're willing to pay in USD per Virtual Machine. Valid values are -1 (the current Virtual Machine price) or a positive value with up to five decimal places. Changing this forces a new resource to be created.
+
+~> **Note:** This field can only be configured when `priority` is set to `Spot`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API.
-
-* `orchestrator_version` - (Optional) Version of Kubernetes used for the Agents. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade)
-
--> **Note:** This version must be supported by the Kubernetes Cluster - as such the version of Kubernetes used on the Cluster/Control Plane may need to be upgraded first.
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist.
 
