@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -24,7 +25,7 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 		Update: resourceArmIoTTimeSeriesInsightsReferenceDataSetCreateUpdate,
 		Delete: resourceArmIoTTimeSeriesInsightsReferenceDataSetDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.TimeSeriesInsightsEnvironmentID(id)
+			_, err := parse.TimeSeriesInsightsReferenceDataSetID(id)
 			return err
 		}),
 
@@ -68,7 +69,7 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 
 			"key_property": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -110,19 +111,18 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.Reso
 	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	/*
-		if d.IsNewResource() {
-			existing, err := client.Get(ctx, resourceGroup, name, "")
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("checking for presence of existing IoT Time Series Insights Reference Data Set %q (Resource Group %q): %s", name, resourceGroup, err)
-				}
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, environmentName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing IoT Time Series Insights Reference Data Set %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
+		}
 
-			if existing.ID != nil && *existing.ID != "" {
-				return tf.ImportAsExistsError("azurerm_iot_time_series_insights_reference_data_set", *existing.ID)
-			}
-		}*/
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_iot_time_series_insights_reference_data_set", *existing.ID)
+		}
+	}
 
 	dataset := timeseriesinsights.ReferenceDataSetCreateOrUpdateParameters{
 		Location: &location,
@@ -162,7 +162,7 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSetRead(d *schema.ResourceData
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
 	if err != nil || resp.ID == nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -173,6 +173,7 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSetRead(d *schema.ResourceData
 	}
 
 	d.Set("name", resp.Name)
+	d.Set("environment_name", id.EnvironmentName)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -237,6 +238,7 @@ func flattenIoTTimeSeriesInsightsReferenceDataSetKeyProperties(input *[]timeseri
 		if name := property.Name; name != nil {
 			attr["name"] = *property.Name
 		}
+		properties = append(properties, attr)
 	}
 
 	return properties

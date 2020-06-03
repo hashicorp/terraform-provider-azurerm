@@ -29,6 +29,11 @@ resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
   environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  key_property {
+    name = "keyProperty1"
+    type = "String"
+  }
 }
 ```
 
@@ -78,5 +83,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Azure IoT Time Series Insights Reference Data Set can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iot_time_series_environment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.TimeSeriesInsights/environments/example
+terraform import azurerm_iot_time_series_insights_reference_data_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.TimeSeriesInsights/environments/example/referenceDataSets/example
 ```

@@ -65,25 +65,6 @@ func TestAccAzureRMIoTTimeSeriesInsightsReferenceDataSet_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIoTTimeSeriesInsightsReferenceDataSet_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_reference_data_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsReferenceDataSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsReferenceDataSet_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsReferenceDataSetExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func testCheckAzureRMIoTTimeSeriesInsightsReferenceDataSetExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.ReferenceDataSetsClient
@@ -100,7 +81,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsReferenceDataSetExists(name string) re
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on TimeSeriesInsightsReferenceDataSetClient: %+v", err)
 		}
@@ -126,7 +107,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsReferenceDataSetDestroy(s *terraform.S
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
 
 		if err != nil {
 			return nil
@@ -158,10 +139,15 @@ resource "azurerm_iot_time_series_insights_standard_environment" "test" {
 }
 
 resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
-  name                = "accTEst_tsie%d"
+  name                = "accTEsttsd%d"
   environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  key_property {
+    name = "keyProperty1"
+    type = "String"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -183,39 +169,20 @@ resource "azurerm_iot_time_series_insights_standard_environment" "test" {
   data_retention_time = "P30D"
 }
 resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
-  name                = "accTEst_tsie%d"
+  name                = "accTEsttsie%d"
   environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  tags = {
-    Environment = "Production"
+  key_property {
+    name = "keyProperty1"
+    type = "String"
   }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
 
-func testAccAzureRMIoTTimeSeriesInsightsReferenceDataSet_complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-tsi-%d"
-  location = "%s"
-}
-resource "azurerm_iot_time_series_insights_standard_environment" "test" {
-  name                = "accTEst_tsie%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "S1_1"
-  data_retention_time = "P30D"
-}
-resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
-  name                = "accTEst_tsie%d"
-  environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  key_property {
+    name = "keyProperty2"
+    type = "Bool"
+  }
 
   tags = {
     Environment = "Production"

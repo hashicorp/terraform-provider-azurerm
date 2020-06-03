@@ -15,7 +15,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&EnvironmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	ReferenceDataSetsClient := timeseriesinsights.NewReferenceDataSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&EnvironmentsClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&ReferenceDataSetsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		EnvironmentsClient:      &EnvironmentsClient,
