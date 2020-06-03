@@ -146,7 +146,10 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"node_taints": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"orchestrator_version": {
@@ -448,12 +451,6 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 
 	if d.HasChange("node_count") {
 		props.Count = utils.Int32(int32(d.Get("node_count").(int)))
-	}
-
-	if d.HasChange("node_taints") {
-		nodeTaintsRaw := d.Get("node_taints").([]interface{})
-		nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
-		props.NodeTaints = nodeTaints
 	}
 
 	if d.HasChange("orchestrator_version") {
