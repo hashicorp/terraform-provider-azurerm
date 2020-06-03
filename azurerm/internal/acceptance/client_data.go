@@ -22,7 +22,7 @@ type ClientData struct {
 	// SubscriptionID is the UUID of the Azure Subscription where tests are being run
 	SubscriptionID string
 
-	// SubscriptionID is the UUID of the Azure Subscription where tests are being run
+	// SubscriptionIDAlt is the UUID of the Alternate Azure Subscription where tests are being run
 	SubscriptionIDAlt string
 
 	// TenantID is the UUID of the Azure Tenant where tests are being run
