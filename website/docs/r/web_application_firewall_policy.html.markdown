@@ -88,8 +88,8 @@ resource "azurerm_web_application_firewall_policy" "example" {
     }
 
     managed_rule_set {
-      rule_set_type    = "OWASP"
-      rule_set_version = "3.1"
+      type    = "OWASP"
+      version = "3.1"
       rule_group_override {
         rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
         disabled_rules = [
@@ -185,7 +185,7 @@ The `exclusion` block supports the following:
 
 The `managed_rule_set` block supports the following:
 
-* `type` - (Required) The rule set type.
+* `type` - (Optional) The rule set type.
 
 * `version` - (Required) The rule set version.
 
