@@ -60,8 +60,9 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 
 			"single_placement_group": {
 				Type:     schema.TypeBool,
-				Required: true,
-				ForceNew: true,
+				Optional: true,
+				Default: false,
+				ValidateFunc:validateBoolIsFalse,
 			},
 
 			// the VMO mode can only be deployed into one zone for now, and its zone will also be assigned to all its VM instances
@@ -103,7 +104,7 @@ func resourceArmOrchestratedVirtualMachineScaleSetCreateUpdate(d *schema.Resourc
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		VirtualMachineScaleSetProperties: &compute.VirtualMachineScaleSetProperties{
 			PlatformFaultDomainCount: utils.Int32(int32(d.Get("platform_fault_domain_count").(int))),
-			SinglePlacementGroup:     utils.Bool(d.Get("single_placement_group").(bool)),
+			SinglePlacementGroup: utils.Bool(d.Get("single_placement_group").(bool)),
 		},
 		Zones: azure.ExpandZones(d.Get("zones").([]interface{})),
 	}
@@ -188,4 +189,18 @@ func resourceArmOrchestratedVirtualMachineScaleSetDelete(d *schema.ResourceData,
 	}
 
 	return nil
+}
+
+func validateBoolIsFalse(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(bool)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be boolean", k))
+		return
+	}
+
+	if v {
+		errors = append(errors, fmt.Errorf("%q can only be false", k))
+	}
+
+	return
 }

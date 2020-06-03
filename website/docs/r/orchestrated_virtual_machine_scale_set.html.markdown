@@ -25,8 +25,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
-  platform_fault_domain_count = 5
-  single_placement_group      = true
+  platform_fault_domain_count = 1
 
   zones = ["1"]
 }
@@ -46,11 +45,9 @@ The following arguments are supported:
 
 ~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
-* `single_placement_group` - (Required) Should the Orchestrated Virtual Machine Scale Set use single placement group? Changing this forces a new resource to be created.
+* `single_placement_group` - (Optional) Should the Orchestrated Virtual Machine Scale Set use single placement group?
 
-~> **NOTE:** Due to a limitation of the Azure API at this time, you can only assign `single_placement_group` to `true`.
-
-You cannot assign `single_placement_group` to `false` unless you have opted-in the private preview program of the orchestration mode of virtual machine scale sets.
+~> **NOTE:** Due to a limitation of the Azure API at this time, you can only assign `single_placement_group` to `false`.
 
 * `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in. Changing this forces a new resource to be created.
 
