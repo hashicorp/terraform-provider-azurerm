@@ -31,11 +31,8 @@ resource "azurerm_monitor_action_rule_suppression" "example" {
     recurrence_type = "Weekly"
 
     schedule {
-      start_date = "12/09/2018"
-      start_time = "06:00:00"
-      end_date   = "12/18/2018"
-      end_time   = "14:00:00"
-
+      start_date_utc    = "2019-01-01T01:02:03Z"
+      end_date_utc      = "2019-01-03T15:02:07Z"
       recurrence_weekly = ["Sunday", "Monday", "Friday", "Saturday"]
     }
   }
@@ -78,13 +75,9 @@ The `suppression` block supports the following:
 
 The `schedule` block supports the following:
 
-* `start_date` - (Required) specifies the UTC start date of recurrence range. The format should be `MM/DD/YYYY`.
+* `start_date_utc` - (Required) specifies the recurrence UTC start datetime (Y-m-d'T'H:M:S'Z').
 
-* `start_time` - (Required) specifies the UTC start time of recurrence range. The format should be `HH:MM:SS`.
-
-* `end_date` - (Required) specifies the UTC end date of recurrence range. The format should be `MM/DD/YYYY`.
-
-* `end_time` - (Required) specifies the UTC end time of recurrence range. The format should be `HH:MM:SS`.
+* `end_date_utc` - (Required) specifies the recurrence UTC end datetime (Y-m-d'T'H:M:S'Z').
 
 * `recurrence_weekly` - (Optional) specifies the list of dayOfWeek to recurrence. Possible values are `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` and  `Saturday`.
 

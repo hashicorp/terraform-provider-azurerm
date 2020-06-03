@@ -239,7 +239,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctest-monitor-%d"
   location = "%s"
 }
 

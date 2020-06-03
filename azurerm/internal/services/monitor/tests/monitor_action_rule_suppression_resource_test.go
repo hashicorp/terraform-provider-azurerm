@@ -211,10 +211,8 @@ resource "azurerm_monitor_action_rule_suppression" "test" {
     recurrence_type = "Weekly"
 
     schedule {
-      start_date = "12/09/2018"
-      start_time = "06:00:00"
-      end_date   = "12/18/2018"
-      end_time   = "14:00:00"
+      start_date_utc = "2019-01-01T01:02:03Z"
+      end_date_utc   = "2019-01-03T15:02:07Z"
 
       recurrence_weekly = ["Sunday", "Monday", "Friday", "Saturday"]
     }
@@ -282,10 +280,8 @@ resource "azurerm_monitor_action_rule_suppression" "test" {
     recurrence_type = "Daily"
 
     schedule {
-      start_date = "12/09/2018"
-      start_time = "06:00:00"
-      end_date   = "12/18/2018"
-      end_time   = "14:00:00"
+      start_date_utc = "2019-01-01T01:02:03Z"
+      end_date_utc   = "2019-01-03T15:02:07Z"
     }
   }
 }
@@ -310,10 +306,8 @@ resource "azurerm_monitor_action_rule_suppression" "test" {
     recurrence_type = "Monthly"
 
     schedule {
-      start_date         = "12/09/2018"
-      start_time         = "06:00:00"
-      end_date           = "12/18/2018"
-      end_time           = "14:00:00"
+      start_date_utc     = "2019-01-01T01:02:03Z"
+      end_date_utc       = "2019-01-03T15:02:07Z"
       recurrence_monthly = [1, 2, 15, 30, 31]
     }
   }
@@ -328,7 +322,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%d"
+  name     = "acctest-monitor-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)

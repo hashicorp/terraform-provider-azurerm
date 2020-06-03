@@ -34,10 +34,10 @@ func resourceArmMonitorActionRuleActionGroup() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.ActionRuleID(id)
 			return err
-		}),
+		}, importMonitorActionRule(alertsmanagement.TypeActionGroup)),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -66,102 +66,7 @@ func resourceArmMonitorActionRuleActionGroup() *schema.Resource {
 				Default:  true,
 			},
 
-			"condition": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"alert_context": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-								string(alertsmanagement.Contains),
-								string(alertsmanagement.DoesNotContain),
-							}, false),
-							validation.StringIsNotEmpty,
-						),
-
-						"alert_rule_id": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-								string(alertsmanagement.Contains),
-								string(alertsmanagement.DoesNotContain),
-							}, false),
-							validation.StringIsNotEmpty,
-						),
-
-						"description": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-								string(alertsmanagement.Contains),
-								string(alertsmanagement.DoesNotContain),
-							}, false),
-							validation.StringIsNotEmpty,
-						),
-
-						"monitor": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-							}, false),
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Fired),
-								string(alertsmanagement.Resolved),
-							}, false),
-						),
-
-						"monitor_service": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-							}, false),
-							// the supported type list is not consistent with the swagger and sdk
-							// https://github.com/Azure/azure-rest-api-specs/issues/9076
-							// directly use string constant
-							validation.StringInSlice([]string{
-								"ActivityLog Administrative",
-								"ActivityLog Autoscale",
-								"ActivityLog Policy",
-								"ActivityLog Recommendation",
-								"ActivityLog Security",
-								"Application Insights",
-								"Azure Backup",
-								"Data Box Edge",
-								"Data Box Gateway",
-								"Health Platform",
-								"Log Analytics",
-								"Platform",
-								"Resource Health",
-							}, false),
-						),
-
-						"severity": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-							}, false),
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Sev0),
-								string(alertsmanagement.Sev1),
-								string(alertsmanagement.Sev2),
-								string(alertsmanagement.Sev3),
-								string(alertsmanagement.Sev4),
-							}, false),
-						),
-
-						"target_resource_type": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-							}, false),
-							validation.StringIsNotEmpty,
-						),
-					},
-				},
-			},
+			"condition": schemaActionRuleConditions(),
 
 			"scope": {
 				Type:     schema.TypeList,

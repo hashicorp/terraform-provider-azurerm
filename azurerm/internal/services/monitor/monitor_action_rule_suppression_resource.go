@@ -34,10 +34,10 @@ func resourceArmMonitorActionRuleSuppression() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.ActionRuleID(id)
 			return err
-		}),
+		}, importMonitorActionRule(alertsmanagement.TypeSuppression)),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -73,28 +73,16 @@ func resourceArmMonitorActionRuleSuppression() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"end_date": {
+									"start_date_utc": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.ActionRuleScheduleDate,
+										ValidateFunc: validation.IsRFC3339Time,
 									},
 
-									"end_time": {
+									"end_date_utc": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.ActionRuleScheduleTime,
-									},
-
-									"start_date": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validate.ActionRuleScheduleDate,
-									},
-
-									"start_time": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validate.ActionRuleScheduleTime,
+										ValidateFunc: validation.IsRFC3339Time,
 									},
 
 									"recurrence_weekly": {
@@ -136,6 +124,8 @@ func resourceArmMonitorActionRuleSuppression() *schema.Resource {
 				Default:  true,
 			},
 
+			"condition": schemaActionRuleConditions(),
+
 			"scope": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -159,103 +149,6 @@ func resourceArmMonitorActionRuleSuppression() *schema.Resource {
 								ValidateFunc: azure.ValidateResourceID,
 							},
 						},
-					},
-				},
-			},
-
-			"condition": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"alert_context": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-								string(alertsmanagement.Contains),
-								string(alertsmanagement.DoesNotContain),
-							}, false),
-							validation.StringIsNotEmpty,
-						),
-
-						"alert_rule_id": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-								string(alertsmanagement.Contains),
-								string(alertsmanagement.DoesNotContain),
-							}, false),
-							validation.StringIsNotEmpty,
-						),
-
-						"description": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-								string(alertsmanagement.Contains),
-								string(alertsmanagement.DoesNotContain),
-							}, false),
-							validation.StringIsNotEmpty,
-						),
-
-						"monitor": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-							}, false),
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Fired),
-								string(alertsmanagement.Resolved),
-							}, false),
-						),
-
-						"monitor_service": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-							}, false),
-							// the supported type list is not consistent with the swagger and sdk
-							// https://github.com/Azure/azure-rest-api-specs/issues/9076
-							// directly use string constant
-							validation.StringInSlice([]string{
-								"ActivityLog Administrative",
-								"ActivityLog Autoscale",
-								"ActivityLog Policy",
-								"ActivityLog Recommendation",
-								"ActivityLog Security",
-								"Application Insights",
-								"Azure Backup",
-								"Data Box Edge",
-								"Data Box Gateway",
-								"Health Platform",
-								"Log Analytics",
-								"Platform",
-								"Resource Health",
-							}, false),
-						),
-
-						"severity": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-							}, false),
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Sev0),
-								string(alertsmanagement.Sev1),
-								string(alertsmanagement.Sev2),
-								string(alertsmanagement.Sev3),
-								string(alertsmanagement.Sev4),
-							}, false),
-						),
-
-						"target_resource_type": schemaActionRuleCondition(
-							validation.StringInSlice([]string{
-								string(alertsmanagement.Equals),
-								string(alertsmanagement.NotEquals),
-							}, false),
-							validation.StringIsNotEmpty,
-						),
 					},
 				},
 			},
@@ -425,17 +318,14 @@ func expandArmActionRuleSuppressionSchedule(input []interface{}, suppressionType
 		}
 	}
 
-	recurrenceValues := make([]int32, len(recurrence))
-	for i, item := range recurrence {
-		recurrenceValues[i] = int32(item.(int))
-	}
-
+	startDateUTC, _ := time.Parse(time.RFC3339, v["start_date_utc"].(string))
+	endDateUTC, _ := time.Parse(time.RFC3339, v["end_date_utc"].(string))
 	return &alertsmanagement.SuppressionSchedule{
-		StartDate:        utils.String(v["start_date"].(string)),
-		EndDate:          utils.String(v["end_date"].(string)),
-		StartTime:        utils.String(v["start_time"].(string)),
-		EndTime:          utils.String(v["end_time"].(string)),
-		RecurrenceValues: &recurrenceValues,
+		StartDate:        utils.String(startDateUTC.Format(scheduleDateLayout)),
+		EndDate:          utils.String(endDateUTC.Format(scheduleDateLayout)),
+		StartTime:        utils.String(startDateUTC.Format(scheduleTimeLayout)),
+		EndTime:          utils.String(endDateUTC.Format(scheduleTimeLayout)),
+		RecurrenceValues: utils.ExpandInt32Slice(recurrence),
 	}, nil
 }
 
@@ -469,37 +359,30 @@ func flattenArmActionRuleSuppressionSchedule(input *alertsmanagement.Suppression
 		return make([]interface{}, 0)
 	}
 
-	startDate := ""
-	startTime := ""
-	endDate := ""
-	endTime := ""
+	startDateUTCStr := ""
+	endDateUTCStr := ""
 	recurrenceWeekly := []interface{}{}
 	recurrenceMonthly := []interface{}{}
 
-	if input.StartDate != nil {
-		startDate = *input.StartDate
+	if input.StartDate != nil && input.StartTime != nil {
+		date, _ := time.ParseInLocation(scheduleDateTimeLayout, fmt.Sprintf("%s %s", *input.StartDate, *input.StartTime), time.UTC)
+		startDateUTCStr = date.Format(time.RFC3339)
 	}
-	if input.StartTime != nil {
-		startTime = *input.StartTime
+	if input.EndDate != nil && input.EndTime != nil {
+		date, _ := time.ParseInLocation(scheduleDateTimeLayout, fmt.Sprintf("%s %s", *input.EndDate, *input.EndTime), time.UTC)
+		endDateUTCStr = date.Format(time.RFC3339)
 	}
-	if input.EndDate != nil {
-		endDate = *input.EndDate
-	}
-	if input.EndTime != nil {
-		endTime = *input.EndTime
-	}
+
 	if recurrenceType == alertsmanagement.Weekly {
 		recurrenceWeekly = flattenArmActionRuleSuppressionScheduleRecurrenceWeekly(input.RecurrenceValues)
 	}
 	if recurrenceType == alertsmanagement.Monthly {
-		recurrenceMonthly = FlattenInt32Slice(input.RecurrenceValues)
+		recurrenceMonthly = utils.FlattenInt32Slice(input.RecurrenceValues)
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"start_date":         startDate,
-			"start_time":         startTime,
-			"end_date":           endDate,
-			"end_time":           endTime,
+			"start_date_utc":     startDateUTCStr,
+			"end_date_utc":       endDateUTCStr,
 			"recurrence_weekly":  recurrenceWeekly,
 			"recurrence_monthly": recurrenceMonthly,
 		},
