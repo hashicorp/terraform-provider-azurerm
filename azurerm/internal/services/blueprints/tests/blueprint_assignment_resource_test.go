@@ -22,7 +22,7 @@ func TestAccBlueprintAssignment_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription"),
+				Config: testAccBlueprintAssignment_basic(data, "testAcc_basicSubscription", "v0.1_testAcc"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckBlueprintAssignmentExists(data.ResourceName),
 				),
@@ -42,7 +42,7 @@ func TestAccBlueprintAssignment_subscriptionComplete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBlueprintAssignment_subscriptionComplete(data, "testAcc_subscriptionComplete"),
+				Config: testAccBlueprintAssignment_subscriptionComplete(data, "testAcc_subscriptionComplete", "v0.1_testAcc"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckBlueprintAssignmentExists(data.ResourceName),
 				),
@@ -62,7 +62,7 @@ func TestAccBlueprintAssignment_managementGroup(t *testing.T) {
 		CheckDestroy: testCheckAzureRMBlueprintAssignmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccBlueprintAssignment_rootManagementGroup(data, "testAcc_basicRootManagementGroup"),
+				Config: testAccBlueprintAssignment_rootManagementGroup(data, "testAcc_basicRootManagementGroup", "v0.1_testAcc"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckBlueprintAssignmentExists(data.ResourceName),
 				),
@@ -122,7 +122,7 @@ func testCheckAzureRMBlueprintAssignmentDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccBlueprintAssignment_basic(data acceptance.TestData, bpName string) string {
+func testAccBlueprintAssignment_basic(data acceptance.TestData, bpName string, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -133,15 +133,14 @@ data "azurerm_client_config" "current" {}
 data "azurerm_subscription" "test" {}
 
 data "azurerm_blueprint_definition" "test" {
-  name       = "%s"
-  scope_type = "subscriptions"
-  scope_name = data.azurerm_client_config.current.subscription_id
+  name     = "%s"
+  scope_id = data.azurerm_subscription.test.id
 }
 
 data "azurerm_blueprint_published_version" "test" {
-  subscription_id = data.azurerm_client_config.current.subscription_id
-  blueprint_name  = data.azurerm_blueprint_definition.test.name
-  version         = "v0.1_testAcc"
+  scope_id       = data.azurerm_blueprint_definition.test.scope_id
+  blueprint_name = data.azurerm_blueprint_definition.test.name
+  version        = "%s"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -162,27 +161,27 @@ resource "azurerm_role_assignment" "test" {
 }
 
 resource "azurerm_blueprint_assignment" "test" {
-  name       = "testAccBPAssignment"
-  scope_type = "subscriptions"
-  scope      = data.azurerm_client_config.current.subscription_id
-  location   = "%s"
+  name                   = "testAccBPAssignment"
+  target_subscription_id = data.azurerm_subscription.test.id
+  version_id             = data.azurerm_blueprint_published_version.test.id
+  location               = "%s"
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-  version_id = data.azurerm_blueprint_published_version.test.id
 
   depends_on = [
     azurerm_role_assignment.test
   ]
 }
-`, bpName, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
+`, bpName, version, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 // This test config creates a UM-MSI and assigns Owner to the target subscription.  This is necessary due to the changes
-// the referenced Blueprint Version needs to make to successfully apply.  If the test panics or otherwise fails,
-// Dangling resources can include the Role Assignment(s) at the Subscription, which will need to be removed
-func testAccBlueprintAssignment_subscriptionComplete(data acceptance.TestData, bpName string) string {
+// the referenced Blueprint Version needs to make to successfully apply.  If the test does not exit cleanly, "dangling"
+// resources can include the Role Assignment(s) at the Subscription, which will need to be removed
+func testAccBlueprintAssignment_subscriptionComplete(data acceptance.TestData, bpName string, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,14 +193,13 @@ data "azurerm_subscription" "test" {}
 
 data "azurerm_blueprint_definition" "test" {
   name       = "%s"
-  scope_type = "subscriptions"
-  scope_name = data.azurerm_client_config.current.subscription_id
+  scope_id = data.azurerm_subscription.test.id
 }
 
 data "azurerm_blueprint_published_version" "test" {
-  subscription_id = data.azurerm_client_config.current.subscription_id
-  blueprint_name  = data.azurerm_blueprint_definition.test.name
-  version         = "v0.1_testAcc"
+  scope_id       = data.azurerm_blueprint_definition.test.scope_id
+  blueprint_name = data.azurerm_blueprint_definition.test.name
+  version        = "%s"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -219,24 +217,23 @@ resource "azurerm_user_assigned_identity" "test" {
   name                = "bp-user-%d"
 }
 
-resource "azurerm_role_assignment" "test" {
+resource "azurerm_role_assignment" "operator" {
   scope                = data.azurerm_subscription.test.id
   role_definition_name = "Blueprint Operator"
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
-resource "azurerm_role_assignment" "test2" {
+resource "azurerm_role_assignment" "owner" {
   scope                = data.azurerm_subscription.test.id
   role_definition_name = "Owner"
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_blueprint_assignment" "test" {
-  name       = "testAccBPAssignment"
-  scope_type = "subscriptions"
-  scope      = data.azurerm_client_config.current.subscription_id
-  version_id = data.azurerm_blueprint_published_version.test.id
-  location   = "%s"
+  name                   = "testAccBPAssignment"
+  target_subscription_id = data.azurerm_subscription.test.id
+  version_id             = data.azurerm_blueprint_published_version.test.id
+  location               = "%s"
 
   lock_mode = "AllResourcesDoNotDelete"
 
@@ -266,14 +263,14 @@ resource "azurerm_blueprint_assignment" "test" {
   VALUES
 
   depends_on = [
-    azurerm_role_assignment.test,
-    azurerm_role_assignment.test2
+    azurerm_role_assignment.operator,
+    azurerm_role_assignment.owner
   ]
 }
-`, bpName, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccBlueprintAssignment_rootManagementGroup(data acceptance.TestData, bpName string) string {
+func testAccBlueprintAssignment_rootManagementGroup(data acceptance.TestData, bpName string, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -283,16 +280,19 @@ data "azurerm_client_config" "current" {}
 
 data "azurerm_subscription" "test" {}
 
+data "azurerm_management_group" "root" {
+  group_id = data.azurerm_client_config.current.tenant_id
+}
+
 data "azurerm_blueprint_definition" "test" {
-  name       = "%s"
-  scope_type = "managementGroup"
-  scope_name = data.azurerm_client_config.current.tenant_id
+  name     = "%s"
+  scope_id = data.azurerm_management_group.root.id
 }
 
 data "azurerm_blueprint_published_version" "test" {
-  management_group = data.azurerm_client_config.current.tenant_id
-  blueprint_name   = data.azurerm_blueprint_definition.test.name
-  version          = "v0.1_testAcc"
+  scope_id       = data.azurerm_blueprint_definition.test.scope_id
+  blueprint_name = data.azurerm_blueprint_definition.test.name
+  version        = "%s"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -310,24 +310,23 @@ resource "azurerm_user_assigned_identity" "test" {
   name                = "bp-user-%d"
 }
 
-resource "azurerm_role_assignment" "test" {
+resource "azurerm_role_assignment" "operator" {
   scope                = data.azurerm_subscription.test.id
   role_definition_name = "Blueprint Operator"
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
-resource "azurerm_role_assignment" "test2" {
+resource "azurerm_role_assignment" "owner" {
   scope                = data.azurerm_subscription.test.id
   role_definition_name = "Owner"
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_blueprint_assignment" "test" {
-  name       = "testAccBPAssignment"
-  scope_type = "subscriptions"
-  scope      = data.azurerm_client_config.current.subscription_id
-  version_id = data.azurerm_blueprint_published_version.test.id
-  location   = "%s"
+  name                   = "testAccBPAssignment"
+  target_subscription_id = data.azurerm_subscription.test.id
+  version_id             = data.azurerm_blueprint_published_version.test.id
+  location               = "%s"
 
   identity {
     type         = "UserAssigned"
@@ -335,9 +334,9 @@ resource "azurerm_blueprint_assignment" "test" {
   }
 
   depends_on = [
-    azurerm_role_assignment.test,
-    azurerm_role_assignment.test2
+    azurerm_role_assignment.operator,
+    azurerm_role_assignment.owner
   ]
 }
-`, bpName, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+`, bpName, version, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }

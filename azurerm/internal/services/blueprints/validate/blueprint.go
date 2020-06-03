@@ -2,9 +2,8 @@ package validate
 
 import (
 	"fmt"
-	"regexp"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/parse"
+	"regexp"
 )
 
 func BlueprintID(i interface{}, k string) (warnings []string, errors []error) {
@@ -32,5 +31,6 @@ func BlueprintName(i interface{}, k string) (warnings []string, errors []error) 
 	if matched := regexp.MustCompile(`^[A-Za-z0-9-_]{1,48}$`).Match([]byte(v)); !matched {
 		errors = append(errors, fmt.Errorf("%s can include letters, numbers, underscores or dashes. Spaces and other special characters are not allowed.", k))
 	}
-	return
+
+	return warnings, errors
 }

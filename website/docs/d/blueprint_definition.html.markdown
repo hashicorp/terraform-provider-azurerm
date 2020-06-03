@@ -13,8 +13,15 @@ Use this data source to access information about an existing Azure Blueprint Def
 ## Example Usage
 
 ```hcl
-data "azurerm_blueprint_definition" "example" {
+data "azurerm_client_config" "current" {}
 
+data "azurerm_management_group" "root" {
+  name = data.azurerm_client_config.current.tenant_id
+}
+
+data "azurerm_blueprint_definition" "example" {
+  name     = "exampleManagementGroupBP"
+  scope_id = data.azurerm_management_group.root.id 
 }
 
 ```
@@ -23,9 +30,7 @@ data "azurerm_blueprint_definition" "example" {
 
 * `name` - (Required) The name of the Blueprint
 
-* `scope_type` - (Required) The scope at which the blueprint definition is stored. Possible values are `subscriptions` and `managementGroup`.  
-
-* `scope_name` - (Required) The name of the scope. This is a subscription ID or Management Group name, depending on the `scope_type`.  
+* `scope_id` - (Required) The Resource ID of the scope at which the blueprint definition is stored. This will be with either a Subscription ID or Management Group ID.  
 
 ## Attribute Reference
 

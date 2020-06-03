@@ -2,6 +2,9 @@ package blueprints
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	mgValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -20,16 +23,13 @@ func dataSourceArmBlueprintPublishedVersion() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"subscription_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.UUID,
-			},
-
-			"management_group": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+			"scope_id": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.Any(
+					azure.ValidateResourceID,
+					mgValidate.ManagementGroupID,
+				),
 			},
 
 			"blueprint_name": {
@@ -84,28 +84,7 @@ func dataSourceArmBlueprintPublishedVersionRead(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	subscriptionRaw := d.Get("subscription_id")
-	var subscription, managementGroup string
-	if subscriptionRaw != nil {
-		subscription = subscriptionRaw.(string)
-	}
-	managementGroupRaw := d.Get("management_group")
-	if managementGroupRaw != nil {
-		managementGroup = managementGroupRaw.(string)
-	}
-
-	var scope string
-
-	if subscription == "" && managementGroup == "" {
-		return fmt.Errorf("One of subscription or management group must be specified")
-	}
-
-	if subscription != "" {
-		scope = fmt.Sprintf("subscriptions/%s", subscription)
-	} else {
-		scope = fmt.Sprintf("providers/Microsoft.Management/managementGroups/%s", managementGroup)
-	}
-
+	scope := d.Get("scope_id").(string)
 	blueprintName := d.Get("blueprint_name").(string)
 	versionID := d.Get("version").(string)
 
@@ -124,7 +103,7 @@ func dataSourceArmBlueprintPublishedVersionRead(d *schema.ResourceData, meta int
 		d.SetId(*resp.ID)
 	}
 
-	if resp.Type == nil {
+	if resp.Type != nil {
 		d.Set("type", resp.Type)
 	}
 

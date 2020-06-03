@@ -24,7 +24,6 @@ func TestAccDataSourceBlueprintDefinition_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
 					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "subscriptions"),
 				),
 			},
 		},
@@ -46,7 +45,6 @@ func TestAccDataSourceBlueprintDefinition_basicAtRootManagementGroup(t *testing.
 					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "managementGroup"),
 				),
 			},
 		},
@@ -67,7 +65,6 @@ func TestAccDataSourceBlueprintDefinition_basicAtChildManagementGroup(t *testing
 					resource.TestCheckResourceAttrSet(data.ResourceName, "time_created"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "last_modified"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"), // Only subscriptions can be targets
-					resource.TestCheckResourceAttr(data.ResourceName, "scope_type", "managementGroup"),
 				),
 			},
 		},
@@ -80,12 +77,11 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_subscription" "current" {}
 
 data "azurerm_blueprint_definition" "test" {
-  name       = "testAcc_basicSubscription"
-  scope_type = "subscriptions"
-  scope_name = data.azurerm_client_config.current.subscription_id
+  name     = "testAcc_basicSubscription"
+  scope_id = data.azurerm_subscription.current.id
 }
 
 `
@@ -97,12 +93,13 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_management_group" "test" {
+  name = "%s"
+}
 
 data "azurerm_blueprint_definition" "test" {
-  name       = "testAcc_staticStubManagementGroup"
-  scope_type = "managementGroup"
-  scope_name = "%s"
+  name     = "testAcc_staticStubManagementGroup"
+  scope_id = data.azurerm_management_group.test.id 
 }
 
 `, managementGroup)
@@ -116,10 +113,13 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
+data "azurerm_management_group" "root" {
+  name = data.azurerm_client_config.current.tenant_id
+}
+
 data "azurerm_blueprint_definition" "test" {
-  name       = "testAcc_basicRootManagementGroup"
-  scope_type = "managementGroup"
-  scope_name = data.azurerm_client_config.current.tenant_id
+  name     = "testAcc_basicRootManagementGroup"
+  scope_id = data.azurerm_management_group.root.id 
 }
 
 `

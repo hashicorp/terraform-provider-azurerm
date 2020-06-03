@@ -16,21 +16,13 @@ Manages a Blueprint Assignment resource
 
 * `name` - (Required) The name of the Blueprint Assignment
 
-* `scope_type` - (Required) The target scope type of the Blueprint Assignment. One of `subscription` or `managementGroup` (case sensitive)
+* `target_subscription_id` - (Required) The Subscription ID the Blueprint Published Version is to be applied to.
 
-* `scope` - (Required) The ID of the subscription or name of the Management group of the target scope type.
-
-* `location` - (Required) The Azure location of the Assignment
+* `location` - (Required) The Azure location of the Assignment. 
 
 * `identitiy` - (Required) an identity block, as detailed below.
 
-* `blueprint_id` - (Optional) The ID of the Blueprint Definition to be assigned.
-
-* `version_name` - (Optional) The version name of the Published Blueprint to be assigned.
-
-* `version_id` - (Optional) The ID of the Published Version of the blueprint to be assigned. 
-
-~> **NOTE:** Either `version_id`, or the `blueprint_id` and `version_name` need to be specified.
+* `version_id` - (Required) The ID of the Published Version of the blueprint to be assigned. 
 
 * `parameter_values` - (Optional) a JSON string to supply Blueprint Assignment parameter values.
 

@@ -75,13 +75,12 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
+data "azurerm_subscription" "current" {}
 
 data "azurerm_blueprint_published_version" "test" {
-  subscription_id = data.azurerm_client_config.current.subscription_id
-  blueprint_name  = "%s"
-  version         = "%s"
+  scope_id       = data.azurerm_subscription.current.id
+  blueprint_name = "%s"
+  version        = "%s"
 }
 `, bpName, version)
 }
@@ -92,13 +91,16 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
+data "azurerm_client_config" "current" {}
+
+data "azurerm_management_group" "root" {
+  name = data.azurerm_client_config.current.tenant_id
 }
 
 data "azurerm_blueprint_published_version" "test" {
-  management_group = data.azurerm_client_config.current.tenant_id
-  blueprint_name   = "%s"
-  version          = "%s"
+  scope_id       = data.azurerm_management_group.root.id
+  blueprint_name = "%s"
+  version        = "%s"
 }
 `, bpName, version)
 }
@@ -109,11 +111,12 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
+data "azurerm_management_group" "test" {
+  name = "%s"
 }
 
 data "azurerm_blueprint_published_version" "test" {
-  management_group = "%s"
+  management_group = data.azurerm_management_group.test.id
   blueprint_name   = "%s"
   version          = "%s"
 }

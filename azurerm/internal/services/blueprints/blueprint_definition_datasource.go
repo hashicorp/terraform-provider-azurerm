@@ -6,8 +6,10 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/validate"
+	mgValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,19 +29,13 @@ func dataSourceArmBlueprintDefinition() *schema.Resource {
 				ValidateFunc: validate.BlueprintName,
 			},
 
-			"scope_type": {
+			"scope_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"subscriptions",
-					"managementGroup",
-				}, false),
-			},
-
-			"scope_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.Any(
+					azure.ValidateResourceID,
+					mgValidate.ManagementGroupID,
+					),
 			},
 
 			// Computed
@@ -85,15 +81,7 @@ func dataSourceArmBlueprintDefinitionRead(d *schema.ResourceData, meta interface
 	defer cancel()
 
 	name := d.Get("name").(string)
-	var scope string
-	scopeName := d.Get("scope_name").(string)
-	scopeType := d.Get("scope_type").(string)
-	switch scopeType {
-	case "subscriptions":
-		scope = fmt.Sprintf("subscriptions/%s", scopeName)
-	case "managementGroup":
-		scope = fmt.Sprintf("providers/Microsoft.Management/managementGroups/%s", scopeName)
-	}
+	scope := d.Get("scope_id").(string)
 
 	resp, err := client.Get(ctx, scope, name)
 	if err != nil {
@@ -130,3 +118,4 @@ func dataSourceArmBlueprintDefinitionRead(d *schema.ResourceData, meta interface
 
 	return nil
 }
+

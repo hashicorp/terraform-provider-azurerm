@@ -45,7 +45,7 @@ func DefinitionID(input string) (*DefinitionId, error) {
 	case "subscriptions":
 		id, err := azure.ParseAzureResourceID(input)
 		if err != nil {
-			return nil, fmt.Errorf("[ERROR] Unable to parse Image ID %q: %+v", input, err)
+			return nil, fmt.Errorf("[ERROR] Unable to parse Blueprint Definition ID %q: %+v", input, err)
 		}
 
 		definitionId.Scope = fmt.Sprintf("subscriptions/%s", id.SubscriptionID)

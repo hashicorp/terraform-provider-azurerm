@@ -3,7 +3,6 @@ package blueprints
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
@@ -43,46 +42,38 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"scope_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"subscriptions",
-					"managementGroup",
-				}, true),
-			},
-
-			"scope": {
+			"target_subscription_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"location": location.Schema(),
 
 			"identity": ManagedIdentitySchema(),
 
-			"blueprint_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validate.BlueprintID,
-			},
-
-			"version_name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
+			//"blueprint_id": {
+			//	Type:         schema.TypeString,
+			//	Optional:     true,
+			//	Computed:     true,
+			//	ValidateFunc: validate.BlueprintID,
+			//},
+			//
+			//"version_name": {
+			//	Type:         schema.TypeString,
+			//	Optional:     true,
+			//	Computed:     true,
+			//	ValidateFunc: validation.StringIsNotEmpty,
+			//},
+			//
 			"version_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
+				Required:     true,
 				ValidateFunc: validate.BlueprintVersionID,
 			},
 
@@ -153,31 +144,9 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	var name, targetScope, blueprintId string
-
-	if versionIdRaw, ok := d.GetOk("version_id"); ok {
-		if _, ok := d.GetOk("blueprint_id"); ok {
-			return fmt.Errorf("cannot specify `blueprint_id` when `version_id` is specified")
-		}
-
-		if _, ok := d.GetOk("version_name"); ok {
-			return fmt.Errorf("cannot specify `version_name` when `version_id` is specified")
-		}
-		blueprintId = versionIdRaw.(string)
-	} else {
-		if bpIDRaw, ok := d.GetOk("blueprint_id"); ok {
-			if versionName, ok := d.GetOk("version_name"); ok {
-				blueprintId = fmt.Sprintf("%s/versions/%s", bpIDRaw.(string), versionName.(string))
-			} else {
-				return fmt.Errorf("`version_name` must be specified if `version_id` is not supplied")
-			}
-		} else {
-			return fmt.Errorf("`blueprint_id` must be specified if `version_id` is not supplied")
-		}
-	}
-
-	targetScope = fmt.Sprintf("%s/%s", d.Get("scope_type"), d.Get("scope"))
-	name = d.Get("name").(string)
+	name := d.Get("name").(string)
+	blueprintId := d.Get("version_id").(string)
+	targetScope := d.Get("target_subscription_id").(string)
 
 	assignment := blueprint.Assignment{
 		AssignmentProperties: &blueprint.AssignmentProperties{
@@ -237,7 +206,7 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Failed waiting for Blueprint Assignment %q (Scope %q): %+v", name, targetScope, err)
+		return fmt.Errorf("failed waiting for Blueprint Assignment %q (Scope %q): %+v", name, targetScope, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -274,13 +243,7 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if resp.Scope != nil {
-		scopeParts := strings.Split(strings.Trim(*resp.Scope, "/"), "/")
-		if len(scopeParts) == 2 {
-			d.Set("scope_type", scopeParts[0])
-			d.Set("scope", scopeParts[1])
-		} else {
-			return fmt.Errorf("read on Assignment scope failed, got: %+v", *resp.Scope)
-		}
+		d.Set("target_subscription_id", resp.Scope)
 	}
 
 	if resp.Location != nil {
@@ -294,9 +257,6 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 	if resp.AssignmentProperties != nil {
 		if resp.AssignmentProperties.BlueprintID != nil {
 			d.Set("version_id", resp.AssignmentProperties.BlueprintID)
-			bpID, versionName := splitPublishedVersionID(*resp.BlueprintID)
-			d.Set("blueprint_id", bpID)
-			d.Set("version_name", versionName)
 		}
 
 		if resp.Parameters != nil {
