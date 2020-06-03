@@ -104,8 +104,11 @@ func SchemaDefaultNodePool() *schema.Schema {
 
 				"node_taints": {
 					Type:     schema.TypeList,
+					ForceNew: true,
 					Optional: true,
-					Elem:     &schema.Schema{Type: schema.TypeString},
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 
 				"tags": tags.Schema(),
