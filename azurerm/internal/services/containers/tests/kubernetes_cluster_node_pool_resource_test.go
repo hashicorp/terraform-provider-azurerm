@@ -1356,9 +1356,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   priority              = "Spot"
   eviction_policy       = "Delete"
   spot_max_price        = 0.5 # high, but this is a maximum (we pay less) so ensures this won't fail
-  node_labels = [
-    "kubernetes.azure.com/scalesetpriority" = "spot"
-  ]
+  node_labels           = {
+     "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
   node_taints = [
     "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
   ]

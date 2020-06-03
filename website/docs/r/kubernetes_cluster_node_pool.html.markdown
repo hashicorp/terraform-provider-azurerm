@@ -101,6 +101,8 @@ The following arguments are supported:
 
 -> **Note:** When setting `priority` to Spot - you must configure an `eviction_policy`, `spot_max_price` and add the applicable `node_labels` and `node_taints` [as per the Azure Documentation](https://docs.microsoft.com/en-us/azure/aks/spot-node-pool).
 
+~> **Note:** Spot Node Pools are in Preview and must be opted-into - [more information on how to opt into this Preview can be found in the AKS Documentation](https://docs.microsoft.com/en-us/azure/aks/spot-node-pool).
+
 * `spot_max_price` - (Optional) The maximum price you're willing to pay in USD per Virtual Machine. Valid values are -1 (the current Virtual Machine price) or a positive value with up to five decimal places. Changing this forces a new resource to be created.
 
 ~> **Note:** This field can only be configured when `priority` is set to `Spot`.
