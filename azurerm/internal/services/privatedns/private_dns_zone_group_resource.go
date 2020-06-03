@@ -1,4 +1,4 @@
-package network
+package privatedns
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -16,14 +15,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/parse"
 )
 
-func resourceArmPrivateEndpoint() *schema.Resource {
+func resourceArmPrivateDnsZoneGroup() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateEndpointCreateUpdate,
-		Read:   resourceArmPrivateEndpointRead,
-		Update: resourceArmPrivateEndpointCreateUpdate,
-		Delete: resourceArmPrivateEndpointDelete,
+		Create: resourceArmPrivateDnsZoneGroupCreateUpdate,
+		Read:   resourceArmPrivateDnsZoneGroupRead,
+		Update: resourceArmPrivateDnsZoneGroupCreateUpdate,
+		Delete: resourceArmPrivateDnsZoneGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,79 +40,85 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidatePrivateLinkName,
+				ValidateFunc: ValidatePrivateDnsZoneGroupName,
 			},
 
-			"location": azure.SchemaLocation(),
-
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
-
-			"subnet_id": {
+			"private_endpoint_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"private_service_connection": {
+			"private_dns_zone_ids": {
 				Type:     schema.TypeList,
 				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: ValidatePrivateLinkName,
-						},
-						"is_manual_connection": {
-							Type:     schema.TypeBool,
-							Required: true,
-							ForceNew: true,
-						},
-						"private_connection_resource_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-						"subresource_names": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: ValidatePrivateLinkSubResourceName,
-							},
-						},
-						"request_message": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringLenBetween(1, 140),
-						},
-						"private_ip_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
 
-			"custom_dns_configs": {
+			"private_dns_zone_configs": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"fqdn": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"ip_addresses": {
+						"private_dns_zone_config": {
 							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"privateDnsZoneId": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"record_sets": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+											"record_set": {
+												Type:     schema.TypeList,
+												Computed: true,
+												Elem: &schema.Resource{
+													Schema: map[string]*schema.Schema{
+														"name": {
+															Type:     schema.TypeString,
+															Computed: true,
+														},
+														"type": {
+															Type:     schema.TypeString,
+															Computed: true,
+														},
+														"fqdn": {
+															Type:     schema.TypeString,
+															Computed: true,
+														},
+														"ttl": {
+															Type:     schema.TypeInt,
+															Computed: true,
+														},
+														"ip_addresses": {
+															Type:     schema.TypeList,
+															Computed: true,
+															Elem: &schema.Schema{
+																Type: schema.TypeString,
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
 							},
 						},
 					},
@@ -124,89 +130,84 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateEndpointClient
+func resourceArmPrivateDnsZoneGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	privateEndpointId := d.Get("private_endpoint_id").(string)
+	privateDnsZoneIds := d.Get("private_dns_zone_ids").([]interface{})
+
+	privateEndpoint, err := parse.PrivateEndpointResourceID(privateEndpointId)
+	if err != nil {
+		return err
+	}
+	privateDnsZones, err := parse.PrivateDnsZoneResourceIDs(privateDnsZoneIds)
+	if err != nil {
+		return err
+	}
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if err := ValidatePrivateEndpointSettings(d); err != nil {
-		return fmt.Errorf("validating the configuration for the Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		for _, v := range privateDnsZones {
+			existing, err := client.Get(ctx, privateEndpoint.ResourceGroup, privateEndpoint.Name, v.Name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Private Endpoint DNS Zone Group %q (Resource Group %q): %+v", v.Name, privateEndpoint.ResourceGroup, err)
+				}
+			}
+
+			if existing.ID != nil && *existing.ID != "" {
+				return tf.ImportAsExistsError("azurerm_private_dns_zone_group", *existing.ID)
 			}
 		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_private_endpoint", *existing.ID)
-		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
-	privateServiceConnections := d.Get("private_service_connection").([]interface{})
-	subnetId := d.Get("subnet_id").(string)
+	parameters := network.PrivateDNSZoneGroup{}
+	result := network.PrivateDNSZoneConfig{}
 
-	parameters := network.PrivateEndpoint{
-		Location: utils.String(location),
-		PrivateEndpointProperties: &network.PrivateEndpointProperties{
-			PrivateLinkServiceConnections:       expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
-			ManualPrivateLinkServiceConnections: expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
-			Subnet: &network.Subnet{
-				ID: utils.String(subnetId),
+	parameters.Name = utils.string(name)
+	privateDnsZoneConfigs := make([]network.PrivateDNSZoneConfig, 0)
+
+	for _, item := range privateDnsZones {
+		v := network.PrivateDNSZoneConfig{
+			Name: utils.String(item.Name),
+			PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
+				PrivateDNSZoneID: utils.String(item.ID),
 			},
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		}
+
+		privateDnsZoneConfigs = append(privateDnsZoneConfigs, v)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	parameters.PrivateDNSZoneGroupPropertiesFormat = &network.PrivateDNSZoneGroupPropertiesFormat{
+		PrivateDNSZoneConfigs:  &privateDnsZoneConfigs,
+	}
+
+	future, err := client.CreateOrUpdate(ctx, privateEndpoint.ResourceGroup, PrivateEndpoint.Name, name, parameters)
 	if err != nil {
-		if azure.StringContains(err.Error(), "is missing required parameter 'group Id'") {
-			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q) due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", name, resourceGroup, err)
-		} else {
-			return fmt.Errorf("creating Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
+		return fmt.Errorf("creating Private Endpoint DNS Zone Group %q (Resource Group %q): %+v", dnsGroupName, resourceGroup, err)
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if err = future.WaitForCompletionRef(ctx, dnsClient.Client); err != nil {
+		return fmt.Errorf("waiting for creation of Private Endpoint DNS Zone Group %q (Resource Group %q): %+v", dnsGroupName, resourceGroup, err)
 	}
 
-	dnsGroupParameters := expandArmPrivateDnsZoneGroup(privateDnsZoneGroup)
-
-	if dnsGroupName := dnsGroupParameters.Name; dnsGroupName != nil {
-		dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
-		future, err := dnsClient.CreateOrUpdate(ctx, resourceGroup, name, *dnsGroupName, dnsGroupParameters)
-		if err != nil {
-			return fmt.Errorf("creating Private Endpoint DNS Zone Group %q (Resource Group %q): %+v", dnsGroupName, resourceGroup, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, dnsClient.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Private Endpoint DNS Zone Group %q (Resource Group %q): %+v", dnsGroupName, resourceGroup, err)
-		}
-	}
-
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, privateEndpoint.ResourceGroup, privateEndpoint.Name, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Private DNS Zone Group %q (Resource Group %q): %+v", name, privateEndpoint.ResourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("API returns a nil/empty id on Private DNS Zone Group %q (Resource Group %q): %+v", name, privateEndpointresourceGroup, err)
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmPrivateEndpointRead(d, meta)
+	return resourceArmPrivateDnsZoneGroupRead(d, meta)
 }
 
-func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateEndpointClient
-	nicsClient := meta.(*clients.Client).Network.InterfacesClient
-	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
+func resourceArmPrivateDnsZoneGroupRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -275,7 +276,7 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPrivateDnsZoneGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
