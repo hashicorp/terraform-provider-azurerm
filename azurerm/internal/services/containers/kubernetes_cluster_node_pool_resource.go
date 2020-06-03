@@ -3,6 +3,7 @@ package containers
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
@@ -357,7 +358,7 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ClusterName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("[DEBUG] Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q!", id.Name, id.ClusterName, id.ResourceGroup)
+			return fmt.Errorf("Node Pool %q was not found in Managed Kubernetes Cluster %q / Resource Group %q!", id.Name, id.ClusterName, id.ResourceGroup)
 		}
 
 		return fmt.Errorf("retrieving Node Pool %q (Managed Kubernetes Cluster %q / Resource Group %q): %+v", id.Name, id.ClusterName, id.ResourceGroup, err)
@@ -415,6 +416,16 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	}
 
 	if d.HasChange("orchestrator_version") {
+		// Spot Node pool's can't be updated - Azure Docs: https://docs.microsoft.com/en-us/azure/aks/spot-node-pool
+		//   > You can't upgrade a spot node pool since spot node pools can't guarantee cordon and drain.
+		//   > You must replace your existing spot node pool with a new one to do operations such as upgrading
+		//   > the Kubernetes version. To replace a spot node pool, create a new spot node pool with a different
+		//   > version of Kubernetes, wait until its status is Ready, then remove the old node pool.
+		if strings.EqualFold(string(props.ScaleSetPriority), string(containerservice.Spot)) {
+			// ^ the Scale Set Priority isn't returned when Regular
+			return fmt.Errorf("the Orchestrator Version cannot be updated when using a Spot Node Pool")
+		}
+
 		orchestratorVersion := d.Get("orchestrator_version").(string)
 		if err := validateNodePoolSupportsVersion(ctx, containersClient, id.ResourceGroup, id.ClusterName, id.Name, orchestratorVersion); err != nil {
 			return err
