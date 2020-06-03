@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -186,11 +187,11 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			},
 
 			"spot_max_price": {
-				Type:     schema.TypeFloat,
-				Optional: true,
-				ForceNew: true,
-				Default:  -1.0,
-				// TODO: validation function
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      -1.0,
+				ValidateFunc: computeValidate.SpotMaxPrice,
 			},
 
 			"vnet_subnet_id": {
