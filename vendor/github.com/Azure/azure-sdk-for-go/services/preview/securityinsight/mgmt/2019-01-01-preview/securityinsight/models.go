@@ -792,32 +792,15 @@ func PossibleKindBasicEntityValues() []KindBasicEntity {
 type KindBasicSettings string
 
 const (
+	// KindEyesOn ...
+	KindEyesOn KindBasicSettings = "EyesOn"
 	// KindSettings ...
 	KindSettings KindBasicSettings = "Settings"
-	// KindToggleSettings ...
-	KindToggleSettings KindBasicSettings = "ToggleSettings"
-	// KindUebaSettings ...
-	KindUebaSettings KindBasicSettings = "UebaSettings"
 )
 
 // PossibleKindBasicSettingsValues returns an array of possible values for the KindBasicSettings const type.
 func PossibleKindBasicSettingsValues() []KindBasicSettings {
-	return []KindBasicSettings{KindSettings, KindToggleSettings, KindUebaSettings}
-}
-
-// LicenseStatus enumerates the values for license status.
-type LicenseStatus string
-
-const (
-	// LicenseStatusDisabled ...
-	LicenseStatusDisabled LicenseStatus = "Disabled"
-	// LicenseStatusEnabled ...
-	LicenseStatusEnabled LicenseStatus = "Enabled"
-)
-
-// PossibleLicenseStatusValues returns an array of possible values for the LicenseStatus const type.
-func PossibleLicenseStatusValues() []LicenseStatus {
-	return []LicenseStatus{LicenseStatusDisabled, LicenseStatusEnabled}
+	return []KindBasicSettings{KindEyesOn, KindSettings}
 }
 
 // MicrosoftSecurityProductName enumerates the values for microsoft security product name.
@@ -944,36 +927,6 @@ const (
 // PossibleRelationTypesValues returns an array of possible values for the RelationTypes const type.
 func PossibleRelationTypesValues() []RelationTypes {
 	return []RelationTypes{CasesToBookmarks}
-}
-
-// SettingKind enumerates the values for setting kind.
-type SettingKind string
-
-const (
-	// SettingKindToggleSettings ...
-	SettingKindToggleSettings SettingKind = "ToggleSettings"
-	// SettingKindUebaSettings ...
-	SettingKindUebaSettings SettingKind = "UebaSettings"
-)
-
-// PossibleSettingKindValues returns an array of possible values for the SettingKind const type.
-func PossibleSettingKindValues() []SettingKind {
-	return []SettingKind{SettingKindToggleSettings, SettingKindUebaSettings}
-}
-
-// StatusInMcas enumerates the values for status in mcas.
-type StatusInMcas string
-
-const (
-	// StatusInMcasDisabled ...
-	StatusInMcasDisabled StatusInMcas = "Disabled"
-	// StatusInMcasEnabled ...
-	StatusInMcasEnabled StatusInMcas = "Enabled"
-)
-
-// PossibleStatusInMcasValues returns an array of possible values for the StatusInMcas const type.
-func PossibleStatusInMcasValues() []StatusInMcas {
-	return []StatusInMcas{StatusInMcasDisabled, StatusInMcasEnabled}
 }
 
 // TemplateStatus enumerates the values for template status.
@@ -3874,264 +3827,6 @@ type BookmarkProperties struct {
 	IncidentInfo *IncidentInfo `json:"incidentInfo,omitempty"`
 }
 
-// BookmarkRelation represents a bookmark relation
-type BookmarkRelation struct {
-	autorest.Response `json:"-"`
-	// BookmarkRelationProperties - Bookmark relation properties
-	*BookmarkRelationProperties `json:"properties,omitempty"`
-	// Kind - READ-ONLY; The type of relation node. Possible values include: 'CasesToBookmarks'
-	Kind RelationTypes `json:"kind,omitempty"`
-	// Etag - ETag for relation
-	Etag *string `json:"etag,omitempty"`
-	// ID - READ-ONLY; Azure resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Azure resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Azure resource type
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for BookmarkRelation.
-func (br BookmarkRelation) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if br.BookmarkRelationProperties != nil {
-		objectMap["properties"] = br.BookmarkRelationProperties
-	}
-	if br.Etag != nil {
-		objectMap["etag"] = br.Etag
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for BookmarkRelation struct.
-func (br *BookmarkRelation) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var bookmarkRelationProperties BookmarkRelationProperties
-				err = json.Unmarshal(*v, &bookmarkRelationProperties)
-				if err != nil {
-					return err
-				}
-				br.BookmarkRelationProperties = &bookmarkRelationProperties
-			}
-		case "kind":
-			if v != nil {
-				var kind RelationTypes
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				br.Kind = kind
-			}
-		case "etag":
-			if v != nil {
-				var etag string
-				err = json.Unmarshal(*v, &etag)
-				if err != nil {
-					return err
-				}
-				br.Etag = &etag
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				br.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				br.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				br.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// BookmarkRelationList list of bookmark relations.
-type BookmarkRelationList struct {
-	autorest.Response `json:"-"`
-	// NextLink - READ-ONLY; URL to fetch the next set of relations.
-	NextLink *string `json:"nextLink,omitempty"`
-	// Value - Array of relations.
-	Value *[]BookmarkRelation `json:"value,omitempty"`
-}
-
-// BookmarkRelationListIterator provides access to a complete listing of BookmarkRelation values.
-type BookmarkRelationListIterator struct {
-	i    int
-	page BookmarkRelationListPage
-}
-
-// NextWithContext advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-func (iter *BookmarkRelationListIterator) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BookmarkRelationListIterator.NextWithContext")
-		defer func() {
-			sc := -1
-			if iter.Response().Response.Response != nil {
-				sc = iter.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	iter.i++
-	if iter.i < len(iter.page.Values()) {
-		return nil
-	}
-	err = iter.page.NextWithContext(ctx)
-	if err != nil {
-		iter.i--
-		return err
-	}
-	iter.i = 0
-	return nil
-}
-
-// Next advances to the next value.  If there was an error making
-// the request the iterator does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (iter *BookmarkRelationListIterator) Next() error {
-	return iter.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the enumeration should be started or is not yet complete.
-func (iter BookmarkRelationListIterator) NotDone() bool {
-	return iter.page.NotDone() && iter.i < len(iter.page.Values())
-}
-
-// Response returns the raw server response from the last page request.
-func (iter BookmarkRelationListIterator) Response() BookmarkRelationList {
-	return iter.page.Response()
-}
-
-// Value returns the current value or a zero-initialized value if the
-// iterator has advanced beyond the end of the collection.
-func (iter BookmarkRelationListIterator) Value() BookmarkRelation {
-	if !iter.page.NotDone() {
-		return BookmarkRelation{}
-	}
-	return iter.page.Values()[iter.i]
-}
-
-// Creates a new instance of the BookmarkRelationListIterator type.
-func NewBookmarkRelationListIterator(page BookmarkRelationListPage) BookmarkRelationListIterator {
-	return BookmarkRelationListIterator{page: page}
-}
-
-// IsEmpty returns true if the ListResult contains no values.
-func (brl BookmarkRelationList) IsEmpty() bool {
-	return brl.Value == nil || len(*brl.Value) == 0
-}
-
-// bookmarkRelationListPreparer prepares a request to retrieve the next set of results.
-// It returns nil if no more results exist.
-func (brl BookmarkRelationList) bookmarkRelationListPreparer(ctx context.Context) (*http.Request, error) {
-	if brl.NextLink == nil || len(to.String(brl.NextLink)) < 1 {
-		return nil, nil
-	}
-	return autorest.Prepare((&http.Request{}).WithContext(ctx),
-		autorest.AsJSON(),
-		autorest.AsGet(),
-		autorest.WithBaseURL(to.String(brl.NextLink)))
-}
-
-// BookmarkRelationListPage contains a page of BookmarkRelation values.
-type BookmarkRelationListPage struct {
-	fn  func(context.Context, BookmarkRelationList) (BookmarkRelationList, error)
-	brl BookmarkRelationList
-}
-
-// NextWithContext advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-func (page *BookmarkRelationListPage) NextWithContext(ctx context.Context) (err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/BookmarkRelationListPage.NextWithContext")
-		defer func() {
-			sc := -1
-			if page.Response().Response.Response != nil {
-				sc = page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	next, err := page.fn(ctx, page.brl)
-	if err != nil {
-		return err
-	}
-	page.brl = next
-	return nil
-}
-
-// Next advances to the next page of values.  If there was an error making
-// the request the page does not advance and the error is returned.
-// Deprecated: Use NextWithContext() instead.
-func (page *BookmarkRelationListPage) Next() error {
-	return page.NextWithContext(context.Background())
-}
-
-// NotDone returns true if the page enumeration should be started or is not yet complete.
-func (page BookmarkRelationListPage) NotDone() bool {
-	return !page.brl.IsEmpty()
-}
-
-// Response returns the raw server response from the last page request.
-func (page BookmarkRelationListPage) Response() BookmarkRelationList {
-	return page.brl
-}
-
-// Values returns the slice of values for the current page or nil if there are no values.
-func (page BookmarkRelationListPage) Values() []BookmarkRelation {
-	if page.brl.IsEmpty() {
-		return nil
-	}
-	return *page.brl.Value
-}
-
-// Creates a new instance of the BookmarkRelationListPage type.
-func NewBookmarkRelationListPage(getNextPage func(context.Context, BookmarkRelationList) (BookmarkRelationList, error)) BookmarkRelationListPage {
-	return BookmarkRelationListPage{fn: getNextPage}
-}
-
-// BookmarkRelationProperties bookmark relation properties
-type BookmarkRelationProperties struct {
-	// RelationName - Name of relation
-	RelationName *string `json:"relationName,omitempty"`
-	// BookmarkID - The case related bookmark id
-	BookmarkID *string `json:"bookmarkId,omitempty"`
-	// CaseIdentifier - The case identifier
-	CaseIdentifier *string `json:"caseIdentifier,omitempty"`
-	// CaseTitle - The case title
-	CaseTitle *string `json:"caseTitle,omitempty"`
-	// CaseSeverity - The case severity
-	CaseSeverity *string `json:"caseSeverity,omitempty"`
-}
-
 // Case represents a case in Azure Security Insights.
 type Case struct {
 	autorest.Response `json:"-"`
@@ -6762,6 +6457,128 @@ type ExpansionResultAggregation struct {
 type ExpansionResultsMetadata struct {
 	// Aggregations - Information of the aggregated nodes in the expansion result.
 	Aggregations *[]ExpansionResultAggregation `json:"aggregations,omitempty"`
+}
+
+// EyesOn settings with single toggle.
+type EyesOn struct {
+	// EyesOnSettingsProperties - EyesOn properties
+	*EyesOnSettingsProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+	// Etag - Etag of the azure resource
+	Etag *string `json:"etag,omitempty"`
+	// Kind - Possible values include: 'KindSettings', 'KindEyesOn'
+	Kind KindBasicSettings `json:"kind,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for EyesOn.
+func (eo EyesOn) MarshalJSON() ([]byte, error) {
+	eo.Kind = KindEyesOn
+	objectMap := make(map[string]interface{})
+	if eo.EyesOnSettingsProperties != nil {
+		objectMap["properties"] = eo.EyesOnSettingsProperties
+	}
+	if eo.Etag != nil {
+		objectMap["etag"] = eo.Etag
+	}
+	if eo.Kind != "" {
+		objectMap["kind"] = eo.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsEyesOn is the BasicSettings implementation for EyesOn.
+func (eo EyesOn) AsEyesOn() (*EyesOn, bool) {
+	return &eo, true
+}
+
+// AsSettings is the BasicSettings implementation for EyesOn.
+func (eo EyesOn) AsSettings() (*Settings, bool) {
+	return nil, false
+}
+
+// AsBasicSettings is the BasicSettings implementation for EyesOn.
+func (eo EyesOn) AsBasicSettings() (BasicSettings, bool) {
+	return &eo, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for EyesOn struct.
+func (eo *EyesOn) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var eyesOnSettingsProperties EyesOnSettingsProperties
+				err = json.Unmarshal(*v, &eyesOnSettingsProperties)
+				if err != nil {
+					return err
+				}
+				eo.EyesOnSettingsProperties = &eyesOnSettingsProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				eo.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				eo.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				eo.Type = &typeVar
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				eo.Etag = &etag
+			}
+		case "kind":
+			if v != nil {
+				var kind KindBasicSettings
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				eo.Kind = kind
+			}
+		}
+	}
+
+	return nil
+}
+
+// EyesOnSettingsProperties eyesOn property bag.
+type EyesOnSettingsProperties struct {
+	// IsEnabled - READ-ONLY; Determines whether the setting is enable or disabled.
+	IsEnabled *bool `json:"isEnabled,omitempty"`
 }
 
 // FileEntity represents a file entity.
@@ -11165,7 +10982,7 @@ func (rn RelationNode) MarshalJSON() ([]byte, error) {
 type RelationProperties struct {
 	// RelatedResourceID - The resource ID of the related resource
 	RelatedResourceID *string `json:"relatedResourceId,omitempty"`
-	// RelatedResourceName - The name of the related resource
+	// RelatedResourceName - READ-ONLY; The name of the related resource
 	RelatedResourceName *string `json:"relatedResourceName,omitempty"`
 	// RelatedResourceType - READ-ONLY; The resource type of the related resource
 	RelatedResourceType *string `json:"relatedResourceType,omitempty"`
@@ -11845,6 +11662,8 @@ type SecurityAlertProperties struct {
 	TimeGenerated *date.Time `json:"timeGenerated,omitempty"`
 	// VendorName - READ-ONLY; The name of the vendor that raise the alert.
 	VendorName *string `json:"vendorName,omitempty"`
+	// AlertLink - READ-ONLY; The uri link of the alert.
+	AlertLink *string `json:"alertLink,omitempty"`
 	// AdditionalData - READ-ONLY; A bag of custom fields that should be part of the entity and will be presented to the user.
 	AdditionalData map[string]interface{} `json:"additionalData"`
 	// FriendlyName - READ-ONLY; The graph item display name which is a short humanly readable description of the graph item instance. This property is optional and might be system generated.
@@ -12065,10 +11884,39 @@ func (sgep SecurityGroupEntityProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// SettingList list of all the settings.
+type SettingList struct {
+	autorest.Response `json:"-"`
+	// Value - Array of settings.
+	Value *[]BasicSettings `json:"value,omitempty"`
+}
+
+// UnmarshalJSON is the custom unmarshaler for SettingList struct.
+func (sl *SettingList) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "value":
+			if v != nil {
+				value, err := unmarshalBasicSettingsArray(*v)
+				if err != nil {
+					return err
+				}
+				sl.Value = &value
+			}
+		}
+	}
+
+	return nil
+}
+
 // BasicSettings the Setting.
 type BasicSettings interface {
-	AsToggleSettings() (*ToggleSettings, bool)
-	AsUebaSettings() (*UebaSettings, bool)
+	AsEyesOn() (*EyesOn, bool)
 	AsSettings() (*Settings, bool)
 }
 
@@ -12083,7 +11931,7 @@ type Settings struct {
 	Type *string `json:"type,omitempty"`
 	// Etag - Etag of the azure resource
 	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindSettings', 'KindToggleSettings', 'KindUebaSettings'
+	// Kind - Possible values include: 'KindSettings', 'KindEyesOn'
 	Kind KindBasicSettings `json:"kind,omitempty"`
 }
 
@@ -12095,14 +11943,10 @@ func unmarshalBasicSettings(body []byte) (BasicSettings, error) {
 	}
 
 	switch m["kind"] {
-	case string(KindToggleSettings):
-		var ts ToggleSettings
-		err := json.Unmarshal(body, &ts)
-		return ts, err
-	case string(KindUebaSettings):
-		var us UebaSettings
-		err := json.Unmarshal(body, &us)
-		return us, err
+	case string(KindEyesOn):
+		var eo EyesOn
+		err := json.Unmarshal(body, &eo)
+		return eo, err
 	default:
 		var s Settings
 		err := json.Unmarshal(body, &s)
@@ -12141,13 +11985,8 @@ func (s Settings) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// AsToggleSettings is the BasicSettings implementation for Settings.
-func (s Settings) AsToggleSettings() (*ToggleSettings, bool) {
-	return nil, false
-}
-
-// AsUebaSettings is the BasicSettings implementation for Settings.
-func (s Settings) AsUebaSettings() (*UebaSettings, bool) {
+// AsEyesOn is the BasicSettings implementation for Settings.
+func (s Settings) AsEyesOn() (*EyesOn, bool) {
 	return nil, false
 }
 
@@ -12163,8 +12002,8 @@ func (s Settings) AsBasicSettings() (BasicSettings, bool) {
 
 // SettingsKind describes an Azure resource with kind.
 type SettingsKind struct {
-	// Kind - The kind of the setting. Possible values include: 'SettingKindUebaSettings', 'SettingKindToggleSettings'
-	Kind SettingKind `json:"kind,omitempty"`
+	// Kind - The kind of the setting
+	Kind *string `json:"kind,omitempty"`
 }
 
 // SettingsModel ...
@@ -12783,264 +12622,6 @@ type TiTaxiiDataConnectorProperties struct {
 	DataTypes *TiTaxiiDataConnectorDataTypes `json:"dataTypes,omitempty"`
 	// TenantID - The tenant id to connect to, and get the data from.
 	TenantID *string `json:"tenantId,omitempty"`
-}
-
-// ToggleSettings settings with single toggle.
-type ToggleSettings struct {
-	// ToggleSettingsProperties - toggle properties
-	*ToggleSettingsProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Azure resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Azure resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Azure resource type
-	Type *string `json:"type,omitempty"`
-	// Etag - Etag of the azure resource
-	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindSettings', 'KindToggleSettings', 'KindUebaSettings'
-	Kind KindBasicSettings `json:"kind,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for ToggleSettings.
-func (ts ToggleSettings) MarshalJSON() ([]byte, error) {
-	ts.Kind = KindToggleSettings
-	objectMap := make(map[string]interface{})
-	if ts.ToggleSettingsProperties != nil {
-		objectMap["properties"] = ts.ToggleSettingsProperties
-	}
-	if ts.Etag != nil {
-		objectMap["etag"] = ts.Etag
-	}
-	if ts.Kind != "" {
-		objectMap["kind"] = ts.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsToggleSettings is the BasicSettings implementation for ToggleSettings.
-func (ts ToggleSettings) AsToggleSettings() (*ToggleSettings, bool) {
-	return &ts, true
-}
-
-// AsUebaSettings is the BasicSettings implementation for ToggleSettings.
-func (ts ToggleSettings) AsUebaSettings() (*UebaSettings, bool) {
-	return nil, false
-}
-
-// AsSettings is the BasicSettings implementation for ToggleSettings.
-func (ts ToggleSettings) AsSettings() (*Settings, bool) {
-	return nil, false
-}
-
-// AsBasicSettings is the BasicSettings implementation for ToggleSettings.
-func (ts ToggleSettings) AsBasicSettings() (BasicSettings, bool) {
-	return &ts, true
-}
-
-// UnmarshalJSON is the custom unmarshaler for ToggleSettings struct.
-func (ts *ToggleSettings) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var toggleSettingsProperties ToggleSettingsProperties
-				err = json.Unmarshal(*v, &toggleSettingsProperties)
-				if err != nil {
-					return err
-				}
-				ts.ToggleSettingsProperties = &toggleSettingsProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				ts.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				ts.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				ts.Type = &typeVar
-			}
-		case "etag":
-			if v != nil {
-				var etag string
-				err = json.Unmarshal(*v, &etag)
-				if err != nil {
-					return err
-				}
-				ts.Etag = &etag
-			}
-		case "kind":
-			if v != nil {
-				var kind KindBasicSettings
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				ts.Kind = kind
-			}
-		}
-	}
-
-	return nil
-}
-
-// ToggleSettingsProperties toggle property bag.
-type ToggleSettingsProperties struct {
-	// IsEnabled - Determines whether the setting is enable or disabled.
-	IsEnabled *bool `json:"isEnabled,omitempty"`
-}
-
-// UebaSettings represents settings for User and Entity Behavior Analytics enablement.
-type UebaSettings struct {
-	// UebaSettingsProperties - User and Entity Behavior Analytics settings properties
-	*UebaSettingsProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Azure resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Azure resource name
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Azure resource type
-	Type *string `json:"type,omitempty"`
-	// Etag - Etag of the azure resource
-	Etag *string `json:"etag,omitempty"`
-	// Kind - Possible values include: 'KindSettings', 'KindToggleSettings', 'KindUebaSettings'
-	Kind KindBasicSettings `json:"kind,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for UebaSettings.
-func (us UebaSettings) MarshalJSON() ([]byte, error) {
-	us.Kind = KindUebaSettings
-	objectMap := make(map[string]interface{})
-	if us.UebaSettingsProperties != nil {
-		objectMap["properties"] = us.UebaSettingsProperties
-	}
-	if us.Etag != nil {
-		objectMap["etag"] = us.Etag
-	}
-	if us.Kind != "" {
-		objectMap["kind"] = us.Kind
-	}
-	return json.Marshal(objectMap)
-}
-
-// AsToggleSettings is the BasicSettings implementation for UebaSettings.
-func (us UebaSettings) AsToggleSettings() (*ToggleSettings, bool) {
-	return nil, false
-}
-
-// AsUebaSettings is the BasicSettings implementation for UebaSettings.
-func (us UebaSettings) AsUebaSettings() (*UebaSettings, bool) {
-	return &us, true
-}
-
-// AsSettings is the BasicSettings implementation for UebaSettings.
-func (us UebaSettings) AsSettings() (*Settings, bool) {
-	return nil, false
-}
-
-// AsBasicSettings is the BasicSettings implementation for UebaSettings.
-func (us UebaSettings) AsBasicSettings() (BasicSettings, bool) {
-	return &us, true
-}
-
-// UnmarshalJSON is the custom unmarshaler for UebaSettings struct.
-func (us *UebaSettings) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "properties":
-			if v != nil {
-				var uebaSettingsProperties UebaSettingsProperties
-				err = json.Unmarshal(*v, &uebaSettingsProperties)
-				if err != nil {
-					return err
-				}
-				us.UebaSettingsProperties = &uebaSettingsProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				us.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				us.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				us.Type = &typeVar
-			}
-		case "etag":
-			if v != nil {
-				var etag string
-				err = json.Unmarshal(*v, &etag)
-				if err != nil {
-					return err
-				}
-				us.Etag = &etag
-			}
-		case "kind":
-			if v != nil {
-				var kind KindBasicSettings
-				err = json.Unmarshal(*v, &kind)
-				if err != nil {
-					return err
-				}
-				us.Kind = kind
-			}
-		}
-	}
-
-	return nil
-}
-
-// UebaSettingsProperties user and Entity Behavior Analytics settings property bag.
-type UebaSettingsProperties struct {
-	// AtpLicenseStatus - READ-ONLY; Determines whether the tenant has ATP (Advanced Threat Protection) license. Possible values include: 'LicenseStatusEnabled', 'LicenseStatusDisabled'
-	AtpLicenseStatus LicenseStatus `json:"atpLicenseStatus,omitempty"`
-	// IsEnabled - Determines whether User and Entity Behavior Analytics is enabled for this workspace.
-	IsEnabled *bool `json:"isEnabled,omitempty"`
-	// StatusInMcas - READ-ONLY; Determines whether User and Entity Behavior Analytics is enabled from MCAS (Microsoft Cloud App Security). Possible values include: 'StatusInMcasEnabled', 'StatusInMcasDisabled'
-	StatusInMcas StatusInMcas `json:"statusInMcas,omitempty"`
 }
 
 // URLEntity represents a url entity.
