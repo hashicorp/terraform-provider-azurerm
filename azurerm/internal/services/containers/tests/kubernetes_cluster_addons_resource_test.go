@@ -12,8 +12,6 @@ var kubernetesAddOnTests = map[string]func(t *testing.T){
 	"addonProfileAciConnectorLinux":         testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux,
 	"addonProfileAciConnectorLinuxDisabled": testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled,
 	"addonProfileAzurePolicy":               testAccAzureRMKubernetesCluster_addonProfileAzurePolicy,
-	"addonProfileAzurePolicyV1ToV2":         testAccAzureRMKubernetesCluster_addonProfileAzurePolicyV1ToV2,
-	"addonProfileAzurePolicyV2":             testAccAzureRMKubernetesCluster_addonProfileAzurePolicyV2,
 	"addonProfileKubeDashboard":             testAccAzureRMKubernetesCluster_addonProfileKubeDashboard,
 	"addonProfileOMS":                       testAccAzureRMKubernetesCluster_addonProfileOMS,
 	"addonProfileOMSToggle":                 testAccAzureRMKubernetesCluster_addonProfileOMSToggle,
