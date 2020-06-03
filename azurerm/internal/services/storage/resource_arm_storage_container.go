@@ -1,10 +1,13 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -128,8 +131,8 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		AccessLevel: accessLevel,
 		MetaData:    metaData,
 	}
-	if _, err := client.Create(ctx, accountName, containerName, input); err != nil {
-		return fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
+	if err := resource.Retry(300*time.Second, retryStorageContainerCreate(ctx, client, accountName, containerName, account.ResourceGroup, input)); err != nil {
+		return err
 	}
 
 	d.SetId(id)
@@ -286,4 +289,18 @@ func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
 	}
 
 	return string(input)
+}
+
+func retryStorageContainerCreate(ctx context.Context, client *containers.Client, accountName string, containerName string, resourceGroup string, input containers.CreateInput) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		resp, err := client.Create(ctx, accountName, containerName, input)
+		if err != nil {
+			if resp.Response.StatusCode == 409 && strings.Contains(err.Error(), "ContainerBeingDeleted") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, resourceGroup, err))
+		}
+
+		return nil
+	}
 }

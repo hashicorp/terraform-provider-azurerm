@@ -1,10 +1,13 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -166,8 +169,8 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		QuotaInGB: quota,
 		MetaData:  metaData,
 	}
-	if _, err := client.Create(ctx, accountName, shareName, input); err != nil {
-		return fmt.Errorf("Error creating Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, account.ResourceGroup, err)
+	if err := resource.Retry(300*time.Second, retryStorageShareCreate(ctx, client, accountName, shareName, account.ResourceGroup, input)); err != nil {
+		return err
 	}
 
 	if _, err := client.SetACL(ctx, accountName, shareName, acls); err != nil {
@@ -373,4 +376,18 @@ func flattenStorageShareACLs(input shares.GetACLResult) []interface{} {
 	}
 
 	return result
+}
+
+func retryStorageShareCreate(ctx context.Context, client *shares.Client, accountName string, shareName string, resourceGroup string, input shares.CreateInput) func() *resource.RetryError {
+	return func() *resource.RetryError {
+		resp, err := client.Create(ctx, accountName, shareName, input)
+		if err != nil {
+			if resp.Response.StatusCode == 409 && strings.Contains(err.Error(), "ShareBeingDeleted") {
+				return resource.RetryableError(err)
+			}
+			return resource.NonRetryableError(fmt.Errorf("Error creating Share %q (Account %q / Resource Group %q): %s", shareName, accountName, resourceGroup, err))
+		}
+
+		return nil
+	}
 }
