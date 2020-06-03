@@ -35,7 +35,7 @@ func dataSourceArmBlueprintDefinition() *schema.Resource {
 				ValidateFunc: validation.Any(
 					azure.ValidateResourceID,
 					mgValidate.ManagementGroupID,
-					),
+				),
 			},
 
 			// Computed
@@ -118,4 +118,3 @@ func dataSourceArmBlueprintDefinitionRead(d *schema.ResourceData, meta interface
 
 	return nil
 }
-
