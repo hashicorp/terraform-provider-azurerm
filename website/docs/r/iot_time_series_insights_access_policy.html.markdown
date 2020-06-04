@@ -28,6 +28,8 @@ resource "azurerm_iot_time_series_insights_access_policy" "example" {
   name                = "example"
   environment_name    = azurerm_iot_time_series_insights_standard_environment.example.name
   resource_group_name = azurerm_resource_group.example.name
+  principal_object_id = "aGUID"
+  roles               = ["Reader"]
 }
 ```
 
