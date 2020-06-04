@@ -21,7 +21,8 @@ BUG FIXES:
 * `azurerm_cosmosdb_account` - workaround for CheckNameExists 500 response code bug [GH-7189]
 * `azurerm_eventhub_authorization_rule` - Fix intermittent 404 errors [GH-7122]
 * `azurerm_function_app` - correctly set `Kind` when `os_type` is `linux` [GH-7140]
-* `azurerm_virtual_network_gatway` - `vpn_client_protocols` is now also computed to prevent permanent diffs [GH-7168]
+* `azurerm_role_assignment` - support for Preview role assignments [GH-7205]
+* `azurerm_virtual_network_gateway` - `vpn_client_protocols` is now also computed to prevent permanent diffs [GH-7168]
 
 ## 2.12.0 (May 28, 2020)
 
