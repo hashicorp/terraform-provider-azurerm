@@ -127,6 +127,14 @@ A `webhook_endpoint` supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
 
+* `max_events_per_batch` - (Optional) Maximum number of events per batch.
+
+* `preferred_batch_size_in_kilobytes` - (Optional) Preferred batch size in Kilobytes.
+
+* `active_directory_tenant_id` - (Optional) The Azure Active Directory Tenant ID to get the access token that will be included as the bearer token in delivery requests.
+
+* `active_directory_app_id_or_uri` - (Optional) The Azure Active Directory Application ID or URI to get the access token that will be included as the bearer token in delivery requests.
+
 ---
 
 A `subject_filter` supports the following:
