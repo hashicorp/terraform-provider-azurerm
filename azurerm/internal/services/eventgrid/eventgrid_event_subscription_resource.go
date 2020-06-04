@@ -980,13 +980,17 @@ func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.
 	if input == nil {
 		return nil
 	}
-	result := make(map[string]interface{})
 
+	hybridConnectionId := ""
 	if input.ResourceID != nil {
-		result["eventhub_id"] = *input.ResourceID
+		hybridConnectionId = *input.ResourceID
 	}
 
-	return []interface{}{result}
+	return []interface{}{
+		map[string]interface{}{
+			"hybrid_connection_id": hybridConnectionId,
+		},
+	}
 }
 
 func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.StorageQueueEventSubscriptionDestination) []interface{} {
