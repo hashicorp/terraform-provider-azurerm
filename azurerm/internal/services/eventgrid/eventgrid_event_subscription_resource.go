@@ -99,7 +99,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				ConflictsWith: utils.RemoveFromStringArray(enpointPropertyNames(), "azure_function_endpoint"),
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
+						"function_id": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
@@ -642,15 +642,15 @@ func expandEventGridEventSubscriptionAzureFunctionEndpoint(input interface{}) ev
 
 	config := configs[0].(map[string]interface{})
 
-	if v, ok := config["id"]; ok {
+	if v, ok := config["function_id"]; ok && v != "" {
 		props.ResourceID = utils.String(v.(string))
 	}
 
-	if v, ok := config["max_events_per_batch"]; ok {
+	if v, ok := config["max_events_per_batch"]; ok && v != 0 {
 		props.MaxEventsPerBatch = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := config["preferred_batch_size_in_kilobytes"]; ok {
+	if v, ok := config["preferred_batch_size_in_kilobytes"]; ok && v != 0 {
 		props.PreferredBatchSizeInKilobytes = utils.Int32(int32(v.(int)))
 	}
 
@@ -770,21 +770,26 @@ func flattenEventGridEventSubscriptionAzureFunctionEndpoint(input *eventgrid.Azu
 		return results
 	}
 
-	result := make(map[string]interface{})
-
+	functionID := ""
 	if input.ResourceID != nil {
-		result["id"] = *input.ResourceID
+		functionID = *input.ResourceID
 	}
 
+	maxEventsPerBatch := 0
 	if input.MaxEventsPerBatch != nil {
-		result["max_events_per_batch"] = *input.MaxEventsPerBatch
+		maxEventsPerBatch = int(*input.MaxEventsPerBatch)
 	}
 
+	preferredBatchSize := 0
 	if input.PreferredBatchSizeInKilobytes != nil {
-		result["preferred_batch_size_in_kilobytes"] = *input.PreferredBatchSizeInKilobytes
+		preferredBatchSize = int(*input.PreferredBatchSizeInKilobytes)
 	}
 
-	return append(results, result)
+	return append(results, map[string]interface{}{
+		"function_id":                       functionID,
+		"max_events_per_batch":              maxEventsPerBatch,
+		"preferred_batch_size_in_kilobytes": preferredBatchSize,
+	})
 }
 
 func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubscriptionFullURL) []interface{} {
