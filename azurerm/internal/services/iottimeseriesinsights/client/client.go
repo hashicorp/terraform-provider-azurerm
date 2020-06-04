@@ -15,7 +15,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&EnvironmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	AccessPoliciesClient := timeseriesinsights.NewAccessPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&EnvironmentsClient.Client, o.ResourceManagerAuthorizer)
+	o.ConfigureClient(&AccessPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		AccessPoliciesClient: &AccessPoliciesClient,

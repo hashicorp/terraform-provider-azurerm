@@ -60,7 +60,8 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 
 			"principal_object_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -70,9 +71,9 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"role": {
+			"roles": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -120,7 +121,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.Resource
 		return fmt.Errorf("creating/updating IoT Time Series Insights Access Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, resourceGroup, environmentName, name)
 	if err != nil {
 		return fmt.Errorf("retrieving IoT Time Series Insights Access Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

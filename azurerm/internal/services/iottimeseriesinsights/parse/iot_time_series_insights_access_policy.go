@@ -26,7 +26,7 @@ func TimeSeriesInsightsAccessPolicyID(input string) (*TimeSeriesInsightsAccessPo
 		return nil, err
 	}
 
-	if service.Name, err = id.PopSegment("accessPolicies"); err != nil {
+	if service.Name, err = id.PopSegment("accesspolicies"); err != nil {
 		return nil, err
 	}
 

@@ -65,25 +65,6 @@ func TestAccAzureRMIoTTimeSeriesInsightsAccessPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMIoTTimeSeriesInsightsAccessPolicy_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_iot_time_series_insights_access_policy", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_complete(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
@@ -100,7 +81,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(name string) resour
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on TimeSeriesInsightsAccessPolicyClient: %+v", err)
 		}
@@ -114,7 +95,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(name string) resour
 }
 
 func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.EnvironmentsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).IoTTimeSeriesInsights.AccessPoliciesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -126,7 +107,7 @@ func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyDestroy(s *terraform.State
 		if err != nil {
 			return err
 		}
-		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
 
 		if err != nil {
 			return nil
@@ -160,6 +141,9 @@ resource "azurerm_iot_time_series_insights_access_policy" "test" {
   name                = "accTEst_tsiap%d"
   environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
   resource_group_name = azurerm_resource_group.test.name
+
+  principal_object_id = "aGUID"
+  roles               = ["Reader"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -184,30 +168,10 @@ resource "azurerm_iot_time_series_insights_access_policy" "test" {
   name                = "accTEst_tsiap%d"
   environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
   resource_group_name = azurerm_resource_group.test.name
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
 
-func testAccAzureRMIoTTimeSeriesInsightsAccessPolicy_complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-tsi-%d"
-  location = "%s"
-}
-resource "azurerm_iot_time_series_insights_standard_environment" "test" {
-  name                = "accTEst_tsie%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "S1_1"
-  data_retention_time = "P30D"
-}
-resource "azurerm_iot_time_series_insights_access_policy" "test" {
-  name                = "accTEst_tsiap%d"
-  environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
-  resource_group_name = azurerm_resource_group.test.name
+  principal_object_id = "aGUID"
+  roles               = ["Contributor"]
+  description         = "Test Access Policy"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
