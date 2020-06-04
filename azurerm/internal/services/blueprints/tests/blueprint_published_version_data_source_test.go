@@ -119,9 +119,9 @@ data "azurerm_management_group" "test" {
 }
 
 data "azurerm_blueprint_published_version" "test" {
-  management_group = data.azurerm_management_group.test.id
-  blueprint_name   = "%s"
-  version          = "%s"
+  scope_id       = data.azurerm_management_group.test.id
+  blueprint_name = "%s"
+  version        = "%s"
 }
 `, mg, bpName, version)
 }
