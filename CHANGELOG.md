@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Resource/Data Source**: `azurerm_logic_app_integration_account`  [GH-7099]
+* **New Resource**: `azurerm_monitor_action_rule_action_group` [GH-6563]
+* **New Resource**: `azurerm_monitor_action_rule_suppression` [GH-6563]
 
 IMPROVEMENTS:
 
