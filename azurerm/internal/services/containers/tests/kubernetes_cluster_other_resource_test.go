@@ -465,7 +465,7 @@ func testAccAzureRMKubernetesCluster_diskEncryption(t *testing.T) {
 				Config: testAccAzureRMKubernetesCluster_diskEncryptionConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "disk_encryption_set"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "disk_encryption_set_id"),
 				),
 			},
 			data.ImportStep(
