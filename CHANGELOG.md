@@ -20,6 +20,7 @@ BUG FIXES:
 * `azurerm_cdn_endpoint` - `origin_host_header` can now be set to empty [GH-7164]
 * `azurerm_cosmosdb_account` - workaround for CheckNameExists 500 response code bug [GH-7189]
 * `azurerm_eventhub_authorization_rule` - Fix intermittent 404 errors [GH-7122]
+* `azurerm_eventgrid_event_subscription` - fixing an error when setting the `hybrid_connection_endpoint` block [GH-7203]
 * `azurerm_function_app` - correctly set `Kind` when `os_type` is `linux` [GH-7140]
 * `azurerm_role_assignment` - support for Preview role assignments [GH-7205]
 * `azurerm_virtual_network_gateway` - `vpn_client_protocols` is now also computed to prevent permanent diffs [GH-7168]
