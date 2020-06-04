@@ -233,7 +233,7 @@ func flattenIoTTimeSeriesInsightsReferenceDataSetKeyProperties(input *[]timeseri
 	}
 	properties := make([]interface{}, 0)
 	for _, property := range *input {
-		attr := make(map[string]interface{}, 0)
+		attr := make(map[string]interface{})
 		attr["type"] = string(property.Type)
 		if name := property.Name; name != nil {
 			attr["name"] = *property.Name
