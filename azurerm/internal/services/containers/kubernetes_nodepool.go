@@ -398,6 +398,9 @@ func findDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolProfil
 			if v.Name == nil {
 				continue
 			}
+			if v.Mode != containerservice.System {
+				continue
+			}
 
 			defaultNodePoolName = *v.Name
 			agentPool = &v
