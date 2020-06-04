@@ -1441,14 +1441,12 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, ipCount
 
 	config := d[0].(map[string]interface{})
 
-	profile := &containerservice.ManagedClusterLoadBalancerProfile{}
+	profile := &containerservice.ManagedClusterLoadBalancerProfile{
+		IdleTimeoutInMinutes: utils.Int32(int32(config["idle_timeout_in_minutes"].(int))),
+	}
 
 	if port, ok := config["outbound_ports_allocated"].(int); ok {
 		profile.AllocatedOutboundPorts = utils.Int32(int32(port))
-	}
-
-	if idleTimeout, ok := config["idle_timeout_in_minutes"].(int); ok {
-		profile.IdleTimeoutInMinutes = utils.Int32(int32(idleTimeout))
 	}
 
 	noChangesForLoadBalancerIps := !ipCountChanges && !ipPrefixesChanges && !outboundIpChanges
