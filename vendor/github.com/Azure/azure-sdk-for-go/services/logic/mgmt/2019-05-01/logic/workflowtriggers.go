@@ -481,13 +481,13 @@ func (client WorkflowTriggersClient) ResetResponder(resp *http.Response) (result
 // resourceGroupName - the resource group name.
 // workflowName - the workflow name.
 // triggerName - the workflow trigger name.
-func (client WorkflowTriggersClient) Run(ctx context.Context, resourceGroupName string, workflowName string, triggerName string) (result SetObject, err error) {
+func (client WorkflowTriggersClient) Run(ctx context.Context, resourceGroupName string, workflowName string, triggerName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/WorkflowTriggersClient.Run")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response != nil {
+				sc = result.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -500,7 +500,7 @@ func (client WorkflowTriggersClient) Run(ctx context.Context, resourceGroupName 
 
 	resp, err := client.RunSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.Response = resp
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggersClient", "Run", resp, "Failure sending request")
 		return
 	}
@@ -543,14 +543,13 @@ func (client WorkflowTriggersClient) RunSender(req *http.Request) (*http.Respons
 
 // RunResponder handles the response to the Run request. The method always
 // closes the http.Response Body.
-func (client WorkflowTriggersClient) RunResponder(resp *http.Response) (result SetObject, err error) {
+func (client WorkflowTriggersClient) RunResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result.Value),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }
 

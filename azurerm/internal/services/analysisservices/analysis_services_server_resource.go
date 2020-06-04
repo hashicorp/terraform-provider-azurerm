@@ -1,12 +1,15 @@
 package analysisservices
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -99,6 +102,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 						},
 					},
 				},
+				Set: hashAnalysisServicesServerIpv4FirewallRule,
 			},
 
 			"querypool_connection_mode": {
@@ -245,11 +249,33 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
+	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server update.")
 
 	id, err := parse.AnalysisServicesServerID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	serverResp, err := client.GetDetails(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if serverResp.State != analysisservices.StateSucceeded && serverResp.State != analysisservices.StatePaused {
+		return fmt.Errorf("Error updating Analysis Services Server %q (Resource Group %q): State must be either Succeeded or Paused but got %q", id.Name, id.ResourceGroup, serverResp.State)
+	}
+
+	isPaused := serverResp.State == analysisservices.StatePaused
+
+	if isPaused {
+		resumeFuture, err := client.Resume(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("Error starting Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err = resumeFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for Analysis Services Server starting completion %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	serverProperties := expandAnalysisServicesServerMutableProperties(d)
@@ -269,6 +295,17 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if isPaused {
+		suspendFuture, err := client.Suspend(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("Error re-pausing Analysis Services Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		if err = suspendFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for Analysis Services Server pausing completion %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	return resourceArmAnalysisServicesServerRead(d, meta)
@@ -383,19 +420,19 @@ func expandAnalysisServicesServerFirewallSettings(d *schema.ResourceData) *analy
 	return &firewallSettings
 }
 
-func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (enablePowerBi *bool, fwRules []interface{}) {
+func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisservices.ServerProperties) (*bool, *schema.Set) {
 	if serverProperties == nil || serverProperties.IPV4FirewallSettings == nil {
-		return utils.Bool(false), make([]interface{}, 0)
+		return utils.Bool(false), schema.NewSet(hashAnalysisServicesServerIpv4FirewallRule, make([]interface{}, 0))
 	}
 
 	firewallSettings := serverProperties.IPV4FirewallSettings
 
-	enablePowerBi = utils.Bool(false)
+	enablePowerBi := utils.Bool(false)
 	if firewallSettings.EnablePowerBIService != nil {
 		enablePowerBi = firewallSettings.EnablePowerBIService
 	}
 
-	fwRules = make([]interface{}, 0)
+	fwRules := make([]interface{}, 0)
 	if firewallSettings.FirewallRules != nil {
 		for _, fwRule := range *firewallSettings.FirewallRules {
 			output := make(map[string]interface{})
@@ -415,5 +452,16 @@ func flattenAnalysisServicesServerFirewallSettings(serverProperties *analysisser
 		}
 	}
 
-	return enablePowerBi, fwRules
+	return enablePowerBi, schema.NewSet(hashAnalysisServicesServerIpv4FirewallRule, fwRules)
+}
+
+func hashAnalysisServicesServerIpv4FirewallRule(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+
+	buf.WriteString(fmt.Sprintf("%s-", strings.ToLower(m["name"].(string))))
+	buf.WriteString(fmt.Sprintf("%s-", m["range_start"].(string)))
+	buf.WriteString(m["range_end"].(string))
+
+	return hashcode.String(buf.String())
 }

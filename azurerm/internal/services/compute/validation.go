@@ -35,7 +35,7 @@ func ValidateVmName(i interface{}, k string) (warnings []string, errors []error)
 		errors = append(errors, fmt.Errorf("%q must begin with an alphanumeric character", k))
 	}
 
-	if matched := regexp.MustCompile(`[a-z0-9_]$`).Match([]byte(v)); !matched {
+	if matched := regexp.MustCompile(`\w$`).Match([]byte(v)); !matched {
 		errors = append(errors, fmt.Errorf("%q must end with an alphanumeric character or underscore", k))
 	}
 
@@ -55,6 +55,10 @@ func ValidateLinuxComputerNameFull(i interface{}, k string) (warnings []string, 
 func ValidateLinuxComputerNamePrefix(i interface{}, k string) (warnings []string, errors []error) {
 	// Linux host name prefix cannot exceed 58 characters in length
 	return ValidateLinuxComputerName(i, k, 58)
+}
+
+func ValidateOrchestratedVMSSName(i interface{}, k string) (warnings []string, errors []error) {
+	return ValidateVmName(i, k)
 }
 
 func ValidateLinuxComputerName(i interface{}, k string, maxLength int) (warnings []string, errors []error) {

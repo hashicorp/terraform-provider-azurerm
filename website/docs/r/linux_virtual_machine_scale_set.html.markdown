@@ -239,6 +239,8 @@ A `certificate` block supports the following:
 * `url` - (Required) The Secret URL of a Key Vault Certificate.
 
 -> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
+~> **NOTE:** The certificate must have been uploaded/created in PFX format, PEM certificates are not currently supported by Azure.
+
 
 ---
 
@@ -409,6 +411,18 @@ A `terminate_notification` block supports the following:
 * `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format.
 
 ~> For more information about the terminate notification, please [refer to this doc](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification).
+
+---
+
+`source_image_reference` supports the following:
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 ## Attributes Reference
 

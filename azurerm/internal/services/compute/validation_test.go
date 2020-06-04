@@ -72,6 +72,16 @@ func TestValidateVmName(t *testing.T) {
 			input:    "12345",
 			expected: false,
 		},
+		{
+			// can start with upper case letter
+			input:    "Test",
+			expected: true,
+		},
+		{
+			// can end with upper case letter
+			input:    "TEST",
+			expected: true,
+		},
 	}
 
 	for _, v := range testData {

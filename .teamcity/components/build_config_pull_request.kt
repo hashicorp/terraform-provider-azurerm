@@ -20,7 +20,7 @@ class pullRequest(displayName: String, environment: String) {
                 var packageName = "\"%SERVICES%\""
 
                 ConfigureGoEnv()
-                RunAcceptanceTests(providerName, packageName)
+                RunAcceptanceTestsForPullRequest(providerName, packageName)
             }
 
             failureConditions {

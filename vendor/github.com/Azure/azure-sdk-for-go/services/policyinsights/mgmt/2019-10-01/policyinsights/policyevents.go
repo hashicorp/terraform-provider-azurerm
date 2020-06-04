@@ -85,7 +85,7 @@ func (client PolicyEventsClient) GetMetadataPreparer(ctx context.Context, scope 
 		"scope": scope,
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,7 +178,7 @@ func (client PolicyEventsClient) ListQueryResultsForManagementGroupPreparer(ctx 
 		"policyEventsResource":      autorest.Encode("path", "default"),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -294,7 +294,7 @@ func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionPreparer(ctx
 		"subscriptionId":         autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -410,7 +410,7 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionPreparer(
 		"subscriptionId":          autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -477,7 +477,8 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionResponder
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-func (client PolicyEventsClient) ListQueryResultsForResource(ctx context.Context, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (result PolicyEventsQueryResults, err error) {
+// expand - the $expand query parameter. For example, to expand components use $expand=components
+func (client PolicyEventsClient) ListQueryResultsForResource(ctx context.Context, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, expand string) (result PolicyEventsQueryResults, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForResource")
 		defer func() {
@@ -495,7 +496,7 @@ func (client PolicyEventsClient) ListQueryResultsForResource(ctx context.Context
 		return result, validation.NewError("policyinsights.PolicyEventsClient", "ListQueryResultsForResource", err.Error())
 	}
 
-	req, err := client.ListQueryResultsForResourcePreparer(ctx, resourceID, top, orderBy, selectParameter, from, toParameter, filter, apply)
+	req, err := client.ListQueryResultsForResourcePreparer(ctx, resourceID, top, orderBy, selectParameter, from, toParameter, filter, apply, expand)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResource", nil, "Failure preparing request")
 		return
@@ -517,13 +518,13 @@ func (client PolicyEventsClient) ListQueryResultsForResource(ctx context.Context
 }
 
 // ListQueryResultsForResourcePreparer prepares the ListQueryResultsForResource request.
-func (client PolicyEventsClient) ListQueryResultsForResourcePreparer(ctx context.Context, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (*http.Request, error) {
+func (client PolicyEventsClient) ListQueryResultsForResourcePreparer(ctx context.Context, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, expand string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"policyEventsResource": autorest.Encode("path", "default"),
 		"resourceId":           resourceID,
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -547,6 +548,9 @@ func (client PolicyEventsClient) ListQueryResultsForResourcePreparer(ctx context
 	}
 	if len(apply) > 0 {
 		queryParameters["$apply"] = autorest.Encode("query", apply)
+	}
+	if len(expand) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -638,7 +642,7 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupPreparer(ctx co
 		"subscriptionId":       autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -757,7 +761,7 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 		"subscriptionId":         autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -870,7 +874,7 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionPreparer(ctx con
 		"subscriptionId":       autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -987,7 +991,7 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 		"subscriptionId":         autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -7,7 +7,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
 // unfortunately TeamCity's Go Test Json parser appears to be broken
 // as such for the moment let's use the old method with a feature-flag
-const val useTeamCityGoTest = true
+const val useTeamCityGoTest = false
 
 fun BuildFeatures.Golang() {
     if (useTeamCityGoTest) {
@@ -25,19 +25,43 @@ fun BuildSteps.ConfigureGoEnv() {
 }
 
 fun BuildSteps.RunAcceptanceTests(providerName : String, packageName: String) {
+    var servicePath = "./%s/internal/services/%s/tests".format(providerName, packageName)
+
     if (useTeamCityGoTest) {
-        var servicePath = "./%s/internal/services/%s/...".format(providerName, packageName)
         step(ScriptBuildStep {
             name = "Run Tests"
             scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
         })
     } else {
         step(ScriptBuildStep {
+            name = "Compile Test Binary"
+            scriptContent = "go test -c -o test-binary"
+            workingDir = servicePath
+        })
+
+        step(ScriptBuildStep {
+            // ./test-binary -test.list=TestAccAzureRMResourceGroup_ | teamcity-go-test -test ./test-binary -timeout 1s
+            name = "Run via jen20/teamcity-go-test"
+            scriptContent = "./test-binary -test.list=\"%TEST_PREFIX%\" | teamcity-go-test -test ./test-binary -parallelism \"%PARALLELISM%\" -timeout \"%TIMEOUT%h\""
+            workingDir = servicePath
+        })
+    }
+}
+
+fun BuildSteps.RunAcceptanceTestsForPullRequest(providerName : String, packageName: String) {
+    var servicePath = "./%s/internal/services/%s/...".format(providerName, packageName)
+    if (useTeamCityGoTest) {
+        step(ScriptBuildStep {
+            name = "Run Tests"
+            scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
+        })
+    } else {
+        // Building a binary with teamcity-go-test doesn't work for multiple packages, so fallback to this
+        step(ScriptBuildStep {
             name = "Install tombuildsstuff/teamcity-go-test-json"
             scriptContent = "wget https://github.com/tombuildsstuff/teamcity-go-test-json/releases/download/v0.2.0/teamcity-go-test-json_linux_amd64 && chmod +x teamcity-go-test-json_linux_amd64"
         })
 
-        var servicePath = "./%s/internal/services/%s/...".format(providerName, packageName)
         step(ScriptBuildStep {
             name = "Run Tests"
             scriptContent = "GOFLAGS=\"-mod=vendor\" ./teamcity-go-test-json_linux_amd64 -scope \"$servicePath\" -prefix \"%TEST_PREFIX%\" -count=1 -parallelism=%PARALLELISM% -timeout %TIMEOUT%"

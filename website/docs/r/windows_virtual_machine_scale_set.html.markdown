@@ -412,6 +412,18 @@ A `winrm_listener` block supports the following:
 
 * `protocol` - (Required) The Protocol of the WinRM Listener. Possible values are `Http` and `Https`.
 
+---
+
+`source_image_reference` supports the following:
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+
 ## Attributes Reference
 
 In addition to all arguments above, the following attributes are exported:

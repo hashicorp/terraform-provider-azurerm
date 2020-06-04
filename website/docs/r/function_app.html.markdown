@@ -39,12 +39,11 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                       = "test-azure-functions"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  app_service_plan_id        = azurerm_app_service_plan.example.id
-  storage_account_name       = azurerm_storage_account.example.name
-  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+  name                      = "test-azure-functions"
+  location                  = azurerm_resource_group.example.location
+  resource_group_name       = azurerm_resource_group.example.name
+  app_service_plan_id       = azurerm_app_service_plan.example.id
+  storage_connection_string = azurerm_storage_account.example.primary_connection_string
 }
 ```
 ## Example Usage (in a Consumption Plan)
@@ -76,15 +75,51 @@ resource "azurerm_app_service_plan" "example" {
 }
 
 resource "azurerm_function_app" "example" {
-  name                       = "test-azure-functions"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  app_service_plan_id        = azurerm_app_service_plan.example.id
-  storage_account_name       = azurerm_storage_account.example.name
-  storage_account_access_key = azurerm_storage_account.example.primary_access_key
+  name                      = "test-azure-functions"
+  location                  = azurerm_resource_group.example.location
+  resource_group_name       = azurerm_resource_group.example.name
+  app_service_plan_id       = azurerm_app_service_plan.example.id
+  storage_connection_string = azurerm_storage_account.example.primary_connection_string
 }
 ```
+## Example Usage (Linux)
 
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "azure-functions-cptest-rg"
+  location = "westus2"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "functionsapptestsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "example" {
+  name                = "azure-functions-test-service-plan"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  kind                = "FunctionApp"
+  reserved            = true
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+}
+
+resource "azurerm_function_app" "example" {
+  name                      = "test-azure-functions"
+  location                  = azurerm_resource_group.example.location
+  resource_group_name       = azurerm_resource_group.example.name
+  app_service_plan_id       = azurerm_app_service_plan.example.id
+  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  os_type                   = "linux"
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -96,6 +131,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
+
+* `storage_connection_string`- (Required) The connection string to the backend storage account which will be used by this Function App (such as the dashboard, logs). Typically set to the `primary_connection_string` of a storage account resource.
 
 * `storage_account_name` - (Required) The backend storage account name which will be used by this Function App (such as the dashboard, logs).
 
@@ -115,7 +152,7 @@ The following arguments are supported:
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
-~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). 
+~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "FunctionApp"` and `reserved = true`
 
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 
