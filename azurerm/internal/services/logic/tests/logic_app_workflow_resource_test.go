@@ -89,6 +89,46 @@ func TestAccAzureRMLogicAppWorkflow_tags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogicAppWorkflow_integrationAccount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_workflow", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogicAppWorkflowDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogicAppWorkflow_empty(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMLogicAppWorkflow_integrationAccount(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("logic_app_integration_account_id"),
+			{
+				Config: testAccAzureRMLogicAppWorkflow_integrationAccountUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("logic_app_integration_account_id"),
+			{
+				Config: testAccAzureRMLogicAppWorkflow_empty(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppWorkflowExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("logic_app_integration_account_id"),
+		},
+	})
+}
+
 func testCheckAzureRMLogicAppWorkflowExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.WorkflowsClient
@@ -151,7 +191,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-logic-%d"
   location = "%s"
 }
 
@@ -197,4 +237,72 @@ resource "azurerm_logic_app_workflow" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMLogicAppWorkflow_integrationAccount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-logic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_logic_app_integration_account" "test" {
+  name                = "acctest-IA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_logic_app_integration_account" "test2" {
+  name                = "acctest-IA2-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                             = "acctestlaw-%[1]d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  logic_app_integration_account_id = azurerm_logic_app_integration_account.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMLogicAppWorkflow_integrationAccountUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-logic-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_logic_app_integration_account" "test" {
+  name                = "acctest-IA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_logic_app_integration_account" "test2" {
+  name                = "acctest-IA2-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                             = "acctestlaw-%[1]d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  logic_app_integration_account_id = azurerm_logic_app_integration_account.test2.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

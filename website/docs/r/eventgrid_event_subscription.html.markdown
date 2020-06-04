@@ -81,6 +81,8 @@ The following arguments are supported:
 
 * `subject_filter` - (Optional) A `subject_filter` block as defined below.
 
+* `advanced_filter` - (Optional) A `advanced_filter` block as defined below.
+
 * `storage_blob_dead_letter_destination` - (Optional) A `storage_blob_dead_letter_destination` block as defined below.
 
 * `retry_policy` - (Optional) A `retry_policy` block as defined below.
@@ -122,6 +124,35 @@ A `subject_filter` supports the following:
 * `subject_ends_with` - (Optional) A string to filter events for an event subscription based on a resource path suffix.
 
 * `case_sensitive` - (Optional) Specifies if `subject_begins_with` and `subject_ends_with` case sensitive. This value defaults to `false`.
+
+---
+
+A `advanced_filter` supports the following nested blocks:
+
+* `bool_equals` - Compares a value of an event using a single boolean value.
+* `number_greater_than` - Compares a value of an event using a single floating point number.
+* `number_greater_than_or_equals` - Compares a value of an event using a single floating point number.
+* `number_less_than` - Compares a value of an event using a single floating point number.
+* `number_less_than_or_equals` - Compares a value of an event using a single floating point number.
+* `number_in` - Compares a value of an event using multiple floating point numbers.
+* `number_not_in` - Compares a value of an event using multiple floating point numbers.
+* `string_begins_with` - Compares a value of an event using multiple string values.
+* `string_ends_with` - Compares a value of an event using multiple string values.
+* `string_contains` - Compares a value of an event using multiple string values.
+* `string_in` - Compares a value of an event using multiple string values.
+* `string_not_in` - Compares a value of an event using multiple string values.
+
+Each nested block consists of a key and a value(s) element.
+
+* `key` - (Required) Specifies the field within the event data that you want to use for filtering. Type of the field can be a number, boolean, or string.
+
+* `value` - (Required) Specifies a single value to compare to when using a single value operator. 
+
+**OR** 
+
+* `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
+
+~> **NOTE:** A maximum of 5 advanced filters are allowed.
 
 ---
 
