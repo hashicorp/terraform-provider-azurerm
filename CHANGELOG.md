@@ -1,31 +1,31 @@
-## 2.13.0 (Unreleased)
+## 2.13.0 (June 04, 2020)
 
 FEATURES:
 
-* **New Data Source**: `azurerm_logic_app_integration_account` [GH-7099]
-* **New Data Source:** `azurerm_virtual_machine_scale_set` [GH-7141]
-* **New Resource**: `azurerm_logic_app_integration_account` [GH-7099]
-* **New Resource**: `azurerm_monitor_action_rule_action_group` [GH-6563]
-* **New Resource**: `azurerm_monitor_action_rule_suppression` [GH-6563]
+* **New Data Source**: `azurerm_logic_app_integration_account` ([#7099](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7099))
+* **New Data Source:** `azurerm_virtual_machine_scale_set` ([#7141](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7141))
+* **New Resource**: `azurerm_logic_app_integration_account` ([#7099](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7099))
+* **New Resource**: `azurerm_monitor_action_rule_action_group` ([#6563](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6563))
+* **New Resource**: `azurerm_monitor_action_rule_suppression` ([#6563](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6563))
 
 IMPROVEMENTS:
 
-* `azurerm_data_factory_pipeline` - Support for `activities` [GH-6224]
-* `azurerm_eventgrid_event_subscription` - support for advanced filtering [GH-6861]
-* `azurerm_signalr_service` - support for `EnableMessagingLogs` feature [GH-7094]
+* `azurerm_data_factory_pipeline` - Support for `activities` ([#6224](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6224))
+* `azurerm_eventgrid_event_subscription` - support for advanced filtering ([#6861](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6861))
+* `azurerm_signalr_service` - support for `EnableMessagingLogs` feature ([#7094](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7094))
 
 BUG FIXES:
 
-* `azurerm_app_service` - default priority now set on ip restricitons when not explicitly specified [GH-7059]
-* `azurerm_app_service` - App Services check correct scope for name availability in ASE [GH-7157]
-* `azurerm_cdn_endpoint` - `origin_host_header` can now be set to empty [GH-7164]
-* `azurerm_cosmosdb_account` - workaround for CheckNameExists 500 response code bug [GH-7189]
-* `azurerm_eventhub_authorization_rule` - Fix intermittent 404 errors [GH-7122]
-* `azurerm_eventgrid_event_subscription` - fixing an error when setting the `hybrid_connection_endpoint` block [GH-7203]
-* `azurerm_function_app` - correctly set `Kind` when `os_type` is `linux` [GH-7140]
-* `azurerm_key_vault_certificate` - always setting the `certificate_data` and `thumbprint` fields [GH-7204]
-* `azurerm_role_assignment` - support for Preview role assignments [GH-7205]
-* `azurerm_virtual_network_gateway` - `vpn_client_protocols` is now also computed to prevent permanent diffs [GH-7168]
+* `azurerm_app_service` - default priority now set on ip restricitons when not explicitly specified ([#7059](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7059))
+* `azurerm_app_service` - App Services check correct scope for name availability in ASE ([#7157](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7157))
+* `azurerm_cdn_endpoint` - `origin_host_header` can now be set to empty ([#7164](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7164))
+* `azurerm_cosmosdb_account` - workaround for CheckNameExists 500 response code bug ([#7189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7189))
+* `azurerm_eventhub_authorization_rule` - Fix intermittent 404 errors ([#7122](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7122))
+* `azurerm_eventgrid_event_subscription` - fixing an error when setting the `hybrid_connection_endpoint` block ([#7203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7203))
+* `azurerm_function_app` - correctly set `Kind` when `os_type` is `linux` ([#7140](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7140))
+* `azurerm_key_vault_certificate` - always setting the `certificate_data` and `thumbprint` fields ([#7204](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7204))
+* `azurerm_role_assignment` - support for Preview role assignments ([#7205](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7205))
+* `azurerm_virtual_network_gateway` - `vpn_client_protocols` is now also computed to prevent permanent diffs ([#7168](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7168))
 
 ## 2.12.0 (May 28, 2020)
 
