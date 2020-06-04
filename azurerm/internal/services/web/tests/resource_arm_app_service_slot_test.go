@@ -1175,7 +1175,7 @@ func TestAccAzureRMAppServiceSlot_windowsPython(t *testing.T) {
 				Config: testAccAzureRMAppServiceSlot_windowsPython(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.python_version", "3.4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.python_version", "3.8"),
 				),
 			},
 		},
@@ -3287,7 +3287,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = azurerm_app_service.test.name
 
   site_config {
-    python_version = "3.4"
+    python_version = "3.8"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

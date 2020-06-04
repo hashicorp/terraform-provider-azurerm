@@ -1190,7 +1190,7 @@ func TestAccAzureRMAppService_windowsPython(t *testing.T) {
 				Config: testAccAzureRMAppService_windowsPython(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.python_version", "3.4"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.python_version", "3.8"),
 				),
 			},
 			data.ImportStep(),
@@ -3467,7 +3467,7 @@ resource "azurerm_app_service" "test" {
   app_service_plan_id = azurerm_app_service_plan.test.id
 
   site_config {
-    python_version = "3.4"
+    python_version = "3.8"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
