@@ -2,13 +2,13 @@ package iottimeseriesinsights
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/timeseriesinsights/mgmt/2018-08-15-preview/timeseriesinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
@@ -109,7 +109,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicyCreateUpdate(d *schema.Resource
 	}
 
 	policy := timeseriesinsights.AccessPolicyCreateOrUpdateParameters{
-		&timeseriesinsights.AccessPolicyResourceProperties{
+		AccessPolicyResourceProperties: &timeseriesinsights.AccessPolicyResourceProperties{
 			Description:       utils.String(d.Get("description").(string)),
 			PrincipalObjectID: utils.String(d.Get("principal_object_id").(string)),
 			Roles:             expandIoTTimeSeriesInsightsAccessPolicyRoles(d.Get("roles").(*schema.Set).List()),
