@@ -269,8 +269,7 @@ func resourceArmMySqlServer() *schema.Resource {
 
 			"version": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.FiveFullStopSix),
 					string(mysql.FiveFullStopSeven),
