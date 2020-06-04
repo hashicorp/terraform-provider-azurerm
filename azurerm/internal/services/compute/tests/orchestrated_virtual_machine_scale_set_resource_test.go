@@ -65,9 +65,9 @@ func TestAccAzureRMOrchestratedVirtualMachineScaleSet_updateZonal(t *testing.T) 
 }
 
 func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicNonZonal(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
-    resource.ParallelTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
