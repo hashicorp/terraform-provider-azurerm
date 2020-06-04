@@ -859,15 +859,17 @@ func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) (*eventgrid.
 		filter.IncludedEventTypes = utils.ExpandStringSlice(includedEvents.([]interface{}))
 	}
 
-	if subjectFilter, ok := d.GetOk("subject_filter"); ok {
-		config := subjectFilter.([]interface{})[0].(map[string]interface{})
-		subjectBeginsWith := config["subject_begins_with"].(string)
-		subjectEndsWith := config["subject_ends_with"].(string)
-		caseSensitive := config["case_sensitive"].(bool)
+	if v, ok := d.GetOk("subject_filter"); ok {
+		if v.([]interface{})[0] != nil {
+			config := v.([]interface{})[0].(map[string]interface{})
+			subjectBeginsWith := config["subject_begins_with"].(string)
+			subjectEndsWith := config["subject_ends_with"].(string)
+			caseSensitive := config["case_sensitive"].(bool)
 
-		filter.SubjectBeginsWith = &subjectBeginsWith
-		filter.SubjectEndsWith = &subjectEndsWith
-		filter.IsSubjectCaseSensitive = &caseSensitive
+			filter.SubjectBeginsWith = &subjectBeginsWith
+			filter.SubjectEndsWith = &subjectEndsWith
+			filter.IsSubjectCaseSensitive = &caseSensitive
+		}
 	}
 
 	if advancedFilter, ok := d.GetOk("advanced_filter"); ok {
