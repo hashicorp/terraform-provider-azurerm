@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMIoTTimeSeriesInsightsAccessPolicy_basic(t *testing.T) {
@@ -81,13 +80,9 @@ func testCheckAzureRMIoTTimeSeriesInsightsAccessPolicyExists(name string) resour
 			return err
 		}
 
-		resp, err := client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
+		_, err = client.Get(ctx, id.ResourceGroup, id.EnvironmentName, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on TimeSeriesInsightsAccessPolicyClient: %+v", err)
-		}
-
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Time Series Insights Access Policy %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil

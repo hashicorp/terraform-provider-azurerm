@@ -42,7 +42,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[-\w\._\(\)]+$`),
-					"IoT Time Series Insights Access Policy name must contain only word characters, periods, underscores, and parentheses.",
+					"IoT Time Series Insights Access Policy name must contain only word characters, periods, underscores, hyphens, and parentheses.",
 				),
 			},
 
@@ -54,7 +54,7 @@ func resourceArmIoTTimeSeriesInsightsAccessPolicy() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile(`^[-\w\._\(\)]+$`),
-					"IoT Time Series Insights Environment name must contain only word characters, periods, underscores, and parentheses.",
+					"IoT Time Series Insights Environment name must contain only word characters, periods, underscores, hyphens, and parentheses.",
 				),
 			},
 
