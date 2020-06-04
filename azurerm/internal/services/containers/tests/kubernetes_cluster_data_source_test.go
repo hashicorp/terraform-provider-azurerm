@@ -834,7 +834,7 @@ data "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicyConfig(data acceptance.TestData) string {
-	r := testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, "v2")
+	r := testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, true, "v2")
 	return fmt.Sprintf(`
 %s
 
