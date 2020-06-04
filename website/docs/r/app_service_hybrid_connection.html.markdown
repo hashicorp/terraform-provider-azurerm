@@ -1,0 +1,102 @@
+---
+subcategory: "App Service (Web Apps)"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_app_service_hybrid_connection"
+description: |-
+  Manages an App Service Hybrid Connection for an existing App Service, Relay and Service Bus.
+
+---
+
+# azurerm_app_service_hybrid_connection
+
+Manages an App Service Hybrid Connection for an existing App Service, Relay and Service Bus.
+
+## Example Usage
+
+This example provisions an App Service, a Relay Hybrid Connection, and a Service Bus using their outputs to create the App Service Hybrid Connection. 
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "exampleResourceGroup1"
+  location = "West Europe"
+}
+
+resource "azurerm_app_service_plan" "example" {
+  name                = "exampleAppServicePlan1"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "example" {
+  name                = "exampleAppService1"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  app_service_plan_id = azurerm_app_service_plan.example.id
+}
+
+resource "azurerm_relay_namespace" "example" {
+  name                = "exampleRN1"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "example" {
+  name                 = "exampleRHC1"
+  resource_group_name  = azurerm_resource_group.example.name
+  relay_namespace_name = azurerm_relay_namespace.example.name
+  user_metadata        = "examplemetadata"
+}
+
+resource "azurerm_app_service_hybrid_connection" "example" {
+  app_service_name    = azurerm_app_service.example.name
+  resource_group_name = azurerm_resource_group.example.name
+  relay_id            = azurerm_relay_hybrid_connection.example.id
+  hostname            = "testhostname.example"
+  port                = 8080
+  send_key_name       = "exampleSharedAccessKey"
+}
+
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `app_service_name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.
+
+* `relay_id` - (Required) The Resource ID of Service Bus relay.
+
+* `hostname` - (Optional) The hostname of the endpoint.
+
+* `port` - (Required) The port of the endpoint.
+
+* `service_bus_namespace` - (Required) The name of the Service Bus namespace.
+
+* `send_key_name` - (Required) The name of the Service Bus key which has Send permissions. This is used to authenticate to Service Bus.
+
+* `send_key_value` - (Required) The value of the Service Bus key. This is used to authenticate to Service Bus.
+
+* `service_bus_suffix` - (Optional) The suffix for the service bus endpoint. By default this is .servicebus.windows.net
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the App Service.
+
+## Import
+
+App Service Hybrid Connections can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_app_service_hybrid_connection.example /subscriptions/00000000-0000-0000-0000-00000000000/resourceGroups/exampleResourceGroup1/providers/Microsoft.Web/sites/exampleAppService1/hybridConnectionNamespaces/exampleRN1/relays/exampleRHC1 
+```
