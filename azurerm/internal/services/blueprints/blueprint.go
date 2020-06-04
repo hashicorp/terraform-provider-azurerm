@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -209,16 +208,4 @@ func flattenArmBlueprintAssignmentResourceGroups(input map[string]*blueprint.Res
 	}
 
 	return string(b), nil
-}
-
-func splitPublishedVersionID(input string) (blueprintID, versionName string) {
-	versionID, err := parse.VersionID(input)
-	if err != nil {
-		return "", ""
-	}
-
-	versionName = versionID.Name
-	blueprintID = fmt.Sprintf("/%s/providers/Microsoft.Blueprint/blueprints/%s", versionID.Scope, versionID.Blueprint)
-
-	return
 }

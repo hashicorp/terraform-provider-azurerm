@@ -17,7 +17,7 @@ func TestAccDataSourceBlueprintPublishedVersion_atSubscription(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceBlueprintPublishedVersion_atSubscription("testAcc_basicSubscription", "v0.1_testAcc"),
+				Config: testAccDataSourceBlueprintPublishedVersion_atSubscription(data, "testAcc_basicSubscription", "v0.1_testAcc"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "target_scope", "subscription"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test stub for Blueprints at Subscription"),
@@ -69,9 +69,12 @@ func TestAccDataSourceBlueprintPublishedVersion_atChildManagementGroup(t *testin
 	})
 }
 
-func testAccDataSourceBlueprintPublishedVersion_atSubscription(bpName, version string) string {
+func testAccDataSourceBlueprintPublishedVersion_atSubscription(data acceptance.TestData, bpName string, version string) string {
+	subscription := data.Client().SubscriptionIDAlt
+
 	return fmt.Sprintf(`
 provider "azurerm" {
+  subscription_id = "%s"
   features {}
 }
 
@@ -82,7 +85,7 @@ data "azurerm_blueprint_published_version" "test" {
   blueprint_name = "%s"
   version        = "%s"
 }
-`, bpName, version)
+`, subscription, bpName, version)
 }
 
 func testAccDataSourceBlueprintPublishedVersion_atRootManagementGroup(bpName, version string) string {

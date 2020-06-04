@@ -17,7 +17,7 @@ func TestAccDataSourceBlueprintDefinition_basic(t *testing.T) {
 		Providers: acceptance.SupportedProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceBlueprintDefinition_basic(),
+				Config: testAccDataSourceBlueprintDefinition_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test stub for Blueprints at Subscription"),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", "testAcc_basicSubscription"),
@@ -71,9 +71,11 @@ func TestAccDataSourceBlueprintDefinition_basicAtChildManagementGroup(t *testing
 	})
 }
 
-func testAccDataSourceBlueprintDefinition_basic() string {
-	return `
+func testAccDataSourceBlueprintDefinition_basic(data acceptance.TestData) string {
+	subscription := data.Client().SubscriptionIDAlt
+	return fmt.Sprintf(`
 provider "azurerm" {
+  subscription_id = "%s"
   features {}
 }
 
@@ -84,7 +86,7 @@ data "azurerm_blueprint_definition" "test" {
   scope_id = data.azurerm_subscription.current.id
 }
 
-`
+`, subscription)
 }
 
 func testAccDataSourceBlueprintDefinition_basicAtManagementGroup(managementGroup string) string {
@@ -99,7 +101,7 @@ data "azurerm_management_group" "test" {
 
 data "azurerm_blueprint_definition" "test" {
   name     = "testAcc_staticStubManagementGroup"
-  scope_id = data.azurerm_management_group.test.id 
+  scope_id = data.azurerm_management_group.test.id
 }
 
 `, managementGroup)

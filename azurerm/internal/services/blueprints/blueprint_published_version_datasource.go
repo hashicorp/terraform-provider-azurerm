@@ -2,14 +2,14 @@ package blueprints
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	mgValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	mgValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,6 +23,12 @@ func dataSourceArmBlueprintPublishedVersion() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"blueprint_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
 			"scope_id": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -32,12 +38,6 @@ func dataSourceArmBlueprintPublishedVersion() *schema.Resource {
 				),
 			},
 
-			"blueprint_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
 			"version": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -45,13 +45,12 @@ func dataSourceArmBlueprintPublishedVersion() *schema.Resource {
 			},
 
 			// Computed
-
-			"type": {
+			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"time_created": {
+			"display_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -66,12 +65,12 @@ func dataSourceArmBlueprintPublishedVersion() *schema.Resource {
 				Computed: true,
 			},
 
-			"display_name": {
+			"time_created": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"description": {
+			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},

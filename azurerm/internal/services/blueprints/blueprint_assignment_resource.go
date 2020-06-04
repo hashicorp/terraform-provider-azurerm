@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints/parse"
@@ -57,20 +58,6 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 
 			"identity": ManagedIdentitySchema(),
 
-			//"blueprint_id": {
-			//	Type:         schema.TypeString,
-			//	Optional:     true,
-			//	Computed:     true,
-			//	ValidateFunc: validate.BlueprintID,
-			//},
-			//
-			//"version_name": {
-			//	Type:         schema.TypeString,
-			//	Optional:     true,
-			//	Computed:     true,
-			//	ValidateFunc: validation.StringIsNotEmpty,
-			//},
-			//
 			"version_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -147,6 +134,18 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	blueprintId := d.Get("version_id").(string)
 	targetScope := d.Get("target_subscription_id").(string)
+
+	if d.IsNewResource() {
+		resp, err := client.Get(ctx, targetScope, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("failure checking for existing Blueprint Assignment %q in scope %q", name, targetScope)
+			}
+		}
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return tf.ImportAsExistsError("azurerm_blueprint_assignment", *resp.ID)
+		}
+	}
 
 	assignment := blueprint.Assignment{
 		AssignmentProperties: &blueprint.AssignmentProperties{

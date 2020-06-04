@@ -24,9 +24,9 @@ data "azurerm_blueprint_published_version" "test" {
 
 ## Argument Reference
 
-* `scope_id` - (Required) The Resource ID of the scope where the Blueprint Definition is stored. This will be with either a Subscription ID or Management Group ID.
-
 * `blueprint_name` - (Required) The name of the Blueprint Definition
+
+* `scope_id` - (Required) The Resource ID of the scope where the Blueprint Definition is stored. This will be with either a Subscription ID or Management Group ID.
 
 * `version` - (Required) The Version name of the Published Version of the Blueprint Definition
 

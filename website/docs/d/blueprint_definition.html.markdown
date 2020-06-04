@@ -21,7 +21,7 @@ data "azurerm_management_group" "root" {
 
 data "azurerm_blueprint_definition" "example" {
   name     = "exampleManagementGroupBP"
-  scope_id = data.azurerm_management_group.root.id 
+  scope_id = data.azurerm_management_group.root.id
 }
 
 ```
@@ -36,15 +36,15 @@ data "azurerm_blueprint_definition" "example" {
 
 * `id` - The Azure Resource ID of the Blueprint Definition.  
 
-* `target_scope` - The target scope.  
+* `description` - The description of the Blueprint Definition.  
 
 * `display_name` - The display name of the Blueprint Definition.  
 
-* `description` - The description of the Blueprint Definition.  
+* `last_modified` - The timestamp of when this last modification was saved to the Blueprint Definition.  
+
+* `target_scope` - The target scope.  
 
 * `time_created` - The timestamp of when this Blueprint Definition was created.  
-
-* `last_modified` - The timestamp of when this last modification was saved to the Blueprint Definition.  
 
 * `versions` - A list of versions published for this Blueprint Definition.  
 
