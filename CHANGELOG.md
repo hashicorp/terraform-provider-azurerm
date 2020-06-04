@@ -2,16 +2,16 @@
 
 FEATURES:
 
-* **New Resource/Data Source**: `azurerm_logic_app_integration_account`  [GH-7099]
+* **New Data Source**: `azurerm_logic_app_integration_account` [GH-7099]
+* **New Resource**: `azurerm_logic_app_integration_account` [GH-7099]
 * **New Resource**: `azurerm_monitor_action_rule_action_group` [GH-6563]
 * **New Resource**: `azurerm_monitor_action_rule_suppression` [GH-6563]
 
 IMPROVEMENTS:
 
-* `azurerm_data_factory_pipeline`: Support for `activities` [GH-6224]
+* `azurerm_data_factory_pipeline` - Support for `activities` [GH-6224]
 * `azurerm_eventgrid_event_subscription` - support for advanced filtering [GH-6861]
 * `azurerm_signalr_service` - support for `EnableMessagingLogs` feature [GH-7094]
-
 
 BUG FIXES:
 
