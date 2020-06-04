@@ -43,17 +43,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `container_name` - The name of the storage account container to be shared with the receiver.
 
-* `storage_account_name` - The name of the storage account to be shared with the receiver.
-
-* `storage_account_resource_group_name` - The resource group name of the storage account to be shared with the receiver. 
-
-* `storage_account_subscription_id` - The subscription id of the storage account to be shared with the receiver.
+* `storage_account` - A `storage_account` block as defined below.
 
 * `file_path` - The path of the file in the storage container to be shared with the receiver.
 
 * `folder_path` - The folder path of the file in the storage container to be shared with the receiver.
 
 * `display_name` - The name of the Data Share Dataset.
+
+---
+
+A `storage_account` block supports the following:
+
+* `name` - The name of the storage account to be shared with the receiver. 
+
+* `resource_group_name` - The resource group name of the storage account to be shared with the receiver.
+
+* `subscription_id` - The subscription id of the storage account to be shared with the receiver.
 
 ## Timeouts
 

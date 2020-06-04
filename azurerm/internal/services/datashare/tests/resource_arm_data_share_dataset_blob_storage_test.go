@@ -151,10 +151,17 @@ provider "azuread" {
 resource "azurerm_resource_group" "test" {
   name     = "acctest-datashare-%[1]d"
   location = "%[2]s"
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to tags, e.g. because a management agent
+      # updates these based on some ruleset managed elsewhere.
+      tags,
+    ]
+  }
 }
 
 resource "azurerm_data_share_account" "test" {
-  name                = "acctest-dsa-%[1]d"
+  name                = "acctest-DSA-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   identity {
@@ -163,7 +170,7 @@ resource "azurerm_data_share_account" "test" {
 }
 
 resource "azurerm_data_share" "test" {
-  name       = "acctest_ds_%[1]d"
+  name       = "acctest_DS_%[1]d"
   account_id = azurerm_data_share_account.test.id
   kind       = "CopyBased"
 }
@@ -200,13 +207,15 @@ func testAccAzureRMDataShareDataSetBlobStorageFile_basic(data acceptance.TestDat
 %[1]s
 
 resource "azurerm_data_share_dataset_blob_storage" "test" {
-  name                                = "acctest-dsbds-file-%[2]d"
-  data_share_id                       = azurerm_data_share.test.id
-  container_name                      = azurerm_storage_container.test.name
-  storage_account_name                = azurerm_storage_account.test.name
-  storage_account_resource_group_name = azurerm_storage_account.test.resource_group_name
-  storage_account_subscription_id     = "%[3]s"
-  file_path                           = "myfile.txt"
+  name           = "acctest-DSDSBS-file-%[2]d"
+  data_share_id  = azurerm_data_share.test.id
+  container_name = azurerm_storage_container.test.name
+  storage_account {
+    name                = azurerm_storage_account.test.name
+    resource_group_name = azurerm_storage_account.test.resource_group_name
+    subscription_id     = "%[3]s"
+  }
+  file_path = "myfile.txt"
   depends_on = [
     azurerm_role_assignment.test,
   ]
@@ -220,13 +229,15 @@ func testAccAzureRMDataShareDataSetBlobStorageFolder_basic(data acceptance.TestD
 %[1]s
 
 resource "azurerm_data_share_dataset_blob_storage" "test" {
-  name                                = "acctest-dsbds-folder-%[2]d"
-  data_share_id                       = azurerm_data_share.test.id
-  container_name                      = azurerm_storage_container.test.name
-  storage_account_name                = azurerm_storage_account.test.name
-  storage_account_resource_group_name = azurerm_storage_account.test.resource_group_name
-  storage_account_subscription_id     = "%[3]s"
-  folder_path                         = "/test/"
+  name           = "acctest-DSDSBS-folder-%[2]d"
+  data_share_id  = azurerm_data_share.test.id
+  container_name = azurerm_storage_container.test.name
+  storage_account {
+    name                = azurerm_storage_account.test.name
+    resource_group_name = azurerm_storage_account.test.resource_group_name
+    subscription_id     = "%[3]s"
+  }
+  folder_path = "test"
   depends_on = [
     azurerm_role_assignment.test,
   ]
@@ -240,12 +251,14 @@ func testAccAzureRMDataShareDataSetBlobStorageContainer_basic(data acceptance.Te
 %[1]s
 
 resource "azurerm_data_share_dataset_blob_storage" "test" {
-  name                                = "acctest-dsbds-folder-%[2]d"
-  data_share_id                       = azurerm_data_share.test.id
-  container_name                      = azurerm_storage_container.test.name
-  storage_account_name                = azurerm_storage_account.test.name
-  storage_account_resource_group_name = azurerm_storage_account.test.resource_group_name
-  storage_account_subscription_id     = "%[3]s"
+  name           = "acctest-DSDSBS-folder-%[2]d"
+  data_share_id  = azurerm_data_share.test.id
+  container_name = azurerm_storage_container.test.name
+  storage_account {
+    name                = azurerm_storage_account.test.name
+    resource_group_name = azurerm_storage_account.test.resource_group_name
+    subscription_id     = "%[3]s"
+  }
   depends_on = [
     azurerm_role_assignment.test,
   ]
@@ -259,12 +272,14 @@ func testAccAzureRMDataShareDataSetBlobStorage_requiresImport(data acceptance.Te
 %s
 
 resource "azurerm_data_share_dataset_blob_storage" "import" {
-  name                                = azurerm_data_share_dataset_blob_storage.test.name
-  data_share_id                       = azurerm_data_share.test.id
-  container_name                      = azurerm_data_share_dataset_blob_storage.test.container_name
-  storage_account_name                = azurerm_data_share_dataset_blob_storage.test.storage_account_name
-  storage_account_resource_group_name = azurerm_data_share_dataset_blob_storage.test.storage_account_resource_group_name
-  storage_account_subscription_id     = azurerm_data_share_dataset_blob_storage.test.storage_account_subscription_id
+  name           = azurerm_data_share_dataset_blob_storage.test.name
+  data_share_id  = azurerm_data_share.test.id
+  container_name = azurerm_data_share_dataset_blob_storage.test.container_name
+  storage_account {
+    name                = azurerm_data_share_dataset_blob_storage.test.storage_account.0.name
+    resource_group_name = azurerm_data_share_dataset_blob_storage.test.storage_account.0.resource_group_name
+    subscription_id     = azurerm_data_share_dataset_blob_storage.test.storage_account.0.subscription_id
+  }
 }
 `, config)
 }

@@ -302,6 +302,34 @@ func TestAccAzureRMMySQLServer_createReplica(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLServer_createReplicaAltLocation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+	mysqlVersion := "8.0"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+			{
+				Config: testAccAzureRMMySQLServer_createReplicaAltLocation(data, mysqlVersion),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+					testCheckAzureRMMySQLServerExists("azurerm_mysql_server.replica"),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+		},
+	})
+}
+
 func TestAccAzureRMMySQLServer_createPointInTimeRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 	restoreTime := time.Now().Add(11 * time.Minute)
@@ -590,12 +618,29 @@ resource "azurerm_mysql_server" "replica" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "GP_Gen5_2"
   version             = "%s"
-
+storage_mb                   = 51200
   create_mode               = "Replica"
   creation_source_server_id = azurerm_mysql_server.test.id
   ssl_enforcement_enabled   = true
 }
 `, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, version)
+}
+
+func testAccAzureRMMySQLServer_createReplicaAltLocation(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_server" "replica" {
+  name                = "acctestmysqlsvr-%d-replica"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "GP_Gen5_2"
+storage_mb                   = 51200
+  create_mode               = "Replica"
+  creation_source_server_id = azurerm_mysql_server.test.id
+  ssl_enforcement_enabled   = true
+}
+`, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, data.Locations.Secondary)
 }
 
 func testAccAzureRMMySQLServer_createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {

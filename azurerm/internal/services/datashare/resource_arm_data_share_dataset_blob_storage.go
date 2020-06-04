@@ -60,20 +60,31 @@ func resourceArmDataShareDataSetBlobStorage() *schema.Resource {
 				ValidateFunc: azValidate.StorageContainerName,
 			},
 
-			"storage_account_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: storage.ValidateArmStorageAccountName,
-			},
+			"storage_account": {
+				Type:     schema.TypeList,
+				Required: true,
+				ForceNew: true,
+				MaxItems: 1,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: storage.ValidateArmStorageAccountName,
+						},
 
-			"storage_account_resource_group_name": azure.SchemaResourceGroupName(),
+						"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"storage_account_subscription_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
+						"subscription_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+					},
+				},
 			},
 
 			"file_path": {
@@ -127,9 +138,9 @@ func resourceArmDataShareDataSetBlobStorageCreate(d *schema.ResourceData, meta i
 			Kind: datashare.KindBlob,
 			BlobProperties: &datashare.BlobProperties{
 				ContainerName:      utils.String(d.Get("container_name").(string)),
-				StorageAccountName: utils.String(d.Get("storage_account_name").(string)),
-				ResourceGroup:      utils.String(d.Get("storage_account_resource_group_name").(string)),
-				SubscriptionID:     utils.String(d.Get("storage_account_subscription_id").(string)),
+				StorageAccountName: utils.String(d.Get("storage_account.0.name").(string)),
+				ResourceGroup:      utils.String(d.Get("storage_account.0.resource_group_name").(string)),
+				SubscriptionID:     utils.String(d.Get("storage_account.0.subscription_id").(string)),
 				FilePath:           utils.String(filePath.(string)),
 			},
 		}
@@ -138,9 +149,9 @@ func resourceArmDataShareDataSetBlobStorageCreate(d *schema.ResourceData, meta i
 			Kind: datashare.KindBlobFolder,
 			BlobFolderProperties: &datashare.BlobFolderProperties{
 				ContainerName:      utils.String(d.Get("container_name").(string)),
-				StorageAccountName: utils.String(d.Get("storage_account_name").(string)),
-				ResourceGroup:      utils.String(d.Get("storage_account_resource_group_name").(string)),
-				SubscriptionID:     utils.String(d.Get("storage_account_subscription_id").(string)),
+				StorageAccountName: utils.String(d.Get("storage_account.0.name").(string)),
+				ResourceGroup:      utils.String(d.Get("storage_account.0.resource_group_name").(string)),
+				SubscriptionID:     utils.String(d.Get("storage_account.0.subscription_id").(string)),
 				Prefix:             utils.String(folderPath.(string)),
 			},
 		}
@@ -149,9 +160,9 @@ func resourceArmDataShareDataSetBlobStorageCreate(d *schema.ResourceData, meta i
 			Kind: datashare.KindContainer,
 			BlobContainerProperties: &datashare.BlobContainerProperties{
 				ContainerName:      utils.String(d.Get("container_name").(string)),
-				StorageAccountName: utils.String(d.Get("storage_account_name").(string)),
-				ResourceGroup:      utils.String(d.Get("storage_account_resource_group_name").(string)),
-				SubscriptionID:     utils.String(d.Get("storage_account_subscription_id").(string)),
+				StorageAccountName: utils.String(d.Get("storage_account.0.name").(string)),
+				ResourceGroup:      utils.String(d.Get("storage_account.0.resource_group_name").(string)),
+				SubscriptionID:     utils.String(d.Get("storage_account.0.subscription_id").(string)),
 			},
 		}
 	}
@@ -210,9 +221,9 @@ func resourceArmDataShareDataSetBlobStorageRead(d *schema.ResourceData, meta int
 	case datashare.BlobDataSet:
 		if props := resp.BlobProperties; props != nil {
 			d.Set("container_name", props.ContainerName)
-			d.Set("storage_account_name", props.StorageAccountName)
-			d.Set("storage_account_resource_group_name", props.ResourceGroup)
-			d.Set("storage_account_subscription_id", props.SubscriptionID)
+			if err := d.Set("storage_account", flattenAzureRmDataShareDataSetBlobStorageAccount(props.StorageAccountName, props.ResourceGroup, props.SubscriptionID)); err != nil {
+				return fmt.Errorf("setting `storage_account`: %+v", err)
+			}
 			d.Set("file_path", props.FilePath)
 			d.Set("display_name", props.DataSetID)
 		}
@@ -220,9 +231,9 @@ func resourceArmDataShareDataSetBlobStorageRead(d *schema.ResourceData, meta int
 	case datashare.BlobFolderDataSet:
 		if props := resp.BlobFolderProperties; props != nil {
 			d.Set("container_name", props.ContainerName)
-			d.Set("storage_account_name", props.StorageAccountName)
-			d.Set("storage_account_resource_group_name", props.ResourceGroup)
-			d.Set("storage_account_subscription_id", props.SubscriptionID)
+			if err := d.Set("storage_account", flattenAzureRmDataShareDataSetBlobStorageAccount(props.StorageAccountName, props.ResourceGroup, props.SubscriptionID)); err != nil {
+				return fmt.Errorf("setting `storage_account`: %+v", err)
+			}
 			d.Set("folder_path", props.Prefix)
 			d.Set("display_name", props.DataSetID)
 		}
@@ -230,9 +241,9 @@ func resourceArmDataShareDataSetBlobStorageRead(d *schema.ResourceData, meta int
 	case datashare.BlobContainerDataSet:
 		if props := resp.BlobContainerProperties; props != nil {
 			d.Set("container_name", props.ContainerName)
-			d.Set("storage_account_name", props.StorageAccountName)
-			d.Set("storage_account_resource_group_name", props.ResourceGroup)
-			d.Set("storage_account_subscription_id", props.SubscriptionID)
+			if err := d.Set("storage_account", flattenAzureRmDataShareDataSetBlobStorageAccount(props.StorageAccountName, props.ResourceGroup, props.SubscriptionID)); err != nil {
+				return fmt.Errorf("setting `storage_account`: %+v", err)
+			}
 			d.Set("display_name", props.DataSetID)
 		}
 
@@ -257,4 +268,27 @@ func resourceArmDataShareDataSetBlobStorageDelete(d *schema.ResourceData, meta i
 		return fmt.Errorf("deleting DataShare Blob Storage DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
 	}
 	return nil
+}
+
+func flattenAzureRmDataShareDataSetBlobStorageAccount(strName, strRG, strSubs *string) []interface{} {
+	var name, rg, subs string
+	if strName != nil {
+		name = *strName
+	}
+
+	if strRG != nil {
+		rg = *strRG
+	}
+
+	if strSubs != nil {
+		subs = *strSubs
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"name":                name,
+			"resource_group_name": rg,
+			"subscription_id":     subs,
+		},
+	}
 }

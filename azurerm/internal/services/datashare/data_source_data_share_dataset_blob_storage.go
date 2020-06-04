@@ -39,19 +39,27 @@ func dataSourceDataShareDatasetBlobStorage() *schema.Resource {
 				Computed: true,
 			},
 
-			"storage_account_name": {
-				Type:     schema.TypeString,
+			"storage_account": {
+				Type:     schema.TypeList,
 				Computed: true,
-			},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 
-			"storage_account_resource_group_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+						"resource_group_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 
-			"storage_account_subscription_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+						"subscription_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"file_path": {
@@ -102,9 +110,9 @@ func dataSourceArmDataShareDatasetBlobStorageRead(d *schema.ResourceData, meta i
 	case datashare.BlobDataSet:
 		if props := resp.BlobProperties; props != nil {
 			d.Set("container_name", props.ContainerName)
-			d.Set("storage_account_name", props.StorageAccountName)
-			d.Set("storage_account_resource_group_name", props.ResourceGroup)
-			d.Set("storage_account_subscription_id", props.SubscriptionID)
+			if err := d.Set("storage_account", flattenAzureRmDataShareDataSetBlobStorageAccount(props.StorageAccountName, props.ResourceGroup, props.SubscriptionID)); err != nil {
+				return fmt.Errorf("setting `storage_account`: %+v", err)
+			}
 			d.Set("file_path", props.FilePath)
 			d.Set("display_name", props.DataSetID)
 		}
@@ -112,9 +120,9 @@ func dataSourceArmDataShareDatasetBlobStorageRead(d *schema.ResourceData, meta i
 	case datashare.BlobFolderDataSet:
 		if props := resp.BlobFolderProperties; props != nil {
 			d.Set("container_name", props.ContainerName)
-			d.Set("storage_account_name", props.StorageAccountName)
-			d.Set("storage_account_resource_group_name", props.ResourceGroup)
-			d.Set("storage_account_subscription_id", props.SubscriptionID)
+			if err := d.Set("storage_account", flattenAzureRmDataShareDataSetBlobStorageAccount(props.StorageAccountName, props.ResourceGroup, props.SubscriptionID)); err != nil {
+				return fmt.Errorf("setting `storage_account`: %+v", err)
+			}
 			d.Set("folder_path", props.Prefix)
 			d.Set("display_name", props.DataSetID)
 		}
@@ -122,9 +130,9 @@ func dataSourceArmDataShareDatasetBlobStorageRead(d *schema.ResourceData, meta i
 	case datashare.BlobContainerDataSet:
 		if props := resp.BlobContainerProperties; props != nil {
 			d.Set("container_name", props.ContainerName)
-			d.Set("storage_account_name", props.StorageAccountName)
-			d.Set("storage_account_resource_group_name", props.ResourceGroup)
-			d.Set("storage_account_subscription_id", props.SubscriptionID)
+			if err := d.Set("storage_account", flattenAzureRmDataShareDataSetBlobStorageAccount(props.StorageAccountName, props.ResourceGroup, props.SubscriptionID)); err != nil {
+				return fmt.Errorf("setting `storage_account`: %+v", err)
+			}
 			d.Set("display_name", props.DataSetID)
 		}
 

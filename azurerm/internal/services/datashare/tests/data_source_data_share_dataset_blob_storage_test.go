@@ -21,9 +21,9 @@ func TestAccDataSourceAzureRMDataShareDatasetBlobStorage_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataShareDataSetExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "container_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_resource_group_name"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_subscription_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account.0.name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account.0.resource_group_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account.0.subscription_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "file_path"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "display_name"),
 				),

@@ -62,13 +62,15 @@ resource "azurerm_role_assignment" "example" {
 }
 
 resource "azurerm_data_share_dataset_blob_storage" "example" {
-  name                                = "example-dsbsds-file"
-  data_share_id                       = azurerm_data_share.example.id
-  container_name                      = azurerm_storage_container.example.name
-  storage_account_name                = azurerm_storage_account.example.name
-  storage_account_resource_group_name = azurerm_storage_account.example.resource_group_name
-  storage_account_subscription_id     = "00000000-0000-0000-0000-000000000000"
-  file_path                           = "myfile.txt"
+  name           = "example-dsbsds-file"
+  data_share_id  = azurerm_data_share.example.id
+  container_name = azurerm_storage_container.example.name
+  storage_account {
+    name                = azurerm_storage_account.example.name
+    resource_group_name = azurerm_storage_account.example.resource_group_name
+    subscription_id     = "00000000-0000-0000-0000-000000000000"
+  }
+  file_path = "myfile.txt"
   depends_on = [
     azurerm_role_assignment.example,
   ]
@@ -85,15 +87,21 @@ The following arguments are supported:
 
 * `container_name` - (Required) The name of the storage account container to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
-* `storage_account_name` - (Required) The name of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
-
-* `storage_account_resource_group_name` - (Required) The resource group name of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
-
-* `storage_account_subscription_id` - (Required) The subscription id of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
+* `storage_account` - (Required) A `storage_account` block as defined below.
 
 * `file_path` - (Optional) The path of the file in the storage container to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
 * `folder_path` - (Optional) The path of the folder in the storage container to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
+
+---
+
+A `storage_account` block supports the following:
+
+* `name` - (Required)  The name of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
+
+* `resource_group_name` - (Required)  The resource group name of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
+
+* `subscription_id` - (Required) The subscription id of the storage account to be shared with the receiver. Changing this forces a new Data Share Blob Storage Dataset to be created.
 
 ## Attributes Reference
 
