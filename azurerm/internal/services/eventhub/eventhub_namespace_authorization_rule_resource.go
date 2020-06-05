@@ -172,6 +172,9 @@ func resourceArmEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData,
 	}
 
 	name := id.Path["authorizationRules"]
+	// The resource id is built with `authorizationRules` in newer API version. However, it is built with `AuthorizationRules` in older API version.
+	// Hence currently it fails to parse resource id with `AuthorizationRules` for older one.
+	// So it has to be compatible with both new version and old version.
 	if name == "" {
 		name = id.Path["AuthorizationRules"]
 	}
