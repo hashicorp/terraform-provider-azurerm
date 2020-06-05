@@ -1043,17 +1043,18 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption = true
   soft_delete_enabled         = true
   purge_protection_enabled    = true
+}
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
+resource "azurerm_key_vault_access_policy" "acctest" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
 
-    key_permissions = [
-      "get",
-      "create",
-      "delete"
-    ]
-  }
+  key_permissions = [
+    "get",
+    "create",
+    "delete"
+  ]
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -1070,6 +1071,8 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
+
+  depends_on = [azurerm_key_vault_access_policy.acctest]
 }
 
 resource "azurerm_disk_encryption_set" "test" {
