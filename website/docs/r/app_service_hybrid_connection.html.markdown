@@ -71,27 +71,30 @@ The following arguments are supported:
 
 * `app_service_name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.
+* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.  Changing this forces a new resource to be created.
 
-* `relay_id` - (Required) The Resource ID of Service Bus relay.
+* `relay_id` - (Required) The Resource ID of Service Bus relay.  Changing this forces a new resource to be created.
 
 * `hostname` - (Optional) The hostname of the endpoint.
 
 * `port` - (Required) The port of the endpoint.
 
-* `service_bus_namespace` - (Required) The name of the Service Bus namespace.
+* `send_key_name` - (Required) The name of the Service Bus key.
 
-* `send_key_name` - (Required) The name of the Service Bus key which has Send permissions. This is used to authenticate to Service Bus.
-
-* `send_key_value` - (Required) The value of the Service Bus key. This is used to authenticate to Service Bus.
-
-* `service_bus_suffix` - (Optional) The suffix for the service bus endpoint. By default this is .servicebus.windows.net
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the App Service.
+
+* `namespace_name` - The name of the Relay Namespace.
+
+* `send_key_value` - The value of the Service Bus Primary Access key.
+
+* `service_bus_namespace` - The name of the Service Bus namespace.
+
+* `service_bus_suffix` - The suffix for the service bus endpoint.
 
 ## Import
 

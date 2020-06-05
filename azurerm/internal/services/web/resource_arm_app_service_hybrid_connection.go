@@ -52,6 +52,7 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 			"relay_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: relay.ValidateHybridConnectionID,
 			},
 
@@ -67,27 +68,11 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 				ValidateFunc: azValidate.PortNumberOrZero,
 			},
 
-			"service_bus_namespace": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"service_bus_suffix": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"send_key_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "RootManageSharedAccessKey",
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"send_key_value": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Computed:  true,
 			},
 
 			"namespace_name": {
@@ -98,6 +83,22 @@ func resourceArmAppServiceHybridConnection() *schema.Resource {
 			"relay_name": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"service_bus_namespace": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"service_bus_suffix": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"send_key_value": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
 			},
 		},
 	}
