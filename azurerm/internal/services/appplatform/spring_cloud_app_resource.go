@@ -56,6 +56,7 @@ func resourceArmSpringCloudApp() *schema.Resource {
 
 func resourceArmSpringCloudAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppPlatform.AppsClient
+	deploymentClient := meta.(*clients.Client).AppPlatform.DeploymentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -73,12 +74,50 @@ func resourceArmSpringCloudAppCreate(d *schema.ResourceData, meta interface{}) e
 		return tf.ImportAsExistsError("azurerm_spring_cloud_app", *existing.ID)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, appplatform.AppResource{})
+	// create app
+	appResource := appplatform.AppResource{}
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, appResource)
 	if err != nil {
 		return fmt.Errorf("creating Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for creation of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+
+	// create default "hello world" deployment
+	deploymentName := "default"
+	deploymentResource := appplatform.DeploymentResource{
+		Properties: &appplatform.DeploymentResourceProperties{
+			AppName: utils.String(name),
+			DeploymentSettings: &appplatform.DeploymentSettings{
+				CPU:            utils.Int32(1),
+				MemoryInGB:     utils.Int32(1),
+				RuntimeVersion: appplatform.Java8,
+			},
+			Source: &appplatform.UserSourceInfo{
+				Type:         appplatform.Jar,
+				RelativePath: utils.String("<default>"),
+			},
+		},
+	}
+	deployFuture, err := deploymentClient.CreateOrUpdate(ctx, resourceGroup, serviceName, name, deploymentName, deploymentResource)
+	if err != nil {
+		return fmt.Errorf("creating default Deployment %q (Spring Cloud Service %q / App Name %q / Resource Group %q): %+v", deploymentName, serviceName, name, resourceGroup, err)
+	}
+	if err = deployFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of default Deployment %q (Spring Cloud Service %q / App Name %q /  Resource Group %q): %+v", deploymentName, serviceName, name, resourceGroup, err)
+	}
+
+	// binding app with default deployment
+	appResource.Properties = &appplatform.AppResourceProperties{
+		ActiveDeploymentName: &deploymentName,
+	}
+	updateFuture, err := client.Update(ctx, resourceGroup, serviceName, name, appResource)
+	if err != nil {
+		return fmt.Errorf("updating Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
+	}
+	if err = updateFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for updating of Spring Cloud App %q (Spring Cloud Service %q / Resource Group %q): %+v", name, serviceName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name, "")
