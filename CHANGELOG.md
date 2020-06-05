@@ -11,6 +11,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * `azurerm_eventgrid_event_subscription` - fixing a crash when `subject_filter` was omitted [GH-7222]
+* `azurerm_funtion_app` - fix app_settings when using linux consumption plan [GH-7230]
 * `azurerm_management_group` - using the Subscription ID rather than Subscription Resource ID when detaching Subscriptions from Management Groups during deletion [GH-7216]
 
 ## 2.13.0 (June 04, 2020)
