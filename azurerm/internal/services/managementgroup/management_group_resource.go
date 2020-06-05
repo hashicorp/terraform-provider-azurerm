@@ -268,13 +268,16 @@ func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) 
 					continue
 				}
 
-				subscriptionId := *v.ID
+				subscriptionId, err := parseManagementGroupSubscriptionID(*v.ID)
+				if err != nil {
+					return fmt.Errorf("unable to parse child Subscription ID %+v", err)
+				}
 				log.Printf("[DEBUG] De-associating Subscription %q from Management Group %q..", subscriptionId, id.GroupId)
 				// NOTE: whilst this says `Delete` it's actually `Deassociate` - which is /really/ helpful
-				deleteResp, err2 := subscriptionsClient.Delete(ctx, id.GroupId, subscriptionId, managementGroupCacheControl)
+				deleteResp, err2 := subscriptionsClient.Delete(ctx, id.GroupId, subscriptionId.subscriptionId, managementGroupCacheControl)
 				if err2 != nil {
 					if !response.WasNotFound(deleteResp.Response) {
-						return fmt.Errorf("unable to de-associate Subscription %q from Management Group %q: %+v", subscriptionId, id.GroupId, err2)
+						return fmt.Errorf("unable to de-associate Subscription %q from Management Group %q: %+v", subscriptionId.subscriptionId, id.GroupId, err2)
 					}
 				}
 			}
