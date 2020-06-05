@@ -1,5 +1,9 @@
 ## 2.14.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_data_factory_linked_service_key_vault` [GH-6971]
+
 ENHANCEMENTS:
 
 * `azurerm_eventgrid_event_subscription` - support for `azure_function_endpoint` [GH-7182]
