@@ -910,7 +910,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 			agentPoolProfile["os_type"] = string(profile.OsType)
 		}
 
-		if *profile.OrchestratorVersion != "" {
+		if profile.OrchestratorVersion != nil && *profile.OrchestratorVersion != "" {
 			agentPoolProfile["orchestrator_version"] = *profile.OrchestratorVersion
 		}
 

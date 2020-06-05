@@ -119,8 +119,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			"mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				//ForceNew: true,
-				Default: string(containerservice.User),
+				Default:  string(containerservice.User),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.System),
 					string(containerservice.User),
