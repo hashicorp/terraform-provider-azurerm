@@ -1,4 +1,9 @@
 ## 2.14.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_eventgrid_event_subscription` - fixing a crash when `subject_filter` was omitted [GH-7222]
+
 ## 2.13.0 (June 04, 2020)
 
 FEATURES:
