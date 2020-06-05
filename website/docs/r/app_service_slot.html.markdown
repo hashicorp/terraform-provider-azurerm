@@ -216,7 +216,7 @@ The following arguments are supported:
 
 * `php_version` - (Optional) The version of PHP to use in this App Service Slot. Possible values are `5.5`, `5.6`, `7.0`, `7.1`, `7.2`, and `7.3`.
 
-* `python_version` - (Optional) The version of Python to use in this App Service. Possible values are `2.7`, `3.6`, `3.7` and `3.8`.
+* `python_version` - (Optional) The version of Python to use in this App Service. Possible values are `2.7`, `3.4`, `3.6`, `3.7` and `3.8`.
 
 * `remote_debugging_enabled` - (Optional) Is Remote Debugging Enabled? Defaults to `false`.
 
