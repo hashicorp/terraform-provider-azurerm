@@ -120,6 +120,9 @@ func resourceArmEventHubNamespaceAuthorizationRuleRead(d *schema.ResourceData, m
 	}
 
 	name := id.Path["authorizationRules"]
+	if name == "" {
+		name = id.Path["AuthorizationRules"]
+	}
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 
@@ -169,6 +172,9 @@ func resourceArmEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData,
 	}
 
 	name := id.Path["authorizationRules"]
+	if name == "" {
+		name = id.Path["AuthorizationRules"]
+	}
 	resourceGroup := id.ResourceGroup
 	namespaceName := id.Path["namespaces"]
 
