@@ -1,5 +1,9 @@
 ## 2.14.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_eventgrid_event_subscription` - support for `azure_function_endpoint` [GH-7182]
+
 BUG FIXES:
 
 * `azurerm_eventgrid_event_subscription` - fixing a crash when `subject_filter` was omitted [GH-7222]
