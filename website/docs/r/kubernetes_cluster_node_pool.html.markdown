@@ -103,7 +103,7 @@ The following arguments are supported:
 
 ~> **Note:** Spot Node Pools are in Preview and must be opted-into - [more information on how to opt into this Preview can be found in the AKS Documentation](https://docs.microsoft.com/en-us/azure/aks/spot-node-pool).
 
-* `spot_max_price` - (Optional) The maximum price you're willing to pay in USD per Virtual Machine. Valid values are -1 (the current Virtual Machine price) or a positive value with up to five decimal places. Changing this forces a new resource to be created.
+* `spot_max_price` - (Optional) The maximum price you're willing to pay in USD per Virtual Machine. Valid values are `-1` (the current on-demand price for a Virtual Machine) or a positive value with up to five decimal places. Changing this forces a new resource to be created.
 
 ~> **Note:** This field can only be configured when `priority` is set to `Spot`.
 

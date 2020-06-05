@@ -22,14 +22,15 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests to
 	// ease the load on the kubernetes api
 	testCases := map[string]map[string]func(t *testing.T){
-		"auth":         kubernetesAuthTests,
-		"clusterAddOn": kubernetesAddOnTests,
-		"datasource":   kubernetesDataSourceTests,
-		"network":      kubernetesNetworkAuthTests,
-		"nodePool":     kubernetesNodePoolTests,
-		"other":        kubernetesOtherTests,
-		"scaling":      kubernetesScalingTests,
-		"upgrade":      kubernetesUpgradeTests,
+		"auth":               kubernetesAuthTests,
+		"clusterAddOn":       kubernetesAddOnTests,
+		"datasource":         kubernetesDataSourceTests,
+		"network":            kubernetesNetworkAuthTests,
+		"nodePool":           kubernetesNodePoolTests,
+		"nodePoolDataSource": kubernetesNodePoolDataSourceTests,
+		"other":              kubernetesOtherTests,
+		"scaling":            kubernetesScalingTests,
+		"upgrade":            kubernetesUpgradeTests,
 	}
 
 	for group, m := range testCases {
