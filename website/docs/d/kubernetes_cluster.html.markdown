@@ -78,6 +78,10 @@ The following attributes are exported:
 
 * `service_principal` - A `service_principal` block as documented below.
 
+* `identity` - A `identity` block as documented below.
+
+* `kubelet_identity` - A `kubelet_identity` block as documented below.  
+
 * `tags` - A mapping of tags assigned to this resource.
 
 ---
@@ -248,6 +252,26 @@ A `role_based_access_control` block exports the following:
 A `service_principal` block supports the following:
 
 * `client_id` - The Client ID of the Service Principal used by this Managed Kubernetes Cluster.
+
+---
+
+The `identity` block exports the following:
+
+* `type` - The type of identity used for the managed cluster.
+
+* `principal_id` - The principal id of the system assigned identity which is used by master components.
+
+* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+
+---
+
+The `kubelet_identity` block exports the following:
+
+* `client_id` - The Client ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `object_id` - The Object ID of the user-defined Managed Identity assigned to the Kubelets.
+
+* `user_assigned_identity_id` - The ID of the User Assigned Identity assigned to the Kubelets.
 
 ---
 

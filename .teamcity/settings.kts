@@ -2,7 +2,7 @@ import AzureRM
 import ClientConfiguration
 import jetbrains.buildServer.configs.kotlin.v2019_2.*
 
-version = "2019.2"
+version = "2020.1"
 
 var clientId = DslContext.getParameter("clientId", "")
 var clientSecret = DslContext.getParameter("clientSecret", "")

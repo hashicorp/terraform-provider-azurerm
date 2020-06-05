@@ -159,6 +159,9 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
+		if v := d.Get("location").(string); v == "" {
+			return fmt.Errorf("`location` must be set when `identity` is assigned")
+		}
 		policyIdentity := expandAzureRmPolicyIdentity(d)
 		assignment.Identity = policyIdentity
 	}
