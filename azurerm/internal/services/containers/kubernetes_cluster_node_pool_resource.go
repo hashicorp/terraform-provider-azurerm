@@ -287,10 +287,14 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 	if priority == string(containerservice.Spot) {
 		profile.ScaleSetEvictionPolicy = containerservice.ScaleSetEvictionPolicy(evictionPolicy)
 		profile.SpotMaxPrice = utils.Float(spotMaxPrice)
-	} else if evictionPolicy != "" {
-		return fmt.Errorf("`eviction_policy` can only be set when `priority` is set to `Spot`")
-	} else if spotMaxPrice != -1.0 {
-		return fmt.Errorf("`spot_max_price` can only be set when `priority` is set to `Spot`")
+	} else {
+		if evictionPolicy != "" {
+			return fmt.Errorf("`eviction_policy` can only be set when `priority` is set to `Spot`")
+		}
+
+		if spotMaxPrice != -1.0 {
+			return fmt.Errorf("`spot_max_price` can only be set when `priority` is set to `Spot`")
+		}
 	}
 
 	orchestratorVersion := d.Get("orchestrator_version").(string)
