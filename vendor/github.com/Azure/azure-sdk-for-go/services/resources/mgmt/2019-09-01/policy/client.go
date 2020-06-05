@@ -1,4 +1,4 @@
-// Package policy implements the Azure ARM Policy service API version 2018-05-01.
+// Package policy implements the Azure ARM Policy service API version 2019-09-01.
 //
 // To manage and control access to your resources, you can define customized policies and assign them at a scope.
 package policy
