@@ -252,7 +252,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
 
-* `subnet_id` - (Optional) The name or ID of the Subnet.
+* `subnet_id` - (Optional) The ID of the Subnet.
 
 * `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
 
