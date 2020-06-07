@@ -576,7 +576,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *schema.ResourceData, meta inter
 			if a2aDetails.MonitoringPercentageCompletion != nil {
 				log.Printf("Waiting for Site Recover to replicate VM, %d%% complete.", *a2aDetails.MonitoringPercentageCompletion)
 			}
-			if a2aDetails.VMProtectionState == nil {
+			if a2aDetails.VMProtectionState != nil {
 				return resp, *a2aDetails.VMProtectionState, nil
 			}
 		}
