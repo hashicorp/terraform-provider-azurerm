@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -51,6 +52,18 @@ func resourceArmEventGridDomain() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tags": tags.Schema(),
+
+			"sku": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(eventgrid.Basic),
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(eventgrid.Basic),
+					string(eventgrid.Premium),
+				}, false),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
 
 			"input_schema": {
 				Type:     schema.TypeString,
@@ -136,6 +149,11 @@ func resourceArmEventGridDomain() *schema.Resource {
 				Computed: true,
 			},
 
+			"metric_resource_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_access_key": {
 				Type:      schema.TypeString,
 				Computed:  true,
@@ -173,6 +191,9 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	sku := eventgrid.ResourceSku{
+		Name: eventgrid.Sku(d.Get("sku").(string)),
+	}
 	t := d.Get("tags").(map[string]interface{})
 
 	domainProperties := &eventgrid.DomainProperties{
@@ -183,6 +204,7 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 	domain := eventgrid.Domain{
 		Location:         &location,
 		DomainProperties: domainProperties,
+		Sku:              &sku,
 		Tags:             tags.Expand(t),
 	}
 
@@ -236,6 +258,11 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
+	}
+	d.Set("metric_resource_id", resp.MetricResourceID)
 
 	if props := resp.DomainProperties; props != nil {
 		d.Set("endpoint", props.Endpoint)

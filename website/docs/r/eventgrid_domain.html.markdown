@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `sku` - (Optional) The SKU of the EventGrid Domain. Accepted values are `Basic` and `Premium`. Defaults to `Basic`.
+
 * `input_schema` - (Optional) Specifies the schema in which incoming events will be published to this domain. Allowed values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`. Defaults to `eventgridschema`. Changing this forces a new resource to be created.
 
 * `input_mapping_fields` - (Optional) A `input_mapping_fields` block as defined below.
@@ -81,6 +83,8 @@ The following attributes are exported:
 * `id` - The ID of the EventGrid Domain.
 
 * `endpoint` - The Endpoint associated with the EventGrid Domain.
+
+* `metric_resource_id` - The Metric resource id associated with the domain.
 
 * `primary_access_key` - The Primary Shared Access Key associated with the EventGrid Domain.
 

@@ -26,6 +26,7 @@ func TestAccAzureRMEventGridDomain_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventGridDomainExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "metric_resource_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_access_key"),
 				),
@@ -99,6 +100,25 @@ func TestAccAzureRMEventGridDomain_basicWithTags(t *testing.T) {
 					testCheckAzureRMEventGridDomainExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.foo", "bar"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMEventGridDomain_premium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventGridDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridDomain_premium(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridDomainExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -246,6 +266,29 @@ resource "azurerm_eventgrid_domain" "test" {
 
   tags = {
     "foo" = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMEventGridDomain_premium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_domain" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name = "Premium"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
