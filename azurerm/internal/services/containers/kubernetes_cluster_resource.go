@@ -977,6 +977,9 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{
 				Count: utils.Int32(int32(managedOutboundIPCount)),
 			}
+		} else {
+			// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.{
+			loadBalancerProfile.ManagedOutboundIPs = nil
 		}
 
 		if key := "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"; d.HasChange(key) {
@@ -984,6 +987,9 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			loadBalancerProfile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{
 				PublicIPs: publicIPAddressIDs,
 			}
+		} else {
+			// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.{
+			loadBalancerProfile.OutboundIPs = nil
 		}
 
 		if key := "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"; d.HasChange(key) {
@@ -991,6 +997,9 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			loadBalancerProfile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{
 				PublicIPPrefixes: outboundIPPrefixIDs,
 			}
+		} else {
+			// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.{
+			loadBalancerProfile.OutboundIPPrefixes = nil
 		}
 
 		if key := "network_profile.0.load_balancer_profile.0.outbound_ports_allocated"; d.HasChange(key) {
