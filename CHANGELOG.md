@@ -1,5 +1,9 @@
 ## 2.14.0 (Unreleased)
 
+DEPENDENCIES: 
+
+* updating `policy` to `2019-09-01` [GH-7211]
+
 FEATURES:
 
 * **New Resource:** `azurerm_data_factory_linked_service_key_vault` [GH-6971]
@@ -48,6 +52,7 @@ BUG FIXES:
 ## 2.12.0 (May 28, 2020)
 
 FEATURES:
+
 * **New Data Source:** `azurerm_advisor_recommendations` ([#6867](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6867))
 * **New Resource:** `azurerm_dev_test_global_shutdown_schedule` ([#5536](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5536))
 * **New Resource:** `azurerm_nat_gateway_public_ip_association` ([#6450](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6450))
@@ -79,7 +84,7 @@ BUG FIXES:
 
 ## 2.11.0 (May 21, 2020)
 
-DEPENDENCIES: 
+DEPENDENCIES:
 
 * updating `github.com/Azure/azure-sdk-for-go` to `v42.1.0` ([#6725](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6725))
 * updating `network` to `2020-03-01` ([#6727](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6727))
