@@ -63,7 +63,19 @@ func resourceArmPrivateDnsZoneGroup() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"private_dns_zone_config": {
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_dns_zone_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"record_sets": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -72,43 +84,23 @@ func resourceArmPrivateDnsZoneGroup() *schema.Resource {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"id": {
+									"type": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"private_dns_zone_id": {
+									"fqdn": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
-									"record_sets": {
+									"ttl": {
+										Type:     schema.TypeInt,
+										Computed: true,
+									},
+									"ip_addresses": {
 										Type:     schema.TypeList,
 										Computed: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"name": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"type": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"fqdn": {
-													Type:     schema.TypeString,
-													Computed: true,
-												},
-												"ttl": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"ip_addresses": {
-													Type:     schema.TypeList,
-													Computed: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-													},
-												},
-											},
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
 										},
 									},
 								},
@@ -222,7 +214,7 @@ func resourceArmPrivateDnsZoneGroupRead(d *schema.ResourceData, meta interface{}
 
 	if props := resp.PrivateDNSZoneGroupPropertiesFormat; props != nil {
 		d.Set("private_dns_zone_ids", flattenArmPrivateDnsZoneIds(props.PrivateDNSZoneConfigs))
-		if err := d.Set("private_dns_zone_configs", flattenArmFrontDoorBackendPools(props.PrivateDNSZoneConfigs, d.Id())); err != nil {
+		if err := d.Set("private_dns_zone_configs", flattenArmPrivateDnsZoneConfigs(props.PrivateDNSZoneConfigs, d.Id())); err != nil {
 			return fmt.Errorf("setting private_dns_zone_configs : %+v", err)
 		}
 	}
@@ -315,21 +307,7 @@ func expandArmPrivateDnsZoneGroup(input []interface{}) network.PrivateDNSZoneGro
 	return result
 }
 
-func flattenArmFrontDoorBackendPools(input *[]network.PrivateDNSZoneConfig, zoneGroupId string) []map[string]interface{} {
-	if input == nil {
-		return make([]map[string]interface{}, 0)
-	}
-
-	output := make([]map[string]interface{}, 0)
-	result := make(map[string]interface{})
-	result["private_dns_zone_config"] = flattenArmFrontDoorBackend(input, zoneGroupId)
-
-	output = append(output, result)
-
-	return output
-}
-
-func flattenArmFrontDoorBackend(input *[]network.PrivateDNSZoneConfig, zoneGroupId string) []interface{} {
+func flattenArmPrivateDnsZoneConfigs(input *[]network.PrivateDNSZoneConfig, zoneGroupId string) []interface{} {
 	output := make([]interface{}, 0)
 	if input == nil {
 		return output
