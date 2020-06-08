@@ -150,7 +150,6 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
 
@@ -178,19 +177,6 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("waiting for creation of Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	dnsGroupParameters := expandArmPrivateDnsZoneGroup(privateDnsZoneGroup)
-
-	if dnsGroupName := dnsGroupParameters.Name; dnsGroupName != nil {
-		dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
-		future, err := dnsClient.CreateOrUpdate(ctx, resourceGroup, name, *dnsGroupName, dnsGroupParameters)
-		if err != nil {
-			return fmt.Errorf("creating Private Endpoint DNS Zone Group %q (Resource Group %q): %+v", dnsGroupName, resourceGroup, err)
-		}
-		if err = future.WaitForCompletionRef(ctx, dnsClient.Client); err != nil {
-			return fmt.Errorf("waiting for creation of Private Endpoint DNS Zone Group %q (Resource Group %q): %+v", dnsGroupName, resourceGroup, err)
-		}
-	}
-
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		return fmt.Errorf("retrieving Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -206,7 +192,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	nicsClient := meta.(*clients.Client).Network.InterfacesClient
-	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
+	//dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroupClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -252,24 +238,12 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("setting `private_service_connection`: %+v", err)
 		}
 
-		dnsGroupParameters := expandArmPrivateDnsZoneGroup(d.Get("private_dns_zone_group").([]interface{}))
-
-		if zoneGroupName := dnsGroupParameters.Name; zoneGroupName != nil {
-			dnsResp, err := dnsClient.Get(ctx, resourceGroup, name, *zoneGroupName)
-			if err != nil {
-				return fmt.Errorf("reading Private Endpoint %q DNS Zone Group %q (Resource Group %q): %+v", name, zoneGroupName, resourceGroup, err)
-			}
-			d.Set("private_dns_zone_group", flattenArmPrivateDnsZoneGroup(&dnsResp))
-		}
-
 		subnetId := ""
 		if subnet := props.Subnet; subnet != nil {
 			subnetId = *subnet.ID
 		}
 		d.Set("subnet_id", subnetId)
-		foo := flattenArmCustomDnsConfigs(props.CustomDNSConfigs)
-		d.Set("custom_dns_configs", foo)
-		log.Printf("\n\n\n\n\n\n\n********************************\nflattenArmCustomDnsConfigs == %+v\nlen == %d\n********************************\n\n\n\n\n\n\n\n\n\n\n\n", foo, len(*props.CustomDNSConfigs))
+		d.Set("custom_dns_configs", flattenArmCustomDnsConfigs(props.CustomDNSConfigs))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -371,53 +345,6 @@ func expandArmPrivateDnsZoneGroup(input []interface{}) network.PrivateDNSZoneGro
 	}
 
 	return result
-}
-
-func flattenArmPrivateDnsZoneGroup(customDnsGroup *network.PrivateDNSZoneGroup) []interface{} {
-	results := make([]interface{}, 0)
-	if customDnsGroup == nil {
-		return results
-	}
-
-	if props := customDnsGroup.PrivateDNSZoneGroupPropertiesFormat; props != nil {
-		v := flattenArmPrivateDnsZoneConfigs(props.PrivateDNSZoneConfigs)
-
-		results = append(results, map[string]interface{}{
-			"name":        customDnsGroup.Name,
-			"id":          customDnsGroup.ID,
-			"zone_config": v,
-		})
-	}
-
-	return results
-}
-
-func flattenArmPrivateDnsZoneConfigs(input *[]network.PrivateDNSZoneConfig) []interface{} {
-	output := make([]interface{}, 0)
-	if input == nil {
-		return output
-	}
-	log.Printf("\n\n\n\n\n\n\n********************************\n")
-	for _, v := range *input {
-		result := make(map[string]interface{})
-
-		if name := v.Name; name != nil {
-			result["name"] = *name
-		}
-		if zoneId := v.PrivateDNSZonePropertiesFormat.PrivateDNSZoneID; zoneId != nil {
-			result["private_dns_zone_id"] = *zoneId
-		}
-
-		log.Printf("\nRS LEN  == %d\n", len(*v.PrivateDNSZonePropertiesFormat.RecordSets))
-
-		for _, rs := range *v.PrivateDNSZonePropertiesFormat.RecordSets {
-			log.Printf("\nFQDN  == %s\nIPAddresses == %+v\n\n", *rs.Fqdn, rs.IPAddresses)
-		}
-
-		output = append(output, result)
-	}
-	log.Printf("********************************\n\n\n\n\n\n\n\n\n\n\n\n")
-	return output
 }
 
 func flattenArmCustomDnsConfigs(customDnsConfigs *[]network.CustomDNSConfigPropertiesFormat) []interface{} {
