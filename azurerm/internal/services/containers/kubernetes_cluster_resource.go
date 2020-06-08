@@ -690,7 +690,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	}
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
-	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw, false, false, false)
+	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
 	if err != nil {
 		return err
 	}
@@ -953,19 +953,52 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	if d.HasChange("network_profile") {
 		updateCluster = true
-		networkProfileRaw := d.Get("network_profile").([]interface{})
 
-		// Check for changes to make sure only the configured load_balacer_profile variable is set
-		changeManagedIps := d.HasChange("network_profile.0.load_balancer_profile.0.managed_outbound_ip_count")
-		changeIpPrefixes := d.HasChange("network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids")
-		changeOutboundIps := d.HasChange("network_profile.0.load_balancer_profile.0.outbound_ip_address_ids")
-
-		networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw, changeManagedIps, changeIpPrefixes, changeOutboundIps)
-		if err != nil {
-			return err
+		networkProfile := *existing.ManagedClusterProperties.NetworkProfile
+		if networkProfile.LoadBalancerProfile == nil {
+			// an existing LB Profile must be present, since it's Optional & Computed
+			return fmt.Errorf("`loadBalancerProfile` was nil in Azure")
 		}
 
-		existing.ManagedClusterProperties.NetworkProfile = networkProfile
+		loadBalancerProfile := *networkProfile.LoadBalancerProfile
+
+		if key := "network_profile.0.load_balancer_profile.0.effective_outbound_ips"; d.HasChange(key) {
+			effectiveOutboundIPs := idsToResourceReferences(d.Get(key))
+			loadBalancerProfile.EffectiveOutboundIPs = effectiveOutboundIPs
+		}
+
+		if key := "network_profile.0.load_balancer_profile.0.idle_timeout_in_minutes"; d.HasChange(key) {
+			idleTimeoutInMinutes := d.Get(key).(int)
+			loadBalancerProfile.IdleTimeoutInMinutes = utils.Int32(int32(idleTimeoutInMinutes))
+		}
+
+		if key := "network_profile.0.load_balancer_profile.0.managed_outbound_ip_count"; d.HasChange(key) {
+			managedOutboundIPCount := d.Get(key).(int)
+			loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{
+				Count: utils.Int32(int32(managedOutboundIPCount)),
+			}
+		}
+
+		if key := "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"; d.HasChange(key) {
+			publicIPAddressIDs := idsToResourceReferences(d.Get(key))
+			loadBalancerProfile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{
+				PublicIPs: publicIPAddressIDs,
+			}
+		}
+
+		if key := "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"; d.HasChange(key) {
+			outboundIPPrefixIDs := idsToResourceReferences(d.Get(key))
+			loadBalancerProfile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{
+				PublicIPPrefixes: outboundIPPrefixIDs,
+			}
+		}
+
+		if key := "network_profile.0.load_balancer_profile.0.outbound_ports_allocated"; d.HasChange(key) {
+			allocatedOutboundPorts := d.Get(key).(int)
+			loadBalancerProfile.AllocatedOutboundPorts = utils.Int32(int32(allocatedOutboundPorts))
+		}
+
+		existing.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile = &loadBalancerProfile
 	}
 
 	if d.HasChange("tags") {
@@ -1382,7 +1415,7 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(input []interface{}, changeManagedIps bool, changeIpPrefixes bool, changeOutboundIps bool) (*containerservice.NetworkProfileType, error) {
+func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservice.NetworkProfileType, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1391,10 +1424,11 @@ func expandKubernetesClusterNetworkProfile(input []interface{}, changeManagedIps
 
 	networkPlugin := config["network_plugin"].(string)
 	networkPolicy := config["network_policy"].(string)
+	loadBalancerProfileRaw := config["load_balancer_profile"].([]interface{})
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	outboundType := config["outbound_type"].(string)
 
-	loadBalancerProfile, err := expandLoadBalancerProfile(config["load_balancer_profile"].([]interface{}), loadBalancerSku, changeManagedIps, changeIpPrefixes, changeOutboundIps)
+	loadBalancerProfile, err := expandLoadBalancerProfile(loadBalancerProfileRaw, loadBalancerSku)
 	if err != nil {
 		return nil, err
 	}
@@ -1430,8 +1464,8 @@ func expandKubernetesClusterNetworkProfile(input []interface{}, changeManagedIps
 	return &networkProfile, nil
 }
 
-func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, ipCountChanges bool, ipPrefixesChanges bool, outboundIpChanges bool) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
-	if len(d) == 0 || d[0] == nil {
+func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+	if d == nil || len(d) == 0 {
 		return nil, nil
 	}
 
@@ -1441,30 +1475,27 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string, ipCount
 
 	config := d[0].(map[string]interface{})
 
-	profile := &containerservice.ManagedClusterLoadBalancerProfile{
-		IdleTimeoutInMinutes: utils.Int32(int32(config["idle_timeout_in_minutes"].(int))),
+	profile := &containerservice.ManagedClusterLoadBalancerProfile{}
+
+	if mins, ok := config["idle_timeout_in_minutes"]; ok && mins.(int) != 0 {
+		profile.IdleTimeoutInMinutes = utils.Int32(int32(mins.(int)))
 	}
 
 	if port, ok := config["outbound_ports_allocated"].(int); ok {
 		profile.AllocatedOutboundPorts = utils.Int32(int32(port))
 	}
 
-	noChangesForLoadBalancerIps := !ipCountChanges && !ipPrefixesChanges && !outboundIpChanges
-	allowToSetIpCount := ipCountChanges || noChangesForLoadBalancerIps
-	allowToSetIpPrefixes := ipPrefixesChanges || noChangesForLoadBalancerIps
-	allowToSetOutboundIp := outboundIpChanges || noChangesForLoadBalancerIps
-
-	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil && allowToSetIpCount {
+	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
 		if c := int32(ipCount.(int)); c > 0 {
 			profile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
 		}
 	}
 
-	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil && allowToSetIpPrefixes {
+	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil {
 		profile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
 	}
 
-	if outIps := idsToResourceReferences(config["outbound_ip_address_ids"]); outIps != nil && allowToSetOutboundIp {
+	if outIps := idsToResourceReferences(config["outbound_ip_address_ids"]); outIps != nil {
 		profile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
 	}
 
