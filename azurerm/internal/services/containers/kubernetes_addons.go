@@ -77,18 +77,6 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Type:     schema.TypeBool,
 								Required: true,
 							},
-
-							"version": {
-								Type:     schema.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									// NOTE: v1 will be removed "after Spring 2020" - https://github.com/terraform-providers/terraform-provider-azurerm/issues/6994
-									// The current cluster uses policy add-on V1. Please migrate to V2 by disabling the add-on, and re-enabling it.
-									// Azure Policy will not support V1 after spring 2020. V2 is a breaking change, so please read carefully on the instruction and impact at: https://aka.ms/akspolicydoc
-									"v1",
-									"v2",
-								}, false),
-							},
 						},
 					},
 				},
@@ -246,12 +234,11 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 	if len(azurePolicy) > 0 && azurePolicy[0] != nil {
 		value := azurePolicy[0].(map[string]interface{})
 		enabled := value["enabled"].(bool)
-		version := value["version"].(string)
 
 		addonProfiles[azurePolicyKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config: map[string]*string{
-				"version": utils.String(version),
+				"version": utils.String("v2"),
 			},
 		}
 	}
@@ -326,15 +313,8 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			enabled = *enabledVal
 		}
 
-		// not returned for v1
-		version := "v1"
-		if versionVal, ok := azurePolicy.Config["version"]; ok && *versionVal != "" {
-			version = *versionVal
-		}
-
 		azurePolicies = append(azurePolicies, map[string]interface{}{
 			"enabled": enabled,
-			"version": version,
 		})
 	}
 

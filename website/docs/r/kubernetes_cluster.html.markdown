@@ -215,10 +215,6 @@ A `azure_policy` block supports the following:
 
 * `enabled` - (Required) Is the Azure Policy for Kubernetes Add On enabled?
 
-* `version` - (Required) The Version of Azure Policy which should be installed on this Kubernetes Cluster. Possible values are `v1` and `v2`.
-
-!> **Note:** Support for `v1` is in Private Preview will be removed by AKS "after Spring 2020".
-
 ---
 
 A `default_node_pool` block supports the following:
