@@ -24,11 +24,10 @@ resource "azurerm_iot_time_series_insights_standard_environment" "example" {
   sku_name            = "S1_1"
   data_retention_time = "P30D"
 }
-resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
-  name                = "example"
-  environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+resource "azurerm_iot_time_series_insights_reference_data_set" "example" {
+  name                                = "example"
+  time_series_insights_environment_id = azurerm_iot_time_series_insights_standard_environment.example.id
+  location                            = azurerm_resource_group.example.location
 
   key_property {
     name = "keyProperty1"
@@ -43,9 +42,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Azure IoT Time Series Insights Reference Data Set. Changing this forces a new resource to be created. Must be globally unique.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Azure IoT Time Series Insights Reference Data Set.
-
-* `environment_name` - (Required) The name of the Azure IoT Time Series Insights Environment in which to create the Azure IoT Time Series Insights Reference Data Set. Changing this forces a new resource to be created.
+* `time_series_insights_environment_id` - (Required) The resource ID of the Azure IoT Time Series Insights Environment in which to create the Azure IoT Time Series Insights Reference Data Set. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 

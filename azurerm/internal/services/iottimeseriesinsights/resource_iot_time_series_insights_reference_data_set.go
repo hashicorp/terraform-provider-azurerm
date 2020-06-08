@@ -2,7 +2,9 @@ package iottimeseriesinsights
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/validate"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/timeseriesinsights/mgmt/2018-08-15-preview/timeseriesinsights"
@@ -47,14 +49,11 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 				),
 			},
 
-			"environment_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[-\w\._\(\)]+$`),
-					"IoT Time Series Insights Standard Environment name must contain only word characters, periods, underscores, and parentheses.",
-				),
+			"time_series_insights_environment_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.TimeSeriesInsightsEnvironmentID,
 			},
 
 			"data_string_comparison_behavior": {
@@ -91,8 +90,6 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSet() *schema.Resource {
 				},
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"location": azure.SchemaLocation(),
 
 			"tags": tags.Schema(),
@@ -106,16 +103,19 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.Reso
 	defer cancel()
 
 	name := d.Get("name").(string)
-	environmentName := d.Get("environment_name").(string)
+	environmentID := d.Get("time_series_insights_environment_id").(string)
+	id, err := parse.TimeSeriesInsightsEnvironmentID(environmentID)
+	if err != nil {
+		return err
+	}
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, environmentName, name)
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing IoT Time Series Insights Reference Data Set %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for presence of existing IoT Time Series Insights Reference Data Set %q (Resource Group %q): %s", name, id.ResourceGroup, err)
 			}
 		}
 
@@ -133,18 +133,17 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSetCreateUpdate(d *schema.Reso
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, environmentName, name, dataset)
-	if err != nil {
-		return fmt.Errorf("creating/updating IoT Time Series Insights Reference Data Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, dataset); err != nil {
+		return fmt.Errorf("creating/updating IoT Time Series Insights Reference Data Set %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, environmentName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
 	if err != nil {
-		return fmt.Errorf("retrieving IoT Time Series Insights Reference Data Set %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving IoT Time Series Insights Reference Data Set %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("cannot read IoT Time Series Insights Reference Data Set %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("cannot read IoT Time Series Insights Reference Data Set %q (Resource Group %q) ID", name, id.ResourceGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -173,8 +172,7 @@ func resourceArmIoTTimeSeriesInsightsReferenceDataSetRead(d *schema.ResourceData
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("environment_name", id.EnvironmentName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("time_series_insights_environment_id", strings.Split(d.Id(), "/referenceDataSets")[0])
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}

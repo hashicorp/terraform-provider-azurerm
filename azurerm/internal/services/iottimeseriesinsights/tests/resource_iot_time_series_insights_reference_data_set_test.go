@@ -139,10 +139,9 @@ resource "azurerm_iot_time_series_insights_standard_environment" "test" {
 }
 
 resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
-  name                = "accTEsttsd%d"
-  environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                                = "accTEsttsd%d"
+  time_series_insights_environment_id = azurerm_iot_time_series_insights_standard_environment.test.id
+  location                            = azurerm_resource_group.test.location
 
   key_property {
     name = "keyProperty1"
@@ -169,10 +168,9 @@ resource "azurerm_iot_time_series_insights_standard_environment" "test" {
   data_retention_time = "P30D"
 }
 resource "azurerm_iot_time_series_insights_reference_data_set" "test" {
-  name                = "accTEsttsie%d"
-  environment_name    = azurerm_iot_time_series_insights_standard_environment.test.name
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                                = "accTEsttsd%d"
+  time_series_insights_environment_id = azurerm_iot_time_series_insights_standard_environment.test.id
+  location                            = azurerm_resource_group.test.location
 
   key_property {
     name = "keyProperty1"
