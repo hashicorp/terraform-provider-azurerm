@@ -17,7 +17,7 @@ import (
 func TestAccAzureRMLighthouseAssignment_basic(t *testing.T) {
 	// Multiple tenants are needed to test this resource.
 	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.
-	// ObjectId for user, usergroup or service principal in second tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
+	// ObjectId for user, usergroup or service principal from second Tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
 	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_assignment", "test")
@@ -31,7 +31,7 @@ func TestAccAzureRMLighthouseAssignment_basic(t *testing.T) {
 				Config: testAccAzureRMLighthouseAssignment_basic(uuid.New().String(), secondTenantID, principalID, data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLighthouseAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "registration_assignment_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 				),
 			},
 		},
@@ -57,7 +57,7 @@ func TestAccAzureRMLighthouseAssignment_requiresImport(t *testing.T) {
 				Config: testAccAzureRMLighthouseAssignment_basic(id, secondTenantID, principalID, data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLighthouseAssignmentExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "registration_assignment_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 				),
 			},
 			{
@@ -83,7 +83,7 @@ func TestAccAzureRMLighthouseAssignment_emptyID(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLighthouseAssignmentExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "registration_assignment_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 				),
 			},
 		},
@@ -92,7 +92,7 @@ func TestAccAzureRMLighthouseAssignment_emptyID(t *testing.T) {
 
 func testCheckAzureRMLighthouseAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ManagedServices.LighthouseAssignmentsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Lighthouse.AssignmentsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -101,14 +101,14 @@ func testCheckAzureRMLighthouseAssignmentExists(resourceName string) resource.Te
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		lighthouseAssignmentID := rs.Primary.Attributes["registration_assignment_id"]
+		lighthouseAssignmentName := rs.Primary.Attributes["name"]
 		expandLighthouseDefinition := true
 
-		resp, err := client.Get(ctx, scope, lighthouseAssignmentID, &expandLighthouseDefinition)
+		resp, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Lighthouse Assignment %q (Scope: %q) does not exist", lighthouseAssignmentID, scope)
+				return fmt.Errorf("Bad: Lighthouse Assignment %q (Scope: %q) does not exist", lighthouseAssignmentName, scope)
 			}
 			return fmt.Errorf("Bad: Get on LighthouseAssignmentsClient: %+v", err)
 		}
@@ -118,7 +118,7 @@ func testCheckAzureRMLighthouseAssignmentExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMLighthouseAssignmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ManagedServices.LighthouseAssignmentsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Lighthouse.AssignmentsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -127,10 +127,10 @@ func testCheckAzureRMLighthouseAssignmentDestroy(s *terraform.State) error {
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		lighthouseAssignmentID := rs.Primary.Attributes["registration_assignment_id"]
+		lighthouseAssignmentName := rs.Primary.Attributes["name"]
 		expandLighthouseDefinition := true
 
-		resp, err := client.Get(ctx, scope, lighthouseAssignmentID, &expandLighthouseDefinition)
+		resp, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
 
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -153,21 +153,25 @@ provider "azurerm" {
 data "azurerm_subscription" "primary" {
 }
 
+data "azurerm_role_definition" "contributor" {
+  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+}
+
 resource "azurerm_lighthouse_definition" "test" {
-  registration_definition_name = "acctestrd-%d"
-  description                  = "Acceptance Test Lighthouse Definition"
-  managed_by_tenant_id         = "%s"
+  name               = "acctest-LD-%d"
+  description        = "Acceptance Test Lighthouse Definition"
+  managing_tenant_id = "%s"
 
   authorization {
     principal_id       = "%s"
-    role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    role_definition_id = data.azurerm_role_definition.contributor.role_definition_id
   }
 }
 
 resource "azurerm_lighthouse_assignment" "test" {
-  registration_assignment_id = "%s"
-  scope                      = data.azurerm_subscription.primary.id
-  registration_definition_id = azurerm_lighthouse_definition.test.id
+  name                     = "%s"
+  scope                    = data.azurerm_subscription.primary.id
+  lighthouse_definition_id = azurerm_lighthouse_definition.test.id
 }
 
 `, data.RandomInteger, secondTenantID, principalID, id)
@@ -178,9 +182,9 @@ func testAccAzureRMLighthouseAssignment_requiresImport(id string, secondTenantID
 %s
 
 resource "azurerm_lighthouse_assignment" "import" {
-  registration_assignment_id = azurerm_lighthouse_assignment.test.registration_assignment_id
-  registration_definition_id = azurerm_lighthouse_assignment.test.registration_definition_id
-  scope                      = azurerm_lighthouse_assignment.test.scope
+  name                     = azurerm_lighthouse_assignment.test.name
+  lighthouse_definition_id = azurerm_lighthouse_assignment.test.lighthouse_definition_id
+  scope                    = azurerm_lighthouse_assignment.test.scope
 }
 `, testAccAzureRMLighthouseAssignment_basic(id, secondTenantID, principalID, data))
 }
@@ -194,20 +198,24 @@ provider "azurerm" {
 data "azurerm_subscription" "primary" {
 }
 
+data "azurerm_role_definition" "contributor" {
+  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+}
+
 resource "azurerm_lighthouse_definition" "test" {
-  registration_definition_name = "acctestrd-%d"
-  description                  = "Acceptance Test Lighthouse Definition"
-  managed_by_tenant_id         = "%s"
+  name               = "acctest-LD-%d"
+  description        = "Acceptance Test Lighthouse Definition"
+  managing_tenant_id = "%s"
 
   authorization {
     principal_id       = "%s"
-    role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    role_definition_id = data.azurerm_role_definition.contributor.role_definition_id
   }
 }
 
 resource "azurerm_lighthouse_assignment" "test" {
-  scope                      = data.azurerm_subscription.primary.id
-  registration_definition_id = azurerm_lighthouse_definition.test.id
+  scope                    = data.azurerm_subscription.primary.id
+  lighthouse_definition_id = azurerm_lighthouse_definition.test.id
 }
 `, data.RandomInteger, secondTenantID, principalID)
 }

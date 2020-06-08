@@ -1,4 +1,4 @@
-package managedservices
+package lighthouse
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ func dataSourceArmLighthouseDefinition() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"registration_definition_id": {
+			"lighthouse_definition_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.IsUUID,
@@ -32,7 +32,7 @@ func dataSourceArmLighthouseDefinition() *schema.Resource {
 				Computed: true,
 			},
 
-			"registration_definition_name": {
+			"name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -42,13 +42,13 @@ func dataSourceArmLighthouseDefinition() *schema.Resource {
 				Computed: true,
 			},
 
-			"managed_by_tenant_id": {
+			"managing_tenant_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"authorization": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -68,11 +68,11 @@ func dataSourceArmLighthouseDefinition() *schema.Resource {
 }
 
 func dataSourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.LighthouseDefinitionsClient
+	client := meta.(*clients.Client).Lighthouse.DefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	lighthouseDefinitionID := d.Get("registration_definition_id").(string)
+	lighthouseDefinitionID := d.Get("lighthouse_definition_id").(string)
 	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
 	if subscriptionID == "" {
 		return fmt.Errorf("Error reading Subscription for Lighthouse Definition %q", lighthouseDefinitionID)
@@ -95,12 +95,12 @@ func dataSourceArmLighthouseDefinitionRead(d *schema.ResourceData, meta interfac
 	d.Set("scope", scope)
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("authorization", flattenManagedServicesDefinitionAuthorization(props.Authorizations)); err != nil {
+		if err := d.Set("authorization", flattenLighthouseDefinitionAuthorization(props.Authorizations)); err != nil {
 			return fmt.Errorf("setting `authorization`: %+v", err)
 		}
 		d.Set("description", props.Description)
-		d.Set("registration_definition_name", props.RegistrationDefinitionName)
-		d.Set("managed_by_tenant_id", props.ManagedByTenantID)
+		d.Set("name", props.RegistrationDefinitionName)
+		d.Set("managing_tenant_id", props.ManagedByTenantID)
 	}
 
 	return nil

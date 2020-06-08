@@ -1,18 +1,20 @@
-package managedservices
+package lighthouse
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/managedservices/mgmt/2019-06-01/managedservices"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/lighthouse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -35,7 +37,7 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"registration_assignment_id": {
+			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
@@ -50,14 +52,14 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"registration_definition_id": {
+			"lighthouse_definition_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"expand_registration_definition": {
+			"expand_lighthouse_definition": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
@@ -67,28 +69,28 @@ func resourceArmLighthouseAssignment() *schema.Resource {
 }
 
 func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.LighthouseAssignmentsClient
+	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	lighthouseAssignmentID := d.Get("registration_assignment_id").(string)
-	if lighthouseAssignmentID == "" {
+	lighthouseAssignmentName := d.Get("name").(string)
+	if lighthouseAssignmentName == "" {
 		uuid, err := uuid.GenerateUUID()
 		if err != nil {
 			return fmt.Errorf("Error generating UUID for Lighthouse Assignment: %+v", err)
 		}
 
-		lighthouseAssignmentID = uuid
+		lighthouseAssignmentName = uuid
 	}
 
 	scope := d.Get("scope").(string)
-	expandLighthouseDefinition := d.Get("expand_registration_definition").(bool)
+	expandLighthouseDefinition := d.Get("expand_lighthouse_definition").(bool)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, scope, lighthouseAssignmentID, &expandLighthouseDefinition)
+		existing, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentID, scope, err)
+				return fmt.Errorf("Error checking for presence of existing Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
 			}
 		}
 
@@ -99,21 +101,21 @@ func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta in
 
 	parameters := managedservices.RegistrationAssignment{
 		Properties: &managedservices.RegistrationAssignmentProperties{
-			RegistrationDefinitionID: utils.String(d.Get("registration_definition_id").(string)),
+			RegistrationDefinitionID: utils.String(d.Get("lighthouse_definition_id").(string)),
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, scope, lighthouseAssignmentID, parameters); err != nil {
-		return fmt.Errorf("Error Creating/Updating Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentID, scope, err)
+	if _, err := client.CreateOrUpdate(ctx, scope, lighthouseAssignmentName, parameters); err != nil {
+		return fmt.Errorf("Error Creating/Updating Lighthouse Assignment %q (Scope %q): %+v", lighthouseAssignmentName, scope, err)
 	}
 
-	read, err := client.Get(ctx, scope, lighthouseAssignmentID, &expandLighthouseDefinition)
+	read, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Lighthouse Assignment %q ID (scope %q) ID", lighthouseAssignmentID, scope)
+		return fmt.Errorf("Cannot read Lighthouse Assignment %q ID (scope %q) ID", lighthouseAssignmentName, scope)
 	}
 
 	d.SetId(*read.ID)
@@ -122,73 +124,78 @@ func resourceArmLighthouseAssignmentCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmLighthouseAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.LighthouseAssignmentsClient
+	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureLighthouseAssignmentID(d.Id())
+	id, err := parse.LighthouseAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
-	expandLighthouseDefinition := d.Get("expand_registration_definition").(bool)
+	expandLighthouseDefinition := d.Get("expand_lighthouse_definition").(bool)
 
-	resp, err := client.Get(ctx, id.scope, id.lighthouseAssignmentID, &expandLighthouseDefinition)
+	resp, err := client.Get(ctx, id.Scope, id.Name, &expandLighthouseDefinition)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] Lighthouse Assignment '%s' was not found (Scope '%s')", id.lighthouseAssignmentID, id.scope)
+			log.Printf("[WARN] Lighthouse Assignment '%s' was not found (Scope '%s')", id.Name, id.Scope)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Lighthouse Assignment %q (Scope %q): %+v", id.lighthouseAssignmentID, id.scope, err)
+		return fmt.Errorf("Error making Read request on Lighthouse Assignment %q (Scope %q): %+v", id.Name, id.Scope, err)
 	}
 
-	d.Set("registration_assignment_id", resp.Name)
-	d.Set("scope", id.scope)
+	d.Set("name", resp.Name)
+	d.Set("scope", id.Scope)
 
 	if props := resp.Properties; props != nil {
-		d.Set("registration_definition_id", props.RegistrationDefinitionID)
+		d.Set("lighthouse_definition_id", props.RegistrationDefinitionID)
 	}
 
 	return nil
 }
 
-type lighthouseAssignmentID struct {
-	scope                  string
-	lighthouseAssignmentID string
-}
-
-func parseAzureLighthouseAssignmentID(id string) (*lighthouseAssignmentID, error) {
-	segments := strings.Split(id, "/providers/Microsoft.ManagedServices/registrationAssignments/")
-	if len(segments) != 2 {
-		return nil, fmt.Errorf("Expected ID to be in the format `{scope}/providers/Microsoft.ManagedServices/registrationAssignments/{name} - got %d segments", len(segments))
-	}
-
-	azureLighthouseAssignmentID := lighthouseAssignmentID{
-		scope:                  segments[0],
-		lighthouseAssignmentID: segments[1],
-	}
-
-	return &azureLighthouseAssignmentID, nil
-}
-
 func resourceArmLighthouseAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).ManagedServices.LighthouseAssignmentsClient
+	client := meta.(*clients.Client).Lighthouse.AssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureLighthouseAssignmentID(d.Id())
+	id, err := parse.LighthouseAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.scope, id.lighthouseAssignmentID)
+	_, err = client.Delete(ctx, id.Scope, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Lighthouse Assignment %q at Scope %q: %+v", id.lighthouseAssignmentID, id.scope, err)
+		return fmt.Errorf("Error deleting Lighthouse Assignment %q at Scope %q: %+v", id.Name, id.Scope, err)
 	}
 
-	// The sleep is needed to ensure the lighthouse assignment is successfully deleted.
-	time.Sleep(30 * time.Second)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Deleting"},
+		Target:     []string{"Deleted"},
+		Refresh:    lighthouseAssignmentDeleteRefreshFunc(ctx, client, id.Scope, id.Name),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Lighthouse Assignment %q (Scope %q) to be deleted: %s", id.Name, id.Scope, err)
+	}
 
 	return nil
+}
+
+func lighthouseAssignmentDeleteRefreshFunc(ctx context.Context, client *managedservices.RegistrationAssignmentsClient, scope string, lighthouseAssignmentName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		expandLighthouseDefinition := true
+		res, err := client.Get(ctx, scope, lighthouseAssignmentName, &expandLighthouseDefinition)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return res, "Deleted", nil
+			}
+			return nil, "Error", fmt.Errorf("Error issuing read request in lighthouseAssignmentDeleteRefreshFunc to Lighthouse Assignment %q (Scope %q): %s", lighthouseAssignmentName, scope, err)
+		}
+
+		return res, "Deleting", nil
+	}
 }

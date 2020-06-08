@@ -1,4 +1,4 @@
-package managedservices
+package lighthouse
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -8,13 +8,13 @@ type Registration struct{}
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return "Managed Services"
+	return "Lighthouse"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Managed Services",
+		"Lighthouse",
 	}
 }
 

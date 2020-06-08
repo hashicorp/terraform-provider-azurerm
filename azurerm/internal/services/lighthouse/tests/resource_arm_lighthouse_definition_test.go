@@ -18,7 +18,7 @@ import (
 func TestAccAzureRMLighthouseDefinition_basic(t *testing.T) {
 	// Multiple tenants are needed to test this resource.
 	// Second tenant ID needs to be set as a environment variable ARM_TENANT_ID_ALT.
-	// ObjectId for user, usergroup or service principal in second tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
+	// ObjectId for user, usergroup or service principal from second Tenant needs to be set as a environment variable ARM_PRINCIPAL_ID_ALT_TENANT.
 	secondTenantID := os.Getenv("ARM_TENANT_ID_ALT")
 	principalID := os.Getenv("ARM_PRINCIPAL_ID_ALT_TENANT")
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
@@ -33,7 +33,7 @@ func TestAccAzureRMLighthouseDefinition_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLighthouseDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
-					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -60,7 +60,7 @@ func TestAccAzureRMLighthouseDefinition_requiresImport(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLighthouseDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
-					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 				),
 			},
 			{
@@ -86,11 +86,11 @@ func TestAccAzureRMLighthouseDefinition_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLighthouseDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
-					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test Lighthouse Definition"),
 				),
 			},
-			data.ImportStep("registration_definition_id"),
+			data.ImportStep("lighthouse_definition_id"),
 		},
 	})
 }
@@ -111,7 +111,7 @@ func TestAccAzureRMLighthouseDefinition_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLighthouseDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
-					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 				),
 			},
 			{
@@ -119,7 +119,7 @@ func TestAccAzureRMLighthouseDefinition_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLighthouseDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "scope"),
-					resource.TestMatchResourceAttr(data.ResourceName, "registration_definition_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(data.ResourceName, "lighthouse_definition_id", validate.UUIDRegExp),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "Acceptance Test Lighthouse Definition"),
 				),
 			},
@@ -142,7 +142,7 @@ func TestAccAzureRMLighthouseDefinition_emptyID(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLighthouseDefinitionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "registration_definition_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "lighthouse_definition_id"),
 				),
 			},
 		},
@@ -151,7 +151,7 @@ func TestAccAzureRMLighthouseDefinition_emptyID(t *testing.T) {
 
 func testCheckAzureRMLighthouseDefinitionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).ManagedServices.LighthouseDefinitionsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Lighthouse.DefinitionsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -160,7 +160,7 @@ func testCheckAzureRMLighthouseDefinitionExists(resourceName string) resource.Te
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		lighthouseDefinitionID := rs.Primary.Attributes["registration_definition_id"]
+		lighthouseDefinitionID := rs.Primary.Attributes["lighthouse_definition_id"]
 
 		resp, err := client.Get(ctx, scope, lighthouseDefinitionID)
 
@@ -176,7 +176,7 @@ func testCheckAzureRMLighthouseDefinitionExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMLighthouseDefinitionDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).ManagedServices.LighthouseDefinitionsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Lighthouse.DefinitionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -185,7 +185,7 @@ func testCheckAzureRMLighthouseDefinitionDestroy(s *terraform.State) error {
 		}
 
 		scope := rs.Primary.Attributes["scope"]
-		lighthouseDefinitionID := rs.Primary.Attributes["registration_definition_id"]
+		lighthouseDefinitionID := rs.Primary.Attributes["lighthouse_definition_id"]
 
 		resp, err := client.Get(ctx, scope, lighthouseDefinitionID)
 
@@ -207,14 +207,18 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_role_definition" "contributor" {
+  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+}
+
 resource "azurerm_lighthouse_definition" "test" {
-  registration_definition_id   = "%s"
-  registration_definition_name = "acctestrd-%d"
-  managed_by_tenant_id         = "%s"
+  lighthouse_definition_id = "%s"
+  name                     = "acctest-LD-%d"
+  managing_tenant_id       = "%s"
 
   authorization {
     principal_id       = "%s"
-    role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    role_definition_id = data.azurerm_role_definition.contributor.role_definition_id
   }
 }
 `, id, data.RandomInteger, secondTenantID, principalID)
@@ -225,11 +229,11 @@ func testAccAzureRMLighthouseDefinition_requiresImport(id string, secondTenantID
 %s
 
 resource "azurerm_lighthouse_definition" "import" {
-  registration_definition_name = azurerm_lighthouse_definition.test.registration_definition_name
-  registration_definition_id   = azurerm_lighthouse_definition.test.registration_definition_id
-  managed_by_tenant_id         = azurerm_lighthouse_definition.test.managed_by_tenant_id
+  name                     = azurerm_lighthouse_definition.test.name
+  lighthouse_definition_id = azurerm_lighthouse_definition.test.lighthouse_definition_id
+  managing_tenant_id       = azurerm_lighthouse_definition.test.managing_tenant_id
   authorization {
-    principal_id       = azurerm_lighthouse_definition.test.managed_by_tenant_id
+    principal_id       = azurerm_lighthouse_definition.test.managing_tenant_id
     role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
   }
 }
@@ -242,15 +246,19 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_role_definition" "contributor" {
+  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+}
+
 resource "azurerm_lighthouse_definition" "test" {
-  registration_definition_id   = "%s"
-  registration_definition_name = "acctestrd-%d"
-  description                  = "Acceptance Test Lighthouse Definition"
-  managed_by_tenant_id         = "%s"
+  lighthouse_definition_id = "%s"
+  name                     = "acctest-LD-%d"
+  description              = "Acceptance Test Lighthouse Definition"
+  managing_tenant_id       = "%s"
 
   authorization {
     principal_id       = "%s"
-    role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    role_definition_id = data.azurerm_role_definition.contributor.role_definition_id
   }
 }
 `, id, data.RandomInteger, secondTenantID, principalID)
@@ -262,14 +270,18 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_role_definition" "contributor" {
+  role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+}
+
 resource "azurerm_lighthouse_definition" "test" {
-  registration_definition_name = "acctestrd-%d"
-  description                  = "Acceptance Test Lighthouse Definition"
-  managed_by_tenant_id         = "%s"
+  name               = "acctest-LD-%d"
+  description        = "Acceptance Test Lighthouse Definition"
+  managing_tenant_id = "%s"
 
   authorization {
     principal_id       = "%s"
-    role_definition_id = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+    role_definition_id = data.azurerm_role_definition.contributor.role_definition_id
   }
 }
 `, data.RandomInteger, secondTenantID, principalID)
