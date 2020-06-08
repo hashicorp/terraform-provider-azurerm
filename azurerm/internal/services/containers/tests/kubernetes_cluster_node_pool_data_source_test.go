@@ -28,7 +28,6 @@ func testAccAzureRMKubernetesClusterNodePoolDataSource_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMKubernetesClusterNodePoolDataSource_basicConfig(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "node_count", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Staging"),
