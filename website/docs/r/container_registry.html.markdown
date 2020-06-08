@@ -66,7 +66,9 @@ The following arguments are supported:
 
 * `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
 
-~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time. The network rule settings cannot be removed and only can switch between `Allow all networks` and `Deny some networks` once you set it. If you want to remove existing network rule settings, just needs to set `default_action` in `network_rule_set` block as `Deny`.
+~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
+
+~> **NOTE:** The network rule settings cannot be removed and only can switch between "Allow all networks" and "Deny some networks" once you set it. If you want to remove existing network rule settings, just needs to set `default_action` in `network_rule_set` block as `Deny`.
 
 `ip_rule` supports the following:
 
