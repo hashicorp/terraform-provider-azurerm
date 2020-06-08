@@ -85,7 +85,7 @@ func (client DefinitionsClient) CreateOrUpdatePreparer(ctx context.Context, poli
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -167,7 +167,7 @@ func (client DefinitionsClient) CreateOrUpdateAtManagementGroupPreparer(ctx cont
 		"policyDefinitionName": autorest.Encode("path", policyDefinitionName),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -246,7 +246,7 @@ func (client DefinitionsClient) DeletePreparer(ctx context.Context, policyDefini
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -321,7 +321,7 @@ func (client DefinitionsClient) DeleteAtManagementGroupPreparer(ctx context.Cont
 		"policyDefinitionName": autorest.Encode("path", policyDefinitionName),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -394,7 +394,7 @@ func (client DefinitionsClient) GetPreparer(ctx context.Context, policyDefinitio
 		"subscriptionId":       autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -470,7 +470,7 @@ func (client DefinitionsClient) GetAtManagementGroupPreparer(ctx context.Context
 		"policyDefinitionName": autorest.Encode("path", policyDefinitionName),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -543,7 +543,7 @@ func (client DefinitionsClient) GetBuiltInPreparer(ctx context.Context, policyDe
 		"policyDefinitionName": autorest.Encode("path", policyDefinitionName),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -615,7 +615,7 @@ func (client DefinitionsClient) ListPreparer(ctx context.Context) (*http.Request
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -720,7 +720,7 @@ func (client DefinitionsClient) ListBuiltIn(ctx context.Context) (result Definit
 
 // ListBuiltInPreparer prepares the ListBuiltIn request.
 func (client DefinitionsClient) ListBuiltInPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -831,7 +831,7 @@ func (client DefinitionsClient) ListByManagementGroupPreparer(ctx context.Contex
 		"managementGroupId": autorest.Encode("path", managementGroupID),
 	}
 
-	const APIVersion = "2018-05-01"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
