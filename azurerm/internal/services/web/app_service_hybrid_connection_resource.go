@@ -146,10 +146,14 @@ func resourceArmAppServiceHybridConnectionCreateUpdate(d *schema.ResourceData, m
 
 	hybridConnection, err := client.CreateOrUpdateHybridConnection(ctx, resourceGroup, name, namespaceName, relayName, connectionEnvelope)
 	if err != nil {
-		return fmt.Errorf("Error creating App Service Hybrid Connection %q (resource group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("failed creating App Service Hybrid Connection %q (resource group %q): %s", name, resourceGroup, err)
 	}
 
+	if hybridConnection.ID == nil && *hybridConnection.ID == "" {
+		return fmt.Errorf("failed to read ID for Hybrid Connection %q", name)
+	}
 	d.SetId(*hybridConnection.ID)
+
 	return resourceArmAppServiceHybridConnectionRead(d, meta)
 }
 

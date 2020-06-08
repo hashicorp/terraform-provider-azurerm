@@ -64,7 +64,7 @@ func TestAccAzureRMAppServiceHybridConnection_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppService_basic(data),
+				Config: testAccAzureRMAppServiceHybridConnection_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceHybridConnectionExists(data.ResourceName),
 				),
