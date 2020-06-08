@@ -72,18 +72,15 @@ resource "azurerm_linux_virtual_machine" "example" {
 }
 
 resource "azurerm_dev_test_global_vm_shutdown_schedule" "example" {
-  target_resource_id = azurerm_virtual_machine.example.id
+  virtual_machine_id = azurerm_virtual_machine.example.id
   location           = azurerm_resource_group.example.location
-  status             = "Enabled"
+  enabled            = true
 
-  daily_recurrence {
-    time = "1100"
-  }
-
-  time_zone_id = "Pacific Standard Time"
+  daily_recurrence_time = "1100"
+  time_zone             = "Pacific Standard Time"
 
   notification_settings {
-    status          = "Enabled"
+    enabled         = true
     time_in_minutes = "60"
     webhook_url     = "https://sample-webhook-url.example.com"
   }

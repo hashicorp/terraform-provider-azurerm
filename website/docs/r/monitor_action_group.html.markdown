@@ -151,7 +151,7 @@ The following arguments are supported:
 `azure_function_receiver` supports the following:
 
 * `name` - (Required) The name of the Azure Function receiver.
-* `function_app_resouce_id` - (Required) The Azure resource ID of the function app.
+* `function_app_resource_id` - (Required) The Azure resource ID of the function app.
 * `function_name` - (Required) The function name in the function app.
 * `http_trigger_url` - (Required) The http trigger url where http request sent to.
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.

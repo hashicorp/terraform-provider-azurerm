@@ -106,6 +106,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(network.WebApplicationFirewallOperatorIPMatch),
+											string(network.WebApplicationFirewallOperatorGeoMatch),
 											string(network.WebApplicationFirewallOperatorEqual),
 											string(network.WebApplicationFirewallOperatorContains),
 											string(network.WebApplicationFirewallOperatorLessThan),

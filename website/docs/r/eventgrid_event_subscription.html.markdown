@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
+* `azure_function_endpoint` - (Optional) An `azure_function_endpoint` block as defined below.
+
 * `eventhub_endpoint` - (Optional / **Deprecated in favour of `eventhub_endpoint_id`**) A `eventhub_endpoint` block as defined below.
 
 * `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
@@ -81,6 +83,8 @@ The following arguments are supported:
 
 * `subject_filter` - (Optional) A `subject_filter` block as defined below.
 
+* `advanced_filter` - (Optional) A `advanced_filter` block as defined below.
+
 * `storage_blob_dead_letter_destination` - (Optional) A `storage_blob_dead_letter_destination` block as defined below.
 
 * `retry_policy` - (Optional) A `retry_policy` block as defined below.
@@ -94,6 +98,16 @@ A `storage_queue_endpoint` supports the following:
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscription will receive events.
+
+---
+
+An `azure_function_endpoint` supports the following:
+
+* `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events.
+
+* `max_events_per_batch` - (Optional) Maximum number of events per batch.
+
+* `preferred_batch_size_in_kilobytes` - (Optional) Preferred batch size in Kilobytes.
 
 ---
 
@@ -122,6 +136,35 @@ A `subject_filter` supports the following:
 * `subject_ends_with` - (Optional) A string to filter events for an event subscription based on a resource path suffix.
 
 * `case_sensitive` - (Optional) Specifies if `subject_begins_with` and `subject_ends_with` case sensitive. This value defaults to `false`.
+
+---
+
+A `advanced_filter` supports the following nested blocks:
+
+* `bool_equals` - Compares a value of an event using a single boolean value.
+* `number_greater_than` - Compares a value of an event using a single floating point number.
+* `number_greater_than_or_equals` - Compares a value of an event using a single floating point number.
+* `number_less_than` - Compares a value of an event using a single floating point number.
+* `number_less_than_or_equals` - Compares a value of an event using a single floating point number.
+* `number_in` - Compares a value of an event using multiple floating point numbers.
+* `number_not_in` - Compares a value of an event using multiple floating point numbers.
+* `string_begins_with` - Compares a value of an event using multiple string values.
+* `string_ends_with` - Compares a value of an event using multiple string values.
+* `string_contains` - Compares a value of an event using multiple string values.
+* `string_in` - Compares a value of an event using multiple string values.
+* `string_not_in` - Compares a value of an event using multiple string values.
+
+Each nested block consists of a key and a value(s) element.
+
+* `key` - (Required) Specifies the field within the event data that you want to use for filtering. Type of the field can be a number, boolean, or string.
+
+* `value` - (Required) Specifies a single value to compare to when using a single value operator. 
+
+**OR** 
+
+* `values` - (Required) Specifies an array of values to compare to when using a multiple values operator.
+
+~> **NOTE:** A maximum of 5 advanced filters are allowed.
 
 ---
 
@@ -158,9 +201,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-EventGrid Domain's can be imported using the `resource id`, e.g.
+EventGrid Event Subscription's can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_eventgrid_event_subscription.eventSubscription1
-/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
+/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/topics/topic1/providers/Microsoft.EventGrid/eventSubscriptions/eventSubscription1
 ```
