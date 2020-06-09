@@ -8,6 +8,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_data_factory_linked_service_key_vault` [GH-6971]
 * **New Resource:** `azurerm_iot_time_series_insights_reference_data_set` [GH-7112]
+* **New Resource:** `azurerm_app_service_hybrid_connection` [GH-7224]
 
 ENHANCEMENTS:
 
