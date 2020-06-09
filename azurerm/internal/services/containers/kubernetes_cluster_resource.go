@@ -977,9 +977,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			loadBalancerProfile.ManagedOutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{
 				Count: utils.Int32(int32(managedOutboundIPCount)),
 			}
-		} else {
-			// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.{
-			loadBalancerProfile.ManagedOutboundIPs = nil
+
+			// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+			loadBalancerProfile.OutboundIPs = nil
+			loadBalancerProfile.OutboundIPPrefixes = nil
 		}
 
 		if key := "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"; d.HasChange(key) {
@@ -987,9 +988,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			loadBalancerProfile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{
 				PublicIPs: publicIPAddressIDs,
 			}
-		} else {
-			// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.{
-			loadBalancerProfile.OutboundIPs = nil
+
+			// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+			loadBalancerProfile.ManagedOutboundIPs = nil
+			loadBalancerProfile.OutboundIPPrefixes = nil
 		}
 
 		if key := "network_profile.0.load_balancer_profile.0.outbound_ip_prefix_ids"; d.HasChange(key) {
@@ -997,9 +999,10 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			loadBalancerProfile.OutboundIPPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{
 				PublicIPPrefixes: outboundIPPrefixIDs,
 			}
-		} else {
-			// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.{
-			loadBalancerProfile.OutboundIPPrefixes = nil
+
+			// fixes: Load balancer profile must specify one of ManagedOutboundIPs, OutboundIPPrefixes and OutboundIPs.
+			loadBalancerProfile.ManagedOutboundIPs = nil
+			loadBalancerProfile.OutboundIPs = nil
 		}
 
 		if key := "network_profile.0.load_balancer_profile.0.outbound_ports_allocated"; d.HasChange(key) {
@@ -1437,17 +1440,24 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	outboundType := config["outbound_type"].(string)
 
-	loadBalancerProfile, err := expandLoadBalancerProfile(loadBalancerProfileRaw, loadBalancerSku)
-	if err != nil {
-		return nil, err
+	networkProfile := containerservice.NetworkProfileType{
+		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
+		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
+		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
+		OutboundType:    containerservice.OutboundType(outboundType),
 	}
 
-	networkProfile := containerservice.NetworkProfileType{
-		NetworkPlugin:       containerservice.NetworkPlugin(networkPlugin),
-		NetworkPolicy:       containerservice.NetworkPolicy(networkPolicy),
-		LoadBalancerSku:     containerservice.LoadBalancerSku(loadBalancerSku),
-		LoadBalancerProfile: loadBalancerProfile,
-		OutboundType:        containerservice.OutboundType(outboundType),
+	if len(loadBalancerProfileRaw) > 0 {
+		if !strings.EqualFold(loadBalancerSku, "standard") {
+			return nil, fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerSku)
+		}
+
+		loadBalancerProfile, err := expandLoadBalancerProfile(loadBalancerProfileRaw)
+		if err != nil {
+			return nil, err
+		}
+
+		networkProfile.LoadBalancerProfile = loadBalancerProfile
 	}
 
 	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
@@ -1473,13 +1483,9 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	return &networkProfile, nil
 }
 
-func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
-	if len(d) == 0 || d[0] != nil {
+func expandLoadBalancerProfile(d []interface{}) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+	if d[0] == nil {
 		return nil, nil
-	}
-
-	if strings.ToLower(loadBalancerType) != "standard" {
-		return nil, fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerType)
 	}
 
 	config := d[0].(map[string]interface{})
