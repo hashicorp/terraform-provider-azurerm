@@ -25,9 +25,9 @@ resource "azurerm_iot_time_series_insights_standard_environment" "example" {
   data_retention_time = "P30D"
 }
 resource "azurerm_iot_time_series_insights_access_policy" "example" {
-  name                = "example"
-  environment_name    = azurerm_iot_time_series_insights_standard_environment.example.name
-  resource_group_name = azurerm_resource_group.example.name
+  name                                = "example"
+  time_series_insights_environment_id = azurerm_iot_time_series_insights_standard_environment.example.name
+
   principal_object_id = "aGUID"
   roles               = ["Reader"]
 }
@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Azure IoT Time Series Insights Access Policy.
 
-* `environment_name` - (Required) The name of the Azure IoT Time Series Insights Environment in which to create the Azure IoT Time Series Insights Reference Data Set. Changing this forces a new resource to be created.
+* `time_series_insights_environment_id` - (Required) The resource ID of the Azure IoT Time Series Insights Environment in which to create the Azure IoT Time Series Insights Reference Data Set. Changing this forces a new resource to be created.
 
 * `principal_object_id` - (Optional) The id of the principal in Azure Active Directory.
 
