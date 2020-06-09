@@ -75,7 +75,11 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Dev Test Lab exists. Changing this forces a new resource to be created.
 
-* `gallery_image_reference` - (Required) A `gallery_image_reference` block as defined below.
+* `gallery_image_reference` - A `gallery_image_reference` block as defined below.
+
+* `custom_image_id` - Specifies the ID of a custom image that should be used to create the Virtual Machine.
+
+-> **NOTE:** One of either `gallery_image_reference` or `custom_image_id` must be specified.
 
 * `lab_subnet_name` - (Required) The name of a Subnet within the Dev Test Virtual Network where this machine should exist. Changing this forces a new resource to be created.
 
