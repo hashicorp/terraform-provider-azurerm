@@ -82,11 +82,11 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"resource_group_name": {
 							Type:     schema.TypeString,
-							Optional: false,
+							Optional: true,
 						},
 						"environment_name": {
 							Type:     schema.TypeString,
-							Optional: false,
+							Optional: true,
 						},
 					},
 				},
