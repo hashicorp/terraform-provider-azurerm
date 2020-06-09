@@ -54,13 +54,13 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"requiresImport":             testAccAzureRMNetworkPacketCapture_requiresImport,
 		},
 		"FlowLog": {
-			"basic":                TestAccAzureRMNetworkWatcherFlowLog_basic,
-			"disabled":             TestAccAzureRMNetworkWatcherFlowLog_disabled,
-			"reenabled":            TestAccAzureRMNetworkWatcherFlowLog_reenabled,
-			"retentionPolicy":      TestAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
-			"updateStorageAccount": TestAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
-			"trafficAnalytics":     TestAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
-			"version":              TestAccAzureRMNetworkWatcherFlowLog_version,
+			"basic":                testAccAzureRMNetworkWatcherFlowLog_basic,
+			"disabled":             testAccAzureRMNetworkWatcherFlowLog_disabled,
+			"reenabled":            testAccAzureRMNetworkWatcherFlowLog_reenabled,
+			"retentionPolicy":      testAccAzureRMNetworkWatcherFlowLog_retentionPolicy,
+			"updateStorageAccount": testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount,
+			"trafficAnalytics":     testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics,
+			"version":              testAccAzureRMNetworkWatcherFlowLog_version,
 		},
 	}
 
