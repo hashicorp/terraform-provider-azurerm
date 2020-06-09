@@ -16,6 +16,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_cosmosdb_account` modifying `geo_location` no longer triggers a recreation of the resource [GH-7217]
 * `azurerm_eventgrid_event_subscription` - support for `azure_function_endpoint` [GH-7182]
 * `azurerm_web_application_firewall_policy` - Add support for `GeoMatch` operator in request filter [GH-7181]
 
