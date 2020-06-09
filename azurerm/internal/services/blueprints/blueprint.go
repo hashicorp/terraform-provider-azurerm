@@ -67,7 +67,7 @@ func blueprintAssignmentCreateStateRefreshFunc(ctx context.Context, client *blue
 			return nil, "", fmt.Errorf("unable to retrieve Blueprint Assignment %q (Scope %q): %+v", name, scope, err)
 		}
 		if resp.ProvisioningState == blueprint.Failed {
-			return resp, string(resp.ProvisioningState), err
+			return resp, string(resp.ProvisioningState), fmt.Errorf("Blueprint Assignment provisioning entered a Failed state.")
 		}
 
 		return resp, string(resp.ProvisioningState), nil
@@ -132,7 +132,7 @@ func expandArmBlueprintAssignmentResourceGroups(input string) map[string]*bluepr
 }
 
 func expandArmBlueprintAssignmentIdentity(input []interface{}) (*blueprint.ManagedServiceIdentity, error) {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil, fmt.Errorf("Managed Service Identity was empty")
 	}
 

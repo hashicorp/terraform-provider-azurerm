@@ -10,6 +10,10 @@ description: |-
 
 Manages a Blueprint Assignment resource
 
+~> **NOTE:** Azure Blueprints are in Preview and potentially subject to breaking change without notice.
+
+~> **NOTE:** Azure Blueprint Assignments can only be applied to Subscriptions.  Assignments to Management Groups is not currently supported by the service or by Terraform.
+
 ## Example Usage
 ```hcl
 provider "azurerm" {
@@ -142,3 +146,20 @@ An `identity` block supports the following Arguments
 * `display_name` - The display name of the blueprint
 
 * `blueprint_name` - The name of the blueprint assigned
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Blueprint Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Blueprint Assignment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Blueprint Assignment.
+* `delete` - (Defaults to 5 minutes) Used when deleting the Blueprint Assignment.
+
+## Import
+
+Azure Blueprint Assignments can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_blueprint_assignment.example "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Blueprint/blueprintAssignments/assignSimpleBlueprint"
+```

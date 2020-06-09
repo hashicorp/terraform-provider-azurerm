@@ -208,6 +208,10 @@ func resourceArmBlueprintAssignmentCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("failed waiting for Blueprint Assignment %q (Scope %q): %+v", name, targetScope, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("could not read ID from Blueprint Assignment %q on scope %q", name, targetScope)
+	}
+
 	d.SetId(*resp.ID)
 
 	return resourceArmBlueprintAssignmentRead(d, meta)
@@ -258,7 +262,7 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 			d.Set("version_id", resp.AssignmentProperties.BlueprintID)
 		}
 
-		if resp.Parameters != nil {
+		if resp.AssignmentProperties.Parameters != nil {
 			params, err := flattenArmBlueprintAssignmentParameters(resp.Parameters)
 			if err != nil {
 				return err
@@ -266,7 +270,7 @@ func resourceArmBlueprintAssignmentRead(d *schema.ResourceData, meta interface{}
 			d.Set("parameter_values", params)
 		}
 
-		if resp.ResourceGroups != nil {
+		if resp.AssignmentProperties.ResourceGroups != nil {
 			resourceGroups, err := flattenArmBlueprintAssignmentResourceGroups(resp.ResourceGroups)
 			if err != nil {
 				return err

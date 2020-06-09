@@ -10,13 +10,16 @@ description: |-
 
 Use this data source to access information about an existing Azure Blueprint Published Version
 
+~> **NOTE:** Azure Blueprints are in Preview and potentially subject to breaking change without notice.
+
+
 ## Example Usage
 ```hcl
 data "azurerm_subscription" "current" {}
 
 data "azurerm_blueprint_published_version" "test" {
   scope_id       = data.azurerm_subscription.current.id
-  blueprint_name = "exampleMGBluePrint"
+  blueprint_name = "exampleBluePrint"
   version        = "dev_v2.3"
 }
 ```
