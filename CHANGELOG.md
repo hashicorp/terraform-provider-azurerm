@@ -6,6 +6,9 @@ DEPENDENCIES:
 
 FEATURES:
 
+* **New Data Source:** `azurerm_blueprint_definition` [GH-6930]
+* **New Data Source:** `azurerm_blueprint_published_version` [GH-6930]
+* **New Resource:** `azurerm_blueprint_assignment` [GH-6930]
 * **New Resource:** `azurerm_data_factory_linked_service_key_vault` [GH-6971]
 * **New Resource:** `azurerm_iot_time_series_insights_reference_data_set` [GH-7112]
 * **New Resource:** `azurerm_app_service_hybrid_connection` [GH-7224]
