@@ -1,10 +1,12 @@
 package policy
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 )
 
 func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.DefinitionsClient, displayName, managementGroupName string) (policy.Definition, error) {
@@ -101,4 +103,56 @@ func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.Set
 	}
 
 	return results[0], nil
+}
+
+func expandParameterDefinitionsValueFromString(jsonString string) (map[string]*policy.ParameterDefinitionsValue, error) {
+	var result map[string]*policy.ParameterDefinitionsValue
+
+	err := json.Unmarshal([]byte(jsonString), &result)
+
+	return result, err
+}
+
+func flattenParameterDefintionsValueToString(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
+	if len(input) == 0 {
+		return "", nil
+	}
+
+	result, err := json.Marshal(input)
+	if err != nil {
+		return "", err
+	}
+
+	compactJson := bytes.Buffer{}
+	if err := json.Compact(&compactJson, result); err != nil {
+		return "", err
+	}
+
+	return compactJson.String(), nil
+}
+
+func expandParameterValuesValueFromString(jsonString string) (map[string]*policy.ParameterValuesValue, error) {
+	var result map[string]*policy.ParameterValuesValue
+
+	err := json.Unmarshal([]byte(jsonString), &result)
+
+	return result, err
+}
+
+func flattenParameterValuesValueToString(input map[string]*policy.ParameterValuesValue) (string, error) {
+	if len(input) == 0 {
+		return "", nil
+	}
+
+	result, err := json.Marshal(input)
+	if err != nil {
+		return "", err
+	}
+
+	compactJson := bytes.Buffer{}
+	if err := json.Compact(&compactJson, result); err != nil {
+		return "", err
+	}
+
+	return compactJson.String(), nil
 }

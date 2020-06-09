@@ -1,4 +1,4 @@
-package policy
+package alertsmanagement
 
 import "github.com/Azure/azure-sdk-for-go/version"
 
@@ -21,7 +21,7 @@ import "github.com/Azure/azure-sdk-for-go/version"
 
 // UserAgent returns the UserAgent string to use when sending http.Requests.
 func UserAgent() string {
-	return "Azure-SDK-For-Go/" + Version() + " policy/2018-05-01"
+	return "Azure-SDK-For-Go/" + Version() + " alertsmanagement/2019-05-05-preview"
 }
 
 // Version returns the semantic version (see http://semver.org) of the client.
