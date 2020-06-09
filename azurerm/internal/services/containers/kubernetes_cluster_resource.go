@@ -1452,12 +1452,7 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 			return nil, fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerSku)
 		}
 
-		loadBalancerProfile, err := expandLoadBalancerProfile(loadBalancerProfileRaw)
-		if err != nil {
-			return nil, err
-		}
-
-		networkProfile.LoadBalancerProfile = loadBalancerProfile
+		networkProfile.LoadBalancerProfile = expandLoadBalancerProfile(loadBalancerProfileRaw)
 	}
 
 	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
@@ -1483,9 +1478,9 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*containerservi
 	return &networkProfile, nil
 }
 
-func expandLoadBalancerProfile(d []interface{}) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+func expandLoadBalancerProfile(d []interface{}) *containerservice.ManagedClusterLoadBalancerProfile {
 	if d[0] == nil {
-		return nil, nil
+		return nil
 	}
 
 	config := d[0].(map[string]interface{})
@@ -1514,7 +1509,7 @@ func expandLoadBalancerProfile(d []interface{}) (*containerservice.ManagedCluste
 		profile.OutboundIPs = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
 	}
 
-	return profile, nil
+	return profile
 }
 
 func idsToResourceReferences(set interface{}) *[]containerservice.ResourceReference {
