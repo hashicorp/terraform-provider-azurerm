@@ -71,6 +71,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the Traffic Manager endpoint.
 
+~> **Note:** "Traffic Manager Profile" and "Traffic Manager Endpoint" must be under same resource group.
+
 * `profile_name` - (Required) The name of the Traffic Manager Profile to attach
     create the Traffic Manager endpoint.
 
