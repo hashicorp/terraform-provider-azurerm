@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `password` - (Optional) The password to access the certificate's private key. Changing this forces a new resource to be created.
 
-* `hosting_environment_profile_id` - (Optional) Must be specified when the certificate is for an App Service Environment hosted App Service. Changing this forces a new resource to be created.
+* `hosting_environment` - (Optional) A `hosting_environment` block as defined below. Must be specified when the certificate is for an App Service Environment hosted App Service.
 
 * `key_vault_secret_id` - (Optional) The ID of the Key Vault secret. Changing this forces a new resource to be created.
 
@@ -78,6 +78,14 @@ The following attributes are exported:
 * `expiration_date` - The expiration date for the certificate.
 
 * `thumbprint` - The thumbprint for the certificate.
+
+---
+
+A `hosting_environment` block supports the following:
+
+* `resource_group_name` - The name of the resource group containing the App Service Environment (ASE).
+
+* `hosting_environment` - The name of the App Service Environment (ASE).
 
 ## Timeouts
 

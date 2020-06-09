@@ -302,11 +302,11 @@ func testAccAzureRMAppServiceEnvironment_withCertificatePfx(data acceptance.Test
 %s
 
 resource "azurerm_app_service_certificate" "test" {
-  name                           = "acctest-cert-%d"
-  resource_group_name            = azurerm_app_service_environment.test.resource_group_name
-  location                       = azurerm_resource_group.test.location
-  pfx_blob                       = filebase64("testdata/app_service_certificate.pfx")
-  password                       = "terraform"
+  name                = "acctest-cert-%d"
+  resource_group_name = azurerm_app_service_environment.test.resource_group_name
+  location            = azurerm_resource_group.test.location
+  pfx_blob            = filebase64("testdata/app_service_certificate.pfx")
+  password            = "terraform"
   hosting_environment = {
     resource_group_name = azurerm_app_service_environment.test.resource_group_name
     environment_name    = "acctest-ase-%d"
