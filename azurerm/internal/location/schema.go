@@ -36,6 +36,18 @@ func SchemaComputed() *schema.Schema {
 	}
 }
 
+// Schema returns the Schema which should be used for Location fields
+// where these are Required and can be changed
+func SchemaWithoutForceNew() *schema.Schema {
+	return &schema.Schema{
+		Type:             schema.TypeString,
+		Required:         true,
+		ValidateFunc:     EnhancedValidate,
+		StateFunc:        StateFunc,
+		DiffSuppressFunc: DiffSuppressFunc,
+	}
+}
+
 func DiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 	return Normalize(old) == Normalize(new)
 }
