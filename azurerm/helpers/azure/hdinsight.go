@@ -95,8 +95,7 @@ func SchemaHDInsightsGateway() *schema.Schema {
 				"enabled": {
 					Type:       schema.TypeBool,
 					Optional:   true,
-					ForceNew:   false,
-					Computed:   true,
+                                        Default: true,
 					Deprecated: "HDInsight doesn't support disabling gateway anymore",
 					ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
 						enabled := i.(bool)
@@ -116,7 +115,6 @@ func SchemaHDInsightsGateway() *schema.Schema {
 				"password": {
 					Type:      schema.TypeString,
 					Required:  true,
-					ForceNew:  false,
 					Sensitive: true,
 					// Azure returns the key as *****. We'll suppress that here.
 					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
