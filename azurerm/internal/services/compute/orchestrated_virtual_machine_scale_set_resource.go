@@ -50,6 +50,12 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"proximity_placement_group_id": {
+				Type: schema.TypeString,
+				Optional: true,
+				// TODO -- add a validation function when proximity_placement_group has its own ID validation function
+			},
+
 			"platform_fault_domain_count": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -107,6 +113,12 @@ func resourceArmOrchestratedVirtualMachineScaleSetCreateUpdate(d *schema.Resourc
 			SinglePlacementGroup:     utils.Bool(d.Get("single_placement_group").(bool)),
 		},
 		Zones: azure.ExpandZones(d.Get("zones").([]interface{})),
+	}
+
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		props.VirtualMachineScaleSetProperties.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
