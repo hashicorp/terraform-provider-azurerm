@@ -92,10 +92,11 @@ func SchemaHDInsightsGateway() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				// TODO 3.0: remove this attribute
 				"enabled": {
 					Type:       schema.TypeBool,
 					Optional:   true,
-                                        Default: true,
+					Default:    true,
 					Deprecated: "HDInsight doesn't support disabling gateway anymore",
 					ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
 						enabled := i.(bool)
