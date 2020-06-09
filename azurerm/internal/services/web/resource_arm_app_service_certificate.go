@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
@@ -73,10 +74,22 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 				ConflictsWith: []string{"pfx_blob", "password"},
 			},
 
-			"hosting_environment_profile_id": {
-				Type:     schema.TypeString,
+			"hosting_environment": {
+				Type:     schema.TypeList,
 				Optional: true,
-				ForceNew: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"resource_group_name": {
+							Type:     schema.TypeString,
+							Optional: false,
+						},
+						"environment_name": {
+							Type:     schema.TypeString,
+							Optional: false,
+						},
+					},
+				},
 			},
 
 			"friendly_name": {
@@ -136,7 +149,37 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
 	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
-	hostingEnvironmentProfileId := d.Get("hosting_environment_profile_id").(string)
+	///////////
+	/// New ///
+	///////////
+	var hostingEnvironmentProfileId string
+	hostingEnvironment := d.Get("hosting_environment")
+	if hostingEnvironment != nil {
+		configs := hostingEnvironment.([]interface{})
+		if len(configs) < 1 {
+			return fmt.Errorf("For hosting environment resource_group_name and environment_name must be specified")
+		}
+
+		config := configs[0].(map[string]interface{})
+
+		if _, ok := config["resource_group_name"]; !ok {
+			return fmt.Errorf("For hosting_environment resource_group_name must be specified")
+		}
+		aseResourceGroup := config["resource_group_name"].(string)
+
+		if _, ok := config["environment_name"]; ok {
+			return fmt.Errorf("For hosting_environment environment_name must be specified")
+		}
+		aseName := config["environment_name"].(string)
+
+		subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
+		hostingEnvironmentProfileId = fmt.Sprintf(
+			"/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/hostingEnvironments/%s",
+			subscriptionId, aseResourceGroup, aseName)
+	}
+	///////////
+	///////////
 	t := d.Get("tags").(map[string]interface{})
 
 	if pfxBlob == "" && keyVaultSecretId == "" {
@@ -252,7 +295,20 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 		d.Set("thumbprint", props.Thumbprint)
 
 		if hep := props.HostingEnvironmentProfile; hep != nil {
-			d.Set("hosting_environment_profile_id", hep.ID)
+			configs := make([]interface{}, 0)
+			config := make(map[string]interface{})
+
+			idToks := strings.Split(*hep.ID, "/")
+			if len(idToks) != 8 {
+				return fmt.Errorf("Invalid format for hosting environment ID - Tokens Expected: 8, Tokens Actual: %d", len(idToks))
+			}
+			resourceGroupName := idToks[3]
+			aseName := idToks[7]
+
+			config["resource_group_name"] = resourceGroupName
+			config["environment_name"] = aseName
+			configs = append(configs, config)
+			d.Set("hosting_environment", configs)
 		}
 	}
 

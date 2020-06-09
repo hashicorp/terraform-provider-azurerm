@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -141,27 +140,23 @@ func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
-	subscription := os.Getenv("ARM_SUBSCRIPTION_ID")
-	if len(subscription) < 1 {
-		t.Fatal("error retrieving subscription ID from environment")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
 	certData := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
 
-	expectedHostingEnvProfId := fmt.Sprintf(
-		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Web/hostingEnvironments/acctest-ase-%d",
-		subscription, data.RandomInteger, data.RandomInteger)
-
+	aseRgName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
+	aseName := fmt.Sprintf("acctest-ase-%d", data.RandomInteger)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppServiceEnvironment_withCertificatePfx(data, expectedHostingEnvProfId),
+				Config: testAccAzureRMAppServiceEnvironment_withCertificatePfx(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(certData.ResourceName, "hosting_environment_profile_id", expectedHostingEnvProfId),
+					resource.TestCheckResourceAttr(certData.ResourceName,
+						"hosting_environment.0.resource_group_name", aseRgName),
+					resource.TestCheckResourceAttr(certData.ResourceName,
+						"hosting_environment.0.environment_name", aseName),
 				),
 			},
 			data.ImportStep(),
@@ -301,7 +296,7 @@ resource "azurerm_app_service_environment" "test" {
 `, template, data.RandomInteger, data.Locations.Secondary)
 }
 
-func testAccAzureRMAppServiceEnvironment_withCertificatePfx(data acceptance.TestData, hostingEnvProfId string) string {
+func testAccAzureRMAppServiceEnvironment_withCertificatePfx(data acceptance.TestData) string {
 	template := testAccAzureRMAppServiceEnvironment_basic(data)
 	return fmt.Sprintf(`
 %s
@@ -312,9 +307,12 @@ resource "azurerm_app_service_certificate" "test" {
   location                       = azurerm_resource_group.test.location
   pfx_blob                       = filebase64("testdata/app_service_certificate.pfx")
   password                       = "terraform"
-  hosting_environment_profile_id = "%s"
+  hosting_environment = {
+    resource_group_name = azurerm_app_service_environment.test.resource_group_name
+    environment_name    = "acctest-ase-%d"
+  }
 }
-`, template, data.RandomInteger, hostingEnvProfId)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMAppServiceEnvironment_template(data acceptance.TestData) string {
