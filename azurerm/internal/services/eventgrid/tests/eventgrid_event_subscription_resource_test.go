@@ -180,6 +180,49 @@ func TestAccAzureRMEventGridEventSubscription_filter(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventGridEventSubscription_advancedFilter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventGridEventSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventGridEventSubscription_advancedFilter(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventGridEventSubscriptionExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.bool_equals.0.key", "subject"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.bool_equals.0.value", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_greater_than.0.key", "data.metadataVersion"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_greater_than.0.value", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_greater_than_or_equals.0.key", "data.contentLength"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_greater_than_or_equals.0.value", "42"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than.0.key", "data.contentLength"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than.0.value", "42.1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than_or_equals.0.key", "data.metadataVersion"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_less_than_or_equals.0.value", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_in.0.key", "data.contentLength"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_in.0.values.0", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_not_in.0.key", "data.contentLength"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.number_not_in.0.values.0", "5"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_begins_with.0.key", "subject"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_begins_with.0.values.0", "foo"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_ends_with.0.key", "subject"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_ends_with.0.values.0", "bar"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_contains.0.key", "data.contentType"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_contains.0.values.0", "application"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_in.0.key", "data.blobType"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_in.0.values.0", "Block"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_not_in.0.key", "data.blobType"),
+					resource.TestCheckResourceAttr(data.ResourceName, "advanced_filter.0.string_not_in.0.values.0", "Page"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMEventGridEventSubscriptionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).EventGrid.EventSubscriptionsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -533,6 +576,98 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     subject_begins_with = "test/test"
     subject_ends_with   = ".jpg"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMEventGridEventSubscription_advancedFilter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%d"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name  = "acctesteg-%d"
+  scope = "${azurerm_storage_account.test.id}"
+
+  storage_queue_endpoint {
+    storage_account_id = "${azurerm_storage_account.test.id}"
+    queue_name         = "${azurerm_storage_queue.test.name}"
+  }
+
+  advanced_filter {
+    bool_equals {
+      key   = "subject"
+      value = true
+    }
+    number_greater_than {
+      key   = "data.metadataVersion"
+      value = 1
+    }
+    number_greater_than_or_equals {
+      key   = "data.contentLength"
+      value = 42.0
+    }
+    number_less_than {
+      key   = "data.contentLength"
+      value = 42.1
+    }
+    number_less_than_or_equals {
+      key   = "data.metadataVersion"
+      value = 2
+    }
+    number_in {
+      key    = "data.contentLength"
+      values = [0, 1, 1, 2, 3]
+    }
+    number_not_in {
+      key    = "data.contentLength"
+      values = [5, 8, 13, 21, 34]
+    }
+    string_begins_with {
+      key    = "subject"
+      values = ["foo"]
+    }
+    string_ends_with {
+      key    = "subject"
+      values = ["bar"]
+    }
+    string_contains {
+      key    = "data.contentType"
+      values = ["application", "octet-stream"]
+    }
+    string_in {
+      key    = "data.blobType"
+      values = ["Block"]
+    }
+    string_not_in {
+      key    = "data.blobType"
+      values = ["Page"]
+    }
+  }
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }

@@ -2,7 +2,6 @@ package policy
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
@@ -167,7 +166,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
-		expandedParams, err := expandAzureRMPolicyAssignmentParameterValues(v)
+		expandedParams, err := expandParameterValuesValueFromString(v)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `parameters` %q: %+v", v, err)
 		}
@@ -250,11 +249,14 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 
-		parameterValuesString, err := flattenAzureRMPolicyAssignmentParameterValues(props.Parameters)
-		if err != nil {
-			return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
+		if params := props.Parameters; params != nil {
+			parameterValuesString, err := flattenParameterValuesValueToString(params)
+			if err != nil {
+				return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
+			}
+
+			d.Set("parameters", parameterValuesString)
 		}
-		d.Set("parameters", parameterValuesString)
 
 		d.Set("not_scopes", props.NotScopes)
 	}
@@ -329,22 +331,4 @@ func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
 	}
 
 	return &notScopesRes
-}
-
-func expandAzureRMPolicyAssignmentParameterValues(input string) (map[string]*policy.ParameterValuesValue, error) {
-	var result map[string]*policy.ParameterValuesValue
-	err := json.Unmarshal([]byte(input), &result)
-	return result, err
-}
-
-func flattenAzureRMPolicyAssignmentParameterValues(input map[string]*policy.ParameterValuesValue) (string, error) {
-	if input == nil {
-		return "", nil
-	}
-
-	b, err := json.Marshal(input)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
 }

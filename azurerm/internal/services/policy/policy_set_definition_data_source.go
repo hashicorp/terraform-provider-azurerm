@@ -128,11 +128,12 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 	d.Set("description", setDefinition.Description)
 	d.Set("policy_type", setDefinition.PolicyType)
 	d.Set("metadata", flattenJSON(setDefinition.Metadata))
-	parameters, err := flattenAzureRMPolicyDefinitionParameters(setDefinition.Parameters)
-	if err != nil {
+
+	if paramsStr, err := flattenParameterDefintionsValueToString(setDefinition.Parameters); err != nil {
 		return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
+	} else {
+		d.Set("parameters", paramsStr)
 	}
-	d.Set("parameters", parameters)
 
 	definitionBytes, err := json.Marshal(setDefinition.PolicyDefinitions)
 	if err != nil {

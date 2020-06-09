@@ -60,6 +60,8 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(policy.BuiltIn),
 					string(policy.Custom),
+					string(policy.NotSpecified),
+					string(policy.Static),
 				}, false),
 			},
 
@@ -220,7 +222,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
-		parameters, err := expandAzureRMPolicyDefinitionParameters(parametersString)
+		parameters, err := expandParameterDefinitionsValueFromString(parametersString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 		}
@@ -329,7 +331,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 		}
 
 		if parameters := props.Parameters; parameters != nil {
-			parametersStr, err := flattenAzureRMPolicyDefinitionParameters(parameters)
+			parametersStr, err := flattenParameterDefintionsValueToString(parameters)
 			if err != nil {
 				return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
 			}

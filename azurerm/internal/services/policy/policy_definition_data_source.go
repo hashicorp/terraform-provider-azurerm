@@ -120,19 +120,22 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	d.Set("type", policyDefinition.Type)
 	d.Set("policy_type", policyDefinition.PolicyType)
 
-	if policyRuleStr := flattenJSON(policyDefinition.PolicyRule); policyRuleStr != "" {
+	policyRule := policyDefinition.PolicyRule.(map[string]interface{})
+	if policyRuleStr := flattenJSON(policyRule); policyRuleStr != "" {
 		d.Set("policy_rule", policyRuleStr)
+	} else {
+		return fmt.Errorf("flattening Policy Definition Rule %q: %+v", name, err)
 	}
 
 	if metadataStr := flattenJSON(policyDefinition.Metadata); metadataStr != "" {
 		d.Set("metadata", metadataStr)
 	}
 
-	parametersStr, err := flattenAzureRMPolicyDefinitionParameters(policyDefinition.Parameters)
-	if err != nil {
-		return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
+	if parametersStr, err := flattenParameterDefintionsValueToString(policyDefinition.Parameters); err == nil {
+		d.Set("parameters", parametersStr)
+	} else {
+		return fmt.Errorf("failed to flatten Policy Parameters %q: %+v", name, err)
 	}
-	d.Set("parameters", parametersStr)
 
 	return nil
 }

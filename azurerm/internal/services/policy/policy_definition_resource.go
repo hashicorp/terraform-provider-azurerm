@@ -57,17 +57,13 @@ func resourceArmPolicyDefinition() *schema.Resource {
 					string(policy.BuiltIn),
 					string(policy.Custom),
 					string(policy.NotSpecified),
+					string(policy.Static),
 				}, true)},
 
 			"mode": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"All",
-					"Indexed",
-					"NotSpecified",
-				}, true),
 			},
 
 			"management_group_id": {
@@ -200,7 +196,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
-		parameters, err := expandAzureRMPolicyDefinitionParameters(parametersString)
+		parameters, err := expandParameterDefinitionsValueFromString(parametersString)
 		if err != nil {
 			return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 		}
@@ -303,11 +299,11 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("metadata", metadataStr)
 		}
 
-		parametersStr, err := flattenAzureRMPolicyDefinitionParameters(props.Parameters)
-		if err != nil {
-			return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
+		if parametersStr, err := flattenParameterDefintionsValueToString(props.Parameters); err == nil {
+			d.Set("parameters", parametersStr)
+		} else {
+			return fmt.Errorf("flattening policy definition parameters %+v", err)
 		}
-		d.Set("parameters", parametersStr)
 	}
 
 	return nil
@@ -369,23 +365,4 @@ func flattenJSON(stringMap interface{}) string {
 	}
 
 	return ""
-}
-
-func expandAzureRMPolicyDefinitionParameters(parameterString string) (map[string]*policy.ParameterDefinitionsValue, error) {
-	var result map[string]*policy.ParameterDefinitionsValue
-	err := json.Unmarshal([]byte(parameterString), &result)
-	return result, err
-}
-
-func flattenAzureRMPolicyDefinitionParameters(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
-	if input == nil {
-		return "", nil
-	}
-
-	b, err := json.Marshal(input)
-	if err != nil {
-		return "", err
-	}
-
-	return string(b), nil
 }

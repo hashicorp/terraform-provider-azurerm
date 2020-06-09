@@ -67,7 +67,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 				ForceNew:         true,
 				ConflictsWith:    []string{"role_definition_id"},
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validateRoleDefinitionName,
+				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
 			"principal_id": {
@@ -245,18 +245,6 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
-}
-
-func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
-	}
-
-	if ok := strings.Contains(v, "(Preview)"); ok {
-		return nil, []error{fmt.Errorf("Preview roles are not supported")}
-	}
-	return nil, nil
 }
 
 func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
