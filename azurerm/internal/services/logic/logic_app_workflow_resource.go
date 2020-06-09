@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -46,6 +47,12 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"logic_app_integration_account_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.IntegrationAccountID,
+			},
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
 			"parameters": {
@@ -145,6 +152,12 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
+		properties.WorkflowProperties.IntegrationAccount = &logic.ResourceReference{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
 		return fmt.Errorf("[ERROR] Error creating Logic App Workflow %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -204,6 +217,12 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 			Parameters: parameters,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if v, ok := d.GetOk("logic_app_integration_account_id"); ok {
+		properties.WorkflowProperties.IntegrationAccount = &logic.ResourceReference{
+			ID: utils.String(v.(string)),
+		}
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
@@ -270,6 +289,10 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 				d.Set("workflow_schema", v["$schema"].(string))
 				d.Set("workflow_version", v["contentVersion"].(string))
 			}
+		}
+
+		if props.IntegrationAccount != nil && props.IntegrationAccount.ID != nil {
+			d.Set("logic_app_integration_account_id", props.IntegrationAccount.ID)
 		}
 	}
 
