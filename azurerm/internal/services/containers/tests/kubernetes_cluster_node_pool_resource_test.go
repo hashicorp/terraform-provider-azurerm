@@ -738,21 +738,19 @@ func testCheckAzureRMKubernetesClusterNodePoolDestroy(s *terraform.State) error 
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		kubernetesClusterId := rs.Primary.Attributes["kubernetes_cluster_id"]
-		parsedK8sId, err := parse.KubernetesClusterID(kubernetesClusterId)
+		parsedK8sId, err := parse.KubernetesNodePoolID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Error parsing kubernetes cluster id: %+v", err)
+			return fmt.Errorf("Error parsing kubernetes node pool id: %+v", err)
 		}
 
-		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.Name, name)
+		resp, err := client.Get(ctx, parsedK8sId.ResourceGroup, parsedK8sId.ClusterName, parsedK8sId.Name)
 
 		if err != nil {
 			return nil
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Managed Kubernetes Cluster still exists:\n%#v", resp)
+			return fmt.Errorf("Kubernetes Cluster Node Pool still exists:\n%#v", resp)
 		}
 	}
 
