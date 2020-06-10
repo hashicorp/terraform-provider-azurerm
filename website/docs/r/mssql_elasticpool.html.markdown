@@ -67,9 +67,9 @@ The following arguments are supported:
 
 * `max_size_gb` - (Optional) The max data size of the elastic pool in gigabytes. Conflicts with `max_size_bytes`.
 
-~> **Note:** `max_size_gb` is required when `sku` is specified.
-
 * `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes. Conflicts with `max_size_gb`.
+
+-> **Note:** One of either `max_size_gb` or `max_size_bytes` must be specified.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
