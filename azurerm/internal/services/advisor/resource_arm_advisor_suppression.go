@@ -2,6 +2,7 @@ package advisor
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"log"
 	"strconv"
 	"strings"
@@ -52,11 +53,11 @@ func resourceArmAdvisorSuppression() *schema.Resource {
 				ValidateFunc: validate.AdvisorRecommendationID,
 			},
 
-			"duration_days": {
+			"duration_in_days": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      -1,
-				ValidateFunc: validate.AdvisorSuppresionTTL,
+				ValidateFunc: validation.IntBetween(-1, 24855),
 			},
 		},
 	}
@@ -86,7 +87,7 @@ func resourceArmAdvisorSuppressionCreateUpdate(d *schema.ResourceData, meta inte
 		SuppressionProperties: &advisor.SuppressionProperties{},
 	}
 
-	if v, ok := d.GetOk("duration_days"); ok && v.(int) != -1 {
+	if v, ok := d.GetOk("duration_in_days"); ok && v.(int) != -1 {
 		props.SuppressionProperties.TTL = utils.String(strconv.Itoa(v.(int)))
 	}
 
@@ -134,12 +135,12 @@ func resourceArmAdvisorSuppressionRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", id.Name)
 	d.Set("recommendation_id", rResp.ID)
 
-	// ttl from api is in format dd.hh:mm:ss, we set only the day number into duration_days
+	// ttl from api is in format dd.hh:mm:ss, we set only the day number into duration_in_days
 	durationDays, err := strconv.Atoi(strings.Split(*resp.TTL, ".")[0])
 	if err != nil {
-		return fmt.Errorf("can't convert %s to int of field `duration_days` in Advisor Suppression %q: %+v", strings.Split(*resp.TTL, ".")[0], id.Name, err)
+		return fmt.Errorf("can't convert %s to int of field `duration_in_days` in Advisor Suppression %q: %+v", strings.Split(*resp.TTL, ".")[0], id.Name, err)
 	}
-	d.Set("duration_days", durationDays)
+	d.Set("duration_in_days", durationDays)
 
 	return nil
 }

@@ -65,6 +65,11 @@ func dataSourceArmAdvisorRecommendations() *schema.Resource {
 							Computed: true,
 						},
 
+						"recommendation_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"recommendation_type_id": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -151,7 +156,7 @@ func flattenAzureRmAdvisorRecommendations(recommends map[string]advisor.Resource
 
 	for _, k := range keys {
 		v := recommends[k]
-		var category, description, impact, recTypeId, resourceName, resourceType, updatedTime string
+		var category, description, impact, recName, recTypeId, resourceName, resourceType, updatedTime string
 		var suppressionIds []interface{}
 		if v.Category != "" {
 			category = string(v.Category)
@@ -163,6 +168,10 @@ func flattenAzureRmAdvisorRecommendations(recommends map[string]advisor.Resource
 
 		if v.Impact != "" {
 			impact = string(v.Impact)
+		}
+
+		if v.Name != nil && *v.Name != "" {
+			recName = *v.Name
 		}
 
 		if v.RecommendationTypeID != nil {
@@ -189,6 +198,7 @@ func flattenAzureRmAdvisorRecommendations(recommends map[string]advisor.Resource
 			"description":            description,
 			"impact":                 impact,
 			"recommendation_id":      *v.ID,
+			"recommendation_name":    recName,
 			"recommendation_type_id": recTypeId,
 			"resource_name":          resourceName,
 			"resource_type":          resourceType,

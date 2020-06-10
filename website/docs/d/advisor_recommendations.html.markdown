@@ -55,6 +55,8 @@ A `recommendations` block exports the following:
 
 * `recommendation_id` - The id of the Advisor Recommendation.
 
+* `recommendation_name` - The name of the Advisor Recommendation.
+
 * `recommendation_type_id` - The recommendation type id of the Advisor Recommendation.
 
 * `resource_name` - The name of the identified resource of the Advisor Recommendation.

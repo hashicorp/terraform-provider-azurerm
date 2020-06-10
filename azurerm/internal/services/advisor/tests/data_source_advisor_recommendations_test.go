@@ -23,6 +23,7 @@ func TestAccDataSourceAzureRMAdvisorRecommendations_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.description"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.impact"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.recommendation_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.recommendation_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.recommendation_type_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.resource_name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "recommendations.0.resource_type"),

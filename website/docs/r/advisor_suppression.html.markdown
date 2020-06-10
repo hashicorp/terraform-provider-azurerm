@@ -22,7 +22,7 @@ data "azurerm_advisor_recommendations" "example" {}
 resource "azurerm_advisor_suppression" "example" {
   name              = "example-as"
   recommendation_id = data.azurerm_advisor_recommendations.example.recommendations.0.recommendation_id
-  duration_days     = "3"
+  duration_in_days     = "3"
 }
 ```
 
@@ -36,7 +36,7 @@ The following arguments are supported:
 
 ---
 
-* `duration_days` - (Optional) The interval in seconds during which the Advisor Recommendation will be suppressed. Specifying `-1` will suppress forever.
+* `duration_in_days` - (Optional) The interval in seconds during which the Advisor Recommendation will be suppressed. Specifying `-1` will suppress forever.
 
 ## Attributes Reference
 
