@@ -1,5 +1,9 @@
 ## 2.14.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_kubernetes_cluster` - the Azure Policy add-on now only supports `v2` (as per the Azure API) [GH-7233]
+
 DEPENDENCIES: 
 
 * `containerservice` - updating to `2020-03-01` [GH-7233]
