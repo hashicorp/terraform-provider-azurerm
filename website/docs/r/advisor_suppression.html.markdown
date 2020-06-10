@@ -22,7 +22,7 @@ data "azurerm_advisor_recommendations" "example" {}
 resource "azurerm_advisor_suppression" "example" {
   name              = "example-as"
   recommendation_id = data.azurerm_advisor_recommendations.example.recommendations.0.recommendation_id
-  duration_in_days     = "3"
+  duration_in_days  = "3"
 }
 ```
 

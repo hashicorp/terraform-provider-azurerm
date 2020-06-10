@@ -199,7 +199,7 @@ data "azurerm_advisor_recommendations" "test" {}
 resource "azurerm_advisor_suppression" "test" {
   name              = "acctest-sp-%d"
   recommendation_id = data.azurerm_advisor_recommendations.test.recommendations.0.recommendation_id
-  duration_in_days     = 1
+  duration_in_days  = 1
 }
 `, data.RandomInteger)
 }
@@ -215,7 +215,7 @@ data "azurerm_advisor_recommendations" "test" {}
 resource "azurerm_advisor_suppression" "test" {
   name              = "acctest-sp-%d"
   recommendation_id = data.azurerm_advisor_recommendations.test.recommendations.0.recommendation_id
-  duration_in_days     = 2
+  duration_in_days  = 2
 }
 `, data.RandomInteger)
 }
