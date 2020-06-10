@@ -169,23 +169,24 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 
 			"ssl_enforcement": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				Deprecated:   "this has been moved to the boolean attribute `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "this has been moved to the boolean attribute `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
+				//ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.SslEnforcementEnumDisabled),
 					string(mysql.SslEnforcementEnumEnabled),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
+				ConflictsWith:    []string{"ssl_enforcement_enabled"},
 			},
 
 			"ssl_enforcement_enabled": {
-				Type:         schema.TypeBool,
-				Optional:     true, // required in 3.0
-				Computed:     true, // remove computed in 3.0
-				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
+				Type:          schema.TypeBool,
+				Optional:      true, // required in 3.0
+				Computed:      true, // remove computed in 3.0
+				ConflictsWith: []string{"ssl_enforcement"},
 			},
 
 			"ssl_minimal_tls_version_enforced": {
@@ -478,11 +479,15 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	ssl := mysql.SslEnforcementEnumEnabled
-	if v := d.Get("ssl_enforcement"); strings.EqualFold(v.(string), string(mysql.SslEnforcementEnumDisabled)) {
-		ssl = mysql.SslEnforcementEnumDisabled
+	if d.HasChange("ssl_enforcement") {
+		if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(mysql.SslEnforcementEnumDisabled)) {
+			ssl = mysql.SslEnforcementEnumDisabled
+		}
 	}
-	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
-		ssl = mysql.SslEnforcementEnumDisabled
+	if d.HasChange("ssl_enforcement_enabled") {
+		if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
+			ssl = mysql.SslEnforcementEnumDisabled
+		}
 	}
 
 	storageProfile := expandMySQLStorageProfile(d)

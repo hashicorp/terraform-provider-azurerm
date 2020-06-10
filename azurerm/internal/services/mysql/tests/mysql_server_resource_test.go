@@ -464,7 +464,7 @@ resource "azurerm_mysql_server" "test" {
   backup_retention_days        = 7
   create_mode                  = "Default"
   geo_redundant_backup_enabled = false
-  ssl_enforcement_enabled      = true
+  ssl_enforcement_enabled      = false
   storage_mb                   = 51200
   version                      = "%s"
 }
@@ -594,6 +594,7 @@ resource "azurerm_mysql_server" "replica" {
   create_mode               = "Replica"
   creation_source_server_id = azurerm_mysql_server.test.id
   ssl_enforcement_enabled   = true
+  storage_mb                = 51200
 }
 `, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, version)
 }
