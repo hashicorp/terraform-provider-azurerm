@@ -127,6 +127,8 @@ A `webhook_endpoint` supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
 
+* `base_url` - (Computed) The base url of the webhook where the Event Subscription will receive events.
+
 * `max_events_per_batch` - (Optional) Maximum number of events per batch.
 
 * `preferred_batch_size_in_kilobytes` - (Optional) Preferred batch size in Kilobytes.
