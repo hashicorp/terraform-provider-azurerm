@@ -9,6 +9,31 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+var kubernetesDataSourceTests = map[string]func(t *testing.T){
+	"basic":                                       testAccDataSourceAzureRMKubernetesCluster_basic,
+	"roleBasedAccessControl":                      testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControl,
+	"roleBasedAccessControlAAD":                   testAccDataSourceAzureRMKubernetesCluster_roleBasedAccessControlAAD,
+	"internalNetwork":                             testAccDataSourceAzureRMKubernetesCluster_internalNetwork,
+	"advancedNetworkingAzure":                     testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzure,
+	"advancedNetworkingAzureCalicoPolicy":         testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy,
+	"advancedNetworkingAzureNPMPolicy":            testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy,
+	"advancedNetworkingAzureComplete":             testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureComplete,
+	"advancedNetworkingAzureCalicoPolicyComplete": testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete,
+	"advancedNetworkingAzureNPMPolicyComplete":    testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete,
+	"advancedNetworkingKubenet":                   testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenet,
+	"advancedNetworkingKubenetComplete":           testAccDataSourceAzureRMKubernetesCluster_advancedNetworkingKubenetComplete,
+	"addOnProfileOMS":                             testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS,
+	"addOnProfileKubeDashboard":                   testAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard,
+	"addOnProfileAzurePolicy":                     testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy,
+	"addOnProfileRouting":                         testAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting,
+	"autoscalingNoAvailabilityZones":              testAccDataSourceAzureRMKubernetesCluster_autoscalingNoAvailabilityZones,
+	"autoscalingWithAvailabilityZones":            testAccDataSourceAzureRMKubernetesCluster_autoscalingWithAvailabilityZones,
+	"nodeLabels":                                  testAccDataSourceAzureRMKubernetesCluster_nodeLabels,
+	"nodeTaints":                                  testAccDataSourceAzureRMKubernetesCluster_nodeTaints,
+	"enableNodePublicIP":                          testAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP,
+	"privateCluster":                              testAccDataSourceAzureRMKubernetesCluster_privateCluster,
+}
+
 func TestAccDataSourceAzureRMKubernetesCluster_basic(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccDataSourceAzureRMKubernetesCluster_basic(t)
@@ -475,6 +500,7 @@ func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicy(t *testin
 					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "addon_profile.0.azure_policy.0.version", "v2"),
 				),
 			},
 		},
@@ -808,7 +834,7 @@ data "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileAzurePolicyConfig(data acceptance.TestData) string {
-	r := testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data)
+	r := testAccAzureRMKubernetesCluster_addonProfileAzurePolicyConfig(data, true)
 	return fmt.Sprintf(`
 %s
 
