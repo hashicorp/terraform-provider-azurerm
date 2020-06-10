@@ -137,7 +137,7 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if !serviceProviderFound {
-		return fmt.Errorf("invalid Service Provider Name. available service providers are: %+v", availableProviders)
+		return fmt.Errorf("the Service Provider %q was not found. The available service providers are %s", strings.Join(availableProviders, ","))
 	}
 
 	connection := botservice.ConnectionSetting{
