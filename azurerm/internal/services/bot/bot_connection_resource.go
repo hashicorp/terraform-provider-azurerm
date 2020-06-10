@@ -112,9 +112,37 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	serviceProviderName := d.Get("service_provider_name").(string)
+	serviceProviderFound := false
+	var availableProviders []string
+
+	serviceProviders, err := client.ListServiceProviders(ctx)
+	if err != nil {
+		return fmt.Errorf("listing Bot Connection service provider: %+v", err)
+	}
+
+	if serviceProviders.Value == nil {
+		return fmt.Errorf("no available service provider %+v", serviceProviders)
+	}
+	for _, provider := range *serviceProviders.Value {
+		if provider.Properties == nil || provider.Properties.ServiceProviderName == nil {
+			continue
+		}
+		name := provider.Properties.ServiceProviderName
+		if serviceProviderName == *name {
+			serviceProviderFound = true
+			break
+		}
+		availableProviders = append(availableProviders, *name)
+	}
+
+	if !serviceProviderFound {
+		return fmt.Errorf("invalid Service Provider Name. available service providers are: %+v", availableProviders)
+	}
+
 	connection := botservice.ConnectionSetting{
 		Properties: &botservice.ConnectionSettingProperties{
-			ServiceProviderDisplayName: utils.String(d.Get("service_provider_name").(string)),
+			ServiceProviderDisplayName: utils.String(serviceProviderName),
 			ClientID:                   utils.String(d.Get("client_id").(string)),
 			ClientSecret:               utils.String(d.Get("client_secret").(string)),
 			Scopes:                     utils.String(d.Get("scopes").(string)),
