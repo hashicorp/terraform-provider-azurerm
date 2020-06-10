@@ -9,8 +9,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_route_table" "example" {
   name                = "${var.prefix}-routetable"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   route {
     name                   = "default"
@@ -22,21 +22,21 @@ resource "azurerm_route_table" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-network"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = azurerm_virtual_network.example.name
+  resource_group_name  = azurerm_resource_group.example.name
   address_prefix       = "10.1.0.0/22"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
 }
 
 resource "azurerm_subnet_route_table_association" "example" {
-  subnet_id      = "${azurerm_subnet.example.id}"
-  route_table_id = "${azurerm_route_table.example.id}"
+  subnet_id      = azurerm_subnet.example.id
+  route_table_id = azurerm_route_table.example.id
 }
 
 resource "azurerm_kubernetes_cluster" "example" {
@@ -72,4 +72,6 @@ resource "azurerm_kubernetes_cluster" "example" {
   network_profile {
     network_plugin = "azure"
   }
+
+  depends_on = [azurerm_subnet_route_table_association.example]
 }
