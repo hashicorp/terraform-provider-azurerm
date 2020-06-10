@@ -2,12 +2,14 @@
 
 DEPENDENCIES: 
 
-* updating `policy` to `2019-09-01` [GH-7211]
+* `containerservice` - updating to `2020-03-01` [GH-7233]
+* `policy` - updating to `2019-09-01` [GH-7211]
 
 FEATURES:
 
 * **New Data Source:** `azurerm_blueprint_definition` [GH-6930]
 * **New Data Source:** `azurerm_blueprint_published_version` [GH-6930]
+* **New Data Source:** `azurerm_kubernetes_cluster_node_pool` [GH-7233]
 * **New Resource:** `azurerm_blueprint_assignment` [GH-6930]
 * **New Resource:** `azurerm_data_factory_linked_service_key_vault` [GH-6971]
 * **New Resource:** `azurerm_iot_time_series_insights_access_policy` [GH-7202]
@@ -16,17 +18,38 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `version` of the Azure Policy add-on [GH-7233]
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `orchestrator_version` being used for each Node Pool [GH-7233]
+* Data Source: `azurerm_kubernetes_cluster` - exposing the `disk_encryption_set_id` field [GH-7233]
 * `azurerm_cosmosdb_account` modifying `geo_location` no longer triggers a recreation of the resource [GH-7217]
 * `azurerm_eventgrid_event_subscription` - support for `azure_function_endpoint` [GH-7182]
+* `azurerm_kubernetes_cluster` - support for configuring/updating the version of Kubernetes used in the Default Node Pool [GH-7233]
+* `azurerm_kubernetes_cluster` - support for Azure Active Directory (Managed) Integration v2 [GH-7233]
+* `azurerm_kubernetes_cluster` - support for using a Disk Encryption Set [GH-7233]
+* `azurerm_kubernetes_cluster` - support for configuring the Auto-Scale Profile [GH-7233]
+* `azurerm_kubernetes_cluster` - support for configuring `outbound_ports_allocated` and `idle_timeout_in_minutes` within the `load_balancer_profile` block [GH-7233]
+* `azurerm_kubernetes_cluster` - support for the Uptime SLA / Paid SKU [GH-7233]
+* `azurerm_kubernetes_cluster` - exposing the `private_fqdn` of the cluster [GH-7233]
+* `azurerm_kubernetes_cluster_node_pool` - support for configuring/updating the version of Kubernetes [GH-7233]
+* `azurerm_kubernetes_cluster_node_pool` - support for Spot Node Pools [GH-7233]
+* `azurerm_kubernetes_cluster_node_pool` - support for System & User Node Pools [GH-7233]
 * `azurerm_web_application_firewall_policy` - Add support for `GeoMatch` operator in request filter [GH-7181]
 
 BUG FIXES:
 
+* Data Source: `azurerm_kubernetes_cluster` - fixing an issue where some read-only fields were unintentionally marked as user-configurable [GH-7233]
 * `azurerm_application_gateway` - support for specifying the ID of a Key Vault Secret without a version [GH-7095]
 * `azurerm_eventhub_namespace_authorization_rule` - handling the Resource ID changing on Azure's side from `authorizationRules` to `AuthorizationRules` [GH-7248]
 * `azurerm_eventgrid_event_subscription` - fixing a crash when `subject_filter` was omitted [GH-7222]
-* `azurerm_funtion_app` - fix app_settings when using linux consumption plan [GH-7230]
+* `azurerm_function_app` - fix app_settings when using linux consumption plan [GH-7230]
+* `azurerm_linux_virtual_machine_scale_set` - adding validation for the `max_bid_price` field [GH-7233]
+* `azurerm_kubernetes_cluster` - the Azure Policy add-on is not supported in Azure China and no longer sent [GH-7233]
+* `azurerm_kubernetes_cluster` - the Azure Policy add-on is not supported in Azure US Government and no longer sent [GH-7233]
+* `azurerm_kubernetes_cluster` - the Kubernetes Dashboard add-on is not supported in Azure US Government and no longer sent [GH-7233]
+* `azurerm_kubernetes_cluster` - searching for a system node pool when importing the `default_node_pool` [GH-7233]
+* `azurerm_kubernetes_cluster_node_pool` - changes to the `node_taints` field now force a new resource, matching the updated API behaviour [GH-7233]
 * `azurerm_management_group` - using the Subscription ID rather than Subscription Resource ID when detaching Subscriptions from Management Groups during deletion [GH-7216]
+* `azurerm_windows_virtual_machine_scale_set` - adding validation for the `max_bid_price` field [GH-7233]
 
 ## 2.13.0 (June 04, 2020)
 
