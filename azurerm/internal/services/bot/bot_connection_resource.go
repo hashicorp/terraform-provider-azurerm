@@ -114,7 +114,7 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	serviceProviderName := d.Get("service_provider_name").(string)
-	serviceProviderFound := false
+	var serviceProviderId *string
 	var availableProviders []string
 
 	serviceProviders, err := client.ListServiceProviders(ctx)
@@ -130,24 +130,24 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 			continue
 		}
 		name := provider.Properties.ServiceProviderName
-		if serviceProviderName == *name {
-			serviceProviderFound = true
+		if strings.EqualFold(serviceProviderName, *name) {
+			serviceProviderId = provider.Properties.ID
 			break
 		}
 		availableProviders = append(availableProviders, *name)
 	}
 
-	if !serviceProviderFound {
+	if serviceProviderId == nil {
 		return fmt.Errorf("the Service Provider %q was not found. The available service providers are %s", serviceProviderName, strings.Join(availableProviders, ","))
 	}
 
 	connection := botservice.ConnectionSetting{
 		Properties: &botservice.ConnectionSettingProperties{
-			ServiceProviderDisplayName: utils.String(serviceProviderName),
-			ClientID:                   utils.String(d.Get("client_id").(string)),
-			ClientSecret:               utils.String(d.Get("client_secret").(string)),
-			Scopes:                     utils.String(d.Get("scopes").(string)),
-			Parameters:                 expandAzureRMBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
+			ServiceProviderID: serviceProviderId,
+			ClientID:          utils.String(d.Get("client_id").(string)),
+			ClientSecret:      utils.String(d.Get("client_secret").(string)),
+			Scopes:            utils.String(d.Get("scopes").(string)),
+			Parameters:        expandAzureRMBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
 		},
 		Kind:     botservice.KindBot,
 		Location: utils.String(d.Get("location").(string)),
