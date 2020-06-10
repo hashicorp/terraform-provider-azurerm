@@ -147,6 +147,10 @@ func TestAccAzureRMSharedImageVersion_specializedImageVersion(t *testing.T) {
 				Config: testAccAzureRMSharedImageVersion_imageVersionSpecialized(data, userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(data.ResourceName),
+					// the share image version will generate a shared access signature (SAS) on the referenced snapshot and keep it active until the replication is complete
+					// in the meantime, the service will return success of creation before the replication complete.
+					// therefore in this test, we have to revoke the access on the snapshot in order to do the cleaning work
+					revokeSASOnSnapshotForCleanup("azurerm_snapshot.test"),
 				),
 			},
 			data.ImportStep(),
@@ -248,6 +252,32 @@ func testCheckAzureRMSharedImageVersionExists(resourceName string) resource.Test
 
 		if resp.StatusCode == http.StatusNotFound {
 			return fmt.Errorf("Bad: Shared Image Version %q (Image %q / Gallery %q / Resource Group: %q) does not exist", imageVersion, imageName, galleryName, resourceGroup)
+		}
+
+		return nil
+	}
+}
+
+func revokeSASOnSnapshotForCleanup(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// Get the snapshot resource
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		snapShotName := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		future, err := client.RevokeAccess(ctx, resourceGroup, snapShotName)
+		if err != nil {
+			return fmt.Errorf("bad: cannot revoke SAS on the snapshot: %+v", err)
+		}
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("bad: waiting the revoke of SAS on the snapshot: %+v", err)
 		}
 
 		return nil
