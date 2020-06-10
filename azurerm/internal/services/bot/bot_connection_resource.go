@@ -122,7 +122,7 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if serviceProviders.Value == nil {
-		return fmt.Errorf("no available service provider %+v", serviceProviders)
+		return fmt.Errorf("no service providers were returned from the Azure API")
 	}
 	for _, provider := range *serviceProviders.Value {
 		if provider.Properties == nil || provider.Properties.ServiceProviderName == nil {
