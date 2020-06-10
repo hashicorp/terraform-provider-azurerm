@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
+* `azure_function_endpoint` - (Optional) An `azure_function_endpoint` block as defined below.
+
 * `eventhub_endpoint` - (Optional / **Deprecated in favour of `eventhub_endpoint_id`**) A `eventhub_endpoint` block as defined below.
 
 * `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
@@ -96,6 +98,16 @@ A `storage_queue_endpoint` supports the following:
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscription will receive events.
+
+---
+
+An `azure_function_endpoint` supports the following:
+
+* `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events.
+
+* `max_events_per_batch` - (Optional) Maximum number of events per batch.
+
+* `preferred_batch_size_in_kilobytes` - (Optional) Preferred batch size in Kilobytes.
 
 ---
 

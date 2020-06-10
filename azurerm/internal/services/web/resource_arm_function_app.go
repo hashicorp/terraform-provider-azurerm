@@ -664,8 +664,14 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	delete(appSettings, "AzureWebJobsDashboard")
 	delete(appSettings, "AzureWebJobsStorage")
 	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
-	delete(appSettings, "WEBSITE_CONTENTSHARE")
-	delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+
+	// Let the user have a final say whether he wants to keep these 2 or not on
+	// Linux consumption plans. They shouldn't be there according to a bug
+	// report (see // https://github.com/Azure/azure-functions-python-worker/issues/598)
+	if !strings.EqualFold(d.Get("os_type").(string), "linux") {
+		delete(appSettings, "WEBSITE_CONTENTSHARE")
+		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+	}
 
 	if err = d.Set("app_settings", appSettings); err != nil {
 		return err
@@ -732,6 +738,7 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endp
 	dashboardPropName := "AzureWebJobsDashboard"
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
+
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
@@ -783,8 +790,10 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endp
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
-	// On consumption and premium plans include WEBSITE_CONTENT components
-	if strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") {
+	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
+	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
+	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium")) &&
+		!strings.EqualFold(d.Get("os_type").(string), "linux") {
 		return append(basicSettings, consumptionSettings...), nil
 	}
 

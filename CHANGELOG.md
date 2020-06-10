@@ -1,22 +1,66 @@
-## 2.13.0 (Unreleased)
+## 2.14.0 (Unreleased)
 
-IMPROVEMENTS:
+DEPENDENCIES: 
 
-* `azurerm_data_factory_pipeline`: Support for `activities` [GH-6224]
-* `azurerm_eventgrid_event_subscription` - support for advanced filtering [GH-6861]
-* `azurerm_signalr_service` - support for `EnableMessagingLogs` feature [GH-7094]
+* updating `policy` to `2019-09-01` [GH-7211]
 
+FEATURES:
+
+* **New Data Source:** `azurerm_blueprint_definition` [GH-6930]
+* **New Data Source:** `azurerm_blueprint_published_version` [GH-6930]
+* **New Resource:** `azurerm_blueprint_assignment` [GH-6930]
+* **New Resource:** `azurerm_data_factory_linked_service_key_vault` [GH-6971]
+* **New Resource:** `azurerm_iot_time_series_insights_access_policy` [GH-7202]
+* **New Resource:** `azurerm_iot_time_series_insights_reference_data_set` [GH-7112]
+* **New Resource:** `azurerm_app_service_hybrid_connection` [GH-7224]
+
+ENHANCEMENTS:
+
+* `azurerm_cosmosdb_account` modifying `geo_location` no longer triggers a recreation of the resource [GH-7217]
+* `azurerm_eventgrid_event_subscription` - support for `azure_function_endpoint` [GH-7182]
+* `azurerm_web_application_firewall_policy` - Add support for `GeoMatch` operator in request filter [GH-7181]
 
 BUG FIXES:
 
-* `azurerm_app_service` - default priority now set on ip restricitons when not explicitly specified [GH-7059]
-* `azurerm_app_service` - App Services check correct scope for name availability in ASE [GH-7157]
-* `azurerm_eventhub_authorization_rule` - Fix intermittent 404 errors [GH-7122]
-* `azuerm_function_app` - correctly set `Kind` when `os_type` is `linux` [GH-7140]
+* `azurerm_application_gateway` - support for specifying the ID of a Key Vault Secret without a version [GH-7095]
+* `azurerm_eventhub_namespace_authorization_rule` - handling the Resource ID changing on Azure's side from `authorizationRules` to `AuthorizationRules` [GH-7248]
+* `azurerm_eventgrid_event_subscription` - fixing a crash when `subject_filter` was omitted [GH-7222]
+* `azurerm_funtion_app` - fix app_settings when using linux consumption plan [GH-7230]
+* `azurerm_management_group` - using the Subscription ID rather than Subscription Resource ID when detaching Subscriptions from Management Groups during deletion [GH-7216]
+
+## 2.13.0 (June 04, 2020)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_logic_app_integration_account` ([#7099](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7099))
+* **New Data Source:** `azurerm_virtual_machine_scale_set` ([#7141](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7141))
+* **New Resource**: `azurerm_logic_app_integration_account` ([#7099](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7099))
+* **New Resource**: `azurerm_monitor_action_rule_action_group` ([#6563](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6563))
+* **New Resource**: `azurerm_monitor_action_rule_suppression` ([#6563](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6563))
+
+IMPROVEMENTS:
+
+* `azurerm_data_factory_pipeline` - Support for `activities` ([#6224](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6224))
+* `azurerm_eventgrid_event_subscription` - support for advanced filtering ([#6861](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6861))
+* `azurerm_signalr_service` - support for `EnableMessagingLogs` feature ([#7094](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7094))
+
+BUG FIXES:
+
+* `azurerm_app_service` - default priority now set on ip restricitons when not explicitly specified ([#7059](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7059))
+* `azurerm_app_service` - App Services check correct scope for name availability in ASE ([#7157](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7157))
+* `azurerm_cdn_endpoint` - `origin_host_header` can now be set to empty ([#7164](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7164))
+* `azurerm_cosmosdb_account` - workaround for CheckNameExists 500 response code bug ([#7189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7189))
+* `azurerm_eventhub_authorization_rule` - Fix intermittent 404 errors ([#7122](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7122))
+* `azurerm_eventgrid_event_subscription` - fixing an error when setting the `hybrid_connection_endpoint` block ([#7203](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7203))
+* `azurerm_function_app` - correctly set `Kind` when `os_type` is `linux` ([#7140](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7140))
+* `azurerm_key_vault_certificate` - always setting the `certificate_data` and `thumbprint` fields ([#7204](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7204))
+* `azurerm_role_assignment` - support for Preview role assignments ([#7205](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7205))
+* `azurerm_virtual_network_gateway` - `vpn_client_protocols` is now also computed to prevent permanent diffs ([#7168](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7168))
 
 ## 2.12.0 (May 28, 2020)
 
 FEATURES:
+
 * **New Data Source:** `azurerm_advisor_recommendations` ([#6867](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6867))
 * **New Resource:** `azurerm_dev_test_global_shutdown_schedule` ([#5536](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5536))
 * **New Resource:** `azurerm_nat_gateway_public_ip_association` ([#6450](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6450))
@@ -48,7 +92,7 @@ BUG FIXES:
 
 ## 2.11.0 (May 21, 2020)
 
-DEPENDENCIES: 
+DEPENDENCIES:
 
 * updating `github.com/Azure/azure-sdk-for-go` to `v42.1.0` ([#6725](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6725))
 * updating `network` to `2020-03-01` ([#6727](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6727))
