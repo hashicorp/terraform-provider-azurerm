@@ -197,7 +197,7 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	}
 	resourceGroup := id.ResourceGroup
 	watcherName := id.Path["networkWatchers"]
-	name := id.Path["NetworkConnectionMonitors"]
+	name := id.Path["connectionMonitors"]
 
 	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
 	if err != nil {
@@ -244,7 +244,7 @@ func resourceArmNetworkConnectionMonitorDelete(d *schema.ResourceData, meta inte
 	}
 	resourceGroup := id.ResourceGroup
 	watcherName := id.Path["networkWatchers"]
-	name := id.Path["NetworkConnectionMonitors"]
+	name := id.Path["connectionMonitors"]
 
 	future, err := client.Delete(ctx, resourceGroup, watcherName, name)
 	if err != nil {
