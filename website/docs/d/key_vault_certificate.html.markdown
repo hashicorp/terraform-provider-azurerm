@@ -16,9 +16,14 @@ Use this data source to access information about an existing Key Vault Certifica
 ## Example Usage
 
 ```hcl
+data "azurerm_key_vault" "example" {
+  name                = "examplekv"
+  resource_group_name = "some-resource-group"
+}
+
 data "azurerm_key_vault_certificate" "example" {
   name         = "secret-sauce"
-  key_vault_id = data.azurerm_key_vault.existing.id
+  key_vault_id = data.azurerm_key_vault.example.id
 }
 
 output "certificate_thumbprint" {
@@ -56,9 +61,13 @@ The following attributes are exported:
 * `secret_properties` - A `secret_properties` block as defined below.
 * `x509_certificate_properties` - An `x509_certificate_properties` block as defined below.
 
+---
+
 `issuer_parameters` exports the following:
 
 * `name` - The name of the Certificate Issuer.
+
+---
 
 `key_properties` exports the following:
 
@@ -67,23 +76,33 @@ The following attributes are exported:
 * `key_type` - Specifies the Type of Key, for example `RSA`.
 * `reuse_key` - Is the key reusable?
 
-`lifetime_action` supports the following:
+---
+
+`lifetime_action` exports the following:
 
 * `action` - A `action` block as defined below.
 * `trigger` - A `trigger` block as defined below.
 
+---
+
 `action` supports the following:
 
 * `action_type` - The Type of action to be performed when the lifetime trigger is triggerec.
+
+---
 
 `trigger` exports the following:
 
 * `days_before_expiry` - The number of days before the Certificate expires that the action associated with this Trigger should run.
 * `lifetime_percentage` - The percentage at which during the Certificates Lifetime the action associated with this Trigger should run.
 
+--- 
+
 `secret_properties` exports the following:
 
 * `content_type` - The Content-Type of the Certificate, for example `application/x-pkcs12` for a PFX or `application/x-pem-file` for a PEM.
+
+---
 
 `x509_certificate_properties` exports the following:
 
@@ -92,6 +111,8 @@ The following attributes are exported:
 * `subject` - The Certificate's Subject.
 * `subject_alternative_names` - A `subject_alternative_names` block as defined below.
 * `validity_in_months` - The Certificates Validity Period in Months.
+
+---
 
 `subject_alternative_names` exports the following:
 
