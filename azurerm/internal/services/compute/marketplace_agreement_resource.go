@@ -133,7 +133,7 @@ func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	publisher := id.Path["agreements"]
+	publisher := id.Path["publishers"]
 	offer := id.Path["offers"]
 	plan := id.Path["plans"]
 
@@ -174,7 +174,7 @@ func resourceArmMarketplaceAgreementDelete(d *schema.ResourceData, meta interfac
 		return err
 	}
 
-	publisher := id.Path["agreements"]
+	publisher := id.Path["publishers"]
 	offer := id.Path["offers"]
 	plan := id.Path["plans"]
 
