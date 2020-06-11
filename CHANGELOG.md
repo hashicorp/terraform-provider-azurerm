@@ -1,4 +1,9 @@
 ## 2.15.0 (Unreleased)
+
+DEPENDENCIES
+
+* updating to `v43.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-7188]
+
 ## 2.14.0 (June 11, 2020)
 
 UPGRADE NOTES:
