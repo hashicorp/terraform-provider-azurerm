@@ -13,7 +13,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_blueprint_definition` [GH-6930]
 * **New Data Source:** `azurerm_blueprint_published_version` [GH-6930]
-* **New Data Source:** `azurerm_key_vault_certificate` [GH-7825]
+* **New Data Source:** `azurerm_key_vault_certificate` [GH-7285]
 * **New Data Source:** `azurerm_kubernetes_cluster_node_pool` [GH-7233]
 * **New Resource:** `azurerm_blueprint_assignment` [GH-6930]
 * **New Resource:** `azurerm_data_factory_linked_service_key_vault` [GH-6971]
