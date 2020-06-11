@@ -43,7 +43,11 @@ func BuildAnalyzer(pkg, f string) *analysis.Analyzer {
 
 					switch x := fun.X.(type) {
 					case *ast.Ident:
-						if pass.TypesInfo.ObjectOf(x).(*types.PkgName).Imported().Path() != pkg {
+						pkgName, ok := pass.TypesInfo.ObjectOf(x).(*types.PkgName)
+						if !ok {
+							return
+						}
+						if pkgName.Imported().Path() != pkg {
 							return
 						}
 					default:
