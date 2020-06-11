@@ -85,7 +85,7 @@ The following attributes are exported:
 
 ---
 
-`action` supports the following:
+`action` exports the following:
 
 * `action_type` - The Type of action to be performed when the lifetime trigger is triggerec.
 
@@ -119,7 +119,6 @@ The following attributes are exported:
 * `dns_names` - A list of alternative DNS names (FQDNs) identified by the Certificate.
 * `emails` - A list of email addresses identified by this Certificate.
 * `upns` - A list of User Principal Names identified by the Certificate.
-
 
 ## Timeouts
 
