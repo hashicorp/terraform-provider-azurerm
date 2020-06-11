@@ -273,14 +273,14 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 	// first I have to see if the dns zone group exists, if it does I need to delete it an re-create it because you can only have one per private endpoint
 	if d.HasChange("private_dns_zone_group") {
 		oldRaw, newRaw := d.GetChange("private_dns_zone_group")
-		oldPrivateDnsZoneGroup := make(map[string]interface{}, 0)
+		oldPrivateDnsZoneGroup := make(map[string]interface{})
 		if oldRaw != nil {
 			for _, v := range oldRaw.([]interface{}) {
 				oldPrivateDnsZoneGroup = v.(map[string]interface{})
 			}
 		}
 
-		newPrivateDnsZoneGroup := make(map[string]interface{}, 0)
+		newPrivateDnsZoneGroup := make(map[string]interface{})
 		if newRaw != nil {
 			for _, v := range newRaw.([]interface{}) {
 				newPrivateDnsZoneGroup = v.(map[string]interface{})
@@ -441,7 +441,7 @@ func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) 
 
 	// delete private dns zone first if it exists
 	dnsRaw := d.Get("private_dns_zone_group")
-	privateDnsZoneGroup := make(map[string]interface{}, 0)
+	privateDnsZoneGroup := make(map[string]interface{})
 	if dnsRaw != nil {
 		for _, v := range dnsRaw.([]interface{}) {
 			privateDnsZoneGroup = v.(map[string]interface{})
@@ -551,7 +551,7 @@ func expandArmPrivateLinkEndpointServiceConnection(input []interface{}, parseMan
 func flattenArmPrivateDnsZoneGroup(input network.PrivateDNSZoneGroup) []interface{} {
 	output := make([]interface{}, 0)
 
-	result := make(map[string]interface{}, 0)
+	result := make(map[string]interface{})
 
 	result["id"] = *input.ID
 	result["name"] = *input.Name
