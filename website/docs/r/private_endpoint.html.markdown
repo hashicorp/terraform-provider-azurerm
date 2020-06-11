@@ -123,6 +123,8 @@ A `private_dns_zone_group` supports the following:
 
 * `private_dns_zone_ids` - (Required) Specifies the list of Private DNS Zones to include within the `private_dns_zone_group`.
 
+---
+
 A `private_service_connection` supports the following:
 
 * `name` - (Required) Specifies the Name of the Private Service Connection. Changing this forces a new resource to be created.
@@ -159,9 +161,13 @@ The following attributes are exported:
 
 * `id` - The ID of the Private Endpoint.
 
+---
+
 A `private_dns_zone_group` block exports:
 
 * `id` - The ID of the Private DNS Zone Group.
+
+---
 
 A `custom_dns_configs` block exports:
 
@@ -171,7 +177,9 @@ A `custom_dns_configs` block exports:
 
 -> **NOTE:** If a Private DNS Zone Group has been defined and is currently connected correctly this block will be empty.
 
-`private_dns_zone_configs` attributes are exported:
+---
+
+A `private_dns_zone_configs` block exports:
 
 * `name` - The name of the Private DNS Zone that the config belongs to.
 
@@ -180,6 +188,8 @@ A `custom_dns_configs` block exports:
 * `private_dns_zone_id` - A list of IP Addresses
 
 * `record_sets` - A `record_sets` block as defined below.
+
+---
 
 A `record_sets` block exports:
 
@@ -194,6 +204,8 @@ A `record_sets` block exports:
 * `ip_addresses` - A list of all IP Addresses that map to the `private_dns_zone` fqdn.
 
 -> **NOTE:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attibutes will be empty.
+
+---
 
 ## Example HCL Configurations
 
