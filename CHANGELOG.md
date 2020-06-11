@@ -28,6 +28,7 @@ ENHANCEMENTS:
 * `azurerm_api_management_api` - ensuring `wsdl_selector` is populated when `content_format` is `wsdl` [GH-7076]
 * `azurerm_cosmosdb_account` modifying `geo_location` no longer triggers a recreation of the resource [GH-7217]
 * `azurerm_eventgrid_event_subscription` - support for `azure_function_endpoint` [GH-7182]
+* `azurerm_eventgrid_event_subscription` - exposing `base_url`, `max_events_per_batch`, `preferred_batch_size_in_kilobytes`, `active_directory_tenant_id` and `active_directory_app_id_or_uri` in the `webhook_endpoint` block [GH-7207]
 * `azurerm_kubernetes_cluster` - support for configuring/updating the version of Kubernetes used in the Default Node Pool [GH-7233]
 * `azurerm_kubernetes_cluster` - support for Azure Active Directory (Managed) Integration v2 [GH-7233]
 * `azurerm_kubernetes_cluster` - support for using a Disk Encryption Set [GH-7233]
