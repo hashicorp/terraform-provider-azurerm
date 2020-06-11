@@ -4,6 +4,10 @@ DEPENDENCIES
 
 * updating to `v43.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-7188]
 
+BUG FIXES:
+
+* azurerm_bot_connection` - adding a runtime check for the available service providers in the Azure Region being used [GH-7279]
+
 ## 2.14.0 (June 11, 2020)
 
 UPGRADE NOTES:
