@@ -46,6 +46,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_kubernetes_cluster` - fixing an issue where some read-only fields were unintentionally marked as user-configurable [GH-7233]
 * `azurerm_application_gateway` - support for specifying the ID of a Key Vault Secret without a version [GH-7095]
+* `azurerm_bot_channel_ms_teams` - only sending `calling_web_hook` when it's got a value [GH-7294]
 * `azurerm_eventhub_namespace_authorization_rule` - handling the Resource ID changing on Azure's side from `authorizationRules` to `AuthorizationRules` [GH-7248]
 * `azurerm_eventgrid_event_subscription` - fixing a crash when `subject_filter` was omitted [GH-7222]
 * `azurerm_function_app` - fix app_settings when using linux consumption plan [GH-7230]
