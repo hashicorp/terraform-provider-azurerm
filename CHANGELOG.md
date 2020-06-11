@@ -25,6 +25,7 @@ ENHANCEMENTS:
 * Data Source: `azurerm_kubernetes_cluster` - exposing the `version` of the Azure Policy add-on [GH-7233]
 * Data Source: `azurerm_kubernetes_cluster` - exposing the `orchestrator_version` being used for each Node Pool [GH-7233]
 * Data Source: `azurerm_kubernetes_cluster` - exposing the `disk_encryption_set_id` field [GH-7233]
+* `azurerm_api_management_api` - ensuring `wsdl_selector` is populated when `content_format` is `wsdl` [GH-7076]
 * `azurerm_cosmosdb_account` modifying `geo_location` no longer triggers a recreation of the resource [GH-7217]
 * `azurerm_eventgrid_event_subscription` - support for `azure_function_endpoint` [GH-7182]
 * `azurerm_kubernetes_cluster` - support for configuring/updating the version of Kubernetes used in the Default Node Pool [GH-7233]
