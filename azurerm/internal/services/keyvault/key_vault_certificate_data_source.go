@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -165,28 +166,25 @@ func dataSourceArmKeyVaultCertificate() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"emails": {
-													Type:     schema.TypeSet,
+													Type:     schema.TypeList,
 													Computed: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},
-													Set: schema.HashString,
 												},
 												"dns_names": {
-													Type:     schema.TypeSet,
+													Type:     schema.TypeList,
 													Computed: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},
-													Set: schema.HashString,
 												},
 												"upns": {
-													Type:     schema.TypeSet,
+													Type:     schema.TypeList,
 													Computed: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},
-													Set: schema.HashString,
 												},
 											},
 										},
@@ -261,7 +259,7 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 
 	d.Set("name", id.Name)
 
-	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
+	certificatePolicy := flattenKeyVaultCertificatePolicyForDataSource(cert.Policy)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
 		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
 	}
@@ -287,4 +285,98 @@ func dataSourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface
 	d.Set("thumbprint", thumbprint)
 
 	return tags.FlattenAndSet(d, cert.Tags)
+}
+
+func flattenKeyVaultCertificatePolicyForDataSource(input *keyvault.CertificatePolicy) []interface{} {
+	policy := make(map[string]interface{})
+
+	if params := input.IssuerParameters; params != nil {
+		issuerParams := make(map[string]interface{})
+		issuerParams["name"] = *params.Name
+		policy["issuer_parameters"] = []interface{}{issuerParams}
+	}
+
+	// key properties
+	if props := input.KeyProperties; props != nil {
+		keyProps := make(map[string]interface{})
+		keyProps["exportable"] = *props.Exportable
+		keyProps["key_size"] = int(*props.KeySize)
+		keyProps["key_type"] = *props.KeyType
+		keyProps["reuse_key"] = *props.ReuseKey
+
+		policy["key_properties"] = []interface{}{keyProps}
+	}
+
+	// lifetime actions
+	lifetimeActions := make([]interface{}, 0)
+	if actions := input.LifetimeActions; actions != nil {
+		for _, action := range *actions {
+			lifetimeAction := make(map[string]interface{})
+
+			actionOutput := make(map[string]interface{})
+			if act := action.Action; act != nil {
+				actionOutput["action_type"] = string(act.ActionType)
+			}
+			lifetimeAction["action"] = []interface{}{actionOutput}
+
+			triggerOutput := make(map[string]interface{})
+			if trigger := action.Trigger; trigger != nil {
+				if days := trigger.DaysBeforeExpiry; days != nil {
+					triggerOutput["days_before_expiry"] = int(*trigger.DaysBeforeExpiry)
+				}
+
+				if days := trigger.LifetimePercentage; days != nil {
+					triggerOutput["lifetime_percentage"] = int(*trigger.LifetimePercentage)
+				}
+			}
+			lifetimeAction["trigger"] = []interface{}{triggerOutput}
+			lifetimeActions = append(lifetimeActions, lifetimeAction)
+		}
+	}
+	policy["lifetime_action"] = lifetimeActions
+
+	// secret properties
+	if props := input.SecretProperties; props != nil {
+		keyProps := make(map[string]interface{})
+		keyProps["content_type"] = *props.ContentType
+
+		policy["secret_properties"] = []interface{}{keyProps}
+	}
+
+	// x509 Certificate Properties
+	if props := input.X509CertificateProperties; props != nil {
+		certProps := make(map[string]interface{})
+
+		usages := make([]string, 0)
+		for _, usage := range *props.KeyUsage {
+			usages = append(usages, string(usage))
+		}
+
+		sanOutputs := make([]interface{}, 0)
+		if san := props.SubjectAlternativeNames; san != nil {
+			sanOutput := make(map[string]interface{})
+			if emails := san.Emails; emails != nil {
+				sanOutput["emails"] = *emails
+			}
+			if dnsNames := san.DNSNames; dnsNames != nil {
+				sanOutput["dns_names"] = *dnsNames
+			}
+			if upns := san.Upns; upns != nil {
+				sanOutput["upns"] = *upns
+			}
+
+			sanOutputs = append(sanOutputs, sanOutput)
+		}
+
+		certProps["key_usage"] = usages
+		certProps["subject"] = *props.Subject
+		certProps["validity_in_months"] = int(*props.ValidityInMonths)
+		if props.Ekus != nil {
+			certProps["extended_key_usage"] = props.Ekus
+		}
+		certProps["subject_alternative_names"] = sanOutputs
+		policy["x509_certificate_properties"] = []interface{}{certProps}
+	}
+
+	return []interface{}{policy}
 }
