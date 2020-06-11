@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
@@ -10,6 +11,25 @@ type NameResourceGroup struct {
 	ResourceGroup string
 	Name          string
 	ID            string
+}
+
+func PrivateDnsZoneGroupResourceID(input string) (nrg NameResourceGroup, err error) {
+	if len(strings.TrimSpace(input)) == 0 {
+		return NameResourceGroup{}, fmt.Errorf("input is empty for parse.PrivateDnsZoneGroupResourceID")
+	}
+
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return NameResourceGroup{}, fmt.Errorf("unable to parse Private DNS Zone Group ID %q: %+v", input, err)
+	}
+
+	privateDnsZoneGroup := NameResourceGroup{
+		Name:          id.Path["privateDnsZoneGroups"],
+		ResourceGroup: id.ResourceGroup,
+		ID:            input,
+	}
+
+	return privateDnsZoneGroup, nil
 }
 
 func PrivateDnsZoneResourceIDs(input []interface{}) ([]NameResourceGroup, error) {

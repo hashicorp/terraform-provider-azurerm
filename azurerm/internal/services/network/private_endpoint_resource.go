@@ -270,7 +270,36 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 	d.SetId(*resp.ID)
 
 	// now create the dns zone group
-	log.Printf("[INFO] !!!!! Creating Private DNS Zone Group !!!!!")
+	// first I have to see if the dns zone group exists, if it does I need to delete it an re-create it because you can only have one per private endpoint
+	if d.HasChange("private_dns_zone_group") {
+		oldRaw, newRaw := d.GetChange("private_dns_zone_group")
+		oldPrivateDnsZoneGroup := make(map[string]interface{}, 0)
+		if oldRaw != nil {
+			for _, v := range oldRaw.([]interface{}) {
+				oldPrivateDnsZoneGroup = v.(map[string]interface{})
+			}
+		}
+
+		newPrivateDnsZoneGroup := make(map[string]interface{}, 0)
+		if newRaw != nil {
+			for _, v := range newRaw.([]interface{}) {
+				newPrivateDnsZoneGroup = v.(map[string]interface{})
+			}
+		}
+
+		if len(newPrivateDnsZoneGroup) == 0 && len(oldPrivateDnsZoneGroup) != 0 {
+			if err := resourceArmPrivateDnsZoneGroupDelete(d, meta, oldPrivateDnsZoneGroup["id"].(string)); err != nil {
+				return err
+			}
+		} else if len(newPrivateDnsZoneGroup) != 0 && len(oldPrivateDnsZoneGroup) != 0 {
+			if oldPrivateDnsZoneGroup["name"].(string) != newPrivateDnsZoneGroup["name"].(string) {
+				if err := resourceArmPrivateDnsZoneGroupDelete(d, meta, oldPrivateDnsZoneGroup["id"].(string)); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
 	for _, v := range privateDnsZoneGroup {
 		item := v.(map[string]interface{})
 		dnsGroupName := item["name"].(string)
@@ -299,7 +328,6 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 			PrivateDNSZoneConfigs: &privateDnsZoneConfigs,
 		}
 
-		log.Printf("[INFO] !!!!! Calling client to create Private DNS Zone Group !!!!!")
 		future, err := dnsClient.CreateOrUpdate(ctx, resourceGroup, name, dnsGroupName, parameters)
 		if err != nil {
 			return fmt.Errorf("creating Private DNS Zone Group %q Private Endpoint %q (Resource Group %q): %+v", dnsGroupName, name, resourceGroup, err)
@@ -314,8 +342,6 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 		if resp.ID == nil || *resp.ID == "" {
 			return fmt.Errorf("API returns a nil/empty id on Private DNS Zone Group %q (Resource Group %q): %+v", dnsGroupName, resourceGroup, err)
-		} else {
-			log.Printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n**************************************************************\n[INFO] !!!!! PDZG_ID: %s\n**************************************************************\n\n\n\n\n\n\n\n\n\n\n\n\n\n", *resp.ID)
 		}
 	}
 
@@ -381,49 +407,52 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 
 	// DNS Zone Read Here...
 	privateDnsZoneGroup := d.Get("private_dns_zone_group").([]interface{})
+	if len(privateDnsZoneGroup) > 0 {
+		for _, v := range privateDnsZoneGroup {
+			dnsZoneGroup := v.(map[string]interface{})
 
-	for _, v := range privateDnsZoneGroup {
-		dnsZoneGroup := v.(map[string]interface{})
+			dnsResp, err := dnsClient.Get(ctx, resourceGroup, name, dnsZoneGroup["name"].(string))
+			if err != nil {
+				return fmt.Errorf("reading Private DNS Zone Group %q (Resource Group %q): %+v", dnsZoneGroup["name"].(string), resourceGroup, err)
+			}
 
-		dnsResp, err := dnsClient.Get(ctx, resourceGroup, name, dnsZoneGroup["name"].(string))
-		if err != nil {
-			return fmt.Errorf("reading Private DNS Zone Group %q (Resource Group %q): %+v", dnsZoneGroup["name"].(string), resourceGroup, err)
-		}
+			if err := d.Set("private_dns_zone_group", flattenArmPrivateDnsZoneGroup(dnsResp)); err != nil {
+				return err
+			}
 
-		if err := d.Set("private_dns_zone_group", flattenArmPrivateDnsZoneGroup(dnsResp)); err != nil {
-			return err
-		}
-
-		// now split out the private dns zone configs into there own block
-		if props := dnsResp.PrivateDNSZoneGroupPropertiesFormat; props != nil {
-			if err := d.Set("private_dns_zone_configs", flattenArmPrivateDnsZoneConfigs(props.PrivateDNSZoneConfigs, *dnsResp.ID)); err != nil {
-				return fmt.Errorf("setting private_dns_zone_configs : %+v", err)
+			// now split out the private dns zone configs into there own block
+			if props := dnsResp.PrivateDNSZoneGroupPropertiesFormat; props != nil {
+				if err := d.Set("private_dns_zone_configs", flattenArmPrivateDnsZoneConfigs(props.PrivateDNSZoneConfigs, *dnsResp.ID)); err != nil {
+					return fmt.Errorf("setting private_dns_zone_configs : %+v", err)
+				}
 			}
 		}
+	} else {
+		// remove associated configs, if any
+		d.Set("private_dns_zone_configs", make([]interface{}, 0))
 	}
-
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func flattenArmPrivateDnsZoneGroup(input network.PrivateDNSZoneGroup) []interface{} {
-	output := make([]interface{}, 0)
-
-	result := make(map[string]interface{}, 0)
-
-	result["id"] = *input.ID
-	result["name"] = *input.Name
-
-	if props := input.PrivateDNSZoneGroupPropertiesFormat; props != nil {
-		result["private_dns_zone_ids"] = flattenArmPrivateDnsZoneIds(props.PrivateDNSZoneConfigs)
-	}
-	output = append(output, result)
-	return output
 }
 
 func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpointClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	// delete private dns zone first if it exists
+	dnsRaw := d.Get("private_dns_zone_group")
+	privateDnsZoneGroup := make(map[string]interface{}, 0)
+	if dnsRaw != nil {
+		for _, v := range dnsRaw.([]interface{}) {
+			privateDnsZoneGroup = v.(map[string]interface{})
+		}
+	}
+
+	if len(privateDnsZoneGroup) != 0 {
+		if err := resourceArmPrivateDnsZoneGroupDelete(d, meta, privateDnsZoneGroup["id"].(string)); err != nil {
+			return err
+		}
+	}
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -458,26 +487,30 @@ func resourceArmPrivateDnsZoneGroupDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	id, err := azure.ParseAzureResourceID(oldId)
+	privateEndpointId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["privateDnsZoneGroups"]
-	privateEndpointName := id.Path["privateEndpoints"]
+	resourceGroup := privateEndpointId.ResourceGroup
+	privateEndpointName := privateEndpointId.Path["privateEndpoints"]
 
-	future, err := client.Delete(ctx, resourceGroup, privateEndpointName, name)
+	privateDnsZoneGroupId, err := parse.PrivateDnsZoneGroupResourceID(oldId)
+	if err != nil {
+		return err
+	}
+
+	future, err := client.Delete(ctx, resourceGroup, privateEndpointName, privateDnsZoneGroupId.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("deleting Private DNS Zone Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Private DNS Zone Group %q (Resource Group %q): %+v", privateDnsZoneGroupId.Name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Private DNS Zone Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Private DNS Zone Group %q (Resource Group %q): %+v", privateDnsZoneGroupId.Name, resourceGroup, err)
 		}
 	}
 
@@ -515,42 +548,19 @@ func expandArmPrivateLinkEndpointServiceConnection(input []interface{}, parseMan
 	return &results
 }
 
-func expandArmPrivateDnsZoneGroup(input []interface{}) network.PrivateDNSZoneGroup {
-	result := network.PrivateDNSZoneGroup{}
-	if len(input) == 0 {
-		return result
+func flattenArmPrivateDnsZoneGroup(input network.PrivateDNSZoneGroup) []interface{} {
+	output := make([]interface{}, 0)
+
+	result := make(map[string]interface{}, 0)
+
+	result["id"] = *input.ID
+	result["name"] = *input.Name
+
+	if props := input.PrivateDNSZoneGroupPropertiesFormat; props != nil {
+		result["private_dns_zone_ids"] = flattenArmPrivateDnsZoneIds(props.PrivateDNSZoneConfigs)
 	}
-
-	dnsZoneConfigs := make([]network.PrivateDNSZoneConfig, 0)
-
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		name := v["name"].(string)
-		zoneConfigs := v["zone_config"].([]interface{})
-
-		result.Name = utils.String(name)
-
-		for _, zoneConfig := range zoneConfigs {
-			z := zoneConfig.(map[string]interface{})
-			zoneName := z["name"].(string)
-			zoneId := z["private_dns_zone_id"].(string)
-
-			config := network.PrivateDNSZoneConfig{
-				Name: utils.String(zoneName),
-				PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
-					PrivateDNSZoneID: utils.String(zoneId),
-				},
-			}
-
-			dnsZoneConfigs = append(dnsZoneConfigs, config)
-		}
-	}
-
-	result.PrivateDNSZoneGroupPropertiesFormat = &network.PrivateDNSZoneGroupPropertiesFormat{
-		PrivateDNSZoneConfigs: &dnsZoneConfigs,
-	}
-
-	return result
+	output = append(output, result)
+	return output
 }
 
 func flattenArmCustomDnsConfigs(customDnsConfigs *[]network.CustomDNSConfigPropertiesFormat) []interface{} {
@@ -613,10 +623,6 @@ func flattenArmPrivateDnsZoneConfigs(input *[]network.PrivateDNSZoneConfig, zone
 
 		output = append(output, result)
 	}
-
-	log.Printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n*********************")
-	log.Printf("\nconfigs = %+v", output)
-	log.Printf("*********************\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
 	return output
 }
