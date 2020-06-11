@@ -3,7 +3,6 @@ WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=azurerm
 TESTTIMEOUT=180m
 
-
 .EXPORT_ALL_VARIABLES:
   TF_SCHEMA_PANIC_ON_ERROR=1
   GO111MODULE=on
@@ -36,6 +35,7 @@ fmt:
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 	@sh "$(CURDIR)/scripts/timeouts.sh"
+	@sh "$(CURDIR)/scripts/check-test-package.sh"
 
 terrafmt:
 	@echo "==> Fixing acceptance test terraform blocks code with terrafmt..."
@@ -83,6 +83,7 @@ test-docker:
 	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.13 make test
 
 test: fmtcheck
+	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/run-test.sh
 
 test-compile:

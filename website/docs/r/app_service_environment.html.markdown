@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-vnet1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
 }
 
@@ -57,15 +57,19 @@ resource "azurerm_app_service_environment" "example" {
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE this size cannot be changed.
 
+* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web` and `Publishing`. Defaults to `None`.
+
 * `pricing_tier` - (Optional) Pricing tier for the front end instances. Possible values are `I1`, `I2` and `I3`. Defaults to `I1`.
 
 * `front_end_scale_factor` - (Optional) Scale factor for front end instances. Possible values are between `5` and `15`. Defaults to `15`.
 
+* `resource_group_name` - (Optional) The name of the Resource Group where the App Service Environment exists. Defaults to the Resource Group of the Subnet (specified by `subnet_id`).
+
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created. 
+
 ## Attribute Reference
 
 * `id` - The ID of the App Service Environment.
-
-* `resource_group_name` - The name of the Resource Group where the App Service Environment exists.
 
 * `location` - The location where the App Service Environment exists.
 

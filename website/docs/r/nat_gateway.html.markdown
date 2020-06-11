@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
 
-* `public_ip_address_ids` - (Optional) A list of Public IP Address ID's which should be associated with the NAT Gateway resource.
+* `public_ip_address_ids` - (Optional / **Deprecated in favour of `azurerm_nat_gateway_public_ip_association`**) A list of Public IP Address ID's which should be associated with the NAT Gateway resource.
 
 * `public_ip_prefix_ids` - (Optional) A list of Public IP Prefix ID's which should be associated with the NAT Gateway resource.
 

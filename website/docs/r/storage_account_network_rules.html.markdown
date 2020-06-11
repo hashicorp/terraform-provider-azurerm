@@ -74,9 +74,15 @@ The following arguments are supported:
 
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
+-> **NOTE** User has to explicitly set `bypass` to empty slice (`[]`) to remove it.
+
 * `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 
+-> **NOTE** User has to explicitly set `ip_rules` to empty slice (`[]`) to remove it.
+
 * `virtual_network_subnet_ids` - (Optional) A list of virtual network subnet ids to to secure the storage account.
+
+-> **NOTE** User has to explicitly set `virtual_network_subnet_ids` to empty slice (`[]`) to remove it.
 
 ## Attributes Reference
 

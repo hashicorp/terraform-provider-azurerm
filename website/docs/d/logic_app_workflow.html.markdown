@@ -39,6 +39,8 @@ The following attributes are exported:
 
 * `location` - The Azure location where the Logic App Workflow exists.
 
+* `logic_app_integration_account_id` - The ID of the integration account linked by this Logic App Workflow.
+
 * `workflow_schema` - The Schema used for this Logic App Workflow.
 
 * `workflow_version` - The version of the Schema used for this Logic App Workflow. Defaults to `1.0.0.0`.

@@ -115,6 +115,25 @@ func PossibleDeploymentResourceStatusValues() []DeploymentResourceStatus {
 	return []DeploymentResourceStatus{DeploymentResourceStatusAllocating, DeploymentResourceStatusCompiling, DeploymentResourceStatusFailed, DeploymentResourceStatusRunning, DeploymentResourceStatusStopped, DeploymentResourceStatusUnknown, DeploymentResourceStatusUpgrading}
 }
 
+// ManagedIdentityType enumerates the values for managed identity type.
+type ManagedIdentityType string
+
+const (
+	// None ...
+	None ManagedIdentityType = "None"
+	// SystemAssigned ...
+	SystemAssigned ManagedIdentityType = "SystemAssigned"
+	// SystemAssignedUserAssigned ...
+	SystemAssignedUserAssigned ManagedIdentityType = "SystemAssigned,UserAssigned"
+	// UserAssigned ...
+	UserAssigned ManagedIdentityType = "UserAssigned"
+)
+
+// PossibleManagedIdentityTypeValues returns an array of possible values for the ManagedIdentityType const type.
+func PossibleManagedIdentityTypeValues() []ManagedIdentityType {
+	return []ManagedIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
+}
+
 // ProvisioningState enumerates the values for provisioning state.
 type ProvisioningState string
 
@@ -144,6 +163,36 @@ func PossibleProvisioningStateValues() []ProvisioningState {
 	return []ProvisioningState{ProvisioningStateCreating, ProvisioningStateDeleted, ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStateMoved, ProvisioningStateMoveFailed, ProvisioningStateMoving, ProvisioningStateSucceeded, ProvisioningStateUpdating}
 }
 
+// ResourceSkuRestrictionsReasonCode enumerates the values for resource sku restrictions reason code.
+type ResourceSkuRestrictionsReasonCode string
+
+const (
+	// NotAvailableForSubscription ...
+	NotAvailableForSubscription ResourceSkuRestrictionsReasonCode = "NotAvailableForSubscription"
+	// QuotaID ...
+	QuotaID ResourceSkuRestrictionsReasonCode = "QuotaId"
+)
+
+// PossibleResourceSkuRestrictionsReasonCodeValues returns an array of possible values for the ResourceSkuRestrictionsReasonCode const type.
+func PossibleResourceSkuRestrictionsReasonCodeValues() []ResourceSkuRestrictionsReasonCode {
+	return []ResourceSkuRestrictionsReasonCode{NotAvailableForSubscription, QuotaID}
+}
+
+// ResourceSkuRestrictionsType enumerates the values for resource sku restrictions type.
+type ResourceSkuRestrictionsType string
+
+const (
+	// Location ...
+	Location ResourceSkuRestrictionsType = "Location"
+	// Zone ...
+	Zone ResourceSkuRestrictionsType = "Zone"
+)
+
+// PossibleResourceSkuRestrictionsTypeValues returns an array of possible values for the ResourceSkuRestrictionsType const type.
+func PossibleResourceSkuRestrictionsTypeValues() []ResourceSkuRestrictionsType {
+	return []ResourceSkuRestrictionsType{Location, Zone}
+}
+
 // RuntimeVersion enumerates the values for runtime version.
 type RuntimeVersion string
 
@@ -157,6 +206,23 @@ const (
 // PossibleRuntimeVersionValues returns an array of possible values for the RuntimeVersion const type.
 func PossibleRuntimeVersionValues() []RuntimeVersion {
 	return []RuntimeVersion{Java11, Java8}
+}
+
+// SkuScaleType enumerates the values for sku scale type.
+type SkuScaleType string
+
+const (
+	// SkuScaleTypeAutomatic ...
+	SkuScaleTypeAutomatic SkuScaleType = "Automatic"
+	// SkuScaleTypeManual ...
+	SkuScaleTypeManual SkuScaleType = "Manual"
+	// SkuScaleTypeNone ...
+	SkuScaleTypeNone SkuScaleType = "None"
+)
+
+// PossibleSkuScaleTypeValues returns an array of possible values for the SkuScaleType const type.
+func PossibleSkuScaleTypeValues() []SkuScaleType {
+	return []SkuScaleType{SkuScaleTypeAutomatic, SkuScaleTypeManual, SkuScaleTypeNone}
 }
 
 // TestKeyType enumerates the values for test key type.
@@ -213,6 +279,10 @@ type AppResource struct {
 	autorest.Response `json:"-"`
 	// Properties - Properties of the App resource
 	Properties *AppResourceProperties `json:"properties,omitempty"`
+	// Identity - The Managed Identity type of the app resource
+	Identity *ManagedIdentityProperties `json:"identity,omitempty"`
+	// Location - The GEO location of the application, always the same with its parent resource
+	Location *string `json:"location,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; The name of the resource.
@@ -378,6 +448,10 @@ type AppResourceProperties struct {
 	ProvisioningState AppResourceProvisioningState `json:"provisioningState,omitempty"`
 	// ActiveDeploymentName - Name of the active deployment of the App
 	ActiveDeploymentName *string `json:"activeDeploymentName,omitempty"`
+	// Fqdn - Fully qualified dns Name.
+	Fqdn *string `json:"fqdn,omitempty"`
+	// HTTPSOnly - Indicate if only https is allowed.
+	HTTPSOnly *bool `json:"httpsOnly,omitempty"`
 	// CreatedTime - READ-ONLY; Date time when the resource is created
 	CreatedTime *date.Time `json:"createdTime,omitempty"`
 	// TemporaryDisk - Temporary disk settings
@@ -792,6 +866,191 @@ func (brp BindingResourceProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// CertificateProperties certificate resource payload.
+type CertificateProperties struct {
+	// Thumbprint - READ-ONLY; The thumbprint of certificate.
+	Thumbprint *string `json:"thumbprint,omitempty"`
+	// VaultURI - The vault uri of user key vault.
+	VaultURI *string `json:"vaultUri,omitempty"`
+	// KeyVaultCertName - The certificate name of key vault.
+	KeyVaultCertName *string `json:"keyVaultCertName,omitempty"`
+	// CertVersion - The certificate version of key vault.
+	CertVersion *string `json:"certVersion,omitempty"`
+	// Issuer - READ-ONLY; The issuer of certificate.
+	Issuer *string `json:"issuer,omitempty"`
+	// IssuedDate - READ-ONLY; The issue date of certificate.
+	IssuedDate *string `json:"issuedDate,omitempty"`
+	// ExpirationDate - READ-ONLY; The expiration date of certificate.
+	ExpirationDate *string `json:"expirationDate,omitempty"`
+	// ActivateDate - READ-ONLY; The activate date of certificate.
+	ActivateDate *string `json:"activateDate,omitempty"`
+	// SubjectName - READ-ONLY; The subject name of certificate.
+	SubjectName *string `json:"subjectName,omitempty"`
+	// DNSNames - READ-ONLY; The domain list of certificate.
+	DNSNames *[]string `json:"dnsNames,omitempty"`
+}
+
+// CertificateResource certificate resource payload.
+type CertificateResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of the certificate resource payload.
+	Properties *CertificateProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// CertificateResourceCollection collection compose of certificate resources list and a possible link for
+// next page.
+type CertificateResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - The certificate resources list.
+	Value *[]CertificateResource `json:"value,omitempty"`
+	// NextLink - The link to next page of certificate list.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// CertificateResourceCollectionIterator provides access to a complete listing of CertificateResource
+// values.
+type CertificateResourceCollectionIterator struct {
+	i    int
+	page CertificateResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *CertificateResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CertificateResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *CertificateResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter CertificateResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter CertificateResourceCollectionIterator) Response() CertificateResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter CertificateResourceCollectionIterator) Value() CertificateResource {
+	if !iter.page.NotDone() {
+		return CertificateResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the CertificateResourceCollectionIterator type.
+func NewCertificateResourceCollectionIterator(page CertificateResourceCollectionPage) CertificateResourceCollectionIterator {
+	return CertificateResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (crc CertificateResourceCollection) IsEmpty() bool {
+	return crc.Value == nil || len(*crc.Value) == 0
+}
+
+// certificateResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (crc CertificateResourceCollection) certificateResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if crc.NextLink == nil || len(to.String(crc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(crc.NextLink)))
+}
+
+// CertificateResourceCollectionPage contains a page of CertificateResource values.
+type CertificateResourceCollectionPage struct {
+	fn  func(context.Context, CertificateResourceCollection) (CertificateResourceCollection, error)
+	crc CertificateResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *CertificateResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CertificateResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.crc)
+	if err != nil {
+		return err
+	}
+	page.crc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *CertificateResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page CertificateResourceCollectionPage) NotDone() bool {
+	return !page.crc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page CertificateResourceCollectionPage) Response() CertificateResourceCollection {
+	return page.crc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page CertificateResourceCollectionPage) Values() []CertificateResource {
+	if page.crc.IsEmpty() {
+		return nil
+	}
+	return *page.crc.Value
+}
+
+// Creates a new instance of the CertificateResourceCollectionPage type.
+func NewCertificateResourceCollectionPage(getNextPage func(context.Context, CertificateResourceCollection) (CertificateResourceCollection, error)) CertificateResourceCollectionPage {
+	return CertificateResourceCollectionPage{fn: getNextPage}
+}
+
 // CloudError an error response from the service.
 type CloudError struct {
 	Error *CloudErrorBody `json:"error,omitempty"`
@@ -861,6 +1120,192 @@ type ConfigServerProperties struct {
 type ConfigServerSettings struct {
 	// GitProperty - Property of git environment.
 	GitProperty *ConfigServerGitProperty `json:"gitProperty,omitempty"`
+}
+
+// CustomDomainProperties custom domain of app resource payload.
+type CustomDomainProperties struct {
+	// Thumbprint - The thumbprint of bound certificate.
+	Thumbprint *string `json:"thumbprint,omitempty"`
+	// AppName - The app name of domain.
+	AppName *string `json:"appName,omitempty"`
+	// CertName - The bound certificate name of domain.
+	CertName *string `json:"certName,omitempty"`
+}
+
+// CustomDomainResource custom domain resource payload.
+type CustomDomainResource struct {
+	autorest.Response `json:"-"`
+	// Properties - Properties of the custom domain resource.
+	Properties *CustomDomainProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// CustomDomainResourceCollection collection compose of a custom domain resources list and a possible link
+// for next page.
+type CustomDomainResourceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - The custom domain resources list.
+	Value *[]CustomDomainResource `json:"value,omitempty"`
+	// NextLink - The link to next page of custom domain list.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// CustomDomainResourceCollectionIterator provides access to a complete listing of CustomDomainResource
+// values.
+type CustomDomainResourceCollectionIterator struct {
+	i    int
+	page CustomDomainResourceCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *CustomDomainResourceCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainResourceCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *CustomDomainResourceCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter CustomDomainResourceCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter CustomDomainResourceCollectionIterator) Response() CustomDomainResourceCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter CustomDomainResourceCollectionIterator) Value() CustomDomainResource {
+	if !iter.page.NotDone() {
+		return CustomDomainResource{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the CustomDomainResourceCollectionIterator type.
+func NewCustomDomainResourceCollectionIterator(page CustomDomainResourceCollectionPage) CustomDomainResourceCollectionIterator {
+	return CustomDomainResourceCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (cdrc CustomDomainResourceCollection) IsEmpty() bool {
+	return cdrc.Value == nil || len(*cdrc.Value) == 0
+}
+
+// customDomainResourceCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (cdrc CustomDomainResourceCollection) customDomainResourceCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if cdrc.NextLink == nil || len(to.String(cdrc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(cdrc.NextLink)))
+}
+
+// CustomDomainResourceCollectionPage contains a page of CustomDomainResource values.
+type CustomDomainResourceCollectionPage struct {
+	fn   func(context.Context, CustomDomainResourceCollection) (CustomDomainResourceCollection, error)
+	cdrc CustomDomainResourceCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *CustomDomainResourceCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainResourceCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.cdrc)
+	if err != nil {
+		return err
+	}
+	page.cdrc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *CustomDomainResourceCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page CustomDomainResourceCollectionPage) NotDone() bool {
+	return !page.cdrc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page CustomDomainResourceCollectionPage) Response() CustomDomainResourceCollection {
+	return page.cdrc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page CustomDomainResourceCollectionPage) Values() []CustomDomainResource {
+	if page.cdrc.IsEmpty() {
+		return nil
+	}
+	return *page.cdrc.Value
+}
+
+// Creates a new instance of the CustomDomainResourceCollectionPage type.
+func NewCustomDomainResourceCollectionPage(getNextPage func(context.Context, CustomDomainResourceCollection) (CustomDomainResourceCollection, error)) CustomDomainResourceCollectionPage {
+	return CustomDomainResourceCollectionPage{fn: getNextPage}
+}
+
+// CustomDomainValidatePayload custom domain validate payload.
+type CustomDomainValidatePayload struct {
+	// Name - Name to be validated
+	Name *string `json:"name,omitempty"`
+}
+
+// CustomDomainValidateResult validation result for custom domain.
+type CustomDomainValidateResult struct {
+	autorest.Response `json:"-"`
+	// IsValid - Indicates if domain name is valid.
+	IsValid *bool `json:"isValid,omitempty"`
+	// Message - Message of why domain name is invalid.
+	Message *string `json:"message,omitempty"`
 }
 
 // DeploymentInstance deployment instance payload
@@ -1042,10 +1487,10 @@ type DeploymentResourceProperties struct {
 	Source *UserSourceInfo `json:"source,omitempty"`
 	// AppName - READ-ONLY; App name of the deployment
 	AppName *string `json:"appName,omitempty"`
-	// ProvisioningState - READ-ONLY; Provisioning state of the Deployment. Possible values include: 'DeploymentResourceProvisioningStateCreating', 'DeploymentResourceProvisioningStateUpdating', 'DeploymentResourceProvisioningStateSucceeded', 'DeploymentResourceProvisioningStateFailed'
-	ProvisioningState DeploymentResourceProvisioningState `json:"provisioningState,omitempty"`
 	// DeploymentSettings - Deployment settings of the Deployment
 	DeploymentSettings *DeploymentSettings `json:"deploymentSettings,omitempty"`
+	// ProvisioningState - READ-ONLY; Provisioning state of the Deployment. Possible values include: 'DeploymentResourceProvisioningStateCreating', 'DeploymentResourceProvisioningStateUpdating', 'DeploymentResourceProvisioningStateSucceeded', 'DeploymentResourceProvisioningStateFailed'
+	ProvisioningState DeploymentResourceProvisioningState `json:"provisioningState,omitempty"`
 	// Status - READ-ONLY; Status of the Deployment. Possible values include: 'DeploymentResourceStatusUnknown', 'DeploymentResourceStatusStopped', 'DeploymentResourceStatusRunning', 'DeploymentResourceStatusFailed', 'DeploymentResourceStatusAllocating', 'DeploymentResourceStatusUpgrading', 'DeploymentResourceStatusCompiling'
 	Status DeploymentResourceStatus `json:"status,omitempty"`
 	// Active - READ-ONLY; Indicates whether the Deployment is active
@@ -1274,6 +1719,14 @@ type LogSpecification struct {
 	BlobDuration *string `json:"blobDuration,omitempty"`
 }
 
+// ManagedIdentityProperties managed identity properties retrieved from ARM request headers.
+type ManagedIdentityProperties struct {
+	// Type - Possible values include: 'None', 'SystemAssigned', 'UserAssigned', 'SystemAssignedUserAssigned'
+	Type        ManagedIdentityType `json:"type,omitempty"`
+	PrincipalID *string             `json:"principalId,omitempty"`
+	TenantID    *string             `json:"tenantId,omitempty"`
+}
+
 // MetricDimension specifications of the Dimension of metrics
 type MetricDimension struct {
 	// Name - Name of the dimension
@@ -1329,8 +1782,8 @@ type NameAvailabilityParameters struct {
 type OperationDetail struct {
 	// Name - Name of the operation
 	Name *string `json:"name,omitempty"`
-	// DataAction - Indicates whether the operation is a data action
-	DataAction *bool `json:"dataAction,omitempty"`
+	// IsDataAction - Indicates whether the operation is a data action
+	IsDataAction *bool `json:"isDataAction,omitempty"`
 	// Display - Display of the operation
 	Display *OperationDisplay `json:"display,omitempty"`
 	// Origin - Origin of the operation
@@ -1394,6 +1847,221 @@ type Resource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// ResourceSku describes an available Azure Spring Cloud SKU.
+type ResourceSku struct {
+	// ResourceType - Gets the type of resource the SKU applies to.
+	ResourceType *string `json:"resourceType,omitempty"`
+	// Name - Gets the name of SKU.
+	Name *string `json:"name,omitempty"`
+	// Tier - Gets the tier of SKU.
+	Tier *string `json:"tier,omitempty"`
+	// Capacity - Gets the capacity of SKU.
+	Capacity *SkuCapacity `json:"capacity,omitempty"`
+	// Locations - Gets the set of locations that the SKU is available.
+	Locations *[]string `json:"locations,omitempty"`
+	// LocationInfo - Gets a list of locations and availability zones in those locations where the SKU is available.
+	LocationInfo *[]ResourceSkuLocationInfo `json:"locationInfo,omitempty"`
+	// Restrictions - Gets the restrictions because of which SKU cannot be used. This is
+	// empty if there are no restrictions.
+	Restrictions *[]ResourceSkuRestrictions `json:"restrictions,omitempty"`
+}
+
+// ResourceSkuCapabilities ...
+type ResourceSkuCapabilities struct {
+	// Name - Gets an invariant to describe the feature.
+	Name *string `json:"name,omitempty"`
+	// Value - Gets an invariant if the feature is measured by quantity.
+	Value *string `json:"value,omitempty"`
+}
+
+// ResourceSkuCollection ...
+type ResourceSkuCollection struct {
+	autorest.Response `json:"-"`
+	// Value - Collection of resource SKU
+	Value *[]ResourceSku `json:"value,omitempty"`
+	// NextLink - URL client should use to fetch the next page (per server side paging).
+	// It's null for now, added for future use.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ResourceSkuCollectionIterator provides access to a complete listing of ResourceSku values.
+type ResourceSkuCollectionIterator struct {
+	i    int
+	page ResourceSkuCollectionPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ResourceSkuCollectionIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceSkuCollectionIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ResourceSkuCollectionIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ResourceSkuCollectionIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ResourceSkuCollectionIterator) Response() ResourceSkuCollection {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ResourceSkuCollectionIterator) Value() ResourceSku {
+	if !iter.page.NotDone() {
+		return ResourceSku{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ResourceSkuCollectionIterator type.
+func NewResourceSkuCollectionIterator(page ResourceSkuCollectionPage) ResourceSkuCollectionIterator {
+	return ResourceSkuCollectionIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (rsc ResourceSkuCollection) IsEmpty() bool {
+	return rsc.Value == nil || len(*rsc.Value) == 0
+}
+
+// resourceSkuCollectionPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (rsc ResourceSkuCollection) resourceSkuCollectionPreparer(ctx context.Context) (*http.Request, error) {
+	if rsc.NextLink == nil || len(to.String(rsc.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(rsc.NextLink)))
+}
+
+// ResourceSkuCollectionPage contains a page of ResourceSku values.
+type ResourceSkuCollectionPage struct {
+	fn  func(context.Context, ResourceSkuCollection) (ResourceSkuCollection, error)
+	rsc ResourceSkuCollection
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ResourceSkuCollectionPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ResourceSkuCollectionPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.rsc)
+	if err != nil {
+		return err
+	}
+	page.rsc = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ResourceSkuCollectionPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ResourceSkuCollectionPage) NotDone() bool {
+	return !page.rsc.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ResourceSkuCollectionPage) Response() ResourceSkuCollection {
+	return page.rsc
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ResourceSkuCollectionPage) Values() []ResourceSku {
+	if page.rsc.IsEmpty() {
+		return nil
+	}
+	return *page.rsc.Value
+}
+
+// Creates a new instance of the ResourceSkuCollectionPage type.
+func NewResourceSkuCollectionPage(getNextPage func(context.Context, ResourceSkuCollection) (ResourceSkuCollection, error)) ResourceSkuCollectionPage {
+	return ResourceSkuCollectionPage{fn: getNextPage}
+}
+
+// ResourceSkuLocationInfo ...
+type ResourceSkuLocationInfo struct {
+	// Location - Gets location of the SKU
+	Location *string `json:"location,omitempty"`
+	// Zones - Gets list of availability zones where the SKU is supported.
+	Zones *[]string `json:"zones,omitempty"`
+	// ZoneDetails - Gets details of capabilities available to a SKU in specific zones.
+	ZoneDetails *[]ResourceSkuZoneDetails `json:"zoneDetails,omitempty"`
+}
+
+// ResourceSkuRestrictionInfo ...
+type ResourceSkuRestrictionInfo struct {
+	// Locations - Gets locations where the SKU is restricted
+	Locations *[]string `json:"locations,omitempty"`
+	// Zones - Gets list of availability zones where the SKU is restricted.
+	Zones *[]string `json:"zones,omitempty"`
+}
+
+// ResourceSkuRestrictions ...
+type ResourceSkuRestrictions struct {
+	// Type - Gets the type of restrictions. Possible values include: 'Location', 'Zone'
+	Type ResourceSkuRestrictionsType `json:"type,omitempty"`
+	// Values - Gets the value of restrictions. If the restriction type is set to
+	// location. This would be different locations where the SKU is restricted.
+	Values *[]string `json:"values,omitempty"`
+	// RestrictionInfo - Gets the information about the restriction where the SKU cannot be used.
+	RestrictionInfo *ResourceSkuRestrictionInfo `json:"restrictionInfo,omitempty"`
+	// ReasonCode - Gets the reason for restriction. Possible values include: 'QuotaId', 'NotAvailableForSubscription'. Possible values include: 'QuotaID', 'NotAvailableForSubscription'
+	ReasonCode ResourceSkuRestrictionsReasonCode `json:"reasonCode,omitempty"`
+}
+
+// ResourceSkuZoneDetails ...
+type ResourceSkuZoneDetails struct {
+	// Name - Gets the set of zones that the SKU is available in with the
+	// specified capabilities.
+	Name *[]string `json:"name,omitempty"`
+	// Capabilities - Gets a list of capabilities that are available for the SKU in the
+	// specified list of zones.
+	Capabilities *[]ResourceSkuCapabilities `json:"capabilities,omitempty"`
+}
+
 // ResourceUploadDefinition resource upload definition payload
 type ResourceUploadDefinition struct {
 	autorest.Response `json:"-"`
@@ -1408,6 +2076,8 @@ type ServiceResource struct {
 	autorest.Response `json:"-"`
 	// Properties - Properties of the Service resource
 	Properties *ClusterResourceProperties `json:"properties,omitempty"`
+	// Sku - Sku of the Service resource
+	Sku *Sku `json:"sku,omitempty"`
 	// Location - The GEO location of the resource.
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the service which is a list of key value pairs that describe the resource.
@@ -1425,6 +2095,9 @@ func (sr ServiceResource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if sr.Properties != nil {
 		objectMap["properties"] = sr.Properties
+	}
+	if sr.Sku != nil {
+		objectMap["sku"] = sr.Sku
 	}
 	if sr.Location != nil {
 		objectMap["location"] = sr.Location
@@ -1669,6 +2342,28 @@ func (future *ServicesUpdateFuture) Result(client ServicesClient) (sr ServiceRes
 		}
 	}
 	return
+}
+
+// Sku sku of Azure Spring Cloud
+type Sku struct {
+	// Name - Name of the Sku
+	Name *string `json:"name,omitempty"`
+	// Tier - Tier of the Sku
+	Tier *string `json:"tier,omitempty"`
+	// Capacity - Current capacity of the target resource
+	Capacity *int32 `json:"capacity,omitempty"`
+}
+
+// SkuCapacity the SKU capacity
+type SkuCapacity struct {
+	// Minimum - Gets or sets the minimum.
+	Minimum *int32 `json:"minimum,omitempty"`
+	// Maximum - Gets or sets the maximum.
+	Maximum *int32 `json:"maximum,omitempty"`
+	// Default - Gets or sets the default.
+	Default *int32 `json:"default,omitempty"`
+	// ScaleType - Gets or sets the type of the scale. Possible values include: 'SkuScaleTypeNone', 'SkuScaleTypeManual', 'SkuScaleTypeAutomatic'
+	ScaleType SkuScaleType `json:"scaleType,omitempty"`
 }
 
 // TemporaryDisk temporary disk payload

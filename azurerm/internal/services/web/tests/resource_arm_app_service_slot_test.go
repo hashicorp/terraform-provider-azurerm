@@ -857,7 +857,7 @@ func TestAccAzureRMAppServiceSlot_remoteDebugging(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_version", "VS2015"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.remote_debugging_version", "VS2019"),
 				),
 			},
 		},
@@ -3109,7 +3109,7 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     remote_debugging_enabled = true
-    remote_debugging_version = "VS2015"
+    remote_debugging_version = "VS2019"
   }
 
   tags = {

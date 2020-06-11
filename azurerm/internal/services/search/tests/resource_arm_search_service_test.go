@@ -63,7 +63,7 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 				Config: testAccAzureRMSearchService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "replica_count", "2"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),

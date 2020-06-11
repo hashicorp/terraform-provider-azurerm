@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_mssql_elasticpool
 
-Allows you to manage an Azure SQL Elastic Pool via the `2017-10-01-preview` API which allows for `vCore` and `DTU` based configurations.
+Allows you to manage an Azure SQL Elastic Pool via the `v3.0` API which allows for `vCore` and `DTU` based configurations.
 
 ## Example Usage
 
@@ -32,6 +32,7 @@ resource "azurerm_mssql_elasticpool" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   server_name         = azurerm_sql_server.example.name
+  license_type        = "LicenseIncluded"
   max_size_gb         = 756
 
   sku {
@@ -68,9 +69,13 @@ The following arguments are supported:
 
 * `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes. Conflicts with `max_size_gb`.
 
+-> **Note:** One of either `max_size_gb` or `max_size_bytes` must be specified.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zone_redundant` - (Optional) Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based  or `BusinessCritical` for `vCore` based `sku`. Defaults to `false`.
+
+* `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
 ---
 
