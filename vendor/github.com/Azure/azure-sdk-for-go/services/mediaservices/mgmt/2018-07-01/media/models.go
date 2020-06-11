@@ -4493,6 +4493,34 @@ type Deinterlace struct {
 	Mode DeinterlaceMode `json:"mode,omitempty"`
 }
 
+// EdgePolicies ...
+type EdgePolicies struct {
+	autorest.Response         `json:"-"`
+	UsageDataCollectionPolicy *EdgeUsageDataCollectionPolicy `json:"usageDataCollectionPolicy,omitempty"`
+}
+
+// EdgeUsageDataCollectionPolicy ...
+type EdgeUsageDataCollectionPolicy struct {
+	// DataCollectionFrequency - Usage data collection frequency in ISO 8601 duration format e.g. PT10M , PT5H.
+	DataCollectionFrequency *string `json:"dataCollectionFrequency,omitempty"`
+	// DataReportingFrequency - Usage data reporting frequency in ISO 8601 duration format e.g. PT10M , PT5H.
+	DataReportingFrequency *string `json:"dataReportingFrequency,omitempty"`
+	// MaxAllowedUnreportedUsageDuration - Maximum time for which the functionality of the device will not be hampered for not reporting the usage data.
+	MaxAllowedUnreportedUsageDuration *string `json:"maxAllowedUnreportedUsageDuration,omitempty"`
+	// EventHubDetails - Details of Event Hub where the usage will be reported.
+	EventHubDetails *EdgeUsageDataEventHub `json:"eventHubDetails,omitempty"`
+}
+
+// EdgeUsageDataEventHub ...
+type EdgeUsageDataEventHub struct {
+	// Name - Name of the Event Hub where usage will be reported.
+	Name *string `json:"name,omitempty"`
+	// Namespace - Namespace of the Event Hub where usage will be reported.
+	Namespace *string `json:"namespace,omitempty"`
+	// Token - SAS token needed to interact with Event Hub.
+	Token *string `json:"token,omitempty"`
+}
+
 // EnabledProtocols class to specify which protocols are enabled
 type EnabledProtocols struct {
 	// Download - Enable Download protocol or not
@@ -6957,6 +6985,12 @@ type ListContentKeysResponse struct {
 	autorest.Response `json:"-"`
 	// ContentKeys - ContentKeys used by current Streaming Locator
 	ContentKeys *[]StreamingLocatorContentKey `json:"contentKeys,omitempty"`
+}
+
+// ListEdgePoliciesInput ...
+type ListEdgePoliciesInput struct {
+	// DeviceID - Unique identifier of the edge device.
+	DeviceID *string `json:"deviceId,omitempty"`
 }
 
 // ListPathsResponse class of response for listPaths action
