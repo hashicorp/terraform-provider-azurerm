@@ -3,10 +3,10 @@ package pkgcallexprfactory
 import (
 	"fmt"
 	"go/ast"
-	"go/types"
 	"reflect"
 	"strings"
 
+	"github.com/bflad/tfproviderlint/helper/astutils"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ast/inspector"
@@ -34,29 +34,9 @@ func BuildAnalyzer(pkg, f string) *analysis.Analyzer {
 
 			inspect.Preorder(nodeFilter, func(n ast.Node) {
 				callExpr := n.(*ast.CallExpr)
-
-				switch fun := callExpr.Fun.(type) {
-				case *ast.SelectorExpr:
-					if fun.Sel.Name != f {
-						return
-					}
-
-					switch x := fun.X.(type) {
-					case *ast.Ident:
-						pkgName, ok := pass.TypesInfo.ObjectOf(x).(*types.PkgName)
-						if !ok {
-							return
-						}
-						if pkgName.Imported().Path() != pkg {
-							return
-						}
-					default:
-						return
-					}
-				default:
+				if !astutils.IsPackageFunctionFieldListType(callExpr.Fun, pass.TypesInfo, pkg, f) {
 					return
 				}
-
 				result = append(result, callExpr)
 			})
 
