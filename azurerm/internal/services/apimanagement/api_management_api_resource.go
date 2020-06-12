@@ -258,6 +258,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 			},
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
+
+		//`wsdl_selector` is necessary under format `wsdl`
+		if len(wsdlSelectorVs) == 0 && contentFormat == string(apimanagement.Wsdl) {
+			return fmt.Errorf("`wsdl_selector` is required when content format is `wsdl` in API Management API %q", name)
+		}
+
 		if len(wsdlSelectorVs) > 0 {
 			wsdlSelectorV := wsdlSelectorVs[0].(map[string]interface{})
 			wSvcName := wsdlSelectorV["service_name"].(string)

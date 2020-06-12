@@ -89,7 +89,7 @@ func (client SyncMembersClient) CreateOrUpdatePreparer(ctx context.Context, reso
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -174,7 +174,7 @@ func (client SyncMembersClient) DeletePreparer(ctx context.Context, resourceGrou
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -262,7 +262,7 @@ func (client SyncMembersClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -344,7 +344,7 @@ func (client SyncMembersClient) ListBySyncGroupPreparer(ctx context.Context, res
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -465,7 +465,7 @@ func (client SyncMembersClient) ListMemberSchemasPreparer(ctx context.Context, r
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -579,7 +579,7 @@ func (client SyncMembersClient) RefreshMemberSchemaPreparer(ctx context.Context,
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -662,7 +662,7 @@ func (client SyncMembersClient) UpdatePreparer(ctx context.Context, resourceGrou
 		"syncMemberName":    autorest.Encode("path", syncMemberName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
