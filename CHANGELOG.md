@@ -4,6 +4,10 @@ DEPENDENCIES
 
 * updating to `v43.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-7188]
 
+FEATURES
+
+* `azurerm_api_management` - support for the `developer_portal_url` property [GH-7263]
+
 BUG FIXES:
 
 * `azurerm_api_management_api` - correctly wait for future on create/update [GH-7273]
