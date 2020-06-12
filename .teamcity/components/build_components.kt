@@ -5,8 +5,11 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
 // NOTE: in time this could be pulled out into a separate Kotlin package
 
-// unfortunately TeamCity's Go Test Json parser appears to be broken
-// as such for the moment let's use the old method with a feature-flag
+// The native Go test runner (which TeamCity shells out to) will fail
+// the entire test suite when a single test panics, which isn't ideal.
+//
+// Until that changes, we'll continue to use `teamcity-go-test` to run
+// each test individually
 const val useTeamCityGoTest = false
 
 fun BuildFeatures.Golang() {
@@ -25,7 +28,15 @@ fun BuildSteps.ConfigureGoEnv() {
 }
 
 fun BuildSteps.RunAcceptanceTests(providerName : String, packageName: String) {
-    var servicePath = "./%s/internal/services/%s/tests".format(providerName, packageName)
+    var servicePath = "./%s/internal/services/%s".format(providerName, packageName)
+    hiddenVariable("SERVICE_PATH", servicePath, "The path at which to run - automatically updated")
+    var withTestsDirectoryPath = "##teamcity[setParameter name='SERVICE_PATH' value='%s/tests']".format(servicePath)
+
+    // some packages use a ./tests folder, others don't - conditionally append that if needed
+    step(ScriptBuildStep {
+        name          = "Determine Working Directory for this Package"
+        scriptContent = "if [ -d \"%s/tests\" ]; then echo \"%s\"; fi".format(servicePath, withTestsDirectoryPath)
+    })
 
     if (useTeamCityGoTest) {
         step(ScriptBuildStep {
@@ -36,14 +47,14 @@ fun BuildSteps.RunAcceptanceTests(providerName : String, packageName: String) {
         step(ScriptBuildStep {
             name = "Compile Test Binary"
             scriptContent = "go test -c -o test-binary"
-            workingDir = servicePath
+            workingDir = "%SERVICE_PATH%"
         })
 
         step(ScriptBuildStep {
             // ./test-binary -test.list=TestAccAzureRMResourceGroup_ | teamcity-go-test -test ./test-binary -timeout 1s
             name = "Run via jen20/teamcity-go-test"
             scriptContent = "./test-binary -test.list=\"%TEST_PREFIX%\" | teamcity-go-test -test ./test-binary -parallelism \"%PARALLELISM%\" -timeout \"%TIMEOUT%h\""
-            workingDir = servicePath
+            workingDir = "%SERVICE_PATH%"
         })
     }
 }
