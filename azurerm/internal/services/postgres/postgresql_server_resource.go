@@ -444,7 +444,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 			InfrastructureEncryption:   infraEncrypt,
 			PublicNetworkAccess:        publicAccess,
 			MinimalTLSVersion:          tlsMin,
-			SslEnforcement:             ssl,
+			SslEnforcement:             postgresql.SslEnforcementEnum(ssl),
 			StorageProfile:             storage,
 			Version:                    version,
 		}
