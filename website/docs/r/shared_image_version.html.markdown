@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `exclude_from_latest` - (Optional) Should this Image Version be excluded from the `latest` filter? If set to `true` this Image Version won't be returned for the `latest` version. Defaults to `false`.
 
-* `managed_image_id` - (Optional) The ID of the Managed Image which should be used for this Shared Image Version. Changing this forces a new resource to be created.
+* `managed_image_id` - (Optional) The ID of the Managed Image or Virtual Machine ID which should be used for this Shared Image Version. Changing this forces a new resource to be created.
 
 -> **NOTE:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html).
 
