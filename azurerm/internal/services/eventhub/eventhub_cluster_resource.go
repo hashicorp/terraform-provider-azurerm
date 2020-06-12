@@ -2,21 +2,27 @@ package eventhub
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"time"
 )
 
 func resourceArmEventHubCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubClusterCreate,
+		Create: resourceArmEventHubClusterCreateUpdate,
 		Read:   resourceArmEventHubClusterRead,
+		Update: resourceArmEventHubClusterCreateUpdate,
 		Delete: resourceArmEventHubClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -26,7 +32,8 @@ func resourceArmEventHubCluster() *schema.Resource {
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			// You can't delete a cluster until at least 4 hours have passed from the initial creation.
+			Delete: schema.DefaultTimeout(300 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -40,11 +47,22 @@ func resourceArmEventHubCluster() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Dedicated_1",
+				}, false),
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmEventHubClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventHubClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -55,10 +73,11 @@ func resourceArmEventHubClusterCreate(d *schema.ResourceData, meta interface{}) 
 
 	cluster := eventhub.Cluster{
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		// Tags:              nil,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Sku:      expandEventHubClusterSkuName(d.Get("sku_name").(string)),
 	}
 
-	future, err := client.Patch(ctx, resourceGroup, name, cluster)
+	future, err := client.Put(ctx, resourceGroup, name, cluster)
 	if err != nil {
 		return err
 	}
@@ -104,8 +123,12 @@ func resourceArmEventHubClusterRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+	d.Set("sku_name", flattenEventHubClusterSkuName(resp.Sku))
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmEventHubClusterDelete(d *schema.ResourceData, meta interface{}) error {
@@ -119,21 +142,43 @@ func resourceArmEventHubClusterDelete(d *schema.ResourceData, meta interface{}) 
 
 	resourceGroup := id.ResourceGroup
 	name := id.Path["clusters"]
-	future, err := client.Delete(ctx, resourceGroup, name)
 
+	// The EventHub Cluster can't be deleted until four hours after creation so we'll keep retrying until it can be deleted.
+	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		future, err := client.Delete(ctx, resourceGroup, name)
+		if err != nil {
+			if response.WasNotFound(future.Response()) {
+				return nil
+			} else if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") {
+				return resource.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
+			} else {
+				return resource.NonRetryableError(fmt.Errorf("issuing delete request for EventHub Cluster %q (resource group %q): %+v", name, resourceGroup, err))
+			}
+		}
+		return nil
+	})
+}
+
+func expandEventHubClusterSkuName(skuName string) *eventhub.ClusterSku {
+	if len(skuName) == 0 {
+		return nil
+	}
+
+	name, capacity, err := azure.SplitSku(skuName)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("issuing delete request for EventHub Cluster %q (resource group %q): %+v", name, resourceGroup, err)
+		return nil
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("error deleting EventHub Cluster %s (resource group %s): %+v", name, resourceGroup, err)
+	return &eventhub.ClusterSku{
+		Name:     utils.String(name),
+		Capacity: utils.Int32(capacity),
+	}
+}
+
+func flattenEventHubClusterSkuName(input *eventhub.ClusterSku) string {
+	if input == nil || input.Name == nil {
+		return ""
 	}
 
-	return nil
+	return fmt.Sprintf("%s_%d", *input.Name, *input.Capacity)
 }

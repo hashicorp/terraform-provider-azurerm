@@ -25,8 +25,7 @@ import (
 	"net/http"
 )
 
-// OperationsClient is the azure Event Hubs client for managing Event Hubs Cluster, IPFilter Rules and
-// VirtualNetworkRules resources.
+// OperationsClient is the client for the Operations methods of the Eventhub service.
 type OperationsClient struct {
 	BaseClient
 }
@@ -78,7 +77,7 @@ func (client OperationsClient) List(ctx context.Context) (result OperationListRe
 
 // ListPreparer prepares the List request.
 func (client OperationsClient) ListPreparer(ctx context.Context) (*http.Request, error) {
-	const APIVersion = "2018-01-01-preview"
+	const APIVersion = "2017-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

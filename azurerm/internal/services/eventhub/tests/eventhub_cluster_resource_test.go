@@ -29,6 +29,39 @@ func TestAccAzureRMEventHubCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMEventHubCluster_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventhub_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMEventHubClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMEventHubCluster_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMEventHubCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMEventHubClusterDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.ClusterClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -100,7 +133,31 @@ resource "azurerm_eventhub_cluster" "test" {
   name                = "acctesteventhubcluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated_1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func testAccAzureRMEventHubCluster_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eventhub-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_cluster" "test" {
+  name                = "acctesteventhubcluster-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated_1"
+  
+  tags = {
+    environment = "Production"
+  }
+}
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
