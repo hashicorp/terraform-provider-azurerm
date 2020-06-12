@@ -340,13 +340,11 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
 	}
 
-	if v, ok := d.GetOkExists("read_scale"); ok {
-		if v.(bool) {
-			params.DatabaseProperties.ReadScale = sql.DatabaseReadScaleEnabled
-		} else {
-			params.DatabaseProperties.ReadScale = sql.DatabaseReadScaleDisabled
-		}
+	readScale := sql.DatabaseReadScaleDisabled
+	if v := d.Get("read_scale").(bool); v {
+		readScale = sql.DatabaseReadScaleEnabled
 	}
+	params.DatabaseProperties.ReadScale = readScale
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
 		if cm, ok := d.GetOk("create_mode"); ok && cm.(string) != string(sql.CreateModePointInTimeRestore) {
