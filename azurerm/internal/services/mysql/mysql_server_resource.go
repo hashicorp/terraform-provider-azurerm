@@ -169,24 +169,23 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 
 			"ssl_enforcement": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "this has been moved to the boolean attribute `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
-				//ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				Deprecated:   "this has been moved to the boolean attribute `ssl_enforcement_enabled` and will be removed in version 3.0 of the provider.",
+				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.SslEnforcementEnumDisabled),
 					string(mysql.SslEnforcementEnumEnabled),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
-				ConflictsWith:    []string{"ssl_enforcement_enabled"},
 			},
 
 			"ssl_enforcement_enabled": {
-				Type:          schema.TypeBool,
-				Optional:      true, // required in 3.0
-				Computed:      true, // remove computed in 3.0
-				ConflictsWith: []string{"ssl_enforcement"},
+				Type:         schema.TypeBool,
+				Optional:     true, // required in 3.0
+				Computed:     true, // remove computed in 3.0
+				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 			},
 
 			"ssl_minimal_tls_version_enforced": {
