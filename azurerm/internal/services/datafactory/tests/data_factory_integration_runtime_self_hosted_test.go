@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -83,7 +84,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -228,21 +229,18 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedExists(name string) 
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
-
-		name := rs.Primary.Attributes["name"]
-		factoryName := rs.Primary.Attributes["data_factory_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Data Factory Self-hosted Integration Runtime: %s", name)
+		id, err := parse.DataFactoryIntegrationRuntimeID(rs.Primary.ID)
+		if err != nil {
+			return err
 		}
 
-		resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
+		resp, err := client.Get(ctx, id.ResourceGroup, id.DataFactory, id.Name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on IntegrationRuntimesClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Self-hosted Integration Runtime %q (Resource Group: %q, Data Factory %q) does not exist", name, factoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Self-hosted Integration Runtime %q (Resource Group: %q, Data Factory %q) does not exist", id.Name, id.DataFactory, id.ResourceGroup)
 		}
 
 		return nil
@@ -258,14 +256,14 @@ func testCheckAzureRMDataFactoryIntegrationRuntimeSelfHostedDestroy(s *terraform
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		factoryName := rs.Primary.Attributes["data_factory_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
-
+		id, err := parse.DataFactoryIntegrationRuntimeID(rs.Primary.ID)
 		if err != nil {
-			return nil
+			return err
+		}
+
+		resp, err := client.Get(ctx, id.ResourceGroup, id.DataFactory, id.Name, "")
+		if err != nil {
+			return fmt.Errorf("Bad: Get on IntegrationRuntimesClient: %+v", err)
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
