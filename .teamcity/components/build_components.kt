@@ -27,21 +27,24 @@ fun BuildSteps.ConfigureGoEnv() {
     })
 }
 
+fun servicePath(providerName: String, packageName: String) : String {
+    return "./%s/internal/services/%s".format(providerName, packageName)
+}
+
 fun BuildSteps.RunAcceptanceTests(providerName : String, packageName: String) {
-    var servicePath = "./%s/internal/services/%s".format(providerName, packageName)
-    hiddenVariable("SERVICE_PATH", servicePath, "The path at which to run - automatically updated")
-    var withTestsDirectoryPath = "##teamcity[setParameter name='SERVICE_PATH' value='%s/tests']".format(servicePath)
+    var packagePath = servicePath(providerName, packageName)
+    var withTestsDirectoryPath = "##teamcity[setParameter name='SERVICE_PATH' value='%s/tests']".format(packagePath)
 
     // some packages use a ./tests folder, others don't - conditionally append that if needed
     step(ScriptBuildStep {
         name          = "Determine Working Directory for this Package"
-        scriptContent = "if [ -d \"%s/tests\" ]; then echo \"%s\"; fi".format(servicePath, withTestsDirectoryPath)
+        scriptContent = "if [ -d \"%s/tests\" ]; then echo \"%s\"; fi".format(packagePath, withTestsDirectoryPath)
     })
 
     if (useTeamCityGoTest) {
         step(ScriptBuildStep {
             name = "Run Tests"
-            scriptContent = "go test -v \"$servicePath\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
+            scriptContent = "go test -v \"%SERVICE_PATH%\" -timeout=\"%TIMEOUT%h\" -test.parallel=\"%PARALLELISM%\" -run=\"%TEST_PREFIX%\" -json"
         })
     } else {
         step(ScriptBuildStep {
@@ -96,6 +99,10 @@ fun ParametrizedWithType.TerraformAcceptanceTestsFlag() {
 
 fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
     hiddenVariable("env.TF_SCHEMA_PANIC_ON_ERROR", "1", "Panic if unknown/unmatched fields are set into the state")
+}
+
+fun ParametrizedWithType.WorkingDirectory(providerName: String, packageName: String) {
+    text("SERVICE_PATH", servicePath(providerName, packageName), "", "The path at which to run - automatically updated", ParameterDisplay.HIDDEN)
 }
 
 fun ParametrizedWithType.hiddenVariable(name: String, value: String, description: String) {
