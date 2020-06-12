@@ -33,6 +33,7 @@ func SchemaHDInsightDataSourceName() *schema.Schema {
 }
 
 func SchemaHDInsightTier() *schema.Schema {
+	//lintignore:AZURERMS001
 	return &schema.Schema{
 		Type:     schema.TypeString,
 		Required: true,
@@ -42,6 +43,7 @@ func SchemaHDInsightTier() *schema.Schema {
 			string(hdinsight.Premium),
 		}, true),
 		// TODO: file a bug about this
+		//
 		DiffSuppressFunc: location.DiffSuppressFunc,
 	}
 }

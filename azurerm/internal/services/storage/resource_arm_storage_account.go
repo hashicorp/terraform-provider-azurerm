@@ -73,8 +73,8 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
-				Default: string(storage.StorageV2),
-			},
+				Default:          string(storage.StorageV2),
+				DiffSuppressFunc: suppress.CaseDifference},
 
 			"account_tier": {
 				Type:     schema.TypeString,
@@ -110,7 +110,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.Cool),
 					string(storage.Hot),
 				}, true),
-			},
+				DiffSuppressFunc: suppress.CaseDifference},
 
 			"custom_domain": {
 				Type:     schema.TypeList,
@@ -164,7 +164,7 @@ func resourceArmStorageAccount() *schema.Resource {
 									string(storage.Metrics),
 									string(storage.None),
 								}, true),
-							},
+								DiffSuppressFunc: suppress.CaseDifference},
 							Set: schema.HashString,
 						},
 

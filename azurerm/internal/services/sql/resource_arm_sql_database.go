@@ -250,7 +250,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 									"Sql_Injection_Vulnerability",
 									"Access_Anomaly",
 								}, true),
-							},
+								DiffSuppressFunc: suppress.CaseDifference},
 						},
 
 						"email_account_admins": {

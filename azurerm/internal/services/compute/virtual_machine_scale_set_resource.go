@@ -213,7 +213,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 					string(compute.Low),
 					string(compute.Regular),
 				}, true),
-			},
+				DiffSuppressFunc: suppress.CaseDifference},
 
 			"eviction_policy": {
 				Type:     schema.TypeString,
@@ -580,7 +580,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
-						},
+							DiffSuppressFunc: suppress.CaseDifference},
 
 						"caching": {
 							Type:     schema.TypeString,
@@ -639,7 +639,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
-						},
+							DiffSuppressFunc: suppress.CaseDifference},
 					},
 				},
 			},

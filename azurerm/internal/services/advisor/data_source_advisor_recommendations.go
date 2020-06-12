@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
@@ -34,7 +35,7 @@ func dataSourceArmAdvisorRecommendations() *schema.Resource {
 						string(advisor.Performance),
 						string(advisor.Cost),
 						string(advisor.OperationalExcellence)}, true),
-				},
+					DiffSuppressFunc: suppress.CaseDifference},
 			},
 
 			"filter_by_resource_groups": azure.SchemaResourceGroupNameSetOptional(),

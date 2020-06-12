@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
@@ -58,7 +59,8 @@ func resourceArmPolicyDefinition() *schema.Resource {
 					string(policy.Custom),
 					string(policy.NotSpecified),
 					string(policy.Static),
-				}, true)},
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference},
 
 			"mode": {
 				Type:     schema.TypeString,

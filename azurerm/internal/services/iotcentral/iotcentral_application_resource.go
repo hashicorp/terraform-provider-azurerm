@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -71,8 +72,8 @@ func resourceArmIotCentralApplication() *schema.Resource {
 					string(iotcentral.ST1),
 					string(iotcentral.ST2),
 				}, true),
-				Default: iotcentral.ST1,
-			},
+				Default:          iotcentral.ST1,
+				DiffSuppressFunc: suppress.CaseDifference},
 			"template": {
 				Type:         schema.TypeString,
 				Optional:     true,

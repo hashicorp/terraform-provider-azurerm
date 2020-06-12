@@ -119,7 +119,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 						string(automation.Saturday),
 						string(automation.Sunday),
 					}, true),
-				},
+					DiffSuppressFunc: suppress.CaseDifference},
 				Set:           set.HashStringIgnoreCase,
 				ConflictsWith: []string{"month_days", "monthly_occurrence"},
 			},

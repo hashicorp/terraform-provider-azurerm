@@ -246,7 +246,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 									string(network.OpenVPN),
 									string(network.SSTP),
 								}, true),
-							},
+								DiffSuppressFunc: suppress.CaseDifference},
 						},
 					},
 				},

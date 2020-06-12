@@ -136,7 +136,7 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 					"Basic",
 					"Enterprise",
 				}, true),
-			},
+				DiffSuppressFunc: suppress.CaseDifference},
 
 			"tags": tags.Schema(),
 		},

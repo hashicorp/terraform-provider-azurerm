@@ -271,7 +271,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
 							}, true),
-						},
+							DiffSuppressFunc: suppress.CaseDifference},
 
 						"image_uri": {
 							Type:     schema.TypeString,
@@ -345,7 +345,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 								string(compute.StorageAccountTypesStandardSSDLRS),
 								string(compute.StorageAccountTypesUltraSSDLRS),
 							}, true),
-						},
+							DiffSuppressFunc: suppress.CaseDifference},
 
 						"create_option": {
 							Type:             schema.TypeString,

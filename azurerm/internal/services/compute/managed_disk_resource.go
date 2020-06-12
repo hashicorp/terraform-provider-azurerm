@@ -111,7 +111,7 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.Windows),
 					string(compute.Linux),
 				}, true),
-			},
+				DiffSuppressFunc: suppress.CaseDifference},
 
 			"disk_size_gb": {
 				Type:         schema.TypeInt,

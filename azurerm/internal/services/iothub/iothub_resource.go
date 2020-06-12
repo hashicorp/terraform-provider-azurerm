@@ -263,6 +263,7 @@ func resourceArmIotHub() *schema.Resource {
 							Optional:         true,
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 						},
+						//lintignore:AZURERMS001
 						"encoding": {
 							Type:     schema.TypeString,
 							Optional: true,
