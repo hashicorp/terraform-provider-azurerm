@@ -37,6 +37,8 @@ matrix:
       script: TRAVIS=ci make tflint
     - name: "make test"
       script: TRAVIS=ci make test
+    - name: "make test-tflint"
+      script: TRAVIS=ci make test-tflint
     - name: "make depscheck"
       script: make depscheck
     - name: "make website-lint"

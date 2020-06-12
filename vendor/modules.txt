@@ -164,6 +164,64 @@ github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/service/s3
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
+# github.com/bflad/tfproviderlint v0.14.0
+github.com/bflad/tfproviderlint/helper/analysisutils
+github.com/bflad/tfproviderlint/helper/astutils
+github.com/bflad/tfproviderlint/helper/terraformtype/helper/resource
+github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema
+github.com/bflad/tfproviderlint/passes/AT001
+github.com/bflad/tfproviderlint/passes/AT005
+github.com/bflad/tfproviderlint/passes/AT006
+github.com/bflad/tfproviderlint/passes/AT007
+github.com/bflad/tfproviderlint/passes/R001
+github.com/bflad/tfproviderlint/passes/R002
+github.com/bflad/tfproviderlint/passes/R003
+github.com/bflad/tfproviderlint/passes/R004
+github.com/bflad/tfproviderlint/passes/R006
+github.com/bflad/tfproviderlint/passes/S001
+github.com/bflad/tfproviderlint/passes/S002
+github.com/bflad/tfproviderlint/passes/S003
+github.com/bflad/tfproviderlint/passes/S004
+github.com/bflad/tfproviderlint/passes/S005
+github.com/bflad/tfproviderlint/passes/S006
+github.com/bflad/tfproviderlint/passes/S007
+github.com/bflad/tfproviderlint/passes/S008
+github.com/bflad/tfproviderlint/passes/S009
+github.com/bflad/tfproviderlint/passes/S010
+github.com/bflad/tfproviderlint/passes/S011
+github.com/bflad/tfproviderlint/passes/S012
+github.com/bflad/tfproviderlint/passes/S013
+github.com/bflad/tfproviderlint/passes/S014
+github.com/bflad/tfproviderlint/passes/S015
+github.com/bflad/tfproviderlint/passes/S016
+github.com/bflad/tfproviderlint/passes/S017
+github.com/bflad/tfproviderlint/passes/S018
+github.com/bflad/tfproviderlint/passes/S019
+github.com/bflad/tfproviderlint/passes/S020
+github.com/bflad/tfproviderlint/passes/S021
+github.com/bflad/tfproviderlint/passes/S022
+github.com/bflad/tfproviderlint/passes/S023
+github.com/bflad/tfproviderlint/passes/S024
+github.com/bflad/tfproviderlint/passes/S025
+github.com/bflad/tfproviderlint/passes/S026
+github.com/bflad/tfproviderlint/passes/S027
+github.com/bflad/tfproviderlint/passes/S028
+github.com/bflad/tfproviderlint/passes/S029
+github.com/bflad/tfproviderlint/passes/S030
+github.com/bflad/tfproviderlint/passes/S031
+github.com/bflad/tfproviderlint/passes/S032
+github.com/bflad/tfproviderlint/passes/S033
+github.com/bflad/tfproviderlint/passes/commentignore
+github.com/bflad/tfproviderlint/passes/helper/resource/retryfuncinfo
+github.com/bflad/tfproviderlint/passes/helper/resource/testcaseinfo
+github.com/bflad/tfproviderlint/passes/helper/schema/resourcedatasetcallexpr
+github.com/bflad/tfproviderlint/passes/helper/schema/resourceinfo
+github.com/bflad/tfproviderlint/passes/helper/schema/resourceinfodatasourceonly
+github.com/bflad/tfproviderlint/passes/helper/schema/schemainfo
+github.com/bflad/tfproviderlint/passes/helper/schema/schemainfocomputedonly
+github.com/bflad/tfproviderlint/passes/helper/schema/schemamapcompositelit
+github.com/bflad/tfproviderlint/passes/testaccfuncdecl
+github.com/bflad/tfproviderlint/passes/testfuncdecl
 # github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
 github.com/bgentry/go-netrc/netrc
 # github.com/bgentry/speakeasy v0.1.0
@@ -248,7 +306,10 @@ github.com/hashicorp/hcl/v2/json
 github.com/hashicorp/logutils
 # github.com/hashicorp/terraform-config-inspect v0.0.0-20191115094559-17f92b0546e8
 github.com/hashicorp/terraform-config-inspect/tfconfig
-# github.com/hashicorp/terraform-plugin-sdk v1.6.0
+# github.com/hashicorp/terraform-json v0.4.0
+github.com/hashicorp/terraform-json
+# github.com/hashicorp/terraform-plugin-sdk v1.7.0
+github.com/hashicorp/terraform-plugin-sdk/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest
 github.com/hashicorp/terraform-plugin-sdk/helper/customdiff
 github.com/hashicorp/terraform-plugin-sdk/helper/hashcode
@@ -295,6 +356,8 @@ github.com/hashicorp/terraform-plugin-sdk/internal/version
 github.com/hashicorp/terraform-plugin-sdk/meta
 github.com/hashicorp/terraform-plugin-sdk/plugin
 github.com/hashicorp/terraform-plugin-sdk/terraform
+# github.com/hashicorp/terraform-plugin-test v1.2.0
+github.com/hashicorp/terraform-plugin-test
 # github.com/hashicorp/terraform-svchost v0.0.0-20191011084731-65d371908596
 github.com/hashicorp/terraform-svchost
 github.com/hashicorp/terraform-svchost/auth
@@ -373,7 +436,7 @@ github.com/ulikunitz/xz/lzma
 # github.com/vmihailenco/msgpack v4.0.1+incompatible
 github.com/vmihailenco/msgpack
 github.com/vmihailenco/msgpack/codes
-# github.com/zclconf/go-cty v1.1.0
+# github.com/zclconf/go-cty v1.2.1
 github.com/zclconf/go-cty/cty
 github.com/zclconf/go-cty/cty/convert
 github.com/zclconf/go-cty/cty/function
@@ -420,7 +483,9 @@ golang.org/x/crypto/pkcs12
 golang.org/x/crypto/pkcs12/internal/rc2
 golang.org/x/crypto/poly1305
 golang.org/x/crypto/ssh
-# golang.org/x/net v0.0.0-20191009170851-d66e71096ffb
+# golang.org/x/mod v0.2.0
+golang.org/x/mod/semver
+# golang.org/x/net v0.0.0-20200226121028-0de0cce0169b
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/http/httpguts
@@ -443,6 +508,38 @@ golang.org/x/text/secure/bidirule
 golang.org/x/text/transform
 golang.org/x/text/unicode/bidi
 golang.org/x/text/unicode/norm
+# golang.org/x/tools v0.0.0-20200612022331-742c5eb664c2
+golang.org/x/tools/go/analysis
+golang.org/x/tools/go/analysis/analysistest
+golang.org/x/tools/go/analysis/internal/analysisflags
+golang.org/x/tools/go/analysis/internal/checker
+golang.org/x/tools/go/analysis/internal/facts
+golang.org/x/tools/go/analysis/multichecker
+golang.org/x/tools/go/analysis/passes/inspect
+golang.org/x/tools/go/analysis/unitchecker
+golang.org/x/tools/go/ast/astutil
+golang.org/x/tools/go/ast/inspector
+golang.org/x/tools/go/gcexportdata
+golang.org/x/tools/go/internal/gcimporter
+golang.org/x/tools/go/internal/packagesdriver
+golang.org/x/tools/go/packages
+golang.org/x/tools/go/types/objectpath
+golang.org/x/tools/internal/analysisinternal
+golang.org/x/tools/internal/event
+golang.org/x/tools/internal/event/core
+golang.org/x/tools/internal/event/keys
+golang.org/x/tools/internal/event/label
+golang.org/x/tools/internal/gocommand
+golang.org/x/tools/internal/lsp/diff
+golang.org/x/tools/internal/lsp/diff/myers
+golang.org/x/tools/internal/packagesinternal
+golang.org/x/tools/internal/span
+golang.org/x/tools/internal/testenv
+golang.org/x/tools/internal/typesinternal
+golang.org/x/tools/txtar
+# golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
+golang.org/x/xerrors
+golang.org/x/xerrors/internal
 # google.golang.org/api v0.9.0
 google.golang.org/api/gensupport
 google.golang.org/api/googleapi

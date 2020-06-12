@@ -13,8 +13,8 @@ default: build
 tools:
 	@echo "==> installing required tooling..."
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
+	go install ./azurermproviderlint
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
-	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderdocs
 	GO111MODULE=off go get -u github.com/katbyte/terrafmt
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$GOPATH/bin v1.24.0
@@ -85,6 +85,12 @@ test-docker:
 test: fmtcheck
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/run-test.sh
+
+test-tflint:
+	mkdir -p ./vendor/github.com/terraform-providers/terraform-provider-azurerm
+	ln -s `pwd`/azurerm ./vendor/github.com/terraform-providers/terraform-provider-azurerm/azurerm
+	go test -v ./azurermproviderlint/...
+	rm -r ./vendor/github.com/terraform-providers/terraform-provider-azurerm
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
