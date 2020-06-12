@@ -57,7 +57,9 @@ resource "azurerm_app_service_environment" "example" {
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE this size cannot be changed.
 
-* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web` and `Publishing`. Defaults to `None`.
+* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web`, `Publishing` and combined value `"Web, Publishing"`. Defaults to `None`.
+
+~> **NOTE** You should prefer to select value either `None` or combined value `"Web, Publishing"` as the other values might become deprecated in the future.
 
 * `pricing_tier` - (Optional) Pricing tier for the front end instances. Possible values are `I1`, `I2` and `I3`. Defaults to `I1`.
 
