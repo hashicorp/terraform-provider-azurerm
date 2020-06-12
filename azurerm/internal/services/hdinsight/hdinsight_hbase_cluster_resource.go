@@ -142,8 +142,8 @@ func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interfa
 	gatewayRaw := d.Get("gateway").([]interface{})
 	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
-	if metastoresRaw, ok := d.GetOkExists("metastores"); ok {
-		metastores := expandHDInsightsMetastore(metastoresRaw.([]interface{}))
+	metastoresRaw, ok := d.Get("metastores").([]interface{})
+	metastores := expandHDInsightsMetastore(metastoresRaw)
 		for k, v := range metastores {
 			configurations[k] = v
 		}
