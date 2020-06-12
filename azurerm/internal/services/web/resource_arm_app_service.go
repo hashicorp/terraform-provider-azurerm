@@ -267,13 +267,11 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	if v, ok := d.GetOkExists("client_affinity_enabled"); ok {
-		enabled := v.(bool)
+	if enabled := d.Get("client_affinity_enabled").(bool); enabled {
 		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
 	}
 
-	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
-		certEnabled := v.(bool)
+	if certEnabled := d.Get("client_cert_enabled").(bool); certEnabled {
 		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
 	}
 
@@ -362,8 +360,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		},
 	}
 
-	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
-		certEnabled := v.(bool)
+	if certEnabled := d.Get("client_cert_enabled").(bool); certEnabled {
 		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
 	}
 
