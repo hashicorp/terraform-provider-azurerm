@@ -15,6 +15,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/parse"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,9 +27,11 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHosted() *schema.Resource {
 		Read:   resourceArmDataFactoryIntegrationRuntimeSelfHostedRead,
 		Update: resourceArmDataFactoryIntegrationRuntimeSelfHostedCreateUpdate,
 		Delete: resourceArmDataFactoryIntegrationRuntimeSelfHostedDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.DataFactoryIntegrationRuntimeID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -153,13 +157,13 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHostedRead(d *schema.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataFactoryIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	factoryName := id.Path["factories"]
-	name := id.Path["integrationruntimes"]
+	factoryName := id.DataFactory
+	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 	if err != nil {
@@ -219,13 +223,13 @@ func resourceArmDataFactoryIntegrationRuntimeSelfHostedDelete(d *schema.Resource
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.DataFactoryIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	factoryName := id.Path["factories"]
-	name := id.Path["integrationruntimes"]
+	factoryName := id.DataFactory
+	name := id.Name
 
 	response, err := client.Delete(ctx, resourceGroup, factoryName, name)
 	if err != nil {
