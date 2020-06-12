@@ -6,7 +6,8 @@ DEPENDENCIES
 
 BUG FIXES:
 
-* azurerm_bot_connection` - adding a runtime check for the available service providers in the Azure Region being used [GH-7279]
+* `azurerm_api_management_api` - correctly wait for future on create/update [GH-7273]
+* `azurerm_bot_connection` - adding a runtime check for the available service providers in the Azure Region being used [GH-7279]
 
 ## 2.14.0 (June 11, 2020)
 
