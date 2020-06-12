@@ -51,9 +51,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
 
-* `product_id` - (Required) The ID of the Product which should be assigned to this Subscription. Changing this forces a new resource to be created.
+* `product_id` - (Required) The resource ID of the Product which should be assigned to this Subscription. Changing this forces a new resource to be created.
 
-* `user_id` - (Required) The ID of the User which should be assigned to this Subscription. Changing this forces a new resource to be created.
+* `user_id` - (Required) The resource ID of the User which should be assigned to this Subscription. Changing this forces a new resource to be created.
 
 ---
 
