@@ -2,12 +2,13 @@ package tests
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+	
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"net/http"
-	"testing"
 )
 
 func TestAccAzureRMEventHubCluster_basic(t *testing.T) {
@@ -154,7 +155,7 @@ resource "azurerm_eventhub_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Dedicated_1"
-  
+
   tags = {
     environment = "Production"
   }

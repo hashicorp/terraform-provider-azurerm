@@ -91,7 +91,7 @@ func resourceArmEventHubClusterCreateUpdate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	if read.ID == nil {
+	if read.ID == nil || *read.ID == "" {
 		return fmt.Errorf("cannot read EventHub Cluster %s (resource group %s) ID", name, resourceGroup)
 	}
 
@@ -123,10 +123,10 @@ func resourceArmEventHubClusterRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("sku_name", flattenEventHubClusterSkuName(resp.Sku))
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	d.Set("sku_name", flattenEventHubClusterSkuName(resp.Sku))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -149,12 +149,17 @@ func resourceArmEventHubClusterDelete(d *schema.ResourceData, meta interface{}) 
 		if err != nil {
 			if response.WasNotFound(future.Response()) {
 				return nil
-			} else if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") {
-				return resource.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
-			} else {
-				return resource.NonRetryableError(fmt.Errorf("issuing delete request for EventHub Cluster %q (resource group %q): %+v", name, resourceGroup, err))
 			}
+			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") {
+				return resource.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
+			}
+			return resource.NonRetryableError(fmt.Errorf("issuing delete request for EventHub Cluster %q (resource group %q): %+v", name, resourceGroup, err))
 		}
+
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return resource.NonRetryableError(fmt.Errorf("creating eventhub cluster: %+v", err))
+		}
+
 		return nil
 	})
 }
