@@ -1076,9 +1076,9 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 	}
 
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
-		if p, ok := d.GetOkExists("protocols.0.enable_http2"); ok {
-			customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(p.(bool)))
-		}
+		vpr := vp[0].(map[string]interface{})
+		enableHttp2 := vpr["enable_http2"].(bool)
+		customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(enableHttp2))
 	}
 
 	return customProperties
