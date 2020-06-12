@@ -525,6 +525,26 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
+							"file_system": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"level": {
+											Type:     schema.TypeString,
+											Required: true,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(web.Error),
+												string(web.Information),
+												string(web.Off),
+												string(web.Verbose),
+												string(web.Warning),
+											}, false),
+										}},
+								},
+								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+							},
 							"azure_blob_storage": {
 								Type:     schema.TypeList,
 								Optional: true,
@@ -1195,6 +1215,15 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 	if input.ApplicationLogs != nil {
 		appLogsItem := make(map[string]interface{})
 
+		fileSystem := make([]interface{}, 0)
+		if fileSystemInput := input.ApplicationLogs.FileSystem; fileSystemInput != nil {
+			fileSystemItem := make(map[string]interface{})
+
+			fileSystemItem["level"] = string(fileSystemInput.Level)
+
+			fileSystem = append(fileSystem, fileSystemItem)
+		}
+
 		blobStorage := make([]interface{}, 0)
 		if blobStorageInput := input.ApplicationLogs.AzureBlobStorage; blobStorageInput != nil {
 			blobStorageItem := make(map[string]interface{})
@@ -1214,6 +1243,8 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 				blobStorage = append(blobStorage, blobStorageItem)
 			}
 		}
+
+		appLogsItem["file_system"] = fileSystem
 		appLogsItem["azure_blob_storage"] = blobStorage
 		appLogs = append(appLogs, appLogsItem)
 	}
@@ -1285,6 +1316,18 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 			appLogsConfig := config.(map[string]interface{})
 
 			logs.ApplicationLogs = &web.ApplicationLogsConfig{}
+
+			if v, ok := appLogsConfig["file_system"]; ok {
+				fileSystemConfigs := v.([]interface{})
+
+				for _, config := range fileSystemConfigs {
+					fileSystemConfig := config.(map[string]interface{})
+
+					logs.ApplicationLogs.FileSystem = &web.FileSystemApplicationLogsConfig{
+						Level: web.LogLevel(fileSystemConfig["level"].(string)),
+					}
+				}
+			}
 
 			if v, ok := appLogsConfig["azure_blob_storage"]; ok {
 				storageConfigs := v.([]interface{})

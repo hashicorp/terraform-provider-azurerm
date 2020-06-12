@@ -715,6 +715,7 @@ func TestAccAzureRMAppService_applicationBlobStorageLogs(t *testing.T) {
 				Config: testAccAzureRMAppService_applicationBlobStorageLogs(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.file_system.0.level", "Warning"),
 					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.level", "Information"),
 					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.sas_url", "http://x.com/"),
 					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.retention_in_days", "3"),
@@ -724,6 +725,7 @@ func TestAccAzureRMAppService_applicationBlobStorageLogs(t *testing.T) {
 				Config: testAccAzureRMAppService_applicationBlobStorageLogsWithAppSettings(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.file_system.0.level", "Warning"),
 					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.level", "Information"),
 					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.sas_url", "http://x.com/"),
 					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.retention_in_days", "3"),
@@ -3041,6 +3043,9 @@ resource "azurerm_app_service" "test" {
 
   logs {
     application_logs {
+      file_system {
+        level = "Warning"
+      }
       azure_blob_storage {
         level             = "Information"
         sas_url           = "http://x.com/"
@@ -3083,6 +3088,9 @@ resource "azurerm_app_service" "test" {
   }
   logs {
     application_logs {
+      file_system {
+        level = "Warning"
+      }
       azure_blob_storage {
         level             = "Information"
         sas_url           = "http://x.com/"
