@@ -21,9 +21,10 @@ func f() {
 	_ = schema.Schema{ // want "AZURERMS001: prefer adding `DiffSuppressFunc: suppress.CaseDifference` when ignoring case during validation"
 		ValidateFunc: validation.StringInSlice([]string{}, true),
 	}
+
 	_ = schema.Schema{ // want "AZURERMS001: prefer adding `DiffSuppressFunc: suppress.CaseDifference` when ignoring case during validation"
 		ValidateFunc:     validation.StringInSlice([]string{}, true),
-		DiffSuppressFunc: suppress.RFC3339Time,
+		DiffSuppressFunc: nil,
 	}
 
 	/* Comment ignored cases */
@@ -31,10 +32,5 @@ func f() {
 	// lintignore:AZURERMS001
 	_ = schema.Schema{
 		ValidateFunc: validation.StringInSlice([]string{}, true),
-	}
-	// lintignore:AZURERMS001
-	_ = schema.Schema{
-		ValidateFunc:     validation.StringInSlice([]string{}, true),
-		DiffSuppressFunc: suppress.RFC3339Time,
 	}
 }
