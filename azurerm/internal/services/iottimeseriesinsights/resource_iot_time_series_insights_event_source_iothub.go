@@ -71,11 +71,31 @@ func resourceArmIoTTimeSeriesInsightsEventSourceIoTHub() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			/*
-				"shared_access_key": {
-					Type: schema.TypeString,
-					Optional: true,
-				},*/
+			"consumer_group_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"key_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"shared_access_key": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				Sensitive:    true,
+			},
+
+			"timestamp_property_name": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -122,6 +142,10 @@ func resourceArmIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *schema.Res
 		IoTHubEventSourceCreationProperties: &timeseriesinsights.IoTHubEventSourceCreationProperties{
 			IotHubName:            utils.String(d.Get("iothub_name").(string)),
 			EventSourceResourceID: utils.String(d.Get("event_source_resource_id").(string)),
+			ConsumerGroupName:     utils.String(d.Get("consumer_group_name").(string)),
+			KeyName:               utils.String(d.Get("key_name").(string)),
+			SharedAccessKey:       utils.String(d.Get("shared_access_key").(string)),
+			TimestampPropertyName: utils.String(d.Get("timestamp_property_name").(string)),
 		},
 	}
 
@@ -134,9 +158,11 @@ func resourceArmIoTTimeSeriesInsightsEventSourceIoTHubCreateUpdate(d *schema.Res
 		return fmt.Errorf("retrieving IoT Time Series Insights Event Source IoTHub %q (Resource Group %q): %+v", name, id.ResourceGroup, err)
 	}
 
-	eventSource, ok := resp.Value.AsIoTHubEventSourceResource()
+	eventSource, ok := resp.Value.AsEventSourceResource()
+	return fmt.Errorf("%+v", eventSource)
 	if !ok {
-		return fmt.Errorf("created resource was not a standard IoT Time Series Insights IoTHub Event Source %q (Resource Group %q)", name, id.ResourceGroup)
+		return fmt.Errorf("%+v", eventSource)
+		return fmt.Errorf("created resource was not a IoT Time Series Insights IoTHub Event Source %q (Resource Group %q)", name, id.ResourceGroup)
 	}
 
 	if eventSource.ID == nil || *eventSource.ID == "" {
@@ -179,6 +205,9 @@ func resourceArmIoTTimeSeriesInsightsEventSourceIoTHubRead(d *schema.ResourceDat
 	if props := eventSource.IoTHubEventSourceResourceProperties; props != nil {
 		d.Set("iothub_name", props.IotHubName)
 		d.Set("event_source_resource_id", props.EventSourceResourceID)
+		d.Set("consumer_group_name", props.ConsumerGroupName)
+		d.Set("key_name", props.KeyName)
+		d.Set("timestamp_property_name", props.TimestampPropertyName)
 	}
 
 	return tags.FlattenAndSet(d, eventSource.Tags)

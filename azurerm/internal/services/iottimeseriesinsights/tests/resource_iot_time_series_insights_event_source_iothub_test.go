@@ -26,7 +26,7 @@ func TestAccAzureRMIoTTimeSeriesInsightsEventSourceIoTHub_basic(t *testing.T) {
 					testCheckAzureRMIoTTimeSeriesInsightsEventSourceIoTHubExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("shared_access_key"),
 		},
 	})
 }
@@ -45,21 +45,21 @@ func TestAccAzureRMIoTTimeSeriesInsightsEventSourceIoTHub_update(t *testing.T) {
 					testCheckAzureRMIoTTimeSeriesInsightsEventSourceIoTHubExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("shared_access_key"),
 			{
 				Config: testAccAzureRMIoTTimeSeriesInsightsEventSourceIoTHub_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIoTTimeSeriesInsightsEventSourceIoTHubExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("shared_access_key"),
 			{
 				Config: testAccAzureRMIoTTimeSeriesInsightsEventSourceIoTHub_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIoTTimeSeriesInsightsEventSourceIoTHubExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("shared_access_key"),
 		},
 	})
 }
@@ -150,8 +150,12 @@ resource "azurerm_iot_time_series_insights_event_source_iothub" "test" {
   name                                = "accTEst_tsiap%d"
   time_series_insights_environment_id = azurerm_iot_time_series_insights_standard_environment.test.id
   location                            = azurerm_resource_group.test.location
-  iothub_name                         = azurerm_iothub.test.name
-  event_source_resource_id            = azurerm_resource_group.test.id
+
+  event_source_resource_id = azurerm_resource_group.test.id
+  iothub_name              = azurerm_iothub.test.name
+  key_name                 = azurerm_iothub.test.shared_access_policy.0.key_name
+  shared_access_key        = azurerm_iothub.test.shared_access_policy.0.primary_key
+  consumer_group_name      = "tsiquickstart"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
