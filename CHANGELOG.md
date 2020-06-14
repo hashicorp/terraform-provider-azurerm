@@ -12,6 +12,7 @@ BUG FIXES:
 
 * `azurerm_api_management_api` - correctly wait for future on create/update [GH-7273]
 * `azurerm_bot_connection` - adding a runtime check for the available service providers in the Azure Region being used [GH-7279]
+* `azurerm_healthcare_service` - the `access_policy_object_ids` property is now optional [GH-7296]
 
 ## 2.14.0 (June 11, 2020)
 
