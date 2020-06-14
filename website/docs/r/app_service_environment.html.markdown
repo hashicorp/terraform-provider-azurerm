@@ -41,10 +41,11 @@ resource "azurerm_subnet" "gateway" {
 }
 
 resource "azurerm_app_service_environment" "example" {
-  name                   = "example-ase"
-  subnet_id              = azurerm_subnet.ase.id
-  pricing_tier           = "I2"
-  front_end_scale_factor = 10
+  name                          = "example-ase"
+  subnet_id                     = azurerm_subnet.ase.id
+  pricing_tier                  = "I2"
+  front_end_scale_factor        = 10
+  internal_load_balancing_mode  = "Web, Publishing"
 }
 
 ```
