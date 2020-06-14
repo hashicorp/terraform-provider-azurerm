@@ -88,7 +88,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 			},
 
 			"user_whitelisted_ip_ranges": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
