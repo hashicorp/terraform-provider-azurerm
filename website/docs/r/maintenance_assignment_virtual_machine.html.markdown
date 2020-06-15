@@ -1,14 +1,14 @@
 ---
 subcategory: "Maintenance"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_maintenance_assignment"
+page_title: "Azure Resource Manager: azurerm_maintenance_assignment_virtual_machine"
 description: |-
   Manages a Maintenance Assignment.
 ---
 
-# azurerm_maintenance_assignment
+# azurerm_maintenance_assignment_virtual_machine
 
-Manages a maintenance assignment.
+Manages a maintenance assignment to virtual machine.
 
 ## Example Usage
 
@@ -83,10 +83,10 @@ resource "azurerm_maintenance_configuration" "example" {
   scope               = "All"
 }
 
-resource "azurerm_maintenance_assignment" "example" {
+resource "azurerm_maintenance_assignment_virtual_machine" "example" {
   location                     = azurerm_resource_group.example.location
   maintenance_configuration_id = azurerm_maintenance_configuration.example.id
-  target_resource_id           = azurerm_linux_virtual_machine.example.id
+  virtual_machine_id           = azurerm_linux_virtual_machine.example.id
 }
 ```
 
@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `maintenance_configuration_id` - (Required) Specified the id of Maintenance Configuration Resource. Changing this forces a new resource to be created.
 
-* `target_resource_id` - (Required) Specified the target resource id where the Maintenance Configuration will be assigned to. Currently, only `Virtual Machine` and `Dedicated Host` resources are supported. Changing this forces a new resource to be created.
+* `virtual_machine_id` - (Required) Specified the Virtual Machine ID where the Maintenance Configuration will be assigned to. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -119,5 +119,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Maintenance Assignment can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_maintenance_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualmachines/vm1/providers/Microsoft.Maintenance/configurationAssignments/example-assign
+terraform import azurerm_maintenance_assignment_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/resGroup1/providers/microsoft.compute/virtualMachines/vm1/providers/Microsoft.Maintenance/configurationAssignments/assign1
 ```
