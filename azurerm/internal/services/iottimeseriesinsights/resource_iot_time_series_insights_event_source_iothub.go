@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	iothubValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights/validate"
@@ -62,13 +62,13 @@ func resourceArmIoTTimeSeriesInsightsEventSourceIoTHub() *schema.Resource {
 			"iothub_name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: iothubValidate.IoTHubName,
+				ValidateFunc: azValidate.IoTHubName,
 			},
 
 			"event_source_resource_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"consumer_group_name": {

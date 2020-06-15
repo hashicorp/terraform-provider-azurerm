@@ -43,10 +43,23 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Azure IoT Time Series Insights Event Source. Changing this forces a new resource to be created. Must be globally unique.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Azure IoT Time Series Insights Event Source.
-
 * `time_series_insights_environment_id` - (Required) The resource ID of the Azure IoT Time Series Insights Environment in which to create the Azure IoT Time Series Insights Reference Data Set. Changing this forces a new resource to be created.
 
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `event_source_resource_id` - (Required) Specifies the resource id of the Event Source.
+
+* `iothub_name` - (Required) The name of the iot hub that will be used with the Event Source.
+
+* `consumer_group_name` - (Required) The name of the iot hub's consumer group that holds the partitions from which events will be read.
+
+* `key_name` - (Required) The name of the Shared Access Policy key that grants the Time Series Insights service access to the iot hub. This shared access policy key must grant 'service connect' permissions to the iot hub.
+
+* `shared_access_key` - (Required) The value of the Shared Access Policy key that grants the Time Series Insights service read access to the iot hub.
+
+* `timestamp_property_name` - (Optional) The event property that will be used as the event source's timestamp. If a value isn't specified for timestampPropertyName, the event creation time will be used.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
