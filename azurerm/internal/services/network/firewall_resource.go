@@ -50,9 +50,15 @@ func resourceArmFirewall() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"firewall_policy_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"ip_configuration": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -79,6 +85,23 @@ func resourceArmFirewall() *schema.Resource {
 				},
 			},
 
+			"sku_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.AZFWHub),
+					string(network.AZFWVNet),
+				}, false),
+			},
+
+			"sku_tier": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.Standard),
+				}, false),
+			},
+
 			"threat_intel_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -88,6 +111,12 @@ func resourceArmFirewall() *schema.Resource {
 					string(network.AzureFirewallThreatIntelModeAlert),
 					string(network.AzureFirewallThreatIntelModeDeny),
 				}, false),
+			},
+
+			"virtual_hub_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"zones": azure.SchemaMultipleZones(),
@@ -146,7 +175,6 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Tags:     tags.Expand(t),
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
 			IPConfigurations: ipConfigs,
-			ThreatIntelMode:  network.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string)),
 		},
 		Zones: zones,
 	}
@@ -224,7 +252,6 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
-		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
 	}
 
 	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
