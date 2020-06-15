@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -105,24 +106,21 @@ func resourceArmEventHubClusterRead(d *schema.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure EventHub Cluster %q (resource group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("making Read request on Azure EventHub Cluster %q (resource group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("sku_name", flattenEventHubClusterSkuName(resp.Sku))
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -135,17 +133,14 @@ func resourceArmEventHubClusterDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NamespaceAuthorizationRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resourceGroup := id.ResourceGroup
-	name := id.Path["clusters"]
-
 	// The EventHub Cluster can't be deleted until four hours after creation so we'll keep retrying until it can be deleted.
 	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
-		future, err := client.Delete(ctx, resourceGroup, name)
+		future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			if response.WasNotFound(future.Response()) {
 				return nil
@@ -153,11 +148,11 @@ func resourceArmEventHubClusterDelete(d *schema.ResourceData, meta interface{}) 
 			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") {
 				return resource.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
 			}
-			return resource.NonRetryableError(fmt.Errorf("issuing delete request for EventHub Cluster %q (resource group %q): %+v", name, resourceGroup, err))
+			return resource.NonRetryableError(fmt.Errorf("issuing delete request for EventHub Cluster %q (resource group %q): %+v", id.Name, id.ResourceGroup, err))
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("creating eventhub cluster: %+v", err))
+			return resource.NonRetryableError(fmt.Errorf("deleting eventhub cluster: %+v", err))
 		}
 
 		return nil
