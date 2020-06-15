@@ -41,11 +41,11 @@ resource "azurerm_subnet" "gateway" {
 }
 
 resource "azurerm_app_service_environment" "example" {
-  name                        = "example-ase"
-  subnet_id                   = azurerm_subnet.ase.id
-  pricing_tier                = "I2"
-  front_end_scale_factor      = 10
-  user_whitelisted_ip_ranges  = ["11.22.33.44/32", "55.66.77.0/24"]
+  name                       = "example-ase"
+  subnet_id                  = azurerm_subnet.ase.id
+  pricing_tier               = "I2"
+  front_end_scale_factor     = 10
+  user_whitelisted_ip_ranges = ["11.22.33.44/32", "55.66.77.0/24"]
 }
 
 ```
