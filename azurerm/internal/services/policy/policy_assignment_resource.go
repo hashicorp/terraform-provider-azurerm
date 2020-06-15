@@ -113,6 +113,16 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
+			"enforcement_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(policy.Default),
+					string(policy.DoNotEnforce),
+				}, false),
+			},
+
 			"not_scopes": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -129,7 +139,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
-
+	enforcementMode := policy.EnforcementMode(d.Get("enforcement_mode").(string))
 	policyDefinitionId := d.Get("policy_definition_id").(string)
 	displayName := d.Get("display_name").(string)
 
@@ -151,6 +161,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 			PolicyDefinitionID: utils.String(policyDefinitionId),
 			DisplayName:        utils.String(displayName),
 			Scope:              utils.String(scope),
+			EnforcementMode:    enforcementMode,
 		},
 	}
 
