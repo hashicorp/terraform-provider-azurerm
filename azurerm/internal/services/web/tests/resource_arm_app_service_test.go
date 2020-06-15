@@ -647,7 +647,6 @@ func TestAccAzureRMAppService_scmUseMainIPRestriction(t *testing.T) {
 				Config: testAccAzureRMAppService_scmUseMainIPRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_use_main_ip_restriction", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -666,8 +665,6 @@ func TestAccAzureRMAppService_scmOneIpRestriction(t *testing.T) {
 				Config: testAccAzureRMAppService_scmOneIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.action", "Allow"),
 				),
 			},
 			data.ImportStep(),
@@ -686,11 +683,6 @@ func TestAccAzureRMAppService_completeScmIpRestriction(t *testing.T) {
 				Config: testAccAzureRMAppService_completeScmIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.name", "test-restriction"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.priority", "123"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.action", "Allow"),
 				),
 			},
 			data.ImportStep(),
@@ -698,15 +690,6 @@ func TestAccAzureRMAppService_completeScmIpRestriction(t *testing.T) {
 				Config: testAccAzureRMAppService_manyCompleteScmIpRestrictions(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.name", "test-restriction"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.priority", "123"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.action", "Allow"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.1.ip_address", "20.20.20.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.1.name", "test-restriction-2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.1.priority", "1234"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.1.action", "Deny"),
 				),
 			},
 			data.ImportStep(),
@@ -714,11 +697,6 @@ func TestAccAzureRMAppService_completeScmIpRestriction(t *testing.T) {
 				Config: testAccAzureRMAppService_completeScmIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.name", "test-restriction"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.priority", "123"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.action", "Allow"),
 				),
 			},
 			data.ImportStep(),
@@ -752,7 +730,7 @@ func TestAccAzureRMAppService_zeroedScmIpRestriction(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
 		Steps: []resource.TestStep{
 			{
-				// This configuration includes a single explicit ip_restriction
+				// This configuration includes a single explicit scm_ip_restriction
 				Config: testAccAzureRMAppService_scmOneIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
@@ -768,7 +746,7 @@ func TestAccAzureRMAppService_zeroedScmIpRestriction(t *testing.T) {
 				),
 			},
 			{
-				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
+				// This configuration explicitly sets scm_ip_restriction to [] using attribute syntax.
 				Config: testAccAzureRMAppService_zeroedScmIpRestriction(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
@@ -790,10 +768,6 @@ func TestAccAzureRMAppService_manyScmIpRestrictions(t *testing.T) {
 				Config: testAccAzureRMAppService_manyScmIpRestrictions(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.0.ip_address", "10.10.10.10/32"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.1.ip_address", "20.20.20.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.2.ip_address", "30.30.0.0/16"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.scm_ip_restriction.3.ip_address", "192.168.1.2/24"),
 				),
 			},
 			data.ImportStep(),

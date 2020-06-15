@@ -98,7 +98,7 @@ A `scm_ip_restriction` block exports the following:
 
 * `name` - The name for this IP Restriction.
 
-* `priority` - The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.
+* `priority` - The priority for this IP Restriction.
 
 * `action` - Allow or Deny access for this IP range. Defaults to Allow.  
 
