@@ -217,6 +217,28 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IsURLWithHTTPS,
 						},
+						"base_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"max_events_per_batch": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 5000),
+						},
+						"preferred_batch_size_in_kilobytes": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 1024),
+						},
+						"active_directory_tenant_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"active_directory_app_id_or_uri": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -693,12 +715,12 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "storage_queue_endpoint", id.Name, id.Scope, err)
 			}
 		}
-		if _, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
+		if v, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
 			fullURL, err := client.GetFullURL(ctx, id.Scope, id.Name)
 			if err != nil {
 				return fmt.Errorf("Error making Read request on EventGrid Event Subscription full URL '%s': %+v", id.Name, err)
 			}
-			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(&fullURL)); err != nil {
+			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(v, &fullURL)); err != nil {
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "webhook_endpoint", id.Name, id.Scope, err)
 			}
 		}
@@ -829,8 +851,8 @@ func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgr
 		return expandEventGridEventSubscriptionStorageQueueEndpoint(d)
 	}
 
-	if _, ok := d.GetOk("webhook_endpoint"); ok {
-		return expandEventGridEventSubscriptionWebhookEndpoint(d)
+	if v, ok := d.GetOk("webhook_endpoint"); ok {
+		return expandEventGridEventSubscriptionWebhookEndpoint(v)
 	}
 
 	return nil
@@ -904,16 +926,42 @@ func expandEventGridEventSubscriptionAzureFunctionEndpoint(input interface{}) ev
 	return azureFunctionDestination
 }
 
-func expandEventGridEventSubscriptionWebhookEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("webhook_endpoint").([]interface{})[0].(map[string]interface{})
-	url := props["url"].(string)
+func expandEventGridEventSubscriptionWebhookEndpoint(input interface{}) eventgrid.BasicEventSubscriptionDestination {
+	configs := input.([]interface{})
 
-	return eventgrid.WebHookEventSubscriptionDestination{
+	props := eventgrid.WebHookEventSubscriptionDestinationProperties{}
+	webhookDestination := &eventgrid.WebHookEventSubscriptionDestination{
 		EndpointType: eventgrid.EndpointTypeWebHook,
-		WebHookEventSubscriptionDestinationProperties: &eventgrid.WebHookEventSubscriptionDestinationProperties{
-			EndpointURL: &url,
-		},
+		WebHookEventSubscriptionDestinationProperties: &props,
 	}
+
+	if len(configs) == 0 {
+		return webhookDestination
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["url"]; ok && v != "" {
+		props.EndpointURL = utils.String(v.(string))
+	}
+
+	if v, ok := config["max_events_per_batch"]; ok && v != 0 {
+		props.MaxEventsPerBatch = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := config["preferred_batch_size_in_kilobytes"]; ok && v != 0 {
+		props.PreferredBatchSizeInKilobytes = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := config["active_directory_tenant_id"]; ok && v != "" {
+		props.AzureActiveDirectoryTenantID = utils.String(v.(string))
+	}
+
+	if v, ok := config["active_directory_app_id_or_uri"]; ok && v != "" {
+		props.AzureActiveDirectoryApplicationIDOrURI = utils.String(v.(string))
+	}
+
+	return webhookDestination
 }
 
 func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) (*eventgrid.EventSubscriptionFilter, error) {
@@ -1104,17 +1152,51 @@ func flattenEventGridEventSubscriptionAzureFunctionEndpoint(input *eventgrid.Azu
 	})
 }
 
-func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubscriptionFullURL) []interface{} {
+func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.WebHookEventSubscriptionDestination, fullURL *eventgrid.EventSubscriptionFullURL) []interface{} {
+	results := make([]interface{}, 0)
+
 	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.EndpointURL != nil {
-		result["url"] = *input.EndpointURL
+		return results
 	}
 
-	return []interface{}{result}
+	webhookURL := ""
+	if fullURL != nil {
+		webhookURL = *fullURL.EndpointURL
+	}
+
+	webhookBaseURL := ""
+	if input.EndpointBaseURL != nil {
+		webhookBaseURL = *input.EndpointBaseURL
+	}
+
+	maxEventsPerBatch := 0
+	if input.MaxEventsPerBatch != nil {
+		maxEventsPerBatch = int(*input.MaxEventsPerBatch)
+	}
+
+	preferredBatchSizeInKilobytes := 0
+	if input.PreferredBatchSizeInKilobytes != nil {
+		preferredBatchSizeInKilobytes = int(*input.PreferredBatchSizeInKilobytes)
+	}
+
+	azureActiveDirectoryTenantID := ""
+	if input.AzureActiveDirectoryTenantID != nil {
+		azureActiveDirectoryTenantID = *input.AzureActiveDirectoryTenantID
+	}
+
+	azureActiveDirectoryApplicationIDOrURI := ""
+	if input.AzureActiveDirectoryApplicationIDOrURI != nil {
+		azureActiveDirectoryApplicationIDOrURI = *input.AzureActiveDirectoryApplicationIDOrURI
+	}
+
+	return append(results, map[string]interface{}{
+		"url":                               webhookURL,
+		"base_url":                          webhookBaseURL,
+		"max_events_per_batch":              maxEventsPerBatch,
+		"preferred_batch_size_in_kilobytes": preferredBatchSizeInKilobytes,
+		"active_directory_tenant_id":        azureActiveDirectoryTenantID,
+		"active_directory_app_id_or_uri":    azureActiveDirectoryApplicationIDOrURI,
+	})
 }
 
 func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubscriptionFilter) []interface{} {

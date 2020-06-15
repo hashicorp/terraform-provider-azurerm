@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
@@ -112,13 +113,41 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	serviceProviderName := d.Get("service_provider_name").(string)
+	var serviceProviderId *string
+	var availableProviders []string
+
+	serviceProviders, err := client.ListServiceProviders(ctx)
+	if err != nil {
+		return fmt.Errorf("listing Bot Connection service provider: %+v", err)
+	}
+
+	if serviceProviders.Value == nil {
+		return fmt.Errorf("no service providers were returned from the Azure API")
+	}
+	for _, provider := range *serviceProviders.Value {
+		if provider.Properties == nil || provider.Properties.ServiceProviderName == nil {
+			continue
+		}
+		name := provider.Properties.ServiceProviderName
+		if strings.EqualFold(serviceProviderName, *name) {
+			serviceProviderId = provider.Properties.ID
+			break
+		}
+		availableProviders = append(availableProviders, *name)
+	}
+
+	if serviceProviderId == nil {
+		return fmt.Errorf("the Service Provider %q was not found. The available service providers are %s", serviceProviderName, strings.Join(availableProviders, ","))
+	}
+
 	connection := botservice.ConnectionSetting{
 		Properties: &botservice.ConnectionSettingProperties{
-			ServiceProviderDisplayName: utils.String(d.Get("service_provider_name").(string)),
-			ClientID:                   utils.String(d.Get("client_id").(string)),
-			ClientSecret:               utils.String(d.Get("client_secret").(string)),
-			Scopes:                     utils.String(d.Get("scopes").(string)),
-			Parameters:                 expandAzureRMBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
+			ServiceProviderID: serviceProviderId,
+			ClientID:          utils.String(d.Get("client_id").(string)),
+			ClientSecret:      utils.String(d.Get("client_secret").(string)),
+			Scopes:            utils.String(d.Get("scopes").(string)),
+			Parameters:        expandAzureRMBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
 		},
 		Kind:     botservice.KindBot,
 		Location: utils.String(d.Get("location").(string)),
