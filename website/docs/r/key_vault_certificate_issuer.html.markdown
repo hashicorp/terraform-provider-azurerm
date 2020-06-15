@@ -42,13 +42,13 @@ resource "azurerm_key_vault_certificate_issuer" "example" {
 
 The following arguments are supported:
 
-* `account_id` - (Required) The account number with the third-party Certificate Issuer.
+* `account_id` - (Optional) The account number with the third-party Certificate Issuer.
 
 * `key_vault_id` - (Required) The ID of the Key Vault in which to create the Certificate Issuer.
 
 * `name` - (Required) The name which should be used for this Key Vault Certificate Issuer. Changing this forces a new Key Vault Certificate Issuer to be created.
 
-* `org_id` - (Required) The organization ID with the third-party Certificate Issuer.
+* `org_id` - (Optional) The organization ID with the third-party Certificate Issuer.
 
 * `provider_name` - (Required) The name of the third-party Certificate Issuer. Possible values are: `DigiCert`, `GlobalSign`.
 
