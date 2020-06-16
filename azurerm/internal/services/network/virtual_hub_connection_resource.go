@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -96,7 +95,7 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 		existing, err := client.Get(ctx, resourceGroup, virtualHubName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Virtual Hub Connection %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for present of existing Virtual Hub Connection %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -116,18 +115,18 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualHubName, name, connection)
 	if err != nil {
-		return fmt.Errorf("Error creating Virtual Hub Connection %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Virtual Hub Connection %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Virtual Hub Connection %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("waiting for creation of Virtual Hub Connection %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, virtualHubName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual Hub Connection %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Virtual Hub Connection %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil {
+	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read Virtual Hub Connection %q (Resource Group %q) ID", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
@@ -152,7 +151,7 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Virtual Hub Connection %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading Virtual Hub Connection %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -186,13 +185,11 @@ func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interfac
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Virtual Hub Connection %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Virtual Hub Connection %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Virtual Hub Connection %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
+		return fmt.Errorf("waiting for deleting Virtual Hub Connection %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
