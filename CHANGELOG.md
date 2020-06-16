@@ -19,6 +19,7 @@ BUG FIXES:
 * `azurerm_bot_connection` - adding a runtime check for the available service providers in the Azure Region being used [GH-7279]
 * `azurerm_healthcare_service` - the `access_policy_object_ids` property is now optional [GH-7296]
 * `azurerm_hdinsight_cluster` - deprecating the `min_instance_count` property [GH-7272]
+* `azurerm_network_watcher_flow_log` - propertly disable the flowlog on destroy [GH-7154]
 
 ## 2.14.0 (June 11, 2020)
 
