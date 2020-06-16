@@ -13,7 +13,7 @@ type NameResourceGroup struct {
 	ID            string
 }
 
-func PrivateDnsZoneGroupResourceID(input string) (nrg NameResourceGroup, err error) {
+func PrivateDnsZoneGroupResourceID(input string) (*NameResourceGroup, error) {
 	if len(strings.TrimSpace(input)) == 0 {
 		return NameResourceGroup{}, fmt.Errorf("input is empty for parse.PrivateDnsZoneGroupResourceID")
 	}
