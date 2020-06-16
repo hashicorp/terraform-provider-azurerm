@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,9 +26,10 @@ func resourceArmEventHubCluster() *schema.Resource {
 		Read:   resourceArmEventHubClusterRead,
 		Update: resourceArmEventHubClusterCreateUpdate,
 		Delete: resourceArmEventHubClusterDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.ClusterID(id)
+			return err
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -80,11 +82,11 @@ func resourceArmEventHubClusterCreateUpdate(d *schema.ResourceData, meta interfa
 
 	future, err := client.Put(ctx, resourceGroup, name, cluster)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating EventHub Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("creating eventhub cluster: %+v", err)
+		return fmt.Errorf("waiting for creation of EventHub Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
@@ -93,7 +95,7 @@ func resourceArmEventHubClusterCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	if read.ID == nil || *read.ID == "" {
-		return fmt.Errorf("cannot read EventHub Cluster %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("cannot read EventHub Cluster %s (Resource Group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -116,7 +118,7 @@ func resourceArmEventHubClusterRead(d *schema.ResourceData, meta interface{}) er
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Azure EventHub Cluster %q (resource group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("making Read request on Azure EventHub Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -133,7 +135,7 @@ func resourceArmEventHubClusterDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*clients.Client).Eventhub.ClusterClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := parse.NamespaceAuthorizationRuleID(d.Id())
+	id, err := parse.ClusterID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -145,14 +147,14 @@ func resourceArmEventHubClusterDelete(d *schema.ResourceData, meta interface{}) 
 			if response.WasNotFound(future.Response()) {
 				return nil
 			}
-			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") {
+			if strings.Contains(err.Error(), "Cluster cannot be deleted until four hours after its creation time") || future.Response().StatusCode == 429 {
 				return resource.RetryableError(fmt.Errorf("expected eventhub cluster to be deleted but was in pending creation state, retrying"))
 			}
-			return resource.NonRetryableError(fmt.Errorf("issuing delete request for EventHub Cluster %q (resource group %q): %+v", id.Name, id.ResourceGroup, err))
+			return resource.NonRetryableError(fmt.Errorf("issuing delete request for EventHub Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err))
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return resource.NonRetryableError(fmt.Errorf("deleting eventhub cluster: %+v", err))
+			return resource.NonRetryableError(fmt.Errorf("deleting EventHub Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err))
 		}
 
 		return nil
