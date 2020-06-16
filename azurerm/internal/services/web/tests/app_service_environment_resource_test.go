@@ -139,6 +139,26 @@ func TestAccAzureRMAppServiceEnvironment_dedicatedResourceGroup(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+	certData := acceptance.BuildTestData(t, "azurerm_app_service_certificate", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceEnvironment_withCertificatePfx(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCertHostingEnvProfileIdMatchesAseId(data.ResourceName, certData.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceEnvironmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServiceEnvironmentsClient
@@ -162,6 +182,45 @@ func testCheckAzureRMAppServiceEnvironmentExists(resourceName string) resource.T
 			}
 
 			return fmt.Errorf("Bad: Get on appServiceEnvironmentClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMCertHostingEnvProfileIdMatchesAseId(aseResourceName, certResourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		certsConn := acceptance.AzureProvider.Meta().(*clients.Client).Web.CertificatesClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		aseRs, ok := s.RootModule().Resources[aseResourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", aseResourceName)
+		}
+		certRs, ok := s.RootModule().Resources[certResourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", certResourceName)
+		}
+
+		aseId := aseRs.Primary.Attributes["id"]
+
+		certName := certRs.Primary.Attributes["name"]
+		certResourceGroup, hasResourceGroup := certRs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Certificate: %s", certName)
+		}
+
+		certResp, err := certsConn.Get(ctx, certResourceGroup, certName)
+		if err != nil {
+			if utils.ResponseWasNotFound(certResp.Response) {
+				return fmt.Errorf("Bad: Certificatet %q (resource group: %q) does not exist", certName, certResourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on certificatesClient: %+v", err)
+		}
+
+		if *certResp.HostingEnvironmentProfile.ID != aseId {
+			return fmt.Errorf("Bad: Certificate hostingEnvironmentProfile.ID (%s) not equal to ASE ID (%s)", *certResp.HostingEnvironmentProfile.ID, aseId)
 		}
 
 		return nil
@@ -269,6 +328,22 @@ resource "azurerm_app_service_environment" "test" {
   subnet_id           = azurerm_subnet.ase.id
 }
 `, template, data.RandomInteger, data.Locations.Secondary)
+}
+
+func testAccAzureRMAppServiceEnvironment_withCertificatePfx(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceEnvironment_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_certificate" "test" {
+  name                           = "acctest-cert-%d"
+  resource_group_name            = azurerm_app_service_environment.test.resource_group_name
+  location                       = azurerm_resource_group.test.location
+  pfx_blob                       = filebase64("testdata/app_service_certificate.pfx")
+  password                       = "terraform"
+  hosting_environment_profile_id = azurerm_app_service_environment.test.id
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMAppServiceEnvironment_template(data acceptance.TestData) string {
