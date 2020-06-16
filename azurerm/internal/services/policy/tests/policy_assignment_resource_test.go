@@ -590,7 +590,7 @@ resource "azurerm_policy_assignment" "test" {
   scope                = data.azurerm_subscription.current.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "Policy Assignment created via an Acceptance Test"
-  enforcement_mode     = "DoNotEnforce"
+  enforcement_mode     = false
   display_name         = "Acceptance Test Run %d"
 
   parameters = <<PARAMETERS
