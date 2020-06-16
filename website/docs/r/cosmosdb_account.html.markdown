@@ -106,6 +106,7 @@ The following arguments are supported:
 `virtual_network_rule` Configures the virtual network subnets allowed to access this Cosmos DB account and supports the following:
 
 * `id` - (Required) The ID of the virtual network subnet.
+* `ignore_missing_vnet_service_endpoint` - (Optional) If set to true, the specified subnet will be added as a virtual network rule even if its CosmosDB service endpoint is not active. Defaults to `false`.
 
 ## Attributes Reference
 
