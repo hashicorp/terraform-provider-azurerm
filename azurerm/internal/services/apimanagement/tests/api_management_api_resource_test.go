@@ -26,7 +26,7 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "soap_pass_through", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_current", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "false"),
 				),
 			},
 			data.ImportStep(),
