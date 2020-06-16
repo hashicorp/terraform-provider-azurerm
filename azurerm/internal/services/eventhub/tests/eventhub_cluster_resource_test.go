@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"net/http"
 	"testing"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 )
 
 func TestAccAzureRMEventHubCluster_basic(t *testing.T) {
@@ -74,6 +74,9 @@ func testCheckAzureRMEventHubClusterDestroy(s *terraform.State) error {
 		}
 
 		id, err := parse.ClusterID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
@@ -100,6 +103,9 @@ func testCheckAzureRMEventHubClusterExists(resourceName string) resource.TestChe
 		}
 
 		id, err := parse.ClusterID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on clustersClient: %+v", err)
