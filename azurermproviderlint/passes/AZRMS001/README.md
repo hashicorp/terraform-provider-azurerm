@@ -1,6 +1,6 @@
-# AZURERMS001
+# AZRMS001
 
-The AZURERMS001 analyzer reports Schema contains case-insensitive validation but missing case diff suppression.
+The AZRMS001 analyzer reports Schema contains case-insensitive validation but missing case diff suppression.
 
 ## Flagged Code
 
@@ -28,10 +28,10 @@ schema.Schema{
 
 ## Ignoring Reports
 
-Singular reports can be ignored by adding the a `//lintignore:AZURERMR001` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
+Singular reports can be ignored by adding the a `//lintignore:AZRMR001` Go code comment at the end of the offending line or on the line immediately proceding, e.g.
 
 ```go
-//lintignore:AZURERMS001
+//lintignore:AZRMS001
 schema.Schema{
     ValidateFunc: validation.StringInSlice([]string{}, true),
 }

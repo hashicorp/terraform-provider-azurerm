@@ -18,18 +18,18 @@ func f() {
 	}
 
 	/* Failing cases */
-	_ = schema.Schema{ // want "AZURERMS001: prefer adding `DiffSuppressFunc: suppress.CaseDifference` when ignoring case during validation"
+	_ = schema.Schema{ // want "AZRMS001: prefer adding `DiffSuppressFunc: suppress.CaseDifference` when ignoring case during validation"
 		ValidateFunc: validation.StringInSlice([]string{}, true),
 	}
 
-	_ = schema.Schema{ // want "AZURERMS001: prefer adding `DiffSuppressFunc: suppress.CaseDifference` when ignoring case during validation"
+	_ = schema.Schema{ // want "AZRMS001: prefer adding `DiffSuppressFunc: suppress.CaseDifference` when ignoring case during validation"
 		ValidateFunc:     validation.StringInSlice([]string{}, true),
 		DiffSuppressFunc: nil,
 	}
 
 	/* Comment ignored cases */
 
-	// lintignore:AZURERMS001
+	// lintignore:AZRMS001
 	_ = schema.Schema{
 		ValidateFunc: validation.StringInSlice([]string{}, true),
 	}

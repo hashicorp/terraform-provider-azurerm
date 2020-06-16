@@ -1,4 +1,4 @@
-package AZURERMR001
+package AZRMR001
 
 import (
 	"bytes"
@@ -16,14 +16,14 @@ import (
 
 const Doc = `check for error message using "Error" prefix
 
-The AZURERMR001 analyzer reports cases of  a error message contains the
+The AZRMR001 analyzer reports cases of  a error message contains the
 beginning string "Error". This is redundant in context of terraform provider
 since terraform itself already print an "[Error]" prefix at the beginning of 
 error message.
 `
 const errorWord = "error " // suffix space is word boundary
 
-const analyzerName = "AZURERMR001"
+const analyzerName = "AZRMR001"
 
 var fmterrorfcallexpr = pkgcallexprfactory.BuildAnalyzer("fmt", "Errorf")
 var errorsnewcallexpr = pkgcallexprfactory.BuildAnalyzer("errors", "New")

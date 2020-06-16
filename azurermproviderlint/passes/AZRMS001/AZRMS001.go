@@ -1,4 +1,4 @@
-package AZURERMS001
+package AZRMS001
 
 import (
 	"bytes"
@@ -15,10 +15,10 @@ import (
 
 const Doc = `check for Schema contains case-insensitive validation missing case diff suppression
 
-The AZURERMS001 analyzer reports cases of schema that uses case-insensitive
+The AZRMS001 analyzer reports cases of schema that uses case-insensitive
 validation missing case diff suppression.`
 
-const analyzerName = "AZURERMS001"
+const analyzerName = "AZRMS001"
 
 var Analyzer = &analysis.Analyzer{
 	Name: analyzerName,

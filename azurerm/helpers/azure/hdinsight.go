@@ -33,7 +33,7 @@ func SchemaHDInsightDataSourceName() *schema.Schema {
 }
 
 func SchemaHDInsightTier() *schema.Schema {
-	//lintignore:AZURERMS001
+	//lintignore:AZRMS001
 	return &schema.Schema{
 		Type:     schema.TypeString,
 		Required: true,
