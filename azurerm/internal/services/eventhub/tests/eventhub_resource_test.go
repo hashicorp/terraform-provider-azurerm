@@ -44,7 +44,7 @@ func TestAccAzureRMEventHubPartitionCount_validation(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
-			Value:    33,
+			Value:    1025,
 			ErrCount: 1,
 		},
 	}
