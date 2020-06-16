@@ -3,6 +3,7 @@
 DEPENDENCIES
 
 * updating to `v43.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-7188]
+* upgrading `kusto` to`2020-02-15` [GH-6838]
 
 FEATURES
 
