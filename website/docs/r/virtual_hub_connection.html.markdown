@@ -41,7 +41,8 @@ resource "azurerm_virtual_hub" "example" {
 
 resource "azurerm_virtual_hub_connection" "example" {
   name                      = "example-vhub"
-  virtual_hub_id            = azurerm_virtual_hub.example.id
+  resource_group_name       = azurerm_resource_group.example.name
+  virtual_hub_name          = azurerm_virtual_hub.example.name
   remote_virtual_network_id = azurerm_virtual_network.example.id
 }
 ```
@@ -52,7 +53,9 @@ The following arguments are supported:
 
 * `name` - (Required) The Name which should be used for this Connection, which must be unique within the Virtual Hub. Changing this forces a new resource to be created.
 
-* `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this connection should be created. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Virtual Hub Connection should exist. Changing this forces a new resource to be created.
+
+* `virtual_hub_name` - (Required) The ID of the Virtual Hub within which this connection should be created. Changing this forces a new resource to be created.
 
 * `remote_virtual_network_id` - (Required) The ID of the Virtual Network which the Virtual Hub should be connected to. Changing this forces a new resource to be created.
 
@@ -60,9 +63,13 @@ The following arguments are supported:
 
 * `hub_to_vitual_network_traffic_allowed` - (Optional) Is the Virtual Hub traffic allowed to transit via the Remote Virtual Network? Changing this forces a new resource to be created.
 
+~> **NOTE:** The field `hub_to_vitual_network_traffic_allowed` has been deprecated since it is maintained internally in the implementation.
+
 * `vitual_network_to_hub_gateways_traffic_allowed` - (Optional) Is Remote Virtual Network traffic allowed to transit the Hub's Virtual Network Gateway's? Changing this forces a new resource to be created.
 
 -> **NOTE** Please ensure that you deploy either a [Site-to-Site](https://www.terraform.io/docs/providers/azurerm/r/vpn_gateway.html)/[Point-to-Site](https://www.terraform.io/docs/providers/azurerm/r/point_to_site_vpn_gateway.html) VPN gateway or an [ExpressRoute gateway](https://www.terraform.io/docs/providers/azurerm/r/express_route_gateway.html) in the Virtual Hub before enabling this field.
+
+~> **NOTE:** The field `vitual_network_to_hub_gateways_traffic_allowed` has been deprecated since it is maintained internally in the implementation.
 
 * `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created.
 

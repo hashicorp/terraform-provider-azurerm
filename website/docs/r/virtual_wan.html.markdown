@@ -40,7 +40,9 @@ The following arguments are supported:
 
 * `allow_branch_to_branch_traffic` - (Optional) Boolean flag to specify whether branch to branch traffic is allowed. Defaults to `true`.
 
-* `allow_vnet_to_vnet_traffic` - (Optional) Boolean flag to specify whether VNet to VNet traffic is allowed. Defaults to `false`.
+* `allow_vnet_to_vnet_traffic` - (Optional) Boolean flag to specify whether VNet to VNet traffic is allowed.
+
+~> **NOTE:** The field `allow_vnet_to_vnet_traffic` has been deprecated since it is maintained internally in the implementation.
 
 * `office365_local_breakout_category` - (Optional) Specifies the Office365 local breakout category. Possible values include: `Optimize`, `OptimizeAndAllow`, `All`, `None`. Defaults to `None`.
 
