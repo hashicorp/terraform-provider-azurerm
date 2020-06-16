@@ -73,6 +73,9 @@ resource "azurerm_web_application_firewall_policy" "example" {
   policy_settings {
     enabled = true
     mode    = "Prevention"
+    request_body_check   = true
+    file_upload_limit_in_mb = 100
+    max_request_body_size_in_kb = 128
   }
 
   managed_rules {
@@ -159,9 +162,15 @@ The `match_variables` block supports the following:
 
 The `policy_settings` block supports the following:
 
-* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state Defaults to `Enabled`.
+* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `Enabled`.
 
-* `mode` - (Optional) Describes if it is in detection mode  or prevention mode at the policy level Defaults to `Prevention`.
+* `mode` - (Optional) Describes if it is in detection mode  or prevention mode at the policy level. Defaults to `Prevention`.
+
+* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
+
+* `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
+
+* `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB.  Accepted values are in the range `1`KB to `128`KB. Defaults to `128`KB.
 
 ---
 
