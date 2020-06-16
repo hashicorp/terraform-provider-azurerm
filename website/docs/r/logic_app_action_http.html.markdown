@@ -58,7 +58,7 @@ A `run_after` block supports the following:
 
 * `action_name` - (Required) Specifies the name of the precedent HTTP Action.
 
-* `action_result` - (Required) Specifies the expected result of the precedent HTTP Action, only after which the current HTTP Action will be triggered.
+* `action_result` - (Required) Specifies the expected result of the precedent HTTP Action, only after which the current HTTP Action will be triggered. Possible values include `Succeeded`, `Failed`, `Skipped` and `TimedOut`.
 
 ## Attributes Reference
 
