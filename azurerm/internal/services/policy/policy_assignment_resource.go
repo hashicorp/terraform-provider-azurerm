@@ -135,7 +135,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
-	enforcementMode := convertEnforcementMode(utils.Bool(d.Get("enforcement_mode").(bool)))
+	enforcementMode := convertEnforcementMode(d.Get("enforcement_mode").(bool))
 	policyDefinitionId := d.Get("policy_definition_id").(string)
 	displayName := d.Get("display_name").(string)
 
@@ -258,7 +258,7 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("policy_definition_id", props.PolicyDefinitionID)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
-		d.Set("enforcement_mode", props.EnforcementMode)
+		d.Set("enforcement_mode", props.EnforcementMode == policy.Default)
 
 		if params := props.Parameters; params != nil {
 			json, err := flattenParameterValuesValueToString(params)
@@ -348,8 +348,8 @@ func expandAzureRmPolicyNotScopes(d *schema.ResourceData) *[]string {
 	return &notScopesRes
 }
 
-func convertEnforcementMode(mode *bool) policy.EnforcementMode {
-	if *mode {
+func convertEnforcementMode(mode bool) policy.EnforcementMode {
+	if mode {
 		return policy.Default
 	} else {
 		return policy.DoNotEnforce
