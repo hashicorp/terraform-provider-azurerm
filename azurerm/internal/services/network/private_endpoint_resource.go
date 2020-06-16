@@ -270,7 +270,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 
 	// now create the dns zone group
 	// first I have to see if the dns zone group exists, if it does I need to delete it an re-create it because you can only have one per private endpoint
-	if d.HasChange("private_dns_zone_group") {
+	if d.HasChange("private_dns_zone_group") || d.IsNewResource() {
 		oldRaw, newRaw := d.GetChange("private_dns_zone_group")
 		oldPrivateDnsZoneGroup := make(map[string]interface{})
 		if oldRaw != nil {
