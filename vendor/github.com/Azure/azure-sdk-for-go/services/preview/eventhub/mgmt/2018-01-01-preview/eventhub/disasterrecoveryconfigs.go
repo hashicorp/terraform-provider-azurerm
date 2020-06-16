@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// DisasterRecoveryConfigsClient is the azure Event Hubs client
+// DisasterRecoveryConfigsClient is the client for the DisasterRecoveryConfigs methods of the Eventhub service.
 type DisasterRecoveryConfigsClient struct {
 	BaseClient
 }

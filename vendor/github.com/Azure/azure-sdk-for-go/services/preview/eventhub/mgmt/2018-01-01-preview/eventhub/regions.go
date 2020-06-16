@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// RegionsClient is the azure Event Hubs client
+// RegionsClient is the client for the Regions methods of the Eventhub service.
 type RegionsClient struct {
 	BaseClient
 }

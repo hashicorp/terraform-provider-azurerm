@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// ConsumerGroupsClient is the azure Event Hubs client
+// ConsumerGroupsClient is the client for the ConsumerGroups methods of the Eventhub service.
 type ConsumerGroupsClient struct {
 	BaseClient
 }

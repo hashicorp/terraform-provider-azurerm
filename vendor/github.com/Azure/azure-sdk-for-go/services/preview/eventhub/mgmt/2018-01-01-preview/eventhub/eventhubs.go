@@ -26,7 +26,7 @@ import (
 	"net/http"
 )
 
-// EventHubsClient is the azure Event Hubs client
+// EventHubsClient is the client for the EventHubs methods of the Eventhub service.
 type EventHubsClient struct {
 	BaseClient
 }
