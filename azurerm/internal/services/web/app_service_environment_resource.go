@@ -24,6 +24,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const (
+	InternalLoadBalancingModeWebPublishing web.InternalLoadBalancingMode = "Web, Publishing"
+)
+
 func resourceArmAppServiceEnvironment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmAppServiceEnvironmentCreate,
@@ -66,6 +70,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 					string(web.InternalLoadBalancingModeNone),
 					string(web.InternalLoadBalancingModePublishing),
 					string(web.InternalLoadBalancingModeWeb),
+					string(InternalLoadBalancingModeWebPublishing),
 				}, false),
 			},
 
