@@ -92,6 +92,9 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.mode", "Prevention"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.request_body_check", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.file_upload_limit_in_mb", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.max_request_body_size_in_kb", "128"),
 				),
 			},
 			data.ImportStep(),
@@ -167,6 +170,9 @@ func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.mode", "Prevention"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.request_body_check", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.file_upload_limit_in_mb", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.max_request_body_size_in_kb", "128"),
 				),
 			},
 			data.ImportStep(),
@@ -247,7 +253,10 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
   policy_settings {
     enabled = true
-    mode    = "Detection"
+	mode    = "Detection"
+    request_body_check   = true
+    file_upload_limit_in_mb = 100
+    max_request_body_size_in_kb = 128	
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -346,6 +355,9 @@ resource "azurerm_web_application_firewall_policy" "test" {
   policy_settings {
     enabled = true
     mode    = "Prevention"
+    request_body_check   = true
+    file_upload_limit_in_mb = 100
+    max_request_body_size_in_kb = 128
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

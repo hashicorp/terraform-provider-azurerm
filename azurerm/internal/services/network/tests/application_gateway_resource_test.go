@@ -2046,6 +2046,9 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
   policy_settings {
     enabled = true
     mode    = "Prevention"
+    file_upload_limit_in_mb = 100
+    max_request_body_size_in_kb = 100
+    request_body_check   = "true"
   }
 
   managed_rules {
