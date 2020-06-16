@@ -7,6 +7,7 @@ DEPENDENCIES
 
 FEATURES
 
+* **New Resource:** `azurerm_data_factory_integration_runtime_self_hosted` [GH-6535]
 * `azurerm_api_management` - support for the `developer_portal_url` property [GH-7263]
 
 BUG FIXES:
