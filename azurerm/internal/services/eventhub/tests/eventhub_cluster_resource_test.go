@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/parse"
 	"net/http"
 	"testing"
 
@@ -72,11 +73,9 @@ func testCheckAzureRMEventHubClusterDestroy(s *terraform.State) error {
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id, err := parse.ClusterID(rs.Primary.ID)
 
-		resp, err := conn.Get(ctx, resourceGroup, name)
-
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return nil
 		}
@@ -100,19 +99,14 @@ func testCheckAzureRMEventHubClusterExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Event Hub Cluster: %s", name)
-		}
-
-		resp, err := conn.Get(ctx, resourceGroup, name)
+		id, err := parse.ClusterID(rs.Primary.ID)
+		resp, err := conn.Get(ctx, id.ResourceGroup, id.Name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on clustersClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Event Hub Cluster %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Event Hub Cluster %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
 		}
 
 		return nil
@@ -131,7 +125,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventhub_cluster" "test" {
-  name                = "acctesteventhubcluster-%d"
+  name                = "acctesteventhubclusTER-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Dedicated_1"
@@ -151,7 +145,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventhub_cluster" "test" {
-  name                = "acctesteventhubcluster-%d"
+  name                = "acctesteventhubclusTER-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Dedicated_1"

@@ -91,7 +91,7 @@ func resourceArmEventHubClusterCreateUpdate(d *schema.ResourceData, meta interfa
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("making Read request on Azure EventHub Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil || *read.ID == "" {
