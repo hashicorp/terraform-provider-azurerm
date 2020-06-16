@@ -3,9 +3,10 @@ package AZRMS001
 import (
 	"bytes"
 	"fmt"
-	"github.com/bflad/tfproviderlint/helper/astutils"
 	"go/ast"
 	"go/format"
+
+	"github.com/bflad/tfproviderlint/helper/astutils"
 	"golang.org/x/tools/go/analysis"
 
 	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"

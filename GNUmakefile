@@ -86,12 +86,6 @@ test: fmtcheck
 	@TEST=$(TEST) ./scripts/run-gradually-deprecated.sh
 	@TEST=$(TEST) ./scripts/run-test.sh
 
-test-tflint:
-	mkdir -p ./vendor/github.com/terraform-providers/terraform-provider-azurerm
-	ln -s `pwd`/azurerm ./vendor/github.com/terraform-providers/terraform-provider-azurerm/azurerm
-	go test -v ./azurermproviderlint/...
-	rm -r ./vendor/github.com/terraform-providers/terraform-provider-azurerm
-
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
 		echo "ERROR: Set TEST to a specific package. For example,"; \

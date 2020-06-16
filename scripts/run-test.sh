@@ -4,7 +4,7 @@ function checkForConditionalRun {
   if [ "$TRAVIS" == "ci" ];
   then
     echo "Checking if this should be conditionally run.."
-    result=$(git diff --name-only origin/master | grep azurerm/)
+    result=$(git diff --name-only origin/master | grep -e azurerm/ -e azurermproviderlint/)
     if [ "$result" = "" ];
     then
       echo "No changes committed to ./azurerm - nothing to lint - exiting"
