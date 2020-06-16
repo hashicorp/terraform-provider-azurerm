@@ -1,0 +1,95 @@
+trigger:
+- master
+- feature/*
+- release/*
+- fix/*
+
+variables:
+- name: repo
+  value: terraform.providers.azurerm
+- name: release_branch
+  value: v2.14.0
+- name: GO111MODULE
+  value: on
+- name: GOPATH
+  value: '$(system.defaultWorkingDirectory)/build' # Path to the module's code
+- name: GOBIN
+  value: '$(GOPATH)/bin' # Path to the module's code
+- name: module_path
+  value: '$(GOPATH)/src/github.com/$(repo)' # Path to the module's code
+
+
+name: $(Date:yyyyMMddHHss).$(Build.SourceBranchName).$(Build.SourceVersion)
+
+pool:
+  name: custom-build-agents-dev
+
+stages:
+- stage: 'terraform_providers_azurerm'
+  jobs:
+    - job: terraform_providers_azurerm_CheckSkip
+      steps:
+      - checkout: self
+      - checkout: git://CIAM-Authorization/authz.tools.pipelines
+      - bash: ../authz.tools.pipelines/pipelines/$(repo)/check_autocommit.sh
+        displayName: Check autocommit skip
+        workingDirectory: $(repo)
+        name: CheckSkip
+    - job: 'terraform_providers_azurerm_buildAndPublish'
+      dependsOn: terraform_providers_azurerm_CheckSkip
+      condition: eq(dependencies.terraform_providers_azurerm_CheckSkip.outputs['CheckSkip.SKIP_PIPELINE'], 'false')
+      steps:
+      - checkout: self
+        persistCredentials: true
+      - checkout: git://CIAM-Authorization/authz.tools.pipelines
+      - bash: ../authz.tools.pipelines/pipelines/$(repo)/get_tag.sh $(release_branch)
+        displayName: Generate tagname
+        workingDirectory: $(repo)
+      - bash: ../authz.tools.pipelines/pipelines/$(repo)/update_terraform_provider_revision.sh $(tagname)
+        displayName: Version bumping
+        workingDirectory: $(repo)
+      - script: |
+          if [ ! -z "$(GOPATH)" ] && [ -d "$(GOPATH)" ] # Our agents keep using the same folders for different runs...
+          then
+              rm -r $(GOPATH)
+          fi
+          mkdir -p '$(GOPATH)/bin $(GOPATH)/pkg'
+          mkdir -p '$(module_path)'
+          shopt -s extglob
+          shopt -s dotglob
+          cp -pr $(repo) '$(module_path)'/..
+          echo '##vso[task.prependpath]$(GOPATH)/bin'
+          echo '##vso[task.prependpath]$(GOROOT)/bin'
+        displayName: 'Set up the Go workspace'
+      - script: |
+          go version
+          go build -v
+        displayName: 'Get dependencies, then build'
+        workingDirectory: '$(module_path)'
+      - script: |
+          go test -v -timeout 1800s $(module_path)/azurerm -run TestAccAzureRMApplicationGateway_sslPolicy_policyType_predefined
+        displayName: Test
+        workingDirectory: '$(module_path)'
+      - bash: find $(module_path)
+      - script: |
+         mkdir artifacts
+         rm -f artifacts/* # Our agents keep using the same folders for different runs...
+         cp $(module_path)/terraform-provider-azurerm artifacts/terraform-provider-azurerm_v$(tagname)_x4
+        displayName: Generate artifact
+      - task: PublishBuildArtifacts@1
+        inputs:
+          PathtoPublish: 'artifacts'
+        displayName: 'Publish artifacts'
+      - bash: git tag $(tagname)
+        condition: and(succeeded(), eq(variables['Build.SourceBranchName'], variables['release_branch']))
+        displayName: Set Git tag
+        workingDirectory: $(repo)
+      - bash: git push origin HEAD:$(Build.SourceBranch)
+        condition: and(succeeded(), eq(variables['Build.SourceBranchName'], variables['release_branch']))
+        displayName: Push version bumped commit
+        workingDirectory: $(repo)
+      - bash: git push origin $(tagname)
+        condition: and(succeeded(), eq(variables['Build.SourceBranchName'], variables['release_branch']))
+        displayName: Push Git tag
+        workingDirectory: $(repo)
+
