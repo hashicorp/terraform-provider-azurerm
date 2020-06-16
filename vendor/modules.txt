@@ -40,7 +40,7 @@ github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/health
 github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral
 github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault
 github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault
-github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto
+github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
 github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2019-11-01/machinelearningservices
 github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps

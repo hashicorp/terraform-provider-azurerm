@@ -44,6 +44,84 @@ func NewClustersClientWithBaseURI(baseURI string, subscriptionID string) Cluster
 	return ClustersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// AddLanguageExtensions add a list of language extensions that can run within KQL queries.
+// Parameters:
+// resourceGroupName - the name of the resource group containing the Kusto cluster.
+// clusterName - the name of the Kusto cluster.
+// languageExtensionsToAdd - the language extensions to add.
+func (client ClustersClient) AddLanguageExtensions(ctx context.Context, resourceGroupName string, clusterName string, languageExtensionsToAdd LanguageExtensionsList) (result ClustersAddLanguageExtensionsFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.AddLanguageExtensions")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.AddLanguageExtensionsPreparer(ctx, resourceGroupName, clusterName, languageExtensionsToAdd)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "AddLanguageExtensions", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.AddLanguageExtensionsSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "AddLanguageExtensions", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// AddLanguageExtensionsPreparer prepares the AddLanguageExtensions request.
+func (client ClustersClient) AddLanguageExtensionsPreparer(ctx context.Context, resourceGroupName string, clusterName string, languageExtensionsToAdd LanguageExtensionsList) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-02-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/addLanguageExtensions", pathParameters),
+		autorest.WithJSON(languageExtensionsToAdd),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// AddLanguageExtensionsSender sends the AddLanguageExtensions request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) AddLanguageExtensionsSender(req *http.Request) (future ClustersAddLanguageExtensionsFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// AddLanguageExtensionsResponder handles the response to the AddLanguageExtensions request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) AddLanguageExtensionsResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
 // CheckNameAvailability checks that the cluster name is valid and is not already in use.
 // Parameters:
 // location - azure location.
@@ -94,7 +172,7 @@ func (client ClustersClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -159,6 +237,11 @@ func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 								{Target: "parameters.ClusterProperties.VirtualNetworkConfiguration.EnginePublicIPID", Name: validation.Null, Rule: true, Chain: nil},
 								{Target: "parameters.ClusterProperties.VirtualNetworkConfiguration.DataManagementPublicIPID", Name: validation.Null, Rule: true, Chain: nil},
 							}},
+						{Target: "parameters.ClusterProperties.KeyVaultProperties", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.ClusterProperties.KeyVaultProperties.KeyName", Name: validation.Null, Rule: true, Chain: nil},
+								{Target: "parameters.ClusterProperties.KeyVaultProperties.KeyVersion", Name: validation.Null, Rule: true, Chain: nil},
+								{Target: "parameters.ClusterProperties.KeyVaultProperties.KeyVaultURI", Name: validation.Null, Rule: true, Chain: nil},
+							}},
 					}}}}}); err != nil {
 		return result, validation.NewError("kusto.ClustersClient", "CreateOrUpdate", err.Error())
 	}
@@ -186,7 +269,7 @@ func (client ClustersClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -264,7 +347,7 @@ func (client ClustersClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -298,6 +381,169 @@ func (client ClustersClient) DeleteResponder(resp *http.Response) (result autore
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
+	return
+}
+
+// DetachFollowerDatabases detaches all followers of a database owned by this cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group containing the Kusto cluster.
+// clusterName - the name of the Kusto cluster.
+// followerDatabaseToRemove - the follower databases properties to remove.
+func (client ClustersClient) DetachFollowerDatabases(ctx context.Context, resourceGroupName string, clusterName string, followerDatabaseToRemove FollowerDatabaseDefinition) (result ClustersDetachFollowerDatabasesFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.DetachFollowerDatabases")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: followerDatabaseToRemove,
+			Constraints: []validation.Constraint{{Target: "followerDatabaseToRemove.ClusterResourceID", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "followerDatabaseToRemove.AttachedDatabaseConfigurationName", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("kusto.ClustersClient", "DetachFollowerDatabases", err.Error())
+	}
+
+	req, err := client.DetachFollowerDatabasesPreparer(ctx, resourceGroupName, clusterName, followerDatabaseToRemove)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "DetachFollowerDatabases", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DetachFollowerDatabasesSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "DetachFollowerDatabases", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DetachFollowerDatabasesPreparer prepares the DetachFollowerDatabases request.
+func (client ClustersClient) DetachFollowerDatabasesPreparer(ctx context.Context, resourceGroupName string, clusterName string, followerDatabaseToRemove FollowerDatabaseDefinition) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-02-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	followerDatabaseToRemove.DatabaseName = nil
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/detachFollowerDatabases", pathParameters),
+		autorest.WithJSON(followerDatabaseToRemove),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DetachFollowerDatabasesSender sends the DetachFollowerDatabases request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) DetachFollowerDatabasesSender(req *http.Request) (future ClustersDetachFollowerDatabasesFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// DetachFollowerDatabasesResponder handles the response to the DetachFollowerDatabases request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) DetachFollowerDatabasesResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// DiagnoseVirtualNetwork diagnoses network connectivity status for external resources on which the service is
+// dependent on.
+// Parameters:
+// resourceGroupName - the name of the resource group containing the Kusto cluster.
+// clusterName - the name of the Kusto cluster.
+func (client ClustersClient) DiagnoseVirtualNetwork(ctx context.Context, resourceGroupName string, clusterName string) (result ClustersDiagnoseVirtualNetworkFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.DiagnoseVirtualNetwork")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.DiagnoseVirtualNetworkPreparer(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "DiagnoseVirtualNetwork", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DiagnoseVirtualNetworkSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "DiagnoseVirtualNetwork", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DiagnoseVirtualNetworkPreparer prepares the DiagnoseVirtualNetwork request.
+func (client ClustersClient) DiagnoseVirtualNetworkPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-02-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/diagnoseVirtualNetwork", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DiagnoseVirtualNetworkSender sends the DiagnoseVirtualNetwork request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) DiagnoseVirtualNetworkSender(req *http.Request) (future ClustersDiagnoseVirtualNetworkFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// DiagnoseVirtualNetworkResponder handles the response to the DiagnoseVirtualNetwork request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) DiagnoseVirtualNetworkResponder(resp *http.Response) (result DiagnoseVirtualNetworkResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -345,7 +591,7 @@ func (client ClustersClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -416,7 +662,7 @@ func (client ClustersClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -490,7 +736,7 @@ func (client ClustersClient) ListByResourceGroupPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -512,6 +758,159 @@ func (client ClustersClient) ListByResourceGroupSender(req *http.Request) (*http
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
 // closes the http.Response Body.
 func (client ClustersClient) ListByResourceGroupResponder(resp *http.Response) (result ClusterListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListFollowerDatabases returns a list of databases that are owned by this cluster and were followed by another
+// cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group containing the Kusto cluster.
+// clusterName - the name of the Kusto cluster.
+func (client ClustersClient) ListFollowerDatabases(ctx context.Context, resourceGroupName string, clusterName string) (result FollowerDatabaseListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.ListFollowerDatabases")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListFollowerDatabasesPreparer(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "ListFollowerDatabases", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListFollowerDatabasesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "ListFollowerDatabases", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListFollowerDatabasesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "ListFollowerDatabases", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListFollowerDatabasesPreparer prepares the ListFollowerDatabases request.
+func (client ClustersClient) ListFollowerDatabasesPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-02-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/listFollowerDatabases", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListFollowerDatabasesSender sends the ListFollowerDatabases request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) ListFollowerDatabasesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListFollowerDatabasesResponder handles the response to the ListFollowerDatabases request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) ListFollowerDatabasesResponder(resp *http.Response) (result FollowerDatabaseListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// ListLanguageExtensions returns a list of language extensions that can run within KQL queries.
+// Parameters:
+// resourceGroupName - the name of the resource group containing the Kusto cluster.
+// clusterName - the name of the Kusto cluster.
+func (client ClustersClient) ListLanguageExtensions(ctx context.Context, resourceGroupName string, clusterName string) (result LanguageExtensionsList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.ListLanguageExtensions")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.ListLanguageExtensionsPreparer(ctx, resourceGroupName, clusterName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "ListLanguageExtensions", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListLanguageExtensionsSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "ListLanguageExtensions", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.ListLanguageExtensionsResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "ListLanguageExtensions", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListLanguageExtensionsPreparer prepares the ListLanguageExtensions request.
+func (client ClustersClient) ListLanguageExtensionsPreparer(ctx context.Context, resourceGroupName string, clusterName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-02-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/listLanguageExtensions", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListLanguageExtensionsSender sends the ListLanguageExtensions request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) ListLanguageExtensionsSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// ListLanguageExtensionsResponder handles the response to the ListLanguageExtensions request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) ListLanguageExtensionsResponder(resp *http.Response) (result LanguageExtensionsList, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -561,7 +960,7 @@ func (client ClustersClient) ListSkusPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -637,7 +1036,7 @@ func (client ClustersClient) ListSkusByResourcePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -666,6 +1065,84 @@ func (client ClustersClient) ListSkusByResourceResponder(resp *http.Response) (r
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// RemoveLanguageExtensions remove a list of language extensions that can run within KQL queries.
+// Parameters:
+// resourceGroupName - the name of the resource group containing the Kusto cluster.
+// clusterName - the name of the Kusto cluster.
+// languageExtensionsToRemove - the language extensions to remove.
+func (client ClustersClient) RemoveLanguageExtensions(ctx context.Context, resourceGroupName string, clusterName string, languageExtensionsToRemove LanguageExtensionsList) (result ClustersRemoveLanguageExtensionsFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.RemoveLanguageExtensions")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.RemoveLanguageExtensionsPreparer(ctx, resourceGroupName, clusterName, languageExtensionsToRemove)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "RemoveLanguageExtensions", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RemoveLanguageExtensionsSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "kusto.ClustersClient", "RemoveLanguageExtensions", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RemoveLanguageExtensionsPreparer prepares the RemoveLanguageExtensions request.
+func (client ClustersClient) RemoveLanguageExtensionsPreparer(ctx context.Context, resourceGroupName string, clusterName string, languageExtensionsToRemove LanguageExtensionsList) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"clusterName":       autorest.Encode("path", clusterName),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2020-02-15"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Kusto/clusters/{clusterName}/removeLanguageExtensions", pathParameters),
+		autorest.WithJSON(languageExtensionsToRemove),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RemoveLanguageExtensionsSender sends the RemoveLanguageExtensions request. The method will close the
+// http.Response Body if it receives an error.
+func (client ClustersClient) RemoveLanguageExtensionsSender(req *http.Request) (future ClustersRemoveLanguageExtensionsFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RemoveLanguageExtensionsResponder handles the response to the RemoveLanguageExtensions request. The method always
+// closes the http.Response Body.
+func (client ClustersClient) RemoveLanguageExtensionsResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
 	return
 }
 
@@ -707,7 +1184,7 @@ func (client ClustersClient) StartPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -782,7 +1259,7 @@ func (client ClustersClient) StopPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -858,7 +1335,7 @@ func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-05-15"
+	const APIVersion = "2020-02-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -891,7 +1368,7 @@ func (client ClustersClient) UpdateResponder(resp *http.Response) (result Cluste
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
