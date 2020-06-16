@@ -40,7 +40,7 @@ resource "azurerm_sql_server" "example" {
 }
 
 resource "azurerm_mssql_database" "test" {
-  name           = "acctest-db-%d"
+  name           = "acctest-db-d"
   server_id      = azurerm_sql_server.example.id
   collation      = "SQL_Latin1_General_CP1_CI_AS"
   license_type   = "LicenseIncluded"

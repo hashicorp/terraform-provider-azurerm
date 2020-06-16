@@ -89,12 +89,18 @@ func (client VirtualMachineScaleSetsClient) ConvertToSinglePlacementGroupPrepare
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
+	const APIVersion = "2019-07-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachineScaleSets/{vmScaleSetName}/convertToSinglePlacementGroup", pathParameters),
-		autorest.WithJSON(parameters))
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
