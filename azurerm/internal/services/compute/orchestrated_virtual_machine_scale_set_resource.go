@@ -62,6 +62,7 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 				Type:         schema.TypeBool,
 				Optional:     true,
 				Default:      false,
+				Deprecated:   "this property has been deprecated starting from api-version 2019-12-01 and will be removed in version 3.0 of the provider",
 				ValidateFunc: validateBoolIsFalse,
 			},
 
