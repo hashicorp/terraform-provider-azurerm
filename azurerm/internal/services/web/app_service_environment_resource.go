@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	helpersValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -86,6 +87,15 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				}, false),
 			},
 
+			"user_whitelisted_ip_ranges": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: helpersValidate.CIDR,
+				},
+			},
+
 			// TODO in 3.0 Make it "Required"
 			"resource_group_name": azure.SchemaResourceGroupNameOptionalComputed(),
 
@@ -109,6 +119,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	t := d.Get("tags").(map[string]interface{})
+	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*schema.Set).List()
 
 	subnetId := d.Get("subnet_id").(string)
 	subnet, err := networkParse.SubnetID(subnetId)
@@ -166,6 +177,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 				ID:     utils.String(subnetId),
 				Subnet: utils.String(subnet.Name),
 			},
+			UserWhitelistedIPRanges: utils.ExpandStringSlice(userWhitelistedIPRangesRaw),
 
 			// the SDK is coded primarily for v1, which needs a non-null entry for workerpool, so we construct an empty slice for it
 			// TODO: remove this hack once https://github.com/Azure/azure-rest-api-specs/pull/8433 has been merged
@@ -222,6 +234,11 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		v := d.Get("pricing_tier").(string)
 		v = convertFromIsolatedSKU(v)
 		environment.AppServiceEnvironment.MultiSize = utils.String(v)
+	}
+
+	if d.HasChange("user_whitelisted_ip_ranges") {
+		v := d.Get("user_whitelisted_ip_ranges").(*schema.Set).List()
+		environment.UserWhitelistedIPRanges = utils.ExpandStringSlice(v)
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, environment); err != nil {
@@ -282,6 +299,7 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
+		d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
 	}
 
 	return tags.FlattenAndSet(d, existing.Tags)
