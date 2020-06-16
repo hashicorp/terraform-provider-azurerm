@@ -89,7 +89,7 @@ func (client VirtualMachineScaleSetsClient) ConvertToSinglePlacementGroupPrepare
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-07-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
