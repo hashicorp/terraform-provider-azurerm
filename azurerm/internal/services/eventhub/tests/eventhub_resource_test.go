@@ -88,7 +88,7 @@ func TestAccAzureRMEventHubMessageRetentionCount_validation(t *testing.T) {
 			Value:    7,
 			ErrCount: 0,
 		}, {
-			Value:    8,
+			Value:    91,
 			ErrCount: 1,
 		},
 	}
