@@ -273,8 +273,8 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
-	if !(32 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32"))
+	if !(1024 >= value && value >= 1) {
+		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32 for standard hubs and 1024 for Event Hubs Clusters"))
 	}
 
 	return warnings, errors
