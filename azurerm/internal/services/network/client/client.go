@@ -17,6 +17,7 @@ type Client struct {
 	ExpressRouteCircuitsClient           *network.ExpressRouteCircuitsClient
 	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
+	FirewallPoliciesClient               *network.FirewallPoliciesClient
 	InterfacesClient                     *network.InterfacesClient
 	LoadBalancersClient                  *network.LoadBalancersClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
@@ -77,6 +78,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ExpressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePeeringsClient.Client, o.ResourceManagerAuthorizer)
+
+	FirewallPolicyClient := network.NewFirewallPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FirewallPolicyClient.Client, o.ResourceManagerAuthorizer)
 
 	InterfacesClient := network.NewInterfacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&InterfacesClient.Client, o.ResourceManagerAuthorizer)
@@ -173,6 +177,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteCircuitsClient:           &ExpressRouteCircuitsClient,
 		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
+		FirewallPoliciesClient:               &FirewallPolicyClient,
 		InterfacesClient:                     &InterfacesClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
 		LocalNetworkGatewaysClient:           &LocalNetworkGatewaysClient,
