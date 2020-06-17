@@ -16,7 +16,7 @@ type MaintenanceAssignmentDedicatedHostId struct {
 func MaintenanceAssignmentDedicatedHostID(input string) (*MaintenanceAssignmentDedicatedHostId, error) {
 	groups := regexp.MustCompile(`^(.+)/providers/Microsoft\.Maintenance/configurationAssignments/([^/]+)$`).FindStringSubmatch(input)
 	if len(groups) != 3 {
-		return nil, fmt.Errorf("parsing Maintenance Assignment Dedicated Host ID: %q: Expected 3 groups", input)
+		return nil, fmt.Errorf("parsing Maintenance Assignment Dedicated Host ID (%q)", input)
 	}
 
 	targetResourceId, name := groups[1], groups[2]

@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -22,13 +21,7 @@ func TestAccAzureRMMaintenanceAssignmentVirtualMachine_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMaintenanceAssignmentVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceAssignmentVirtualMachine_template(data),
-			},
-			{
-				// It may take a few minutes after starting a VM for it to become available to assign to a configuration
-				// for newly created machine, wait several minutes
-				PreConfig: func() { time.Sleep(5 * time.Minute) },
-				Config:    testAccAzureRMMaintenanceAssignmentVirtualMachine_basic(data),
+				Config: testAccAzureRMMaintenanceAssignmentVirtualMachine_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMaintenanceAssignmentVirtualMachineExists(data.ResourceName),
 				),
@@ -48,13 +41,7 @@ func TestAccAzureRMMaintenanceAssignmentVirtualMachine_requiresImport(t *testing
 		CheckDestroy: testCheckAzureRMMaintenanceAssignmentVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceAssignmentVirtualMachine_template(data),
-			},
-			{
-				// It may take a few minutes after starting a VM for it to become available to assign to a configuration
-				// for newly created machine, wait several minutes
-				PreConfig: func() { time.Sleep(5 * time.Minute) },
-				Config:    testAccAzureRMMaintenanceAssignmentVirtualMachine_basic(data),
+				Config: testAccAzureRMMaintenanceAssignmentVirtualMachine_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMaintenanceAssignmentVirtualMachineExists(data.ResourceName),
 				),

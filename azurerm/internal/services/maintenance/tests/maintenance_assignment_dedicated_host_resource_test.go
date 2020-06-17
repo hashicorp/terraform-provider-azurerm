@@ -3,7 +3,6 @@ package tests
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -22,13 +21,7 @@ func TestAccAzureRMMaintenanceAssignmentDedicatedHost_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceAssignmentDedicatedHost_template(data),
-			},
-			{
-				// It may take a few minutes after starting a VM for it to become available to assign to a configuration
-				// for newly created machine, wait several minutes
-				PreConfig: func() { time.Sleep(5 * time.Minute) },
-				Config:    testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data),
+				Config: testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMaintenanceAssignmentDedicatedHostExists(data.ResourceName),
 				),
@@ -47,13 +40,7 @@ func TestAccAzureRMMaintenanceAssignmentDedicatedHost_requiresImport(t *testing.
 		CheckDestroy: testCheckAzureRMMaintenanceAssignmentDedicatedHostDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMaintenanceAssignmentDedicatedHost_template(data),
-			},
-			{
-				// It may take a few minutes after starting a VM for it to become available to assign to a configuration
-				// for newly created machine, wait several minutes
-				PreConfig: func() { time.Sleep(5 * time.Minute) },
-				Config:    testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data),
+				Config: testAccAzureRMMaintenanceAssignmentDedicatedHost_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMaintenanceAssignmentDedicatedHostExists(data.ResourceName),
 				),

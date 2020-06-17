@@ -3,13 +3,14 @@ package maintenance
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
@@ -26,7 +27,6 @@ func resourceArmMaintenanceAssignmentDedicatedHost() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmMaintenanceAssignmentDedicatedHostCreate,
 		Read:   resourceArmMaintenanceAssignmentDedicatedHostRead,
-		Update: nil,
 		Delete: resourceArmMaintenanceAssignmentDedicatedHostDelete,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -91,9 +91,17 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *schema.ResourceData,
 		},
 	}
 
-	if _, err := client.CreateOrUpdateParent(ctx, dedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", dedicatedHostId.HostGroup, "hosts", dedicatedHostId.Name, assignmentName, assignment); err != nil {
-		return fmt.Errorf("creating Maintenance Assignment (Dedicated Host ID: %q): %+v", dedicatedHostIdRaw, err)
-	}
+	// It may take a few minutes after starting a VM for it to become available to assign to a configuration
+	resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		if _, err := client.CreateOrUpdateParent(ctx, dedicatedHostId.ResourceGroup, "Microsoft.Compute", "hostGroups", dedicatedHostId.HostGroup, "hosts", dedicatedHostId.Name, assignmentName, assignment); err != nil {
+			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
+				return resource.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
+			}
+			return resource.NonRetryableError(fmt.Errorf("issuing creating request for Maintenance Assignment (Dedicated Host ID %q): %+v", dedicatedHostIdRaw, err))
+		}
+
+		return nil
+	})
 
 	resp, err := getMaintenanceAssignmentDedicatedHost(ctx, client, dedicatedHostId, dedicatedHostIdRaw)
 	if err != nil {

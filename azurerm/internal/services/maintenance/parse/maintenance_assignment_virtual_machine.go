@@ -16,7 +16,7 @@ type MaintenanceAssignmentVirtualMachineId struct {
 func MaintenanceAssignmentVirtualMachineID(input string) (*MaintenanceAssignmentVirtualMachineId, error) {
 	groups := regexp.MustCompile(`^(.+)/providers/Microsoft\.Maintenance/configurationAssignments/([^/]+)$`).FindStringSubmatch(input)
 	if len(groups) != 3 {
-		return nil, fmt.Errorf("parsing Maintenance Assignment Virtual Machine ID: %q: Expected 3 groups", input)
+		return nil, fmt.Errorf("parsing Maintenance Assignment Virtual Machine ID (%q)", input)
 	}
 
 	targetResourceId, name := groups[1], groups[2]

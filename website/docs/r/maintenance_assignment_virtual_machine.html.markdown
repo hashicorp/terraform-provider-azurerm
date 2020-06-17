@@ -94,11 +94,11 @@ resource "azurerm_maintenance_assignment_virtual_machine" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `maintenance_configuration_id` - (Required) Specified the id of Maintenance Configuration Resource. Changing this forces a new resource to be created.
+* `maintenance_configuration_id` - (Required) Specifies the ID of the Maintenance Configuration Resource. Changing this forces a new resource to be created.
 
-* `virtual_machine_id` - (Required) Specified the Virtual Machine ID where the Maintenance Configuration will be assigned to. Changing this forces a new resource to be created.
+* `virtual_machine_id` - (Required) Specifies the Virtual Machine ID to which the Maintenance Configuration will be assigned. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
