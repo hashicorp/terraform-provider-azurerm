@@ -41,8 +41,7 @@ resource "azurerm_virtual_hub" "example" {
 
 resource "azurerm_virtual_hub_connection" "example" {
   name                      = "example-vhub"
-  resource_group_name       = azurerm_resource_group.example.name
-  virtual_hub_name          = azurerm_virtual_hub.example.name
+  virtual_hub_id            = azurerm_virtual_hub.example.id
   remote_virtual_network_id = azurerm_virtual_network.example.id
 }
 ```
@@ -53,9 +52,7 @@ The following arguments are supported:
 
 * `name` - (Required) The Name which should be used for this Connection, which must be unique within the Virtual Hub. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Virtual Hub Connection should exist. Changing this forces a new resource to be created.
-
-* `virtual_hub_name` - (Required) The ID of the Virtual Hub within which this connection should be created. Changing this forces a new resource to be created.
+* `virtual_hub_id` - (Required) The ID of the Virtual Hub within which this connection should be created. Changing this forces a new resource to be created.
 
 * `remote_virtual_network_id` - (Required) The ID of the Virtual Network which the Virtual Hub should be connected to. Changing this forces a new resource to be created.
 

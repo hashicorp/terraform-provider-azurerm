@@ -190,8 +190,7 @@ func testAccAzureRMVirtualHubConnection_basic(data acceptance.TestData) string {
 
 resource "azurerm_virtual_hub_connection" "test" {
   name                      = "acctestbasicvhubconn-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  virtual_hub_name          = azurerm_virtual_hub.test.name
+  virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 }
 `, template, data.RandomInteger)
@@ -204,8 +203,7 @@ func testAccAzureRMVirtualHubConnection_requiresImport(data acceptance.TestData)
 
 resource "azurerm_virtual_hub_connection" "import" {
   name                      = azurerm_virtual_hub_connection.test.name
-  resource_group_name       = azurerm_resource_group.test.name
-  virtual_hub_name          = azurerm_virtual_hub_connection.test.virtual_hub_name
+  virtual_hub_id            = azurerm_virtual_hub_connection.test.id
   remote_virtual_network_id = azurerm_virtual_hub_connection.test.remote_virtual_network_id
 }
 `, template)
@@ -243,16 +241,14 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
 
 resource "azurerm_virtual_hub_connection" "test" {
   name                      = "acctestvhubconn-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  virtual_hub_name          = azurerm_virtual_hub.test.name
+  virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = false
 }
 
 resource "azurerm_virtual_hub_connection" "test2" {
   name                      = "acctestvhubconn2-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  virtual_hub_name          = azurerm_virtual_hub.test.name
+  virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test2.id
   internet_security_enabled = true
 }
@@ -266,8 +262,7 @@ func testAccAzureRMVirtualHubConnection_enableInternetSecurity(data acceptance.T
 
 resource "azurerm_virtual_hub_connection" "test" {
   name                      = "acctestbasicvhubconn-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  virtual_hub_name          = azurerm_virtual_hub.test.name
+  virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = true
 }
