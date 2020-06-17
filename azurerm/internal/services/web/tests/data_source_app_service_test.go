@@ -139,6 +139,7 @@ func TestAccDataSourceAzureRMAppService_ipRestriction(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10/32"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.name", "test-restriction"),
 					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.priority", "123"),
+					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.ip_restriction.0.action", "Allow"),
 				),
 			},
 		},

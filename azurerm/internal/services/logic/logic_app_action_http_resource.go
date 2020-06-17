@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -73,6 +74,29 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+			"run_after": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"action_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"action_result": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(logic.WorkflowStatusSucceeded),
+								string(logic.WorkflowStatusFailed),
+								string(logic.WorkflowStatusSkipped),
+								string(logic.WorkflowStatusTimedOut),
+							}, false),
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -97,6 +121,10 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 	action := map[string]interface{}{
 		"inputs": inputs,
 		"type":   "http",
+	}
+
+	if v, ok := d.GetOk("run_after"); ok {
+		action["runAfter"] = expandLogicAppActionRunAfter(v.(*schema.Set).List())
 	}
 
 	logicAppId := d.Get("logic_app_id").(string)
@@ -166,6 +194,17 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 		hv := headers.(map[string]interface{})
 		if err := d.Set("headers", hv); err != nil {
 			return fmt.Errorf("Error setting `headers` for HTTP Action %q: %+v", name, err)
+		}
+	}
+
+	v = action["runAfter"]
+	if v != nil {
+		runAfter, ok := v.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("Error parsing `runAfter` for HTTP Action %q (Logic App %q / Resource Group %q)", name, logicAppName, resourceGroup)
+		}
+		if err := d.Set("run_after", flattenLogicAppActionRunAfter(runAfter)); err != nil {
+			return fmt.Errorf("Error setting `runAfter` for HTTP Action %q: %+v", name, err)
 		}
 	}
 

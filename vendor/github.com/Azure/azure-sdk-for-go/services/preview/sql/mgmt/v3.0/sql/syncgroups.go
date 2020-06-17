@@ -92,7 +92,7 @@ func (client SyncGroupsClient) CancelSyncPreparer(ctx context.Context, resourceG
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -167,7 +167,7 @@ func (client SyncGroupsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -250,7 +250,7 @@ func (client SyncGroupsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -336,7 +336,7 @@ func (client SyncGroupsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -416,7 +416,7 @@ func (client SyncGroupsClient) ListByDatabasePreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -535,7 +535,7 @@ func (client SyncGroupsClient) ListHubSchemasPreparer(ctx context.Context, resou
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -658,7 +658,7 @@ func (client SyncGroupsClient) ListLogsPreparer(ctx context.Context, resourceGro
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 		"endTime":     autorest.Encode("query", endTime),
@@ -776,7 +776,7 @@ func (client SyncGroupsClient) ListSyncDatabaseIdsPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -888,7 +888,7 @@ func (client SyncGroupsClient) RefreshHubSchemaPreparer(ctx context.Context, res
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -974,7 +974,7 @@ func (client SyncGroupsClient) TriggerSyncPreparer(ctx context.Context, resource
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1049,7 +1049,7 @@ func (client SyncGroupsClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"syncGroupName":     autorest.Encode("path", syncGroupName),
 	}
 
-	const APIVersion = "2015-05-01-preview"
+	const APIVersion = "2019-06-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

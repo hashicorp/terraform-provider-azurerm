@@ -36,6 +36,27 @@ func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	}
 }
 
+func SchemaResourceGroupNameOptionalComputed() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		ForceNew:     true,
+		Optional:     true,
+		Computed:     true,
+		ValidateFunc: validateResourceGroupName,
+	}
+}
+
+func SchemaResourceGroupNameSetOptional() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Schema{
+			Type:         schema.TypeString,
+			ValidateFunc: validateResourceGroupName,
+		},
+	}
+}
+
 func validateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 

@@ -20,8 +20,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_iotcentral_application" "example" {
   name                = "example-iotcentral-app"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   sub_domain          = "example-iotcentral-app-subdomain"
 
   display_name = "example-iotcentral-app-display-name"

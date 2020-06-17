@@ -6,8 +6,9 @@ cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/storage
-# github.com/Azure/azure-sdk-for-go v41.2.0+incompatible
+# github.com/Azure/azure-sdk-for-go v43.1.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
+github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement
 github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration
@@ -19,7 +20,7 @@ github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cog
 github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute
 github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance
 github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry
-github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice
+github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice
 github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb
 github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement
 github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks
@@ -32,14 +33,13 @@ github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare
 github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces
 github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl
 github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns
-github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub
 github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis
 github.com/Azure/azure-sdk-for-go/services/iotcentral/mgmt/2018-09-01/iotcentral
 github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault
 github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault
-github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto
+github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
 github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2019-11-01/machinelearningservices
 github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps
@@ -48,18 +48,21 @@ github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/m
 github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql
 github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-10-01/netapp
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network
+github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/policyinsights/mgmt/2019-10-01/policyinsights
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql
 github.com/Azure/azure-sdk-for-go/services/powerbidedicated/mgmt/2017-10-01/powerbidedicated
+github.com/Azure/azure-sdk-for-go/services/preview/alertsmanagement/mgmt/2019-05-05/alertsmanagement
 github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization
+github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint
 github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice
 github.com/Azure/azure-sdk-for-go/services/preview/customproviders/mgmt/2018-09-01-preview/customproviders
 github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2020-04-01-preview/eventgrid
+github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub
 github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight
-github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices
+github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2019-03-22-preview/devices
 github.com/Azure/azure-sdk-for-go/services/preview/maintenance/mgmt/2018-06-01-preview/maintenance
 github.com/Azure/azure-sdk-for-go/services/preview/mixedreality/mgmt/2019-02-28/mixedreality
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights
@@ -69,11 +72,12 @@ github.com/Azure/azure-sdk-for-go/services/preview/operationsmanagement/mgmt/201
 github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security
-github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2017-08-01-preview/securityinsight
+github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight
 github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sqlvirtualmachine/mgmt/2017-03-01-preview/sqlvirtualmachine
+github.com/Azure/azure-sdk-for-go/services/preview/timeseriesinsights/mgmt/2018-08-15-preview/timeseriesinsights
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices
@@ -83,10 +87,10 @@ github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis
 github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-09-01/locks
-github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-07-01/managedapplications
+github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy
 github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search
 github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus
 github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric
@@ -246,6 +250,7 @@ github.com/hashicorp/logutils
 github.com/hashicorp/terraform-config-inspect/tfconfig
 # github.com/hashicorp/terraform-plugin-sdk v1.6.0
 github.com/hashicorp/terraform-plugin-sdk/helper/acctest
+github.com/hashicorp/terraform-plugin-sdk/helper/customdiff
 github.com/hashicorp/terraform-plugin-sdk/helper/hashcode
 github.com/hashicorp/terraform-plugin-sdk/helper/logging
 github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv
@@ -338,7 +343,7 @@ github.com/sergi/go-diff/diffmatchpatch
 # github.com/spf13/afero v1.2.2
 github.com/spf13/afero
 github.com/spf13/afero/mem
-# github.com/terraform-providers/terraform-provider-azuread v0.8.0
+# github.com/terraform-providers/terraform-provider-azuread v0.9.0
 github.com/terraform-providers/terraform-provider-azuread/azuread
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph

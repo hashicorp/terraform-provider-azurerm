@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -54,20 +54,16 @@ func resourceArmPolicyDefinition() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.TypeBuiltIn),
-					string(policy.TypeCustom),
-					string(policy.TypeNotSpecified),
+					string(policy.BuiltIn),
+					string(policy.Custom),
+					string(policy.NotSpecified),
+					string(policy.Static),
 				}, true)},
 
 			"mode": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.All),
-					string(policy.Indexed),
-					string(policy.NotSpecified),
-				}, true),
 			},
 
 			"management_group_id": {
@@ -178,7 +174,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 
 	properties := policy.DefinitionProperties{
 		PolicyType:  policy.Type(policyType),
-		Mode:        policy.Mode(mode),
+		Mode:        utils.String(mode),
 		DisplayName: utils.String(displayName),
 		Description: utils.String(description),
 	}
@@ -200,11 +196,11 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
-		parameters, err := structure.ExpandJsonFromString(parametersString)
+		parameters, err := expandParameterDefinitionsValueFromString(parametersString)
 		if err != nil {
 			return fmt.Errorf("unable to parse parameters: %s", err)
 		}
-		properties.Parameters = &parameters
+		properties.Parameters = parameters
 	}
 
 	definition := policy.Definition{
@@ -300,8 +296,10 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 			d.Set("metadata", metadataStr)
 		}
 
-		if parametersStr := flattenJSON(props.Parameters); parametersStr != "" {
+		if parametersStr, err := flattenParameterDefintionsValueToString(props.Parameters); err == nil {
 			d.Set("parameters", parametersStr)
+		} else {
+			return fmt.Errorf("Error flattening policy definition parameters %+v", err)
 		}
 	}
 

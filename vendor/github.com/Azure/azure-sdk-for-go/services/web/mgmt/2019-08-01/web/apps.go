@@ -583,6 +583,93 @@ func (client AppsClient) ApplySlotConfigurationSlotResponder(resp *http.Response
 	return
 }
 
+// ApproveOrRejectPrivateEndpointConnection description for Approves or rejects a private endpoint connection
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the site.
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (result AppsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.ApproveOrRejectPrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "ApproveOrRejectPrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.ApproveOrRejectPrivateEndpointConnectionPreparer(ctx, resourceGroupName, name, privateEndpointConnectionName, privateEndpointWrapper)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "ApproveOrRejectPrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ApproveOrRejectPrivateEndpointConnectionSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "ApproveOrRejectPrivateEndpointConnection", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ApproveOrRejectPrivateEndpointConnectionPreparer prepares the ApproveOrRejectPrivateEndpointConnection request.
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string, privateEndpointWrapper PrivateLinkConnectionApprovalRequestResource) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":                          autorest.Encode("path", name),
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithJSON(privateEndpointWrapper),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ApproveOrRejectPrivateEndpointConnectionSender sends the ApproveOrRejectPrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionSender(req *http.Request) (future AppsApproveOrRejectPrivateEndpointConnectionFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// ApproveOrRejectPrivateEndpointConnectionResponder handles the response to the ApproveOrRejectPrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnectionResource, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Backup description for Creates a backup of an app.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -6303,6 +6390,91 @@ func (client AppsClient) DeletePremierAddOnSlotResponder(resp *http.Response) (r
 	return
 }
 
+// DeletePrivateEndpointConnection description for Deletes a private endpoint connection
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the site.
+func (client AppsClient) DeletePrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (result AppsDeletePrivateEndpointConnectionFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.DeletePrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "DeletePrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.DeletePrivateEndpointConnectionPreparer(ctx, resourceGroupName, name, privateEndpointConnectionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeletePrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.DeletePrivateEndpointConnectionSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "DeletePrivateEndpointConnection", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// DeletePrivateEndpointConnectionPreparer prepares the DeletePrivateEndpointConnection request.
+func (client AppsClient) DeletePrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":                          autorest.Encode("path", name),
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsDelete(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// DeletePrivateEndpointConnectionSender sends the DeletePrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) DeletePrivateEndpointConnectionSender(req *http.Request) (future AppsDeletePrivateEndpointConnectionFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// DeletePrivateEndpointConnectionResponder handles the response to the DeletePrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client AppsClient) DeletePrivateEndpointConnectionResponder(resp *http.Response) (result SetObject, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // DeleteProcess description for Terminate a process by its ID for a web site, or a deployment slot, or specific
 // scaled-out instance in a web site.
 // Parameters:
@@ -8910,6 +9082,91 @@ func (client AppsClient) GetBackupStatusSlotResponder(resp *http.Response) (resu
 	return
 }
 
+// GetBasicPublishingCredentialsPolicies description for Returns whether Scm basic auth is allowed and whether Ftp is
+// allowed for a given site.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+func (client AppsClient) GetBasicPublishingCredentialsPolicies(ctx context.Context, resourceGroupName string, name string) (result CsmPublishingCredentialsPoliciesCollection, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.GetBasicPublishingCredentialsPolicies")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetBasicPublishingCredentialsPolicies", err.Error())
+	}
+
+	req, err := client.GetBasicPublishingCredentialsPoliciesPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetBasicPublishingCredentialsPolicies", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetBasicPublishingCredentialsPoliciesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetBasicPublishingCredentialsPolicies", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetBasicPublishingCredentialsPoliciesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetBasicPublishingCredentialsPolicies", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetBasicPublishingCredentialsPoliciesPreparer prepares the GetBasicPublishingCredentialsPolicies request.
+func (client AppsClient) GetBasicPublishingCredentialsPoliciesPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/basicPublishingCredentialsPolicies", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetBasicPublishingCredentialsPoliciesSender sends the GetBasicPublishingCredentialsPolicies request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetBasicPublishingCredentialsPoliciesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetBasicPublishingCredentialsPoliciesResponder handles the response to the GetBasicPublishingCredentialsPolicies request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetBasicPublishingCredentialsPoliciesResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesCollection, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // GetConfiguration description for Gets the configuration of an app, such as platform version and bitness, default
 // documents, virtual applications, Always On, etc.
 // Parameters:
@@ -10113,6 +10370,90 @@ func (client AppsClient) GetDomainOwnershipIdentifierSlotSender(req *http.Reques
 // GetDomainOwnershipIdentifierSlotResponder handles the response to the GetDomainOwnershipIdentifierSlot request. The method always
 // closes the http.Response Body.
 func (client AppsClient) GetDomainOwnershipIdentifierSlotResponder(resp *http.Response) (result Identifier, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetFtpAllowed description for Returns whether FTP is allowed on the site or not.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+func (client AppsClient) GetFtpAllowed(ctx context.Context, resourceGroupName string, name string) (result CsmPublishingCredentialsPoliciesEntity, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.GetFtpAllowed")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetFtpAllowed", err.Error())
+	}
+
+	req, err := client.GetFtpAllowedPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetFtpAllowed", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetFtpAllowedSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetFtpAllowed", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetFtpAllowedResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetFtpAllowed", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetFtpAllowedPreparer prepares the GetFtpAllowed request.
+func (client AppsClient) GetFtpAllowedPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/basicPublishingCredentialsPolicies/ftp", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetFtpAllowedSender sends the GetFtpAllowed request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetFtpAllowedSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetFtpAllowedResponder handles the response to the GetFtpAllowed request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetFtpAllowedResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesEntity, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -13458,6 +13799,175 @@ func (client AppsClient) GetPrivateAccessSlotResponder(resp *http.Response) (res
 	return
 }
 
+// GetPrivateEndpointConnection description for Gets a private endpoint connection
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the site.
+func (client AppsClient) GetPrivateEndpointConnection(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (result PrivateEndpointConnectionResource, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.GetPrivateEndpointConnection")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetPrivateEndpointConnection", err.Error())
+	}
+
+	req, err := client.GetPrivateEndpointConnectionPreparer(ctx, resourceGroupName, name, privateEndpointConnectionName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateEndpointConnection", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateEndpointConnectionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateEndpointConnection", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateEndpointConnectionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateEndpointConnection", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetPrivateEndpointConnectionPreparer prepares the GetPrivateEndpointConnection request.
+func (client AppsClient) GetPrivateEndpointConnectionPreparer(ctx context.Context, resourceGroupName string, name string, privateEndpointConnectionName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":                          autorest.Encode("path", name),
+		"privateEndpointConnectionName": autorest.Encode("path", privateEndpointConnectionName),
+		"resourceGroupName":             autorest.Encode("path", resourceGroupName),
+		"subscriptionId":                autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateEndpointConnections/{privateEndpointConnectionName}", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateEndpointConnectionSender sends the GetPrivateEndpointConnection request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetPrivateEndpointConnectionSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateEndpointConnectionResponder handles the response to the GetPrivateEndpointConnection request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetPrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnectionResource, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetPrivateLinkResources description for Gets the private link resources
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the site.
+func (client AppsClient) GetPrivateLinkResources(ctx context.Context, resourceGroupName string, name string) (result PrivateLinkResourcesWrapper, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.GetPrivateLinkResources")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetPrivateLinkResources", err.Error())
+	}
+
+	req, err := client.GetPrivateLinkResourcesPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateLinkResources", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetPrivateLinkResourcesSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateLinkResources", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetPrivateLinkResourcesResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetPrivateLinkResources", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetPrivateLinkResourcesPreparer prepares the GetPrivateLinkResources request.
+func (client AppsClient) GetPrivateLinkResourcesPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/privateLinkResources", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetPrivateLinkResourcesSender sends the GetPrivateLinkResources request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetPrivateLinkResourcesSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetPrivateLinkResourcesResponder handles the response to the GetPrivateLinkResources request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetPrivateLinkResourcesResponder(resp *http.Response) (result PrivateLinkResourcesWrapper, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // GetProcess description for Get process information by its ID for a specific scaled-out instance in a web site.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -14329,6 +14839,90 @@ func (client AppsClient) GetRelayServiceConnectionSlotSender(req *http.Request) 
 // GetRelayServiceConnectionSlotResponder handles the response to the GetRelayServiceConnectionSlot request. The method always
 // closes the http.Response Body.
 func (client AppsClient) GetRelayServiceConnectionSlotResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetScmAllowed description for Returns whether Scm basic auth is allowed on the site or not.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+func (client AppsClient) GetScmAllowed(ctx context.Context, resourceGroupName string, name string) (result CsmPublishingCredentialsPoliciesEntity, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.GetScmAllowed")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "GetScmAllowed", err.Error())
+	}
+
+	req, err := client.GetScmAllowedPreparer(ctx, resourceGroupName, name)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetScmAllowed", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetScmAllowedSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetScmAllowed", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetScmAllowedResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "GetScmAllowed", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetScmAllowedPreparer prepares the GetScmAllowed request.
+func (client AppsClient) GetScmAllowedPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/basicPublishingCredentialsPolicies/scm", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetScmAllowedSender sends the GetScmAllowed request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) GetScmAllowedSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// GetScmAllowedResponder handles the response to the GetScmAllowed request. The method always
+// closes the http.Response Body.
+func (client AppsClient) GetScmAllowedResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesEntity, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -32390,6 +32984,95 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierSlotResponder(resp *http
 	return
 }
 
+// UpdateFtpAllowed description for Updates whether FTP is allowed on the site or not.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+func (client AppsClient) UpdateFtpAllowed(ctx context.Context, resourceGroupName string, name string, csmPublishingAccessPoliciesEntity CsmPublishingCredentialsPoliciesEntity) (result CsmPublishingCredentialsPoliciesEntity, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.UpdateFtpAllowed")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
+		{TargetValue: csmPublishingAccessPoliciesEntity,
+			Constraints: []validation.Constraint{{Target: "csmPublishingAccessPoliciesEntity.CsmPublishingCredentialsPoliciesEntityProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "csmPublishingAccessPoliciesEntity.CsmPublishingCredentialsPoliciesEntityProperties.Allow", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "UpdateFtpAllowed", err.Error())
+	}
+
+	req, err := client.UpdateFtpAllowedPreparer(ctx, resourceGroupName, name, csmPublishingAccessPoliciesEntity)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateFtpAllowed", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateFtpAllowedSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateFtpAllowed", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateFtpAllowedResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateFtpAllowed", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// UpdateFtpAllowedPreparer prepares the UpdateFtpAllowed request.
+func (client AppsClient) UpdateFtpAllowedPreparer(ctx context.Context, resourceGroupName string, name string, csmPublishingAccessPoliciesEntity CsmPublishingCredentialsPoliciesEntity) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/basicPublishingCredentialsPolicies/ftp", pathParameters),
+		autorest.WithJSON(csmPublishingAccessPoliciesEntity),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateFtpAllowedSender sends the UpdateFtpAllowed request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) UpdateFtpAllowedSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateFtpAllowedResponder handles the response to the UpdateFtpAllowed request. The method always
+// closes the http.Response Body.
+func (client AppsClient) UpdateFtpAllowedResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesEntity, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // UpdateHybridConnection description for Creates a new Hybrid Connection using a Service Bus relay.
 // Parameters:
 // resourceGroupName - name of the resource group to which the resource belongs.
@@ -33105,6 +33788,95 @@ func (client AppsClient) UpdateRelayServiceConnectionSlotSender(req *http.Reques
 // UpdateRelayServiceConnectionSlotResponder handles the response to the UpdateRelayServiceConnectionSlot request. The method always
 // closes the http.Response Body.
 func (client AppsClient) UpdateRelayServiceConnectionSlotResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// UpdateScmAllowed description for Updates whether user publishing credentials are allowed on the site or not.
+// Parameters:
+// resourceGroupName - name of the resource group to which the resource belongs.
+// name - name of the app.
+func (client AppsClient) UpdateScmAllowed(ctx context.Context, resourceGroupName string, name string, csmPublishingAccessPoliciesEntity CsmPublishingCredentialsPoliciesEntity) (result CsmPublishingCredentialsPoliciesEntity, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AppsClient.UpdateScmAllowed")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+[^\.]$`, Chain: nil}}},
+		{TargetValue: csmPublishingAccessPoliciesEntity,
+			Constraints: []validation.Constraint{{Target: "csmPublishingAccessPoliciesEntity.CsmPublishingCredentialsPoliciesEntityProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "csmPublishingAccessPoliciesEntity.CsmPublishingCredentialsPoliciesEntityProperties.Allow", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+		return result, validation.NewError("web.AppsClient", "UpdateScmAllowed", err.Error())
+	}
+
+	req, err := client.UpdateScmAllowedPreparer(ctx, resourceGroupName, name, csmPublishingAccessPoliciesEntity)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateScmAllowed", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateScmAllowedSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateScmAllowed", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateScmAllowedResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "web.AppsClient", "UpdateScmAllowed", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// UpdateScmAllowedPreparer prepares the UpdateScmAllowed request.
+func (client AppsClient) UpdateScmAllowedPreparer(ctx context.Context, resourceGroupName string, name string, csmPublishingAccessPoliciesEntity CsmPublishingCredentialsPoliciesEntity) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"name":              autorest.Encode("path", name),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-08-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/basicPublishingCredentialsPolicies/scm", pathParameters),
+		autorest.WithJSON(csmPublishingAccessPoliciesEntity),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateScmAllowedSender sends the UpdateScmAllowed request. The method will close the
+// http.Response Body if it receives an error.
+func (client AppsClient) UpdateScmAllowedSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateScmAllowedResponder handles the response to the UpdateScmAllowed request. The method always
+// closes the http.Response Body.
+func (client AppsClient) UpdateScmAllowedResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesEntity, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),

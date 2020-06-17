@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -1013,7 +1013,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"key_vault_secret_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateKeyVaultChildId,
+							ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
 						},
 
 						"id": {
@@ -1267,6 +1267,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
+			"firewall_policy_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"custom_error_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -1426,6 +1432,13 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	if _, ok := d.GetOk("waf_configuration"); ok {
 		gateway.ApplicationGatewayPropertiesFormat.WebApplicationFirewallConfiguration = expandApplicationGatewayWafConfig(d)
+	}
+
+	if v, ok := d.GetOk("firewall_policy_id"); ok {
+		id := v.(string)
+		gateway.ApplicationGatewayPropertiesFormat.FirewallPolicy = &network.SubResource{
+			ID: &id,
+		}
 	}
 
 	if stopApplicationGateway {
@@ -1605,6 +1618,10 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 		if setErr := d.Set("waf_configuration", flattenApplicationGatewayWafConfig(props.WebApplicationFirewallConfiguration)); setErr != nil {
 			return fmt.Errorf("Error setting `waf_configuration`: %+v", setErr)
+		}
+
+		if props.FirewallPolicy != nil {
+			d.Set("firewall_policy_id", props.FirewallPolicy.ID)
 		}
 	}
 
@@ -2230,7 +2247,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 		}
 
 		if len(hosts) > 0 {
-			listener.ApplicationGatewayHTTPListenerPropertiesFormat.Hostnames = utils.ExpandStringSlice(hosts)
+			listener.ApplicationGatewayHTTPListenerPropertiesFormat.HostNames = utils.ExpandStringSlice(hosts)
 		}
 
 		if sslCertName := v["ssl_certificate_name"].(string); sslCertName != "" {
@@ -2292,7 +2309,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 				output["host_name"] = *hostname
 			}
 
-			if hostnames := props.Hostnames; hostnames != nil {
+			if hostnames := props.HostNames; hostnames != nil {
 				output["host_names"] = utils.FlattenStringSlice(hostnames)
 			}
 

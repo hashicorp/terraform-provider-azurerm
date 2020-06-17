@@ -72,9 +72,12 @@ resource "azurerm_firewall_nat_rule_collection" "example" {
     ]
 
     destination_addresses = [
-      "8.8.8.8",
-      "8.8.4.4",
+      azurerm_public_ip.example.ip_address
     ]
+
+    translated_port = 53
+
+    translated_address = "8.8.8.8"
 
     protocols = [
       "TCP",

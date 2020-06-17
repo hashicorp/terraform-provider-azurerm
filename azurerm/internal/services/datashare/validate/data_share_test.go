@@ -55,3 +55,81 @@ func TestDataShareAccountName(t *testing.T) {
 		})
 	}
 }
+
+func TestDatashareName(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		valid bool
+	}{
+		{
+			name:  "invalid character",
+			input: "9()",
+			valid: false,
+		},
+		{
+			name:  "less character",
+			input: "a",
+			valid: false,
+		},
+		{
+			name:  "invalid character2",
+			input: "adgeFG-98",
+			valid: false,
+		},
+		{
+			name:  "valid",
+			input: "dfakF88u7_",
+			valid: true,
+		},
+	}
+	var validationFunction = DatashareName()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := validationFunction(tt.input, "")
+			valid := err == nil
+			if valid != tt.valid {
+				t.Errorf("expected valid status %t but got %t for input %s", tt.valid, valid, tt.input)
+			}
+		})
+	}
+}
+
+func TestDatashareSyncName(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		valid bool
+	}{
+		{
+			name:  "valid characters",
+			input: "*() _-$@!",
+			valid: true,
+		},
+		{
+			name:  "Empty",
+			input: "",
+			valid: false,
+		},
+		{
+			name:  "invalid characters",
+			input: "&^*",
+			valid: false,
+		},
+		{
+			name:  "invalid characters",
+			input: "dfwe%",
+			valid: false,
+		},
+	}
+	var validationFunction = DataShareSyncName()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := validationFunction(tt.input, "")
+			valid := err == nil
+			if valid != tt.valid {
+				t.Errorf("expected valid status %t but got %t for input %s", tt.valid, valid, tt.input)
+			}
+		})
+	}
+}

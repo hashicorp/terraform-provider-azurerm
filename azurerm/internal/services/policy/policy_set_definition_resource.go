@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -56,8 +56,10 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(policy.TypeBuiltIn),
-					string(policy.TypeCustom),
+					string(policy.BuiltIn),
+					string(policy.Custom),
+					string(policy.NotSpecified),
+					string(policy.Static),
 				}, false),
 			},
 
@@ -150,6 +152,14 @@ func policyDefinitionsDiffSuppressFunc(_, old, new string, _ *schema.ResourceDat
 		return false
 	}
 
+	for i := range newPolicyDefinitions {
+		newPolicyDefinitions[i].PolicyDefinitionReferenceID = nil
+	}
+
+	for i := range oldPolicyDefinitions {
+		oldPolicyDefinitions[i].PolicyDefinitionReferenceID = nil
+	}
+
 	return reflect.DeepEqual(oldPolicyDefinitions, newPolicyDefinitions)
 }
 
@@ -198,11 +208,11 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
-		parameters, err := structure.ExpandJsonFromString(parametersString)
+		parameters, err := expandParameterDefinitionsValueFromString(parametersString)
 		if err != nil {
 			return fmt.Errorf("unable to expand parameters json: %s", err)
 		}
-		properties.Parameters = &parameters
+		properties.Parameters = parameters
 	}
 
 	if policyDefinitionsString := d.Get("policy_definitions").(string); policyDefinitionsString != "" {
@@ -308,9 +318,8 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 			d.Set("metadata", metadataStr)
 		}
 
-		if parameters := props.Parameters; parameters != nil {
-			paramsVal := parameters.(map[string]interface{})
-			parametersStr, err := structure.FlattenJsonToString(paramsVal)
+		if props.Parameters != nil {
+			parametersStr, err := flattenParameterDefintionsValueToString(props.Parameters)
 			if err != nil {
 				return fmt.Errorf("unable to flatten JSON for `parameters`: %s", err)
 			}

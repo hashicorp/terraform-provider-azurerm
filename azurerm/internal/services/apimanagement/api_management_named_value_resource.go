@@ -149,7 +149,10 @@ func resourceArmApiManagementNamedValueRead(d *schema.ResourceData, meta interfa
 	if properties := resp.NamedValueContractProperties; properties != nil {
 		d.Set("display_name", properties.DisplayName)
 		d.Set("secret", properties.Secret)
-		d.Set("value", properties.Value)
+		// API will not return `value` when `secret` is `true`, in which case we shall not set the `value`. Refer to the issue : #6688
+		if properties.Secret != nil && !*properties.Secret {
+			d.Set("value", properties.Value)
+		}
 		d.Set("tags", properties.Tags)
 	}
 

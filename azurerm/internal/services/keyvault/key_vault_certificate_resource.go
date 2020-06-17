@@ -442,6 +442,13 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 			return nil, "", fmt.Errorf("Error issuing read request in keyVaultCertificateCreationRefreshFunc for Certificate %q in Vault %q: %s", name, keyVaultBaseUrl, err)
 		}
 
+		if res.Policy != nil &&
+			res.Policy.IssuerParameters != nil &&
+			res.Policy.IssuerParameters.Name != nil &&
+			strings.EqualFold(*(res.Policy.IssuerParameters.Name), "unknown") {
+			return res, "Ready", nil
+		}
+
 		if res.Sid == nil || *res.Sid == "" {
 			return nil, "Provisioning", nil
 		}
@@ -503,17 +510,22 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	d.Set("version", id.Version)
 	d.Set("secret_id", cert.Sid)
 
+	certificateData := ""
 	if contents := cert.Cer; contents != nil {
-		d.Set("certificate_data", strings.ToUpper(hex.EncodeToString(*contents)))
+		certificateData = strings.ToUpper(hex.EncodeToString(*contents))
 	}
+	d.Set("certificate_data", certificateData)
 
+	thumbprint := ""
 	if v := cert.X509Thumbprint; v != nil {
 		x509Thumbprint, err := base64.RawURLEncoding.DecodeString(*v)
 		if err != nil {
 			return err
 		}
-		d.Set("thumbprint", strings.ToUpper(hex.EncodeToString(x509Thumbprint)))
+
+		thumbprint = strings.ToUpper(hex.EncodeToString(x509Thumbprint))
 	}
+	d.Set("thumbprint", thumbprint)
 
 	return tags.FlattenAndSet(d, cert.Tags)
 }

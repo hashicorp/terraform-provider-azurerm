@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
@@ -9,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
@@ -33,6 +35,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
@@ -79,6 +82,7 @@ import (
 
 func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
+		advisor.Registration{},
 		analysisservices.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
@@ -87,6 +91,7 @@ func SupportedServices() []common.ServiceRegistration {
 		authorization.Registration{},
 		automation.Registration{},
 		batch.Registration{},
+		blueprints.Registration{},
 		bot.Registration{},
 		cdn.Registration{},
 		cognitive.Registration{},
@@ -148,6 +153,7 @@ func SupportedServices() []common.ServiceRegistration {
 		storage.Registration{},
 		streamanalytics.Registration{},
 		subscription.Registration{},
+		iottimeseriesinsights.Registration{},
 		trafficmanager.Registration{},
 		web.Registration{},
 	}

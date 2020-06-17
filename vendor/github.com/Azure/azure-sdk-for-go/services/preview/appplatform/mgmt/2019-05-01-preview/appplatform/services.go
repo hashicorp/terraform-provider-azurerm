@@ -152,7 +152,9 @@ func (client ServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 							Chain: []validation.Constraint{{Target: "resource.Properties.ConfigServerProperties.ConfigServer.GitProperty.URI", Name: validation.Null, Rule: true, Chain: nil}}},
 						}},
 					}},
-				}}}}}); err != nil {
+				}},
+				{Target: "resource.Sku", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "resource.Sku.Name", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("appplatform.ServicesClient", "CreateOrUpdate", err.Error())
 	}
 

@@ -463,7 +463,7 @@ func expandMonitorDiagnosticsSettingsMetrics(input []interface{}) []insights.Met
 
 		policiesRaw := v["retention_policy"].([]interface{})
 		var retentionPolicy *insights.RetentionPolicy
-		if policiesRaw != nil {
+		if len(policiesRaw) > 0 && policiesRaw[0] != nil {
 			policyRaw := policiesRaw[0].(map[string]interface{})
 			retentionDays := policyRaw["days"].(int)
 			retentionEnabled := policyRaw["enabled"].(bool)

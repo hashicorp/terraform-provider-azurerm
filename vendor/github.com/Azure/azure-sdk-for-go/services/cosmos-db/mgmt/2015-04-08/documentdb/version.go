@@ -21,7 +21,7 @@ import "github.com/Azure/azure-sdk-for-go/version"
 
 // UserAgent returns the UserAgent string to use when sending http.Requests.
 func UserAgent() string {
-	return "Azure-SDK-For-Go/" + version.Number + " documentdb/2015-04-08"
+	return "Azure-SDK-For-Go/" + Version() + " documentdb/2015-04-08"
 }
 
 // Version returns the semantic version (see http://semver.org) of the client.
