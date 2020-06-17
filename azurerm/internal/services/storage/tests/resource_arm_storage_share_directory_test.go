@@ -307,9 +307,9 @@ resource "azurerm_storage_share_directory" "child" {
 }
 
 resource "azurerm_storage_share_directory" "child_two" {
-	name                 = "${azurerm_storage_share_directory.parent.name}/child-two"
-	share_name           = azurerm_storage_share.test.name
-	storage_account_name = azurerm_storage_account.test.name
+  name                 = "${azurerm_storage_share_directory.parent.name}/child-two"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
 }
 `, template)
 }
