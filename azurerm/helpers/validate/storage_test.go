@@ -49,7 +49,7 @@ func TestValidateStorageShareDirectoryName(t *testing.T) {
 		},
 		{
 			Input:    "123-abc/hello/world",
-			Expected: true,
+			Expected: false,
 		},
 		{
 			Input:    "123-abc/hello/world-",
