@@ -17,6 +17,7 @@ ENHANCEMENTS:
 * `azurerm_app_service_certificate `- support for the `hosting_environment_profile_id` propety [GH-7087]
 * `azurerm_app_service_environment` - support for the `user_whitelisted_ip_ranges` property [GH-7324]
 * `azurerm_policy_assignment` - added support for `enforcement_mode`  [GH-7331]
+* `azurerm_storage_share_directory ` - `name` can now contain one nested directory [GH-7382]
 
 BUG FIXES:
 
