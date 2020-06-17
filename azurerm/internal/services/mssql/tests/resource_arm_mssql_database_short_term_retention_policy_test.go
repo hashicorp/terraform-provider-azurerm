@@ -64,7 +64,7 @@ func TestAccAzureRMSqlDatabaseShortTermPolicy_requiresImport(t *testing.T) {
 
 func testCheckAzureRMSqlDatabaseShortTermPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.BackupShortTermRetentionPoliciesClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -90,7 +90,7 @@ func testCheckAzureRMSqlDatabaseShortTermPolicyExists(resourceName string) resou
 }
 
 func testCheckAzureRMSqlDatabaseShortTermPolicyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.BackupShortTermRetentionPoliciesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {

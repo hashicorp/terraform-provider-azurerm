@@ -64,7 +64,7 @@ func TestAccAzureRMSqlDatabaseLongTermPolicy_requiresImport(t *testing.T) {
 
 func testCheckAzureRMSqlDatabaseLongTermPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.BackupLongTermRetentionPoliciesClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -90,7 +90,7 @@ func testCheckAzureRMSqlDatabaseLongTermPolicyExists(resourceName string) resour
 }
 
 func testCheckAzureRMSqlDatabaseLongTermPolicyDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Sql.BackupLongTermRetentionPoliciesClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
