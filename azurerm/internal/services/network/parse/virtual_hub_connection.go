@@ -2,8 +2,9 @@ package parse
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type VirtualHubConnectionResourceID struct {
@@ -22,7 +23,6 @@ func ParseVirtualHubConnectionID(input string) (*VirtualHubConnectionResourceID,
 	// /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/tom-dev99/providers/Microsoft.Network/virtualHubs/tom-devvh/hubVirtualNetworkConnections/first
 	connection := VirtualHubConnectionResourceID{
 		ResourceGroup:  id.ResourceGroup,
-		VirtualHubId:   input[:],
 		VirtualHubName: id.Path["virtualHubs"],
 		Name:           id.Path["hubVirtualNetworkConnections"],
 	}
