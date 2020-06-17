@@ -1,4 +1,4 @@
-package sql
+package mssql
 
 import (
 	"fmt"
@@ -13,12 +13,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlDatabaseShortTermRetentionPolicy() *schema.Resource {
+func resourceArmMsSqlDatabaseShortTermRetentionPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlDatabaseShortTermRetentionPolicyCreateUpdate,
-		Read:   resourceArmSqlDatabaseShortTermRetentionPolicyRead,
-		Update: resourceArmSqlDatabaseShortTermRetentionPolicyCreateUpdate,
-		Delete: resourceArmSqlDatabaseShortTermRetentionPolicyDelete,
+		Create: resourceArmMsSqlDatabaseShortTermRetentionPolicyCreateUpdate,
+		Read:   resourceArmMsSqlDatabaseShortTermRetentionPolicyRead,
+		Update: resourceArmMsSqlDatabaseShortTermRetentionPolicyCreateUpdate,
+		Delete: resourceArmMsSqlDatabaseShortTermRetentionPolicyDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -55,8 +55,8 @@ func resourceArmSqlDatabaseShortTermRetentionPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmSqlDatabaseShortTermRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.BackupShortTermRetentionPoliciesClient
+func resourceArmMsSqlDatabaseShortTermRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -91,11 +91,11 @@ func resourceArmSqlDatabaseShortTermRetentionPolicyCreateUpdate(d *schema.Resour
 	}
 	d.SetId(*response.ID)
 
-	return resourceArmSqlDatabaseShortTermRetentionPolicyRead(d, meta)
+	return resourceArmMsSqlDatabaseShortTermRetentionPolicyRead(d, meta)
 }
 
-func resourceArmSqlDatabaseShortTermRetentionPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.BackupShortTermRetentionPoliciesClient
+func resourceArmMsSqlDatabaseShortTermRetentionPolicyRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -128,8 +128,8 @@ func resourceArmSqlDatabaseShortTermRetentionPolicyRead(d *schema.ResourceData, 
 }
 
 // Default value for PITR is 7 days, therefore on delete we just set the defaults back
-func resourceArmSqlDatabaseShortTermRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.BackupShortTermRetentionPoliciesClient
+func resourceArmMsSqlDatabaseShortTermRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

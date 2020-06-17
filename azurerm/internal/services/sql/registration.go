@@ -29,14 +29,12 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_sql_active_directory_administrator":       resourceArmSqlAdministrator(),
-		"azurerm_sql_database":                             resourceArmSqlDatabase(),
-		"azurerm_sql_elasticpool":                          resourceArmSqlElasticPool(),
-		"azurerm_sql_failover_group":                       resourceArmSqlFailoverGroup(),
-		"azurerm_sql_firewall_rule":                        resourceArmSqlFirewallRule(),
-		"azurerm_sql_server":                               resourceArmSqlServer(),
-		"azurerm_sql_virtual_network_rule":                 resourceArmSqlVirtualNetworkRule(),
-		"azurerm_sql_database_short_term_retention_policy": resourceArmSqlDatabaseShortTermRetentionPolicy(),
-		"azurerm_sql_database_long_term_retention_policy":  resourceArmSqlDatabaseLongTermRetentionPolicy(),
+		"azurerm_sql_active_directory_administrator": resourceArmSqlAdministrator(),
+		"azurerm_sql_database":                       resourceArmSqlDatabase(),
+		"azurerm_sql_elasticpool":                    resourceArmSqlElasticPool(),
+		"azurerm_sql_failover_group":                 resourceArmSqlFailoverGroup(),
+		"azurerm_sql_firewall_rule":                  resourceArmSqlFirewallRule(),
+		"azurerm_sql_server":                         resourceArmSqlServer(),
+		"azurerm_sql_virtual_network_rule":           resourceArmSqlVirtualNetworkRule(),
 	}
 }

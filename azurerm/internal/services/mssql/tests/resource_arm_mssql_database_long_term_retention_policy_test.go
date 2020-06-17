@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMSqlDatabaseLongTermPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_sql_database_long_term_retention_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database_long_term_retention_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -41,7 +41,7 @@ func TestAccAzureRMSqlDatabaseLongTermPolicy_requiresImport(t *testing.T) {
 		return
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_sql_database_long_term_retention_policy", "test")
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database_long_term_retention_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -56,7 +56,7 @@ func TestAccAzureRMSqlDatabaseLongTermPolicy_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMSqlDatabaseLongTermPolicy_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_sql_database_long_term_retention_policy"),
+				ExpectError: acceptance.RequiresImportError("azurerm_mssql_database_long_term_retention_policy"),
 			},
 		},
 	})
@@ -94,7 +94,7 @@ func testCheckAzureRMSqlDatabaseLongTermPolicyDestroy(s *terraform.State) error 
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_sql_database_long_term_retention_policy" {
+		if rs.Type != "azurerm_mssql_database_long_term_retention_policy" {
 			continue
 		}
 
@@ -148,7 +148,7 @@ resource "azurerm_sql_database" "test" {
   requested_service_objective_name = "S0"
 }
 
-resource "azurerm_sql_database_long_term_retention_policy" "test" {
+resource "azurerm_mssql_database_long_term_retention_policy" "test" {
   database_name       = azurerm_sql_database.test.name
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_sql_server.test.name
@@ -165,7 +165,7 @@ func testAccAzureRMSqlDatabaseLongTermPolicy_requiresImport(data acceptance.Test
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_sql_database_long_term_retention_policy" "import" {
+resource "azurerm_mssql_database_long_term_retention_policy" "import" {
   database_name       = azurerm_sql_database.test.name
   resource_group_name = azurerm_resource_group.test.name
   server_name         = azurerm_sql_server.test.name

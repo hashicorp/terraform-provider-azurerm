@@ -2,13 +2,10 @@ package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
-	v3sql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
-	BackupLongTermRetentionPoliciesClient      *v3sql.BackupLongTermRetentionPoliciesClient
-	BackupShortTermRetentionPoliciesClient     *v3sql.BackupShortTermRetentionPoliciesClient
 	DatabasesClient                            *sql.DatabasesClient
 	DatabaseThreatDetectionPoliciesClient      *sql.DatabaseThreatDetectionPoliciesClient
 	ElasticPoolsClient                         *sql.ElasticPoolsClient
@@ -57,16 +54,8 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverExtendedBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverExtendedBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	BackupLongTermRetentionPoliciesClient := v3sql.NewBackupLongTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&BackupLongTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
-
-	BackupShortTermRetentionPoliciesClient := v3sql.NewBackupShortTermRetentionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&BackupShortTermRetentionPoliciesClient.Client, o.ResourceManagerAuthorizer)
-
 	return &Client{
-		BackupLongTermRetentionPoliciesClient:      &BackupLongTermRetentionPoliciesClient,
-		BackupShortTermRetentionPoliciesClient:     &BackupShortTermRetentionPoliciesClient,
-		DatabasesClient:                            &databasesClient,
+		DatabasesClient: &databasesClient,
 		DatabaseExtendedBlobAuditingPoliciesClient: &databaseExtendedBlobAuditingPoliciesClient,
 		DatabaseThreatDetectionPoliciesClient:      &databaseThreatDetectionPoliciesClient,
 		ElasticPoolsClient:                         &elasticPoolsClient,

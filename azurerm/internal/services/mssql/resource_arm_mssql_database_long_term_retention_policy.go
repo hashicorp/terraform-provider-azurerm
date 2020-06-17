@@ -1,4 +1,4 @@
-package sql
+package mssql
 
 import (
 	"fmt"
@@ -13,12 +13,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlDatabaseLongTermRetentionPolicy() *schema.Resource {
+func resourceArmMsSqlDatabaseLongTermRetentionPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlDatabaseLongTermRetentionPolicyCreateUpdate,
-		Read:   resourceArmSqlDatabaseLongTermRetentionPolicyRead,
-		Update: resourceArmSqlDatabaseLongTermRetentionPolicyCreateUpdate,
-		Delete: resourceArmSqlDatabaseLongTermRetentionPolicyDelete,
+		Create: resourceArmMsSqlDatabaseLongTermRetentionPolicyCreateUpdate,
+		Read:   resourceArmMsSqlDatabaseLongTermRetentionPolicyRead,
+		Update: resourceArmMsSqlDatabaseLongTermRetentionPolicyCreateUpdate,
+		Delete: resourceArmMsSqlDatabaseLongTermRetentionPolicyDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -77,8 +77,8 @@ func resourceArmSqlDatabaseLongTermRetentionPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmSqlDatabaseLongTermRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.BackupLongTermRetentionPoliciesClient
+func resourceArmMsSqlDatabaseLongTermRetentionPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -129,11 +129,11 @@ func resourceArmSqlDatabaseLongTermRetentionPolicyCreateUpdate(d *schema.Resourc
 
 	d.SetId(*response.ID)
 
-	return resourceArmSqlDatabaseLongTermRetentionPolicyRead(d, meta)
+	return resourceArmMsSqlDatabaseLongTermRetentionPolicyRead(d, meta)
 }
 
-func resourceArmSqlDatabaseLongTermRetentionPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.BackupLongTermRetentionPoliciesClient
+func resourceArmMsSqlDatabaseLongTermRetentionPolicyRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,8 +186,8 @@ func resourceArmSqlDatabaseLongTermRetentionPolicyRead(d *schema.ResourceData, m
 	return nil
 }
 
-func resourceArmSqlDatabaseLongTermRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.BackupLongTermRetentionPoliciesClient
+func resourceArmMsSqlDatabaseLongTermRetentionPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
