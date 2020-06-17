@@ -12,6 +12,8 @@ Manages an Orchestrated Virtual Machine Scale Set.
 
 -> **Note:** Orchestrated Virtual Machine Scale Sets are in Public Preview - [more details can be found in the Azure Documentation](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
 
+-> **Note:** Azure has deprecated the `single_placement_group` attribute in the Orchestrated Virtual Machine Scale Set since api-version 2019-12-01 and there is a breaking change in the Orchestrated Virtual Machine Scale Set. If you have an Orchestrated Virtual Machine Scale Set created using `azurerm` provider version `<=2.13.0` you will have to remove the `single_placement_group` attribute in your config and recreate the resource to have it managed by terraform.
+
 ## Example Usage
 
 ```hcl
