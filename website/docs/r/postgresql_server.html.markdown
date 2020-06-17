@@ -30,17 +30,17 @@ resource "azurerm_postgresql_server" "example" {
   administrator_login          = "psqladminun"
   administrator_login_password = "H@Sh1CoR3!"
 
-  sku_name   = "GP_Gen5_4"
-  version    = "9.6"  
-  
+  sku_name = "GP_Gen5_4"
+  version  = "9.6"
+
   storage_profile {
     storage_mb            = 640000
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
     auto_grow             = "Enabled"
   }
-  
-  ssl_enforcement          = "Enabled"
+
+  ssl_enforcement = "Enabled"
 
 }
 ```
