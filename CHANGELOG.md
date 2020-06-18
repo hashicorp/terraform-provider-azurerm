@@ -9,6 +9,9 @@ FEATURES
 
 * **New Resource:** `azurerm_data_factory_integration_runtime_self_hosted` [GH-6535]
 * **New Resource:** `azurerm_eventhub_cluster` [GH-7306]
+* **New Resource:** `azurerm_maintenance_assignment_dedicated_host` [GH-6713]
+* **New Resource:** `azurerm_maintenance_assignment_virtual_machine` [GH-6713]
+
 
 ENHANCEMENTS:
 
