@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.
 
+* `enable_purge` - (Optional) Specifies if the purge operations are enabled.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
