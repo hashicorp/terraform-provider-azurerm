@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMFirewallPolicyPolicy_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_policy", "test")
+func TestAccAzureRMFirewallPolicy_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyPolicyDestroy,
+		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyPolicy_basic(data),
+				Config: testAccAzureRMFirewallPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyPolicyExists(data.ResourceName),
+					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,18 +31,18 @@ func TestAccAzureRMFirewallPolicyPolicy_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallPolicyPolicy_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_policy", "test")
+func TestAccAzureRMFirewallPolicy_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyPolicyDestroy,
+		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyPolicy_complete(data),
+				Config: testAccAzureRMFirewallPolicy_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyPolicyExists(data.ResourceName),
+					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -50,32 +50,32 @@ func TestAccAzureRMFirewallPolicyPolicy_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallPolicyPolicy_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_policy", "test")
+func TestAccAzureRMFirewallPolicy_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyPolicyDestroy,
+		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyPolicy_basic(data),
+				Config: testAccAzureRMFirewallPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyPolicyExists(data.ResourceName),
+					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMFirewallPolicyPolicy_complete(data),
+				Config: testAccAzureRMFirewallPolicy_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyPolicyExists(data.ResourceName),
+					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMFirewallPolicyPolicy_basic(data),
+				Config: testAccAzureRMFirewallPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyPolicyExists(data.ResourceName),
+					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -83,37 +83,37 @@ func TestAccAzureRMFirewallPolicyPolicy_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFirewallPolicyPolicy_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_policy", "test")
+func TestAccAzureRMFirewallPolicy_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyPolicyDestroy,
+		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyPolicy_basic(data),
+				Config: testAccAzureRMFirewallPolicy_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyPolicyExists(data.ResourceName),
+					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMFirewallPolicyPolicy_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMFirewallPolicy_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMFirewallPolicyPolicy_inherit(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_firewall_policy_policy", "test")
+func TestAccAzureRMFirewallPolicy_inherit(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall_policy", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMFirewallPolicyPolicyDestroy,
+		CheckDestroy: testCheckAzureRMFirewallPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFirewallPolicyPolicy_inherit(data),
+				Config: testAccAzureRMFirewallPolicy_inherit(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMFirewallPolicyPolicyExists(data.ResourceName),
+					testCheckAzureRMFirewallPolicyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -121,24 +121,24 @@ func TestAccAzureRMFirewallPolicyPolicy_inherit(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMFirewallPolicyPolicyExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMFirewallPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Network.FirewallPoliciesClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Firewall Policy Policy not found: %s", resourceName)
+			return fmt.Errorf("Firewall Policy not found: %s", resourceName)
 		}
 
-		id, err := parse.FirewallPolicyPolicyID(rs.Primary.ID)
+		id, err := parse.FirewallPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Firewall Policy Policy %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
+				return fmt.Errorf("Firewall Policy %q (Resource Group %q) does not exist", id.Name, id.ResourceGroup)
 			}
 			return fmt.Errorf("Getting on Network.FirewallPolicies: %+v", err)
 		}
@@ -147,16 +147,16 @@ func testCheckAzureRMFirewallPolicyPolicyExists(resourceName string) resource.Te
 	}
 }
 
-func testCheckAzureRMFirewallPolicyPolicyDestroy(s *terraform.State) error {
+func testCheckAzureRMFirewallPolicyDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Network.FirewallPoliciesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_firewall_policy_policy" {
+		if rs.Type != "azurerm_firewall_policy" {
 			continue
 		}
 
-		id, err := parse.FirewallPolicyPolicyID(rs.Primary.ID)
+		id, err := parse.FirewallPolicyID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -173,12 +173,12 @@ func testCheckAzureRMFirewallPolicyPolicyDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMFirewallPolicyPolicy_basic(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicyPolicy_template(data)
+func testAccAzureRMFirewallPolicy_basic(data acceptance.TestData) string {
+	template := testAccAzureRMFirewallPolicy_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_firewall_policy_policy" "test" {
+resource "azurerm_firewall_policy" "test" {
   name                = "acctest-fwpolicy-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -186,12 +186,12 @@ resource "azurerm_firewall_policy_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMFirewallPolicyPolicy_complete(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicyPolicy_template(data)
+func testAccAzureRMFirewallPolicy_complete(data acceptance.TestData) string {
+	template := testAccAzureRMFirewallPolicy_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_firewall_policy_policy" "test" {
+resource "azurerm_firewall_policy" "test" {
   name                     = "acctest-fwpolicy-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
@@ -203,40 +203,40 @@ resource "azurerm_firewall_policy_policy" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMFirewallPolicyPolicy_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicyPolicy_basic(data)
+func testAccAzureRMFirewallPolicy_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMFirewallPolicy_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_firewall_policy_policy" "import" {
-  name                = azurerm_firewall_policy_policy.test.name
-  resource_group_name = azurerm_firewall_policy_policy.test.resource_group_name
-  location            = azurerm_firewall_policy_policy.test.location
+resource "azurerm_firewall_policy" "import" {
+  name                = azurerm_firewall_policy.test.name
+  resource_group_name = azurerm_firewall_policy.test.resource_group_name
+  location            = azurerm_firewall_policy.test.location
 }
 `, template)
 }
 
-func testAccAzureRMFirewallPolicyPolicy_inherit(data acceptance.TestData) string {
-	template := testAccAzureRMFirewallPolicyPolicy_template(data)
+func testAccAzureRMFirewallPolicy_inherit(data acceptance.TestData) string {
+	template := testAccAzureRMFirewallPolicy_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_firewall_policy_policy" "test-parent" {
+resource "azurerm_firewall_policy" "test-parent" {
   name                = "acctest-fwpolicy-Policy-%d-parent"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_firewall_policy_policy" "test" {
+resource "azurerm_firewall_policy" "test" {
   name                = "acctest-fwpolicy-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  base_policy_id      = azurerm_firewall_policy_policy.test-parent.id
+  base_policy_id      = azurerm_firewall_policy.test-parent.id
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMFirewallPolicyPolicy_template(data acceptance.TestData) string {
+func testAccAzureRMFirewallPolicy_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

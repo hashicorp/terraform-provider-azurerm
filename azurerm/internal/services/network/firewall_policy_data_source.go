@@ -13,9 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmFirewallPolicyPolicy() *schema.Resource {
+func dataSourceArmFirewallPolicy() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmFirewallPolicyPolicyRead,
+		Read: dataSourceArmFirewallPolicyRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -25,7 +25,7 @@ func dataSourceArmFirewallPolicyPolicy() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.FirewallPolicyPolicyName(),
+				ValidateFunc: validate.FirewallPolicyName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -35,7 +35,7 @@ func dataSourceArmFirewallPolicyPolicy() *schema.Resource {
 	}
 }
 
-func dataSourceArmFirewallPolicyPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FirewallPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -46,14 +46,14 @@ func dataSourceArmFirewallPolicyPolicyRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Firewall Policy Policy %q (Resource Group %q) was not found", name, resourceGroup)
+			return fmt.Errorf("Firewall Policy %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
-		return fmt.Errorf("retrieving Firewall Policy Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Firewall Policy Policy %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for Firewall Policy %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)

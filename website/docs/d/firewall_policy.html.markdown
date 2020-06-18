@@ -1,25 +1,25 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_firewall_policy_policy"
+page_title: "Azure Resource Manager: Data Source: azurerm_firewall_policy"
 description: |-
   Gets information about an existing Firewall Policy.
 ---
 
-# Data Source: azurerm_firewall_policy_policy
+# Data Source: azurerm_firewall_policy
 
 Use this data source to access information about an existing Firewall Policy.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_firewall_policy_policy" "example" {
+data "azurerm_firewall_policy" "example" {
   name                = "existing"
   resource_group_name = "existing"
 }
 
 output "id" {
-  value = data.azurerm_firewall_policy_policy.example.id
+  value = data.azurerm_firewall_policy.example.id
 }
 ```
 

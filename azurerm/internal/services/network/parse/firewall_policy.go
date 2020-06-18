@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type FirewallPolicyPolicyId struct {
+type FirewallPolicyId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func FirewallPolicyPolicyID(input string) (*FirewallPolicyPolicyId, error) {
+func FirewallPolicyID(input string) (*FirewallPolicyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing Firewall Policy Policy ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing Firewall Policy ID %q: %+v", input, err)
 	}
 
-	policy := FirewallPolicyPolicyId{
+	policy := FirewallPolicyId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

@@ -1,19 +1,19 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_firewall_policy_policy"
+page_title: "Azure Resource Manager: azurerm_firewall_policy"
 description: |-
   Manages a Firewall Policy.
 ---
 
-# azurerm_firewall_policy_policy
+# azurerm_firewall_policy
 
 Manages a Firewall Policy.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_firewall_policy_policy" "example" {
+resource "azurerm_firewall_policy" "example" {
   name                = "example"
   resource_group_name = "example"
   location            = "West Europe"
@@ -62,5 +62,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 networks can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_firewall_policy_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/firewallPolicies/policy1
+terraform import azurerm_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/firewallPolicies/policy1
 ```

@@ -4,12 +4,12 @@ import (
 	"testing"
 )
 
-func TestFirewallPolicyPolicyID(t *testing.T) {
+func TestFirewallPolicyID(t *testing.T) {
 	testData := []struct {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *FirewallPolicyPolicyId
+		Expect *FirewallPolicyId
 	}{
 		{
 			Name:  "Empty",
@@ -39,7 +39,7 @@ func TestFirewallPolicyPolicyID(t *testing.T) {
 		{
 			Name:  "Correct Case",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1",
-			Expect: &FirewallPolicyPolicyId{
+			Expect: &FirewallPolicyId{
 				ResourceGroup: "group1",
 				Name:          "policy1",
 			},
@@ -49,7 +49,7 @@ func TestFirewallPolicyPolicyID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := FirewallPolicyPolicyID(v.Input)
+		actual, err := FirewallPolicyID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue

@@ -21,15 +21,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmFirewallPolicyPolicy() *schema.Resource {
+func resourceArmFirewallPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFirewallPolicyPolicyCreateUpdate,
-		Read:   resourceArmFirewallPolicyPolicyRead,
-		Update: resourceArmFirewallPolicyPolicyCreateUpdate,
-		Delete: resourceArmFirewallPolicyPolicyDelete,
+		Create: resourceArmFirewallPolicyCreateUpdate,
+		Read:   resourceArmFirewallPolicyRead,
+		Update: resourceArmFirewallPolicyCreateUpdate,
+		Delete: resourceArmFirewallPolicyDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.FirewallPolicyPolicyID(id)
+			_, err := parse.FirewallPolicyID(id)
 			return err
 		}),
 
@@ -45,7 +45,7 @@ func resourceArmFirewallPolicyPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FirewallPolicyPolicyName(),
+				ValidateFunc: validate.FirewallPolicyName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -55,7 +55,7 @@ func resourceArmFirewallPolicyPolicy() *schema.Resource {
 			"base_policy_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.FirewallPolicyPolicyID,
+				ValidateFunc: validate.FirewallPolicyID,
 			},
 
 			"threat_intelligence_mode": {
@@ -90,7 +90,7 @@ func resourceArmFirewallPolicyPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmFirewallPolicyPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FirewallPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -102,12 +102,12 @@ func resourceArmFirewallPolicyPolicyCreateUpdate(d *schema.ResourceData, meta in
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing Firewall Policy Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
 		if resp.ID != nil && *resp.ID != "" {
-			return tf.ImportAsExistsError("azurerm_firewall_policy_policy", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_firewall_policy", *resp.ID)
 		}
 	}
 
@@ -123,27 +123,27 @@ func resourceArmFirewallPolicyPolicyCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, param); err != nil {
-		return fmt.Errorf("creating Firewall Policy Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("creating Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("retrieving Firewall Policy Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Firewall Policy Policy %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("empty or nil ID returned for Firewall Policy %q (Resource Group %q) ID", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmFirewallPolicyPolicyRead(d, meta)
+	return resourceArmFirewallPolicyRead(d, meta)
 }
 
-func resourceArmFirewallPolicyPolicyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FirewallPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallPolicyPolicyID(d.Id())
+	id, err := parse.FirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -151,12 +151,12 @@ func resourceArmFirewallPolicyPolicyRead(d *schema.ResourceData, meta interface{
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Firewall Policy Policy %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
+			log.Printf("[DEBUG] Firewall Policy %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Firewall Policy Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Firewall Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
@@ -182,18 +182,18 @@ func resourceArmFirewallPolicyPolicyRead(d *schema.ResourceData, meta interface{
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmFirewallPolicyPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FirewallPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FirewallPolicyPolicyID(d.Id())
+	id, err := parse.FirewallPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Firewall Policy Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("deleting Firewall Policy %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
