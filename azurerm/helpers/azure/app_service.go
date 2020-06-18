@@ -244,7 +244,7 @@ func SchemaAppServiceIdentity() *schema.Schema {
 					Computed: true,
 				},
 				"identity_ids": {
-					Type:     schema.TypeList,
+					Type:     schema.TypeSet,
 					Optional: true,
 					MinItems: 1,
 					Elem: &schema.Schema{
@@ -1351,7 +1351,7 @@ func ExpandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
 	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
 
 	identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
-	for _, id := range identity["identity_ids"].([]interface{}) {
+	for _, id := range identity["identity_ids"].(*schema.Set).List() {
 		identityIds[id.(string)] = &web.ManagedServiceIdentityUserAssignedIdentitiesValue{}
 	}
 
