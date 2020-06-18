@@ -137,6 +137,7 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 
 func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
+	virtualHubClient := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -155,8 +156,16 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("reading Virtual Hub Connection %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
+	virtualHubResp, err := virtualHubClient.Get(ctx, id.ResourceGroup, id.VirtualHubName)
+	if err != nil {
+		return fmt.Errorf("retrieving Virtual Hub %q (Resource Group %q): %+v", id.VirtualHubName, id.ResourceGroup, err)
+	}
+	if virtualHubResp.ID == nil || *virtualHubResp.ID == "" {
+		return fmt.Errorf("Cannot read Virtual Hub %q (Resource Group %q) ID", id.VirtualHubName, id.ResourceGroup)
+	}
+
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", id.VirtualHubId)
+	d.Set("virtual_hub_id", virtualHubResp.ID)
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
 		d.Set("internet_security_enabled", props.EnableInternetSecurity)

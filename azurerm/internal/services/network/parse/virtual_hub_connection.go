@@ -2,14 +2,12 @@ package parse
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 type VirtualHubConnectionResourceID struct {
 	ResourceGroup  string
-	VirtualHubId   string
 	VirtualHubName string
 	Name           string
 }
@@ -25,13 +23,6 @@ func ParseVirtualHubConnectionID(input string) (*VirtualHubConnectionResourceID,
 		ResourceGroup:  id.ResourceGroup,
 		VirtualHubName: id.Path["virtualHubs"],
 		Name:           id.Path["hubVirtualNetworkConnections"],
-	}
-
-	connectionIndex := strings.Index(input, "/hubVirtualNetworkConnections")
-	if connectionIndex == -1 {
-		return nil, fmt.Errorf("parsing virtual hub resource id from hub virtual network connection resource id")
-	} else {
-		connection.VirtualHubId = input[:connectionIndex]
 	}
 
 	if connection.VirtualHubName == "" {
