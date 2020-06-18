@@ -92,7 +92,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *schema.ResourceData
 	}
 
 	// It may take a few minutes after starting a VM for it to become available to assign to a configuration
-	resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	err = resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		if _, err := client.CreateOrUpdate(ctx, virtualMachineId.ResourceGroup, "Microsoft.Compute", "virtualMachines", virtualMachineId.Name, assignmentName, assignment); err != nil {
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
 				return resource.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
@@ -102,6 +102,9 @@ func resourceArmMaintenanceAssignmentVirtualMachineCreate(d *schema.ResourceData
 
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	resp, err := getMaintenanceAssignmentVirtualMachine(ctx, client, virtualMachineId, virtualMachineIdRaw)
 	if err != nil {
