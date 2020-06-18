@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_sql_server" "example" {
-  name                         = "mysqlserver"
+  name                         = "myexamplesqlserver"
   resource_group_name          = azurerm_resource_group.example.name
   location                     = "West US"
   version                      = "12.0"
@@ -40,7 +40,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_sql_database" "example" {
-  name                = "mysqldatabase"
+  name                = "myexamplesqldatabase"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West US"
   server_name         = azurerm_sql_server.example.name
