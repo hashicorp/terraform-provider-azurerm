@@ -22,6 +22,7 @@ ENHANCEMENTS:
 * `azurerm_app_service_certificate `- support for the `hosting_environment_profile_id` propety [GH-7087]
 * `azurerm_app_service_environment` - support for the `user_whitelisted_ip_ranges` property [GH-7324]
 * `azurerm_kusto_cluster` - Support for `enable_purge` [GH-7375]
+* `azurerm_kusto_cluster` - Support for extended Kusto Cluster SKUs [GH-7372]
 * `azurerm_policy_assignment` - added support for `enforcement_mode`  [GH-7331]
 * `azurerm_private_endpoint` - expose `private_dns_zone_group`, `private_dns_zone_configs`, and `custom_dns_configs` [GH-7246]
 * `azurerm_storage_share_directory ` - `name` can now contain one nested directory [GH-7382]
