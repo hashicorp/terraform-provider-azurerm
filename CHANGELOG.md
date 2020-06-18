@@ -1,8 +1,13 @@
 ## 2.15.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_orchestrated_virtual_machine_scale_set` - the `single_placement_group` property is now required to be `false` by the service team in the `2019-12-01` compute API [GH-7188]
+
 DEPENDENCIES
 
 * updating to `v43.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-7188]
+* upgrading `kusto` to`2019-12-01` [GH-7101]
 * upgrading `kusto` to`2020-02-15` [GH-6838]
 
 FEATURES
