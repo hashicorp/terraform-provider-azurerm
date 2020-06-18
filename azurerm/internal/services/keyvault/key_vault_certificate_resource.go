@@ -310,6 +310,44 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 			},
 
 			// Computed
+			"certificate_attribute": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"created": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
+						"expires": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"not_before": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"recovery_level": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"updated": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -504,6 +542,10 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
 		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
+	}
+
+	if err := d.Set("certificate_attribute", flattenKeyVaultCertificateAttribute(cert.Attributes)); err != nil {
+		return fmt.Errorf("setting Key Vault Certificate Attributes: %+v", err)
 	}
 
 	// Computed
@@ -772,6 +814,43 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 	}
 
 	return []interface{}{policy}
+}
+
+func flattenKeyVaultCertificateAttribute(input *keyvault.CertificateAttributes) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	created := ""
+	expires := ""
+	notBefore := ""
+	updated := ""
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+	if input.Created != nil {
+		created = time.Time(*input.Created).Format(time.RFC3339)
+	}
+	if input.Expires != nil {
+		expires = time.Time(*input.Expires).Format(time.RFC3339)
+	}
+	if input.NotBefore != nil {
+		notBefore = time.Time(*input.NotBefore).Format(time.RFC3339)
+	}
+	if input.Updated != nil {
+		updated = time.Time(*input.Updated).Format(time.RFC3339)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"created":        created,
+			"enabled":        enabled,
+			"expires":        expires,
+			"not_before":     notBefore,
+			"recovery_level": string(input.RecoveryLevel),
+			"updated":        updated,
+		},
+	}
 }
 
 type KeyVaultCertificateImportParameters struct {
