@@ -109,10 +109,8 @@ func ValidatePrivateDnsZoneResourceID(i interface{}, k string) (warnings []strin
 
 	if id, err := azure.ParseAzureResourceID(v); err != nil {
 		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-	} else {
-		if _, err = id.PopSegment("privateDnsZones"); err != nil {
-			errors = append(errors, fmt.Errorf("Can not parse %q as a private dns zone resource id: %v", k, err))
-		}
+	} else if _, err = id.PopSegment("privateDnsZones"); err != nil {
+		errors = append(errors, fmt.Errorf("Can not parse %q as a private dns zone resource id: %v", k, err))
 	}
 
 	return warnings, errors
