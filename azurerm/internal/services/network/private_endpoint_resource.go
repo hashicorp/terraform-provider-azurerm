@@ -544,11 +544,14 @@ func expandArmPrivateLinkEndpointServiceConnection(input []interface{}, parseMan
 
 func flattenArmPrivateDnsZoneGroup(input network.PrivateDNSZoneGroup) []interface{} {
 	output := make([]interface{}, 0)
-
 	result := make(map[string]interface{})
 
-	result["id"] = *input.ID
-	result["name"] = *input.Name
+	if id := input.ID; id != nil {
+		result["id"] = *id
+	}
+	if name := input.Name; name != nil {
+		result["name"] = *name
+	}
 
 	if props := input.PrivateDNSZoneGroupPropertiesFormat; props != nil {
 		result["private_dns_zone_ids"] = flattenArmPrivateDnsZoneIds(props.PrivateDNSZoneConfigs)
