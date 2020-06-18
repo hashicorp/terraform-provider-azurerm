@@ -63,7 +63,7 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Default:      false,
-				Deprecated:   "this property has been deprecated starting from api-version 2019-12-01 and will be removed in version 3.0 of the provider",
+				Deprecated:   "Due to an upgrade of the compute API this preview property has now been deprecated and required to be false in the 2019-12-01 api versions for orchestrated VMSS - as it will always be false for the current and future API versions this property now defaults to false and will removed in version 3.0 of the provider.",
 				ValidateFunc: validateBoolIsFalse,
 			},
 
