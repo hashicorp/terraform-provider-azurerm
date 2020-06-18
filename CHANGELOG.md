@@ -21,6 +21,7 @@ ENHANCEMENTS:
 * `azurerm_app_service` - support for `scm_ip_restriction` [GH-6955]
 * `azurerm_app_service_certificate `- support for the `hosting_environment_profile_id` propety [GH-7087]
 * `azurerm_app_service_environment` - support for the `user_whitelisted_ip_ranges` property [GH-7324]
+* `azurerm_kusto_cluster` - Support for `enable_purge` [GH-7375]
 * `azurerm_policy_assignment` - added support for `enforcement_mode`  [GH-7331]
 * `azurerm_storage_share_directory ` - `name` can now contain one nested directory [GH-7382]
 
