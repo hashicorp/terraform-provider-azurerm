@@ -203,7 +203,7 @@ func testAccAzureRMVirtualHubConnection_requiresImport(data acceptance.TestData)
 
 resource "azurerm_virtual_hub_connection" "import" {
   name                      = azurerm_virtual_hub_connection.test.name
-  virtual_hub_id            = azurerm_virtual_hub_connection.test.id
+  virtual_hub_id            = azurerm_virtual_hub_connection.test.virtual_hub_id
   remote_virtual_network_id = azurerm_virtual_hub_connection.test.remote_virtual_network_id
 }
 `, template)
