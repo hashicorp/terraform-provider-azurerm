@@ -114,8 +114,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				// TODO: raise a GH issue for the broken API
 				// availability_set_id:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/ACCTESTAVSET-200122113424880096" => "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/acctestavset-200122113424880096" (forces new resource)
 				ConflictsWith: []string{
-					"virtual_machine_scale_set_id",
-					"zone",
+					"virtual_machine_scale_set_id"
 				},
 			},
 
@@ -237,7 +236,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				// and if the VMSS in not zonal, this value should be left empty
 				Computed: true,
 				ConflictsWith: []string{
-					"availability_set_id",
+					"virtual_machine_scale_set_id",
 				},
 			},
 
@@ -393,6 +392,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
+		// dont allow setting availability_set_id attribute if using Availbility Zone deployment model
+		if v, ok := d.GetOk("zone"); ok && v.(string) != nil {
+			return fmt.Errorf("`availability_set_id` cannot be used/set if `zone` is set and likewise")
+		}
 		params.AvailabilitySet = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
@@ -441,6 +444,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("zone"); ok {
+		// dont allow setting zone attribute if using Availbility Sets deployment model
+		if v, ok := d.GetOk("availability_set_id"); ok && v.(string) != nil {
+			return fmt.Errorf("`zone` cannot be used/set if `availability_set_id` is set and likewise")
+		}
 		params.Zones = &[]string{
 			v.(string),
 		}
@@ -529,6 +536,10 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 
 	availabilitySetId := ""
 	if props.AvailabilitySet != nil && props.AvailabilitySet.ID != nil {
+		// cannot use availability set and zones in the same time
+		if resp.Zones != nil {
+			return fmt.Errorf("Error setting `availability_set_id` if `zone` is used")
+		}
 		availabilitySetId = *props.AvailabilitySet.ID
 	}
 	d.Set("availability_set_id", availabilitySetId)
@@ -627,6 +638,10 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 
 	zone := ""
 	if resp.Zones != nil {
+		// cannot use availability set and zones in the same time
+		if props.AvailabilitySet.ID != nil {
+			return fmt.Errorf("Error setting `zone` if `availability_set_id` is used")
+		}
 		if zones := *resp.Zones; len(zones) > 0 {
 			zone = zones[0]
 		}
