@@ -161,10 +161,12 @@ func testCheckAzureRMFirewallPolicyDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name, ""); err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Getting on Network.FirewallPolicies: %+v", err)
-			}
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+		if err == nil {
+			return fmt.Errorf("Network.FirewallPolicies still exists")
+		}
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Getting on Network.FirewallPolicies: %+v", err)
 		}
 
 		return nil
