@@ -109,9 +109,19 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 
+* `private_dns_zone_group` - (Optional) A `private_dns_zone_group` block as defined below.
+
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `private_dns_zone_group` supports the following:
+
+* `name` - (Required) Specifies the Name of the Private Service Connection. Changing this forces the a new `private_dns_zone_group` to be created.
+
+* `private_dns_zone_ids` - (Required) Specifies the list of Private DNS Zones to include within the `private_dns_zone_group`.
 
 ---
 
@@ -151,11 +161,58 @@ The following attributes are exported:
 
 * `id` - The ID of the Private Endpoint.
 
+---
+
+A `private_dns_zone_group` block exports:
+
+* `id` - The ID of the Private DNS Zone Group.
+
+---
+
+A `custom_dns_configs` block exports:
+
+* `fqdn` - The fully qualified domain name to the `private_endpoint`.
+
+* `ip_addresses` - A list of all IP Addresses that map to the `private_endpoint` fqdn.
+
+-> **NOTE:** If a Private DNS Zone Group has been defined and is currently connected correctly this block will be empty.
+
+---
+
+A `private_dns_zone_configs` block exports:
+
+* `name` - The name of the Private DNS Zone that the config belongs to.
+
+* `id` - The ID of the Private DNS Zone Config.
+
+* `private_dns_zone_id` - A list of IP Addresses
+
+* `record_sets` - A `record_sets` block as defined below.
+
+---
+
+A `record_sets` block exports:
+
+* `name` - The name of the Private DNS Zone that the config belongs to.
+
+* `type` - The type of DNS record.
+
+* `fqdn` - The fully qualified domain name to the `private_dns_zone`.
+
+* `ttl` - The time to live for each connection to the `private_dns_zone`.
+
+* `ip_addresses` - A list of all IP Addresses that map to the `private_dns_zone` fqdn.
+
+-> **NOTE:** If a Private DNS Zone Group has not been configured correctly the `record_sets` attibutes will be empty.
+
+---
+
 ## Example HCL Configurations
 
 * How to connect a `Private Endpoint` to a [Cosmos MongoDB](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/cosmos-db)
 * How to connect a `Private Endpoint` to a [PostgreSQL Server](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/postgresql)
 * How to connect a `Private Endpoint` to a [Private Link Service](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-link-service)
+* How to connect a `Private Endpoint` to a [Private DNS Group](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/private-endpoint/private-dns-group)
 
 ## Timeouts
 
