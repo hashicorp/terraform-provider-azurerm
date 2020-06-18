@@ -114,7 +114,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				// TODO: raise a GH issue for the broken API
 				// availability_set_id:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/ACCTESTAVSET-200122113424880096" => "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/acctestavset-200122113424880096" (forces new resource)
 				ConflictsWith: []string{
-					"virtual_machine_scale_set_id"
+					"virtual_machine_scale_set_id",
 				},
 			},
 
@@ -393,7 +393,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("availability_set_id"); ok {
 		// dont allow setting availability_set_id attribute if using Availbility Zone deployment model
-		if v, ok := d.GetOk("zone"); ok && v.(string) != nil {
+		if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
 			return fmt.Errorf("`availability_set_id` cannot be used/set if `zone` is set and likewise")
 		}
 		params.AvailabilitySet = &compute.SubResource{
@@ -445,7 +445,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("zone"); ok {
 		// dont allow setting zone attribute if using Availbility Sets deployment model
-		if v, ok := d.GetOk("availability_set_id"); ok && v.(string) != nil {
+		if v, ok := d.GetOk("availability_set_id"); ok && v.(string) != "" {
 			return fmt.Errorf("`zone` cannot be used/set if `availability_set_id` is set and likewise")
 		}
 		params.Zones = &[]string{
