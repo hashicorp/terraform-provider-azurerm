@@ -15,57 +15,105 @@ type NameResourceGroup struct {
 
 func PrivateDnsZoneGroupResourceID(input string) (*NameResourceGroup, error) {
 	if len(strings.TrimSpace(input)) == 0 {
-		return NameResourceGroup{}, fmt.Errorf("input is empty for parse.PrivateDnsZoneGroupResourceID")
+		return nil, fmt.Errorf("unable to parse Private DNS Zone Group ID %q: input is empty", input)
 	}
 
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return NameResourceGroup{}, fmt.Errorf("unable to parse Private DNS Zone Group ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Private DNS Zone Group ID %q: %+v", input, err)
 	}
 
 	privateDnsZoneGroup := NameResourceGroup{
-		Name:          id.Path["privateDnsZoneGroups"],
 		ResourceGroup: id.ResourceGroup,
-		ID:            input,
 	}
 
-	return privateDnsZoneGroup, nil
+	if privateDnsZoneGroup.Name, err = id.PopSegment("privateDnsZoneGroups"); err != nil {
+		return nil, err
+	}
+
+	if privateDnsZoneGroup.ID = input; err != nil {
+		return nil, err
+	}
+
+	return &privateDnsZoneGroup, nil
 }
 
-func PrivateDnsZoneResourceIDs(input []interface{}) ([]NameResourceGroup, error) {
+func PrivateDnsZoneResourceIDs(input []interface{}) (*[]NameResourceGroup, error) {
 	results := make([]NameResourceGroup, 0)
 
 	for _, item := range input {
 		v := item.(string)
 
-		id, err := azure.ParseAzureResourceID(v)
-		if err != nil {
-			return nil, fmt.Errorf("unable to parse Private DNS Zone ID %q: %+v", input, err)
+		if privateDnsZone, err := PrivateDnsZoneResourceID(v); err != nil {
+			return nil, fmt.Errorf("unable to parse Private DNS Zone ID %q: %+v", v, err)
+		} else {
+			results = append(results, *privateDnsZone)
 		}
-
-		privateDnsZone := NameResourceGroup{
-			Name:          id.Path["privateDnsZones"],
-			ResourceGroup: id.ResourceGroup,
-			ID:            v,
-		}
-
-		results = append(results, privateDnsZone)
 	}
 
-	return results, nil
+	return &results, nil
 }
 
-func PrivateEndpointResourceID(input string) (NameResourceGroup, error) {
+func PrivateDnsZoneResourceID(input string) (*NameResourceGroup, error) {
+	if len(strings.TrimSpace(input)) == 0 {
+		return nil, fmt.Errorf("unable to parse Private DNS Zone ID %q: input is empty", input)
+	}
+
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return NameResourceGroup{}, fmt.Errorf("unable to parse Private Endpoint ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Private DNS Zone ID %q: %+v", input, err)
+	}
+
+	privateDnsZone := NameResourceGroup{
+		ResourceGroup: id.ResourceGroup,
+	}
+
+	if privateDnsZone.Name, err = id.PopSegment("privateDnsZones"); err != nil {
+		return nil, err
+	}
+
+	if privateDnsZone.ID = input; err != nil {
+		return nil, err
+	}
+
+	return &privateDnsZone, nil
+}
+
+func PrivateEndpointResourceID(input string) (*NameResourceGroup, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse Private Endpoint ID %q: %+v", input, err)
 	}
 
 	privateEndpoint := NameResourceGroup{
-		Name:          id.Path["privateEndpoints"],
 		ResourceGroup: id.ResourceGroup,
-		ID:            input,
 	}
 
-	return privateEndpoint, nil
+	if privateEndpoint.Name, err = id.PopSegment("privateEndpoints"); err != nil {
+		return nil, err
+	}
+
+	if privateEndpoint.ID = input; err != nil {
+		return nil, err
+	}
+
+	return &privateEndpoint, nil
+}
+
+func ValidatePrivateDnsZoneResourceID(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if id, err := azure.ParseAzureResourceID(v); err != nil {
+		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
+	} else {
+		if _, err = id.PopSegment("privateDnsZones"); err != nil {
+			errors = append(errors, fmt.Errorf("Can not parse %q as a private dns zone resource id: %v", k, err))
+		}
+	}
+
+	return warnings, errors
 }

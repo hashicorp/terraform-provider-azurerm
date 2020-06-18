@@ -75,7 +75,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 							Required: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: azure.ValidateResourceID,
+								ValidateFunc: parse.ValidatePrivateDnsZoneResourceID,
 							},
 						},
 					},
@@ -310,7 +310,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 
 		privateDnsZoneConfigs := make([]network.PrivateDNSZoneConfig, 0)
 
-		for _, item := range privateDnsZones {
+		for _, item := range *privateDnsZones {
 			v := network.PrivateDNSZoneConfig{
 				Name: utils.String(item.Name),
 				PrivateDNSZonePropertiesFormat: &network.PrivateDNSZonePropertiesFormat{
@@ -453,24 +453,22 @@ func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	privateEndpoint, err := parse.PrivateEndpointResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["privateEndpoints"]
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, privateEndpoint.ResourceGroup, privateEndpoint.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("deleting Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Private Endpoint %q (Resource Group %q): %+v", privateEndpoint.Name, privateEndpoint.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Private Endpoint %q (Resource Group %q): %+v", privateEndpoint.Name, privateEndpoint.ResourceGroup, err)
 		}
 	}
 
@@ -486,30 +484,27 @@ func resourceArmPrivateDnsZoneGroupDelete(d *schema.ResourceData, meta interface
 		return nil
 	}
 
-	privateEndpointId, err := azure.ParseAzureResourceID(d.Id())
+	privateEndpoint, err := parse.PrivateEndpointResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-
-	resourceGroup := privateEndpointId.ResourceGroup
-	privateEndpointName := privateEndpointId.Path["privateEndpoints"]
 
 	privateDnsZoneGroupId, err := parse.PrivateDnsZoneGroupResourceID(oldId)
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, resourceGroup, privateEndpointName, privateDnsZoneGroupId.Name)
+	future, err := client.Delete(ctx, privateEndpoint.ResourceGroup, privateEndpoint.Name, privateDnsZoneGroupId.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("deleting Private DNS Zone Group %q (Resource Group %q): %+v", privateDnsZoneGroupId.Name, resourceGroup, err)
+		return fmt.Errorf("deleting Private DNS Zone Group %q (Resource Group %q): %+v", privateDnsZoneGroupId.Name, privateEndpoint.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Private DNS Zone Group %q (Resource Group %q): %+v", privateDnsZoneGroupId.Name, resourceGroup, err)
+			return fmt.Errorf("waiting for deletion of Private DNS Zone Group %q (Resource Group %q): %+v", privateDnsZoneGroupId.Name, privateEndpoint.ResourceGroup, err)
 		}
 	}
 
