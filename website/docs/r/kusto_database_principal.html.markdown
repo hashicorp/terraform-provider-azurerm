@@ -48,8 +48,8 @@ resource "azurerm_kusto_database_principal" "principal" {
 
   role      = "Viewer"
   type      = "User"
-  client_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.client_id
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  client_id = data.azurerm_client_config.current.client_id
 }
 ```
 
@@ -67,9 +67,9 @@ The following arguments are supported:
 
 * `type` - (Required) Specifies the type of object the principal is. Valid values include `App`, `Group`, `User`. Changing this forces a new resource to be created.
 
-* `object_id` - (Required) An Object ID of a User, Group, or App. Changing this forces a new resource to be created.
+* `client_id` - (Required) An Client ID of a User, Group, or App. Changing this forces a new resource to be created.
 
-* `client_id` - (Required) The Client ID that owns the specified `object_id`. Changing this forces a new resource to be created.
+* `tenant_id` - (Required) The Tenant ID that owns the specified `client_id`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

@@ -166,8 +166,8 @@ resource "azurerm_kusto_database_principal" "test" {
 
   role      = "Viewer"
   type      = "App"
-  client_id = data.azurerm_client_config.current.tenant_id
-  object_id = data.azurerm_client_config.current.client_id
+  tenant_id = data.azurerm_client_config.current.tenant_id
+  client_id = data.azurerm_client_config.current.client_id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

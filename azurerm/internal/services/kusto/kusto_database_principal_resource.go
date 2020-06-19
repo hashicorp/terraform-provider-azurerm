@@ -77,14 +77,14 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 				}, false),
 			},
 
-			"client_id": {
+			"tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"object_id": {
+			"client_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -129,16 +129,16 @@ func resourceArmKustoDatabasePrincipalCreate(d *schema.ResourceData, meta interf
 	role := d.Get("role").(string)
 	principalType := d.Get("type").(string)
 
+	tenantID := d.Get("tenant_id").(string)
 	clientID := d.Get("client_id").(string)
-	objectID := d.Get("object_id").(string)
 	fqn := ""
 	switch principalType {
 	case "User":
-		fqn = fmt.Sprintf("aaduser=%s;%s", objectID, clientID)
+		fqn = fmt.Sprintf("aaduser=%s;%s", clientID, tenantID)
 	case "Group":
-		fqn = fmt.Sprintf("aadgroup=%s;%s", objectID, clientID)
+		fqn = fmt.Sprintf("aadgroup=%s;%s", clientID, tenantID)
 	case "App":
-		fqn = fmt.Sprintf("aadapp=%s;%s", objectID, clientID)
+		fqn = fmt.Sprintf("aadapp=%s;%s", clientID, tenantID)
 	}
 
 	database, err := client.Get(ctx, resourceGroup, clusterName, databaseName)
@@ -273,14 +273,14 @@ func resourceArmKustoDatabasePrincipalRead(d *schema.ResourceData, meta interfac
 
 	splitFQN := strings.Split(fqn, "=")
 	if len(splitFQN) != 2 {
-		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", fqn)
+		return fmt.Errorf("Expected `fqn` to be in the format aadtype=clientid:tenantid but got: %q", fqn)
 	}
 	splitIDs := strings.Split(splitFQN[1], ";")
 	if len(splitIDs) != 2 {
-		return fmt.Errorf("Expected `fqn` to be in the format aadtype=objectid:clientid but got: %q", fqn)
+		return fmt.Errorf("Expected `fqn` to be in the format aadtype=clientid:tenantid but got: %q", fqn)
 	}
-	d.Set("object_id", splitIDs[0])
-	d.Set("client_id", splitIDs[1])
+	d.Set("client_id", splitIDs[0])
+	d.Set("tenant_id", splitIDs[1])
 
 	return nil
 }
