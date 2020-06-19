@@ -67,13 +67,13 @@ The following arguments are supported:
 
 * `type` - (Required) Specifies the type of object the principal is. Valid values include `App`, `Group`, `User`. Changing this forces a new resource to be created.
 
-* `object_id` - (Required) An Object ID of a User, Group, or App. Changing this forces a new resource to be created.
-
-~> **NOTE:** The field `object_id` has been deprecated since the name is confusion.
-
 * `client_id` - (Required) An Client ID of a User, Group, or App. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Required) The Tenant ID that owns the specified `client_id`. Changing this forces a new resource to be created.
+
+* `object_id` - (Optional) An Object ID of a User, Group, or App.
+
+~> **NOTE:** The field `object_id` has been deprecated since its name causes confusion.
 
 ## Attributes Reference
 
