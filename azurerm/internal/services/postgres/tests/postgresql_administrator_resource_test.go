@@ -82,7 +82,7 @@ func TestAccAzurePostgreSqlAdministrator_disappears(t *testing.T) {
 
 func testCheckAzurePostgreSqlAdministratorExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).postgresql.ServerAdministratorsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServerAdministratorsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -100,7 +100,7 @@ func testCheckAzurePostgreSqlAdministratorExists(resourceName string) resource.T
 
 func testCheckAzurePostgreSqlAdministratorDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).postgresql.ServerAdministratorsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServerAdministratorsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -112,7 +112,7 @@ func testCheckAzurePostgreSqlAdministratorDisappears(resourceName string) resour
 		serverName := rs.Primary.Attributes["server_name"]
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
-			return fmt.Errorf("Bad: Delete on postgresqlAdministratorClient: %+v", err)
+			return fmt.Errorf("Bad: Delete on postgresAdministratorClient: %+v", err)
 		}
 
 		return nil
@@ -120,7 +120,7 @@ func testCheckAzurePostgreSqlAdministratorDisappears(resourceName string) resour
 }
 
 func testCheckAzurePostgreSqlAdministratorDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).postgresql.ServerAdministratorsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
