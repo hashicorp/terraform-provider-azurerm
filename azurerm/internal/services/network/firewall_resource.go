@@ -79,6 +79,17 @@ func resourceArmFirewall() *schema.Resource {
 				},
 			},
 
+			"threat_intelligence_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(network.AzureFirewallThreatIntelModeAlert),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(network.AzureFirewallThreatIntelModeAlert),
+					string(network.AzureFirewallThreatIntelModeDeny),
+					string(network.AzureFirewallThreatIntelModeOff),
+				}, false),
+			},
+
 			"zones": azure.SchemaMultipleZones(),
 
 			"tags": tags.Schema(),
@@ -116,6 +127,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(d)
+	threatIntelligenceMode := network.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string))
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("Error Building list of Azure Firewall IP Configurations: %+v", err)
@@ -135,6 +147,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Tags:     tags.Expand(t),
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
 			IPConfigurations: ipConfigs,
+			ThreatIntelMode:  threatIntelligenceMode,
 		},
 		Zones: zones,
 	}
