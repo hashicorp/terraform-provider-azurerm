@@ -87,7 +87,7 @@ func resourceArmPostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	parameters := postgresql.ServerAzureADAdministrator{
+	parameters := postgresql.ServerAdministratorResource{
 		ServerAdministratorProperties: &postgresql.ServerAdministratorProperties{
 			AdministratorType: utils.String("ActiveDirectory"),
 			Login:             utils.String(login),
