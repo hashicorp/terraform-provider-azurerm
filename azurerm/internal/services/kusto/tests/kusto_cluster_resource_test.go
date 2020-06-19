@@ -44,6 +44,7 @@ func TestAccAzureRMKustoCluster_update(t *testing.T) {
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_purge", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -53,6 +54,7 @@ func TestAccAzureRMKustoCluster_update(t *testing.T) {
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_purge", "true"),
 				),
 			},
 			data.ImportStep(),
@@ -62,6 +64,7 @@ func TestAccAzureRMKustoCluster_update(t *testing.T) {
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_disk_encryption", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_streaming_ingest", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_purge", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -248,6 +251,7 @@ resource "azurerm_kusto_cluster" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   enable_disk_encryption  = true
   enable_streaming_ingest = true
+  enable_purge            = true
 
   sku {
     name     = "Dev(No SLA)_Standard_D11_v2"
