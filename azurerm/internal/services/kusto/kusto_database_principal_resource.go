@@ -95,6 +95,7 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 			"object_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 				Deprecated:   "This field has been deprecated since its name causes confusion",
 			},

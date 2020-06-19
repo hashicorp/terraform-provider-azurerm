@@ -71,7 +71,7 @@ The following arguments are supported:
 
 * `tenant_id` - (Required) The Tenant ID that owns the specified `client_id`. Changing this forces a new resource to be created.
 
-* `object_id` - (Optional) An Object ID of a User, Group, or App.
+* `object_id` - (Optional) An Object ID of a User, Group, or App. Changing this forces a new resource to be created.
 
 ~> **NOTE:** The field `object_id` has been deprecated since its name causes confusion.
 
