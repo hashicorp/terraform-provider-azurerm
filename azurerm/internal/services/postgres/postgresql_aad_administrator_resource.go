@@ -64,7 +64,7 @@ func resourceArmPostgreSQLAdministrator() *schema.Resource {
 }
 
 func resourceArmPostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).postgresql.ServerAdministratorsClient
+	client := meta.(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -116,7 +116,7 @@ func resourceArmPostgreSQLAdministratorCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmPostgreSQLAdministratorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).postgresql.ServerAdministratorsClient
+	client := meta.(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -149,7 +149,7 @@ func resourceArmPostgreSQLAdministratorRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmPostgreSQLAdministratorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).postgresql.ServerAdministratorsClient
+	client := meta.(*clients.Client).Postgres.ServerAdministratorsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
