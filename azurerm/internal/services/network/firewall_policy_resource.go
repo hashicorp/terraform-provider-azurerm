@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 
@@ -22,6 +23,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+const azureFirewallPolicyResourceName = "azurerm_firewall_policy"
 
 func resourceArmFirewallPolicy() *schema.Resource {
 	return &schema.Resource{
@@ -192,6 +195,9 @@ func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interfac
 		props.FirewallPolicyPropertiesFormat.BasePolicy = &network.SubResource{ID: utils.String(id.(string))}
 	}
 
+	locks.ByName(name, azureFirewallPolicyResourceName)
+	defer locks.UnlockByName(name, azureFirewallPolicyResourceName)
+
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, props); err != nil {
 		return fmt.Errorf("creating Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -275,6 +281,9 @@ func resourceArmFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.Name, azureFirewallPolicyResourceName)
+	defer locks.UnlockByName(id.Name, azureFirewallPolicyResourceName)
 
 	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
