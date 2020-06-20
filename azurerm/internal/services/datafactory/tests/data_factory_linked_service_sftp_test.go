@@ -26,7 +26,7 @@ func TestAccAzureRMDataFactoryLinkedServiceSFTP_basic(t *testing.T) {
 					testCheckAzureRMDataFactoryLinkedServiceSFTPExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("host", "port", "authentication_type", "username", "password"),
+			data.ImportStep("password"),
 		},
 	})
 }
@@ -49,7 +49,7 @@ func TestAccAzureRMDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("password"),
 			{
 				Config: testAccAzureRMDataFactoryLinkedServiceSFTP_update2(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -60,7 +60,7 @@ func TestAccAzureRMDataFactoryLinkedServiceSFTP_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
 			},
-			data.ImportStep("host", "port", "authentication_type", "username", "password"),
+			data.ImportStep("password"),
 		},
 	})
 }

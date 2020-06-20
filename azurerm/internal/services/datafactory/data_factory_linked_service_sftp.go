@@ -242,6 +242,11 @@ func resourceArmDataFactoryLinkedServiceSFTPRead(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error classifiying Data Factory Linked Service SFTP %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeSftp, *resp.Type)
 	}
 
+	d.Set("authentication_type", sftp.AuthenticationType)
+	d.Set("username", sftp.UserName)
+	d.Set("port", sftp.Port)
+	d.Set("host", sftp.Host)
+
 	d.Set("additional_properties", sftp.AdditionalProperties)
 	d.Set("description", sftp.Description)
 

@@ -49,7 +49,7 @@ func TestAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update(t *testing.T)
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("connection_string"),
 			{
 				Config: testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update2(data),
 				Check: resource.ComposeTestCheckFunc(

@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceWeb_basic(t *testing.T) {
+func TestAccAzureRMDataFactoryLinkedServiceWeb_anon_auth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -21,12 +21,35 @@ func TestAccAzureRMDataFactoryLinkedServiceWeb_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceWebDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceWeb_basic(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceWeb_anon_auth(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("authentication_type", "url"),
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMDataFactoryLinkedServiceWeb_basic_auth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceWebDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataFactoryLinkedServiceWeb_basic_auth(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "url", "http://www.bing.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "authentication_type", "Basic"),
+					resource.TestCheckResourceAttr(data.ResourceName, "username", "foo"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "password"),
+				),
+			},
+			data.ImportStep("password"),
 		},
 	})
 }
@@ -47,6 +70,8 @@ func TestAccAzureRMDataFactoryLinkedServiceWeb_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
+					resource.TestCheckResourceAttr(data.ResourceName, "url", "http://www.google.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "authentication_type", "Anonymous"),
 				),
 			},
 			data.ImportStep(),
@@ -57,10 +82,12 @@ func TestAccAzureRMDataFactoryLinkedServiceWeb_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test Description 2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "url", "http://www.yahoo.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "authentication_type", "Anonymous"),
 				),
 			},
-			data.ImportStep("authentication_type", "url"),
+			data.ImportStep(),
 		},
 	})
 }
@@ -123,7 +150,7 @@ func testCheckAzureRMDataFactoryLinkedServiceWebDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceWeb_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceWeb_anon_auth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -146,6 +173,35 @@ resource "azurerm_data_factory_linked_service_web" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
   url                 = "http://www.bing.com"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMDataFactoryLinkedServiceWeb_basic_auth(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  authentication_type = "Basic"
+  url                 = "http://www.bing.com"
+  username			  = "foo"
+  password			  = "bar"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -211,18 +267,18 @@ resource "azurerm_data_factory_linked_service_web" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Anonymous"
-  url                 = "http://www.bing.com"
+  url                 = "http://www.yahoo.com"
   annotations         = ["test1", "test2"]
-  description         = "test description 2"
+  description         = "Test Description 2"
 
   parameters = {
-    foo  = "test1"
-    bar  = "test2"
-    buzz = "test3"
+    foo  = "Test1"
+    bar  = "Test2"
+    buzz = "Test3"
   }
 
   additional_properties = {
-    foo = "test1"
+    foo = "Test1"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
