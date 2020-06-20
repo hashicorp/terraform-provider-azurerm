@@ -92,6 +92,19 @@ A `ip_restriction` block exports the following:
 * `action` - Does this restriction `Allow` or `Deny` access for this IP range?
 
 ---
+A `scm_ip_restriction` block exports the following:  
+
+* `ip_address` - The IP Address used for this IP Restriction in CIDR notation.
+
+* `virtual_network_subnet_id` - The Virtual Network Subnet ID used for this IP Restriction.
+
+* `name` - The name for this IP Restriction.
+
+* `priority` - The priority for this IP Restriction.
+
+* `action` - Allow or Deny access for this IP range. Defaults to Allow.  
+
+---
 
 `site_config` supports the following:
 
@@ -112,6 +125,10 @@ A `ip_restriction` block exports the following:
 * `health_check_path` - The health check path to be pinged by App Service.
 
 * `ip_restriction` - One or more `ip_restriction` blocks as defined above.
+
+* `scm_use_main_ip_restriction` - IP security restrictions for scm to use main.  
+
+* `scm_ip_restriction` - One or more `scm_ip_restriction` blocks as defined above.
 
 * `java_version` - The version of Java in use.
 

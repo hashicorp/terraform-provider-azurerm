@@ -50,6 +50,16 @@ The following arguments are supported:
 
 * `headers` - (Optional) Specifies a Map of Key-Value Pairs that should be sent to the `uri` when this HTTP Action is triggered.
 
+* `run_after` - (Optional) Specifies the place of the HTTP Action in the Logic App Workflow. If not specified, the HTTP Action is right after the Trigger. A `run_after` block is as defined below.
+
+---
+
+A `run_after` block supports the following:
+
+* `action_name` - (Required) Specifies the name of the precedent HTTP Action.
+
+* `action_result` - (Required) Specifies the expected result of the precedent HTTP Action, only after which the current HTTP Action will be triggered. Possible values include `Succeeded`, `Failed`, `Skipped` and `TimedOut`.
+
 ## Attributes Reference
 
 The following attributes are exported:

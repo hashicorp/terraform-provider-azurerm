@@ -29,7 +29,7 @@ resource "azurerm_app_service" "main" {
   site_config {
     dotnet_framework_version = "v4.0"
     remote_debugging_enabled = true
-    remote_debugging_version = "VS2015"
+    remote_debugging_version = "VS2019"
   }
 
   auth_settings {

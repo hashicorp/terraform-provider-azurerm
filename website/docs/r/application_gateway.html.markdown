@@ -29,14 +29,14 @@ resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.254.0.0/24"
+  address_prefixes     = ["10.254.0.0/24"]
 }
 
 resource "azurerm_subnet" "backend" {
   name                 = "backend"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.254.2.0/24"
+  address_prefixes     = ["10.254.2.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -252,7 +252,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
 
-* `subnet_id` - (Required) The ID of the Subnet which the Application Gateway should be connected to.
+* `subnet_id` - (Optional) The ID of the Subnet.
 
 * `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
 
@@ -276,7 +276,7 @@ A `gateway_ip_configuration` block supports the following:
 
 * `name` - (Required) The Name of this Gateway IP Configuration.
 
-* `subnet_id` - (Required) The ID of a Subnet.
+* `subnet_id` - (Required) The ID of the Subnet which the Application Gateway should be connected to.
 
 ---
 

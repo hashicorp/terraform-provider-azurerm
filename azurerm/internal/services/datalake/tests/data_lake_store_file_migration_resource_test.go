@@ -34,7 +34,7 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 		return
 	}
 
-	client.StopContext = acceptance.AzureProvider.StopContext()
+	client.StopContext = context.Background()
 
 	filesClient := client.Datalake.StoreFilesClient
 

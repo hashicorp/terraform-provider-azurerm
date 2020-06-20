@@ -1013,7 +1013,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"key_vault_secret_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: azure.ValidateKeyVaultChildId,
+							ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
 						},
 
 						"id": {
