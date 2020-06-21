@@ -147,6 +147,7 @@ func TestAccAzureRMKustoCluster_identitySystemAssigned(t *testing.T) {
 					resource.TestMatchResourceAttr(data.ResourceName, "identity.0.principal_id", validate.UUIDRegExp),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
