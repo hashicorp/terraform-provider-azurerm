@@ -119,7 +119,7 @@ The following arguments are supported:
 
 A `private_dns_zone_group` supports the following:
 
-* `name` - (Required) Specifies the Name of the Private Service Connection. Changing this forces the a new `private_dns_zone_group` to be created.
+* `name` - (Required) Specifies the Name of the Private DNS Zone Group. Changing this forces a new `private_dns_zone_group` resource to be created.
 
 * `private_dns_zone_ids` - (Required) Specifies the list of Private DNS Zones to include within the `private_dns_zone_group`.
 
