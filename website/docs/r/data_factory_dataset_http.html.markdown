@@ -41,7 +41,7 @@ resource "azurerm_data_factory_dataset_delimited_text" "example" {
   url            = "http://www.bing.com"
   request_body   = "foo=bar"
   request_method = "POST"
-  
+
 }
 ```
 

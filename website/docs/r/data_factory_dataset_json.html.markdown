@@ -39,13 +39,13 @@ resource "azurerm_data_factory_dataset_json" "example" {
   linked_service_name = azurerm_data_factory_linked_service_web.example.name
 
   http_server_location {
-    relative_url      = "/fizz/buzz/"
-    path              = "foo/bar/"
-    filename          = "foo.txt"
+    relative_url = "/fizz/buzz/"
+    path         = "foo/bar/"
+    filename     = "foo.txt"
   }
 
-  encoding    = "UTF-8"
-  
+  encoding = "UTF-8"
+
 }
 ```
 

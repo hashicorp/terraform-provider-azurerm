@@ -21,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 }
 
 data "azurerm_storage_account" "example" {
-  name                     = "storageaccountname"
-  resource_group_name      = azurerm_resource_group.example.name
+  name                = "storageaccountname"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_data_factory" "example" {

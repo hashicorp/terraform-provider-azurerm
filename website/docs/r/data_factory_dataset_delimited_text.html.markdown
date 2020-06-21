@@ -39,9 +39,9 @@ resource "azurerm_data_factory_dataset_delimited_text" "example" {
   linked_service_name = azurerm_data_factory_linked_service_web.example.name
 
   http_server_location {
-    relative_url      = "http://www.bing.com"
-    path              = "foo/bar/"
-    filename          = "fizz.txt"
+    relative_url = "http://www.bing.com"
+    path         = "foo/bar/"
+    filename     = "fizz.txt"
   }
 
   column_delimiter    = ","

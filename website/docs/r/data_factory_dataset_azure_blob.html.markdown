@@ -19,8 +19,8 @@ resource "azurerm_resource_group" "example" {
 }
 
 data "azurerm_storage_account" "example" {
-  name                     = "storageaccountname"
-  resource_group_name      = azurerm_resource_group.example.name
+  name                = "storageaccountname"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_data_factory" "example" {
@@ -42,8 +42,8 @@ resource "azurerm_data_factory_dataset_azure_blob" "example" {
   data_factory_name   = azurerm_data_factory.example.name
   linked_service_name = azurerm_data_factory_linked_service_azure_blob_storage.example.name
 
-  path                = "foo"
-  filename            = "bar.png"
+  path     = "foo"
+  filename = "bar.png"
 }
 ```
 
