@@ -187,9 +187,9 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
   name                = "acctestlscosmosdb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  account_endpoint 	  = "foo"
-  account_key   	  = "bar"
-  database			  = "fizz"
+  account_endpoint    = "foo"
+  account_key         = "bar"
+  database            = "fizz"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

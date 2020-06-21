@@ -149,34 +149,27 @@ func resourceArmDataFactoryLinkedServiceWebCreateUpdate(d *schema.ResourceData, 
 	authenticationType := d.Get("authentication_type").(string)
 
 	if authenticationType == "Anonymous" {
-
 		anonAuthProperties := &datafactory.WebAnonymousAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
 			URL:                utils.String(url),
 		}
-
 		webLinkedService.TypeProperties = anonAuthProperties
-
 	}
 
 	if authenticationType == "Basic" {
-
 		username := d.Get("username").(string)
 		password := d.Get("password").(string)
 		passwordSecureString := datafactory.SecureString{
 			Value: &password,
 			Type:  datafactory.TypeSecureString,
 		}
-
 		basicAuthProperties := &datafactory.WebBasicAuthentication{
 			AuthenticationType: datafactory.AuthenticationType(authenticationType),
 			URL:                utils.String(url),
 			Username:           username,
 			Password:           passwordSecureString,
 		}
-
 		webLinkedService.TypeProperties = basicAuthProperties
-
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -254,26 +247,19 @@ func resourceArmDataFactoryLinkedServiceWebRead(d *schema.ResourceData, meta int
 
 	anonProps, isAnonymousAuth := web.TypeProperties.AsWebAnonymousAuthentication()
 	if isAnonymousAuth {
-
 		d.Set("authentication_type", anonProps.AuthenticationType)
 		d.Set("url", anonProps.URL)
 		isWebPropertiesLoaded = true
-
 	}
 
 	if !isWebPropertiesLoaded {
-
 		basicProps, isBasicAuth := web.TypeProperties.AsWebBasicAuthentication()
 		if isBasicAuth {
-
 			d.Set("authentication_type", basicProps.AuthenticationType)
 			d.Set("url", basicProps.URL)
 			d.Set("username", basicProps.Username)
 			//d.Set("password", basicProps.Password)
-			isWebPropertiesLoaded = true
-
 		}
-
 	}
 
 	d.Set("additional_properties", web.AdditionalProperties)

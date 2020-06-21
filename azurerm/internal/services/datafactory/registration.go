@@ -48,8 +48,7 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_data_factory_linked_service_sftp":                   resourceArmDataFactoryLinkedServiceSFTP(),
 		"azurerm_data_factory_linked_service_sql_server":             resourceArmDataFactoryLinkedServiceSQLServer(),
 		"azurerm_data_factory_linked_service_web":                    resourceArmDataFactoryLinkedServiceWeb(),
-
-		"azurerm_data_factory_pipeline":         resourceArmDataFactoryPipeline(),
-		"azurerm_data_factory_trigger_schedule": resourceArmDataFactoryTriggerSchedule(),
+		"azurerm_data_factory_pipeline":                              resourceArmDataFactoryPipeline(),
+		"azurerm_data_factory_trigger_schedule":                      resourceArmDataFactoryTriggerSchedule(),
 	}
 }

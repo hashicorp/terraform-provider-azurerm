@@ -200,8 +200,8 @@ resource "azurerm_data_factory_linked_service_web" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   authentication_type = "Basic"
   url                 = "http://www.bing.com"
-  username			  = "foo"
-  password			  = "bar"
+  username            = "foo"
+  password            = "bar"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
