@@ -44,7 +44,7 @@ func TestAccAzureRMEventHubDedicatedPartitionCount_validation(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
-			Value:    33,
+			Value:    1025,
 			ErrCount: 1,
 		},
 	}
@@ -176,12 +176,12 @@ func TestAccAzureRMEventHubDedicated_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		CheckDestroy: testCheckAzureRMEventHubDedicatedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMEventHubDedicated_basic(data, 2),
+				Config: testAccAzureRMEventHubDedicated_basic(data, 2),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -195,12 +195,12 @@ func TestAccAzureRMEventHubDedicated_basicOnePartition(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		CheckDestroy: testCheckAzureRMEventHubDedicatedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMEventHubDedicated_basic(data, 1),
+				Config: testAccAzureRMEventHubDedicated_basic(data, 1),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "1"),
 				),
 			},
@@ -215,16 +215,16 @@ func TestAccAzureRMEventHubDedicated_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		CheckDestroy: testCheckAzureRMEventHubDedicatedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMEventHubDedicated_basic(data, 2),
+				Config: testAccAzureRMEventHubDedicated_basic(data, 2),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 				),
 			},
 			{
-				Config:      TestAccAzureRMEventHubDedicated_requiresImport(data),
+				Config:      testAccAzureRMEventHubDedicated_requiresImport(data),
 				ExpectError: acceptance.RequiresImportError("azurerm_eventhub_dedicated"),
 			},
 		},
@@ -237,19 +237,19 @@ func TestAccAzureRMEventHubDedicated_partitionCountUpdate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		CheckDestroy: testCheckAzureRMEventHubDedicatedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMEventHubDedicated_basic(data, 2),
+				Config: testAccAzureRMEventHubDedicated_basic(data, 2),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "2"),
 				),
 			},
 			{
-				Config: TestAccAzureRMEventHubDedicated_partitionCountUpdate(data),
+				Config: testAccAzureRMEventHubDedicated_partitionCountUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "10"),
 				),
 			},
@@ -263,12 +263,12 @@ func TestAccAzureRMEventHubDedicated_standard(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		CheckDestroy: testCheckAzureRMEventHubDedicatedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMEventHubDedicated_standard(data),
+				Config: testAccAzureRMEventHubDedicated_standard(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -282,12 +282,12 @@ func TestAccAzureRMEventHubDedicated_captureDescription(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		CheckDestroy: testCheckAzureRMEventHubDedicatedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMEventHubDedicated_captureDescription(data, true),
+				Config: testAccAzureRMEventHubDedicated_captureDescription(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.skip_empty_archives", "true"),
 				),
@@ -303,19 +303,19 @@ func TestAccAzureRMEventHubDedicated_captureDescriptionDisabled(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		CheckDestroy: testCheckAzureRMEventHubDedicatedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMEventHubDedicated_captureDescription(data, true),
+				Config: testAccAzureRMEventHubDedicated_captureDescription(data, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.enabled", "true"),
 				),
 			},
 			{
-				Config: TestAccAzureRMEventHubDedicated_captureDescription(data, false),
+				Config: testAccAzureRMEventHubDedicated_captureDescription(data, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "capture_description.0.enabled", "false"),
 				),
 			},
@@ -329,19 +329,19 @@ func TestAccAzureRMEventHubDedicated_messageRetentionUpdate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMEventHubDestroy,
+		CheckDestroy: testCheckAzureRMEventHubDedicatedDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMEventHubDedicated_standard(data),
+				Config: testAccAzureRMEventHubDedicated_standard(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "message_retention", "7"),
 				),
 			},
 			{
-				Config: TestAccAzureRMEventHubDedicated_messageRetentionUpdate(data),
+				Config: testAccAzureRMEventHubDedicated_messageRetentionUpdate(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubExists(data.ResourceName),
+					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "message_retention", "5"),
 				),
 			},
@@ -349,7 +349,7 @@ func TestAccAzureRMEventHubDedicated_messageRetentionUpdate(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
+func testCheckAzureRMEventHubDedicatedDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -376,7 +376,7 @@ func testCheckAzureRMEventHubDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMEventHubDedicatedExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).Eventhub.EventHubsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -407,7 +407,7 @@ func testCheckAzureRMEventHubExists(resourceName string) resource.TestCheckFunc 
 	}
 }
 
-func TestAccAzureRMEventHubDedicated_basic(data acceptance.TestData, partitionCount int) string {
+func testAccAzureRMEventHubDedicated_basic(data acceptance.TestData, partitionCount int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -419,10 +419,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventhub_cluster" "test" {
-	name                = "acctesteventhubclusTER-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	sku_name            = "Dedicated_1"
+  name                = "acctesteventhubclusTER-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated_1"
 }
 
 resource "azurerm_eventhub_namespace_dedicated" "test" {
@@ -440,11 +440,11 @@ resource "azurerm_eventhub_dedicated" "test" {
   partition_count     = %d
   message_retention   = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, partitionCount)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, partitionCount)
 }
 
-func TestAccAzureRMEventHubDedicated_requiresImport(data acceptance.TestData) string {
-	template := TestAccAzureRMEventHubDedicated_basic(data, 2)
+func testAccAzureRMEventHubDedicated_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMEventHubDedicated_basic(data, 2)
 	return fmt.Sprintf(`
 %s
 
@@ -458,7 +458,7 @@ resource "azurerm_eventhub_dedicated" "import" {
 `, template)
 }
 
-func TestAccAzureRMEventHubDedicated_partitionCountUpdate(data acceptance.TestData) string {
+func testAccAzureRMEventHubDedicated_partitionCountUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -470,10 +470,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventhub_cluster" "test" {
-	name                = "acctesteventhubclusTER-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	sku_name            = "Dedicated_1"
+  name                = "acctesteventhubclusTER-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated_1"
 }
 
 resource "azurerm_eventhub_namespace_dedicated" "test" {
@@ -491,10 +491,10 @@ resource "azurerm_eventhub_dedicated" "test" {
   partition_count     = 10
   message_retention   = 1
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func TestAccAzureRMEventHubDedicated_standard(data acceptance.TestData) string {
+func testAccAzureRMEventHubDedicated_standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -506,19 +506,19 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventhub_cluster" "test" {
-	name                = "acctesteventhubclusTER-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	sku_name            = "Dedicated_1"
+  name                = "acctesteventhubclusTER-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated_1"
 }
 
 resource "azurerm_eventhub_namespace_dedicated" "test" {
-	name                = "acctest-EHN%d"
-	clsuter_id          = azurerm_eventhub_cluster.test.id
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	sku                 = "Standard"
-  }
+  name                = "acctest-EHN%d"
+  clsuter_id          = azurerm_eventhub_cluster.test.id
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+}
 
 resource "azurerm_eventhub_dedicated" "test" {
   name                = "acctest-EH-%d"
@@ -527,10 +527,10 @@ resource "azurerm_eventhub_dedicated" "test" {
   partition_count     = 2
   message_retention   = 7
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func TestAccAzureRMEventHubDedicated_captureDescription(data acceptance.TestData, enabled bool) string {
+func testAccAzureRMEventHubDedicated_captureDescription(data acceptance.TestData, enabled bool) string {
 	enabledString := strconv.FormatBool(enabled)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -543,10 +543,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_eventhub_cluster" "test" {
-	name                = "acctesteventhubclusTER-%d"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = azurerm_resource_group.test.location
-	sku_name            = "Dedicated_1"
+  name                = "acctesteventhubclusTER-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated_1"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -593,10 +593,10 @@ resource "azurerm_eventhub_dedicated" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, enabledString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, enabledString)
 }
 
-func TestAccAzureRMEventHubDedicated_messageRetentionUpdate(data acceptance.TestData) string {
+func testAccAzureRMEventHubDedicated_messageRetentionUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
