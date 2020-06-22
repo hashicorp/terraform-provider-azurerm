@@ -18,14 +18,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var eventHubResourceName = "azurerm_eventhub"
+var eventHubDedicatedResourceName = "azurerm_eventhub_dedicated"
 
-func resourceArmEventHub() *schema.Resource {
+func resourceArmEventHubDedicatedDedicated() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubCreateUpdate,
-		Read:   resourceArmEventHubRead,
-		Update: resourceArmEventHubCreateUpdate,
-		Delete: resourceArmEventHubDelete,
+		Create: resourceArmEventHubDedicatedCreateUpdate,
+		Read:   resourceArmEventHubDedicatedRead,
+		Update: resourceArmEventHubDedicatedCreateUpdate,
+		Delete: resourceArmEventHubDedicatedDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,13 +58,13 @@ func resourceArmEventHub() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateEventHubPartitionCount,
+				ValidateFunc: ValidateEventHubDedicatedPartitionCount,
 			},
 
 			"message_retention": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: ValidateEventHubMessageRetentionCount,
+				ValidateFunc: ValidateEventHubDedicatedMessageRetentionCount,
 			},
 
 			"capture_description": {
@@ -150,7 +150,7 @@ func resourceArmEventHub() *schema.Resource {
 	}
 }
 
-func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventHubDedicatedCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -202,10 +202,10 @@ func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*read.ID)
 
-	return resourceArmEventHubRead(d, meta)
+	return resourceArmEventHubDedicatedRead(d, meta)
 }
 
-func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventHubDedicatedRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -245,7 +245,7 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmEventHubDedicatedDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Eventhub.EventHubsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -270,27 +270,27 @@ func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	return nil
 }
 
-func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateEventHubDedicatedPartitionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
-	if !(32 >= value && value >= 1) {
+	if !(1024 >= value && value >= 1) {
 		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32 for standard hubs and 1024 for Event Hubs Clusters"))
 	}
 
 	return warnings, errors
 }
 
-func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
+func ValidateEventHubDedicatedMessageRetentionCount(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
 
-	if !(7 >= value && value >= 1) {
+	if !(90 >= value && value >= 1) {
 		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7 for standard hubs and 90 for Event Hubs Clusters"))
 	}
 
 	return warnings, errors
 }
 
-func ValidateEventHubArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateEventHubDedicatedArchiveNameFormat(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	requiredComponents := []string{
@@ -314,7 +314,7 @@ func ValidateEventHubArchiveNameFormat(v interface{}, k string) (warnings []stri
 	return warnings, errors
 }
 
-func expandEventHubCaptureDescription(d *schema.ResourceData) *eventhub.CaptureDescription {
+func expandEventHubDedicatedCaptureDescription(d *schema.ResourceData) *eventhub.CaptureDescription {
 	inputs := d.Get("capture_description").([]interface{})
 	input := inputs[0].(map[string]interface{})
 
@@ -356,7 +356,7 @@ func expandEventHubCaptureDescription(d *schema.ResourceData) *eventhub.CaptureD
 	return &captureDescription
 }
 
-func flattenEventHubCaptureDescription(description *eventhub.CaptureDescription) []interface{} {
+func flattenEventHubDedicatedCaptureDescription(description *eventhub.CaptureDescription) []interface{} {
 	results := make([]interface{}, 0)
 
 	if description != nil {
