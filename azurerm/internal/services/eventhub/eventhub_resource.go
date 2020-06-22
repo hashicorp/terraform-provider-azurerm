@@ -274,7 +274,7 @@ func ValidateEventHubPartitionCount(v interface{}, _ string) (warnings []string,
 	value := v.(int)
 
 	if !(32 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32 for standard hubs and 1024 for Event Hubs Clusters"))
+		errors = append(errors, fmt.Errorf("EventHub Partition Count has to be between 1 and 32"))
 	}
 
 	return warnings, errors
@@ -284,7 +284,7 @@ func ValidateEventHubMessageRetentionCount(v interface{}, _ string) (warnings []
 	value := v.(int)
 
 	if !(7 >= value && value >= 1) {
-		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7 for standard hubs and 90 for Event Hubs Clusters"))
+		errors = append(errors, fmt.Errorf("EventHub Retention Count has to be between 1 and 7"))
 	}
 
 	return warnings, errors
