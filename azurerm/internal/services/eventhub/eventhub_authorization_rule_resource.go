@@ -95,6 +95,12 @@ func resourceArmEventHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, me
 	locks.ByName(namespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
 
+	locks.ByName(eventHubName, eventHubDedicatedResourceName)
+	defer locks.UnlockByName(eventHubName, eventHubDedicatedResourceName)
+
+	locks.ByName(namespaceName, eventHubNamespaceDedicatedResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceDedicatedResourceName)
+
 	parameters := eventhub.AuthorizationRule{
 		Name: &name,
 		AuthorizationRuleProperties: &eventhub.AuthorizationRuleProperties{

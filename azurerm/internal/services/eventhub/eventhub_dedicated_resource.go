@@ -184,7 +184,7 @@ func resourceArmEventHubDedicatedCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if _, ok := d.GetOk("capture_description"); ok {
-		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
+		parameters.Properties.CaptureDescription = expandEventHubDedicatedCaptureDescription(d)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, namespaceName, name, parameters); err != nil {
