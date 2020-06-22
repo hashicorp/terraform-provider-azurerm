@@ -217,6 +217,8 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 
+~> **Note:** Network Rules can be removed by setting `default_action` as `Allow`.
+
 ---
 
 A `queue_properties` block supports the following:
