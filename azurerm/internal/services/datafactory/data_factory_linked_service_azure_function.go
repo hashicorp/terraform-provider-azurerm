@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
+func resourceArmDataFactoryLinkedServiceAzureFunction() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Read:   resourceArmDataFactoryLinkedServiceBlobStorageRead,
-		Update: resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate,
-		Delete: resourceArmDataFactoryLinkedServiceBlobStorageDelete,
+		Create: resourceArmDataFactoryLinkedServiceAzureFunctionCreateUpdate,
+		Read:   resourceArmDataFactoryLinkedServiceAzureFunctionRead,
+		Update: resourceArmDataFactoryLinkedServiceAzureFunctionCreateUpdate,
+		Delete: resourceArmDataFactoryLinkedServiceAzureFunctionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -52,7 +52,13 @@ func resourceArmDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"connection_string": {
+			"url": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"key": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Sensitive:    true,
@@ -98,7 +104,7 @@ func resourceArmDataFactoryLinkedServiceAzureBlobStorage() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -111,66 +117,67 @@ func resourceArmDataFactoryLinkedServiceBlobStorageCreateUpdate(d *schema.Resour
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service BlobStorage Anonymous %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_blob_storage", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_data_factory_linked_service_azure_function", *existing.ID)
 		}
 	}
 
-	blobStorageLinkedService := &datafactory.AzureBlobStorageLinkedService{
+	azureFunctionLinkedService := &datafactory.AzureFunctionLinkedService{
 		Description: utils.String(d.Get("description").(string)),
-		AzureBlobStorageLinkedServiceTypeProperties: &datafactory.AzureBlobStorageLinkedServiceTypeProperties{
-			ConnectionString: &datafactory.SecureString{
-				Value: utils.String(d.Get("connection_string").(string)),
+		AzureFunctionLinkedServiceTypeProperties: &datafactory.AzureFunctionLinkedServiceTypeProperties{
+			FunctionAppURL: d.Get("url").(string),
+			FunctionKey: &datafactory.SecureString{
+				Value: utils.String(d.Get("key").(string)),
 				Type:  datafactory.TypeSecureString,
 			},
 		},
-		Type: datafactory.TypeAzureBlobStorage,
+		Type: datafactory.TypeAzureFunction,
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
-		blobStorageLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
+		azureFunctionLinkedService.Parameters = expandDataFactoryParameters(v.(map[string]interface{}))
 	}
 
 	if v, ok := d.GetOk("integration_runtime_name"); ok {
-		blobStorageLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
+		azureFunctionLinkedService.ConnectVia = expandDataFactoryLinkedServiceIntegrationRuntime(v.(string))
 	}
 
 	if v, ok := d.GetOk("additional_properties"); ok {
-		blobStorageLinkedService.AdditionalProperties = v.(map[string]interface{})
+		azureFunctionLinkedService.AdditionalProperties = v.(map[string]interface{})
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
 		annotations := v.([]interface{})
-		blobStorageLinkedService.Annotations = &annotations
+		azureFunctionLinkedService.Annotations = &annotations
 	}
 
 	linkedService := datafactory.LinkedServiceResource{
-		Properties: blobStorageLinkedService,
+		Properties: azureFunctionLinkedService,
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, dataFactoryName, name, linkedService, ""); err != nil {
-		return fmt.Errorf("Error creating/updating Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error creating/updating Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Cannot read Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryLinkedServiceBlobStorageRead(d, meta)
+	return resourceArmDataFactoryLinkedServiceAzureFunctionRead(d, meta)
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceAzureFunctionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -190,32 +197,34 @@ func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, 
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("data_factory_name", dataFactoryName)
 
-	blobStorage, ok := resp.Properties.AsAzureBlobStorageLinkedService()
+	azureFunction, ok := resp.Properties.AsAzureFunctionLinkedService()
 	if !ok {
-		return fmt.Errorf("Error classifiying Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
+		return fmt.Errorf("Error classifiying Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): Expected: %q Received: %q", name, dataFactoryName, resourceGroup, datafactory.TypeWeb, *resp.Type)
 	}
 
-	d.Set("additional_properties", blobStorage.AdditionalProperties)
-	d.Set("description", blobStorage.Description)
+	d.Set("url", azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionAppURL)
 
-	annotations := flattenDataFactoryAnnotations(blobStorage.Annotations)
+	d.Set("additional_properties", azureFunction.AdditionalProperties)
+	d.Set("description", azureFunction.Description)
+
+	annotations := flattenDataFactoryAnnotations(azureFunction.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
-		return fmt.Errorf("Error setting `annotations` for Data Factory Linked Service Azure Blob Storage %q (Data Factory %q) / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+		return fmt.Errorf("Error setting `annotations` for Data Factory Linked Service Azure Function %q (Data Factory %q) / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 	}
 
-	parameters := flattenDataFactoryParameters(blobStorage.Parameters)
+	parameters := flattenDataFactoryParameters(azureFunction.Parameters)
 	if err := d.Set("parameters", parameters); err != nil {
 		return fmt.Errorf("Error setting `parameters`: %+v", err)
 	}
 
-	if connectVia := blobStorage.ConnectVia; connectVia != nil {
+	if connectVia := azureFunction.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
 		}
@@ -224,7 +233,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorageRead(d *schema.ResourceData, 
 	return nil
 }
 
-func resourceArmDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceAzureFunctionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,7 +249,7 @@ func resourceArmDataFactoryLinkedServiceBlobStorageDelete(d *schema.ResourceData
 	response, err := client.Delete(ctx, resourceGroup, dataFactoryName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(response) {
-			return fmt.Errorf("Error deleting Data Factory Linked Service BlobStorage %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Data Factory Linked Service Azure Function %q (Data Factory %q / Resource Group %q): %+v", name, dataFactoryName, resourceGroup, err)
 		}
 	}
 
