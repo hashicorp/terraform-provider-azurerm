@@ -65,6 +65,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 			"internal_load_balancing_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  string(web.InternalLoadBalancingModeNone),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(web.InternalLoadBalancingModeNone),
