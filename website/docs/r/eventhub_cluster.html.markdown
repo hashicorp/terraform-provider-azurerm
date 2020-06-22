@@ -19,8 +19,8 @@ resource "azurerm_resource_group" "example" {
   location = "West US 2"
 }
 
-resource "azurerm_eventhub_cluster" "test" {
-  name                = "acctesteventhubcluster-%d"
+resource "azurerm_eventhub_cluster" "example" {
+  name                = "eventhubclusterexample"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Dedicated_1"
