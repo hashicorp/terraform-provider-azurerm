@@ -130,5 +130,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 EventHub Namespaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_eventhub_namespace.namespace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1
+terraform import azurerm_eventhub_namespace_dedicated.namespace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1
 ```

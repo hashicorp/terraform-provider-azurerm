@@ -6,7 +6,7 @@ description: |-
   Manages a Event Hubs as a nested resource within an Event Hubs namespace on an Event Hubs Cluster.
 ---
 
-# azurerm_eventhub_cluster
+# azurerm_eventhub_dedicated
 
 Manages a Event Hubs as a nested resource within an Event Hubs namespace on an Event Hubs Cluster.
 
@@ -117,5 +117,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 EventHubs can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_eventhub.eventhub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/eventhubs/eventhub1
+terraform import azurerm_eventhub_dedicated.eventhub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/eventhubs/eventhub1
 ```
