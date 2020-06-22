@@ -22,6 +22,7 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedZonal(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -40,6 +41,7 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedZonalWithProximityPlacementGr
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -58,6 +60,7 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedNonZonal(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -76,6 +79,7 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedMultipleZonal(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -94,6 +98,7 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedMultipleNonZonal(t *testing.T
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }

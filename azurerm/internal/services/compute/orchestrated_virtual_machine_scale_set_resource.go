@@ -2,6 +2,8 @@ package compute
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"log"
 	"time"
 
@@ -51,9 +53,12 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"proximity_placement_group_id": {
-				Type: schema.TypeString,
-				Optional: true,
-				// TODO -- add a validation function when proximity_placement_group has its own ID validation function
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ProximityPlacementGroupID,
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"platform_fault_domain_count": {
