@@ -67,7 +67,9 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 			"single_placement_group": {
 				Type:         schema.TypeBool,
 				Optional:     true,
+				ForceNew:     true,
 				Default:      false,
+				Deprecated:   "Due to an upgrade of the compute API this preview property has now been deprecated and required to be false in the 2019-12-01 api versions for orchestrated VMSS - as it will always be false for the current and future API versions this property now defaults to false and will removed in version 3.0 of the provider.",
 				ValidateFunc: validateBoolIsFalse,
 			},
 
@@ -171,6 +173,11 @@ func resourceArmOrchestratedVirtualMachineScaleSetRead(d *schema.ResourceData, m
 	if props := resp.VirtualMachineScaleSetProperties; props != nil {
 		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 		d.Set("single_placement_group", props.SinglePlacementGroup)
+		proximityPlacementGroupID := ""
+		if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
+			proximityPlacementGroupID = *props.ProximityPlacementGroup.ID
+		}
+		d.Set("proximity_placement_group_id", proximityPlacementGroupID)
 		d.Set("unique_id", props.UniqueID)
 	}
 

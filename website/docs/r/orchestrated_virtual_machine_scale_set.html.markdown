@@ -12,6 +12,8 @@ Manages an Orchestrated Virtual Machine Scale Set.
 
 -> **Note:** Orchestrated Virtual Machine Scale Sets are in Public Preview - [more details can be found in the Azure Documentation](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/orchestration-modes).
 
+-> **Note:** Azure has deprecated the `single_placement_group` attribute in the Orchestrated Virtual Machine Scale Set since api-version 2019-12-01 and there is a breaking change in the Orchestrated Virtual Machine Scale Set. If you have an Orchestrated Virtual Machine Scale Set created using `azurerm` provider version `<=2.13.0` you will have to remove the `single_placement_group` attribute in your config and recreate the resource to have it managed by terraform.
+
 ## Example Usage
 
 ```hcl
@@ -45,7 +47,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
-* `single_placement_group` - (Optional) Should the Orchestrated Virtual Machine Scale Set use single placement group?
+* `single_placement_group` - (Optional / **Deprecated**) Should the Orchestrated Virtual Machine Scale Set use single placement group?
 
 ~> **NOTE:** Due to a limitation of the Azure API at this time, you can only assign `single_placement_group` to `false`.
 

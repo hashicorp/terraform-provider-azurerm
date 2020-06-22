@@ -315,5 +315,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Linux Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_linux_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachines/machine1
+terraform import azurerm_linux_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1
 ```

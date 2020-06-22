@@ -351,8 +351,8 @@ func testAccAzureRMPrivateLinkService_requiresImport(data acceptance.TestData) s
 
 resource "azurerm_private_link_service" "import" {
   name                = azurerm_private_link_service.test.name
-  location            = azurerm_private_link_service.test.location
-  resource_group_name = azurerm_private_link_service.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   nat_ip_configuration {
     name      = "primaryIpConfiguration-%d"
