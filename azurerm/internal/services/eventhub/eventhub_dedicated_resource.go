@@ -236,7 +236,7 @@ func resourceArmEventHubDedicatedRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("message_retention", props.MessageRetentionInDays)
 		d.Set("partition_ids", props.PartitionIds)
 
-		captureDescription := flattenEventHubCaptureDescription(props.CaptureDescription)
+		captureDescription := flattenEventHubDedicatedCaptureDescription(props.CaptureDescription)
 		if err := d.Set("capture_description", captureDescription); err != nil {
 			return err
 		}
