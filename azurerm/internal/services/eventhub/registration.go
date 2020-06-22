@@ -38,5 +38,8 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_eventhub_namespace_authorization_rule":       resourceArmEventHubNamespaceAuthorizationRule(),
 		"azurerm_eventhub_namespace_disaster_recovery_config": resourceArmEventHubNamespaceDisasterRecoveryConfig(),
 		"azurerm_eventhub_namespace":                          resourceArmEventHubNamespace(),
-		"azurerm_eventhub":                                    resourceArmEventHub()}
+		"azurerm_eventhub":                                    resourceArmEventHub(),
+		"azurerm_eventhub_namespace_dedicated":                resourceArmEventHubNamespaceDedicated(),
+		"azurerm_eventhub_dedicated":                          resourceArmEventHubDedicated(),
+	}
 }

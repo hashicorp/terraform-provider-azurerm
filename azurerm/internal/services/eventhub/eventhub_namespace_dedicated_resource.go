@@ -27,7 +27,7 @@ import (
 var eventHubNamespaceDedicatedDefaultAuthorizationRule = "RootManageSharedAccessKey"
 var eventHubNamespaceDedicatedResourceName = "azurerm_eventhub_namespace"
 
-func resourceArmeventHubNamespaceDedicated() *schema.Resource {
+func resourceArmEventHubNamespaceDedicated() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmeventHubNamespaceDedicatedCreateUpdate,
 		Read:   resourceArmeventHubNamespaceDedicatedRead,

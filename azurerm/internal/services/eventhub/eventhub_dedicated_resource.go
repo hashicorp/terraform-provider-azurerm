@@ -20,7 +20,7 @@ import (
 
 var eventHubDedicatedResourceName = "azurerm_eventhub_dedicated"
 
-func resourceArmEventHubDedicatedDedicated() *schema.Resource {
+func resourceArmEventHubDedicated() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmEventHubDedicatedCreateUpdate,
 		Read:   resourceArmEventHubDedicatedRead,
