@@ -1,4 +1,9 @@
 ## 2.16.0 (Unreleased)
+
+ENHANCEMENTS 
+
+* `azurerm_kusto_cluster` - Support for `identity` [GH-7367]
+
 ## 2.15.0 (June 19, 2020)
 
 UPGRADE NOTES:
