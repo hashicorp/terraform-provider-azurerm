@@ -77,11 +77,9 @@ func resourceArmDataFactoryLinkedServiceCosmosDb() *schema.Resource {
 			},
 
 			"database": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Sensitive:     true,
-				ConflictsWith: []string{"connection_string"},
-				ValidateFunc:  validation.StringIsNotEmpty,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"description": {
@@ -168,6 +166,7 @@ func resourceArmDataFactoryLinkedServiceCosmosDbCreateUpdate(d *schema.ResourceD
 			Type:  datafactory.TypeSecureString,
 		}
 		cosmosdbProperties.ConnectionString = connectionStringSecureString
+		cosmosdbProperties.Database = databaseName
 	}
 
 	description := d.Get("description").(string)
@@ -274,9 +273,7 @@ func resourceArmDataFactoryLinkedServiceCosmosDbRead(d *schema.ResourceData, met
 	}
 
 	databaseName := cosmosdb.CosmosDbLinkedServiceTypeProperties.Database
-	if accountEndpoint != "" {
-		d.Set("database", databaseName)
-	}
+	d.Set("database", databaseName)
 
 	return nil
 }

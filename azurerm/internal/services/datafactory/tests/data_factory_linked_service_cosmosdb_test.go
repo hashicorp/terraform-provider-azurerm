@@ -48,6 +48,33 @@ func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "database", "fizz"),
+				),
+			},
+			data.ImportStep("account_key"),
+			{
+				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey_update1(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "database", "buzz"),
+				),
+			},
+			data.ImportStep("account_key"),
+		},
+	})
+}
 
 func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
@@ -190,6 +217,33 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
   account_endpoint    = "foo"
   account_key         = "bar"
   database            = "fizz"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+func testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey_update1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
+  name                = "acctestlscosmosdb%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  account_endpoint    = "foo"
+  account_key         = "bar"
+  database            = "buzz"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
