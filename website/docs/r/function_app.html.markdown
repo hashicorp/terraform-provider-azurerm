@@ -150,7 +150,7 @@ The following arguments are supported:
 
 * `connection_string` - (Optional) An `connection_string` block as defined below.
 
-* `os_type` - (Optional) A string indicating the Operating System type for this function app. 
+* `os_type` - (Optional) A string indicating the Operating System type for this function app.
 
 ~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "FunctionApp"` and `reserved = true`
 
@@ -167,6 +167,8 @@ The following arguments are supported:
 * `site_config` - (Optional) A `site_config` object as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `sync_triggers` - (Optional) Call SyncFunctionTriggers API after every update to the resource? Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

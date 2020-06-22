@@ -200,6 +200,12 @@ func resourceArmFunctionApp() *schema.Resource {
 				Default:  false,
 			},
 
+			"sync_triggers": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"daily_memory_time_quota": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -552,6 +558,17 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.Name, properties); err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", id.Name, err)
+		}
+	}
+
+	// Sync Triggers is required each time there is a potential change in the Azure Function.
+	// https://docs.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies#trigger-syncing
+	if d.Get("sync_triggers").(bool) {
+		// This delay replicates the behavior in Core Func Tool (tool used to deploy Function Apps)
+		// Link to the code: https://bit.ly/312J1Eo
+		time.Sleep(time.Second * 5)
+		if _, err := client.SyncFunctionTriggers(ctx, id.ResourceGroup, id.Name); err != nil {
+			return fmt.Errorf("Error syncing triggers for App Service %q: %+v", id.Name, err)
 		}
 	}
 
