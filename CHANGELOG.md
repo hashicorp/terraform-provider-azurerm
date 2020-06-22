@@ -1,4 +1,13 @@
 ## 2.16.0 (Unreleased)
+
+ENHANCEMENTS 
+
+* `azurerm_kusto_cluster` - Support for `identity` [GH-7367]
+
+BUG FIXES: 
+
+* `azurerm_role_definition` - terraform import now sets scope to prevent a force recreate [GH-7424]
+
 ## 2.15.0 (June 19, 2020)
 
 UPGRADE NOTES:

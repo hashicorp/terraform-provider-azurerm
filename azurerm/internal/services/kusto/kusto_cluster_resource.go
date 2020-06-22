@@ -50,6 +50,8 @@ func resourceArmKustoCluster() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"identity": azure.SchemaKustoIdentity(),
+
 			"sku": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -199,6 +201,12 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		Tags:              tags.Expand(t),
 	}
 
+	if _, ok := d.GetOk("identity"); ok {
+		kustoIdentityRaw := d.Get("identity").([]interface{})
+		kustoIdentity := azure.ExpandKustoIdentity(kustoIdentityRaw)
+		kustoCluster.Identity = kustoIdentity
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster)
 	if err != nil {
 		return fmt.Errorf("Error creating or updating Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -247,6 +255,10 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 
 	if location := clusterResponse.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if err := d.Set("identity", azure.FlattenKustoIdentity(clusterResponse.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 
 	if err := d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku)); err != nil {
