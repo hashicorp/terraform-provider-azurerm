@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -113,6 +113,12 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
+			"enforcement_mode": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"not_scopes": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -129,7 +135,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
-
+	enforcementMode := convertEnforcementMode(d.Get("enforcement_mode").(bool))
 	policyDefinitionId := d.Get("policy_definition_id").(string)
 	displayName := d.Get("display_name").(string)
 
@@ -151,6 +157,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 			PolicyDefinitionID: utils.String(policyDefinitionId),
 			DisplayName:        utils.String(displayName),
 			Scope:              utils.String(scope),
+			EnforcementMode:    enforcementMode,
 		},
 	}
 
@@ -171,12 +178,12 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
-		expandedParams, err := structure.ExpandJsonFromString(v)
+		expandedParams, err := expandParameterValuesValueFromString(v)
 		if err != nil {
 			return fmt.Errorf("Error expanding JSON from Parameters %q: %+v", v, err)
 		}
 
-		assignment.AssignmentProperties.Parameters = &expandedParams
+		assignment.AssignmentProperties.Parameters = expandedParams
 	}
 
 	if _, ok := d.GetOk("not_scopes"); ok {
@@ -251,10 +258,10 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("policy_definition_id", props.PolicyDefinitionID)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
+		d.Set("enforcement_mode", props.EnforcementMode == policy.Default)
 
 		if params := props.Parameters; params != nil {
-			paramsVal := params.(map[string]interface{})
-			json, err := structure.FlattenJsonToString(paramsVal)
+			json, err := flattenParameterValuesValueToString(params)
 			if err != nil {
 				return fmt.Errorf("Error serializing JSON from Parameters: %+v", err)
 			}
@@ -339,4 +346,12 @@ func expandAzureRmPolicyNotScopes(d *schema.ResourceData) *[]string {
 	}
 
 	return &notScopesRes
+}
+
+func convertEnforcementMode(mode bool) policy.EnforcementMode {
+	if mode {
+		return policy.Default
+	} else {
+		return policy.DoNotEnforce
+	}
 }

@@ -226,7 +226,7 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_policy_definition" "test" {
-  name         = "acctestDef-%[1]d"
+  name         = "acctestDef-%[1]s"
   policy_type  = "Custom"
   mode         = "All"
   display_name = "my-policy-definition"
@@ -260,7 +260,7 @@ PARAMETERS
 }
 
 resource "azurerm_policy_assignment" "test" {
-  name                 = "acctestAssign-%[1]d"
+  name                 = "acctestAssign-%[1]s"
   scope                = data.azurerm_subscription.current.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "Policy Assignment created via an Acceptance Test"
@@ -276,11 +276,11 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestremediation-%[1]d"
+  name                 = "acctestremediation-%[1]s"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
 }
-`, data.RandomInteger)
+`, data.RandomString)
 }
 
 func testAccAzureRMPolicyRemediation_atSubscriptionWithDefinitionSet(data acceptance.TestData) string {
@@ -292,9 +292,9 @@ provider "azurerm" {
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_policy_set_definition" "test" {
-  name         = "testPolicySet-%[1]d"
+  name         = "testPolicySet-%[1]s"
   policy_type  = "Custom"
-  display_name = "Test Policy Set"
+  display_name = "testPolicySet-%[1]s"
 
   parameters = <<PARAMETERS
     {
@@ -324,10 +324,10 @@ POLICY_DEFINITIONS
 }
 
 resource "azurerm_policy_definition" "test" {
-  name         = "acctestDef-%[1]d"
+  name         = "acctestDef-%[1]s"
   policy_type  = "Custom"
   mode         = "All"
-  display_name = "my-policy-definition"
+  display_name = "acctestDef-%[1]s"
 
   policy_rule = <<POLICY_RULE
     {
@@ -358,11 +358,11 @@ PARAMETERS
 }
 
 resource "azurerm_policy_assignment" "test" {
-  name                 = "acctestAssign-%[1]d"
+  name                 = "acctestAssign-%[1]s"
   scope                = data.azurerm_subscription.current.id
   policy_definition_id = azurerm_policy_set_definition.test.id
   description          = "Policy Assignment created via an Acceptance Test"
-  display_name         = "My Example Policy Assignment"
+  display_name         = "acctestAssign-%[1]s"
 
   parameters = <<PARAMETERS
 {
@@ -374,12 +374,12 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                           = "acctestremediation-%[1]d"
+  name                           = "acctestremediation-%[1]s"
   scope                          = azurerm_policy_assignment.test.scope
   policy_assignment_id           = azurerm_policy_assignment.test.id
   policy_definition_reference_id = azurerm_policy_definition.test.id
 }
-`, data.RandomInteger)
+`, data.RandomString)
 }
 
 func testAccAzureRMPolicyRemediation_atResourceGroup(data acceptance.TestData) string {
@@ -389,12 +389,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-policy-%[1]d"
+  name     = "acctestRG-policy-%[1]s"
   location = "%[2]s"
 }
 
 resource "azurerm_policy_definition" "test" {
-  name         = "acctestDef-%[1]d"
+  name         = "acctestDef-%[1]s"
   policy_type  = "Custom"
   mode         = "All"
   display_name = "my-policy-definition"
@@ -428,11 +428,11 @@ PARAMETERS
 }
 
 resource "azurerm_policy_assignment" "test" {
-  name                 = "acctestAssign-%[1]d"
+  name                 = "acctestAssign-%[1]s"
   scope                = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "Policy Assignment created via an Acceptance Test"
-  display_name         = "My Example Policy Assignment"
+  display_name         = "acctestAssign-%[1]s"
 
   parameters = <<PARAMETERS
 {
@@ -444,11 +444,11 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestremediation-%[1]d"
+  name                 = "acctestremediation-%[1]s"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomString, data.Locations.Primary)
 }
 
 func testAccAzureRMPolicyRemediation_updateLocation(data acceptance.TestData) string {
@@ -458,12 +458,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-policy-%[1]d"
+  name     = "acctestRG-policy-%[1]s"
   location = "%[2]s"
 }
 
 resource "azurerm_policy_definition" "test" {
-  name         = "acctestDef-%[1]d"
+  name         = "acctestDef-%[1]s"
   policy_type  = "Custom"
   mode         = "All"
   display_name = "my-policy-definition"
@@ -497,7 +497,7 @@ PARAMETERS
 }
 
 resource "azurerm_policy_assignment" "test" {
-  name                 = "acctestAssign-%[1]d"
+  name                 = "acctestAssign-%[1]s"
   scope                = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "Policy Assignment created via an Acceptance Test"
@@ -513,12 +513,12 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestremediation-%[1]d"
+  name                 = "acctestremediation-%[1]s"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
   location_filters     = ["westus"]
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomString, data.Locations.Primary)
 }
 
 func testAccAzureRMPolicyRemediation_requiresImport(data acceptance.TestData) string {
@@ -541,11 +541,11 @@ provider "azurerm" {
 }
 
 resource "azurerm_management_group" "test" {
-  display_name = "acctest-policy-%[1]d"
+  display_name = "acctest-policy-%[1]s"
 }
 
 resource "azurerm_policy_definition" "test" {
-  name                = "acctestDef-%[1]d"
+  name                = "acctestDef-%[1]s"
   policy_type         = "Custom"
   mode                = "All"
   display_name        = "my-policy-definition"
@@ -580,7 +580,7 @@ PARAMETERS
 }
 
 resource "azurerm_policy_assignment" "test" {
-  name = "acctestAssign-%[1]d"
+  name = "acctestAssign-%[1]s"
   #   scope                = azurerm_resource_group.test.id
   #   scope                = data.azurerm_subscription.current.id
   scope = azurerm_management_group.test.id
@@ -599,11 +599,11 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestremediation-%[1]d"
+  name                 = "acctestremediation-%[1]s"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
 }
-`, data.RandomInteger)
+`, data.RandomString)
 }
 
 func testAccAzureRMPolicyRemediation_atResource(data acceptance.TestData) string {
@@ -613,26 +613,26 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-policy-%[1]d"
+  name     = "acctestRG-policy-%[1]s"
   location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctest-network-%[1]d"
+  name                = "acctest-network-%[1]s"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestsubnet%[1]d"
+  name                 = "acctestsubnet%[1]s"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctestnic-%[1]d"
+  name                = "acctestnic-%[1]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -644,7 +644,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                            = "acctest-vm-%[1]d"
+  name                            = "acctest-vm-%[1]s"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
   size                            = "Standard_F2"
@@ -669,7 +669,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 }
 
 resource "azurerm_policy_definition" "test" {
-  name         = "acctestDef-%[1]d"
+  name         = "acctestDef-%[1]s"
   policy_type  = "Custom"
   mode         = "All"
   display_name = "my-policy-definition"
@@ -703,7 +703,7 @@ PARAMETERS
 }
 
 resource "azurerm_policy_assignment" "test" {
-  name                 = "acctestAssign-%[1]d"
+  name                 = "acctestAssign-%[1]s"
   scope                = azurerm_linux_virtual_machine.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "Policy Assignment created via an Acceptance Test"
@@ -719,9 +719,9 @@ PARAMETERS
 }
 
 resource "azurerm_policy_remediation" "test" {
-  name                 = "acctestremediation-%[1]d"
+  name                 = "acctestremediation-%[1]s"
   scope                = azurerm_policy_assignment.test.scope
   policy_assignment_id = azurerm_policy_assignment.test.id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomString, data.Locations.Primary)
 }

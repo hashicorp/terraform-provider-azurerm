@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes. Conflicts with `max_size_gb`.
 
+-> **Note:** One of either `max_size_gb` or `max_size_bytes` must be specified.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zone_redundant` - (Optional) Whether or not this elastic pool is zone redundant. `tier` needs to be `Premium` for `DTU` based  or `BusinessCritical` for `vCore` based `sku`. Defaults to `false`.

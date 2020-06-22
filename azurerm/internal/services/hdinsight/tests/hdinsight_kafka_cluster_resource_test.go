@@ -389,7 +389,6 @@ resource "azurerm_hdinsight_kafka_cluster" "import" {
       dynamic "worker_node" {
         for_each = lookup(roles.value, "worker_node", [])
         content {
-          min_instance_count       = lookup(worker_node.value, "min_instance_count", null)
           number_of_disks_per_node = worker_node.value.number_of_disks_per_node
           password                 = lookup(worker_node.value, "password", null)
           ssh_keys                 = lookup(worker_node.value, "ssh_keys", null)

@@ -66,6 +66,8 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
+* `disk_encryption_set_id` - The ID of the Disk Encryption Set used for the Nodes and Volumes.
+
 * `linux_profile` - A `linux_profile` block as documented below.
 
 * `windows_profile` - A `windows_profile` block as documented below.
@@ -80,7 +82,7 @@ The following attributes are exported:
 
 * `identity` - A `identity` block as documented below.
 
-* `kubelet_identity` - A `kubelet_identity` block as documented below.  
+* `kubelet_identity` - A `kubelet_identity` block as documented below.
 
 * `tags` - A mapping of tags assigned to this resource.
 
@@ -124,16 +126,21 @@ A `agent_pool_profile` block exports the following:
 
 * `tags` - A mapping of tags to assign to the resource.
 
+* `orchestrator_version` - Kubernetes version used for the Agents.
+
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
-
 
 ---
 
 A `azure_active_directory` block exports the following:
 
+* `admin_group_object_ids` - The list of Object IDs of Azure Active Directory Groups which have Admin Role on the Cluster (when using a Managed integration).
+
 * `client_app_id` - The Client ID of an Azure Active Directory Application.
+
+* `managed` - Is the Azure Active Directory Integration managed (also known as AAD Integration V2)?
 
 * `server_app_id` - The Server ID of an Azure Active Directory Application.
 

@@ -665,10 +665,13 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 	}
 
 	if definition.CanSpecifyInstanceCount {
+		// TODO 3.0: remove this property
 		result["min_instance_count"] = &schema.Schema{
 			Type:         schema.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
+			Computed:     true,
+			Deprecated:   "this has been deprecated from the API and will be removed in version 3.0 of the provider",
 			ValidateFunc: validation.IntBetween(definition.MinInstanceCount, definition.MaxInstanceCount),
 		}
 		result["target_instance_count"] = &schema.Schema{

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
+	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -102,7 +102,12 @@ func dataSourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface
 	d.Set("description", setDefinition.Description)
 	d.Set("policy_type", setDefinition.PolicyType)
 	d.Set("metadata", flattenJSON(setDefinition.Metadata))
-	d.Set("parameters", flattenJSON(setDefinition.Parameters))
+
+	if paramsStr, err := flattenParameterDefintionsValueToString(setDefinition.Parameters); err != nil {
+		return fmt.Errorf("unable to flatten JSON for `parameters`: %+v", err)
+	} else {
+		d.Set("parameters", paramsStr)
+	}
 
 	definitionBytes, err := json.Marshal(setDefinition.PolicyDefinitions)
 	if err != nil {
