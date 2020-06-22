@@ -40,7 +40,7 @@ var hdInsightHadoopClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightHadoopClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         utils.Int(2),
+	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
