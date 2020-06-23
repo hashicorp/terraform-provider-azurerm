@@ -190,28 +190,40 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	profile, err := client.Get(ctx, resourceGroup, name)
+
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !utils.ResponseWasNotFound(profile.Response) {
 				return fmt.Errorf("Error checking for presence of existing TrafficManager profile %s (resource group %s) ID", name, resourceGroup)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_traffic_manager_profile", *existing.ID)
+		if profile.ID != nil && *profile.ID != "" {
+			return tf.ImportAsExistsError("azurerm_traffic_manager_profile", *profile.ID)
 		}
 	}
 
-	profile := trafficmanager.Profile{
-		Name:     &name,
-		Location: utils.String("global"), // must be provided in request
-		ProfileProperties: &trafficmanager.ProfileProperties{
-			TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string)),
-			DNSConfig:            expandArmTrafficManagerDNSConfig(d),
-			MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	if err == nil {
+		// If there's an existing profile - start from it and only update what we care about.
+		// This is required because the profile includes a list of endpoints, which we don't want to touch
+		// as part of this object (otherwise, any update here is going to delete all endpoints).
+		profile.ProfileProperties.TrafficRoutingMethod = trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string))
+		profile.ProfileProperties.DNSConfig = expandArmTrafficManagerDNSConfig(d)
+		profile.ProfileProperties.MonitorConfig = expandArmTrafficManagerMonitorConfig(d)
+		profile.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	} else {
+		// No existing profile - start from a new struct.
+		profile = trafficmanager.Profile{
+			Name:     &name,
+			Location: utils.String("global"), // must be provided in request
+			ProfileProperties: &trafficmanager.ProfileProperties{
+				TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(d.Get("traffic_routing_method").(string)),
+				DNSConfig:            expandArmTrafficManagerDNSConfig(d),
+				MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
+			},
+			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		}
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
