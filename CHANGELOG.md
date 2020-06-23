@@ -2,7 +2,7 @@
 
 ENHANCEMENTS 
 
-* `azurerm_app_service_environment` - Support for additional ILB mode [GH-7346]
+* `azurerm_app_service_environment` - Support `Web, Publishing` for the `internal_load_balancing_mode` property [GH-7346]
 * `azurerm_kusto_cluster` - Support for `identity` [GH-7367]
 * `azurerm_kusto_cluster` - Support for `virtual_network_configuration` [GH-7369]
 * `azurerm_firewall` - support for configuring `threat_intel_mode` [GH-7437]
