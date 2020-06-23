@@ -2,6 +2,7 @@
 
 ENHANCEMENTS 
 
+* `azurerm_app_service_environment` - Support for additional ILB mode [GH-7346]
 * `azurerm_kusto_cluster` - Support for `identity` [GH-7367]
 
 BUG FIXES: 
