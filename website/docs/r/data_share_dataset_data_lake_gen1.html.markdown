@@ -69,7 +69,7 @@ resource "azurerm_data_share_dataset_data_lake_gen1" "example" {
     subscription_id     = "00000000-0000-0000-0000-000000000000"
   }
   file_name   = "myfile.txt"
-  folder_path = "/example/"
+  folder_path = "example"
   depends_on = [
     azurerm_role_assignment.example,
   ]
