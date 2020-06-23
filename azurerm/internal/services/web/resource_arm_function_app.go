@@ -1154,7 +1154,6 @@ func expandFunctionAppScmIpRestrictions(input interface{}) ([]web.IPSecurityRest
 	}
 
 	return scmRestrictions, nil
-
 }
 
 func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
