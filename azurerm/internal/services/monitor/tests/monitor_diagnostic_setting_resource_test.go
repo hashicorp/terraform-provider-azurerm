@@ -36,6 +36,24 @@ func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorDiagnosticSetting_metricOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorDiagnosticSetting_metricOnly(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
@@ -276,6 +294,40 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
+}
+
+func testAccAzureRMMonitorDiagnosticSetting_metricOnly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVnet-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                           = "acctest-DS-%[1]d"
+  target_resource_id             = azurerm_virtual_network.test.id
+  log_analytics_workspace_id     = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourcegroups/magodo-rg/providers/microsoft.operationalinsights/workspaces/magodo-log"
+
+  metric {
+    category = "AllMetrics"
+
+    retention_policy {
+      enabled = false
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_requiresImport(data acceptance.TestData) string {

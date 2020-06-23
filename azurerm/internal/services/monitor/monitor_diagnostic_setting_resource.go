@@ -129,6 +129,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 						},
 					},
 				},
+				DiffSuppressFunc: diagLogSettingSuppress("log"),
 			},
 
 			"metric": {
@@ -168,6 +169,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 						},
 					},
 				},
+				DiffSuppressFunc: diagMetricSettingSuppress("metric"),
 			},
 		},
 	}
@@ -541,4 +543,88 @@ func parseMonitorDiagnosticId(monitorId string) (*monitorDiagnosticId, error) {
 		name:       v[1],
 	}
 	return &identifier, nil
+}
+
+// diagLogSettingSuppress suppresses the not specified log settings which have the default value (disabled) set in service.
+// Otherwise, user always has to specify all the possible log settings in the terraform config.
+func diagLogSettingSuppress(key string) func(k string, old string, new string, d *schema.ResourceData) bool {
+	return func(k string, old string, new string, d *schema.ResourceData) bool {
+		o, n := d.GetChange(key)
+		if o == nil || n == nil {
+			return false
+		}
+		os, ns := expandMonitorDiagnosticsSettingsLogs(o.(*schema.Set).List()), expandMonitorDiagnosticsSettingsLogs(n.(*schema.Set).List())
+
+		nmap := map[string]insights.LogSettings{}
+		for i := range ns {
+			if ns[i].Category == nil {
+				continue
+			}
+			nmap[*(ns[i].Category)] = ns[i]
+		}
+
+		// Check those only appear in old settings to see if they have the default disabled value
+		for _, osetting := range os {
+			if osetting.Category == nil {
+				continue
+			}
+			if _, ok := nmap[*osetting.Category]; ok {
+				continue
+			}
+			if osetting.Enabled != nil && *osetting.Enabled != false {
+				return false
+			}
+			if policy := osetting.RetentionPolicy; policy != nil {
+				if policy.Enabled != nil && *policy.Enabled != false {
+					return false
+				}
+				if policy.Days != nil && *policy.Days != 0 {
+					return false
+				}
+			}
+		}
+		return true
+	}
+}
+
+// diagMetricSettingSuppress suppresses the not specified metric settings which have the default value (disabled) set in service.
+// Otherwise, user always has to specify all the possible metric settings in the terraform config.
+func diagMetricSettingSuppress(key string) func(k string, old string, new string, d *schema.ResourceData) bool {
+	return func(k string, old string, new string, d *schema.ResourceData) bool {
+		o, n := d.GetChange(key)
+		if o == nil || n == nil {
+			return false
+		}
+		os, ns := expandMonitorDiagnosticsSettingsMetrics(o.(*schema.Set).List()), expandMonitorDiagnosticsSettingsMetrics(n.(*schema.Set).List())
+
+		nmap := map[string]insights.MetricSettings{}
+		for i := range ns {
+			if ns[i].Category == nil {
+				continue
+			}
+			nmap[*(ns[i].Category)] = ns[i]
+		}
+
+		// Check those only appear in old settings to see if they have the default disabled value
+		for _, osetting := range os {
+			if osetting.Category == nil {
+				continue
+			}
+			if _, ok := nmap[*osetting.Category]; ok {
+				continue
+			}
+			if osetting.Enabled != nil && *osetting.Enabled != false {
+				return false
+			}
+			if policy := osetting.RetentionPolicy; policy != nil {
+				if policy.Enabled != nil && *policy.Enabled != false {
+					return false
+				}
+				if policy.Days != nil && *policy.Days != 0 {
+					return false
+				}
+			}
+		}
+		return true
+	}
 }
