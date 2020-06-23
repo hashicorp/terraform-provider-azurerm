@@ -314,10 +314,18 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-LAW-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_monitor_diagnostic_setting" "test" {
   name                           = "acctest-DS-%[1]d"
   target_resource_id             = azurerm_virtual_network.test.id
-  log_analytics_workspace_id     = "/subscriptions/67a9759d-d099-4aa8-8675-e6cfd669c3f4/resourcegroups/magodo-rg/providers/microsoft.operationalinsights/workspaces/magodo-log"
+  log_analytics_workspace_id     = azurerm_log_analytics_workspace.test.id
 
   metric {
     category = "AllMetrics"
