@@ -6,6 +6,20 @@ cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/storage
+# github.com/Azure/azure-kusto-go v0.2.0
+github.com/Azure/azure-kusto-go/kusto
+github.com/Azure/azure-kusto-go/kusto/data/errors
+github.com/Azure/azure-kusto-go/kusto/data/table
+github.com/Azure/azure-kusto-go/kusto/data/types
+github.com/Azure/azure-kusto-go/kusto/data/value
+github.com/Azure/azure-kusto-go/kusto/internal/frames
+github.com/Azure/azure-kusto-go/kusto/internal/frames/unmarshal
+github.com/Azure/azure-kusto-go/kusto/internal/frames/unmarshal/json
+github.com/Azure/azure-kusto-go/kusto/internal/frames/v1
+github.com/Azure/azure-kusto-go/kusto/internal/frames/v2
+github.com/Azure/azure-kusto-go/kusto/internal/log
+github.com/Azure/azure-kusto-go/kusto/internal/version
+github.com/Azure/azure-kusto-go/kusto/unsafe
 # github.com/Azure/azure-sdk-for-go v46.4.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
@@ -116,6 +130,8 @@ github.com/Azure/go-autorest/autorest
 github.com/Azure/go-autorest/autorest/azure
 # github.com/Azure/go-autorest/autorest/adal v0.9.5
 github.com/Azure/go-autorest/autorest/adal
+# github.com/Azure/go-autorest/autorest/azure/auth v0.4.2
+github.com/Azure/go-autorest/autorest/azure/auth
 # github.com/Azure/go-autorest/autorest/azure/cli v0.4.0
 github.com/Azure/go-autorest/autorest/azure/cli
 # github.com/Azure/go-autorest/autorest/date v0.3.0

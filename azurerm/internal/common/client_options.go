@@ -23,6 +23,7 @@ type ClientOptions struct {
 	GraphAuthorizer           autorest.Authorizer
 	GraphEndpoint             string
 	KeyVaultAuthorizer        autorest.Authorizer
+	KustoAuthorizer           func(string) (autorest.Authorizer, error)
 	ResourceManagerAuthorizer autorest.Authorizer
 	ResourceManagerEndpoint   string
 	StorageAuthorizer         autorest.Authorizer

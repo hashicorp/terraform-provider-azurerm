@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
@@ -100,6 +101,11 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	// Key Vault Endpoints
 	keyVaultAuth := builder.AuthConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
+	// Kusto Endpoints
+	kustoAuthorizerFunc := func(resource string) (autorest.Authorizer, error) {
+		return builder.AuthConfig.GetAuthorizationToken(sender, oauthConfig, resource)
+	}
+
 	o := &common.ClientOptions{
 		SubscriptionId:              builder.AuthConfig.SubscriptionID,
 		TenantID:                    builder.AuthConfig.TenantID,
@@ -108,6 +114,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,
+		KustoAuthorizer:             kustoAuthorizerFunc,
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
