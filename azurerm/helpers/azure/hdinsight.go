@@ -520,7 +520,7 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 type HDInsightNodeDefinition struct {
 	CanSpecifyInstanceCount  bool
 	MinInstanceCount         int
-	MaxInstanceCount         int
+	MaxInstanceCount         *int
 	CanSpecifyDisks          bool
 	MaxNumberOfDisksPerNode  *int
 	FixedMinInstanceCount    *int32
@@ -665,6 +665,11 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 	}
 
 	if definition.CanSpecifyInstanceCount {
+		countValidation := validation.IntAtLeast(definition.MinInstanceCount)
+		if definition.MaxInstanceCount != nil {
+			countValidation = validation.IntBetween(definition.MinInstanceCount, *definition.MaxInstanceCount)
+		}
+
 		// TODO 3.0: remove this property
 		result["min_instance_count"] = &schema.Schema{
 			Type:         schema.TypeInt,
@@ -672,12 +677,12 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			ForceNew:     true,
 			Computed:     true,
 			Deprecated:   "this has been deprecated from the API and will be removed in version 3.0 of the provider",
-			ValidateFunc: validation.IntBetween(definition.MinInstanceCount, definition.MaxInstanceCount),
+			ValidateFunc: countValidation,
 		}
 		result["target_instance_count"] = &schema.Schema{
 			Type:         schema.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(definition.MinInstanceCount, definition.MaxInstanceCount),
+			ValidateFunc: countValidation,
 		}
 	}
 

@@ -22,7 +22,7 @@ import (
 var hdInsightRServerClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         2,
+	MaxInstanceCount:         utils.Int(2),
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
@@ -31,14 +31,13 @@ var hdInsightRServerClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightRServerClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	MaxInstanceCount:        16,
 	CanSpecifyDisks:         false,
 }
 
 var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         3,
+	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
@@ -47,7 +46,7 @@ var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefiniti
 var hdInsightRServerClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         1,
-	MaxInstanceCount:         1,
+	MaxInstanceCount:         utils.Int(1),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(1)),
 }
