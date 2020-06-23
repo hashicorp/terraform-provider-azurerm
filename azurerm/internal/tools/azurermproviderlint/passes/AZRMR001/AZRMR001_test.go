@@ -3,7 +3,7 @@ package AZRMR001_test
 import (
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurermproviderlint/passes/AZRMR001"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tools/azurermproviderlint/passes/AZRMR001"
 	"golang.org/x/tools/go/analysis/analysistest"
 )
 

@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/bflad/tfproviderlint/passes/commentignore"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurermproviderlint/passes/pkgcallexprfactory"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tools/azurermproviderlint/passes/pkgcallexprfactory"
 	"golang.org/x/tools/go/analysis"
 )
 

@@ -17,7 +17,7 @@ func TestSetup(m *testing.M) (int, error) {
 		return 0, fmt.Errorf("getting pwd: %w", err)
 	}
 	prjdir := pwd
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 6; i++ {
 		prjdir = filepath.Dir(prjdir)
 	}
 

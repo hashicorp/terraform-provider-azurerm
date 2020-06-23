@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurermproviderlint/helper/testsetup"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurermproviderlint/passes/AZRMS001"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tools/azurermproviderlint/helper/testsetup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tools/azurermproviderlint/passes/AZRMS001"
 	"golang.org/x/tools/go/analysis/analysistest"
 )
 

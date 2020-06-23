@@ -3,7 +3,7 @@ package main
 import (
 	tfpasses "github.com/bflad/tfproviderlint/passes"
 	tfxpasses "github.com/bflad/tfproviderlint/xpasses"
-	azurermpasses "github.com/terraform-providers/terraform-provider-azurerm/azurermproviderlint/passes"
+	azurermpasses "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tools/azurermproviderlint/passes"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/multichecker"
 )
