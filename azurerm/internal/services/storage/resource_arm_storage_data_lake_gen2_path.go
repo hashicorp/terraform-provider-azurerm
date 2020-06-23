@@ -214,22 +214,21 @@ func resourceArmStorageDataLakeGen2PathRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmStorageDataLakeGen2PathDelete(d *schema.ResourceData, meta interface{}) error {
-	return fmt.Errorf("Not implemented - Delete")
-	// client := meta.(*clients.Client).Storage.FileSystemsClient
-	// ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	// defer cancel()
+	client := meta.(*clients.Client).Storage.ADLSGen2PathsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
-	// id, err := filesystems.ParseResourceID(d.Id())
-	// if err != nil {
-	// 	return err
-	// }
+	id, err := paths.ParseResourceID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	// resp, err := client.Delete(ctx, id.AccountName, id.DirectoryName)
-	// if err != nil {
-	// 	if !utils.ResponseWasNotFound(resp) {
-	// 		return fmt.Errorf("Error deleting File System %q in Storage Account %q: %+v", id.DirectoryName, id.AccountName, err)
-	// 	}
-	// }
+	resp, err := client.Delete(ctx, id.AccountName, id.FileSystemName, id.Path)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp) {
+			return fmt.Errorf("Error deleting Path %q in File System %q in Storage Account %q: %+v", id.Path, id.FileSystemName, id.AccountName, err)
+		}
+	}
 
-	// return nil
+	return nil
 }
