@@ -217,7 +217,7 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 
-~> **Note:** Network Rules can be removed by setting `default_action` as `Allow`.
+~> **Note:** You cannot remove the network rules by removing `network_rules` block, but you can nullify it by setting `default_action` as `Allow`.
 
 ---
 
