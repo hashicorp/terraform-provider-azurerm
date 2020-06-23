@@ -11,7 +11,14 @@ BUG FIXES:
 
 * `azurerm_function_app` - state fixes for `app_settings` [GH-7440]
 * `azurerm_frontdoor` - increase read timeout to 6 hours [GH-7408]
-* `azurerm_hdinsights_*_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_hadoop_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_hbase_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_interactive_query_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_kafka_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_ml_services_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_rserver_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_spark_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_storm_cluster` - fixes for node and instance count validation [GH-7430]
 * `azurerm_role_definition` - terraform import now sets scope to prevent a force recreate [GH-7424]
 
 ## 2.15.0 (June 19, 2020)
