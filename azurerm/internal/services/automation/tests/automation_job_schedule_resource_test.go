@@ -59,10 +59,16 @@ func TestAccAzureRMAutomationJobSchedule_update(t *testing.T) {
 				Config: testAccAzureRMAutomationJobSchedule_basic(data),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
 			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMAutomationJobSchedule_update(data),
+			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAutomationJobSchedule_complete(data),
 				Check:  checkAccAzureRMAutomationJobSchedule_complete(data.ResourceName),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMAutomationJobSchedule_basic(data),
 				Check:  checkAccAzureRMAutomationJobSchedule_basic(data.ResourceName),
@@ -302,4 +308,71 @@ resource "azurerm_automation_job_schedule" "import" {
   job_schedule_id         = azurerm_automation_job_schedule.test.job_schedule_id
 }
 `, template)
+}
+
+func testAccAzureRMAutomationJobSchedule_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctestAA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "Output-HelloWorld"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  log_verbose             = "true"
+  log_progress            = "true"
+  description             = "This is a test runbook for terraform acceptance test"
+  runbook_type            = "PowerShell"
+
+  publish_content_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+  }
+
+  content = <<EOF
+  param(
+    [string]$Output = "World",
+
+    [string]$Case = "Original",
+
+    [string]$Change = "Update",
+
+    [int]$KeepCount = 10,
+
+    [uri]$WebhookUri = "https://example.com/hook",
+
+    [uri]$URL = "https://Example.com"
+  )
+  "Hello, " + $Output + "!"
+EOF
+
+}
+
+resource "azurerm_automation_schedule" "test" {
+  name                    = "acctestAS-%[1]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  frequency               = "OneTime"
+}
+
+resource "azurerm_automation_job_schedule" "test" {
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  schedule_name           = azurerm_automation_schedule.test.name
+  runbook_name            = azurerm_automation_runbook.test.name
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -102,16 +102,38 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Job Schedule creation.")
 
-	jobScheduleUUID := uuid.NewV4()
-	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
-		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
-	}
-
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("automation_account_name").(string)
 
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
+
+	//The runbook could link to a specific schedule only once.
+	//fix issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/7130
+	for jsIterator, err := client.ListByAutomationAccountComplete(ctx, resourceGroup, accountName, ""); jsIterator.NotDone(); jsIterator.NextWithContext(ctx) {
+		if err != nil {
+			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accountName, err)
+		}
+		if props := jsIterator.Value().JobScheduleProperties; props != nil {
+			if *props.Schedule.Name == scheduleName && *props.Runbook.Name == runbookName {
+				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
+					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accountName, err)
+				}
+				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
+				if err != nil {
+					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
+				}
+				if _, err := client.Delete(ctx, resourceGroup, accountName, jsId); err != nil {
+					return fmt.Errorf("deleteing job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
+				}
+			}
+		}
+	}
+
+	jobScheduleUUID := uuid.NewV4()
+	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
+		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
+	}
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
