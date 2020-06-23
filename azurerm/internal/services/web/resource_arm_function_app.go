@@ -254,6 +254,75 @@ func resourceArmFunctionApp() *schema.Resource {
 										Optional:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
+									"name": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"priority": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      65000,
+										ValidateFunc: validation.IntBetween(1, 2147483647),
+									},
+									"action": {
+										Type:     schema.TypeString,
+										Default:  "Allow",
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Allow",
+											"Deny",
+										}, false),
+									},
+								},
+							},
+						},
+
+						"scm_use_main_ip_restriction": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"scm_ip_restriction": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"ip_address": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.CIDR,
+									},
+									"subnet_id": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"name": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										Computed:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"priority": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      65000,
+										ValidateFunc: validation.IntBetween(1, 2147483647),
+									},
+									"action": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "Allow",
+										ValidateFunc: validation.StringInSlice([]string{
+											"Allow",
+											"Deny",
+										}, true),
+									},
 								},
 							},
 						},
@@ -881,6 +950,19 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
 
+	if v, ok := config["scm_use_main_ip_restriction"]; ok {
+		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["scm_ip_restriction"]; ok {
+		scmIpSecurityRestrictions := v.(interface{})
+		scmRestrictions, err := expandFunctionAppScmIpRestrictions(scmIpSecurityRestrictions)
+		if err != nil {
+			return siteConfig, err
+		}
+		siteConfig.ScmIPSecurityRestrictions = &scmRestrictions
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -931,6 +1013,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	result["ip_restriction"] = flattenFunctionAppIpRestriction(input.IPSecurityRestrictions)
 
+	result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
+
+	result["scm_ip_restriction"] = flattenFunctionAppScmIpRestriction(input.ScmIPSecurityRestrictions)
+
 	result["min_tls_version"] = string(input.MinTLSVersion)
 	result["ftps_state"] = string(input.FtpsState)
 
@@ -972,6 +1058,9 @@ func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestrict
 
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := restriction["subnet_id"].(string)
+		name := restriction["name"].(string)
+		priority := restriction["priority"].(int)
+		action := restriction["action"].(string)
 
 		if vNetSubnetID != "" && ipAddress != "" {
 			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
@@ -994,10 +1083,78 @@ func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestrict
 			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
 		}
 
+		if name != "" {
+			ipSecurityRestriction.Name = &name
+		}
+
+		if priority != 0 {
+			ipSecurityRestriction.Priority = utils.Int32(int32(priority))
+		}
+
+		if action != "" {
+			ipSecurityRestriction.Action = &action
+		}
+
 		restrictions = append(restrictions, ipSecurityRestriction)
 	}
 
 	return restrictions, nil
+}
+
+func expandFunctionAppScmIpRestrictions(input interface{}) ([]web.IPSecurityRestriction, error) {
+	scmRestrictions := make([]web.IPSecurityRestriction, 0)
+
+	for i, r := range input.([]interface{}) {
+		if r == nil {
+			continue
+		}
+
+		scmRestriction := r.(map[string]interface{})
+
+		ipAddress := scmRestriction["ip_address"].(string)
+		vNetSubnetID := scmRestriction["subnet_id"].(string)
+		name := scmRestriction["name"].(string)
+		priority := scmRestriction["priority"].(int)
+		action := scmRestriction["action"].(string)
+
+		if vNetSubnetID != "" && ipAddress != "" {
+			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
+		}
+
+		if vNetSubnetID == "" && ipAddress == "" {
+			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
+		}
+
+		scmIpSecurityRestriction := web.IPSecurityRestriction{}
+		if ipAddress == "Any" {
+			continue
+		}
+
+		if ipAddress != "" {
+			scmIpSecurityRestriction.IPAddress = &ipAddress
+		}
+
+		if vNetSubnetID != "" {
+			scmIpSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+		}
+
+		if name != "" {
+			scmIpSecurityRestriction.Name = &name
+		}
+
+		if priority != 0 {
+			scmIpSecurityRestriction.Priority = utils.Int32(int32(priority))
+		}
+
+		if action != "" {
+			scmIpSecurityRestriction.Action = &action
+		}
+
+		scmRestrictions = append(scmRestrictions, scmIpSecurityRestriction)
+	}
+
+	return scmRestrictions, nil
+
 }
 
 func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
@@ -1038,28 +1195,72 @@ func flattenFunctionAppIpRestriction(input *[]web.IPSecurityRestriction) []inter
 	restrictions := make([]interface{}, 0)
 
 	if input == nil {
+		log.Printf("[DEBUG] SiteConfig is nil")
 		return restrictions
 	}
 
 	for _, v := range *input {
-		ipAddress := ""
-		if v.IPAddress != nil {
-			ipAddress = *v.IPAddress
-			if ipAddress == "Any" {
+		block := make(map[string]interface{})
+
+		if ip := v.IPAddress; ip != nil {
+			if *ip == "Any" {
 				continue
+			} else {
+				block["ip_address"] = *ip
 			}
 		}
-
-		subnetId := ""
-		if v.VnetSubnetResourceID != nil {
-			subnetId = *v.VnetSubnetResourceID
+		if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
+			block["subnet_id"] = *vNetSubnetID
+		}
+		if name := v.Name; name != nil {
+			block["name"] = *name
+		}
+		if priority := v.Priority; priority != nil {
+			block["priority"] = *priority
 		}
 
-		restrictions = append(restrictions, map[string]interface{}{
-			"ip_address": ipAddress,
-			"subnet_id":  subnetId,
-		})
+		if action := v.Action; action != nil {
+			block["action"] = *action
+		}
+
+		restrictions = append(restrictions, block)
+	}
+	return restrictions
+}
+
+func flattenFunctionAppScmIpRestriction(input *[]web.IPSecurityRestriction) []interface{} {
+	scmRestrictions := make([]interface{}, 0)
+
+	if input == nil {
+		log.Printf("[DEBUG] SiteConfig is nil")
+		return scmRestrictions
 	}
 
-	return restrictions
+	for _, v := range *input {
+		block := make(map[string]interface{})
+
+		if ip := v.IPAddress; ip != nil {
+			if *ip == "Any" {
+				continue
+			} else {
+				block["ip_address"] = *ip
+			}
+		}
+		if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
+			block["subnet_id"] = *vNetSubnetID
+		}
+		if name := v.Name; name != nil {
+			block["name"] = *name
+		}
+		if priority := v.Priority; priority != nil {
+			block["priority"] = *priority
+		}
+
+		if action := v.Action; action != nil {
+			block["action"] = *action
+		}
+
+		scmRestrictions = append(scmRestrictions, block)
+	}
+	return scmRestrictions
 }
