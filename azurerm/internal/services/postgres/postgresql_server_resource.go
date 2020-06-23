@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"log"
 	"strconv"
 	"strings"
@@ -348,6 +349,22 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+				oldTier := strings.Split(old.(string), "_")
+				newTier := strings.Split(new.(string), "_")
+				// If the sku tier was not changed, we don't need fornew
+				if oldTier[0] == newTier[0] {
+					return false
+				}
+				// Basic tier could not be changed to other tiers
+				if oldTier[0] == "B" || newTier[0] == "B" {
+					return true
+				}
+				return false
+			}),
+		),
 	}
 }
 
