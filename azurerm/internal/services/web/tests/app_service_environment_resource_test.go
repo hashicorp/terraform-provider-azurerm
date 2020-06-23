@@ -159,6 +159,26 @@ func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceEnvironment_internalLoadBalancerAndWhitelistedIpRanges(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "internal_load_balancing_mode", "Web, Publishing"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceEnvironmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServiceEnvironmentsClient
@@ -378,26 +398,6 @@ resource "azurerm_subnet" "gateway" {
   address_prefix       = "10.0.2.0/24"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func TestAccAzureRMAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMAppServiceEnvironment_internalLoadBalancerAndWhitelistedIpRanges(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "internal_load_balancing_mode", "Web, Publishing"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
 }
 
 func testAccAzureRMAppServiceEnvironment_internalLoadBalancerAndWhitelistedIpRanges(data acceptance.TestData) string {
