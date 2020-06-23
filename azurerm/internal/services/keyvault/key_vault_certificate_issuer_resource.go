@@ -115,18 +115,16 @@ func resourceArmKeyVaultCertificateIssuerCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error looking up Certificate Issuer %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetCertificateIssuer(ctx, keyVaultBaseUri, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, keyVaultBaseUri, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+	existing, err := client.GetCertificateIssuer(ctx, keyVaultBaseUri, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, keyVaultBaseUri, err)
 		}
 	}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_key_vault_certificate", *existing.ID)
+	}
+
 
 	parameter := keyvault.CertificateIssuerSetParameters{}
 	parameter.Provider = utils.String(d.Get("provider_name").(string))
@@ -164,10 +162,23 @@ func resourceArmKeyVaultCertificateIssuerUpdate(d *schema.ResourceData, meta int
 		}
 	}
 
-	parameter := keyvault.CertificateIssuerSetParameters{}
-	parameter.Provider = utils.String(d.Get("provider_name").(string))
-	parameter.OrganizationDetails = &keyvault.OrganizationDetails{ID: utils.String(d.Get("org_id").(string))}
-	parameter.Credentials = &keyvault.IssuerCredentials{AccountID: utils.String(d.Get("account_id").(string)), Password: utils.String(d.Get("password").(string))}
+	parameter := keyvault.CertificateIssuerSetParameters{
+		Provider: utils.String(d.Get("provider_name").(string)),
+		OrganizationDetails: &keyvault.OrganizationDetails{},
+		Credentials: &keyvault.IssuerCredentials{},
+	}
+
+	if orgID := d.Get("org_id").(string); orgID != "" {
+		parameter.OrganizationDetails.ID = utils.String(orgID)
+	}
+
+	if accountID := d.Get("account_id").(string); accountID != "" {
+		parameter.Credentials.AccountID = utils.String(accountID)
+	}
+
+	if password := d.Get("password").(string); password != "" {
+		parameter.Credentials.Password = utils.String(password)
+	}
 	resp, err := client.SetCertificateIssuer(ctx, keyVaultBaseUri, name, parameter)
 	if err != nil {
 		return fmt.Errorf("Error setting Certificate Issuer %q (Key Vault %q): %s", name, keyVaultId, err)

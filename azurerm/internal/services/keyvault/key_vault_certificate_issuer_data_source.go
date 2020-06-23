@@ -87,7 +87,7 @@ func dataSourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta int
 
 	keyVaultBaseUri, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 	if err != nil {
-		return fmt.Errorf("Error looking up Certificate Issuer %q vault url from id %q: %+v", name, keyVaultId, err)
+		return fmt.Errorf("failed to look up Certificate Issuer %q, vault id %q: %+v", name, keyVaultId, err)
 	}
 
 	// we always want to get the latest version
@@ -96,7 +96,7 @@ func dataSourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta int
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("KeyVault Certificate Issuer %q (KeyVault URI %q) does not exist", name, keyVaultBaseUri)
 		}
-		return fmt.Errorf("Error making Read request on Azure KeyVault Certificate Issuer %s: %+v", name, err)
+		return fmt.Errorf("failed making Read request on Azure KeyVault Certificate Issuer %s: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
