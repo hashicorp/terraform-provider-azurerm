@@ -8,6 +8,7 @@ ENHANCEMENTS
 BUG FIXES: 
 
 * `azurerm_role_definition` - terraform import now sets scope to prevent a force recreate [GH-7424]
+* `azurerm_hdinsights_*_cluster` - fixes for node and instance count validation [GH-7430]
 
 ## 2.15.0 (June 19, 2020)
 
