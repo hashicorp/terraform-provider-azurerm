@@ -77,7 +77,7 @@ resource "azurerm_dev_test_global_vm_shutdown_schedule" "example" {
   enabled            = true
 
   daily_recurrence_time = "1100"
-  time_zone             = "Pacific Standard Time"
+  timezone              = "Pacific Standard Time"
 
   notification_settings {
     enabled         = true
