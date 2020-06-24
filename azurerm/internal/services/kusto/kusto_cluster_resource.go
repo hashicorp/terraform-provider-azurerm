@@ -95,8 +95,6 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
-			"zones": azure.SchemaZones(),
-
 			"enable_disk_encryption": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -146,6 +144,8 @@ func resourceArmKustoCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"zones": azure.SchemaZones(),
 
 			"tags": tags.Schema(),
 		},
