@@ -110,6 +110,31 @@ func resourceArmKustoCluster() *schema.Resource {
 				Optional: true,
 			},
 
+			"key_vault": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateKeyVaultChildName,
+						},
+						"key_version": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"key_vault_uri": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsURLWithHTTPS,
+						},
+					},
+				},
+			},
+
 			"virtual_network_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -232,6 +257,25 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	d.SetId(*resp.ID)
 
+	if v, ok := d.GetOk("key_vault"); ok {
+		keyVaultProperties := expandKustoClusterKeyVault(v.([]interface{}))
+
+		clusterUpdate := kusto.ClusterUpdate{
+			ClusterProperties: &kusto.ClusterProperties{
+				KeyVaultProperties: keyVaultProperties,
+			},
+		}
+
+		future, err := client.Update(ctx, resourceGroup, name, clusterUpdate)
+		if err != nil {
+			return fmt.Errorf("Error creating or updating Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for completion of Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	return resourceArmKustoClusterRead(d, meta)
 }
 
@@ -279,6 +323,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
 		d.Set("enable_purge", clusterProperties.EnablePurge)
 		d.Set("virtual_network_configuration", flatteKustoClusterVNET(clusterProperties.VirtualNetworkConfiguration))
+		d.Set("key_vault", flatteKustoClusterKeyVault(clusterProperties.KeyVaultProperties))
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
 	}
@@ -366,6 +411,23 @@ func expandKustoClusterVNET(input []interface{}) *kusto.VirtualNetworkConfigurat
 	}
 }
 
+func expandKustoClusterKeyVault(input []interface{}) *kusto.KeyVaultProperties {
+	if len(input) == 0 && input[0] != nil {
+		return nil
+	}
+
+	keyVault := input[0].(map[string]interface{})
+	keyName := keyVault["key_name"].(string)
+	keyVersion := keyVault["key_version"].(string)
+	uri := keyVault["key_vault_uri"].(string)
+
+	return &kusto.KeyVaultProperties{
+		KeyName:     &keyName,
+		KeyVersion:  &keyVersion,
+		KeyVaultURI: &uri,
+	}
+}
+
 func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
 	if sku == nil {
 		return []interface{}{}
@@ -406,6 +468,35 @@ func flatteKustoClusterVNET(vnet *kusto.VirtualNetworkConfiguration) []interface
 		"subnet_id":                    subnetID,
 		"engine_public_ip_id":          enginePublicIPID,
 		"data_management_public_ip_id": dataManagementPublicIPID,
+	}
+
+	return []interface{}{output}
+}
+
+func flatteKustoClusterKeyVault(keyVault *kusto.KeyVaultProperties) []interface{} {
+	if keyVault == nil {
+		return []interface{}{}
+	}
+
+	keyName := ""
+	if keyVault.KeyName != nil {
+		keyName = *keyVault.KeyName
+	}
+
+	keyVersion := ""
+	if keyVault.KeyVersion != nil {
+		keyVersion = *keyVault.KeyVersion
+	}
+
+	keyVaultURI := ""
+	if keyVault.KeyVaultURI != nil {
+		keyVaultURI = *keyVault.KeyVaultURI
+	}
+
+	output := map[string]interface{}{
+		"key_name":      keyName,
+		"key_version":   keyVersion,
+		"key_vault_uri": keyVaultURI,
 	}
 
 	return []interface{}{output}

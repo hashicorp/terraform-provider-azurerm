@@ -150,6 +150,29 @@ func TestAccAzureRMKustoCluster_zones(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKustoCluster_keyVault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKustoClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKustoCluster_keyVault(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKustoClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_vault.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_vault.0.key_name", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "key_vault.0.key_version", ""),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault.0.key_vault_uri"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMKustoCluster_identitySystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kusto_cluster", "test")
 
@@ -379,6 +402,50 @@ resource "azurerm_kusto_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMKustoCluster_keyVault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkc%s-vault"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+}
+
+resource "azurerm_kusto_cluster" "test" {
+  name                = "acctestkc%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    name     = "Dev(No SLA)_Standard_D11_v2"
+    capacity = 1
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  key_vault {
+    key_name      = "acctestkc%s"
+    key_version   = "1"
+    key_vault_uri = azurerm_key_vault.test.vault_uri
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomString)
 }
 
 func testCheckAzureRMKustoClusterDestroy(s *terraform.State) error {

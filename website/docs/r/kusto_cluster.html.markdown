@@ -56,6 +56,8 @@ The following arguments are supported:
 
 * `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below.
 
+* `key_vault` - (Optional) A `key_vault` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.
@@ -91,6 +93,16 @@ An `identity` block supports the following:
 * `identity_ids` - (Computed) The list of user identities associated with the Kusto cluster.
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, the Principal ID can be retrieved after the cluster has been created. More details are available below. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for additional information.
+
+---
+
+A `key_vault` block supports the following:
+
+* `key_name` - (Required) The name of the key vault key.
+
+* `key_version` - (Required) The version of the key vault key.
+
+* `uri` - (Required) The Uri of the key vault.
 
 ## Attributes Reference
 

@@ -1,7 +1,12 @@
 ## 2.16.0 (Unreleased)
 
+DEPENDENCIES
+
+* updating `github.com/Azure/go-autorest/azure/cli` to `v0.3.1` [GH-7433]
+
 ENHANCEMENTS 
 
+* authentication: Azure CLI - support for access tokens in custom directories [GH-7433]
 * `azurerm_app_service_environment` - support a value of `Web, Publishing` for the `internal_load_balancing_mode` property [GH-7346]
 * `azurerm_kusto_cluster` - support for the `identity` block [GH-7367]
 * `azurerm_kusto_cluster` - support for `virtual_network_configuration` block [GH-7369]
