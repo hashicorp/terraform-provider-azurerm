@@ -48,7 +48,7 @@ func resourceArmFirewallPolicyRuleGroup() *schema.Resource {
 					},
 				},
 
-				"protocols": {
+				"protocol": {
 					Type:     schema.TypeList,
 					Optional: true,
 					Elem: &schema.Resource{
@@ -57,8 +57,8 @@ func resourceArmFirewallPolicyRuleGroup() *schema.Resource {
 								Type:     schema.TypeString,
 								Required: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(network.FirewallPolicyFilterRuleActionTypeAllow),
-									string(network.FirewallPolicyFilterRuleActionTypeDeny),
+									string(network.FirewallPolicyRuleConditionApplicationProtocolTypeHTTP),
+									string(network.FirewallPolicyRuleConditionApplicationProtocolTypeHTTPS),
 								}, false),
 							},
 							"port": {
@@ -504,7 +504,7 @@ func mapFirewallPolicyRuleApplicationConditionsToSDK(data map[string]interface{}
 		condition.FqdnTags = &fqdnTags
 	}
 
-	if protocolsRaw := data["protocols"].([]interface{}); len(protocolsRaw) > 0 {
+	if protocolsRaw := data["protocol"].([]interface{}); len(protocolsRaw) > 0 {
 		protocols := make([]network.FirewallPolicyRuleConditionApplicationProtocol, 0)
 		for _, protocolRaw := range protocolsRaw {
 			data := protocolRaw.(map[string]interface{})
@@ -807,7 +807,7 @@ func mapFirewallPolicyApplicationRuleConditionFromSDK(condition *network.Applica
 			protocolRaw["port"] = *protocol.Port
 			protocolsRaw = append(protocolsRaw, protocolRaw)
 		}
-		raw["protocols"] = protocolsRaw
+		raw["protocol"] = protocolsRaw
 	}
 
 	if condition.SourceAddresses != nil {
