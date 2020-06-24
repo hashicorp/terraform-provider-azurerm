@@ -247,7 +247,7 @@ func TestAccAzureRMEventHubDedicated_partitionCountUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMEventHubDedicated_partitionCountUpdate(data),
+				Config: testAccAzureRMEventHubDedicated_basic(data, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubDedicatedExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "partition_count", "10"),
