@@ -449,11 +449,11 @@ func testAccAzureRMEventHubDedicated_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_eventhub_dedicated" "import" {
-  name                = azurerm_eventhub.test.name
-  namespace_name      = azurerm_eventhub.test.namespace_name
-  resource_group_name = azurerm_eventhub.test.resource_group_name
-  partition_count     = azurerm_eventhub.test.partition_count
-  message_retention   = azurerm_eventhub.test.message_retention
+  name                = azurerm_eventhub_dedicated.test.name
+  namespace_name      = azurerm_eventhub_dedicated.test.namespace_name
+  resource_group_name = azurerm_eventhub_dedicated.test.resource_group_name
+  partition_count     = azurerm_eventhub_dedicated.test.partition_count
+  message_retention   = azurerm_eventhub_dedicated.test.message_retention
 }
 `, template)
 }
