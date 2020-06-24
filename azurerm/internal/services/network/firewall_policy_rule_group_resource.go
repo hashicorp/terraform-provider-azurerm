@@ -712,7 +712,7 @@ func mapFirewallPolicyFilterRuleFromSDK(rule *network.FirewallPolicyFilterRule) 
 	if rule.Name != nil {
 		raw["name"] = *rule.Name
 	}
-	if rule.Priority != rule.Priority {
+	if rule.Priority != nil {
 		raw["priority"] = int(*rule.Priority)
 	}
 	raw["action_type"] = string(rule.Action.Type)
