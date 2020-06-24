@@ -584,22 +584,18 @@ func testAccAzureRMMySQLServer_createReplica(data acceptance.TestData, version s
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_resource_group" "second"{
- name ="yup%[2]d"
- location = "%[3]s"
-}
 resource "azurerm_mysql_server" "replica" {
-  name                = "acctestmysqlsvr-%[2]d-replica"
-  location            = azurerm_resource_group.second.location
-  resource_group_name = azurerm_resource_group.second.name
+  name                = "acctestmysqlsvr-%d-replica"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku_name            = "GP_Gen5_2"
-  version             = "%[4]s"
-storage_mb                   = 51200
+  version             = "%s"
+
   create_mode               = "Replica"
   creation_source_server_id = azurerm_mysql_server.test.id
   ssl_enforcement_enabled   = true
 }
-`, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, data.Locations.Secondary, version)
+`, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, version)
 }
 
 func testAccAzureRMMySQLServer_createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
