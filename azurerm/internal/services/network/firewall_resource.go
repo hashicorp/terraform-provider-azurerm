@@ -105,7 +105,6 @@ func resourceArmFirewall() *schema.Resource {
 			"threat_intel_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(network.AzureFirewallThreatIntelModeAlert),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.AzureFirewallThreatIntelModeOff),
 					string(network.AzureFirewallThreatIntelModeAlert),
@@ -253,7 +252,9 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
-		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
+		if props.ThreatIntelMode != "" {
+			d.Set("threat_intel_mode", string(props.ThreatIntelMode))
+		}
 	}
 
 	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
@@ -456,7 +457,7 @@ func validateFirewallConfigurationSettings(d *schema.ResourceData) error {
 		}
 	}
 
-	if subnetNumber != 1 {
+	if subnetNumber > 1 {
 		return fmt.Errorf(`The "ip_configuration" is invalid, %d "subnet_id" have been set, one "subnet_id" should be set among all "ip_configuration" blocks`, subnetNumber)
 	}
 
