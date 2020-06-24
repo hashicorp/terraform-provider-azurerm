@@ -129,7 +129,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 						},
 					},
 				},
-				Set: monitorDiagnosticSettingHash("log"),
+				DiffSuppressFunc: diagLogSettingSuppress("log"),
 			},
 
 			"metric": {
@@ -169,7 +169,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 						},
 					},
 				},
-				Set: monitorDiagnosticSettingHash("log"),
+				DiffSuppressFunc: diagMetricSettingSuppress("metric"),
 			},
 		},
 	}
@@ -413,19 +413,11 @@ func expandMonitorDiagnosticsSettingsLogs(input []interface{}) []insights.LogSet
 	return results
 }
 
-func flattenMonitorDiagnosticLogs(input *[]insights.LogSettings) *schema.Set {
+func flattenMonitorDiagnosticLogs(input *[]insights.LogSettings) []interface{} {
+	results := make([]interface{}, 0)
 	if input == nil {
-		return nil
+		return results
 	}
-
-	s := schema.Set{
-		F: monitorDiagnosticSettingHash("log"),
-	}
-	// Always adding a placeholder so as to match the hash of the default settings, whose hash is 0.
-	s.Add(map[string]interface{}{
-		"enabled":          false,
-		"retention_policy": []interface{}{},
-	})
 
 	for _, v := range *input {
 		output := make(map[string]interface{})
@@ -456,10 +448,10 @@ func flattenMonitorDiagnosticLogs(input *[]insights.LogSettings) *schema.Set {
 
 		output["retention_policy"] = policies
 
-		s.Add(output)
+		results = append(results, output)
 	}
 
-	return &s
+	return results
 }
 
 func expandMonitorDiagnosticsSettingsMetrics(input []interface{}) []insights.MetricSettings {
@@ -494,19 +486,11 @@ func expandMonitorDiagnosticsSettingsMetrics(input []interface{}) []insights.Met
 	return results
 }
 
-func flattenMonitorDiagnosticMetrics(input *[]insights.MetricSettings) *schema.Set {
+func flattenMonitorDiagnosticMetrics(input *[]insights.MetricSettings) []interface{} {
+	results := make([]interface{}, 0)
 	if input == nil {
-		return nil
+		return results
 	}
-
-	s := schema.Set{
-		F: monitorDiagnosticSettingHash("metric"),
-	}
-	// Always adding a placeholder so as to match the hash of the default settings, whose hash is 0.
-	s.Add(map[string]interface{}{
-		"enabled":          false,
-		"retention_policy": []interface{}{},
-	})
 
 	for _, v := range *input {
 		output := make(map[string]interface{})
@@ -537,10 +521,10 @@ func flattenMonitorDiagnosticMetrics(input *[]insights.MetricSettings) *schema.S
 
 		output["retention_policy"] = policies
 
-		s.Add(output)
+		results = append(results, output)
 	}
 
-	return &s
+	return results
 }
 
 type monitorDiagnosticId struct {
@@ -561,47 +545,31 @@ func parseMonitorDiagnosticId(monitorId string) (*monitorDiagnosticId, error) {
 	return &identifier, nil
 }
 
-// diagLogSettingSuppress suppresses the not specified log settings which have the default value (disabled) set in service.
+// diagLogSettingSuppress suppresses the not specified log settings which have the default value (0/disabled) set in service.
 // Otherwise, user always has to specify all the possible log settings in the terraform config.
 func diagLogSettingSuppress(key string) func(k string, old string, new string, d *schema.ResourceData) bool {
 	return func(k string, old string, new string, d *schema.ResourceData) bool {
-		// Hack: this function will be called multiple times for the nested keys of the set (e.g. "key.#", "key.0.category")
-		//       we only want to check the whole set for one time, so we simply skip invocation on keys other than "key.#",
-		//       which is guaranteed to be invoked for exactly one time.
-		if k != key+".#" {
-			return false
-		}
-
 		o, n := d.GetChange(key)
 
 		if o == nil || n == nil {
 			return false
 		}
 
+		oset, nset := o.(*schema.Set), n.(*schema.Set)
+
 		// If new set contains more settings than old one, which mostly indicates the new resource case.
 		// (NOTE: d.IsNewResource() seems not work here)
-		if n.(*schema.Set).Difference(o.(*schema.Set)).Len() > 0 {
+		if nset.Difference(oset).Len() > 0 {
 			return false
 		}
 
-		os, ns := expandMonitorDiagnosticsSettingsLogs(o.(*schema.Set).List()), expandMonitorDiagnosticsSettingsLogs(n.(*schema.Set).List())
-
-		nmap := map[string]insights.LogSettings{}
-		for i := range ns {
-			if ns[i].Category == nil {
-				continue
-			}
-			nmap[*(ns[i].Category)] = ns[i]
+		// There is diff in the intersection elements, then don't suppress diff
+		if !oset.Intersection(nset).Equal(nset.Intersection(oset)) {
+			return false
 		}
 
 		// Check those only appear in old settings to see if they have the default disabled value
-		for _, osetting := range os {
-			if osetting.Category == nil {
-				continue
-			}
-			if _, ok := nmap[*osetting.Category]; ok {
-				continue
-			}
+		for _, osetting := range expandMonitorDiagnosticsSettingsLogs(oset.Difference(nset).List()) {
 			if osetting.Enabled != nil && *osetting.Enabled != false {
 				return false
 			}
@@ -618,47 +586,31 @@ func diagLogSettingSuppress(key string) func(k string, old string, new string, d
 	}
 }
 
-// diagMetricSettingSuppress suppresses the not specified metric settings which have the default value (disabled) set in service.
+// diagMetricSettingSuppress suppresses the not specified metric settings which have the default value (0/disabled) set in service.
 // Otherwise, user always has to specify all the possible metric settings in the terraform config.
 func diagMetricSettingSuppress(key string) func(k string, old string, new string, d *schema.ResourceData) bool {
 	return func(k string, old string, new string, d *schema.ResourceData) bool {
-		// Hack: this function will be called multiple times for the nested keys of the set (e.g. "key.#", "key.0.category")
-		//       we only want to check the whole set for one time, so we simply skip invocation on keys other than "key.#",
-		//       which is guaranteed to be invoked for exactly one time.
-		if k != key+".#" {
-			return false
-		}
-
 		o, n := d.GetChange(key)
 
 		if o == nil || n == nil {
 			return false
 		}
 
+		oset, nset := o.(*schema.Set), n.(*schema.Set)
+
 		// If new set contains more settings than old one, which mostly indicates the new resource case.
 		// (NOTE: d.IsNewResource() seems not work here)
-		if n.(*schema.Set).Difference(o.(*schema.Set)).Len() > 0 {
+		if nset.Difference(oset).Len() > 0 {
 			return false
 		}
 
-		os, ns := expandMonitorDiagnosticsSettingsMetrics(o.(*schema.Set).List()), expandMonitorDiagnosticsSettingsMetrics(n.(*schema.Set).List())
-
-		nmap := map[string]insights.MetricSettings{}
-		for i := range ns {
-			if ns[i].Category == nil {
-				continue
-			}
-			nmap[*(ns[i].Category)] = ns[i]
+		// There is diff in the intersection elements, then don't suppress diff
+		if !oset.Intersection(nset).Equal(nset.Intersection(oset)) {
+			return false
 		}
 
 		// Check those only appear in old settings to see if they have the default disabled value
-		for _, osetting := range os {
-			if osetting.Category == nil {
-				continue
-			}
-			if _, ok := nmap[*osetting.Category]; ok {
-				continue
-			}
+		for _, osetting := range expandMonitorDiagnosticsSettingsMetrics(oset.Difference(nset).List()) {
 			if osetting.Enabled != nil && *osetting.Enabled != false {
 				return false
 			}
@@ -672,23 +624,5 @@ func diagMetricSettingSuppress(key string) func(k string, old string, new string
 			}
 		}
 		return true
-	}
-}
-
-func monitorDiagnosticSettingHash(k string) func(interface{}) int {
-	return func(v interface{}) int {
-		if m, ok := v.(map[string]interface{}); ok {
-			if m["enabled"].(bool) == false {
-				b := m["retention_policy"].([]interface{})
-				if len(b) == 0 {
-					return 0
-				}
-				policy := b[0].(map[string]interface{})
-				if policy["enabled"] == false && policy["days"] == 0 {
-					return 0
-				}
-			}
-		}
-		return schema.HashResource(resourceArmMonitorDiagnosticSetting().Schema[k].Elem.(*schema.Resource))(v)
 	}
 }

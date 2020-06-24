@@ -160,9 +160,6 @@ func TestAccAzureRMMonitorDiagnosticSetting_activityLog(t *testing.T) {
 				Config: testAccAzureRMMonitorDiagnosticSetting_activityLog(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "storage_account_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.782743152.category", "Administrative"),
 				),
 			},
 			data.ImportStep(),
