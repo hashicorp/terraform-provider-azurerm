@@ -24,7 +24,6 @@ import (
 
 // Default Authorization Rule/Policy created by Azure, used to populate the
 // default connection strings and keys
-var eventHubNamespaceDedicatedDefaultAuthorizationRule = "RootManageSharedAccessKey"
 var eventHubNamespaceDedicatedResourceName = "azurerm_eventhub_namespace_dedicated"
 
 func resourceArmEventHubNamespaceDedicated() *schema.Resource {
@@ -276,7 +275,7 @@ func resourceArmeventHubNamespaceDedicatedCreateUpdate(d *schema.ResourceData, m
 	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
 	if hasRuleSets {
 		rulesets := eventhub.NetworkRuleSet{
-			NetworkRuleSetProperties: expandeventHubNamespaceDedicatedNetworkRuleset(ruleSets.([]interface{})),
+			NetworkRuleSetProperties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
 		}
 
 		// cannot use network rulesets with the basic SKU
@@ -340,11 +339,11 @@ func resourceArmeventHubNamespaceDedicatedRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error making Read request on EventHub Namespace %q Network Ruleset: %+v", name, err)
 	}
 
-	if err := d.Set("network_rulesets", flatteneventHubNamespaceDedicatedNetworkRuleset(ruleset)); err != nil {
+	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
 		return fmt.Errorf("Error setting `network_ruleset` for Evenhub Namespace %s: %v", name, err)
 	}
 
-	keys, err := client.ListKeys(ctx, resGroup, name, eventHubNamespaceDedicatedDefaultAuthorizationRule)
+	keys, err := client.ListKeys(ctx, resGroup, name, eventHubNamespaceDefaultAuthorizationRule)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", name, err)
 	} else {
@@ -403,106 +402,15 @@ func eventHubNamespaceDedicatedStateStatusCodeRefreshFunc(ctx context.Context, c
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 
-		log.Printf("Retrieving EventHub Namespace %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
+		log.Printf("Retrieving Dedicated EventHub Namespace %q (RG %q, ClusterID %q) returned Status %d", name, resourceGroup, *res.ClusterArmID, res.StatusCode)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(res.Response) {
 				return res, strconv.Itoa(res.StatusCode), nil
 			}
-			return nil, "", fmt.Errorf("Error polling for the status of the EventHub Namespace %q (RG: %q): %+v", name, resourceGroup, err)
+			return nil, "", fmt.Errorf("Error polling for the status of the Dedicated EventHub Namespace %q (RG: %q, ClusterID: %q): %+v", name, resourceGroup, *res.ClusterArmID, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
-}
-
-func expandeventHubNamespaceDedicatedNetworkRuleset(input []interface{}) *eventhub.NetworkRuleSetProperties {
-	if len(input) == 0 {
-		return nil
-	}
-
-	block := input[0].(map[string]interface{})
-
-	ruleset := eventhub.NetworkRuleSetProperties{
-		DefaultAction: eventhub.DefaultAction(block["default_action"].(string)),
-	}
-
-	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
-		if len(v) > 0 {
-			var rules []eventhub.NWRuleSetVirtualNetworkRules
-			for _, r := range v {
-				rblock := r.(map[string]interface{})
-				rules = append(rules, eventhub.NWRuleSetVirtualNetworkRules{
-					Subnet: &eventhub.Subnet{
-						ID: utils.String(rblock["subnet_id"].(string)),
-					},
-					IgnoreMissingVnetServiceEndpoint: utils.Bool(rblock["ignore_missing_virtual_network_service_endpoint"].(bool)),
-				})
-			}
-
-			ruleset.VirtualNetworkRules = &rules
-		}
-	}
-
-	if v, ok := block["ip_rule"].([]interface{}); ok {
-		if len(v) > 0 {
-			var rules []eventhub.NWRuleSetIPRules
-			for _, r := range v {
-				rblock := r.(map[string]interface{})
-				rules = append(rules, eventhub.NWRuleSetIPRules{
-					IPMask: utils.String(rblock["ip_mask"].(string)),
-					Action: eventhub.NetworkRuleIPAction(rblock["action"].(string)),
-				})
-			}
-
-			ruleset.IPRules = &rules
-		}
-	}
-
-	return &ruleset
-}
-
-func flatteneventHubNamespaceDedicatedNetworkRuleset(ruleset eventhub.NetworkRuleSet) []interface{} {
-	if ruleset.NetworkRuleSetProperties == nil {
-		return nil
-	}
-
-	vnetBlocks := make([]interface{}, 0)
-	if vnetRules := ruleset.NetworkRuleSetProperties.VirtualNetworkRules; vnetRules != nil {
-		for _, vnetRule := range *vnetRules {
-			block := make(map[string]interface{})
-
-			if s := vnetRule.Subnet; s != nil {
-				if v := s.ID; v != nil {
-					block["subnet_id"] = *v
-				}
-			}
-
-			if v := vnetRule.IgnoreMissingVnetServiceEndpoint; v != nil {
-				block["ignore_missing_virtual_network_service_endpoint"] = *v
-			}
-
-			vnetBlocks = append(vnetBlocks, block)
-		}
-	}
-	ipBlocks := make([]interface{}, 0)
-	if ipRules := ruleset.NetworkRuleSetProperties.IPRules; ipRules != nil {
-		for _, ipRule := range *ipRules {
-			block := make(map[string]interface{})
-
-			block["action"] = string(ipRule.Action)
-
-			if v := ipRule.IPMask; v != nil {
-				block["ip_mask"] = *v
-			}
-
-			ipBlocks = append(ipBlocks, block)
-		}
-	}
-
-	return []interface{}{map[string]interface{}{
-		"default_action":       string(ruleset.DefaultAction),
-		"virtual_network_rule": vnetBlocks,
-		"ip_rule":              ipBlocks,
-	}}
 }

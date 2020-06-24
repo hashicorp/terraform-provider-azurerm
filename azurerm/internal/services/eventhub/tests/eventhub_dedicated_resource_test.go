@@ -40,7 +40,7 @@ func TestAccAzureRMEventHubDedicatedPartitionCount_validation(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
-			Value:    32,
+			Value:    1024,
 			ErrCount: 0,
 		},
 		{
@@ -50,7 +50,7 @@ func TestAccAzureRMEventHubDedicatedPartitionCount_validation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := eventhub.ValidateEventHubPartitionCount(tc.Value, "azurerm_eventhub")
+		_, errors := eventhub.ValidateEventHubDedicatedPartitionCount(tc.Value, "azurerm_eventhub")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM EventHub Partition Count to trigger a validation error")
@@ -85,7 +85,7 @@ func TestAccAzureRMEventHubDedicatedMessageRetentionCount_validation(t *testing.
 			Value:    6,
 			ErrCount: 0,
 		}, {
-			Value:    7,
+			Value:    90,
 			ErrCount: 0,
 		}, {
 			Value:    91,
@@ -94,78 +94,10 @@ func TestAccAzureRMEventHubDedicatedMessageRetentionCount_validation(t *testing.
 	}
 
 	for _, tc := range cases {
-		_, errors := eventhub.ValidateEventHubMessageRetentionCount(tc.Value, "azurerm_eventhub")
+		_, errors := eventhub.ValidateEventHubDedicatedMessageRetentionCount(tc.Value, "azurerm_eventhub")
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Azure RM EventHub Message Retention Count to trigger a validation error")
-		}
-	}
-}
-
-func TestAccAzureRMEventHubDedicatedArchiveNameFormat_validation(t *testing.T) {
-	cases := []struct {
-		Value    string
-		ErrCount int
-	}{
-		{
-			Value:    "",
-			ErrCount: 9,
-		},
-		{
-			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
-			ErrCount: 0,
-		},
-		{
-			Value:    "Prod_{Eventub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Prod_{EventHub}/{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Prod_{EventHub}/{Namespace}\\{Year}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Month}/{Day}/{Hour}/{Minute}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}/{Day}/{Hour}/{Minute}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Hour}/{Minute}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Minute}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Second}",
-			ErrCount: 1,
-		},
-		{
-			Value:    "Prod_{EventHub}/{Namespace}\\{PartitionId}_{Year}_{Month}/{Day}/{Hour}/{Minute}",
-			ErrCount: 1,
-		},
-	}
-
-	for _, tc := range cases {
-		_, errors := eventhub.ValidateEventHubArchiveNameFormat(tc.Value, "azurerm_eventhub")
-
-		if len(errors) != tc.ErrCount {
-			t.Fatalf("Expected %q to trigger a validation error", tc.Value)
 		}
 	}
 }
@@ -390,6 +322,7 @@ func testCheckAzureRMEventHubDedicatedExists(resourceName string) resource.TestC
 		name := rs.Primary.Attributes["name"]
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		clusterID := rs.Primary.Attributes["cluster_id"]
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
@@ -400,7 +333,7 @@ func testCheckAzureRMEventHubDedicatedExists(resourceName string) resource.TestC
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Event Hub %q (namespace %q / resource group: %q) does not exist", name, namespaceName, resourceGroup)
+			return fmt.Errorf("Bad: Event Hub %q (namespace %q / resource group: %q / clusterID: %q) does not exist", name, namespaceName, resourceGroup, clusterID)
 		}
 
 		return nil
@@ -456,42 +389,6 @@ resource "azurerm_eventhub_dedicated" "import" {
   message_retention   = azurerm_eventhub_dedicated.test.message_retention
 }
 `, template)
-}
-
-func testAccAzureRMEventHubDedicated_partitionCountUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-eventhub-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_cluster" "test" {
-  name                = "acctesteventhubclusTER-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "Dedicated_1"
-}
-
-resource "azurerm_eventhub_namespace_dedicated" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  cluster_id          = azurerm_eventhub_cluster.test.id
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-}
-
-resource "azurerm_eventhub_dedicated" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace_dedicated.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 10
-  message_retention   = 1
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMEventHubDedicated_standard(data acceptance.TestData) string {
