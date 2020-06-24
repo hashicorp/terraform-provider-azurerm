@@ -524,8 +524,8 @@ resource "azurerm_eventhub_dedicated" "test" {
   name                = "acctest-EH-%d"
   namespace_name      = azurerm_eventhub_namespace_dedicated.test.name
   resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 7
+  partition_count     = 50
+  message_retention   = 50
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
