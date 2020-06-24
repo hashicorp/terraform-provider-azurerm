@@ -166,7 +166,7 @@ The `policy_settings` block supports the following:
 
 * `mode` - (Optional) Describes if it is in detection mode  or prevention mode at the policy level. Defaults to `Prevention`.
 
-* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `500`MB. Defaults to `100`MB.
+* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1` to `750`. Defaults to `100`.
 
 * `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
 
