@@ -6,6 +6,7 @@ ENHANCEMENTS
 * `azurerm_kusto_cluster` - Support for `identity` [GH-7367]
 * `azurerm_kusto_cluster` - Support for `virtual_network_configuration` [GH-7369]
 * `azurerm_firewall` - support for configuring `threat_intel_mode` [GH-7437]
+* `azurerm_mssql_database` - support up to `5` for the `min_capacity` property [GH-7457]
 * `azurerm_mssql_database` - support `GP_S_Gen5` SKUs up to `GP_S_Gen5_40` [GH-7453]
 
 BUG FIXES: 
