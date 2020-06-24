@@ -1,14 +1,10 @@
 ## 2.16.0 (Unreleased)
 
-FEATURES:
-* **New Resource:** `azurerm_eventhub_dedicated` [GH-7347]
-* **New Resource:** `azurerm_eventhub_namespace_dedicated` [GH-7347]
-
-ENHANCEMENTS
+ENHANCEMENTS 
 
 * `azurerm_kusto_cluster` - Support for `identity` [GH-7367]
 
-BUG FIXES:
+BUG FIXES: 
 
 * `azurerm_role_definition` - terraform import now sets scope to prevent a force recreate [GH-7424]
 
@@ -60,7 +56,7 @@ UPGRADE NOTES:
 
 * `azurerm_kubernetes_cluster` - the Azure Policy add-on now only supports `v2` (as per the Azure API) ([#7233](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7233))
 
-DEPENDENCIES:
+DEPENDENCIES: 
 
 * `containerservice` - updating to `2020-03-01` ([#7233](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7233))
 * `policy` - updating to `2019-09-01` ([#7211](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7211))
