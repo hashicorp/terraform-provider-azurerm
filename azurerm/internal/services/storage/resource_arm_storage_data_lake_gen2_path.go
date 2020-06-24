@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -23,32 +24,37 @@ func resourceArmStorageDataLakeGen2Path() *schema.Resource {
 		// Update: resourceArmStorageDataLakeGen2PathUpdate,
 		Delete: resourceArmStorageDataLakeGen2PathDelete,
 
-		// TODO
-		// Importer: &schema.ResourceImporter{
-		// 	State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-		// 		storageClients := meta.(*clients.Client).Storage
-		// 		ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, 5*time.Minute)
-		// 		defer cancel()
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				storageClients := meta.(*clients.Client).Storage
 
-		// 		id, err := filesystems.ParseResourceID(d.Id())
-		// 		if err != nil {
-		// 			return []*schema.ResourceData{d}, fmt.Errorf("Error parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
-		// 		}
+				ctx, cancel := context.WithTimeout(meta.(*clients.Client).StopContext, 5*time.Minute)
+				defer cancel()
 
-		// 		// we then need to look up the Storage Account ID
-		// 		account, err := storageClients.FindAccount(ctx, id.AccountName)
-		// 		if err != nil {
-		// 			return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountName, id.DirectoryName, err)
-		// 		}
-		// 		if account == nil {
-		// 			return []*schema.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
-		// 		}
+				id, err := paths.ParseResourceID(d.Id())
+				if err != nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("Error parsing ID %q for import of Data Lake Gen2 Path: %v", d.Id(), err)
+				}
 
-		// 		d.Set("storage_account_id", account.ID)
+				// we then need to look up the Storage Account ID
+				account, err := storageClients.FindAccount(ctx, id.AccountName)
+				if err != nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving Account %q for Data Lake Gen2 Path %q in File System %q: %s", id.AccountName, id.Path, id.FileSystemName, err)
+				}
+				if account == nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
+				}
 
-		// 		return []*schema.ResourceData{d}, nil
-		// 	},
-		// },
+				if _, err = storageClients.FileSystemsClient.GetProperties(ctx, id.AccountName, id.FileSystemName); err != nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving File System %q for Data Lake Gen 2 Path %q in Account %q: %s", id.FileSystemName, id.Path, id.AccountName, err)
+				}
+
+				d.Set("storage_account_id", account.ID)
+				d.Set("filesystem_name", id.FileSystemName)
+
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

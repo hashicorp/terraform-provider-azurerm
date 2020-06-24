@@ -16,9 +16,9 @@ func TestAccAzureRMStorageDataLakeGen2Path_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { acceptance.PreCheck(t) },
-		Providers: acceptance.SupportedProviders,
-		// CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageDataLakeGen2Path_basic(data),
@@ -26,29 +26,29 @@ func TestAccAzureRMStorageDataLakeGen2Path_basic(t *testing.T) {
 					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
 				),
 			},
-			// data.ImportStep(),
+			data.ImportStep(),
 		},
 	})
 }
 
-// func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
-// 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
+func TestAccAzureRMStorageDataLakeGen2Path_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
 
-// 	resource.ParallelTest(t, resource.TestCase{
-// 		PreCheck:     func() { acceptance.PreCheck(t) },
-// 		Providers:    acceptance.SupportedProviders,
-// 		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testAccAzureRMStorageDataLakeGen2FileSystem_basic(data),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testCheckAzureRMStorageDataLakeGen2FileSystemExists(data.ResourceName),
-// 				),
-// 			},
-// 			data.RequiresImportErrorStep(testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport),
-// 		},
-// 	})
-// }
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageDataLakeGen2Path_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMStorageDataLakeGen2Path_requiresImport),
+		},
+	})
+}
 
 func testCheckAzureRMStorageDataLakeGen2PathExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -80,31 +80,32 @@ func testCheckAzureRMStorageDataLakeGen2PathExists(resourceName string) resource
 	}
 }
 
-// func testCheckAzureRMStorageDataLakeGen2FileSystemDestroy(s *terraform.State) error {
-// 	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
-// 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+func testCheckAzureRMStorageDataLakeGen2PathDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.ADLSGen2PathsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-// 	for _, rs := range s.RootModule().Resources {
-// 		if rs.Type != "azurerm_storage_data_lake_gen2_filesystem" {
-// 			continue
-// 		}
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_storage_data_lake_gen2_path" {
+			continue
+		}
 
-// 		fileSystemName := rs.Primary.Attributes["name"]
-// 		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
-// 		if err != nil {
-// 			return err
-// 		}
+		fileSystemName := rs.Primary.Attributes["filesystem_name"]
+		path := rs.Primary.Attributes["path"]
+		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		if err != nil {
+			return err
+		}
 
-// 		props, err := client.GetProperties(ctx, storageID.Name, fileSystemName)
-// 		if err != nil {
-// 			return nil
-// 		}
+		props, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path)
+		if err != nil {
+			return nil
+		}
 
-// 		return fmt.Errorf("File System still exists: %+v", props)
-// 	}
+		return fmt.Errorf("Path still exists: %+v", props)
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 func testAccAzureRMStorageDataLakeGen2Path_basic(data acceptance.TestData) string {
 	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
@@ -120,17 +121,19 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
 `, template)
 }
 
-// func testAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(data acceptance.TestData) string {
-// 	template := testAccAzureRMStorageDataLakeGen2FileSystem_basic(data)
-// 	return fmt.Sprintf(`
-// %s
+func testAccAzureRMStorageDataLakeGen2Path_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMStorageDataLakeGen2Path_basic(data)
+	return fmt.Sprintf(`
+%s
 
-// resource "azurerm_storage_data_lake_gen2_filesystem" "import" {
-//   name               = azurerm_storage_data_lake_gen2_filesystem.test.name
-//   storage_account_id = azurerm_storage_data_lake_gen2_filesystem.test.storage_account_id
-// }
-// `, template)
-// }
+resource "azurerm_storage_data_lake_gen2_path" "import" {
+  path               = azurerm_storage_data_lake_gen2_path.test.path
+  filesystem_name    = azurerm_storage_data_lake_gen2_path.test.filesystem_name
+  storage_account_id = azurerm_storage_data_lake_gen2_path.test.storage_account_id
+  resource           = azurerm_storage_data_lake_gen2_path.test.resource
+}
+`, template)
+}
 
 func testAccAzureRMStorageDataLakeGen2Path_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
