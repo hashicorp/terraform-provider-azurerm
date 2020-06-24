@@ -123,6 +123,10 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"recommendation_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -348,6 +352,12 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.Activi
 			Equals: utils.String(subStatus),
 		})
 	}
+	if recommendationType := v["recommendation_type"].(string); recommendationType != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("properties.recommendationType"),
+			Equals: utils.String(recommendationType),
+		})
+	}
 
 	return &insights.ActivityLogAlertAllOfCondition{
 		AllOf: &conditions,
@@ -397,6 +407,8 @@ func flattenMonitorActivityLogAlertCriteria(input *insights.ActivityLogAlertAllO
 				result["resource_id"] = *condition.Equals
 			case "substatus":
 				result["sub_status"] = *condition.Equals
+			case "recommendationType":
+				result["recommendation_type"] = *condition.Equals
 			case "caller", "category", "level", "status":
 				result[*condition.Field] = *condition.Equals
 			}

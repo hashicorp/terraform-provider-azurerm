@@ -93,6 +93,7 @@ A `criteria` block supports the following:
 * `level` - (Optional) The severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
 * `status` - (Optional) The status of the event. For example, `Started`, `Failed`, or `Succeeded`.
 * `sub_status` - (Optional) The sub status of the event.
+* `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
 
 ## Attributes Reference
 
