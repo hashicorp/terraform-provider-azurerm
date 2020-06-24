@@ -2,9 +2,10 @@
 
 ENHANCEMENTS 
 
-* `azurerm_app_service_environment` - Support `Web, Publishing` for the `internal_load_balancing_mode` property [GH-7346]
-* `azurerm_kusto_cluster` - Support for `identity` [GH-7367]
-* `azurerm_kusto_cluster` - Support for `virtual_network_configuration` [GH-7369]
+* `azurerm_app_service_environment` - support a value of `Web, Publishing` for the `internal_load_balancing_mode` property [GH-7346]
+* `azurerm_kusto_cluster` - support for the `identity` block [GH-7367]
+* `azurerm_kusto_cluster` - support for `virtual_network_configuration` block [GH-7369]
+* `azurerm_kusto_cluster` - supoport for the `zone` property [GH-7373]
 * `azurerm_firewall` - support for configuring `threat_intel_mode` [GH-7437]
 * `azurerm_mssql_database` - support up to `5` for the `min_capacity` property [GH-7457]
 * `azurerm_mssql_database` - support `GP_S_Gen5` SKUs up to `GP_S_Gen5_40` [GH-7453]
