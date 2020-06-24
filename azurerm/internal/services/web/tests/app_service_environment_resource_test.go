@@ -159,6 +159,26 @@ func TestAccAzureRMAppServiceEnvironment_withCertificatePfx(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceEnvironment_internalLoadBalancer(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_environment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceEnvironmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceEnvironment_internalLoadBalancerAndWhitelistedIpRanges(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceEnvironmentExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "internal_load_balancing_mode", "Web, Publishing"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceEnvironmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Web.AppServiceEnvironmentsClient
@@ -378,4 +398,20 @@ resource "azurerm_subnet" "gateway" {
   address_prefix       = "10.0.2.0/24"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMAppServiceEnvironment_internalLoadBalancerAndWhitelistedIpRanges(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceEnvironment_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_environment" "test" {
+  name                         = "acctest-ase-%d"
+  subnet_id                    = azurerm_subnet.ase.id
+  pricing_tier                 = "I1"
+  front_end_scale_factor       = 5
+  internal_load_balancing_mode = "Web, Publishing"
+  user_whitelisted_ip_ranges   = ["11.22.33.44/32", "55.66.77.0/24"]
+}
+`, template, data.RandomInteger)
 }

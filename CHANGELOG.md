@@ -1,4 +1,30 @@
 ## 2.16.0 (Unreleased)
+
+ENHANCEMENTS 
+
+* `azurerm_app_service_environment` - Support `Web, Publishing` for the `internal_load_balancing_mode` property [GH-7346]
+* `azurerm_kusto_cluster` - Support for `identity` [GH-7367]
+* `azurerm_kusto_cluster` - Support for `virtual_network_configuration` [GH-7369]
+* `azurerm_firewall` - support for configuring `threat_intel_mode` [GH-7437]
+* `azurerm_mssql_database` - support up to `5` for the `min_capacity` property [GH-7457]
+* `azurerm_mssql_database` - support `GP_S_Gen5` SKUs up to `GP_S_Gen5_40` [GH-7453]
+
+BUG FIXES: 
+
+* `azurerm_function_app` - state fixes for `app_settings` [GH-7440]
+* `azurerm_frontdoor` - increase read timeout to 6 hours [GH-7408]
+* `azurerm_hdinsights_hadoop_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_hbase_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_interactive_query_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_kafka_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_ml_services_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_rserver_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_spark_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_hdinsights_storm_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_postgresql_server` - can now update the tier of `sku_name` by recreating the resource [GH-7456]
+* `azurerm_role_definition` - terraform import now sets scope to prevent a force recreate [GH-7424]
+* `azurerm_storage_account_network_rules` - corretly clear `ip_rules`, `virtual_network_subnet_ids` when set to `[]` [GH-7385]
+
 ## 2.15.0 (June 19, 2020)
 
 UPGRADE NOTES:

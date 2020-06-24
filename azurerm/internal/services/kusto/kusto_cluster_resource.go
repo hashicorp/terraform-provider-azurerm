@@ -50,6 +50,8 @@ func resourceArmKustoCluster() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"identity": azure.SchemaKustoIdentity(),
+
 			"sku": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -110,6 +112,31 @@ func resourceArmKustoCluster() *schema.Resource {
 				Optional: true,
 			},
 
+			"virtual_network_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"subnet_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"engine_public_ip_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"data_management_public_ip_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -163,6 +190,11 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
 	}
 
+	if v, ok := d.GetOk("virtual_network_configuration"); ok {
+		vnet := expandKustoClusterVNET(v.([]interface{}))
+		clusterProperties.VirtualNetworkConfiguration = vnet
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 
 	kustoCluster := kusto.Cluster{
@@ -172,6 +204,12 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		Zones:             zones,
 		ClusterProperties: &clusterProperties,
 		Tags:              tags.Expand(t),
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		kustoIdentityRaw := d.Get("identity").([]interface{})
+		kustoIdentity := azure.ExpandKustoIdentity(kustoIdentityRaw)
+		kustoCluster.Identity = kustoIdentity
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster)
@@ -224,6 +262,10 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if err := d.Set("identity", azure.FlattenKustoIdentity(clusterResponse.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %s", err)
+	}
+
 	if err := d.Set("sku", flattenKustoClusterSku(clusterResponse.Sku)); err != nil {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
@@ -236,6 +278,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
 		d.Set("enable_purge", clusterProperties.EnablePurge)
+		d.Set("virtual_network_configuration", flatteKustoClusterVNET(clusterProperties.VirtualNetworkConfiguration))
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
 	}
@@ -306,6 +349,23 @@ func expandKustoClusterSku(d *schema.ResourceData) (*kusto.AzureSku, error) {
 	return azureSku, nil
 }
 
+func expandKustoClusterVNET(input []interface{}) *kusto.VirtualNetworkConfiguration {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	vnet := input[0].(map[string]interface{})
+	subnetID := vnet["subnet_id"].(string)
+	enginePublicIPID := vnet["engine_public_ip_id"].(string)
+	dataManagementPublicIPID := vnet["data_management_public_ip_id"].(string)
+
+	return &kusto.VirtualNetworkConfiguration{
+		SubnetID:                 &subnetID,
+		EnginePublicIPID:         &enginePublicIPID,
+		DataManagementPublicIPID: &dataManagementPublicIPID,
+	}
+}
+
 func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
 	if sku == nil {
 		return []interface{}{}
@@ -320,4 +380,33 @@ func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
 	}
 
 	return []interface{}{s}
+}
+
+func flatteKustoClusterVNET(vnet *kusto.VirtualNetworkConfiguration) []interface{} {
+	if vnet == nil {
+		return []interface{}{}
+	}
+
+	subnetID := ""
+	if vnet.SubnetID != nil {
+		subnetID = *vnet.SubnetID
+	}
+
+	enginePublicIPID := ""
+	if vnet.EnginePublicIPID != nil {
+		enginePublicIPID = *vnet.EnginePublicIPID
+	}
+
+	dataManagementPublicIPID := ""
+	if vnet.DataManagementPublicIPID != nil {
+		dataManagementPublicIPID = *vnet.DataManagementPublicIPID
+	}
+
+	output := map[string]interface{}{
+		"subnet_id":                    subnetID,
+		"engine_public_ip_id":          enginePublicIPID,
+		"data_management_public_ip_id": dataManagementPublicIPID,
+	}
+
+	return []interface{}{output}
 }

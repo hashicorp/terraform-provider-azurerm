@@ -33,7 +33,7 @@ func resourceArmFrontDoor() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Read:   schema.DefaultTimeout(6 * time.Hour),
 			Update: schema.DefaultTimeout(6 * time.Hour),
 			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},

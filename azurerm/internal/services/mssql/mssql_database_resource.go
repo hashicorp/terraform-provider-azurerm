@@ -123,7 +123,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				Type:         schema.TypeFloat,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: azValidate.FloatInSlice([]float64{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2}),
+				ValidateFunc: azValidate.FloatInSlice([]float64{0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 3, 4, 5}),
 			},
 
 			"restore_point_in_time": {

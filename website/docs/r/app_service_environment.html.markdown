@@ -41,11 +41,12 @@ resource "azurerm_subnet" "gateway" {
 }
 
 resource "azurerm_app_service_environment" "example" {
-  name                       = "example-ase"
-  subnet_id                  = azurerm_subnet.ase.id
-  pricing_tier               = "I2"
-  front_end_scale_factor     = 10
-  user_whitelisted_ip_ranges = ["11.22.33.44/32", "55.66.77.0/24"]
+  name                         = "example-ase"
+  subnet_id                    = azurerm_subnet.ase.id
+  pricing_tier                 = "I2"
+  front_end_scale_factor       = 10
+  internal_load_balancing_mode = "Web, Publishing"
+  user_whitelisted_ip_ranges   = ["11.22.33.44/32", "55.66.77.0/24"]
 }
 
 ```
@@ -58,7 +59,7 @@ resource "azurerm_app_service_environment" "example" {
 
 ~> **NOTE** a /24 or larger CIDR is required. Once associated with an ASE this size cannot be changed.
 
-* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web` and `Publishing`. Defaults to `None`.
+* `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None`, `Web`, `Publishing` and combined value `"Web, Publishing"`. Defaults to `None`.
 
 * `pricing_tier` - (Optional) Pricing tier for the front end instances. Possible values are `I1`, `I2` and `I3`. Defaults to `I1`.
 
