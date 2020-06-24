@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub. Needs to be between 1 and 1024. Changing this forces a new resource to be created.
 
-* `message_retention` - (Required) Specifies the number of days to retain the events for this Event Hub. Needs to be between 1 and 90 days; or 1 day when using a Basic SKU for the parent EventHub Namespace.
+* `message_retention` - (Required) Specifies the number of days to retain the events for this Event Hub. Needs to be between `1` and `90`. Only a value of `1` is allowed when using a Basic SKU for the parent EventHub Namespace.
 
 * `capture_description` - (Optional) A `capture_description` block as defined below.
 
