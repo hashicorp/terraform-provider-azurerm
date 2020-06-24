@@ -21,6 +21,7 @@ BUG FIXES:
 * `azurerm_hdinsights_rserver_cluster` - fixes for node and instance count validation [GH-7430]
 * `azurerm_hdinsights_spark_cluster` - fixes for node and instance count validation [GH-7430]
 * `azurerm_hdinsights_storm_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_postgresql_server` - can now update the tier of `sku_name` by recreating the resource [GH-7456]
 * `azurerm_role_definition` - terraform import now sets scope to prevent a force recreate [GH-7424]
 * `azurerm_storage_account_network_rules` - corretly clear `ip_rules`, `virtual_network_subnet_ids` when set to `[]` [GH-7385]
 
