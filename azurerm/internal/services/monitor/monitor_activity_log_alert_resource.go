@@ -123,9 +123,35 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"recommendation_type": {
+						"recommendation_category": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Cost",
+								"Reliability",
+								"OperationalExcellence",
+								"Performance",
+							},
+								false,
+							),
+							ConflictsWith: []string{"criteria.0.recommendation_type"},
+						},
+						"recommendation_impact": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"High",
+								"Medium",
+								"Low",
+							},
+								false,
+							),
+							ConflictsWith: []string{"criteria.0.recommendation_type"},
+						},
+						"recommendation_type": {
+							Type:          schema.TypeString,
+							Optional:      true,
+							ConflictsWith: []string{"criteria.0.recommendation_category", "criteria.0.recommendation_impact"},
 						},
 					},
 				},
@@ -359,6 +385,20 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) *insights.Activi
 		})
 	}
 
+	if recommendationCategory := v["recommendation_category"].(string); recommendationCategory != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("properties.recommendationCategory"),
+			Equals: utils.String(recommendationCategory),
+		})
+	}
+
+	if recommendationImpact := v["recommendation_impact"].(string); recommendationImpact != "" {
+		conditions = append(conditions, insights.ActivityLogAlertLeafCondition{
+			Field:  utils.String("properties.recommendationImpact"),
+			Equals: utils.String(recommendationImpact),
+		})
+	}
+
 	return &insights.ActivityLogAlertAllOfCondition{
 		AllOf: &conditions,
 	}
@@ -407,8 +447,12 @@ func flattenMonitorActivityLogAlertCriteria(input *insights.ActivityLogAlertAllO
 				result["resource_id"] = *condition.Equals
 			case "substatus":
 				result["sub_status"] = *condition.Equals
-			case "recommendationType":
+			case "properties.recommendationtype":
 				result["recommendation_type"] = *condition.Equals
+			case "properties.recommendationcategory":
+				result["recommendation_category"] = *condition.Equals
+			case "properties.recommendationimpact":
+				result["recommendation_impact"] = *condition.Equals
 			case "caller", "category", "level", "status":
 				result[*condition.Field] = *condition.Equals
 			}
