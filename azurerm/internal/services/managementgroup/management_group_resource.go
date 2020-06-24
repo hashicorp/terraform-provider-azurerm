@@ -151,8 +151,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	// We have a potential race condition / consistency issue whereby the implicit role assignment for the SP may not be
-	// completed before the read-back here creating a temporary 403 error, so we check for cons
-
+	// completed before the read-back here or an eventually consistent read is creating a temporary 403 error.
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{
 			"pending",
