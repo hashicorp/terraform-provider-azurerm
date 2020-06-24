@@ -320,9 +320,9 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                           = "acctest-DS-%[1]d"
-  target_resource_id             = azurerm_virtual_network.test.id
-  log_analytics_workspace_id     = azurerm_log_analytics_workspace.test.id
+  name                       = "acctest-DS-%[1]d"
+  target_resource_id         = azurerm_virtual_network.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
   metric {
     category = "AllMetrics"

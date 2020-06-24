@@ -570,11 +570,11 @@ func diagLogSettingSuppress(key string) func(k string, old string, new string, d
 
 		// Check those only appear in old settings to see if they have the default disabled value
 		for _, osetting := range expandMonitorDiagnosticsSettingsLogs(oset.Difference(nset).List()) {
-			if osetting.Enabled != nil && *osetting.Enabled != false {
+			if osetting.Enabled != nil && *osetting.Enabled {
 				return false
 			}
 			if policy := osetting.RetentionPolicy; policy != nil {
-				if policy.Enabled != nil && *policy.Enabled != false {
+				if policy.Enabled != nil && *policy.Enabled {
 					return false
 				}
 				if policy.Days != nil && *policy.Days != 0 {
@@ -611,11 +611,11 @@ func diagMetricSettingSuppress(key string) func(k string, old string, new string
 
 		// Check those only appear in old settings to see if they have the default disabled value
 		for _, osetting := range expandMonitorDiagnosticsSettingsMetrics(oset.Difference(nset).List()) {
-			if osetting.Enabled != nil && *osetting.Enabled != false {
+			if osetting.Enabled != nil && *osetting.Enabled {
 				return false
 			}
 			if policy := osetting.RetentionPolicy; policy != nil {
-				if policy.Enabled != nil && *policy.Enabled != false {
+				if policy.Enabled != nil && *policy.Enabled {
 					return false
 				}
 				if policy.Days != nil && *policy.Days != 0 {
