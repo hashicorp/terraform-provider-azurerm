@@ -125,7 +125,7 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
 				}
 				if _, err := client.Delete(ctx, resourceGroup, accountName, jsId); err != nil {
-					return fmt.Errorf("deleteing job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
+					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
 				}
 			}
 		}
