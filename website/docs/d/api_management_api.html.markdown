@@ -57,6 +57,8 @@ output "api_management_api_id" {
 
 * `subscription_key_parameter_names` - A `subscription_key_parameter_names` block as documented below.
 
+* `subscription_required` - Should this API require a subscription key?
+
 * `version` - The Version number of this API, if this API is versioned.
 
 * `version_set_id` - The ID of the Version Set which this API is associated with.
