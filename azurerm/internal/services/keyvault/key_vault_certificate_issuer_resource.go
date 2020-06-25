@@ -163,7 +163,6 @@ func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []interfa
 	}
 
 	return &results
-
 }
 
 func resourceArmKeyVaultCertificateIssuerUpdate(d *schema.ResourceData, meta interface{}) error {
