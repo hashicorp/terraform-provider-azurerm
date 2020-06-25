@@ -1,10 +1,14 @@
 ## 2.16.0 (Unreleased)
 
-DEPENDENCIES
+DEPENDENCIES:
 
 * updating `github.com/Azure/go-autorest/azure/cli` to `v0.3.1` [GH-7433]
 
-ENHANCEMENTS 
+FEATURES:
+
+* **New Resource:** `azurerm_postgresql_active_directory_administrator` [GH-7411]
+
+ENHANCEMENTS:
 
 * authentication: Azure CLI - support for access tokens in custom directories [GH-7433]
 * `azurerm_app_service_environment` - support a value of `Web, Publishing` for the `internal_load_balancing_mode` property [GH-7346]
