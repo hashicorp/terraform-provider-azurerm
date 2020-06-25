@@ -35,6 +35,7 @@ BUG FIXES:
 * `azurerm_hdinsight_rserver_cluster` - fixes for node and instance count validation [GH-7430]
 * `azurerm_hdinsight_spark_cluster` - fixes for node and instance count validation [GH-7430]
 * `azurerm_hdinsight_storm_cluster` - fixes for node and instance count validation [GH-7430]
+* `azurerm_monitor_autoscale_settings` - support for setting `time_aggregation` to `Last` as per the documentation [GH-7480]
 * `azurerm_postgresql_server` - can now update the tier of `sku_name` by recreating the resource [GH-7456]
 * `azurerm_network_interface_security_group_association` - is now considered delete whtn the  network interfact is notfound [GH-7459]
 * `azurerm_role_definition` - terraform import now sets scope to prevent a force recreate [GH-7424]
