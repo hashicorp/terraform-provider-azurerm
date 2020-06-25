@@ -134,6 +134,7 @@ The `disk_encryption_key` block supports:
 * `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
 
 ---
+-> **Please Note**: If `create_option` is `empty` and you use Azure disk encryption agent to enable encryption on the disk, You will need to use `ignore_changes` on this block to aviod `ForceNew` after encryption has been enabled (Issue #5102)
 
 The `encryption_settings` block supports:
 
