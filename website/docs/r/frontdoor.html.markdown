@@ -304,7 +304,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 6 hours) Used when creating the FrontDoor.
 * `update` - (Defaults to 6 hours) Used when updating the FrontDoor.
-* `read` - (Defaults to 6 hours) Used when retrieving the FrontDoor.
+* `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor.
 * `delete` - (Defaults to 6 hours) Used when deleting the FrontDoor.
 
 ## Import
