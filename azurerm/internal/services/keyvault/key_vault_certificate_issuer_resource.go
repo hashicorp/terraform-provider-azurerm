@@ -128,7 +128,9 @@ func resourceArmKeyVaultCertificateIssuerCreate(d *schema.ResourceData, meta int
 
 	parameter := keyvault.CertificateIssuerSetParameters{}
 	parameter.Provider = utils.String(d.Get("provider_name").(string))
-	parameter.OrganizationDetails = &keyvault.OrganizationDetails{ID: utils.String(d.Get("org_id").(string))}
+	if adminsRaw, ok := d.GetOk("admins"); ok {
+		parameter.OrganizationDetails = &keyvault.OrganizationDetails{ID: utils.String(d.Get("org_id").(string)), AdminDetails: expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{}))}
+	}
 	parameter.Credentials = &keyvault.IssuerCredentials{AccountID: utils.String(d.Get("account_id").(string)), Password: utils.String(d.Get("password").(string))}
 	resp, err := client.SetCertificateIssuer(ctx, keyVaultBaseUri, name, parameter)
 	if err != nil {
@@ -137,6 +139,31 @@ func resourceArmKeyVaultCertificateIssuerCreate(d *schema.ResourceData, meta int
 	d.SetId(*resp.ID)
 
 	return resourceArmKeyVaultCertificateIssuerRead(d, meta)
+}
+
+func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []interface{}) *[]keyvault.AdministratorDetails {
+	results := make([]keyvault.AdministratorDetails, 0, len(vs))
+
+	for _, v := range vs {
+		administratorDetails := keyvault.AdministratorDetails{}
+		args := v.(map[string]interface{})
+		if firstName, ok := args["first_name"]; ok {
+			administratorDetails.FirstName = utils.String(firstName.(string))
+		}
+		if lastName, ok := args["last_name"]; ok {
+			administratorDetails.LastName = utils.String(lastName.(string))
+		}
+		if emailAddress, ok := args["email_address"]; ok {
+			administratorDetails.EmailAddress = utils.String(emailAddress.(string))
+		}
+		if phone, ok := args["phone"]; ok {
+			administratorDetails.Phone = utils.String(phone.(string))
+		}
+		results = append(results, administratorDetails)
+	}
+
+	return &results
+
 }
 
 func resourceArmKeyVaultCertificateIssuerUpdate(d *schema.ResourceData, meta interface{}) error {
