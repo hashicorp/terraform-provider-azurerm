@@ -13,6 +13,7 @@ ENHANCEMENTS
 * `azurerm_kusto_cluster` - support for `virtual_network_configuration` block [GH-7369]
 * `azurerm_kusto_cluster` - supoport for the `zone` property [GH-7373]
 * `azurerm_firewall` - support for configuring `threat_intel_mode` [GH-7437]
+* `azurerm_monitor_activity_log_alert` - support for the fields `recommendation_category`, `recommendation_impact` and `recommendation_type` in the `criteria` block [GH-7458]
 * `azurerm_mssql_database` - support up to `5` for the `min_capacity` property [GH-7457]
 * `azurerm_mssql_database` - support `GP_S_Gen5` SKUs up to `GP_S_Gen5_40` [GH-7453]
 
