@@ -26,7 +26,6 @@ BUG FIXES:
 
 * `azurerm_api_management_api` - allowing dots as a prefix of the `name` field [GH-7478]
 * `azurerm_function_app` - state fixes for `app_settings` [GH-7440]
-* `azurerm_frontdoor` - increase read timeout to 6 hours [GH-7408]
 * `azurerm_hdinsight_hadoop_cluster` - fixes for node and instance count validation [GH-7430]
 * `azurerm_hdinsight_hbase_cluster` - fixes for node and instance count validation [GH-7430]
 * `azurerm_hdinsight_interactive_query_cluster` - fixes for node and instance count validation [GH-7430]
