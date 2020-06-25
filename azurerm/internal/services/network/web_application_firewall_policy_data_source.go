@@ -59,5 +59,4 @@ func dataSourceArmWebApplicationFirewallPolicy(d *schema.ResourceData, meta inte
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-
 }
