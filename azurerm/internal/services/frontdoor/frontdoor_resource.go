@@ -2,6 +2,7 @@ package frontdoor
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"log"
 	"strings"
 	"time"
@@ -30,6 +31,9 @@ func resourceArmFrontDoor() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		//MigrateState:  resourceAzureRMFrontDoorMigrateState,
+		SchemaVersion: 1,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
@@ -424,6 +428,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"custom_https_provisioning_enabled": {
 							Type:       schema.TypeBool,
 							Optional:   true,
+							Computed:   true,
 							Deprecated: "Deprecated in favour of `custom_https_configuration` resource",
 						},
 						"web_application_firewall_policy_link_id": {
@@ -433,6 +438,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"custom_https_configuration": {
 							Type:       schema.TypeList,
 							Optional:   true,
+							Computed:   true,
 							MaxItems:   1,
 							Deprecated: "Deprecated in favour of `custom_https_configuration` resource",
 							Elem: &schema.Resource{
@@ -603,7 +609,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 		if properties := resp.FrontendEndpointProperties; properties != nil {
 			customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
-			err := resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d, customHttpsProvisioningEnabled, name, frontendEndpointName, resourceGroup, properties.CustomHTTPSProvisioningState, properties.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
+			err := resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d, *resp.ID, customHttpsProvisioningEnabled, name, frontendEndpointName, resourceGroup, properties.CustomHTTPSProvisioningState, properties.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 			if err != nil {
 				return fmt.Errorf("Unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 			}
@@ -613,7 +619,11 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceArmFrontDoorRead(d, meta)
 }
 
-func resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d *schema.ResourceData, customHttpsProvisioningEnabled bool, frontDoorName string, frontendEndpointName string, resourceGroup string, provisioningState frontdoor.CustomHTTPSProvisioningState, customHTTPSConfigurationCurrent *frontdoor.CustomHTTPSConfiguration, customHttpsConfigurationNew []interface{}, meta interface{}) error {
+func resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d *schema.ResourceData, frontendEndpointId string, customHttpsProvisioningEnabled bool, frontDoorName string, frontendEndpointName string, resourceGroup string, provisioningState frontdoor.CustomHTTPSProvisioningState, customHTTPSConfigurationCurrent *frontdoor.CustomHTTPSConfiguration, customHttpsConfigurationNew []interface{}, meta interface{}) error {
+	// Locking to prevent parallel changes causing issues
+	locks.ByID(frontendEndpointId)
+	defer locks.UnlockByID(frontendEndpointId)
+
 	if provisioningState != "" {
 		// Check to see if we are going to change the CustomHTTPSProvisioningState, if so check to
 		// see if its current state is configurable, if not return an error...

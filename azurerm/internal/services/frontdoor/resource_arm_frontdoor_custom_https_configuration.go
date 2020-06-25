@@ -2,7 +2,6 @@ package frontdoor
 
 import (
 	"fmt"
-
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-11-01/frontdoor"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -34,6 +33,13 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"frontend_endpoint_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+
 			"front_door_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -117,7 +123,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.Resource
 
 	customHttpsProvisioningEnabled := d.Get("custom_https_provisioning_enabled").(bool)
 	customHttpsConfigurationNew := d.Get("custom_https_configuration").([]interface{})
-	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d, customHttpsProvisioningEnabled, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
+	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d, *resp.ID, customHttpsProvisioningEnabled, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 	if err != nil {
 		return fmt.Errorf("Unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
@@ -145,6 +151,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 		return fmt.Errorf("reading Front Door Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
 
+	d.Set("frontend_endpoint_id", resp.ID)
 	d.Set("front_door_name", frontDoorName)
 	d.Set("frontend_endpoint_name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
@@ -183,7 +190,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationDelete(d *schema.ResourceData, 
 	}
 
 	customHttpsConfigurationNew := make([]interface{}, 0)
-	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d, false, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
+	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d, *resp.ID, false, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 	if err != nil {
 		return fmt.Errorf("unable to disable Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
