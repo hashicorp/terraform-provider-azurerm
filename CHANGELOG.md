@@ -11,8 +11,8 @@ FEATURES:
 ENHANCEMENTS:
 
 * authentication: Azure CLI - support for access tokens in custom directories [GH-7433]
-* `azurerm_app_service_environment` - support a value of `Web, Publishing` for the `internal_load_balancing_mode` property [GH-7346]
 * `azurerm_api_management_api` - support for the `subscription_required` property [GH-4885]
+* `azurerm_app_service_environment` - support a value of `Web, Publishing` for the `internal_load_balancing_mode` property [GH-7346]
 * `azurerm_kusto_cluster` - support for the `identity` block [GH-7367]
 * `azurerm_kusto_cluster` - support for `virtual_network_configuration` block [GH-7369]
 * `azurerm_kusto_cluster` - supoport for the `zone` property [GH-7373]
