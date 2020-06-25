@@ -259,7 +259,7 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		e.AppServiceEnvironment.MultiSize = utils.String(v)
 	}
 
-	if d.HasChange("user_whitelisted_ip_ranges") || d.HasChange("allowed_user_ip_cidrs") {
+	if d.HasChanges("user_whitelisted_ip_ranges", "allowed_user_ip_cidrs") {
 		e.UserWhitelistedIPRanges = utils.ExpandStringSlice(d.Get("user_whitelisted_ip_ranges").(*schema.Set).List())
 		if v, ok := d.GetOk("user_whitelisted_ip_ranges"); ok {
 			e.UserWhitelistedIPRanges = utils.ExpandStringSlice(v.(*schema.Set).List())
