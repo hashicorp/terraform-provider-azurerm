@@ -377,6 +377,10 @@ func (r Resource) MarshalJSON() ([]byte, error) {
 
 // ResourceIdentity setting indicating whether the service has a managed identity associated with it.
 type ResourceIdentity struct {
+	// PrincipalID - READ-ONLY; The principal ID of the resource identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant ID of the resource.
+	TenantID *string `json:"tenantId,omitempty"`
 	// Type - Type of identity being specified, currently SystemAssigned and None are allowed. Possible values include: 'SystemAssigned', 'None'
 	Type ManagedServiceIdentityType `json:"type,omitempty"`
 }
@@ -415,6 +419,12 @@ type ServiceCorsConfigurationInfo struct {
 type ServiceCosmosDbConfigurationInfo struct {
 	// OfferThroughput - The provisioned throughput for the backing database.
 	OfferThroughput *int32 `json:"offerThroughput,omitempty"`
+}
+
+// ServiceExportConfigurationInfo export operation configuration information
+type ServiceExportConfigurationInfo struct {
+	// StorageAccountName - The name of the default export storage account.
+	StorageAccountName *string `json:"storageAccountName,omitempty"`
 }
 
 // ServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -701,6 +711,8 @@ type ServicesProperties struct {
 	AuthenticationConfiguration *ServiceAuthenticationConfigurationInfo `json:"authenticationConfiguration,omitempty"`
 	// CorsConfiguration - The settings for the CORS configuration of the service instance.
 	CorsConfiguration *ServiceCorsConfigurationInfo `json:"corsConfiguration,omitempty"`
+	// ExportConfiguration - The settings for the export operation of the service instance.
+	ExportConfiguration *ServiceExportConfigurationInfo `json:"exportConfiguration,omitempty"`
 }
 
 // ServicesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running

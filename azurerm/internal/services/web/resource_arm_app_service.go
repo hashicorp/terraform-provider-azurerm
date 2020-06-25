@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
@@ -14,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -44,7 +44,7 @@ func resourceArmAppService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAppServiceName,
+				ValidateFunc: validate.AppServiceName,
 			},
 
 			"identity": azure.SchemaAppServiceIdentity(),
@@ -192,6 +192,7 @@ func resourceArmAppService() *schema.Resource {
 
 func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	aspClient := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -217,6 +218,19 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		Name: utils.String(name),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
+
+	appServicePlanId := d.Get("app_service_plan_id").(string)
+	aspID, err := ParseAppServicePlanID(appServicePlanId)
+	if err != nil {
+		return err
+	}
+	// Check if App Service Plan is part of ASE
+	// If so, the name needs updating to <app name>.<ASE name>.appserviceenvironment.net and FQDN setting true for name availability check
+	aspDetails, _ := aspClient.Get(ctx, aspID.ResourceGroup, aspID.Name)
+	if aspDetails.HostingEnvironmentProfile != nil {
+		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, aspID.Name))
+		availabilityRequest.IsFqdn = utils.Bool(true)
+	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
 		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
@@ -227,7 +241,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
@@ -758,16 +771,6 @@ func flattenAppServiceAppSettings(input map[string]*string) map[string]string {
 	}
 
 	return output
-}
-
-func validateAppServiceName(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if matched := regexp.MustCompile(`^[0-9a-zA-Z-]{1,60}$`).Match([]byte(value)); !matched {
-		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes and up to 60 characters in length", k))
-	}
-
-	return warnings, errors
 }
 
 func flattenAppServiceSiteCredential(input *web.UserProperties) []interface{} {

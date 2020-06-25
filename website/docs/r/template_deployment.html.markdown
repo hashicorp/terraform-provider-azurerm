@@ -121,6 +121,8 @@ The following arguments are supported:
 
 ~> **Note:** There's a [`file` function available](https://www.terraform.io/docs/configuration/functions/file.html) which allows you to read this from an external file, which helps makes this more resource more readable.
 
+~> **Also Note:** This is NOT an Azure deployment parameters file, as defined in the [`Microdoft schema's`](https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#). It is effectively the object supplied to the "parameters" attribute in that schema. If you are providing, or generating via [`template_file`](https://www.terraform.io/docs/providers/template/d/file.html), this argument, do not provide a full deployment parameters JSON file with "$schema" and "contentVersion" attributes, just provide the object for the "parameters" attribute of that schema.
+
 ## Attributes Reference
 
 The following attributes are exported:

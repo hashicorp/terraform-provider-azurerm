@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
@@ -9,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprints"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
@@ -22,6 +24,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
@@ -32,11 +35,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iotcentral"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iottimeseriesinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/machinelearning"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maintenance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managedapplications"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
@@ -61,6 +66,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
@@ -72,10 +78,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
-//go:generate go run ../tools/website-categories/main.go -path=../../../website/allowed-subcategories
+//go:generate go run ../tools/generator-services/main.go -path=../../../
 
 func SupportedServices() []common.ServiceRegistration {
 	return []common.ServiceRegistration{
+		advisor.Registration{},
 		analysisservices.Registration{},
 		apimanagement.Registration{},
 		appconfiguration.Registration{},
@@ -84,6 +91,7 @@ func SupportedServices() []common.ServiceRegistration {
 		authorization.Registration{},
 		automation.Registration{},
 		batch.Registration{},
+		blueprints.Registration{},
 		bot.Registration{},
 		cdn.Registration{},
 		cognitive.Registration{},
@@ -96,6 +104,7 @@ func SupportedServices() []common.ServiceRegistration {
 		datafactory.Registration{},
 		datalake.Registration{},
 		databasemigration.Registration{},
+		datashare.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
 		dns.Registration{},
@@ -111,6 +120,7 @@ func SupportedServices() []common.ServiceRegistration {
 		loganalytics.Registration{},
 		logic.Registration{},
 		machinelearning.Registration{},
+		maintenance.Registration{},
 		managedapplications.Registration{},
 		managementgroup.Registration{},
 		maps.Registration{},
@@ -135,6 +145,7 @@ func SupportedServices() []common.ServiceRegistration {
 		resource.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
+		sentinel.Registration{},
 		servicebus.Registration{},
 		servicefabric.Registration{},
 		signalr.Registration{},
@@ -142,6 +153,7 @@ func SupportedServices() []common.ServiceRegistration {
 		storage.Registration{},
 		streamanalytics.Registration{},
 		subscription.Registration{},
+		iottimeseriesinsights.Registration{},
 		trafficmanager.Registration{},
 		web.Registration{},
 	}

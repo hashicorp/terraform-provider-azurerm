@@ -28,10 +28,11 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_postgresql_configuration":        resourceArmPostgreSQLConfiguration(),
-		"azurerm_postgresql_database":             resourceArmPostgreSQLDatabase(),
-		"azurerm_postgresql_firewall_rule":        resourceArmPostgreSQLFirewallRule(),
-		"azurerm_postgresql_server":               resourceArmPostgreSQLServer(),
-		"azurerm_postgresql_virtual_network_rule": resourceArmPostgreSQLVirtualNetworkRule(),
+		"azurerm_postgresql_configuration":                  resourceArmPostgreSQLConfiguration(),
+		"azurerm_postgresql_database":                       resourceArmPostgreSQLDatabase(),
+		"azurerm_postgresql_firewall_rule":                  resourceArmPostgreSQLFirewallRule(),
+		"azurerm_postgresql_server":                         resourceArmPostgreSQLServer(),
+		"azurerm_postgresql_virtual_network_rule":           resourceArmPostgreSQLVirtualNetworkRule(),
+		"azurerm_postgresql_active_directory_administrator": resourceArmPostgreSQLAdministrator(),
 	}
 }

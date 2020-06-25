@@ -3,7 +3,7 @@ package compute
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -730,6 +730,16 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 					}, false),
 				},
 
+				"create_option": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(compute.DiskCreateOptionTypesEmpty),
+						string(compute.DiskCreateOptionTypesFromImage),
+					}, false),
+					Default: string(compute.DiskCreateOptionTypesEmpty),
+				},
+
 				"disk_encryption_set_id": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -787,9 +797,7 @@ func ExpandVirtualMachineScaleSetDataDisk(input []interface{}) *[]compute.Virtua
 				StorageAccountType: compute.StorageAccountTypes(raw["storage_account_type"].(string)),
 			},
 			WriteAcceleratorEnabled: utils.Bool(raw["write_accelerator_enabled"].(bool)),
-
-			// AFAIK this is required to be Empty
-			CreateOption: compute.DiskCreateOptionTypesEmpty,
+			CreateOption:            compute.DiskCreateOptionTypes(raw["create_option"].(string)),
 		}
 
 		if id := raw["disk_encryption_set_id"].(string); id != "" {
@@ -838,6 +846,7 @@ func FlattenVirtualMachineScaleSetDataDisk(input *[]compute.VirtualMachineScaleS
 
 		output = append(output, map[string]interface{}{
 			"caching":                   string(v.Caching),
+			"create_option":             string(v.CreateOption),
 			"lun":                       lun,
 			"disk_encryption_set_id":    diskEncryptionSetId,
 			"disk_size_gb":              diskSizeGb,
@@ -1226,6 +1235,65 @@ func FlattenVirtualMachineScaleSetScheduledEventsProfile(input *compute.Schedule
 		map[string]interface{}{
 			"enabled": enabled,
 			"timeout": timeout,
+		},
+	}
+}
+
+func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"enabled": {
+					Type:     schema.TypeBool,
+					Required: true,
+				},
+				"grace_period": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Default:  "PT30M",
+					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
+					ValidateFunc: azValidate.ISO8601Duration,
+				},
+			},
+		},
+	}
+}
+
+func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *compute.AutomaticRepairsPolicy {
+	if len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	return &compute.AutomaticRepairsPolicy{
+		Enabled:     utils.Bool(raw["enabled"].(bool)),
+		GracePeriod: utils.String(raw["grace_period"].(string)),
+	}
+}
+
+func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.AutomaticRepairsPolicy) []interface{} {
+	// if enabled is set to false, there will be no AutomaticRepairsPolicy in response, to avoid plan non empty when
+	// a user explicitly set enabled to false, we need to assign a default block to this field
+
+	enabled := false
+	if input != nil && input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+
+	gracePeriod := "PT30M"
+	if input != nil && input.GracePeriod != nil {
+		gracePeriod = *input.GracePeriod
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":      enabled,
+			"grace_period": gracePeriod,
 		},
 	}
 }

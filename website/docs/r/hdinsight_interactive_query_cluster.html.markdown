@@ -199,7 +199,7 @@ A `worker_node` block supports the following:
 
 -> **NOTE:** High memory instances must be specified for the Head Node (Azure suggests a `Standard_D14_V2`).
 
-* `min_instance_count` - (Optional) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
+* `min_instance_count` - (Optional / **Deprecated** ) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
