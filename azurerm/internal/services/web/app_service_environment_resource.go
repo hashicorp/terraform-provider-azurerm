@@ -94,9 +94,9 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 			},
 
 			"allowed_user_ip_cidrs": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed:true, // remove in 3.0
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
 				ConflictsWith: []string{"user_whitelisted_ip_ranges"},
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -105,11 +105,11 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 			},
 
 			"user_whitelisted_ip_ranges": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed:true, // remove in 3.0
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
 				ConflictsWith: []string{"allowed_user_ip_cidrs"},
-				Deprecated: "this property has been renamed to `allowed_user_ip_cidrs` better reflect the expected ip range format",
+				Deprecated:    "this property has been renamed to `allowed_user_ip_cidrs` better reflect the expected ip range format",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: helpersValidate.CIDR,
@@ -259,13 +259,13 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		e.AppServiceEnvironment.MultiSize = utils.String(v)
 	}
 
-	if d.HasChange("user_whitelisted_ip_ranges") ||  d.HasChange("allowed_user_ip_cidrs") {
+	if d.HasChange("user_whitelisted_ip_ranges") || d.HasChange("allowed_user_ip_cidrs") {
 		e.UserWhitelistedIPRanges = utils.ExpandStringSlice(d.Get("user_whitelisted_ip_ranges").(*schema.Set).List())
 		if v, ok := d.GetOk("user_whitelisted_ip_ranges"); ok {
 			e.UserWhitelistedIPRanges = utils.ExpandStringSlice(v.(*schema.Set).List())
 		}
 	}
-	
+
 	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, e); err != nil {
 		return fmt.Errorf("Error updating App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}

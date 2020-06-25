@@ -98,10 +98,10 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 			},
 
 			"display_name_filter": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed:true, // remove in 3.0
-				MinItems: 1,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				MinItems:      1,
 				ConflictsWith: []string{"text_whitelist"},
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -110,12 +110,12 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 			},
 
 			"text_whitelist": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed:true, // remove in 3.0
-				MinItems: 1,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				MinItems:      1,
 				ConflictsWith: []string{"display_name_filter"},
-				Deprecated: "this property has been renamed to display_name_filter to better match the SDK & API",
+				Deprecated:    "this property has been renamed to display_name_filter to better match the SDK & API",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
