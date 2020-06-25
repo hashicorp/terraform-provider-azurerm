@@ -94,7 +94,7 @@ func testCheckAzureRMKeyVaultCertificateIssuerDestroy(s *terraform.State) error 
 
 		ok, err := azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+			return fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
 		if !ok {
 			log.Printf("[DEBUG] Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
@@ -132,12 +132,12 @@ func testCheckAzureRMKeyVaultCertificateIssuerExists(resourceName string) resour
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+			return fmt.Errorf("failed to look up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
 		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+			return fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
 		if !ok {
 			log.Printf("[DEBUG] Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
@@ -172,12 +172,12 @@ func testCheckAzureRMKeyVaultCertificateIssuerDisappears(resourceName string) re
 		keyVaultId := rs.Primary.Attributes["key_vault_id"]
 		vaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
+			return fmt.Errorf("failed to look up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
 		ok, err = azure.KeyVaultExists(ctx, acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error checking if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
+			return fmt.Errorf("failed to check if key vault %q for Certificate Issuer %q in Vault at url %q exists: %v", keyVaultId, name, vaultBaseUrl, err)
 		}
 		if !ok {
 			log.Printf("[DEBUG] Certificate Issuer %q Key Vault %q was not found in Key Vault at URI %q ", name, keyVaultId, vaultBaseUrl)
