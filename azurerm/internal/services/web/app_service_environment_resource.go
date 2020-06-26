@@ -140,7 +140,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	t := d.Get("tags").(map[string]interface{})
 	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*schema.Set).List()
-	if v, ok := d.GetOk("user_whitelisted_ip_ranges"); ok {
+	if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
 		userWhitelistedIPRangesRaw = v.(*schema.Set).List()
 	}
 
