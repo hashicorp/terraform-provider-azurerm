@@ -10,6 +10,7 @@ import (
 
 func TestAccDataSourceAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_web_application_firewall_policy", "test")
+	resourceGroupName := fmt.Sprintf("acctestRG-%d", data.RandomInteger)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.PreCheck(t) },
@@ -18,8 +19,8 @@ func TestAccDataSourceAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMWebApplicationFirewallPolicyBasic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRg-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", "example-wafpolicy"),
+					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
 				),
@@ -115,12 +116,12 @@ resource "azurerm_web_application_firewall_policy" "example" {
         ]
       }
     }
-		}
+  }
 
-		data "azurerm_web_application_firewall_policy" "example" {
-			resource_group_name = azurerm_resource_group.example.name
-			name         = "example-wafpolicy"
-	}
+  data "azurerm_web_application_firewall_policy" "example" {
+    resource_group_name = azurerm_resource_group.example.name
+    name                = "example-wafpolicy"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`)
 }
