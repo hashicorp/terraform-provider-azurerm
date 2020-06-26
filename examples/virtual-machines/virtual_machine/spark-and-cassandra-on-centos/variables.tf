@@ -148,8 +148,8 @@ variable "nic_primary_name" {
   default     = "nic-primary"
 }
 
-variable "nic_master_node_ip" {
-  description = "The private IP address used by the Master's network interface card"
+variable "nic_primary_node_ip" {
+  description = "The private IP address used by the Primary's network interface card"
   default     = "10.0.0.5"
 }
 
@@ -173,9 +173,9 @@ variable "nic_secondary_node_ip_prefix" {
   default     = "10.0.1."
 }
 
-variable "public_ip_master_name" {
-  description = "The name of the master node's public IP address"
-  default     = "public-ip-master"
+variable "public_ip_primary_name" {
+  description = "The name of the primary node's public IP address"
+  default     = "public-ip-primary"
 }
 
 variable "public_ip_secondary_name_prefix" {
@@ -188,18 +188,18 @@ variable "public_ip_cassandra_name" {
   default     = "public-ip-cassandra"
 }
 
-variable "vm_master_name" {
-  description = "The name of Spark's Master virtual machine"
-  default     = "spark-master"
+variable "vm_primary_name" {
+  description = "The name of Spark's Primary virtual machine"
+  default     = "spark-primary"
 }
 
-variable "vm_master_os_disk_name" {
-  description = "The name of the os disk used by Spark's Master virtual machine"
-  default     = "vmMasterOSDisk"
+variable "vm_primary_os_disk_name" {
+  description = "The name of the os disk used by Spark's Primary virtual machine"
+  default     = "vmPrimaryOSDisk"
 }
 
-variable "vm_master_storage_account_container_name" {
-  description = "The name of the storage account container used by Spark's master"
+variable "vm_primary_storage_account_container_name" {
+  description = "The name of the storage account container used by Spark's primary"
   default     = "vhds"
 }
 
