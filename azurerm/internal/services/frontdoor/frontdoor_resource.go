@@ -2,7 +2,6 @@ package frontdoor
 
 import (
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"log"
 	"strings"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -1313,7 +1313,7 @@ func flattenArmFrontDoorFrontendEndpoints(d *schema.ResourceData, input *[]front
 
 func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *frontdoor.FrontendEndpoint, resourceGroup string, frontDoorName string, meta interface{}) (map[string]interface{}, error) {
 	if input == nil {
-		return make(map[string]interface{}, 0), fmt.Errorf("cannot read Front Door Frontend Endpoint (Resource Group %q): endpoint is empty", resourceGroup)
+		return make(map[string]interface{}), fmt.Errorf("cannot read Front Door Frontend Endpoint (Resource Group %q): endpoint is empty", resourceGroup)
 	}
 
 	output := make(map[string]interface{})
@@ -1331,10 +1331,10 @@ func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *frontdoo
 
 		resp, err := client.Get(ctx, resourceGroup, frontDoorName, *name)
 		if err != nil {
-			return make(map[string]interface{}, 0), fmt.Errorf("retrieving Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q): %+v", *name, resourceGroup, err)
+			return make(map[string]interface{}), fmt.Errorf("retrieving Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q): %+v", *name, resourceGroup, err)
 		}
 		if resp.ID == nil {
-			return make(map[string]interface{}, 0), fmt.Errorf("cannot read Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q) ID", *name, resourceGroup)
+			return make(map[string]interface{}), fmt.Errorf("cannot read Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q) ID", *name, resourceGroup)
 		}
 
 		output["id"] = resp.ID
