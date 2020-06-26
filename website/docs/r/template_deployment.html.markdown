@@ -14,7 +14,7 @@ Manages a template deployment of resources
 This means that when deleting the `azurerm_template_deployment` resource, Terraform will only remove the reference to the deployment, whilst leaving any resources created by that ARM Template Deployment.
 One workaround for this is to use a unique Resource Group for each ARM Template Deployment, which means deleting the Resource Group would contain any resources created within it - however this isn't ideal. [More information](https://docs.microsoft.com/en-us/rest/api/resources/deployments#Deployments_Delete).
 
-## Example Usage
+## Example Usage (Resource Group deployment)
 
 ~> **Note:** This example uses [Storage Accounts](storage_account.html) and [Public IP's](public_ip.html) which are natively supported by Terraform - we'd highly recommend using the Native Resources where possible instead rather than an ARM Template, for the reasons outlined above.
 
@@ -100,14 +100,62 @@ output "storageAccountName" {
 }
 ```
 
+## Example Usage (Subscription deployment)
+
+~> **Note:** This example uses [Resource groups](resource_group.html) which are natively supported by Terraform - we'd highly recommend using the Native Resources where possible instead rather than an ARM Template, for the reasons outlined above.
+
+```hcl
+resource "azurerm_template_deployment" "test" {
+
+  // Note that we did not specify 'resource_group_name'
+  name                = "testRG"
+  location            = "westeurope"
+
+  template_body = <<DEPLOY
+  {
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "resourceGroupName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the Resource Group"
+        }
+      }
+    },
+    "variables": {},
+    "resources": [
+      {
+        "type": "Microsoft.Resources/resourceGroups",
+        "apiVersion": "2019-10-01",
+        "name": "[parameters('resourceGroupName')]",
+        "location": "westeurope",
+        "properties": {}
+      }
+    ],
+    "outputs": {}
+  }
+DEPLOY
+
+  deployment_mode = "Incremental"
+
+  parameters = {
+    "resourceGroupName" = "myTestRG"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the template deployment. Changing this forces a
     new resource to be created.
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the template deployment.
+* `resource_group_name` - (Optional) The name of the resource group in which to
+    create the template deployment. For `subscription deployments` omit this value.
+    Changing this forces a new resource to be created.
+* `location` - (Optional) Specifies the Azure Region where the deployment should be created.
+    Changing this forces a new resource to be created. This is required for `subscription deployments`.
 * `deployment_mode` - (Required) Specifies the mode that is used to deploy resources. This value could be either `Incremental` or `Complete`.
     Note that you will almost *always* want this to be set to `Incremental` otherwise the deployment will destroy all infrastructure not
     specified within the template, and Terraform will not be aware of this.
