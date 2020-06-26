@@ -43,7 +43,15 @@ func resourceArmTemplateDeployment() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// if resource_group_name is specified a standard ARM deployment will
+			// be created, if no resource_group_name is provided, we create a
+			// subscription ARM deployment.
+			"resource_group_name": azure.SchemaResourceGroupNameOptional(),
+
+			// location is marked as optional, but is required for subscription
+			// ARM deployments. The API will return a error message if the location
+			// is missing or invalid.
+			"location": azure.SchemaLocationOptional(),
 
 			"template_body": {
 				Type:      schema.TypeString,
@@ -98,16 +106,38 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 	resourceGroup := d.Get("resource_group_name").(string)
 	deploymentMode := d.Get("deployment_mode").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Template Deployment %s (resource group %s) %v", name, resourceGroup, err)
-			}
-		}
+	// determine the deployment target (subscription or resource group)
+	// based on the targets we use different methods from the deployments client
+	var deploymentTarget string
+	if resourceGroup != "" {
+		deploymentTarget = "resourceGroup"
+	} else {
+		deploymentTarget = "subscription"
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_template_deployment", *existing.ID)
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		if deploymentTarget == "resourceGroup" {
+			// Resource group level deployment
+			existing, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("Error checking for presence of existing Template Deployment %s (resource group %s) %v", name, resourceGroup, err)
+				}
+			}
+			if existing.ID != nil && *existing.ID != "" {
+				return tf.ImportAsExistsError("azurerm_template_deployment", *existing.ID)
+			}
+		} else {
+			// Subscription level deployment
+			existing, err := client.GetAtSubscriptionScope(ctx, name)
+			if err != nil {
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("Error checking for presence of existing Template Deployment %s %v", name, err)
+				}
+			}
+			if existing.ID != nil && *existing.ID != "" {
+				return tf.ImportAsExistsError("azurerm_template_deployment", *existing.ID)
+			}
 		}
 	}
 
@@ -153,45 +183,83 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 		Properties: &properties,
 	}
 
-	deploymentValidateResponse, err := client.Validate(ctx, resourceGroup, name, deployment)
-
-	if !d.IsNewResource() {
-		d.Partial(true)
+	// append the location if provided. This is required for subscription
+	// level deployments.
+	if location, ok := d.GetOk("location"); ok {
+		deployment.Location = utils.String(location.(string))
 	}
 
-	if err != nil {
-		return fmt.Errorf("Error requesting Validation for Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if deploymentValidateResponse.Error != nil {
-		if deploymentValidateResponse.Error.Message != nil {
-			return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error.Message)
+	if deploymentTarget == "resourceGroup" {
+		// Resource group deployment
+		deploymentValidateResponse, err := client.Validate(ctx, resourceGroup, name, deployment)
+		if err != nil {
+			return fmt.Errorf("Error requesting Validation for Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
-		return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error)
+		if deploymentValidateResponse.Error != nil {
+			if deploymentValidateResponse.Error.Message != nil {
+				return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error.Message)
+			}
+			return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error)
+		}
+	} else {
+		// Subscription level deployment
+		deploymentValidateResponse, err := client.ValidateAtSubscriptionScope(ctx, name, deployment)
+		if err != nil {
+			return fmt.Errorf("Error requesting Validation for Template Deployment %q: %+v", name, err)
+		}
+		if deploymentValidateResponse.Error != nil {
+			if deploymentValidateResponse.Error.Message != nil {
+				return fmt.Errorf("Error validating Template for Deployment %q: %+v", name, *deploymentValidateResponse.Error.Message)
+			}
+			return fmt.Errorf("Error validating Template for Deployment %q: %+v", name, *deploymentValidateResponse.Error)
+		}
 	}
 
 	if !d.IsNewResource() {
 		d.Partial(false)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, deployment)
-	if err != nil {
-		return fmt.Errorf("Error creating deployment: %+v", err)
-	}
+	if deploymentTarget == "resourceGroup" {
+		// Resource group deployment
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, deployment)
+		if err != nil {
+			return fmt.Errorf("Error creating deployment: %+v", err)
+		}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deployment: %+v", err)
-	}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for deployment: %+v", err)
+		}
+		read, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return err
+		}
+		if read.ID == nil {
+			return fmt.Errorf("Cannot read Template Deployment %s (resource group %s) ID", name, resourceGroup)
+		}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Template Deployment %s (resource group %s) ID", name, resourceGroup)
-	}
+		d.SetId(*read.ID)
 
-	d.SetId(*read.ID)
+	} else {
+		// Subscription level deployment
+
+		future, err := client.CreateOrUpdateAtSubscriptionScope(ctx, name, deployment)
+		if err != nil {
+			return fmt.Errorf("Error creating deployment: %+v", err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for deployment: %+v", err)
+		}
+		read, err := client.GetAtSubscriptionScope(ctx, name)
+		if err != nil {
+			return err
+		}
+		if read.ID == nil {
+			return fmt.Errorf("Cannot read Template Deployment %s ID", name)
+		}
+
+		d.SetId(*read.ID)
+	}
 
 	return resourceArmTemplateDeploymentRead(d, meta)
 }
@@ -205,56 +273,77 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return err
 	}
+
 	resourceGroup := id.ResourceGroup
 	name := id.Path["deployments"]
 	if name == "" {
 		name = id.Path["Deployments"]
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+	var resp resources.DeploymentExtended
+	if id.ResourceGroup != "" {
+		// Resource group deployment
+		response, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				d.SetId("")
+				return nil
+			}
+			return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
-		return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		// surface response
+		resp = response
+	} else {
+		// Subscription deployment
+		response, err := client.GetAtSubscriptionScope(ctx, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				d.SetId("")
+				return nil
+			}
+			return fmt.Errorf("Error making Read request on Azure RM Template Deployment %q: %+v", name, err)
+		}
+		// surface response
+		resp = response
 	}
 
 	outputs := make(map[string]string)
-	if outs := resp.Properties.Outputs; outs != nil {
-		outsVal := outs.(map[string]interface{})
-		if len(outsVal) > 0 {
-			for key, output := range outsVal {
-				log.Printf("[DEBUG] Processing deployment output %s", key)
-				outputMap := output.(map[string]interface{})
-				outputValue, ok := outputMap["value"]
-				if !ok {
-					log.Printf("[DEBUG] No value - skipping")
-					continue
+	if resp.Properties != nil {
+		if outs := resp.Properties.Outputs; outs != nil {
+			outsVal := outs.(map[string]interface{})
+			if len(outsVal) > 0 {
+				for key, output := range outsVal {
+					log.Printf("[DEBUG] Processing deployment output %s", key)
+					outputMap := output.(map[string]interface{})
+					outputValue, ok := outputMap["value"]
+					if !ok {
+						log.Printf("[DEBUG] No value - skipping")
+						continue
+					}
+					outputType, ok := outputMap["type"]
+					if !ok {
+						log.Printf("[DEBUG] No type - skipping")
+						continue
+					}
+
+					var outputValueString string
+					switch strings.ToLower(outputType.(string)) {
+					case "bool":
+						outputValueString = strconv.FormatBool(outputValue.(bool))
+
+					case "string":
+						outputValueString = outputValue.(string)
+
+					case "int":
+						outputValueString = fmt.Sprint(outputValue)
+
+					default:
+						log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
+							key, outputType)
+						continue
+					}
+					outputs[key] = outputValueString
 				}
-				outputType, ok := outputMap["type"]
-				if !ok {
-					log.Printf("[DEBUG] No type - skipping")
-					continue
-				}
-
-				var outputValueString string
-				switch strings.ToLower(outputType.(string)) {
-				case "bool":
-					outputValueString = strconv.FormatBool(outputValue.(bool))
-
-				case "string":
-					outputValueString = outputValue.(string)
-
-				case "int":
-					outputValueString = fmt.Sprint(outputValue)
-
-				default:
-					log.Printf("[WARN] Ignoring output %s: Outputs of type %s are not currently supported in azurerm_template_deployment.",
-						key, outputType)
-					continue
-				}
-				outputs[key] = outputValueString
 			}
 		}
 	}
@@ -277,9 +366,19 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 		name = id.Path["Deployments"]
 	}
 
-	_, err = client.Delete(ctx, resourceGroup, name)
-	if err != nil {
-		return err
+	if id.ResourceGroup != "" {
+		// Resource group deployment
+		_, err = client.Delete(ctx, resourceGroup, name)
+		if err != nil {
+			return err
+		}
+
+	} else {
+		// Subscription deployment
+		_, err = client.DeleteAtSubscriptionScope(ctx, name)
+		if err != nil {
+			return err
+		}
 	}
 
 	return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, name, d)
@@ -304,15 +403,29 @@ func expandTemplateBody(template string) (map[string]interface{}, error) {
 
 func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string, d *schema.ResourceData) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
-	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"200"},
-		Target:  []string{"404"},
-		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+	log.Printf("[DEBUG] Waiting for Template Deployment %q to be deleted", name)
+	if resourceGroup != "" {
+		// Resource group deployment
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"200"},
+			Target:  []string{"404"},
+			Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
+			Timeout: d.Timeout(schema.TimeoutDelete),
+		}
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for Template Deployment to be deleted: %q (RG: %q): %+v", name, resourceGroup, err)
+		}
+	} else {
+		// Subscription deployment
+		stateConf := &resource.StateChangeConf{
+			Pending: []string{"200"},
+			Target:  []string{"404"},
+			Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, "", name),
+			Timeout: d.Timeout(schema.TimeoutDelete),
+		}
+		if _, err := stateConf.WaitForState(); err != nil {
+			return fmt.Errorf("Error waiting for Template Deployment to be deleted: %q: %+v", name, err)
+		}
 	}
 
 	return nil
@@ -320,17 +433,32 @@ func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources
 
 func templateDeploymentStateStatusCodeRefreshFunc(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
 
-		log.Printf("Retrieving Template Deployment %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return res, strconv.Itoa(res.StatusCode), nil
+		if resourceGroup != "" {
+			// Resource group deployment
+			res, err := client.Get(ctx, resourceGroup, name)
+			if err != nil {
+				if utils.ResponseWasNotFound(res.Response) {
+					return res, strconv.Itoa(res.StatusCode), nil
+				}
+				return nil, "", fmt.Errorf("Error polling for the status of the Template Deployment %q (RG: %q): %+v", name, resourceGroup, err)
 			}
-			return nil, "", fmt.Errorf("Error polling for the status of the Template Deployment %q (RG: %q): %+v", name, resourceGroup, err)
-		}
 
-		return res, strconv.Itoa(res.StatusCode), nil
+			log.Printf("Retrieving Template Deployment %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
+			return res, strconv.Itoa(res.StatusCode), nil
+
+		} else {
+			// Subscription deployment
+			res, err := client.GetAtSubscriptionScope(ctx, name)
+			if err != nil {
+				if utils.ResponseWasNotFound(res.Response) {
+					return res, strconv.Itoa(res.StatusCode), nil
+				}
+				return nil, "", fmt.Errorf("Error polling for the status of the Template Deployment %q: %+v", name, err)
+			}
+
+			log.Printf("Retrieving Template Deployment %q returned Status %d", name, res.StatusCode)
+			return res, strconv.Itoa(res.StatusCode), nil
+		}
 	}
 }

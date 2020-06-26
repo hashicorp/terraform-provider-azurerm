@@ -18,6 +18,15 @@ func SchemaResourceGroupName() *schema.Schema {
 	}
 }
 
+func SchemaResourceGroupNameOptional() *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeString,
+		Optional:     true,
+		ForceNew:     true,
+		ValidateFunc: validateResourceGroupName,
+	}
+}
+
 func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
