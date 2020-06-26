@@ -31,10 +31,10 @@ func TestAccDataSourceAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 
 func testAccDataSourceAzureRMWebApplicationFirewallPolicyBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "example" {
-  name     = "example-rg"
-  location = "West US 2"
-}
+  resource "azurerm_resource_group" "test" {
+    name     = "acctestRG-%d"
+    location = "%s"
+  }
 
 resource "azurerm_web_application_firewall_policy" "example" {
   name                = "example-wafpolicy"
@@ -123,5 +123,5 @@ resource "azurerm_web_application_firewall_policy" "example" {
     name                = "example-wafpolicy"
   }
 }
-`)
+`, data.RandomInteger, data.Locations.Primary)
 }
