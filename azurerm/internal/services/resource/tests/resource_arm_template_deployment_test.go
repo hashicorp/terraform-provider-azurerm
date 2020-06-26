@@ -34,6 +34,24 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMTemplateDeployment_subscription(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMTemplateSubscriptionDeploymentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMTemplateDeployment_subscriptionSingle(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMTemplateSubscriptionDeploymentExists(data.ResourceName),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_template_deployment", "test")
 
@@ -203,6 +221,32 @@ func testCheckAzureRMTemplateDeploymentExists(resourceName string) resource.Test
 	}
 }
 
+func testCheckAzureRMTemplateSubscriptionDeploymentExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		name := rs.Primary.Attributes["name"]
+
+		resp, err := client.GetAtSubscriptionScope(ctx, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on deploymentsClient: %s", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: TemplateDeployment %q does not exist", name)
+		}
+
+		return nil
+	}
+}
+
 func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
@@ -267,6 +311,31 @@ func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
+
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Template Deployment still exists:\n%#v", resp.Properties)
+		}
+	}
+
+	return nil
+}
+
+func testCheckAzureRMTemplateSubscriptionDeploymentDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Resource.DeploymentsClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_template_deployment" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+
+		resp, err := client.GetAtSubscriptionScope(ctx, name)
 
 		if err != nil {
 			return nil
@@ -399,6 +468,40 @@ DEPLOY
   deployment_mode = "Complete"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMTemplateDeployment_subscriptionSingle(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_template_deployment" "test" {
+  name                = "acctesttemplate-%d"
+  location            = "%s"
+
+  template_body = <<DEPLOY
+  {
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {},
+    "resources": [
+      {
+        "type": "Microsoft.Resources/resourceGroups",
+        "apiVersion": "2019-10-01",
+        "name": "[concat('acctest-', uniquestring('%d'))]",
+        "location": "%s",
+        "properties": {}
+      }
+    ],
+    "outputs": {}
+  }
+DEPLOY
+
+  deployment_mode = "Incremental"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
 func testAccAzureRMTemplateDeployment_requiresImport(data acceptance.TestData) string {
