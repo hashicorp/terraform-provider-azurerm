@@ -280,7 +280,7 @@ func resourceArmeventHubNamespaceDedicatedCreateUpdate(d *schema.ResourceData, m
 
 		// cannot use network rulesets with the basic SKU
 		if parameters.Sku.Name != eventhub.Basic {
-			if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, resGroup, name, rulesets); err != nil {
+			if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, resourceGroup, name, rulesets); err != nil {
 				return fmt.Errorf("Error setting network ruleset properties for EventHub Namespace %q (resource group %q): %v", name, resGroup, err)
 			}
 		} else {
