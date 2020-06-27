@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmVirtualMachineScaleSetNetworkInterfaces() *schema.Resource {
@@ -93,28 +95,28 @@ func dataSourceArmVirtualMachineScaleSetNetworkInterfaces() *schema.Resource {
 									},
 
 									"application_gateway_backend_address_pools_ids": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Computed: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 										Set:      schema.HashString,
 									},
 
 									"load_balancer_backend_address_pools_ids": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Computed: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 										Set:      schema.HashString,
 									},
 
 									"load_balancer_inbound_nat_rules_ids": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Computed: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 										Set:      schema.HashString,
 									},
 
 									"application_security_group_ids": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Computed: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
 										Set:      schema.HashString,
@@ -129,7 +131,7 @@ func dataSourceArmVirtualMachineScaleSetNetworkInterfaces() *schema.Resource {
 						},
 
 						"dns_servers": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
@@ -141,7 +143,7 @@ func dataSourceArmVirtualMachineScaleSetNetworkInterfaces() *schema.Resource {
 						},
 
 						"applied_dns_servers": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
@@ -184,87 +186,83 @@ func dataSourceArmVirtualMachineScaleSetNetworkInterfacesRead(d *schema.Resource
 	resGroup := d.Get("resource_group_name").(string)
 	vmssName := d.Get("virtual_machine_scale_set_name").(string)
 
-	resp, err := client.ListVirtualMachineScaleSetNetworkInterfaces(ctx, resGroup, vmssName)
+	resp, err := client.ListVirtualMachineScaleSetNetworkInterfacesComplete(ctx, resGroup, vmssName)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure VMSS %q (Resource Group %q): %+v", vmssName, resGroup, err)
 	}
 
 	results := make([]interface{}, 0)
 
-	for _, iface := range resp.Values() {
-		result := make(map[string]interface{})
+	for resp.NotDone() {
+		iface := resp.Value()
 
+		name := ""
 		if iface.Name != nil {
-			result["name"] = *iface.Name
-		} else {
-			result["name"] = ""
+			name = *iface.Name
 		}
 
+		networkSecurityGroupID := ""
 		if iface.NetworkSecurityGroup != nil {
-			result["network_security_group_id"] = *iface.NetworkSecurityGroup.ID
-		} else {
-			result["network_security_group_id"] = ""
+			networkSecurityGroupID = *iface.NetworkSecurityGroup.ID
 		}
 
+		macAddress := ""
 		if iface.MacAddress != nil {
-			result["mac_address"] = *iface.MacAddress
-		} else {
-			result["mac_address"] = ""
+			macAddress = *iface.MacAddress
 		}
 
+		virtualMachineID := ""
 		if iface.VirtualMachine != nil {
-			result["virtual_machine_id"] = *iface.VirtualMachine.ID
-		} else {
-			result["virtual_machine_id"] = ""
+			virtualMachineID = *iface.VirtualMachine.ID
 		}
 
+		id := ""
 		if iface.ID != nil {
-			result["id"] = *iface.ID
-		} else {
-			result["id"] = ""
+			id = *iface.ID
 		}
 
-		if iface.IPConfigurations != nil && len(*iface.IPConfigurations) > 0 {
-			configs := *iface.IPConfigurations
+		ipConfiguration := flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations)
 
-			result["private_ip_address"] = *configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
-
-			addresses := make([]interface{}, 0)
-			for _, config := range configs {
-				if config.InterfaceIPConfigurationPropertiesFormat != nil {
-					addresses = append(addresses, config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
-				}
-			}
-			result["private_ip_addresses"] = addresses
+		privateIPAddress := ""
+		privateIPAddresses := flattenNetworkInterfacePrivateIPAddresses(iface.IPConfigurations)
+		if len(privateIPAddresses) > 0 {
+			privateIPAddress = privateIPAddresses[0].(string)
 		}
 
-		if iface.IPConfigurations != nil {
-			result["ip_configuration"] = flattenNetworkInterfaceIPConfigurations(iface.IPConfigurations)
-		}
-
-		var appliedDNSServers []string
-		var dnsServers []string
+		dnsServers := make([]interface{}, 0)
+		appliedDNSServers := make([]interface{}, 0)
+		internalDNSNameLabel := ""
 		if dnsSettings := iface.DNSSettings; dnsSettings != nil {
-			if s := dnsSettings.AppliedDNSServers; s != nil {
-				appliedDNSServers = *s
-			}
-
-			if s := dnsSettings.DNSServers; s != nil {
-				dnsServers = *s
-			}
-
+			dnsServers = utils.FlattenStringSlice(dnsSettings.DNSServers)
+			appliedDNSServers = utils.FlattenStringSlice(dnsSettings.AppliedDNSServers)
 			if dnsSettings.InternalDNSNameLabel != nil {
-				result["internal_dns_name_label"] = *dnsSettings.InternalDNSNameLabel
-			} else {
-				result["internal_dns_name_label"] = ""
+				internalDNSNameLabel = *dnsSettings.InternalDNSNameLabel
 			}
 		}
 
-		result["applied_dns_servers"] = appliedDNSServers
-		result["dns_servers"] = dnsServers
-		result["enable_ip_forwarding"] = *iface.EnableIPForwarding
-		result["enable_accelerated_networking"] = *iface.EnableAcceleratedNetworking
-		results = append(results, result)
+		enableIPForwarding := false
+		if iface.EnableIPForwarding != nil {
+			enableIPForwarding = *iface.EnableIPForwarding
+		}
+		enableAcceleratedNetworking := false
+		if iface.EnableAcceleratedNetworking != nil {
+			enableAcceleratedNetworking = *iface.EnableAcceleratedNetworking
+		}
+		results = append(results, map[string]interface{}{
+			"name":                          name,
+			"network_security_group_id":     networkSecurityGroupID,
+			"mac_address":                   macAddress,
+			"virtual_machine_id":            virtualMachineID,
+			"id":                            id,
+			"ip_configuration":              ipConfiguration,
+			"dns_servers":                   dnsServers,
+			"internal_dns_name_label":       internalDNSNameLabel,
+			"applied_dns_servers":           appliedDNSServers,
+			"enable_ip_forwarding":          enableIPForwarding,
+			"enable_accelerated_networking": enableAcceleratedNetworking,
+			"private_ip_address":            privateIPAddress,
+			"private_ip_addresses":          privateIPAddresses,
+		})
 	}
 
 	d.SetId(time.Now().UTC().String())
@@ -272,4 +270,18 @@ func dataSourceArmVirtualMachineScaleSetNetworkInterfacesRead(d *schema.Resource
 		return fmt.Errorf("Error setting `network_interfaces`: %+v", err)
 	}
 	return nil
+}
+
+func flattenNetworkInterfacePrivateIPAddresses(input *[]network.InterfaceIPConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0)
+	for _, ipConfig := range *input {
+		if ipConfig.InterfaceIPConfigurationPropertiesFormat != nil {
+			result = append(result, ipConfig.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+		}
+	}
+	return result
 }
