@@ -367,7 +367,7 @@ func resourceArmeventHubNamespaceDedicatedDelete(d *schema.ResourceData, meta in
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
 
 	future, err := client.Delete(ctx, resGroup, name)
