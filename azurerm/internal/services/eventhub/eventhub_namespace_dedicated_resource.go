@@ -392,7 +392,7 @@ func waitForeventHubNamespaceDedicatedToBeDeleted(ctx context.Context, client *e
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for EventHub NameSpace (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for Dedicated EventHub NameSpace (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}
 
 	return nil
