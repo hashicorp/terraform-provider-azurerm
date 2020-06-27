@@ -308,7 +308,7 @@ func resourceArmeventHubNamespaceDedicatedRead(d *schema.ResourceData, meta inte
 	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
