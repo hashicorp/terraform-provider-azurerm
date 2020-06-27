@@ -213,7 +213,7 @@ func resourceArmeventHubNamespaceDedicatedCreateUpdate(d *schema.ResourceData, m
 
 	name := d.Get("name").(string)
 	clusterID := d.Get("cluster_id").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
