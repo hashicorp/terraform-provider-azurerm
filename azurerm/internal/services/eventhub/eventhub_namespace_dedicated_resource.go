@@ -267,7 +267,7 @@ func resourceArmeventHubNamespaceDedicatedCreateUpdate(d *schema.ResourceData, m
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read EventHub Namespace %q (resource group %q) ID", name, resGroup)
+		return fmt.Errorf("Cannot read EventHub Namespace %q (resource group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
