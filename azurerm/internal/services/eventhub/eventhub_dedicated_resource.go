@@ -162,7 +162,7 @@ func resourceArmEventHubDedicatedCreateUpdate(d *schema.ResourceData, meta inter
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing EventHub %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Dedicated EventHub %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
 			}
 		}
 
