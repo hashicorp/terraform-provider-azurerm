@@ -3,7 +3,7 @@ package containers
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -104,8 +104,11 @@ func SchemaDefaultNodePool() *schema.Schema {
 
 				"node_taints": {
 					Type:     schema.TypeList,
+					ForceNew: true,
 					Optional: true,
-					Elem:     &schema.Schema{Type: schema.TypeString},
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 
 				"tags": tags.Schema(),
@@ -123,6 +126,12 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: azure.ValidateResourceID,
+				},
+				"orchestrator_version": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
 		},
@@ -149,6 +158,8 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			EnableNodePublicIP:     defaultCluster.EnableNodePublicIP,
 			ScaleSetPriority:       defaultCluster.ScaleSetPriority,
 			ScaleSetEvictionPolicy: defaultCluster.ScaleSetEvictionPolicy,
+			SpotMaxPrice:           defaultCluster.SpotMaxPrice,
+			Mode:                   defaultCluster.Mode,
 			NodeLabels:             defaultCluster.NodeLabels,
 			NodeTaints:             defaultCluster.NodeTaints,
 			Tags:                   defaultCluster.Tags,
@@ -182,8 +193,12 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		// Windows agents can be configured via the separate node pool resource
 		OsType: containerservice.Linux,
 
+		// without this set the API returns:
+		// Code="MustDefineAtLeastOneSystemPool" Message="Must define at least one system pool."
+		// since this is the "default" node pool we can assume this is a system node pool
+		Mode: containerservice.System,
+
 		// // TODO: support these in time
-		// OrchestratorVersion:    nil,
 		// ScaleSetEvictionPolicy: "",
 		// ScaleSetPriority:       "",
 	}
@@ -206,6 +221,10 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 	if vnetSubnetID := raw["vnet_subnet_id"].(string); vnetSubnetID != "" {
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
+	}
+
+	if orchestratorVersion := raw["orchestrator_version"].(string); orchestratorVersion != "" {
+		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
 
 	count := raw["node_count"].(int)
@@ -333,6 +352,11 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		vnetSubnetId = *agentPool.VnetSubnetID
 	}
 
+	orchestratorVersion := ""
+	if agentPool.OrchestratorVersion != nil {
+		orchestratorVersion = *agentPool.OrchestratorVersion
+	}
+
 	return &[]interface{}{
 		map[string]interface{}{
 			"availability_zones":    availabilityZones,
@@ -349,6 +373,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"tags":                  tags.Flatten(agentPool.Tags),
 			"type":                  string(agentPool.Type),
 			"vm_size":               string(agentPool.VMSize),
+			"orchestrator_version":  orchestratorVersion,
 			"vnet_subnet_id":        vnetSubnetId,
 		},
 	}, nil
@@ -371,6 +396,9 @@ func findDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolProfil
 		// otherwise we need to fall back to the name of the first agent pool
 		for _, v := range *input {
 			if v.Name == nil {
+				continue
+			}
+			if v.Mode != containerservice.System {
 				continue
 			}
 

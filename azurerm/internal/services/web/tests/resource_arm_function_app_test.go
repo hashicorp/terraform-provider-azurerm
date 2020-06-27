@@ -174,23 +174,27 @@ func TestAccAzureRMFunctionApp_appSettings(t *testing.T) {
 				Config: testAccAzureRMFunctionApp_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.%", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_credential.#", "1"),
 				),
 			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMFunctionApp_appSettings(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.hello", "world"),
 				),
 			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFunctionApp_appSettingsUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("app_settings.%", "app_settings.AzureWebJobsDashboard", "app_settings.AzureWebJobsStorage"),
 			{
 				Config: testAccAzureRMFunctionApp_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.%", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -1219,6 +1223,53 @@ resource "azurerm_function_app" "test" {
 
   app_settings = {
     "hello" = "world"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMFunctionApp_appSettingsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                       = "acctest-%[1]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  app_settings = {
+    "APPINSIGHTS_INSTRUMENTATIONKEY" = azurerm_storage_account.test.primary_connection_string
+    "AzureWebJobsDashboard"          = azurerm_storage_account.test.primary_connection_string
+    "AzureWebJobsStorage"            = azurerm_storage_account.test.primary_connection_string
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

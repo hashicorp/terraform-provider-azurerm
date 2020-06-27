@@ -151,7 +151,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Computed: true,
 						},
 
-						"location": azure.SchemaLocation(),
+						"location": azure.SchemaLocationWithoutForceNew(),
 
 						"failover_priority": {
 							Type:         schema.TypeInt,

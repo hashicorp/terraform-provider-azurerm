@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
+* `azure_function_endpoint` - (Optional) An `azure_function_endpoint` block as defined below.
+
 * `eventhub_endpoint` - (Optional / **Deprecated in favour of `eventhub_endpoint_id`**) A `eventhub_endpoint` block as defined below.
 
 * `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
@@ -99,6 +101,16 @@ A `storage_queue_endpoint` supports the following:
 
 ---
 
+An `azure_function_endpoint` supports the following:
+
+* `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events.
+
+* `max_events_per_batch` - (Optional) Maximum number of events per batch.
+
+* `preferred_batch_size_in_kilobytes` - (Optional) Preferred batch size in Kilobytes.
+
+---
+
 A `eventhub_endpoint` supports the following:
 
 * `eventhub_id` - (Required) Specifies the id of the eventhub where the Event Subscription will receive events.
@@ -114,6 +126,16 @@ A `hybrid_connection_endpoint` supports the following:
 A `webhook_endpoint` supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
+
+* `base_url` - (Computed) The base url of the webhook where the Event Subscription will receive events.
+
+* `max_events_per_batch` - (Optional) Maximum number of events per batch.
+
+* `preferred_batch_size_in_kilobytes` - (Optional) Preferred batch size in Kilobytes.
+
+* `active_directory_tenant_id` - (Optional) The Azure Active Directory Tenant ID to get the access token that will be included as the bearer token in delivery requests.
+
+* `active_directory_app_id_or_uri` - (Optional) The Azure Active Directory Application ID or URI to get the access token that will be included as the bearer token in delivery requests.
 
 ---
 

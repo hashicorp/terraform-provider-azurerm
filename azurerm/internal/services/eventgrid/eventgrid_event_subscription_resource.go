@@ -22,6 +22,7 @@ import (
 
 func enpointPropertyNames() []string {
 	return []string{
+		"azure_function_endpoint",
 		"eventhub_endpoint",
 		"eventhub_endpoint_id",
 		"hybrid_connection_endpoint",
@@ -89,6 +90,30 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+			},
+
+			"azure_function_endpoint": {
+				Type:          schema.TypeList,
+				MaxItems:      1,
+				Optional:      true,
+				ConflictsWith: utils.RemoveFromStringArray(enpointPropertyNames(), "azure_function_endpoint"),
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"function_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"max_events_per_batch": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"preferred_batch_size_in_kilobytes": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
 			},
 
 			"eventhub_endpoint_id": {
@@ -191,6 +216,28 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validation.IsURLWithHTTPS,
+						},
+						"base_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"max_events_per_batch": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 5000),
+						},
+						"preferred_batch_size_in_kilobytes": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 1024),
+						},
+						"active_directory_tenant_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"active_directory_app_id_or_uri": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -630,6 +677,11 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			d.Set("topic_name", props.Topic)
 		}
 
+		if azureFunctionEndpoint, ok := props.Destination.AsAzureFunctionEventSubscriptionDestination(); ok {
+			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {
+				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "azure_function_endpoint", id.Name, id.Scope, err)
+			}
+		}
 		if v, ok := props.Destination.AsEventHubEventSubscriptionDestination(); ok {
 			if err := d.Set("eventhub_endpoint_id", v.ResourceID); err != nil {
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "eventhub_endpoint_id", id.Name, id.Scope, err)
@@ -663,12 +715,12 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "storage_queue_endpoint", id.Name, id.Scope, err)
 			}
 		}
-		if _, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
+		if v, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
 			fullURL, err := client.GetFullURL(ctx, id.Scope, id.Name)
 			if err != nil {
 				return fmt.Errorf("Error making Read request on EventGrid Event Subscription full URL '%s': %+v", id.Name, err)
 			}
-			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(&fullURL)); err != nil {
+			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(v, &fullURL)); err != nil {
 				return fmt.Errorf("Error setting `%q` for EventGrid Event Subscription %q (Scope %q): %s", "webhook_endpoint", id.Name, id.Scope, err)
 			}
 		}
@@ -751,6 +803,10 @@ func expandEventGridExpirationTime(d *schema.ResourceData) (*date.Time, error) {
 }
 
 func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
+	if v, ok := d.GetOk("azure_function_endpoint"); ok {
+		return expandEventGridEventSubscriptionAzureFunctionEndpoint(v)
+	}
+
 	if v, ok := d.GetOk("eventhub_endpoint_id"); ok {
 		return &eventgrid.EventHubEventSubscriptionDestination{
 			EndpointType: eventgrid.EndpointTypeEventHub,
@@ -795,8 +851,8 @@ func expandEventGridEventSubscriptionDestination(d *schema.ResourceData) eventgr
 		return expandEventGridEventSubscriptionStorageQueueEndpoint(d)
 	}
 
-	if _, ok := d.GetOk("webhook_endpoint"); ok {
-		return expandEventGridEventSubscriptionWebhookEndpoint(d)
+	if v, ok := d.GetOk("webhook_endpoint"); ok {
+		return expandEventGridEventSubscriptionWebhookEndpoint(v)
 	}
 
 	return nil
@@ -840,16 +896,72 @@ func expandEventGridEventSubscriptionHybridConnectionEndpoint(d *schema.Resource
 	}
 }
 
-func expandEventGridEventSubscriptionWebhookEndpoint(d *schema.ResourceData) eventgrid.BasicEventSubscriptionDestination {
-	props := d.Get("webhook_endpoint").([]interface{})[0].(map[string]interface{})
-	url := props["url"].(string)
+func expandEventGridEventSubscriptionAzureFunctionEndpoint(input interface{}) eventgrid.BasicEventSubscriptionDestination {
+	configs := input.([]interface{})
 
-	return eventgrid.WebHookEventSubscriptionDestination{
-		EndpointType: eventgrid.EndpointTypeWebHook,
-		WebHookEventSubscriptionDestinationProperties: &eventgrid.WebHookEventSubscriptionDestinationProperties{
-			EndpointURL: &url,
-		},
+	props := eventgrid.AzureFunctionEventSubscriptionDestinationProperties{}
+	azureFunctionDestination := &eventgrid.AzureFunctionEventSubscriptionDestination{
+		EndpointType: eventgrid.EndpointTypeAzureFunction,
+		AzureFunctionEventSubscriptionDestinationProperties: &props,
 	}
+
+	if len(configs) == 0 {
+		return azureFunctionDestination
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["function_id"]; ok && v != "" {
+		props.ResourceID = utils.String(v.(string))
+	}
+
+	if v, ok := config["max_events_per_batch"]; ok && v != 0 {
+		props.MaxEventsPerBatch = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := config["preferred_batch_size_in_kilobytes"]; ok && v != 0 {
+		props.PreferredBatchSizeInKilobytes = utils.Int32(int32(v.(int)))
+	}
+
+	return azureFunctionDestination
+}
+
+func expandEventGridEventSubscriptionWebhookEndpoint(input interface{}) eventgrid.BasicEventSubscriptionDestination {
+	configs := input.([]interface{})
+
+	props := eventgrid.WebHookEventSubscriptionDestinationProperties{}
+	webhookDestination := &eventgrid.WebHookEventSubscriptionDestination{
+		EndpointType: eventgrid.EndpointTypeWebHook,
+		WebHookEventSubscriptionDestinationProperties: &props,
+	}
+
+	if len(configs) == 0 {
+		return webhookDestination
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["url"]; ok && v != "" {
+		props.EndpointURL = utils.String(v.(string))
+	}
+
+	if v, ok := config["max_events_per_batch"]; ok && v != 0 {
+		props.MaxEventsPerBatch = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := config["preferred_batch_size_in_kilobytes"]; ok && v != 0 {
+		props.PreferredBatchSizeInKilobytes = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := config["active_directory_tenant_id"]; ok && v != "" {
+		props.AzureActiveDirectoryTenantID = utils.String(v.(string))
+	}
+
+	if v, ok := config["active_directory_app_id_or_uri"]; ok && v != "" {
+		props.AzureActiveDirectoryApplicationIDOrURI = utils.String(v.(string))
+	}
+
+	return webhookDestination
 }
 
 func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) (*eventgrid.EventSubscriptionFilter, error) {
@@ -859,15 +971,17 @@ func expandEventGridEventSubscriptionFilter(d *schema.ResourceData) (*eventgrid.
 		filter.IncludedEventTypes = utils.ExpandStringSlice(includedEvents.([]interface{}))
 	}
 
-	if subjectFilter, ok := d.GetOk("subject_filter"); ok {
-		config := subjectFilter.([]interface{})[0].(map[string]interface{})
-		subjectBeginsWith := config["subject_begins_with"].(string)
-		subjectEndsWith := config["subject_ends_with"].(string)
-		caseSensitive := config["case_sensitive"].(bool)
+	if v, ok := d.GetOk("subject_filter"); ok {
+		if v.([]interface{})[0] != nil {
+			config := v.([]interface{})[0].(map[string]interface{})
+			subjectBeginsWith := config["subject_begins_with"].(string)
+			subjectEndsWith := config["subject_ends_with"].(string)
+			caseSensitive := config["case_sensitive"].(bool)
 
-		filter.SubjectBeginsWith = &subjectBeginsWith
-		filter.SubjectEndsWith = &subjectEndsWith
-		filter.IsSubjectCaseSensitive = &caseSensitive
+			filter.SubjectBeginsWith = &subjectBeginsWith
+			filter.SubjectEndsWith = &subjectEndsWith
+			filter.IsSubjectCaseSensitive = &caseSensitive
+		}
 	}
 
 	if advancedFilter, ok := d.GetOk("advanced_filter"); ok {
@@ -1009,17 +1123,80 @@ func flattenEventGridEventSubscriptionStorageQueueEndpoint(input *eventgrid.Stor
 	return []interface{}{result}
 }
 
-func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubscriptionFullURL) []interface{} {
+func flattenEventGridEventSubscriptionAzureFunctionEndpoint(input *eventgrid.AzureFunctionEventSubscriptionDestination) []interface{} {
+	results := make([]interface{}, 0)
+
 	if input == nil {
-		return nil
-	}
-	result := make(map[string]interface{})
-
-	if input.EndpointURL != nil {
-		result["url"] = *input.EndpointURL
+		return results
 	}
 
-	return []interface{}{result}
+	functionID := ""
+	if input.ResourceID != nil {
+		functionID = *input.ResourceID
+	}
+
+	maxEventsPerBatch := 0
+	if input.MaxEventsPerBatch != nil {
+		maxEventsPerBatch = int(*input.MaxEventsPerBatch)
+	}
+
+	preferredBatchSize := 0
+	if input.PreferredBatchSizeInKilobytes != nil {
+		preferredBatchSize = int(*input.PreferredBatchSizeInKilobytes)
+	}
+
+	return append(results, map[string]interface{}{
+		"function_id":                       functionID,
+		"max_events_per_batch":              maxEventsPerBatch,
+		"preferred_batch_size_in_kilobytes": preferredBatchSize,
+	})
+}
+
+func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.WebHookEventSubscriptionDestination, fullURL *eventgrid.EventSubscriptionFullURL) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input == nil {
+		return results
+	}
+
+	webhookURL := ""
+	if fullURL != nil {
+		webhookURL = *fullURL.EndpointURL
+	}
+
+	webhookBaseURL := ""
+	if input.EndpointBaseURL != nil {
+		webhookBaseURL = *input.EndpointBaseURL
+	}
+
+	maxEventsPerBatch := 0
+	if input.MaxEventsPerBatch != nil {
+		maxEventsPerBatch = int(*input.MaxEventsPerBatch)
+	}
+
+	preferredBatchSizeInKilobytes := 0
+	if input.PreferredBatchSizeInKilobytes != nil {
+		preferredBatchSizeInKilobytes = int(*input.PreferredBatchSizeInKilobytes)
+	}
+
+	azureActiveDirectoryTenantID := ""
+	if input.AzureActiveDirectoryTenantID != nil {
+		azureActiveDirectoryTenantID = *input.AzureActiveDirectoryTenantID
+	}
+
+	azureActiveDirectoryApplicationIDOrURI := ""
+	if input.AzureActiveDirectoryApplicationIDOrURI != nil {
+		azureActiveDirectoryApplicationIDOrURI = *input.AzureActiveDirectoryApplicationIDOrURI
+	}
+
+	return append(results, map[string]interface{}{
+		"url":                               webhookURL,
+		"base_url":                          webhookBaseURL,
+		"max_events_per_batch":              maxEventsPerBatch,
+		"preferred_batch_size_in_kilobytes": preferredBatchSizeInKilobytes,
+		"active_directory_tenant_id":        azureActiveDirectoryTenantID,
+		"active_directory_app_id_or_uri":    azureActiveDirectoryApplicationIDOrURI,
+	})
 }
 
 func flattenEventGridEventSubscriptionSubjectFilter(filter *eventgrid.EventSubscriptionFilter) []interface{} {

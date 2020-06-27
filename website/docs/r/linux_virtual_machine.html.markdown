@@ -236,8 +236,6 @@ A `os_disk` block supports the following:
 
 -> **NOTE:** The Disk Encryption Set must have the `Reader` Role Assignment scoped on the Key Vault - in addition to an Access Policy to the Key Vault
 
-~> **NOTE:** Disk Encryption Sets are in Public Preview in a limited set of regions
-
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine is sourced from.
 
 -> **NOTE:** If specified this must be equal to or larger than the size of the Image the Virtual Machine is based on. When creating a larger disk than exists in the image you'll need to repartition the disk to use the remaining space.
@@ -317,5 +315,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Linux Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_linux_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachines/machine1
+terraform import azurerm_linux_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1
 ```

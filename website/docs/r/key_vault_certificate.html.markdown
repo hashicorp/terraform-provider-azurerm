@@ -272,7 +272,7 @@ The following arguments are supported:
 * `key_properties` - (Required) A `key_properties` block as defined below.
 * `lifetime_action` - (Optional) A `lifetime_action` block as defined below.
 * `secret_properties` - (Required) A `secret_properties` block as defined below.
-* `x509_certificate_properties` - (Optional) A `x509_certificate_properties` block as defined below.
+* `x509_certificate_properties` - (Optional) A `x509_certificate_properties` block as defined below. Required when `certificate` block is not specified.
 
 `issuer_parameters` supports the following:
 
