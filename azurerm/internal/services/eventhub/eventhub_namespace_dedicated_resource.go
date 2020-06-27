@@ -334,7 +334,7 @@ func resourceArmeventHubNamespaceDedicatedRead(d *schema.ResourceData, meta inte
 		d.Set("cluster_id", props.ClusterArmID)
 	}
 
-	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
+	ruleset, err := client.GetNetworkRuleSet(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Dedicated EventHub Namespace %q Network Ruleset: %+v", name, err)
 	}
