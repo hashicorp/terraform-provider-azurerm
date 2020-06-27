@@ -378,7 +378,7 @@ func resourceArmeventHubNamespaceDedicatedDelete(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error issuing delete request of EventHub Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	return waitForeventHubNamespaceDedicatedToBeDeleted(ctx, client, resGroup, name, d)
+	return waitForeventHubNamespaceDedicatedToBeDeleted(ctx, client, resourceGroup, name, d)
 }
 
 func waitForeventHubNamespaceDedicatedToBeDeleted(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string, d *schema.ResourceData) error {
