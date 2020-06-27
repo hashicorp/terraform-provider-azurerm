@@ -343,7 +343,7 @@ func resourceArmeventHubNamespaceDedicatedRead(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error setting `network_ruleset` for Dedicated Eventhub Namespace %s: %v", name, err)
 	}
 
-	keys, err := client.ListKeys(ctx, resGroup, name, eventHubNamespaceDefaultAuthorizationRule)
+	keys, err := client.ListKeys(ctx, resourceGroup, name, eventHubNamespaceDefaultAuthorizationRule)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for Dedicated EventHub Namespace %q: %+v", name, err)
 	} else {
