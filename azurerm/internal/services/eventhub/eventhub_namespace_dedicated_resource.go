@@ -345,7 +345,7 @@ func resourceArmeventHubNamespaceDedicatedRead(d *schema.ResourceData, meta inte
 
 	keys, err := client.ListKeys(ctx, resGroup, name, eventHubNamespaceDefaultAuthorizationRule)
 	if err != nil {
-		log.Printf("[WARN] Unable to List default keys for EventHub Namespace %q: %+v", name, err)
+		log.Printf("[WARN] Unable to List default keys for Dedicated EventHub Namespace %q: %+v", name, err)
 	} else {
 		d.Set("default_primary_connection_string_alias", keys.AliasPrimaryConnectionString)
 		d.Set("default_secondary_connection_string_alias", keys.AliasSecondaryConnectionString)
