@@ -336,7 +336,7 @@ func resourceArmeventHubNamespaceDedicatedRead(d *schema.ResourceData, meta inte
 
 	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error making Read request on EventHub Namespace %q Network Ruleset: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Dedicated EventHub Namespace %q Network Ruleset: %+v", name, err)
 	}
 
 	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
