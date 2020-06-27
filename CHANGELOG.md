@@ -1,4 +1,10 @@
 ## 2.17.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* `azurerm_app_service_environment` - the `user_whitelisted_ip_ranges` property has been deprecated and renamed to `allowed_user_ip_cidrs` to clearify the function and expected format [GH-7499]
+* `azurerm_sentinel_alert_rule_ms_security_incident` - the `text_whitelist` propety has been deprecated and renamed to `display_name_filter` to better match the api [GH-7499]
+
 ## 2.16.0 (June 25, 2020)
 
 DEPENDENCIES:
