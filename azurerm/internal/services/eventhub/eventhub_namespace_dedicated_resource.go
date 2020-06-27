@@ -219,7 +219,7 @@ func resourceArmeventHubNamespaceDedicatedCreateUpdate(d *schema.ResourceData, m
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing EventHub Namespace %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing EventHub Namespace %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
