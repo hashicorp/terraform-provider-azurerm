@@ -98,28 +98,24 @@ func dataSourceArmVirtualMachineScaleSetNetworkInterfaces() *schema.Resource {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
-										Set:      schema.HashString,
 									},
 
 									"load_balancer_backend_address_pools_ids": {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
-										Set:      schema.HashString,
 									},
 
 									"load_balancer_inbound_nat_rules_ids": {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
-										Set:      schema.HashString,
 									},
 
 									"application_security_group_ids": {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem:     &schema.Schema{Type: schema.TypeString},
-										Set:      schema.HashString,
 									},
 
 									"primary": {
@@ -134,7 +130,6 @@ func dataSourceArmVirtualMachineScaleSetNetworkInterfaces() *schema.Resource {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
 						},
 
 						"internal_dns_name_label": {
@@ -146,7 +141,6 @@ func dataSourceArmVirtualMachineScaleSetNetworkInterfaces() *schema.Resource {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
 						},
 
 						"enable_accelerated_networking": {
@@ -167,9 +161,7 @@ func dataSourceArmVirtualMachineScaleSetNetworkInterfaces() *schema.Resource {
 						"private_ip_addresses": {
 							Type:     schema.TypeList,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
