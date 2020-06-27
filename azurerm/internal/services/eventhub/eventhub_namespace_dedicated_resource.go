@@ -258,7 +258,7 @@ func resourceArmeventHubNamespaceDedicatedCreateUpdate(d *schema.ResourceData, m
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating eventhub namespace: %+v", err)
+		return fmt.Errorf("Error creating dedicated eventhub namespace: %+v", err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
