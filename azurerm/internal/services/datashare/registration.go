@@ -28,8 +28,9 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_data_share_account":              resourceArmDataShareAccount(),
-		"azurerm_data_share":                      resourceArmDataShare(),
-		"azurerm_data_share_dataset_blob_storage": resourceArmDataShareDataSetBlobStorage(),
+		"azurerm_data_share_account":                resourceArmDataShareAccount(),
+		"azurerm_data_share":                        resourceArmDataShare(),
+		"azurerm_data_share_dataset_blob_storage":   resourceArmDataShareDataSetBlobStorage(),
+		"azurerm_data_share_dataset_data_lake_gen1": resourceArmDataShareDataSetDataLakeGen1(),
 	}
 }
