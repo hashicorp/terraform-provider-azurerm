@@ -1,5 +1,5 @@
 ---
-subcategory: "synapse"
+subcategory: "Synapse"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_synapse_workspace"
 description: |-
