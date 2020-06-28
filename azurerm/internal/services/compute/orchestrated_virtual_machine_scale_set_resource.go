@@ -52,6 +52,14 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
+			"platform_fault_domain_count": {
+				Type:     schema.TypeInt,
+				Required: true,
+				ForceNew: true,
+				// The range of this value varies in different locations
+				ValidateFunc: validation.IntBetween(0, 5),
+			},
+
 			"proximity_placement_group_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -59,14 +67,6 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 				ValidateFunc: validate.ProximityPlacementGroupID,
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
 				DiffSuppressFunc: suppress.CaseDifference,
-			},
-
-			"platform_fault_domain_count": {
-				Type:     schema.TypeInt,
-				Required: true,
-				ForceNew: true,
-				// The range of this value varies in different locations
-				ValidateFunc: validation.IntBetween(0, 5),
 			},
 
 			"single_placement_group": {
