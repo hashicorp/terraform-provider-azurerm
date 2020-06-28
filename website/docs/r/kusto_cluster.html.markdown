@@ -46,13 +46,19 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `identity` - (Optional) A identity block.
+
 * `enable_disk_encryption` - (Optional) Specifies if the cluster's disks are encrypted.
 
 * `enable_streaming_ingest` - (Optional) Specifies if the streaming ingest is enabled.
 
 * `enable_purge` - (Optional) Specifies if the purge operations are enabled.
 
+* `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.
 
 ---
 
@@ -62,6 +68,29 @@ A `sku` block supports the following:
 
 * `capacity` - (Required) Specifies the node count for the cluster. Boundaries depend on the sku name.
 
+---
+
+A `virtual_network_configuration` block supports the following:
+
+* `subnet_id` - (Required) The subnet resource id.
+
+* `engine_public_ip_id` - (Required) Engine service's public IP address resource id.
+
+* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that is configured on this Kusto Cluster. Possible values are: `SystemAssigned` (where Azure will generate a Service Principal for you).
+
+* `principal_id` - (Computed) Specifies the Principal ID of the System Assigned Managed Service Identity that is configured on this Kusto Cluster.
+
+* `tenant_id` - (Computed) Specifies the Tenant ID of the System Assigned Managed Service Identity that is configured on this Kusto Cluster.
+
+* `identity_ids` - (Computed) The list of user identities associated with the Kusto cluster.
+
+~> **NOTE:** When `type` is set to `SystemAssigned`, the Principal ID can be retrieved after the cluster has been created. More details are available below. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for additional information.
 
 ## Attributes Reference
 

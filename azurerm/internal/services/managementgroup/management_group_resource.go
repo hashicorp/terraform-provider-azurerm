@@ -1,6 +1,7 @@
 package managementgroup
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -146,6 +148,24 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("failed when waiting for creation of Management Group %q: %+v", groupName, err)
+	}
+
+	// We have a potential race condition / consistency issue whereby the implicit role assignment for the SP may not be
+	// completed before the read-back here or an eventually consistent read is creating a temporary 403 error.
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			"pending",
+		},
+		Target: []string{
+			"succeeded",
+		},
+		Refresh:                   managementgroupCreateStateRefreshFunc(ctx, client, groupName),
+		Timeout:                   d.Timeout(schema.TimeoutCreate),
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("failed waiting for read on Managementgroup %q", groupName)
 	}
 
 	resp, err := client.Get(ctx, groupName, "children", &recurse, "", managementGroupCacheControl)
@@ -397,4 +417,18 @@ func determineManagementGroupSubscriptionsIdsToRemove(existing *[]managementgrou
 	}
 
 	return &subscriptionIdsToRemove, nil
+}
+
+func managementgroupCreateStateRefreshFunc(ctx context.Context, client *managementgroups.Client, groupName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, groupName, "children", utils.Bool(true), "", managementGroupCacheControl)
+		if err != nil {
+			if utils.ResponseWasForbidden(resp.Response) {
+				return resp, "pending", nil
+			}
+			return resp, "failed", err
+		}
+
+		return resp, "succeeded", nil
+	}
 }

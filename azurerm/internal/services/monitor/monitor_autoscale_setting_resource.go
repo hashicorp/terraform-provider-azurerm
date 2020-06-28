@@ -151,6 +151,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 														string(insights.TimeAggregationTypeMaximum),
 														string(insights.TimeAggregationTypeMinimum),
 														string(insights.TimeAggregationTypeTotal),
+														string(insights.TimeAggregationTypeLast),
 													}, true),
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
