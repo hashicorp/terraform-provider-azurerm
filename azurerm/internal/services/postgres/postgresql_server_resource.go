@@ -151,6 +151,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:          schema.TypeString,
 							Optional:      true,
 							Computed:      true,
+							ForceNew:      true,
 							ConflictsWith: []string{"geo_redundant_backup_enabled"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.StringInSlice([]string{
@@ -196,6 +197,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				Computed:      true, // TODO: remove in 2.0 and default to false
+				ForceNew:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 
@@ -563,11 +565,15 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	ssl := postgresql.SslEnforcementEnumEnabled
-	if v := d.Get("ssl_enforcement"); strings.EqualFold(v.(string), string(postgresql.SslEnforcementEnumDisabled)) {
-		ssl = postgresql.SslEnforcementEnumDisabled
+	if d.HasChange("ssl_enforcement") {
+		if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(postgresql.SslEnforcementEnumDisabled)) {
+			ssl = postgresql.SslEnforcementEnumDisabled
+		}
 	}
-	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
-		ssl = postgresql.SslEnforcementEnumDisabled
+	if d.HasChange("ssl_enforcement_enabled") {
+		if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
+			ssl = postgresql.SslEnforcementEnumDisabled
+		}
 	}
 
 	properties := postgresql.ServerUpdateParameters{
@@ -580,6 +586,10 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if d.HasChange("ssl_minimal_tls_version_enforced") {
+		properties.ServerUpdateParametersProperties.MinimalTLSVersion = postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
@@ -759,15 +769,20 @@ func expandPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageP
 	}
 
 	// now override whatever we may have from the block with the top level properties
-	if v, ok := d.GetOk("auto_grow_enabled"); ok {
-		storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
-		if v.(bool) {
-			storage.StorageAutogrow = postgresql.StorageAutogrowEnabled
+	// without d.HasChange, the update in block will not update these fields
+	if d.HasChange("auto_grow_enabled"){
+		if v, ok := d.GetOk("auto_grow_enabled"); ok {
+			storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
+			if v.(bool) {
+				storage.StorageAutogrow = postgresql.StorageAutogrowEnabled
+			}
 		}
 	}
 
-	if v, ok := d.GetOk("backup_retention_days"); ok {
-		storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
+	if d.HasChange("backup_retention_days"){
+		if v, ok := d.GetOk("backup_retention_days"); ok {
+			storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
+		}
 	}
 
 	if v, ok := d.GetOk("geo_redundant_backup_enabled"); ok {
@@ -777,8 +792,10 @@ func expandPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageP
 		}
 	}
 
-	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageMB = utils.Int32(int32(v.(int)))
+	if d.HasChange("storage_mb"){
+		if v, ok := d.GetOk("storage_mb"); ok {
+			storage.StorageMB = utils.Int32(int32(v.(int)))
+		}
 	}
 
 	return &storage

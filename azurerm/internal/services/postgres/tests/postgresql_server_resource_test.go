@@ -543,7 +543,7 @@ resource "azurerm_postgresql_server" "test" {
     storage_mb = 51200
   }
 
-  ssl_enforcement_enabled = true
+  ssl_enforcement_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -592,7 +592,6 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
 
-  infrastructure_encryption_enabled = true
   public_network_access_enabled     = false
   ssl_minimal_tls_version_enforced  = "TLS1_2"
 
@@ -601,7 +600,6 @@ resource "azurerm_postgresql_server" "test" {
   storage_profile {
     storage_mb            = 640000
     backup_retention_days = 7
-    geo_redundant_backup  = "Enabled"
     auto_grow             = "Enabled"
   }
 }
@@ -635,7 +633,6 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = true
   auto_grow_enabled            = true
 
-  infrastructure_encryption_enabled = true
   public_network_access_enabled     = false
   ssl_enforcement_enabled           = true
   ssl_minimal_tls_version_enforced  = "TLS1_2"
@@ -687,7 +684,6 @@ resource "azurerm_postgresql_server" "test" {
   geo_redundant_backup_enabled = false
   auto_grow_enabled            = false
 
-  infrastructure_encryption_enabled = false
   public_network_access_enabled     = true
   ssl_enforcement_enabled           = false
   ssl_minimal_tls_version_enforced  = "TLS1_1"
