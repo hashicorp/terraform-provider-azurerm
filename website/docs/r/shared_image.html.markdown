@@ -68,13 +68,13 @@ The following arguments are supported:
 
 * `eula` - (Optional) The End User Licence Agreement for the Shared Image.
 
+* `generalized` - (Optional) Should the Operating System present in this Shared Image be generalized? Defaults to `true`. Changing this forces a new resource to be created.
+
 * `hyper_v_generation` - (Optional) The generation of HyperV that the Virtual Machine used to create the Shared Image is based on. Possible values are `V1` and `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
 
 * `privacy_statement_uri` - (Optional) The URI containing the Privacy Statement associated with this Shared Image.
 
 * `release_note_uri` - (Optional) The URI containing the Release Notes associated with this Shared Image.
-
-* `os_state` - (Optional) The state of Operating System present in this Shared Image. Possible values are `Generalized` and `Specialized`. Defaults to `Generalized`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Shared Image.
 

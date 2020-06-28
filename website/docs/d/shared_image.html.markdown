@@ -43,11 +43,11 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the Shared Image Gallery exists.
 
+* `generalized` - Is the Operating System present in this Shared Image generalized or not.
+
 * `identifier` - An `identifier` block as defined below.
 
 * `os_type` - The type of Operating System present in this Shared Image.
-
-* `os_state` - The state of Operating System present in this Shared Image.
 
 * `hyper_v_generation` - The generation of HyperV that the Virtual Machine used to create the Shared Image is based on.
 
