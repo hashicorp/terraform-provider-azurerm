@@ -9,10 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -344,7 +343,7 @@ func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interf
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"type":         t,
+			"type":         string(t),
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
 		},

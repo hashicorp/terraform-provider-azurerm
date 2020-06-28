@@ -33,6 +33,14 @@ func dataSourceSynapseWorkspace() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
+			"connectivity_endpoints": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -61,5 +69,8 @@ func dataSourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+	if props := resp.WorkspaceProperties; props != nil {
+		d.Set("connectivity_endpoints", utils.FlattenMapStringPtrString(props.ConnectivityEndpoints))
+	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

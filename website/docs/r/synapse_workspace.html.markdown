@@ -72,7 +72,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Synapse Workspace. At this time the allowed values are `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the Synapse Workspace. At this time the allowed value is `SystemAssigned`.
 
 ## Attributes Reference
 
