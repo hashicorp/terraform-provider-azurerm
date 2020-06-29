@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -34,7 +35,8 @@ func NewDomainsClient(tenantID string) DomainsClient {
 	return NewDomainsClientWithBaseURI(DefaultBaseURI, tenantID)
 }
 
-// NewDomainsClientWithBaseURI creates an instance of the DomainsClient client.
+// NewDomainsClientWithBaseURI creates an instance of the DomainsClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewDomainsClientWithBaseURI(baseURI string, tenantID string) DomainsClient {
 	return DomainsClient{NewWithBaseURI(baseURI, tenantID)}
 }
@@ -43,6 +45,16 @@ func NewDomainsClientWithBaseURI(baseURI string, tenantID string) DomainsClient 
 // Parameters:
 // domainName - name of the domain.
 func (client DomainsClient) Get(ctx context.Context, domainName string) (result Domain, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, domainName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.DomainsClient", "Get", nil, "Failure preparing request")
@@ -87,8 +99,7 @@ func (client DomainsClient) GetPreparer(ctx context.Context, domainName string) 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DomainsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -108,6 +119,16 @@ func (client DomainsClient) GetResponder(resp *http.Response) (result Domain, er
 // Parameters:
 // filter - the filter to apply to the operation.
 func (client DomainsClient) List(ctx context.Context, filter string) (result DomainListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DomainsClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListPreparer(ctx, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "graphrbac.DomainsClient", "List", nil, "Failure preparing request")
@@ -154,8 +175,7 @@ func (client DomainsClient) ListPreparer(ctx context.Context, filter string) (*h
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client DomainsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 }
 
 // ListResponder handles the response to the List request. The method always

@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -34,7 +35,9 @@ func NewVaultCertificatesClient(subscriptionID string) VaultCertificatesClient {
 	return NewVaultCertificatesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewVaultCertificatesClientWithBaseURI creates an instance of the VaultCertificatesClient client.
+// NewVaultCertificatesClientWithBaseURI creates an instance of the VaultCertificatesClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewVaultCertificatesClientWithBaseURI(baseURI string, subscriptionID string) VaultCertificatesClient {
 	return VaultCertificatesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -46,6 +49,16 @@ func NewVaultCertificatesClientWithBaseURI(baseURI string, subscriptionID string
 // certificateName - certificate friendly name.
 // certificateRequest - input parameters for uploading the vault certificate.
 func (client VaultCertificatesClient) Create(ctx context.Context, resourceGroupName string, vaultName string, certificateName string, certificateRequest CertificateRequest) (result VaultCertificateResponse, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VaultCertificatesClient.Create")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.CreatePreparer(ctx, resourceGroupName, vaultName, certificateName, certificateRequest)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "recoveryservices.VaultCertificatesClient", "Create", nil, "Failure preparing request")
@@ -94,8 +107,7 @@ func (client VaultCertificatesClient) CreatePreparer(ctx context.Context, resour
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client VaultCertificatesClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always

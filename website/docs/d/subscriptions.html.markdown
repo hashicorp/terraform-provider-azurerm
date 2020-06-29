@@ -1,32 +1,34 @@
 ---
+subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subscriptions"
-sidebar_current: "docs-azurerm-datasource-subscriptions"
 description: |-
   Get information about the available subscriptions.
 ---
 
 # Data Source: azurerm_subscriptions
 
-Use this data source to access a list of all Azure subscriptions currently available.
+Use this data source to access information about all the Subscriptions currently available.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_subscriptions" "available" {}
+data "azurerm_subscriptions" "available" {
+}
 
 output "available_subscriptions" {
-  value = "${data.azurerm_subscriptions.current.subscriptions}"
+  value = data.azurerm_subscriptions.available.subscriptions
 }
 
 output "first_available_subscription_display_name" {
-  value = "${data.azurerm_subscriptions.current.subscriptions.0.display_name}"
+  value = data.azurerm_subscriptions.available.subscriptions[0].display_name
 }
 ```
 
 ## Argument Reference
 
-There are no arguments available for this data source.
+* `display_name_prefix` - (Optional) A case-insensitive prefix which can be used to filter on the `display_name` field
+* `display_name_contains` - (Optional) A case-insensitive value which must be contained within the `display_name` field, used to filter the results
 
 ## Attributes Reference
 
@@ -34,8 +36,16 @@ There are no arguments available for this data source.
 
 The `subscription` block contains:
 
+* `subscription_id` - The subscription GUID.
 * `display_name` - The subscription display name.
+* `tenant_id` - The subscription tenant ID.
 * `state` - The subscription state. Possible values are Enabled, Warned, PastDue, Disabled, and Deleted.
 * `location_placement_id` - The subscription location placement ID.
 * `quota_id` - The subscription quota ID.
 * `spending_limit` - The subscription spending limit.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the subscriptions.

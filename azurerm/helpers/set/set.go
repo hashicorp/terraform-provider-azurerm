@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func HashInt(v interface{}) int {
@@ -32,4 +32,12 @@ func ToSliceInt32P(set *schema.Set) *[]int32 {
 	}
 
 	return &slice
+}
+
+func FromStringSlice(slice []string) *schema.Set {
+	set := &schema.Set{F: schema.HashString}
+	for _, v := range slice {
+		set.Add(v)
+	}
+	return set
 }

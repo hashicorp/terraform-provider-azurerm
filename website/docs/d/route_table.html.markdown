@@ -1,20 +1,20 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_route_table"
-sidebar_current: "docs-azurerm-data-source-route-table"
 description: |-
-  Gets information about a Route Table
+  Gets information about an existing Route Table
 
 ---
 
 # Data Source: azurerm_route_table
 
-Gets information about a Route Table
+Use this data source to access information about an existing Route Table.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_route_table" "test" {
+data "azurerm_route_table" "example" {
   name                = "myroutetable"
   resource_group_name = "some-resource-group"
 }
@@ -24,9 +24,9 @@ data "azurerm_route_table" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Route Table.
+* `name` - The name of the Route Table.
 
-* `resource_group_name` - (Required) The name of the Resource Group in which the Route Table exists.
+* `resource_group_name` - The name of the Resource Group in which the Route Table exists.
 
 ## Attributes Reference
 
@@ -52,3 +52,8 @@ The `route` block exports the following:
 
 * `next_hop_in_ip_address` - Contains the IP address packets should be forwarded to.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Route Table.

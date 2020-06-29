@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
-sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-x"
 description: |-
   Manages a virtual network gateway to establish secure, cross-premises connectivity.
 ---
@@ -15,56 +15,58 @@ Manages a Virtual Network Gateway to establish secure, cross-premises connectivi
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name = "test"
+resource "azurerm_resource_group" "example" {
+  name     = "test"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name = "test"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space = ["10.0.0.0/16"]
+resource "azurerm_virtual_network" "example" {
+  name                = "test"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.0.0.0/16"]
 }
 
-resource "azurerm_subnet" "test" {
-  name = "GatewaySubnet"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.1.0/24"
+resource "azurerm_subnet" "example" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefix       = "10.0.1.0/24"
 }
 
-resource "azurerm_public_ip" "test" {
-  name = "test"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+resource "azurerm_public_ip" "example" {
+  name                = "test"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  allocation_method = "Dynamic"
 }
 
-resource "azurerm_virtual_network_gateway" "test" {
-  name = "test"
-  location = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_virtual_network_gateway" "example" {
+  name                = "test"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
-  type = "Vpn"
+  type     = "Vpn"
   vpn_type = "RouteBased"
 
   active_active = false
-  enable_bgp = false
-	sku = "Basic"
+  enable_bgp    = false
+  sku           = "Basic"
 
   ip_configuration {
-    name = "vnetGatewayConfig"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    name                          = "vnetGatewayConfig"
+    public_ip_address_id          = azurerm_public_ip.example.id
     private_ip_address_allocation = "Dynamic"
-    subnet_id = "${azurerm_subnet.test.id}"
+    subnet_id                     = azurerm_subnet.example.id
   }
 
   vpn_client_configuration {
-    address_space = [ "10.2.0.0/24" ]
+    address_space = ["10.2.0.0/24"]
 
     root_certificate {
       name = "DigiCert-Federated-ID-Root-CA"
+
       public_cert_data = <<EOF
 MIIDuzCCAqOgAwIBAgIQCHTZWCM+IlfFIRXIvyKSrjANBgkqhkiG9w0BAQsFADBn
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
@@ -87,10 +89,11 @@ uGLOhRJOFprPdoDIUBB+tmCl3oDcBy3vnUeOEioz8zAkprcb3GHwHAK+vHmmfgcn
 WsfMLH4JCLa/tRYL+Rw/N3ybCkDp00s0WUZ+AoDywSl0Q/ZEnNY0MsFiw6LyIdbq
 M/s/1JRtO3bDSzD9TazRVzn2oBqzSa8VgIo5C1nOnoAKJTlsClJKvIhnRlaLQqk=
 EOF
+
     }
 
     revoked_certificate {
-      name = "Verizon-Global-Root-CA"
+      name       = "Verizon-Global-Root-CA"
       thumbprint = "912198EEF23DCAC40939312FEE97DD560BAE49B1"
     }
   }
@@ -127,15 +130,25 @@ The following arguments are supported:
 
 * `default_local_network_gateway_id` -  (Optional) The ID of the local network gateway
     through which outbound Internet traffic from the virtual network in which the
-    gateway is created will be routed (*forced tunneling*). Refer to the
-    [Azure documentation on forced tunneling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
-    If not specified, forced tunneling is disabled.
+    gateway is created will be routed (*forced tunnelling*). Refer to the
+    [Azure documentation on forced tunnelling](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-forced-tunneling-rm).
+    If not specified, forced tunnelling is disabled.
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
-    `VpnGw1`, `VpnGw2` and `VpnGw3` and depend on the `type` and `vpn_type` arguments.
+    `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`,
+    `VpnGw2AZ`, `VpnGw3AZ`,`VpnGw4AZ` and `VpnGw5AZ` and depend on the `type`, `vpn_type` and
+    `generation` arguments.
     A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
     sku is only supported by an `ExpressRoute` gateway.
+
+~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
+
+~> **NOTE:** Not all skus (e.g. `ErGw1AZ`) are available in all regions. If you see `StatusCode=400 -- Original Error: Code="InvalidGatewaySkuSpecifiedForGatewayDeploymentType"` please try another region. 
+
+* `generation` - (Optional) The Generation of the Virtual Network gateway. Possible values include `Generation1`, `Generation2` or `None`.
+
+-> **NOTE:** The available values depend on the `type` and `sku` arguments - where `Generation2` is only value for a `sku` larger than `VpnGw2` or `VpnGw2AZ`.
 
 * `ip_configuration` (Required) One or two `ip_configuration` blocks documented below.
     An active-standby gateway requires exactly one `ip_configuration` block whereas
@@ -161,7 +174,7 @@ The `ip_configuration` block supports:
     the associated subnet is named `GatewaySubnet`. Therefore, each virtual
     network can contain at most a single Virtual Network Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of the public ip address to associate
+* `public_ip_address_id` - (Required) The ID of the public ip address to associate
     with the Virtual Network Gateway.
 
 The `vpn_client_configuration` block supports:
@@ -185,7 +198,7 @@ The `vpn_client_configuration` block supports:
     This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
 
 * `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
-    The supported values are `SSTP` and `IkeV2`.
+    The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
 
 The `bgp_settings` block supports:
 
@@ -221,10 +234,19 @@ The following attributes are exported:
 
 * `id` - The ID of the Virtual Network Gateway.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 60 minutes) Used when creating the Virtual Network Gateway.
+* `update` - (Defaults to 60 minutes) Used when updating the Virtual Network Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.
+* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Network Gateway.
+
 ## Import
 
 Virtual Network Gateways can be imported using the `resource id`, e.g.
 
 ```
-terraform import azurerm_virtual_network_gateway.testGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Network/virtualNetworkGateways/myGateway1
+terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Network/virtualNetworkGateways/myGateway1
 ```

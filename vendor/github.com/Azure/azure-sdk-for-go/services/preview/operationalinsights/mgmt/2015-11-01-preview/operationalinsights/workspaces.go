@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -35,7 +36,8 @@ func NewWorkspacesClient(subscriptionID string) WorkspacesClient {
 	return NewWorkspacesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewWorkspacesClientWithBaseURI creates an instance of the WorkspacesClient client.
+// NewWorkspacesClientWithBaseURI creates an instance of the WorkspacesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewWorkspacesClientWithBaseURI(baseURI string, subscriptionID string) WorkspacesClient {
 	return WorkspacesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -46,6 +48,16 @@ func NewWorkspacesClientWithBaseURI(baseURI string, subscriptionID string) Works
 // workspaceName - the name of the workspace.
 // parameters - the parameters required to create or update a workspace.
 func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, workspaceName string, parameters Workspace) (result WorkspacesCreateOrUpdateFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
@@ -55,7 +67,7 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 			Constraints: []validation.Constraint{{Target: "parameters.WorkspaceProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.RetentionInDays", Name: validation.Null, Rule: false,
 					Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.RetentionInDays", Name: validation.InclusiveMaximum, Rule: int64(730), Chain: nil},
-						{Target: "parameters.WorkspaceProperties.RetentionInDays", Name: validation.InclusiveMinimum, Rule: -1, Chain: nil},
+						{Target: "parameters.WorkspaceProperties.RetentionInDays", Name: validation.InclusiveMinimum, Rule: int64(-1), Chain: nil},
 					}},
 				}}}}}); err != nil {
 		return result, validation.NewError("operationalinsights.WorkspacesClient", "CreateOrUpdate", err.Error())
@@ -103,12 +115,7 @@ func (client WorkspacesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) CreateOrUpdateSender(req *http.Request) (future WorkspacesCreateOrUpdateFuture, err error) {
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-	if err != nil {
-		return
-	}
-	err = autorest.Respond(resp, azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated))
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
 	if err != nil {
 		return
 	}
@@ -134,6 +141,16 @@ func (client WorkspacesClient) CreateOrUpdateResponder(resp *http.Response) (res
 // resourceGroupName - the resource group name of the workspace.
 // workspaceName - name of the Log Analytics Workspace.
 func (client WorkspacesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacesClient", "Delete", nil, "Failure preparing request")
@@ -179,8 +196,7 @@ func (client WorkspacesClient) DeletePreparer(ctx context.Context, resourceGroup
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -201,6 +217,16 @@ func (client WorkspacesClient) DeleteResponder(resp *http.Response) (result auto
 // workspaceName - name of the Log Analytics Workspace.
 // intelligencePackName - the name of the intelligence pack to be disabled.
 func (client WorkspacesClient) DisableIntelligencePack(ctx context.Context, resourceGroupName string, workspaceName string, intelligencePackName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.DisableIntelligencePack")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -255,8 +281,7 @@ func (client WorkspacesClient) DisableIntelligencePackPreparer(ctx context.Conte
 // DisableIntelligencePackSender sends the DisableIntelligencePack request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) DisableIntelligencePackSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DisableIntelligencePackResponder handles the response to the DisableIntelligencePack request. The method always
@@ -277,6 +302,16 @@ func (client WorkspacesClient) DisableIntelligencePackResponder(resp *http.Respo
 // workspaceName - name of the Log Analytics Workspace.
 // intelligencePackName - the name of the intelligence pack to be enabled.
 func (client WorkspacesClient) EnableIntelligencePack(ctx context.Context, resourceGroupName string, workspaceName string, intelligencePackName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.EnableIntelligencePack")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -331,8 +366,7 @@ func (client WorkspacesClient) EnableIntelligencePackPreparer(ctx context.Contex
 // EnableIntelligencePackSender sends the EnableIntelligencePack request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) EnableIntelligencePackSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // EnableIntelligencePackResponder handles the response to the EnableIntelligencePack request. The method always
@@ -352,6 +386,16 @@ func (client WorkspacesClient) EnableIntelligencePackResponder(resp *http.Respon
 // resourceGroupName - the resource group name of the workspace.
 // workspaceName - name of the Log Analytics Workspace.
 func (client WorkspacesClient) Get(ctx context.Context, resourceGroupName string, workspaceName string) (result Workspace, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, workspaceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacesClient", "Get", nil, "Failure preparing request")
@@ -397,8 +441,7 @@ func (client WorkspacesClient) GetPreparer(ctx context.Context, resourceGroupNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -419,6 +462,16 @@ func (client WorkspacesClient) GetResponder(resp *http.Response) (result Workspa
 // resourceGroupName - the name of the resource group to get. The name is case insensitive.
 // workspaceName - name of the Log Analytics Workspace.
 func (client WorkspacesClient) GetSharedKeys(ctx context.Context, resourceGroupName string, workspaceName string) (result SharedKeys, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.GetSharedKeys")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -472,8 +525,7 @@ func (client WorkspacesClient) GetSharedKeysPreparer(ctx context.Context, resour
 // GetSharedKeysSender sends the GetSharedKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) GetSharedKeysSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetSharedKeysResponder handles the response to the GetSharedKeys request. The method always
@@ -491,6 +543,16 @@ func (client WorkspacesClient) GetSharedKeysResponder(resp *http.Response) (resu
 
 // List gets the workspaces in a subscription.
 func (client WorkspacesClient) List(ctx context.Context) (result WorkspaceListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.List")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.ListPreparer(ctx)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "operationalinsights.WorkspacesClient", "List", nil, "Failure preparing request")
@@ -534,8 +596,7 @@ func (client WorkspacesClient) ListPreparer(ctx context.Context) (*http.Request,
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -555,6 +616,16 @@ func (client WorkspacesClient) ListResponder(resp *http.Response) (result Worksp
 // Parameters:
 // resourceGroupName - the name of the resource group to get. The name is case insensitive.
 func (client WorkspacesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string) (result WorkspaceListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListByResourceGroup")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -607,8 +678,7 @@ func (client WorkspacesClient) ListByResourceGroupPreparer(ctx context.Context, 
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -630,6 +700,16 @@ func (client WorkspacesClient) ListByResourceGroupResponder(resp *http.Response)
 // resourceGroupName - the name of the resource group to get. The name is case insensitive.
 // workspaceName - name of the Log Analytics Workspace.
 func (client WorkspacesClient) ListIntelligencePacks(ctx context.Context, resourceGroupName string, workspaceName string) (result ListIntelligencePack, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListIntelligencePacks")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -683,8 +763,7 @@ func (client WorkspacesClient) ListIntelligencePacksPreparer(ctx context.Context
 // ListIntelligencePacksSender sends the ListIntelligencePacks request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) ListIntelligencePacksSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListIntelligencePacksResponder handles the response to the ListIntelligencePacks request. The method always
@@ -705,6 +784,16 @@ func (client WorkspacesClient) ListIntelligencePacksResponder(resp *http.Respons
 // resourceGroupName - the name of the resource group to get. The name is case insensitive.
 // workspaceName - the name of the workspace.
 func (client WorkspacesClient) ListManagementGroups(ctx context.Context, resourceGroupName string, workspaceName string) (result WorkspaceListManagementGroupsResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListManagementGroups")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -758,8 +847,7 @@ func (client WorkspacesClient) ListManagementGroupsPreparer(ctx context.Context,
 // ListManagementGroupsSender sends the ListManagementGroups request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) ListManagementGroupsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListManagementGroupsResponder handles the response to the ListManagementGroups request. The method always
@@ -780,6 +868,16 @@ func (client WorkspacesClient) ListManagementGroupsResponder(resp *http.Response
 // resourceGroupName - the name of the resource group to get. The name is case insensitive.
 // workspaceName - the name of the workspace.
 func (client WorkspacesClient) ListUsages(ctx context.Context, resourceGroupName string, workspaceName string) (result WorkspaceListUsagesResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.ListUsages")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -833,8 +931,7 @@ func (client WorkspacesClient) ListUsagesPreparer(ctx context.Context, resourceG
 // ListUsagesSender sends the ListUsages request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) ListUsagesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListUsagesResponder handles the response to the ListUsages request. The method always
@@ -856,6 +953,16 @@ func (client WorkspacesClient) ListUsagesResponder(resp *http.Response) (result 
 // workspaceName - the name of the workspace.
 // parameters - the parameters required to patch a workspace.
 func (client WorkspacesClient) Update(ctx context.Context, resourceGroupName string, workspaceName string, parameters Workspace) (result Workspace, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/WorkspacesClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
@@ -911,8 +1018,7 @@ func (client WorkspacesClient) UpdatePreparer(ctx context.Context, resourceGroup
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkspacesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

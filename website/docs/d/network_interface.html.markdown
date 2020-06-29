@@ -1,33 +1,33 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface"
-sidebar_current: "docs-azurerm-datasource-network-interface"
 description: |-
-  Get information about the specified Network Interface.
+  Gets information about an existing Network Interface.
 ---
 
 # Data Source: azurerm_network_interface
 
-Use this data source to access the properties of an Azure Network Interface.
+Use this data source to access information about an existing Network Interface.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_network_interface" "test" {
-  name                 = "acctest-nic"
-  resource_group_name  = "networking"
+data "azurerm_network_interface" "example" {
+  name                = "acctest-nic"
+  resource_group_name = "networking"
 }
 
 output "network_interface_id" {
-  value = "${data.azurerm_network_interface.test.id}"
+  value = data.azurerm_network_interface.example.id
 }
 ```
 
 ## Argument Reference
 
 
-* `name` - (Required) Specifies the name of the Network Interface.
-* `resource_group_name` - (Required) Specifies the name of the resource group the Network Interface is located in.
+* `name` - Specifies the name of the Network Interface.
+* `resource_group_name` - Specifies the name of the resource group the Network Interface is located in.
 
 ## Attributes Reference
 
@@ -37,7 +37,6 @@ output "network_interface_id" {
 * `enable_ip_forwarding` - Indicate if IP forwarding is set on the specified Network Interface.
 * `dns_servers` - The list of DNS servers used by the specified Network Interface.
 * `internal_dns_name_label` - The internal dns name label of the specified Network Interface.
-* `internal_fqdn` - The internal FQDN associated to the specified Network Interface.
 * `ip_configuration` - One or more `ip_configuration` blocks as defined below.
 * `location` - The location of the specified Network Interface.
 * `mac_address` - The MAC address used by the specified Network Interface.
@@ -60,3 +59,9 @@ A `ip_configuration` block contains:
 * `load_balancer_backend_address_pools_ids` - A list of Backend Address Pool ID's within a Load Balancer that this Network Interface is connected to.
 * `load_balancer_inbound_nat_rules_ids` - A list of Inbound NAT Rule ID's within a Load Balancer that this Network Interface is connected to.
 * `primary` - is this the Primary IP Configuration for this Network Interface?
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Interface.

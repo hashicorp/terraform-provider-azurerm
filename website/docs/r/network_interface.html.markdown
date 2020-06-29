@@ -1,51 +1,47 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_interface"
-sidebar_current: "docs-azurerm-resource-network-interface"
 description: |-
-  Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
+  Manages a Network Interface.
 
 ---
 
 # azurerm_network_interface
 
-Manages a Network Interface located in a Virtual Network, usually attached to a Virtual Machine.
+Manages a Network Interface.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acceptanceTestResourceGroup1"
-  location = "West US"
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acceptanceTestVirtualNetwork1"
+resource "azurerm_virtual_network" "example" {
+  name                = "example-network"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "test" {
-  name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+resource "azurerm_subnet" "example" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_network_interface" "test" {
-  name                = "acceptanceTestNetworkInterface1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_network_interface" "example" {
+  name                = "example-nic"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   ip_configuration {
-    name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
-  }
-
-  tags {
-    environment = "staging"
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.example.id
+    private_ip_address_allocation = "Dynamic"
   }
 }
 ```
@@ -54,65 +50,95 @@ resource "azurerm_network_interface" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the network interface. Changing this forces a new resource to be created.
+* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the network interface. Changing this forces a new resource to be created.
+* `location` - (Required) The location where the Network Interface should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location/region where the network interface is created. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Network Interface. Changing this forces a new resource to be created.
 
-* `network_security_group_id` - (Optional) The ID of the Network Security Group to associate with the network interface.
+* `resource_group_name` - (Required) The name of the Resource Group in which to create the Network Interface. Changing this forces a new resource to be created.
 
-* `internal_dns_name_label` - (Optional) Relative DNS name for this NIC used for internal communications between VMs in the same VNet
+---
 
-* `enable_ip_forwarding` - (Optional) Enables IP Forwarding on the NIC. Defaults to `false`.
+* `dns_servers` - (Optional) A list of IP Addresses defining the DNS Servers which should be used for this Network Interface.
 
-* `enable_accelerated_networking` - (Optional) Enables Azure Accelerated Networking using SR-IOV. Only certain VM instance sizes are supported. Refer to [Create a Virtual Machine with Accelerated Networking](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli). Defaults to `false`.
+-> **Note:** Configuring DNS Servers on the Network Interface will override the DNS Servers defined on the Virtual Network.
 
-~> **NOTE:** when using Accelerated Networking in an Availability Set - the Availability Set must be deployed on an Accelerated Networking enabled cluster.
+* `enable_ip_forwarding` - (Optional) Should IP Forwarding be enabled? Defaults to `false`.
 
-* `dns_servers` - (Optional) List of DNS servers IP addresses to use for this NIC, overrides the VNet-level server list
+* `enable_accelerated_networking` - (Optional) Should Accelerated Networking be enabled? Defaults to `false`.
 
-* `ip_configuration` - (Required) One or more `ip_configuration` associated with this NIC as documented below.
+-> **Note:** Only certain Virtual Machine sizes are supported for Accelerated Networking - [more information can be found in this document](https://docs.microsoft.com/en-us/azure/virtual-network/create-vm-accelerated-networking-cli).
+
+-> **Note:** To use Accelerated Networking in an Availability Set, the Availability Set must be deployed onto an Accelerated Networking enabled cluster.
+
+* `internal_dns_name_label` - (Optional) The (relative) DNS Name used for internal communications between Virtual Machines in the same Virtual Network.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-The `ip_configuration` block supports:
+---
 
-* `name` - (Required) User-defined name of the IP.
+The `ip_configuration` block supports the following:
 
-* `subnet_id` - (Required) Reference to a subnet in which this NIC has been created.
+* `name` - (Required) A name used for this IP Configuration.
 
-* `private_ip_address` - (Optional) Static IP Address.
+* `subnet_id` - (Optional) The ID of the Subnet where this Network Interface should be located in.
 
-* `private_ip_address_allocation` - (Required) Defines how a private IP address is assigned. Options are Static or Dynamic.
+-> **Note:** This is required when `private_ip_address_version` is set to `IPv4`.
+
+* `private_ip_address_version` - (Optional) The IP Version to use. Possible values are `IPv4` or `IPv6`. Defaults to `IPv4`.
+
+* `private_ip_address_allocation` - (Required) The allocation method used for the Private IP Address. Possible values are `Dynamic` and `Static`.
+
+~> **Note:** Azure does not assign a Dynamic IP Address until the Network Interface is attached to a running Virtual Machine (or other resource)
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this NIC
 
-* `application_gateway_backend_address_pools_ids` - (Optional) List of Application Gateway Backend Address Pool IDs references to which this NIC belongs
+* `primary` - (Optional) Is this the Primary IP Configuration? Must be `true` for the first `ip_configuration` when multiple are specified. Defaults to `false`.
 
-* `load_balancer_backend_address_pools_ids` - (Optional) List of Load Balancer Backend Address Pool IDs references to which this NIC belongs
+When `private_ip_address_allocation` is set to `Static` the following fields can be configured:
 
-* `load_balancer_inbound_nat_rules_ids` - (Optional) List of Load Balancer Inbound Nat Rules IDs involving this NIC
+* `private_ip_address` - (Optional) The Static IP Address which should be used.
 
-* `application_security_group_ids` - (Optional) List of Application Security Group IDs which should be attached to this NIC
+When `private_ip_address_version` is set to `IPv4` the following fields can be configured:
 
-* `primary` - (Optional) Is this the Primary Network Interface? If set to `true` this should be the first `ip_configuration` in the array.
+* `subnet_id` - (Required) The ID of the Subnet where this Network Interface should be located in.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Virtual Network Interface ID.
-* `mac_address` - The media access control (MAC) address of the network interface.
-* `private_ip_address` - The private ip address of the network interface.
-* `virtual_machine_id` - Reference to a VM with which this NIC has been associated.
-* `applied_dns_servers` - If the VM that uses this NIC is part of an Availability Set, then this list will have the union of all DNS servers from all NICs that are part of the Availability Set
-* `internal_fqdn` - Fully qualified DNS name supporting internal communications between VMs in the same VNet
+* `applied_dns_servers` - If the Virtual Machine using this Network Interface is part of an Availability Set, then this list will have the union of all DNS servers from all Network Interfaces that are part of the Availability Set.
+
+* `id` - The ID of the Network Interface.
+
+* `internal_domain_name_suffix` - Even if `internal_dns_name_label` is not specified, a DNS entry is created for the primary NIC of the VM. This DNS name can be constructed by concatenating the VM name with the value of `internal_domain_name_suffix`.
+
+* `mac_address` - The Media Access Control (MAC) Address of the Network Interface.
+
+* `private_ip_address` - The first private IP address of the network interface.
+
+~> **Note:** If a `Dynamic` allocation method is used Azure will not allocate an IP Address until the Network Interface is attached to a running resource (such as a Virtual Machine).
+
+* `private_ip_addresses` - The private IP addresses of the network interface.
+
+~> **Note:** If a `Dynamic` allocation method is used Azure will not allocate an IP Address until the Network Interface is attached to a running resource (such as a Virtual Machine).
+
+* `virtual_machine_id` - The ID of the Virtual Machine which this Network Interface is connected to.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Interface.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Interface.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Interface.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Interface.
 
 ## Import
 
 Network Interfaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_network_interface.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.network/networkInterfaces/nic1
+terraform import azurerm_network_interface.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkInterfaces/nic1
 ```

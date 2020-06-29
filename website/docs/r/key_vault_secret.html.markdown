@@ -1,7 +1,7 @@
 ---
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_secret"
-sidebar_current: "docs-azurerm-resource-key-vault-secret"
 description: |-
   Manages a Key Vault Secret.
 
@@ -17,9 +17,10 @@ Manages a Key Vault Secret.
 ## Example Usage
 
 ```hcl
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "my-resource-group"
   location = "West US"
 }
@@ -28,22 +29,21 @@ resource "random_id" "server" {
   keepers = {
     ami_id = 1
   }
+
   byte_length = 8
 }
 
-resource "azurerm_key_vault" "test" {
-  name                = "${format("%s%s", "kv", random_id.server.hex)}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
+resource "azurerm_key_vault" "example" {
+  name                = format("%s%s", "kv", random_id.server.hex)
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   access_policy {
-    tenant_id = "${data.azurerm_client_config.current.tenant_id}"
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
 
     key_permissions = [
       "create",
@@ -57,17 +57,17 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
-resource "azurerm_key_vault_secret" "test" {
-  name      = "secret-sauce"
-  value     = "szechuan"
-  vault_uri = "${azurerm_key_vault.test.vault_uri}"
+resource "azurerm_key_vault_secret" "example" {
+  name         = "secret-sauce"
+  value        = "szechuan"
+  key_vault_id = azurerm_key_vault.example.id
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -81,11 +81,17 @@ The following arguments are supported:
 
 * `value` - (Required) Specifies the value of the Key Vault Secret.
 
-* `vault_uri` - (Required) Specifies the URI used to access the Key Vault instance, available on the `azurerm_key_vault` resource.
+~> **Note:** Key Vault strips newlines. To preserve newlines in multi-line secrets try replacing them with `\n` or by base 64 encoding them with `replace(file("my_secret_file"), "/\n/", "\n")` or `base64encode(file("my_secret_file"))`, respectively.
+
+* `key_vault_id` - (Required) The ID of the Key Vault where the Secret should be created.
 
 * `content_type` - (Optional) Specifies the content type for the Key Vault Secret.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
+
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
 
 ## Attributes Reference
 
@@ -94,10 +100,21 @@ The following attributes are exported:
 * `id` - The Key Vault Secret ID.
 * `version` - The current version of the Key Vault Secret.
 
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Secret.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Secret.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Secret.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Secret.
+
 ## Import
 
 Key Vault Secrets which are Enabled can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_secret.test https://example-keyvault.vault.azure.net/secrets/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_secret.example https://example-keyvault.vault.azure.net/secrets/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```

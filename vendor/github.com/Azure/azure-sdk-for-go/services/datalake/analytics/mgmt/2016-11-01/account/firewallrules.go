@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -35,7 +36,8 @@ func NewFirewallRulesClient(subscriptionID string) FirewallRulesClient {
 	return NewFirewallRulesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewFirewallRulesClientWithBaseURI creates an instance of the FirewallRulesClient client.
+// NewFirewallRulesClientWithBaseURI creates an instance of the FirewallRulesClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewFirewallRulesClientWithBaseURI(baseURI string, subscriptionID string) FirewallRulesClient {
 	return FirewallRulesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -48,6 +50,16 @@ func NewFirewallRulesClientWithBaseURI(baseURI string, subscriptionID string) Fi
 // firewallRuleName - the name of the firewall rule to create or update.
 // parameters - parameters supplied to create or update the firewall rule.
 func (client FirewallRulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, accountName string, firewallRuleName string, parameters CreateOrUpdateFirewallRuleParameters) (result FirewallRule, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.CreateOrUpdateFirewallRuleProperties", Name: validation.Null, Rule: true,
@@ -105,8 +117,7 @@ func (client FirewallRulesClient) CreateOrUpdatePreparer(ctx context.Context, re
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client FirewallRulesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -128,6 +139,16 @@ func (client FirewallRulesClient) CreateOrUpdateResponder(resp *http.Response) (
 // accountName - the name of the Data Lake Analytics account.
 // firewallRuleName - the name of the firewall rule to delete.
 func (client FirewallRulesClient) Delete(ctx context.Context, resourceGroupName string, accountName string, firewallRuleName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, firewallRuleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "Delete", nil, "Failure preparing request")
@@ -174,8 +195,7 @@ func (client FirewallRulesClient) DeletePreparer(ctx context.Context, resourceGr
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client FirewallRulesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -196,6 +216,16 @@ func (client FirewallRulesClient) DeleteResponder(resp *http.Response) (result a
 // accountName - the name of the Data Lake Analytics account.
 // firewallRuleName - the name of the firewall rule to retrieve.
 func (client FirewallRulesClient) Get(ctx context.Context, resourceGroupName string, accountName string, firewallRuleName string) (result FirewallRule, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, firewallRuleName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "Get", nil, "Failure preparing request")
@@ -242,8 +272,7 @@ func (client FirewallRulesClient) GetPreparer(ctx context.Context, resourceGroup
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client FirewallRulesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -264,6 +293,16 @@ func (client FirewallRulesClient) GetResponder(resp *http.Response) (result Fire
 // resourceGroupName - the name of the Azure resource group.
 // accountName - the name of the Data Lake Analytics account.
 func (client FirewallRulesClient) ListByAccount(ctx context.Context, resourceGroupName string, accountName string) (result FirewallRuleListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.ListByAccount")
+		defer func() {
+			sc := -1
+			if result.frlr.Response.Response != nil {
+				sc = result.frlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listByAccountNextResults
 	req, err := client.ListByAccountPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
@@ -310,8 +349,7 @@ func (client FirewallRulesClient) ListByAccountPreparer(ctx context.Context, res
 // ListByAccountSender sends the ListByAccount request. The method will close the
 // http.Response Body if it receives an error.
 func (client FirewallRulesClient) ListByAccountSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByAccountResponder handles the response to the ListByAccount request. The method always
@@ -328,8 +366,8 @@ func (client FirewallRulesClient) ListByAccountResponder(resp *http.Response) (r
 }
 
 // listByAccountNextResults retrieves the next set of results, if any.
-func (client FirewallRulesClient) listByAccountNextResults(lastResults FirewallRuleListResult) (result FirewallRuleListResult, err error) {
-	req, err := lastResults.firewallRuleListResultPreparer()
+func (client FirewallRulesClient) listByAccountNextResults(ctx context.Context, lastResults FirewallRuleListResult) (result FirewallRuleListResult, err error) {
+	req, err := lastResults.firewallRuleListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "account.FirewallRulesClient", "listByAccountNextResults", nil, "Failure preparing next results request")
 	}
@@ -350,6 +388,16 @@ func (client FirewallRulesClient) listByAccountNextResults(lastResults FirewallR
 
 // ListByAccountComplete enumerates all values, automatically crossing page boundaries as required.
 func (client FirewallRulesClient) ListByAccountComplete(ctx context.Context, resourceGroupName string, accountName string) (result FirewallRuleListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.ListByAccount")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListByAccount(ctx, resourceGroupName, accountName)
 	return
 }
@@ -361,6 +409,16 @@ func (client FirewallRulesClient) ListByAccountComplete(ctx context.Context, res
 // firewallRuleName - the name of the firewall rule to update.
 // parameters - parameters supplied to update the firewall rule.
 func (client FirewallRulesClient) Update(ctx context.Context, resourceGroupName string, accountName string, firewallRuleName string, parameters *UpdateFirewallRuleParameters) (result FirewallRule, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FirewallRulesClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, firewallRuleName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.FirewallRulesClient", "Update", nil, "Failure preparing request")
@@ -412,8 +470,7 @@ func (client FirewallRulesClient) UpdatePreparer(ctx context.Context, resourceGr
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client FirewallRulesClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

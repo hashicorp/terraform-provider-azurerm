@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_endpoint"
-sidebar_current: "docs-azurerm-resource-network-traffic-manager-endpoint"
 description: |-
   Manages a Traffic Manager Endpoint.
 ---
@@ -17,40 +17,44 @@ resource "random_id" "server" {
   keepers = {
     azi_id = 1
   }
+
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "trafficmanagerendpointTest"
   location = "West US"
 }
 
-resource "azurerm_traffic_manager_profile" "test" {
-  name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_traffic_manager_profile" "example" {
+  name                = random_id.server.hex
+  resource_group_name = azurerm_resource_group.example.name
 
   traffic_routing_method = "Weighted"
 
   dns_config {
-    relative_name = "${random_id.server.hex}"
+    relative_name = random_id.server.hex
     ttl           = 100
   }
 
   monitor_config {
-    protocol = "http"
-    port     = 80
-    path     = "/"
+    protocol                     = "http"
+    port                         = 80
+    path                         = "/"
+    interval_in_seconds          = 30
+    timeout_in_seconds           = 9
+    tolerated_number_of_failures = 3
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
-resource "azurerm_traffic_manager_endpoint" "test" {
-  name                = "${random_id.server.hex}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  profile_name        = "${azurerm_traffic_manager_profile.test.name}"
+resource "azurerm_traffic_manager_endpoint" "example" {
+  name                = random_id.server.hex
+  resource_group_name = azurerm_resource_group.example.name
+  profile_name        = azurerm_traffic_manager_profile.example.name
   target              = "terraform.io"
   type                = "externalEndpoints"
   weight              = 100
@@ -64,8 +68,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the Traffic Manager endpoint. Changing this forces a
     new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Traffic Manager endpoint.
+* `resource_group_name` - (Required) The name of the resource group where the Traffic Manager Profile exists.
 
 * `profile_name` - (Required) The name of the Traffic Manager Profile to attach
     create the Traffic Manager endpoint.
@@ -109,16 +112,48 @@ The following arguments are supported:
 
 * `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
 
+* `custom_header` - (Optional) One or more `custom_header` blocks as defined below
+
+* `subnet` - (Optional) One or more `subnet` blocks as defined below
+
+---
+A `custom_header` block supports the following:
+
+* `name` - (Required) The name of the custom header.
+
+* `value` - (Required) The value of custom header. Applicable for Http and Https protocol.
+
+A `subnet` block supports the following:
+
+* `first` - (Required) The First IP....
+
+* `last` - (Optional) The Last IP...
+
+* `scope` - (Optional) The Scope...
+
+-> **NOTE:** One and only one of either `last` (in case of IP range) or `scope` (in case of CIDR) must be specified.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The Traffic Manager Endpoint id.
+* `id` - The ID of the Traffic Manager Endpoint.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Traffic Manager Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the Traffic Manager Endpoint.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Traffic Manager Endpoint.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Traffic Manager Endpoint.
 
 ## Import
 
 Traffic Manager Endpoints can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_traffic_manager_endpoint.testEndpoints /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1/azureEndpoints/mytrafficmanagerendpoint
+terraform import azurerm_traffic_manager_endpoint.exampleEndpoints /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1/azureEndpoints/mytrafficmanagerendpoint
 ```
+
+-> **NOTE:** `azureEndpoints` in the above shell command should be replaced with `externalEndpoints` or `nestedEndpoints` while using other endpoint types.

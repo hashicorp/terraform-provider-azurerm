@@ -1,7 +1,7 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_configuration"
-sidebar_current: "docs-azurerm-resource-database-mysql-configuration"
 description: |-
   Sets a MySQL Configuration value on a MySQL Server.
 ---
@@ -10,42 +10,47 @@ description: |-
 
 Sets a MySQL Configuration value on a MySQL Server.
 
+## Disclaimers
+
+~> **Note:** Since this resource is provisioned by default, the Azure Provider will not check for the presence of an existing resource prior to attempting to create it.
+
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "api-rg-pro"
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_mysql_server" "test" {
-  name                = "mysql-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_mysql_server" "example" {
+  name                = "example-mysqlserver"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
-  sku {
-    name = "B_Gen4_2"
-    capacity = 2
-    tier = "Basic"
-    family = "Gen4"
-  }
-
-  storage_profile {
-    storage_mb = 5120
-    backup_retention_days = 7
-    geo_redundant_backup = "Disabled"
-  }
-
-  administrator_login = "psqladminun"
+  administrator_login          = "mysqladminun"
   administrator_login_password = "H@Sh1CoR3!"
-  version = "5.7"
-  ssl_enforcement = "Enabled"
+
+  sku_name   = "B_Gen5_2"
+  storage_mb = 5120
+  version    = "5.7"
+
+  auto_grow_enabled                 = true
+  backup_retention_days             = 7
+  geo_redundant_backup_enabled      = true
+  infrastructure_encryption_enabled = true
+  public_network_access_enabled     = false
+  ssl_enforcement_enabled           = true
+  ssl_minimal_tls_version_enforced  = "TLS1_2"
 }
 
-resource "azurerm_mysql_configuration" "test" {
+resource "azurerm_mysql_configuration" "example" {
   name                = "interactive_timeout"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mysql_server.example.name
   value               = "600"
 }
 ```
@@ -67,6 +72,15 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the MySQL Configuration.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the MySQL Configuration.
+* `update` - (Defaults to 30 minutes) Used when updating the MySQL Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Configuration.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MySQL Configuration.
 
 ## Import
 

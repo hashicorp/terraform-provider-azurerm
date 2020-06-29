@@ -1,33 +1,33 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service"
-sidebar_current: "docs-azurerm-datasource-app-service-x"
 description: |-
-  Get information about an App Service.
+  Gets information about an existing App Service.
 ---
 
 # Data Source: azurerm_app_service
 
-Use this data source to obtain information about an App Service.
+Use this data source to access information about an existing App Service.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_app_service" "test" {
+data "azurerm_app_service" "example" {
   name                = "search-app-service"
   resource_group_name = "search-service"
 }
 
 output "app_service_id" {
-  value = "${data.azurerm_app_service.test.id}"
+  value = data.azurerm_app_service.example.id
 }
 ```
 
 ## Argument Reference
 
-* `name` - (Required) The name of the App Service.
+* `name` - The name of the App Service.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service exists.
+* `resource_group_name` - The Name of the Resource Group where the App Service exists.
 
 ## Attributes Reference
 
@@ -47,9 +47,17 @@ output "app_service_id" {
 
 * `https_only` - Can the App Service only be accessed via HTTPS?
 
+* `client_cert_enabled` - Does the App Service require client certificates for incoming requests?
+
 * `site_config` - A `site_config` block as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
+
+* `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
+
+* `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
+
+* `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
 ---
 
@@ -63,9 +71,48 @@ output "app_service_id" {
 
 ---
 
+A `cors` block exports the following:
+
+* `allowed_origins` - A list of origins which are able to make cross-origin calls.
+
+* `support_credentials` - Are credentials supported?
+
+---
+
+A `ip_restriction` block exports the following:
+
+* `ip_address` - The IP Address used for this IP Restriction.
+
+* `subnet_mask` - The Subnet mask used for this IP Restriction.
+
+* `name` - The name for this IP Restriction.
+
+* `priority` - The priority for this IP Restriction.
+
+* `action` - Does this restriction `Allow` or `Deny` access for this IP range?
+
+---
+A `scm_ip_restriction` block exports the following:  
+
+* `ip_address` - The IP Address used for this IP Restriction in CIDR notation.
+
+* `virtual_network_subnet_id` - The Virtual Network Subnet ID used for this IP Restriction.
+
+* `name` - The name for this IP Restriction.
+
+* `priority` - The priority for this IP Restriction.
+
+* `action` - Allow or Deny access for this IP range. Defaults to Allow.  
+
+---
+
 `site_config` supports the following:
 
 * `always_on` - Is the app be loaded at all times?
+
+* `app_command_line` - App command line to launch.
+
+* `cors` - A `cors` block as defined above.
 
 * `default_documents` - The ordering of default documents to load, if an address isn't specified.
 
@@ -73,13 +120,25 @@ output "app_service_id" {
 
 * `http2_enabled` - Is HTTP2 Enabled on this App Service?
 
-* `ip_restriction` - One or more `ip_restriction` blocks as defined below.
+* `ftps_state` - State of FTP / FTPS service for this AppService.
+
+* `health_check_path` - The health check path to be pinged by App Service.
+
+* `ip_restriction` - One or more `ip_restriction` blocks as defined above.
+
+* `scm_use_main_ip_restriction` - IP security restrictions for scm to use main.  
+
+* `scm_ip_restriction` - One or more `scm_ip_restriction` blocks as defined above.
 
 * `java_version` - The version of Java in use.
 
 * `java_container` - The Java Container in use.
 
 * `java_container_version` - The version of the Java Container in use.
+
+* `linux_fx_version` - Linux App Framework and version for the AppService.
+
+* `windows_fx_version` - Windows Container Docker Image for the AppService.
 
 * `local_mysql_enabled` - Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 
@@ -101,14 +160,8 @@ output "app_service_id" {
 
 * `websockets_enabled` - Are WebSockets enabled for this App Service?
 
-* `ftps_state` - State of FTP / FTPS service for this AppService.
+## Timeouts
 
-* `linux_fx_version` - Linux App Framework and version for the AppService.
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
----
-
-`ip_restriction` exports the following:
-
-* `ip_address` - The IP Address used for this IP Restriction.
-
-* `subnet_mask` - The Subnet mask used for this IP Restriction.
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service.
