@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* `data.azurerm_postgresql_server` - expose `sku_name` [GH-7523]
 * `azurerm_app_service_environment` - the `user_whitelisted_ip_ranges` property has been deprecated and renamed to `allowed_user_ip_cidrs` to clearify the function and expected format [GH-7499]
 * `azurerm_sentinel_alert_rule_ms_security_incident` - the `text_whitelist` propety has been deprecated and renamed to `display_name_filter` to better match the api [GH-7499]
 
