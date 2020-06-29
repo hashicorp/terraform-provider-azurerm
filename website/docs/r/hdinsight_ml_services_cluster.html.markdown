@@ -116,7 +116,7 @@ The following arguments are supported:
 
 A `gateway` block supports the following:
 
-* `enabled` - (Optional) Is the Ambari portal enabled? Deprecated: HDInsight doesn't support disabling gateway anymore.
+* `enabled` - (Optional/ **Deprecated) Is the Ambari portal enabled? The HDInsight API doesn't support disabling gateway anymore.
 
 * `password` - (Required) The password used for the Ambari Portal.
 
