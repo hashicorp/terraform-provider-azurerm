@@ -50,6 +50,8 @@ The following attributes are exported:
 
 * `target_region` - One or more `target_region` blocks as documented below.
 
+* `os_disk_snapshot_id` - The ID of the OS disk snapshot which was the source of this Shared Image Version.
+
 * `tags` - A mapping of tags assigned to the Shared Image.
 
 ---

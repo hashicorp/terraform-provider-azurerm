@@ -10,6 +10,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
+var kubernetesOtherTests = map[string]func(t *testing.T){
+	"basicAvailabilitySet":           testAccAzureRMKubernetesCluster_basicAvailabilitySet,
+	"basicVMSS":                      testAccAzureRMKubernetesCluster_basicVMSS,
+	"requiresImport":                 testAccAzureRMKubernetesCluster_requiresImport,
+	"linuxProfile":                   testAccAzureRMKubernetesCluster_linuxProfile,
+	"nodeLabels":                     testAccAzureRMKubernetesCluster_nodeLabels,
+	"nodeTaints":                     testAccAzureRMKubernetesCluster_nodeTaints,
+	"nodeResourceGroup":              testAccAzureRMKubernetesCluster_nodeResourceGroup,
+	"paidSku":                        testAccAzureRMKubernetesCluster_paidSku,
+	"upgradeConfig":                  testAccAzureRMKubernetesCluster_upgrade,
+	"tags":                           testAccAzureRMKubernetesCluster_tags,
+	"windowsProfile":                 testAccAzureRMKubernetesCluster_windowsProfile,
+	"outboundTypeLoadBalancer":       testAccAzureRMKubernetesCluster_outboundTypeLoadBalancer,
+	"outboundTypeUserDefinedRouting": testAccAzureRMKubernetesCluster_outboundTypeUserDefinedRouting,
+	"privateClusterOn":               testAccAzureRMKubernetesCluster_privateClusterOn,
+	"privateClusterOff":              testAccAzureRMKubernetesCluster_privateClusterOff,
+}
+
 func TestAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_basicAvailabilitySet(t)
@@ -309,6 +327,30 @@ func testAccAzureRMKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_paidSku(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_paidSku(t)
+}
+
+func testAccAzureRMKubernetesCluster_paidSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_paidSkuConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesCluster_upgrade(t *testing.T) {
 	checkIfShouldRunTestsIndividually(t)
 	testAccAzureRMKubernetesCluster_upgrade(t)
@@ -397,6 +439,33 @@ func testAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "default_node_pool.0.max_pods"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "linux_profile.0.admin_username"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "windows_profile.0.admin_username"),
+				),
+			},
+			data.ImportStep(
+				"windows_profile.0.admin_password",
+			),
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_diskEncryption(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesCluster_diskEncryption(t)
+}
+
+func testAccAzureRMKubernetesCluster_diskEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_diskEncryptionConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "disk_encryption_set_id"),
 				),
 			},
 			data.ImportStep(
@@ -759,6 +828,40 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
+func testAccAzureRMKubernetesCluster_paidSkuConfig(data acceptance.TestData) string {
+	// @tombuildsstuff (2020-05-29) - this is only supported in a handful of regions
+	// 								  whilst in Preview - hard-coding for now
+	location := "westus2" // TODO: data.Locations.Primary
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  sku_tier            = "Paid"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, location, data.RandomInteger, data.RandomInteger)
+}
+
 func testAccAzureRMKubernetesCluster_tagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -916,4 +1019,130 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMKubernetesCluster_diskEncryptionConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                        = "acctestkeyvault%s"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  sku_name                    = "premium"
+  enabled_for_disk_encryption = true
+  soft_delete_enabled         = true
+  purge_protection_enabled    = true
+}
+
+resource "azurerm_key_vault_access_policy" "acctest" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "get",
+    "create",
+    "delete"
+  ]
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "destestkey"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.acctest]
+}
+
+resource "azurerm_disk_encryption_set" "test" {
+  name                = "acctestDES-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_key_id    = azurerm_key_vault_key.test.id
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault_access_policy" "disk-encryption-perm" {
+  key_vault_id = azurerm_key_vault.test.id
+
+  tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
+  object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
+
+  key_permissions = [
+    "get",
+    "wrapkey",
+    "unwrapkey",
+  ]
+}
+
+resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
+  scope                = azurerm_key_vault.test.id
+  role_definition_name = "Reader"
+  principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                   = "acctestaks%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  dns_prefix             = "acctestaks%d"
+  disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "np"
+    node_count = 3
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin     = "azure"
+    network_policy     = "azure"
+    dns_service_ip     = "10.10.0.10"
+    docker_bridge_cidr = "172.18.0.1/16"
+    service_cidr       = "10.10.0.0/16"
+  }
+
+  depends_on = [
+    azurerm_key_vault_access_policy.disk-encryption-perm,
+    azurerm_role_assignment.disk-encryption-read-keyvault
+  ]
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

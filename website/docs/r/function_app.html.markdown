@@ -82,7 +82,44 @@ resource "azurerm_function_app" "example" {
   storage_connection_string = azurerm_storage_account.example.primary_connection_string
 }
 ```
+## Example Usage (Linux)
 
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "azure-functions-cptest-rg"
+  location = "westus2"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "functionsapptestsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "example" {
+  name                = "azure-functions-test-service-plan"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  kind                = "FunctionApp"
+  reserved            = true
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+}
+
+resource "azurerm_function_app" "example" {
+  name                      = "test-azure-functions"
+  location                  = azurerm_resource_group.example.location
+  resource_group_name       = azurerm_resource_group.example.name
+  app_service_plan_id       = azurerm_app_service_plan.example.id
+  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  os_type                   = "linux"
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -101,7 +138,7 @@ The following arguments are supported:
 
 * `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
 
-* `app_settings` - (Optional) A key-value pair of App Settings.
+* `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
 
 ~> **Note:** When integrating a `CI/CD pipeline` and expecting to run from a deployed package in `Azure` you must seed your `app settings` as part of terraform code for function app to be successfully deployed. `Important Default key pairs`: (`"WEBSITE_RUN_FROM_PACKAGE" = ""`, `"FUNCTIONS_WORKER_RUNTIME" = "node"` (or python, etc), `"WEBSITE_NODE_DEFAULT_VERSION" = "10.14.1"`, `"APPINSIGHTS_INSTRUMENTATIONKEY" = ""`).
 
@@ -115,7 +152,7 @@ The following arguments are supported:
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
-~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). 
+~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "FunctionApp"` and `reserved = true`
 
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 

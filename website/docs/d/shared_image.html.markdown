@@ -43,6 +43,8 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the Shared Image Gallery exists.
 
+* `generalized` - Is the Operating System present in this Shared Image generalized or not. `false` indicates this image is specialized which for windows images means they have been sysprepped.
+
 * `identifier` - An `identifier` block as defined below.
 
 * `os_type` - The type of Operating System present in this Shared Image.

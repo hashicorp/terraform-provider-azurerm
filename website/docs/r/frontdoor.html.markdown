@@ -222,7 +222,7 @@ The `redirect_configuration` block supports the following:
 
 * `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
 
-* `redirect_type` - (Optional) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`. Defaults to `Found`
+* `redirect_type` - (Required) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`.
 
 * `custom_fragment` - (Optional) The destination fragment in the portion of URL after '#'. Set this to add a fragment to the redirect URL.
 
@@ -304,7 +304,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 6 hours) Used when creating the FrontDoor.
 * `update` - (Defaults to 6 hours) Used when updating the FrontDoor.
-* `read` - (Defaults to 6 hours) Used when retrieving the FrontDoor.
+* `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor.
 * `delete` - (Defaults to 6 hours) Used when deleting the FrontDoor.
 
 ## Import

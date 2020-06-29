@@ -33,6 +33,8 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_monitor_autoscale_setting":           resourceArmMonitorAutoScaleSetting(),
 		"azurerm_monitor_action_group":                resourceArmMonitorActionGroup(),
+		"azurerm_monitor_action_rule_action_group":    resourceArmMonitorActionRuleActionGroup(),
+		"azurerm_monitor_action_rule_suppression":     resourceArmMonitorActionRuleSuppression(),
 		"azurerm_monitor_activity_log_alert":          resourceArmMonitorActivityLogAlert(),
 		"azurerm_monitor_diagnostic_setting":          resourceArmMonitorDiagnosticSetting(),
 		"azurerm_monitor_log_profile":                 resourceArmMonitorLogProfile(),

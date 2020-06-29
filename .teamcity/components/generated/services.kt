@@ -10,6 +10,7 @@ var services = mapOf(
         "authorization" to "Authorization",
         "automation" to "Automation",
         "batch" to "Batch",
+        "blueprints" to "Blueprints",
         "bot" to "Bot",
         "cdn" to "CDN",
         "cognitive" to "Cognitive Services",

@@ -52,8 +52,8 @@ func NewBookmarkRelationsClientWithBaseURI(baseURI string, subscriptionID string
 // workspaceName - the name of the workspace.
 // bookmarkID - bookmark ID
 // relationName - relation Name
-// relationInputModel - the relation input model
-func (client BookmarkRelationsClient) CreateOrUpdateRelation(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, relationName string, relationInputModel RelationsModelInput) (result BookmarkRelation, err error) {
+// relation - the relation model
+func (client BookmarkRelationsClient) CreateOrUpdateRelation(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, relationName string, relation Relation) (result Relation, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BookmarkRelationsClient.CreateOrUpdateRelation")
 		defer func() {
@@ -73,11 +73,14 @@ func (client BookmarkRelationsClient) CreateOrUpdateRelation(ctx context.Context
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: workspaceName,
 			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: relation,
+			Constraints: []validation.Constraint{{Target: "relation.RelationProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "relation.RelationProperties.RelatedResourceID", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("securityinsight.BookmarkRelationsClient", "CreateOrUpdateRelation", err.Error())
 	}
 
-	req, err := client.CreateOrUpdateRelationPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, bookmarkID, relationName, relationInputModel)
+	req, err := client.CreateOrUpdateRelationPreparer(ctx, resourceGroupName, operationalInsightsResourceProvider, workspaceName, bookmarkID, relationName, relation)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "CreateOrUpdateRelation", nil, "Failure preparing request")
 		return
@@ -99,7 +102,7 @@ func (client BookmarkRelationsClient) CreateOrUpdateRelation(ctx context.Context
 }
 
 // CreateOrUpdateRelationPreparer prepares the CreateOrUpdateRelation request.
-func (client BookmarkRelationsClient) CreateOrUpdateRelationPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, relationName string, relationInputModel RelationsModelInput) (*http.Request, error) {
+func (client BookmarkRelationsClient) CreateOrUpdateRelationPreparer(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, relationName string, relation Relation) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"bookmarkId":                          autorest.Encode("path", bookmarkID),
 		"operationalInsightsResourceProvider": autorest.Encode("path", operationalInsightsResourceProvider),
@@ -119,7 +122,7 @@ func (client BookmarkRelationsClient) CreateOrUpdateRelationPreparer(ctx context
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{operationalInsightsResourceProvider}/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/bookmarks/{bookmarkId}/relations/{relationName}", pathParameters),
-		autorest.WithJSON(relationInputModel),
+		autorest.WithJSON(relation),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -132,7 +135,7 @@ func (client BookmarkRelationsClient) CreateOrUpdateRelationSender(req *http.Req
 
 // CreateOrUpdateRelationResponder handles the response to the CreateOrUpdateRelation request. The method always
 // closes the http.Response Body.
-func (client BookmarkRelationsClient) CreateOrUpdateRelationResponder(resp *http.Response) (result BookmarkRelation, err error) {
+func (client BookmarkRelationsClient) CreateOrUpdateRelationResponder(resp *http.Response) (result Relation, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -248,7 +251,7 @@ func (client BookmarkRelationsClient) DeleteRelationResponder(resp *http.Respons
 // workspaceName - the name of the workspace.
 // bookmarkID - bookmark ID
 // relationName - relation Name
-func (client BookmarkRelationsClient) GetRelation(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, relationName string) (result BookmarkRelation, err error) {
+func (client BookmarkRelationsClient) GetRelation(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, relationName string) (result Relation, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BookmarkRelationsClient.GetRelation")
 		defer func() {
@@ -325,7 +328,7 @@ func (client BookmarkRelationsClient) GetRelationSender(req *http.Request) (*htt
 
 // GetRelationResponder handles the response to the GetRelation request. The method always
 // closes the http.Response Body.
-func (client BookmarkRelationsClient) GetRelationResponder(resp *http.Response) (result BookmarkRelation, err error) {
+func (client BookmarkRelationsClient) GetRelationResponder(resp *http.Response) (result Relation, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -350,13 +353,13 @@ func (client BookmarkRelationsClient) GetRelationResponder(resp *http.Response) 
 // skipToken - skiptoken is only used if a previous operation returned a partial result. If a previous response
 // contains a nextLink element, the value of the nextLink element will include a skiptoken parameter that
 // specifies a starting point to use for subsequent calls. Optional.
-func (client BookmarkRelationsClient) List(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, filter string, orderby string, top *int32, skipToken string) (result BookmarkRelationListPage, err error) {
+func (client BookmarkRelationsClient) List(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, filter string, orderby string, top *int32, skipToken string) (result RelationListPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BookmarkRelationsClient.List")
 		defer func() {
 			sc := -1
-			if result.brl.Response.Response != nil {
-				sc = result.brl.Response.Response.StatusCode
+			if result.rl.Response.Response != nil {
+				sc = result.rl.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -383,12 +386,12 @@ func (client BookmarkRelationsClient) List(ctx context.Context, resourceGroupNam
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.brl.Response = autorest.Response{Response: resp}
+		result.rl.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.brl, err = client.ListResponder(resp)
+	result.rl, err = client.ListResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "List", resp, "Failure responding to request")
 	}
@@ -439,7 +442,7 @@ func (client BookmarkRelationsClient) ListSender(req *http.Request) (*http.Respo
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client BookmarkRelationsClient) ListResponder(resp *http.Response) (result BookmarkRelationList, err error) {
+func (client BookmarkRelationsClient) ListResponder(resp *http.Response) (result RelationList, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -451,8 +454,8 @@ func (client BookmarkRelationsClient) ListResponder(resp *http.Response) (result
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client BookmarkRelationsClient) listNextResults(ctx context.Context, lastResults BookmarkRelationList) (result BookmarkRelationList, err error) {
-	req, err := lastResults.bookmarkRelationListPreparer(ctx)
+func (client BookmarkRelationsClient) listNextResults(ctx context.Context, lastResults RelationList) (result RelationList, err error) {
+	req, err := lastResults.relationListPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "securityinsight.BookmarkRelationsClient", "listNextResults", nil, "Failure preparing next results request")
 	}
@@ -472,7 +475,7 @@ func (client BookmarkRelationsClient) listNextResults(ctx context.Context, lastR
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client BookmarkRelationsClient) ListComplete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, filter string, orderby string, top *int32, skipToken string) (result BookmarkRelationListIterator, err error) {
+func (client BookmarkRelationsClient) ListComplete(ctx context.Context, resourceGroupName string, operationalInsightsResourceProvider string, workspaceName string, bookmarkID string, filter string, orderby string, top *int32, skipToken string) (result RelationListIterator, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/BookmarkRelationsClient.List")
 		defer func() {
