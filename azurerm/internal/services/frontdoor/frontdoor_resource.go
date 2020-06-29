@@ -610,7 +610,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 		if properties := resp.FrontendEndpointProperties; properties != nil {
 			customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
-			err := resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d, *resp.ID, customHttpsProvisioningEnabled, name, frontendEndpointName, resourceGroup, properties.CustomHTTPSProvisioningState, properties.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
+			err := resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, d, *resp.ID, customHttpsProvisioningEnabled, name, frontendEndpointName, resourceGroup, properties.CustomHTTPSProvisioningState, properties.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 			if err != nil {
 				return fmt.Errorf("Unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 			}
@@ -620,7 +620,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceArmFrontDoorRead(d, meta)
 }
 
-func resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d *schema.ResourceData, frontendEndpointId string, customHttpsProvisioningEnabled bool, frontDoorName string, frontendEndpointName string, resourceGroup string, provisioningState frontdoor.CustomHTTPSProvisioningState, customHTTPSConfigurationCurrent *frontdoor.CustomHTTPSConfiguration, customHttpsConfigurationNew []interface{}, meta interface{}) error {
+func resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx context.Context, d *schema.ResourceData, frontendEndpointId string, customHttpsProvisioningEnabled bool, frontDoorName string, frontendEndpointName string, resourceGroup string, provisioningState frontdoor.CustomHTTPSProvisioningState, customHTTPSConfigurationCurrent *frontdoor.CustomHTTPSConfiguration, customHttpsConfigurationNew []interface{}, meta interface{}) error {
 	// Locking to prevent parallel changes causing issues
 	locks.ByID(frontendEndpointId)
 	defer locks.UnlockByID(frontendEndpointId)
