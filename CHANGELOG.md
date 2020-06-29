@@ -5,6 +5,17 @@ ENHANCEMENTS:
 * `azurerm_app_service_environment` - the `user_whitelisted_ip_ranges` property has been deprecated and renamed to `allowed_user_ip_cidrs` to clearify the function and expected format [GH-7499]
 * `azurerm_sentinel_alert_rule_ms_security_incident` - the `text_whitelist` propety has been deprecated and renamed to `display_name_filter` to better match the api [GH-7499]
 
+BUG FIXES: 
+
+* `azurerm_hdinsight_hadoop_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
+* `azurerm_hdinsight_hbase_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
+* `azurerm_hdinsight_interactive_query_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
+* `azurerm_hdinsight_kafka_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
+* `azurerm_hdinsight_ml_services_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
+* `azurerm_hdinsight_rserver_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
+* `azurerm_hdinsight_spark_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
+* `azurerm_hdinsight_storm_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
+
 ## 2.16.0 (June 25, 2020)
 
 DEPENDENCIES:
