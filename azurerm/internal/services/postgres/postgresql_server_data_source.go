@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -48,6 +49,11 @@ func dataSourcePostgreSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"sku_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -84,6 +90,10 @@ func dataSourceArmPostgreSqlServerRead(d *schema.ResourceData, meta interface{})
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
+	}
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
