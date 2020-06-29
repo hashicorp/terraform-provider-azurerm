@@ -35,6 +35,11 @@ func TestSynapseWorkspaceName(t *testing.T) {
 			expected: false,
 		},
 		{
+			// can't end with `ondemand`
+			input:    "abcondemand",
+			expected: false,
+		},
+		{
 			// 45 chars
 			input:    "abcdefghijklmnopqrstuvwxyzabcdefabcdefghijklm",
 			expected: true,

@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -262,14 +261,10 @@ func resourceArmSynapseWorkspaceDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
 		return fmt.Errorf("deleting Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-
+	// sometimes the waitforcompletion rest api will return 404, so changed with polling
 	return waitForSynapseWorkspaceToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
 }
 
@@ -329,10 +324,6 @@ func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interf
 		return make([]interface{}, 0)
 	}
 
-	var t synapse.ResourceIdentityType
-	if input.Type != "" {
-		t = input.Type
-	}
 	var principalId string
 	if input.PrincipalID != nil {
 		principalId = *input.PrincipalID
@@ -343,7 +334,7 @@ func flattenArmWorkspaceManagedIdentity(input *synapse.ManagedIdentity) []interf
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"type":         string(t),
+			"type":         string(input.Type),
 			"principal_id": principalId,
 			"tenant_id":    tenantId,
 		},

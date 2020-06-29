@@ -3,6 +3,7 @@ package validate
 import (
 	"fmt"
 	"regexp"
+	"strings"
 )
 
 func SynapseWorkspaceName(i interface{}, k string) (warnings []string, errors []error) {
@@ -19,6 +20,10 @@ func SynapseWorkspaceName(i interface{}, k string) (warnings []string, errors []
 
 	if !regexp.MustCompile(`^[a-z\d]{1,45}$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s can contain only lowercase letters or numbers, must not end with the string 'ondemand', The value must be between 1 and 45 characters long", k))
+		return
+	}
+	if strings.HasSuffix(v, "ondemand") {
+		errors = append(errors, fmt.Errorf("%s must not end with the string 'ondemand'", k))
 		return
 	}
 

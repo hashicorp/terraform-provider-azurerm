@@ -21,6 +21,7 @@ func TestAccDataSourceAzureRMSynapseWorkspace_basic(t *testing.T) {
 					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "name"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "connectivity_endpoints.%"),
 				),
 			},
 		},
