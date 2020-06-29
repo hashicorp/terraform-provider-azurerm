@@ -181,7 +181,7 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "test" {
   display_name               = "updated rule"
   severity_filter            = ["High", "Low"]
   description                = "this is a alert rule"
-  text_whitelist             = ["alert"]
+  display_name_filter        = ["alert"]
 }
 `, template, data.RandomInteger)
 }

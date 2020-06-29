@@ -411,7 +411,7 @@ resource "azurerm_app_service_environment" "test" {
   pricing_tier                 = "I1"
   front_end_scale_factor       = 5
   internal_load_balancing_mode = "Web, Publishing"
-  user_whitelisted_ip_ranges   = ["11.22.33.44/32", "55.66.77.0/24"]
+  allowed_user_ip_cidrs        = ["11.22.33.44/32", "55.66.77.0/24"]
 }
 `, template, data.RandomInteger)
 }

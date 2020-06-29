@@ -1,6 +1,7 @@
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -37,7 +38,7 @@ func resourceArmFrontDoor() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
-			Read:   schema.DefaultTimeout(6 * time.Hour),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(6 * time.Hour),
 			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},
@@ -644,13 +645,13 @@ func resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d *schem
 			customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHTTPSConfiguration, minTLSVersion)
 			if provisioningState == frontdoor.CustomHTTPSProvisioningStateDisabled || customHTTPSConfigurationUpdate != *customHTTPSConfigurationCurrent {
 				// Enable Custom Domain HTTPS for the Frontend Endpoint
-				if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d, true, frontDoorName, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
+				if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, d, true, frontDoorName, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
 					return fmt.Errorf("Unable to enable/update Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 				}
 			}
 		} else if !customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled {
 			// Disable Custom Domain HTTPS for the Frontend Endpoint
-			if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d, false, frontDoorName, frontendEndpointName, resourceGroup, frontdoor.CustomHTTPSConfiguration{}, meta); err != nil {
+			if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, d, false, frontDoorName, frontendEndpointName, resourceGroup, frontdoor.CustomHTTPSConfiguration{}, meta); err != nil {
 				return fmt.Errorf("Unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 			}
 		}
@@ -659,10 +660,8 @@ func resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(d *schem
 	return nil
 }
 
-func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d *schema.ResourceData, enableCustomHttpsProvisioning bool, frontDoorName string, frontendEndpointName string, resourceGroup string, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration, meta interface{}) error {
+func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx context.Context, d *schema.ResourceData, enableCustomHttpsProvisioning bool, frontDoorName string, frontendEndpointName string, resourceGroup string, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	if enableCustomHttpsProvisioning {
 		future, err := client.EnableHTTPS(ctx, resourceGroup, frontDoorName, frontendEndpointName, customHTTPSConfiguration)
@@ -739,7 +738,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 
 		if frontendEndpoints := properties.FrontendEndpoints; frontendEndpoints != nil {
 			if resp.Name != nil {
-				if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoints(d, frontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
+				if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoints(ctx, d, frontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
 					if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
 						return fmt.Errorf("setting `frontend_endpoint`: %+v", err)
 					}
@@ -1292,7 +1291,7 @@ func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 	return output
 }
 
-func flattenArmFrontDoorFrontendEndpoints(d *schema.ResourceData, input *[]frontdoor.FrontendEndpoint, resourceGroup string, frontDoorName string, meta interface{}) ([]interface{}, error) {
+func flattenArmFrontDoorFrontendEndpoints(ctx context.Context, d *schema.ResourceData, input *[]frontdoor.FrontendEndpoint, resourceGroup string, frontDoorName string, meta interface{}) ([]interface{}, error) {
 	if input == nil {
 		return make([]interface{}, 0), fmt.Errorf("cannot read Front Door Frontend Endpoint (Resource Group %q): slice is empty", resourceGroup)
 	}
@@ -1300,7 +1299,7 @@ func flattenArmFrontDoorFrontendEndpoints(d *schema.ResourceData, input *[]front
 	output := make([]interface{}, 0)
 
 	for _, v := range *input {
-		result, err := flattenArmFrontDoorFrontendEndpoint(d, &v, resourceGroup, frontDoorName, meta)
+		result, err := flattenArmFrontDoorFrontendEndpoint(ctx, d, &v, resourceGroup, frontDoorName, meta)
 		if err != nil {
 			return make([]interface{}, 0), fmt.Errorf("retrieving Front Door Frontend Endpoint Custom HTTPS Configuration %q (Resource Group %q): %+v", *v.Name, resourceGroup, err)
 		}
@@ -1311,7 +1310,7 @@ func flattenArmFrontDoorFrontendEndpoints(d *schema.ResourceData, input *[]front
 	return output, nil
 }
 
-func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *frontdoor.FrontendEndpoint, resourceGroup string, frontDoorName string, meta interface{}) (map[string]interface{}, error) {
+func flattenArmFrontDoorFrontendEndpoint(ctx context.Context, d *schema.ResourceData, input *frontdoor.FrontendEndpoint, resourceGroup string, frontDoorName string, meta interface{}) (map[string]interface{}, error) {
 	if input == nil {
 		return make(map[string]interface{}), fmt.Errorf("cannot read Front Door Frontend Endpoint (Resource Group %q): endpoint is empty", resourceGroup)
 	}
@@ -1326,8 +1325,6 @@ func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *frontdoo
 		// Need to call frontEndEndpointClient here to get customConfiguration information from that client
 		// because the information is hidden from the main frontDoorClient "by design"...
 		client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-		ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-		defer cancel()
 
 		resp, err := client.Get(ctx, resourceGroup, frontDoorName, *name)
 		if err != nil {

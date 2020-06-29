@@ -1,45 +1,51 @@
-## 2.16.0 (Unreleased)
-
-DEPENDENCIES:
-
-* updating `github.com/Azure/go-autorest/azure/cli` to `v0.3.1` [GH-7433]
-
-FEATURES:
-
-* **New Resource:** `azurerm_postgresql_active_directory_administrator` [GH-7411]
+## 2.17.0 (Unreleased)
 
 ENHANCEMENTS:
 
-* authentication: Azure CLI - support for access tokens in custom directories [GH-7433]
-* `azurerm_app_service_environment` - support a value of `Web, Publishing` for the `internal_load_balancing_mode` property [GH-7346]
-* `azurerm_api_management_api` - support for the `subscription_required` property [GH-4885]
-* `azurerm_kusto_cluster` - support for the `identity` block [GH-7367]
-* `azurerm_kusto_cluster` - support for `virtual_network_configuration` block [GH-7369]
-* `azurerm_kusto_cluster` - supoport for the `zone` property [GH-7373]
-* `azurerm_firewall` - support for configuring `threat_intel_mode` [GH-7437]
-* `azurerm_management_group` - waiting until the Management Group has been fully replicated after creating [GH-7473]
-* `azurerm_monitor_activity_log_alert` - support for the fields `recommendation_category`, `recommendation_impact` and `recommendation_type` in the `criteria` block [GH-7458]
-* `azurerm_mssql_database` - support up to `5` for the `min_capacity` property [GH-7457]
-* `azurerm_mssql_database` - support `GP_S_Gen5` SKUs up to `GP_S_Gen5_40` [GH-7453]
+* `azurerm_app_service_environment` - the `user_whitelisted_ip_ranges` property has been deprecated and renamed to `allowed_user_ip_cidrs` to clearify the function and expected format [GH-7499]
+* `azurerm_sentinel_alert_rule_ms_security_incident` - the `text_whitelist` propety has been deprecated and renamed to `display_name_filter` to better match the api [GH-7499]
+
+## 2.16.0 (June 25, 2020)
+
+DEPENDENCIES:
+
+* updating `github.com/Azure/go-autorest/azure/cli` to `v0.3.1` ([#7433](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7433))
+
+FEATURES:
+
+* **New Resource:** `azurerm_postgresql_active_directory_administrator` ([#7411](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7411))
+
+ENHANCEMENTS:
+
+* authentication: Azure CLI - support for access tokens in custom directories ([#7433](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7433))
+* `azurerm_api_management_api` - support for the `subscription_required` property ([#4885](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4885))
+* `azurerm_app_service_environment` - support a value of `Web, Publishing` for the `internal_load_balancing_mode` property ([#7346](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7346))
+* `azurerm_kusto_cluster` - support for the `identity` block ([#7367](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7367))
+* `azurerm_kusto_cluster` - support for `virtual_network_configuration` block ([#7369](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7369))
+* `azurerm_kusto_cluster` - supoport for the `zone` property ([#7373](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7373))
+* `azurerm_firewall` - support for configuring `threat_intel_mode` ([#7437](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7437))
+* `azurerm_management_group` - waiting until the Management Group has been fully replicated after creating ([#7473](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7473))
+* `azurerm_monitor_activity_log_alert` - support for the fields `recommendation_category`, `recommendation_impact` and `recommendation_type` in the `criteria` block ([#7458](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7458))
+* `azurerm_mssql_database` - support up to `5` for the `min_capacity` property ([#7457](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7457))
+* `azurerm_mssql_database` - support `GP_S_Gen5` SKUs up to `GP_S_Gen5_40` ([#7453](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7453))
 
 BUG FIXES: 
 
-* `azurerm_api_management_api` - allowing dots as a prefix of the `name` field [GH-7478]
-* `azurerm_function_app` - state fixes for `app_settings` [GH-7440]
-* `azurerm_frontdoor` - increase read timeout to 6 hours [GH-7408]
-* `azurerm_hdinsight_hadoop_cluster` - fixes for node and instance count validation [GH-7430]
-* `azurerm_hdinsight_hbase_cluster` - fixes for node and instance count validation [GH-7430]
-* `azurerm_hdinsight_interactive_query_cluster` - fixes for node and instance count validation [GH-7430]
-* `azurerm_hdinsight_kafka_cluster` - fixes for node and instance count validation [GH-7430]
-* `azurerm_hdinsight_ml_services_cluster` - fixes for node and instance count validation [GH-7430]
-* `azurerm_hdinsight_rserver_cluster` - fixes for node and instance count validation [GH-7430]
-* `azurerm_hdinsight_spark_cluster` - fixes for node and instance count validation [GH-7430]
-* `azurerm_hdinsight_storm_cluster` - fixes for node and instance count validation [GH-7430]
-* `azurerm_monitor_autoscale_settings` - support for setting `time_aggregation` to `Last` as per the documentation [GH-7480]
-* `azurerm_postgresql_server` - can now update the tier of `sku_name` by recreating the resource [GH-7456]
-* `azurerm_network_interface_security_group_association` - is now considered delete whtn the  network interfact is notfound [GH-7459]
-* `azurerm_role_definition` - terraform import now sets scope to prevent a force recreate [GH-7424]
-* `azurerm_storage_account_network_rules` - corretly clear `ip_rules`, `virtual_network_subnet_ids` when set to `[]` [GH-7385]
+* `azurerm_api_management_api` - allowing dots as a prefix of the `name` field ([#7478](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7478))
+* `azurerm_function_app` - state fixes for `app_settings` ([#7440](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7440))
+* `azurerm_hdinsight_hadoop_cluster` - fixes for node and instance count validation ([#7430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7430))
+* `azurerm_hdinsight_hbase_cluster` - fixes for node and instance count validation ([#7430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7430))
+* `azurerm_hdinsight_interactive_query_cluster` - fixes for node and instance count validation ([#7430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7430))
+* `azurerm_hdinsight_kafka_cluster` - fixes for node and instance count validation ([#7430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7430))
+* `azurerm_hdinsight_ml_services_cluster` - fixes for node and instance count validation ([#7430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7430))
+* `azurerm_hdinsight_rserver_cluster` - fixes for node and instance count validation ([#7430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7430))
+* `azurerm_hdinsight_spark_cluster` - fixes for node and instance count validation ([#7430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7430))
+* `azurerm_hdinsight_storm_cluster` - fixes for node and instance count validation ([#7430](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7430))
+* `azurerm_monitor_autoscale_settings` - support for setting `time_aggregation` to `Last` as per the documentation ([#7480](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7480))
+* `azurerm_postgresql_server` - can now update the tier of `sku_name` by recreating the resource ([#7456](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7456))
+* `azurerm_network_interface_security_group_association` - is now considered delete whtn the  network interfact is notfound ([#7459](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7459))
+* `azurerm_role_definition` - terraform import now sets scope to prevent a force recreate ([#7424](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7424))
+* `azurerm_storage_account_network_rules` - corretly clear `ip_rules`, `virtual_network_subnet_ids` when set to `[]` ([#7385](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7385))
 
 ## 2.15.0 (June 19, 2020)
 
