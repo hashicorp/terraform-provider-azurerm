@@ -230,7 +230,7 @@ func TestAccAzureRMPostgreSQLServer_updatedDeprecated(t *testing.T) {
 			},
 			data.ImportStep("administrator_login_password"),
 			{
-				Config: testAccAzureRMPostgreSQLServer_basicDeprecated(data, "9.6"),
+				Config: testAccAzureRMPostgreSQLServer_updateDeprecated(data, "9.6"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
@@ -267,14 +267,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("administrator_login_password"),
-			{
-				Config: testAccAzureRMPostgreSQLServer_gp(data, "9.6"),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("administrator_login_password"),
+			data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
 		},
 	})
 }
@@ -606,6 +599,37 @@ resource "azurerm_postgresql_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
 
+func testAccAzureRMPostgreSQLServer_updateDeprecated(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-psql-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+
+  sku_name = "GP_Gen5_2"
+  version  = "%s"
+
+  storage_profile {
+    storage_mb = 640000
+  }
+
+  ssl_enforcement_enabled = false
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
+}
+
 func testAccAzureRMPostgreSQLServer_complete(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -630,12 +654,11 @@ resource "azurerm_postgresql_server" "test" {
   storage_mb = 640000
 
   backup_retention_days        = 7
-  geo_redundant_backup_enabled = true
   auto_grow_enabled            = true
 
   public_network_access_enabled     = false
   ssl_enforcement_enabled           = true
-  ssl_minimal_tls_version_enforced  = "TLS1_2"
+  ssl_minimal_tls_version_enforced  = "TLS1_2" 
 
   threat_detection_policy {
     enabled              = true
@@ -681,11 +704,10 @@ resource "azurerm_postgresql_server" "test" {
   storage_mb = 640000
 
   backup_retention_days        = 14
-  geo_redundant_backup_enabled = false
   auto_grow_enabled            = false
 
   public_network_access_enabled     = true
-  ssl_enforcement_enabled           = false
+  ssl_enforcement_enabled           = true
   ssl_minimal_tls_version_enforced  = "TLS1_1"
 
   threat_detection_policy {
@@ -748,7 +770,7 @@ resource "azurerm_postgresql_server" "replica" {
 
   ssl_enforcement_enabled = true
 }
-`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, version)
+`, testAccAzureRMPostgreSQLServer_template(data, "GP_Gen5_2", version), data.RandomInteger, version)
 }
 
 func testAccAzureRMPostgreSQLServer_createPointInTimeRestore(data acceptance.TestData, version, restoreTime string) string {
@@ -770,5 +792,5 @@ resource "azurerm_postgresql_server" "restore" {
 
   ssl_enforcement_enabled = true
 }
-`, testAccAzureRMPostgreSQLServer_basic(data, version), data.RandomInteger, restoreTime, version)
+`, testAccAzureRMPostgreSQLServer_template(data, "GP_Gen5_2", version), data.RandomInteger, restoreTime, version)
 }

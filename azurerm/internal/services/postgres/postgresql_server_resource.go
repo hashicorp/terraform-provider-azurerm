@@ -559,11 +559,6 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("expanding `sku_name` for PostgreSQL Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
-	publicAccess := postgresql.PublicNetworkAccessEnumEnabled
-	if v := d.Get("public_network_access_enabled"); !v.(bool) {
-		publicAccess = postgresql.PublicNetworkAccessEnumDisabled
-	}
-
 	ssl := postgresql.SslEnforcementEnumEnabled
 	if d.HasChange("ssl_enforcement") {
 		if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(postgresql.SslEnforcementEnumDisabled)) {
@@ -579,7 +574,6 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	properties := postgresql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
-			PublicNetworkAccess:        publicAccess,
 			SslEnforcement:             ssl,
 			StorageProfile:             expandPostgreSQLStorageProfile(d),
 			Version:                    postgresql.ServerVersion(d.Get("version").(string)),
@@ -590,6 +584,13 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 
 	if d.HasChange("ssl_minimal_tls_version_enforced") {
 		properties.ServerUpdateParametersProperties.MinimalTLSVersion = postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		properties.ServerUpdateParametersProperties.PublicNetworkAccess = postgresql.PublicNetworkAccessEnumEnabled
+		if v, ok := d.GetOkExists("public_network_access_enabled"); ok && !v.(bool) {
+			properties.ServerUpdateParametersProperties.PublicNetworkAccess = postgresql.PublicNetworkAccessEnumDisabled
+		}
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
@@ -769,9 +770,9 @@ func expandPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageP
 	}
 
 	// now override whatever we may have from the block with the top level properties
-	// without d.HasChange, the update in block will not update these fields
-	if d.HasChange("auto_grow_enabled"){
-		if v, ok := d.GetOk("auto_grow_enabled"); ok {
+	// without d.HasChange, the fields in block will not be updated
+	if d.HasChange("auto_grow_enabled") {
+		if v, ok := d.GetOkExists("auto_grow_enabled"); ok {
 			storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
 			if v.(bool) {
 				storage.StorageAutogrow = postgresql.StorageAutogrowEnabled
@@ -779,7 +780,7 @@ func expandPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageP
 		}
 	}
 
-	if d.HasChange("backup_retention_days"){
+	if d.HasChange("backup_retention_days") {
 		if v, ok := d.GetOk("backup_retention_days"); ok {
 			storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
 		}
@@ -792,7 +793,7 @@ func expandPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageP
 		}
 	}
 
-	if d.HasChange("storage_mb"){
+	if d.HasChange("storage_mb") {
 		if v, ok := d.GetOk("storage_mb"); ok {
 			storage.StorageMB = utils.Int32(int32(v.(int)))
 		}
