@@ -203,6 +203,12 @@ func resourceArmEventHubAuthorizationRuleDelete(d *schema.ResourceData, meta int
 	locks.ByName(namespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(namespaceName, eventHubNamespaceResourceName)
 
+	locks.ByName(eventHubName, eventHubDedicatedResourceName)
+	defer locks.UnlockByName(eventHubName, eventHubDedicatedResourceName)
+
+	locks.ByName(namespaceName, eventHubNamespaceDedicatedResourceName)
+	defer locks.UnlockByName(namespaceName, eventHubNamespaceDedicatedResourceName)
+
 	if resp, err := eventhubClient.DeleteAuthorizationRule(ctx, resourceGroup, namespaceName, eventHubName, name); err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("Error issuing Azure ARM delete request of EventHub Authorization Rule '%s': %+v", name, err)

@@ -174,6 +174,9 @@ func resourceArmEventHubNamespaceAuthorizationRuleDelete(d *schema.ResourceData,
 		return err
 	}
 
+	locks.ByName(id.NamespaceName, eventHubNamespaceDedicatedResourceName)
+	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceDedicatedResourceName)
+
 	locks.ByName(id.NamespaceName, eventHubNamespaceResourceName)
 	defer locks.UnlockByName(id.NamespaceName, eventHubNamespaceResourceName)
 
