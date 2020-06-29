@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `eula` - (Optional) The End User Licence Agreement for the Shared Image.
 
-* `generalized` - (Optional) Should the Operating System present in this Shared Image be generalized? Defaults to `true`. Changing this forces a new resource to be created.
+* `generalized` - (Optional) Should the Operating System present in this Shared Image be generalized? Defaults to `true`. Setting this to `false` creates a specialized imagine which is the equivalent of sysprepping in windows. Changing this forces a new resource to be created.
 
 * `hyper_v_generation` - (Optional) The generation of HyperV that the Virtual Machine used to create the Shared Image is based on. Possible values are `V1` and `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
 
