@@ -1,7 +1,7 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_firewall_rule"
-sidebar_current: "docs-azurerm-resource-database-mysql-firewall-rule"
 description: |-
   Manages a Firewall Rule for a MySQL Server.
 ---
@@ -13,19 +13,19 @@ Manages a Firewall Rule for a MySQL Server
 ## Example Usage (Single IP Address)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_mysql_server" "test" {
+resource "azurerm_mysql_server" "example" {
   # ...
 }
 
-resource "azurerm_mysql_firewall_rule" "test" {
+resource "azurerm_mysql_firewall_rule" "example" {
   name                = "office"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mysql_server.example.name
   start_ip_address    = "40.112.8.12"
   end_ip_address      = "40.112.8.12"
 }
@@ -34,19 +34,19 @@ resource "azurerm_mysql_firewall_rule" "test" {
 ## Example Usage (IP Range)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_mysql_server" "test" {
+resource "azurerm_mysql_server" "example" {
   # ...
 }
 
-resource "azurerm_mysql_firewall_rule" "test" {
+resource "azurerm_mysql_firewall_rule" "example" {
   name                = "office"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_mysql_server.example.name
   start_ip_address    = "40.112.0.0"
   end_ip_address      = "40.112.255.255"
 }
@@ -66,11 +66,22 @@ The following arguments are supported:
 
 * `end_ip_address` - (Required) Specifies the End IP Address associated with this Firewall Rule. Changing this forces a new resource to be created.
 
+-> **NOTE:** The Azure feature `Allow access to Azure services` can be enabled by setting `start_ip_address` and `end_ip_address` to `0.0.0.0` which ([is documented in the Azure API Docs](https://docs.microsoft.com/en-us/rest/api/sql/firewallrules/createorupdate)).
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the MySQL Firewall Rule.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the MySQL Firewall Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the MySQL Firewall Rule.
+* `read` - (Defaults to 5 minutes) Used when retrieving the MySQL Firewall Rule.
+* `delete` - (Defaults to 30 minutes) Used when deleting the MySQL Firewall Rule.
 
 ## Import
 

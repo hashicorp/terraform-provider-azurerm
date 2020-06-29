@@ -1,8 +1,12 @@
-resource "azurerm_policy_definition" "policy" {
-  name         = "${var.policy_definition_name}"
-  policy_type  = "${var.policy_type}"
-  mode         = "${var.mode}"
-  display_name = "${var.display_name}"
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "example" {
+  name         = "${var.prefix}-policy"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "${var.prefix}-policy"
 
   policy_rule = <<POLICY_RULE
 	{

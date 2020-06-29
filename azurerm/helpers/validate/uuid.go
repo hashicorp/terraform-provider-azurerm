@@ -1,21 +1,6 @@
 package validate
 
-import (
-	"fmt"
+import "regexp"
 
-	"github.com/hashicorp/go-uuid"
-)
-
-func UUID(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := uuid.ParseUUID(v); err != nil {
-		errors = append(errors, fmt.Errorf("%q isn't a valid UUID (%q): %+v", k, v, err))
-	}
-
-	return
-}
+// uuid regex helper
+var UUIDRegExp = regexp.MustCompile("^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$")

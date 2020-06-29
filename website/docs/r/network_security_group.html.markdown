@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_security_group"
-sidebar_current: "docs-azurerm-resource-network-security-group"
 description: |-
   Manages a network security group that contains a list of network security rules. Network security groups enable inbound or outbound traffic to be enabled or denied.
 
@@ -18,15 +18,15 @@ At this time you cannot use a Network Security Group with in-line Network Securi
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_network_security_group" "test" {
+resource "azurerm_network_security_group" "example" {
   name                = "acceptanceTestSecurityGroup1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   security_rule {
     name                       = "test123"
@@ -40,7 +40,7 @@ resource "azurerm_network_security_group" "test" {
     destination_address_prefix = "*"
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -56,18 +56,20 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `security_rule` - (Optional) One or more `security_rule` blocks as defined below.
+* `security_rule` - (Optional) [List of objects](/docs/configuration/attr-as-blocks.html) representing security rules, as defined below.
+
+-> **NOTE** Since `security_rule` can be configured both inline and via the separate `azurerm_network_security_rule` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 
-The `security_rule` block supports:
+Elements of `security_rule` support:
 
 * `name` - (Required) The name of the security rule.
 
 * `description` - (Optional) A description for this rule. Restricted to 140 characters.
 
-* `protocol` - (Required) Network protocol this rule applies to. Can be `Tcp`, `Udp` or `*` to match both.
+* `protocol` - (Required) Network protocol this rule applies to. Can be `Tcp`, `Udp`, `Icmp`, or `*` to match all.
 
 * `source_port_range` - (Optional) Source Port or Range. Integer or range between `0` and `65535` or `*` to match any. This is required if `source_port_ranges` is not specified.
 
@@ -100,8 +102,16 @@ The `security_rule` block supports:
 
 The following attributes are exported:
 
-* `id` - The Network Security Group ID.
+* `id` - The ID of the Network Security Group.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Network Security Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Security Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Network Security Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Network Security Group.
 
 ## Import
 

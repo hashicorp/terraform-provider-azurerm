@@ -1,7 +1,7 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_account"
-sidebar_current: "docs-azurerm-resource-automation-account"
 description: |-
   Manages a Automation Account.
 ---
@@ -14,20 +14,18 @@ Manages a Automation Account.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
- location = "West Europe"
+  name     = "resourceGroup1"
+  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {
   name                = "automationAccount1"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
-  sku {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 
-  tags {
+  tags = {
     environment = "development"
   }
 }
@@ -43,19 +41,40 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as defined below.
+* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
+
+* `sku_name` - (Optional) The SKU name of the account - only `Basic` is supported at this time.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`sku` supports the following:
+----
 
-* `name` - (Optional) The SKU name of the account - only `Basic` is supported at this time. Defaults to `Basic`.
+A `sku` block supports the following:
+
+* `name` - (Required) The SKU name of the account - only `Basic` is supported at this time.
+
+----
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Automation Account ID.
+
+* `dsc_server_endpoint` - The DSC Server Endpoint associated with this Automation Account.
+
+* `dsc_primary_access_key` - The Primary Access Key for the DSC Endpoint associated with this Automation Account.
+
+* `dsc_secondary_access_key` - The Secondary Access Key for the DSC Endpoint associated with this Automation Account.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Automation Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Account.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Automation Account.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Automation Account.
 
 ## Import
 

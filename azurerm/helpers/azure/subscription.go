@@ -1,7 +1,7 @@
 package azure
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func SchemaSubscription(subscriptionIDOptional bool) map[string]*schema.Schema {
@@ -9,6 +9,11 @@ func SchemaSubscription(subscriptionIDOptional bool) map[string]*schema.Schema {
 		"subscription_id": {
 			Type:     schema.TypeString,
 			Optional: subscriptionIDOptional,
+			Computed: true,
+		},
+
+		"tenant_id": {
+			Type:     schema.TypeString,
 			Computed: true,
 		},
 

@@ -5,20 +5,13 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 )
 
-//validation
-func ValidateServiceBusNamespaceName() schema.SchemaValidateFunc {
-	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{4,48}[a-zA-Z0-9]$"),
-		"The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number and be between 6 and 50 characters long.",
-	)
-}
-
+// validation
 func ValidateServiceBusQueueName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
 		regexp.MustCompile(`^[a-zA-Z0-9][\w-./~]{0,258}([a-zA-Z0-9])?$`),
@@ -28,15 +21,15 @@ func ValidateServiceBusQueueName() schema.SchemaValidateFunc {
 
 func ValidateServiceBusSubscriptionName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-._a-zA-Z0-9]{0,48}([a-zA-Z0-9])?$"),
+		regexp.MustCompile("^[a-zA-Z0-9][-._a-zA-Z0-9]{0,48}([a-zA-Z0-9])?$"),
 		"The name can contain only letters, numbers, periods, hyphens and underscores. The name must start and end with a letter or number and be less then 50 characters long.",
 	)
 }
 
 func ValidateServiceBusTopicName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z][-._~a-zA-Z0-9]{0,258}([a-zA-Z0-9])?$"),
-		"The topic name can contain only letters, numbers, periods, hyphens, tildas and underscores. The namespace must start with a letter, and it must end with a letter or number and be less then 260 characters long.",
+		regexp.MustCompile("^[a-zA-Z0-9]([-._~a-zA-Z0-9]{0,258}[a-zA-Z0-9])?$"),
+		"The topic name can contain only letters, numbers, periods, hyphens, tildas and underscores. The namespace must start with a letter or number, and it must end with a letter or number and be less then 260 characters long.",
 	)
 }
 
@@ -48,14 +41,14 @@ func ValidateServiceBusAuthorizationRuleName() schema.SchemaValidateFunc {
 }
 
 func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]servicebus.AccessRights {
-	rights := []servicebus.AccessRights{}
+	rights := make([]servicebus.AccessRights, 0)
 
 	if d.Get("listen").(bool) {
 		rights = append(rights, servicebus.Listen)
 	}
 
 	if d.Get("send").(bool) {
-		rights = append(rights, servicebus.Send)
+		rights = append(rights, servicebus.SendEnumValue)
 	}
 
 	if d.Get("manage").(bool) {
@@ -65,15 +58,15 @@ func ExpandServiceBusAuthorizationRuleRights(d *schema.ResourceData) *[]serviceb
 	return &rights
 }
 
-func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen bool, send bool, manage bool) {
-	//zero (initial) value for a bool in go is false
+func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights) (listen, send, manage bool) {
+	// zero (initial) value for a bool in go is false
 
 	if rights != nil {
 		for _, right := range *rights {
 			switch right {
 			case servicebus.Listen:
 				listen = true
-			case servicebus.Send:
+			case servicebus.SendEnumValue:
 				send = true
 			case servicebus.Manage:
 				manage = true
@@ -83,10 +76,10 @@ func FlattenServiceBusAuthorizationRuleRights(rights *[]servicebus.AccessRights)
 		}
 	}
 
-	return
+	return listen, send, manage
 }
 
-//shared schema
+// shared schema
 func MergeSchema(a map[string]*schema.Schema, b map[string]*schema.Schema) map[string]*schema.Schema {
 	s := map[string]*schema.Schema{}
 
@@ -102,7 +95,6 @@ func MergeSchema(a map[string]*schema.Schema, b map[string]*schema.Schema) map[s
 }
 
 func ServiceBusAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
-
 	authSchema := map[string]*schema.Schema{
 		"listen": {
 			Type:     schema.TypeBool,

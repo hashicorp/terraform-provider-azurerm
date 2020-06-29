@@ -1,7 +1,7 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit_peering"
-sidebar_current: "docs-azurerm-resource-network-express-route-circuit-peering"
 description: |-
   Manages an ExpressRoute Circuit Peering.
 ---
@@ -13,33 +13,35 @@ Manages an ExpressRoute Circuit Peering.
 ## Example Usage (Creating a Microsoft Peering)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "exprtTest"
   location = "West US"
 }
 
-resource "azurerm_express_route_circuit" "test" {
-  name                     = "expressRoute1"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  service_provider_name    = "Equinix"
-  peering_location         = "Silicon Valley"
-  bandwidth_in_mbps        = 50
+resource "azurerm_express_route_circuit" "example" {
+  name                  = "expressRoute1"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
+  service_provider_name = "Equinix"
+  peering_location      = "Silicon Valley"
+  bandwidth_in_mbps     = 50
+
   sku {
     tier   = "Standard"
     family = "MeteredData"
   }
+
   allow_classic_operations = false
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
 
-resource "azurerm_express_route_circuit_peering" "test" {
+resource "azurerm_express_route_circuit_peering" "example" {
   peering_type                  = "MicrosoftPeering"
-  express_route_circuit_name    = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  express_route_circuit_name    = azurerm_express_route_circuit.example.name
+  resource_group_name           = azurerm_resource_group.example.name
   peer_asn                      = 100
   primary_peer_address_prefix   = "123.0.0.0/30"
   secondary_peer_address_prefix = "123.0.0.4/30"
@@ -64,9 +66,9 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to
     create the Express Route Circuit Peering. Changing this forces a new resource to be created.
 
-* `primary_peer_address_prefix` - (Optional) A `/30` subnet for the primary link.
-* `secondary_peer_address_prefix` - (Optional) A `/30` subnet for the secondary link.
-* `vlan_id` - (Optional) A valid VLAN ID to establish this peering on.
+* `primary_peer_address_prefix` - (Required) A `/30` subnet for the primary link.
+* `secondary_peer_address_prefix` - (Required) A `/30` subnet for the secondary link.
+* `vlan_id` - (Required) A valid VLAN ID to establish this peering on.
 * `shared_key` - (Optional) The shared key. Can be a maximum of 25 characters.
 * `peer_asn` - (Optional) The Either a 16-bit or a 32-bit ASN. Can either be public or private..
 * `microsoft_peering_config` - (Optional) A `microsoft_peering_config` block as defined below. Required when `peering_type` is set to `MicrosoftPeering`.
@@ -76,6 +78,8 @@ The following arguments are supported:
 A `microsoft_peering_config` block contains:
 
 * `advertised_public_prefixes` - (Required) A list of Advertised Public Prefixes
+* `customer_asn` - (Optional) The CustomerASN of the peering
+* `routing_registry_name` - (Optional) The RoutingRegistryName of the configuration
 
 ## Attributes Reference
 
@@ -88,6 +92,17 @@ The following attributes are exported:
 * `primary_azure_port` - The Primary Port used by Azure for this Peering.
 
 * `secondary_azure_port` - The Secondary Port used by Azure for this Peering.
+
+## Timeouts
+
+
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the ExpressRoute Circuit Peering.
+* `update` - (Defaults to 30 minutes) Used when updating the ExpressRoute Circuit Peering.
+* `read` - (Defaults to 5 minutes) Used when retrieving the ExpressRoute Circuit Peering.
+* `delete` - (Defaults to 30 minutes) Used when deleting the ExpressRoute Circuit Peering.
 
 ## Import
 

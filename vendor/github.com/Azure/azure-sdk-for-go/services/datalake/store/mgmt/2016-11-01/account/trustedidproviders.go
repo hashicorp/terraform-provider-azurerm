@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -35,7 +36,9 @@ func NewTrustedIDProvidersClient(subscriptionID string) TrustedIDProvidersClient
 	return NewTrustedIDProvidersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTrustedIDProvidersClientWithBaseURI creates an instance of the TrustedIDProvidersClient client.
+// NewTrustedIDProvidersClientWithBaseURI creates an instance of the TrustedIDProvidersClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure
+// stack).
 func NewTrustedIDProvidersClientWithBaseURI(baseURI string, subscriptionID string) TrustedIDProvidersClient {
 	return TrustedIDProvidersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -49,6 +52,16 @@ func NewTrustedIDProvidersClientWithBaseURI(baseURI string, subscriptionID strin
 // providers in the account.
 // parameters - parameters supplied to create or replace the trusted identity provider.
 func (client TrustedIDProvidersClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, accountName string, trustedIDProviderName string, parameters CreateOrUpdateTrustedIDProviderParameters) (result TrustedIDProvider, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TrustedIDProvidersClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.CreateOrUpdateTrustedIDProviderProperties", Name: validation.Null, Rule: true,
@@ -104,8 +117,7 @@ func (client TrustedIDProvidersClient) CreateOrUpdatePreparer(ctx context.Contex
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -127,6 +139,16 @@ func (client TrustedIDProvidersClient) CreateOrUpdateResponder(resp *http.Respon
 // accountName - the name of the Data Lake Store account.
 // trustedIDProviderName - the name of the trusted identity provider to delete.
 func (client TrustedIDProvidersClient) Delete(ctx context.Context, resourceGroupName string, accountName string, trustedIDProviderName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TrustedIDProvidersClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, trustedIDProviderName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "Delete", nil, "Failure preparing request")
@@ -173,8 +195,7 @@ func (client TrustedIDProvidersClient) DeletePreparer(ctx context.Context, resou
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -195,6 +216,16 @@ func (client TrustedIDProvidersClient) DeleteResponder(resp *http.Response) (res
 // accountName - the name of the Data Lake Store account.
 // trustedIDProviderName - the name of the trusted identity provider to retrieve.
 func (client TrustedIDProvidersClient) Get(ctx context.Context, resourceGroupName string, accountName string, trustedIDProviderName string) (result TrustedIDProvider, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TrustedIDProvidersClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, trustedIDProviderName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "Get", nil, "Failure preparing request")
@@ -241,8 +272,7 @@ func (client TrustedIDProvidersClient) GetPreparer(ctx context.Context, resource
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -263,6 +293,16 @@ func (client TrustedIDProvidersClient) GetResponder(resp *http.Response) (result
 // resourceGroupName - the name of the Azure resource group.
 // accountName - the name of the Data Lake Store account.
 func (client TrustedIDProvidersClient) ListByAccount(ctx context.Context, resourceGroupName string, accountName string) (result TrustedIDProviderListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TrustedIDProvidersClient.ListByAccount")
+		defer func() {
+			sc := -1
+			if result.tiplr.Response.Response != nil {
+				sc = result.tiplr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.fn = client.listByAccountNextResults
 	req, err := client.ListByAccountPreparer(ctx, resourceGroupName, accountName)
 	if err != nil {
@@ -309,8 +349,7 @@ func (client TrustedIDProvidersClient) ListByAccountPreparer(ctx context.Context
 // ListByAccountSender sends the ListByAccount request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) ListByAccountSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByAccountResponder handles the response to the ListByAccount request. The method always
@@ -327,8 +366,8 @@ func (client TrustedIDProvidersClient) ListByAccountResponder(resp *http.Respons
 }
 
 // listByAccountNextResults retrieves the next set of results, if any.
-func (client TrustedIDProvidersClient) listByAccountNextResults(lastResults TrustedIDProviderListResult) (result TrustedIDProviderListResult, err error) {
-	req, err := lastResults.trustedIDProviderListResultPreparer()
+func (client TrustedIDProvidersClient) listByAccountNextResults(ctx context.Context, lastResults TrustedIDProviderListResult) (result TrustedIDProviderListResult, err error) {
+	req, err := lastResults.trustedIDProviderListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "listByAccountNextResults", nil, "Failure preparing next results request")
 	}
@@ -349,6 +388,16 @@ func (client TrustedIDProvidersClient) listByAccountNextResults(lastResults Trus
 
 // ListByAccountComplete enumerates all values, automatically crossing page boundaries as required.
 func (client TrustedIDProvidersClient) ListByAccountComplete(ctx context.Context, resourceGroupName string, accountName string) (result TrustedIDProviderListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TrustedIDProvidersClient.ListByAccount")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListByAccount(ctx, resourceGroupName, accountName)
 	return
 }
@@ -361,6 +410,16 @@ func (client TrustedIDProvidersClient) ListByAccountComplete(ctx context.Context
 // providers in the account.
 // parameters - parameters supplied to update the trusted identity provider.
 func (client TrustedIDProvidersClient) Update(ctx context.Context, resourceGroupName string, accountName string, trustedIDProviderName string, parameters *UpdateTrustedIDProviderParameters) (result TrustedIDProvider, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TrustedIDProvidersClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, trustedIDProviderName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.TrustedIDProvidersClient", "Update", nil, "Failure preparing request")
@@ -412,8 +471,7 @@ func (client TrustedIDProvidersClient) UpdatePreparer(ctx context.Context, resou
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client TrustedIDProvidersClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always

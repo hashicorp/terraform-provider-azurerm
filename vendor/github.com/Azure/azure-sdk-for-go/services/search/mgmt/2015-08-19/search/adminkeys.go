@@ -21,11 +21,12 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/tracing"
 	"github.com/satori/go.uuid"
 	"net/http"
 )
 
-// AdminKeysClient is the client that can be used to manage Azure Search services and API keys.
+// AdminKeysClient is the client that can be used to manage Azure Cognitive Search services and API keys.
 type AdminKeysClient struct {
 	BaseClient
 }
@@ -35,19 +36,31 @@ func NewAdminKeysClient(subscriptionID string) AdminKeysClient {
 	return NewAdminKeysClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewAdminKeysClientWithBaseURI creates an instance of the AdminKeysClient client.
+// NewAdminKeysClientWithBaseURI creates an instance of the AdminKeysClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewAdminKeysClientWithBaseURI(baseURI string, subscriptionID string) AdminKeysClient {
 	return AdminKeysClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Get gets the primary and secondary admin API keys for the specified Azure Search service.
+// Get gets the primary and secondary admin API keys for the specified Azure Cognitive Search service.
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service associated with the specified resource group.
+// searchServiceName - the name of the Azure Cognitive Search service associated with the specified resource
+// group.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
 func (client AdminKeysClient) Get(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result AdminKeyResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AdminKeysClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.GetPreparer(ctx, resourceGroupName, searchServiceName, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.AdminKeysClient", "Get", nil, "Failure preparing request")
@@ -97,8 +110,7 @@ func (client AdminKeysClient) GetPreparer(ctx context.Context, resourceGroupName
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AdminKeysClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -118,11 +130,22 @@ func (client AdminKeysClient) GetResponder(resp *http.Response) (result AdminKey
 // Parameters:
 // resourceGroupName - the name of the resource group within the current subscription. You can obtain this
 // value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Search service associated with the specified resource group.
+// searchServiceName - the name of the Azure Cognitive Search service associated with the specified resource
+// group.
 // keyKind - specifies which key to regenerate. Valid values include 'primary' and 'secondary'.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
 func (client AdminKeysClient) Regenerate(ctx context.Context, resourceGroupName string, searchServiceName string, keyKind AdminKeyKind, clientRequestID *uuid.UUID) (result AdminKeyResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AdminKeysClient.Regenerate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	req, err := client.RegeneratePreparer(ctx, resourceGroupName, searchServiceName, keyKind, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.AdminKeysClient", "Regenerate", nil, "Failure preparing request")
@@ -173,8 +196,7 @@ func (client AdminKeysClient) RegeneratePreparer(ctx context.Context, resourceGr
 // RegenerateSender sends the Regenerate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AdminKeysClient) RegenerateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // RegenerateResponder handles the response to the Regenerate request. The method always

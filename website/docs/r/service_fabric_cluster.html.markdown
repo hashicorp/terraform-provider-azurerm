@@ -1,31 +1,32 @@
 ---
+subcategory: "Service Fabric"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_service_fabric_cluster"
-sidebar_current: "docs-azurerm-resource-service-fabric-cluster"
 description: |-
-  Manage a Service Fabric Cluster.
+  Manages a Service Fabric Cluster.
 ---
 
 # azurerm_service_fabric_cluster
 
-Manage a Service Fabric Cluster.
+Manages a Service Fabric Cluster.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_service_fabric_cluster" "test" {
-  name                = "example-servicefabric"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  reliability_level   = "Bronze"
-  upgrade_mode        = "Automatic"
-  vm_image            = "Windows"
-  management_endpoint = "https://example:80"
+resource "azurerm_service_fabric_cluster" "example" {
+  name                 = "example-servicefabric"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
+  reliability_level    = "Bronze"
+  upgrade_mode         = "Manual"
+  cluster_code_version = "6.5.639.9590"
+  vm_image             = "Windows"
+  management_endpoint  = "https://example:80"
 
   node_type {
     name                 = "first"
@@ -60,11 +61,21 @@ The following arguments are supported:
 
 ---
 
+* `cluster_code_version` - (Optional) Required if Upgrade Mode set to `Manual`, Specifies the Version of the Cluster Code of the cluster.
+
 * `add_on_features` - (Optional) A List of one or more features which should be enabled, such as `DnsService`.
 
-* `certificate` - (Optional) A `certificate` block as defined below.
+* `azure_active_directory` - (Optional) An `azure_active_directory` block as defined below.
 
-* `client_certificate_thumbprint` - (Optional) A `client_certificate_thumbprint` block as defined below.
+* `certificate_common_names` - (Optional) A `certificate_common_names` block as defined below. Conflicts with `certificate`.
+
+* `certificate` - (Optional) A `certificate` block as defined below. Conflicts with `certificate_common_names`.
+
+* `reverse_proxy_certificate` - (Optional) A `reverse_proxy_certificate` block as defined below.
+
+* `client_certificate_thumbprint` - (Optional) One or two `client_certificate_thumbprint` blocks as defined below. 
+
+* `client_certificate_common_name` - (Optional) A `client_certificate_common_name` block as defined below. 
 
 -> **NOTE:** If Client Certificates are enabled then at a Certificate must be configured on the cluster.
 
@@ -73,6 +84,34 @@ The following arguments are supported:
 * `fabric_settings` - (Optional) One or more `fabric_settings` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `azure_active_directory` block supports the following:
+
+* `tenant_id` - (Required) The Azure Active Directory Tenant ID.
+
+* `cluster_application_id` - (Required) The Azure Active Directory Cluster Application ID.
+
+* `client_application_id` - (Required) The Azure Active Directory Client ID which should be used for the Client Application.
+
+---
+
+A `certificate_common_names` block supports the following:
+
+* `common_names` - (Required) A `common_names` block as defined below.
+
+* `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
+
+---
+
+A `common_names` block supports the following:
+
+* `certificate_common_name` - (Required) The common or subject name of the certificate.
+
+* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 ---
 
@@ -86,9 +125,31 @@ A `certificate` block supports the following:
 
 ---
 
+A `reverse_proxy_certificate` block supports the following:
+
+* `thumbprint` - (Required) The Thumbprint of the Certificate.
+
+* `thumbprint_secondary` - (Required) The Secondary Thumbprint of the Certificate.
+
+* `x509_store_name` - (Required) The X509 Store where the Certificate Exists, such as `My`.
+
+---
+
 A `client_certificate_thumbprint` block supports the following:
 
 * `thumbprint` - (Required) The Thumbprint associated with the Client Certificate.
+
+* `is_admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
+
+---
+
+A `client_certificate_common_name` block supports the following:
+
+* `certificate_common_name` - (Required) The common or subject name of the certificate.
+
+* `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
+
+-> **NOTE:** Certificate Issuer Thumbprint may become required in the future, `https://docs.microsoft.com/en-us/azure/service-fabric/service-fabric-create-cluster-using-cert-cn#download-and-update-a-sample-template`.
 
 * `is_admin` - (Required) Does the Client Certificate have Admin Access to the cluster? Non-admin clients can only perform read only operations on the cluster.
 
@@ -120,6 +181,10 @@ A `node_type` block supports the following:
 
 * `name` - (Required) The name of the Node Type. Changing this forces a new resource to be created.
 
+* `placement_properties` - (Optional) The placement tags applied to nodes in the node type, which can be used to indicate where certain services (workload) should run.
+
+* `capacities` - (Optional) The capacity tags applied to the nodes in the node type, the cluster resource manager uses these tags to understand how much resource a node has.
+
 * `instance_count` - (Required) The number of nodes for this Node Type.
 
 * `is_primary` - (Required) Is this the Primary Node Type? Changing this forces a new resource to be created.
@@ -133,6 +198,8 @@ A `node_type` block supports the following:
 * `application_ports` - (Optional) A `application_ports` block as defined below.
 
 * `ephemeral_ports` - (Optional) A `ephemeral_ports` block as defined below.
+
+* `reverse_proxy_endpoint_port` - (Optional) The Port used for the Reverse Proxy Endpoint  for this Node Type. Changing this will upgrade the cluster.
 
 ---
 
@@ -158,6 +225,15 @@ The following attributes are exported:
 * `id` - The ID of the Service Fabric Cluster.
 
 * `cluster_endpoint` - The Cluster Endpoint for this Service Fabric Cluster.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Service Fabric Cluster.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Fabric Cluster.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Fabric Cluster.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Service Fabric Cluster.
 
 ## Import
 

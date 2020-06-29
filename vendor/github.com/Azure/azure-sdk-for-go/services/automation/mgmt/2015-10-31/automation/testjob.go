@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -35,7 +36,8 @@ func NewTestJobClient(subscriptionID string) TestJobClient {
 	return NewTestJobClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTestJobClientWithBaseURI creates an instance of the TestJobClient client.
+// NewTestJobClientWithBaseURI creates an instance of the TestJobClient client using a custom endpoint.  Use this when
+// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTestJobClientWithBaseURI(baseURI string, subscriptionID string) TestJobClient {
 	return TestJobClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -47,6 +49,16 @@ func NewTestJobClientWithBaseURI(baseURI string, subscriptionID string) TestJobC
 // runbookName - the parameters supplied to the create test job operation.
 // parameters - the parameters supplied to the create test job operation.
 func (client TestJobClient) Create(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, parameters TestJobCreateParameters) (result TestJob, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TestJobClient.Create")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -103,8 +115,7 @@ func (client TestJobClient) CreatePreparer(ctx context.Context, resourceGroupNam
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client TestJobClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -126,6 +137,16 @@ func (client TestJobClient) CreateResponder(resp *http.Response) (result TestJob
 // automationAccountName - the name of the automation account.
 // runbookName - the runbook name.
 func (client TestJobClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result TestJob, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TestJobClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -180,8 +201,7 @@ func (client TestJobClient) GetPreparer(ctx context.Context, resourceGroupName s
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TestJobClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -203,6 +223,16 @@ func (client TestJobClient) GetResponder(resp *http.Response) (result TestJob, e
 // automationAccountName - the name of the automation account.
 // runbookName - the runbook name.
 func (client TestJobClient) Resume(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TestJobClient.Resume")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -257,8 +287,7 @@ func (client TestJobClient) ResumePreparer(ctx context.Context, resourceGroupNam
 // ResumeSender sends the Resume request. The method will close the
 // http.Response Body if it receives an error.
 func (client TestJobClient) ResumeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ResumeResponder handles the response to the Resume request. The method always
@@ -279,6 +308,16 @@ func (client TestJobClient) ResumeResponder(resp *http.Response) (result autores
 // automationAccountName - the name of the automation account.
 // runbookName - the runbook name.
 func (client TestJobClient) Stop(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TestJobClient.Stop")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -333,8 +372,7 @@ func (client TestJobClient) StopPreparer(ctx context.Context, resourceGroupName 
 // StopSender sends the Stop request. The method will close the
 // http.Response Body if it receives an error.
 func (client TestJobClient) StopSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // StopResponder handles the response to the Stop request. The method always
@@ -355,6 +393,16 @@ func (client TestJobClient) StopResponder(resp *http.Response) (result autorest.
 // automationAccountName - the name of the automation account.
 // runbookName - the runbook name.
 func (client TestJobClient) Suspend(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TestJobClient.Suspend")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -409,8 +457,7 @@ func (client TestJobClient) SuspendPreparer(ctx context.Context, resourceGroupNa
 // SuspendSender sends the Suspend request. The method will close the
 // http.Response Body if it receives an error.
 func (client TestJobClient) SuspendSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // SuspendResponder handles the response to the Suspend request. The method always

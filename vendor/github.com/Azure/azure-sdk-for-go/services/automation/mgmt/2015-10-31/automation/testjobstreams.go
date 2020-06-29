@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -35,7 +36,8 @@ func NewTestJobStreamsClient(subscriptionID string) TestJobStreamsClient {
 	return NewTestJobStreamsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewTestJobStreamsClientWithBaseURI creates an instance of the TestJobStreamsClient client.
+// NewTestJobStreamsClientWithBaseURI creates an instance of the TestJobStreamsClient client using a custom endpoint.
+// Use this when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
 func NewTestJobStreamsClientWithBaseURI(baseURI string, subscriptionID string) TestJobStreamsClient {
 	return TestJobStreamsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
@@ -47,6 +49,16 @@ func NewTestJobStreamsClientWithBaseURI(baseURI string, subscriptionID string) T
 // runbookName - the runbook name.
 // jobStreamID - the job stream id.
 func (client TestJobStreamsClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, jobStreamID string) (result JobStream, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TestJobStreamsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -102,8 +114,7 @@ func (client TestJobStreamsClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TestJobStreamsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -126,6 +137,16 @@ func (client TestJobStreamsClient) GetResponder(resp *http.Response) (result Job
 // runbookName - the runbook name.
 // filter - the filter to apply on the operation.
 func (client TestJobStreamsClient) ListByTestJob(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, filter string) (result JobStreamListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TestJobStreamsClient.ListByTestJob")
+		defer func() {
+			sc := -1
+			if result.jslr.Response.Response != nil {
+				sc = result.jslr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -184,8 +205,7 @@ func (client TestJobStreamsClient) ListByTestJobPreparer(ctx context.Context, re
 // ListByTestJobSender sends the ListByTestJob request. The method will close the
 // http.Response Body if it receives an error.
 func (client TestJobStreamsClient) ListByTestJobSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListByTestJobResponder handles the response to the ListByTestJob request. The method always
@@ -202,8 +222,8 @@ func (client TestJobStreamsClient) ListByTestJobResponder(resp *http.Response) (
 }
 
 // listByTestJobNextResults retrieves the next set of results, if any.
-func (client TestJobStreamsClient) listByTestJobNextResults(lastResults JobStreamListResult) (result JobStreamListResult, err error) {
-	req, err := lastResults.jobStreamListResultPreparer()
+func (client TestJobStreamsClient) listByTestJobNextResults(ctx context.Context, lastResults JobStreamListResult) (result JobStreamListResult, err error) {
+	req, err := lastResults.jobStreamListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "automation.TestJobStreamsClient", "listByTestJobNextResults", nil, "Failure preparing next results request")
 	}
@@ -224,6 +244,16 @@ func (client TestJobStreamsClient) listByTestJobNextResults(lastResults JobStrea
 
 // ListByTestJobComplete enumerates all values, automatically crossing page boundaries as required.
 func (client TestJobStreamsClient) ListByTestJobComplete(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, filter string) (result JobStreamListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TestJobStreamsClient.ListByTestJob")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListByTestJob(ctx, resourceGroupName, automationAccountName, runbookName, filter)
 	return
 }

@@ -3,6 +3,5 @@ variable "prefix" {
 }
 
 variable "location" {
-  description = "The Azure Region in which the Logic App should be created"
-  default     = "West Europe"
+  description = "The Azure Region in which all resources in this example should be created."
 }

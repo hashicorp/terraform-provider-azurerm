@@ -3,7 +3,6 @@ package azure
 import (
 	"fmt"
 	"net/url"
-	"sort"
 	"strings"
 )
 
@@ -18,7 +17,7 @@ type ResourceID struct {
 	Path           map[string]string
 }
 
-// parseAzureResourceID converts a long-form Azure Resource Manager ID
+// ParseAzureResourceID converts a long-form Azure Resource Manager ID
 // into a ResourceID. We make assumptions about the structure of URLs,
 // which is obviously not good, but the best thing available given the
 // SDK.
@@ -30,14 +29,8 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 
 	path := idURL.Path
 
-	path = strings.TrimSpace(path)
-	if strings.HasPrefix(path, "/") {
-		path = path[1:]
-	}
-
-	if strings.HasSuffix(path, "/") {
-		path = path[:len(path)-1]
-	}
+	path = strings.TrimPrefix(path, "/")
+	path = strings.TrimSuffix(path, "/")
 
 	components := strings.Split(path, "/")
 
@@ -68,7 +61,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 		}
 	}
 
-	// Build up a ResourceID from the map
+	// Build up a TargetResourceID from the map
 	idObj := &ResourceID{}
 	idObj.Path = componentMap
 
@@ -81,16 +74,12 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 	if resourceGroup, ok := componentMap["resourceGroups"]; ok {
 		idObj.ResourceGroup = resourceGroup
 		delete(componentMap, "resourceGroups")
-	} else {
+	} else if resourceGroup, ok := componentMap["resourcegroups"]; ok {
 		// Some Azure APIs are weird and provide things in lower case...
 		// However it's not clear whether the casing of other elements in the URI
 		// matter, so we explicitly look for that case here.
-		if resourceGroup, ok := componentMap["resourcegroups"]; ok {
-			idObj.ResourceGroup = resourceGroup
-			delete(componentMap, "resourcegroups")
-		} else {
-			return nil, fmt.Errorf("No resource group name found in: %q", path)
-		}
+		idObj.ResourceGroup = resourceGroup
+		delete(componentMap, "resourcegroups")
 	}
 
 	// It is OK not to have a provider in the case of a resource group
@@ -102,53 +91,24 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 	return idObj, nil
 }
 
-func composeAzureResourceID(idObj *ResourceID) (id string, err error) {
-	if idObj.SubscriptionID == "" || idObj.ResourceGroup == "" {
-		return "", fmt.Errorf("SubscriptionID and ResourceGroup cannot be empty")
+// PopSegment retrieves a segment from the Path and returns it
+// if found it removes it from the Path then return the value
+// if not found, this returns nil
+func (id *ResourceID) PopSegment(name string) (string, error) {
+	val, ok := id.Path[name]
+	if !ok {
+		return "", fmt.Errorf("ID was missing the `%s` element", name)
 	}
 
-	id = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", idObj.SubscriptionID, idObj.ResourceGroup)
-
-	if idObj.Provider != "" {
-		if len(idObj.Path) < 1 {
-			return "", fmt.Errorf("ResourceID.Path should have at least one item when ResourceID.Provider is specified")
-		}
-
-		id += fmt.Sprintf("/providers/%s", idObj.Provider)
-
-		// sort the path keys so our output is deterministic
-		var pathKeys []string
-		for k := range idObj.Path {
-			pathKeys = append(pathKeys, k)
-		}
-		sort.Strings(pathKeys)
-
-		for _, k := range pathKeys {
-			v := idObj.Path[k]
-			if k == "" || v == "" {
-				return "", fmt.Errorf("ResourceID.Path cannot contain empty strings")
-			}
-			id += fmt.Sprintf("/%s/%s", k, v)
-		}
-	}
-
-	return
+	delete(id.Path, name)
+	return val, nil
 }
 
-func ParseNetworkSecurityGroupName(networkSecurityGroupId string) (string, error) {
-	id, err := ParseAzureResourceID(networkSecurityGroupId)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Unable to Parse Network Security Group ID '%s': %+v", networkSecurityGroupId, err)
+// ValidateNoEmptySegments validates ...
+func (id *ResourceID) ValidateNoEmptySegments(sourceId string) error {
+	if len(id.Path) == 0 {
+		return nil
 	}
 
-	return id.Path["networkSecurityGroups"], nil
-}
-
-func ParseRouteTableName(routeTableId string) (string, error) {
-	id, err := ParseAzureResourceID(routeTableId)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Unable to parse Route Table ID '%s': %+v", routeTableId, err)
-	}
-
-	return id.Path["routeTables"], nil
+	return fmt.Errorf("ID contained more segments than required: %q", sourceId)
 }
