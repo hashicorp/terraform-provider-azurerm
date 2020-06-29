@@ -64,6 +64,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resourcegraph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel"
@@ -143,6 +144,7 @@ func SupportedServices() []common.ServiceRegistration {
 		redis.Registration{},
 		relay.Registration{},
 		resource.Registration{},
+		resourcegraph.Registration{},
 		search.Registration{},
 		securitycenter.Registration{},
 		sentinel.Registration{},
