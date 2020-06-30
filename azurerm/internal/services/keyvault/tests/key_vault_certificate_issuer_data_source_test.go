@@ -21,6 +21,8 @@ func TestAccDataSourceAzureRMKeyVaultCertificateIssuer_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "account_id", "test-account"),
 					resource.TestCheckResourceAttr(data.ResourceName, "provider_name", "DigiCert"),
 					resource.TestCheckResourceAttr(data.ResourceName, "password", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "org_id", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "org_id", "test"),
 				),
 			},
 		},

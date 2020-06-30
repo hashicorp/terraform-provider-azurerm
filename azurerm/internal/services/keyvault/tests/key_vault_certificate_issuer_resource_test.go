@@ -225,7 +225,9 @@ resource "azurerm_key_vault" "test" {
     certificate_permissions = [
       "delete",
       "import",
-      "get",
+	  "get",
+	  "manageissuers",
+	  "setissuers",
     ]
 
     key_permissions = [
@@ -243,7 +245,7 @@ resource "azurerm_key_vault_certificate_issuer" "test" {
   key_vault_id  = azurerm_key_vault.test.id
   account_id    = "test-account"
   password      = "test"
-  org_id        = "%[1]d"
+  org_id        = "test"
   provider_name = "DigiCert"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
