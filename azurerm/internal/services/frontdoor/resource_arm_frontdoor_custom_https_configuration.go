@@ -34,13 +34,6 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"frontend_endpoint_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
 			"front_door_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -129,7 +122,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.Resource
 
 	customHttpsProvisioningEnabled := d.Get("custom_https_provisioning_enabled").(bool)
 	customHttpsConfigurationNew := d.Get("custom_https_configuration").([]interface{})
-	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, d, *resp.ID, customHttpsProvisioningEnabled, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
+	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, *resp.ID, customHttpsProvisioningEnabled, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 	if err != nil {
 		return fmt.Errorf("Unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
@@ -170,21 +163,20 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 		return fmt.Errorf("reading Front Door Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
 
-	d.Set("frontend_endpoint_id", resp.ID)
 	d.Set("front_door_name", frontDoorName)
 	d.Set("frontend_endpoint_name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 
 	if resp.Name != nil {
-		if frontDoorFrontendEndpoint, err := flattenArmFrontDoorFrontendEndpoint(ctx, d, &resp, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoint != nil {
-			if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoint); err != nil {
-				return fmt.Errorf("setting `frontend_endpoint`: %+v", err)
+		if frontDoorFrontendEndpoint, err := flattenArmFrontDoorFrontendEndpoint(ctx, &resp, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoint != nil {
+			if err := d.Set("custom_https_configuration", frontDoorFrontendEndpoint["custom_https_configuration"]); err != nil {
+				return fmt.Errorf("setting `custom_https_configuration`: %+v", err)
 			}
 		} else {
-			return fmt.Errorf("flattening `frontend_endpoint`: %+v", err)
+			return fmt.Errorf("flattening `frontend_endpoint/custom_https_configuration`: %+v", err)
 		}
 	} else {
-		return fmt.Errorf("flattening `frontend_endpoint`: Unable to read Frontdoor Name")
+		return fmt.Errorf("flattening `frontend_endpoint/custom_https_configuration`: Unable to read Frontdoor Name")
 	}
 
 	return nil
@@ -208,10 +200,25 @@ func resourceArmFrontDoorCustomHttpsConfigurationDelete(d *schema.ResourceData, 
 		return fmt.Errorf("reading Front Door Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
 
+	resourceId := fmt.Sprintf("%s/customHttpsConfiguration/%s", *resp.ID, frontendEndpointName)
+
 	customHttpsConfigurationNew := make([]interface{}, 0)
-	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, d, *resp.ID, false, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
+	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, *resp.ID, false, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 	if err != nil {
 		return fmt.Errorf("unable to disable Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, frontDoorName, frontendEndpointName)
+	if err != nil {
+		return fmt.Errorf("retreving Front Door Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Front Door Endpoint %q (Resource Group %q) ID", frontendEndpointName, resourceGroup)
+	}
+
+	if d.IsNewResource() {
+		d.SetId(resourceId)
 	}
 
 	return nil
@@ -228,7 +235,7 @@ func frontDoorCustomHttpsConfigurationReadParams(d *schema.ResourceData) (err er
 	if frontDoorName == "" {
 		frontDoorName = id.Path["Frontdoors"]
 	}
-	frontendEndpointName = id.Path["frontendEndpoints"]
+	frontendEndpointName = id.Path["frontendendpoints"]
 	if frontendEndpointName == "" {
 		frontDoorName = id.Path["FrontendEndpoints"]
 	}
