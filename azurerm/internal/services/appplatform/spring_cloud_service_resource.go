@@ -334,7 +334,9 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-
+	if resp.Sku != nil {
+		d.Set("sku_name", resp.Sku.Name)
+	}
 	if resp.Properties != nil {
 		if err := d.Set("trace", flattenArmSpringCloudTrace(resp.Properties.Trace)); err != nil {
 			return fmt.Errorf("failure setting `trace`: %+v", err)
