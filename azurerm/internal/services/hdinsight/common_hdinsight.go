@@ -107,7 +107,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		}
 
 		if d.HasChange("monitor") {
-			log.Printf("[DEBUG] Chnage Azure Monitor for the HDInsight %q Cluster", clusterKind)
+			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
 			extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 			if v, ok := d.GetOk("monitor"); ok {
 				monitorRaw := v.([]interface{})
