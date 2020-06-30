@@ -69,13 +69,6 @@ func resourceArmSharedImage() *schema.Resource {
 				}, false),
 			},
 
-			"generalized": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-				ForceNew: true,
-			},
-
 			"hyper_v_generation": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -129,6 +122,12 @@ func resourceArmSharedImage() *schema.Resource {
 				Optional: true,
 			},
 
+			"specialized": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -172,10 +171,10 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if d.Get("generalized").(bool) {
-		image.GalleryImageProperties.OsState = compute.Generalized
-	} else {
+	if d.Get("specialized").(bool) {
 		image.GalleryImageProperties.OsState = compute.Specialized
+	} else {
+		image.GalleryImageProperties.OsState = compute.Generalized
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, name, image)
@@ -233,7 +232,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
-		d.Set("generalized", props.OsState != compute.Specialized)
+		d.Set("specialized", props.OsState == compute.Specialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)
