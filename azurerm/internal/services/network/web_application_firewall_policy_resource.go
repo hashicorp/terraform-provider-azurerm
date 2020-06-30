@@ -255,13 +255,13 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 						"file_upload_limit_in_mb": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 500),
+							ValidateFunc: validation.IntBetween(1, 750),
 							Default:      100,
 						},
 						"max_request_body_size_in_kb": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 128),
+							ValidateFunc: validation.IntBetween(8, 128),
 							Default:      128,
 						},
 					},
