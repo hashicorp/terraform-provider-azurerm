@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
@@ -79,6 +80,20 @@ func resourceArmFirewall() *schema.Resource {
 				},
 			},
 
+			"private_ip_ranges": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true, // By default, service will set it as "IANAPrivateRanges"
+				MinItems: 1,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.Any(
+						validation.IsCIDR,
+						validation.StringInSlice([]string{"IANAPrivateRanges"}, false),
+					),
+				},
+			},
+
 			"zones": azure.SchemaMultipleZones(),
 
 			"tags": tags.Schema(),
@@ -134,9 +149,19 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		Location: &location,
 		Tags:     tags.Expand(t),
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
-			IPConfigurations: ipConfigs,
+			IPConfigurations:     ipConfigs,
+			AdditionalProperties: make(map[string]*string),
 		},
 		Zones: zones,
+	}
+
+	privateIpRanges := "IANAPrivateRanges"
+	if v, ok := d.GetOk("private_ip_ranges"); ok {
+		rangeSlice := utils.ExpandStringSlice(v.(*schema.Set).List())
+		if rangeSlice != nil {
+			privateIpRanges = strings.Join(*rangeSlice, ",")
+			parameters.AdditionalProperties["Network.SNAT.PrivateRanges"] = &privateIpRanges
+		}
 	}
 
 	if !d.IsNewResource() {
@@ -212,6 +237,17 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
+	}
+
+	var privateIpRanges []interface{}
+	if props := read.AdditionalProperties; props != nil {
+		if v, ok := props["Network.SNAT.PrivateRanges"]; ok && v != nil {
+			ranges := strings.Split(*v, ",")
+			privateIpRanges = utils.FlattenStringSlice(&ranges)
+		}
+	}
+	if err := d.Set("private_ip_ranges", privateIpRanges); err != nil {
+		return fmt.Errorf("Error setting `private_ip_ranges`: %+v", err)
 	}
 
 	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {

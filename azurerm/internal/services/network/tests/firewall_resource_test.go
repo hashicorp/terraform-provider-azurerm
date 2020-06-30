@@ -326,6 +326,8 @@ resource "azurerm_firewall" "test" {
     subnet_id            = azurerm_subnet.test.id
     public_ip_address_id = azurerm_public_ip.test.id
   }
+
+  private_ip_ranges = ["IANAPrivateRanges", "10.0.0.0/16"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

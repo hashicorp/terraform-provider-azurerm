@@ -66,6 +66,8 @@ The following arguments are supported:
 
 * `ip_configuration` - (Required) A `ip_configuration` block as documented below.
 
+* `private_ip_ranges` - (Optional) A list of SNAT private CIDR IP ranges, or the special string `IANAPrivateRanges`, which indicates Azure Firewall does not SNAT when the destination IP address is a private range per IANA RFC 1918. Defaults to a list contains only `IANAPrivateRanges`.
+
 * `zones` - (Optional) Specifies the availability zones in which the Azure Firewall should be created.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
