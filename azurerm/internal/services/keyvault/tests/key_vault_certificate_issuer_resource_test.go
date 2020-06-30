@@ -26,10 +26,9 @@ func TestAccAzureRMKeyVaultCertificateIssuer_basic(t *testing.T) {
 				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
-					// resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("password"),
 		},
 	})
 }

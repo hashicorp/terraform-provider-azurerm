@@ -129,9 +129,15 @@ func resourceArmKeyVaultCertificateIssuerCreate(d *schema.ResourceData, meta int
 	parameter := keyvault.CertificateIssuerSetParameters{}
 	parameter.Provider = utils.String(d.Get("provider_name").(string))
 	if adminsRaw, ok := d.GetOk("admins"); ok {
-		parameter.OrganizationDetails = &keyvault.OrganizationDetails{ID: utils.String(d.Get("org_id").(string)), AdminDetails: expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{}))}
+		parameter.OrganizationDetails = &keyvault.OrganizationDetails{
+			ID:           utils.String(d.Get("org_id").(string)),
+			AdminDetails: expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{})),
+		}
 	}
-	parameter.Credentials = &keyvault.IssuerCredentials{AccountID: utils.String(d.Get("account_id").(string)), Password: utils.String(d.Get("password").(string))}
+	parameter.Credentials = &keyvault.IssuerCredentials{
+		AccountID: utils.String(d.Get("account_id").(string)),
+		Password:  utils.String(d.Get("password").(string)),
+	}
 	resp, err := client.SetCertificateIssuer(ctx, keyVaultBaseUri, name, parameter)
 	if err != nil {
 		return fmt.Errorf("failed to set Certificate Issuer %q (Key Vault %q): %s", name, keyVaultId, err)
@@ -206,7 +212,7 @@ func resourceArmKeyVaultCertificateIssuerUpdate(d *schema.ResourceData, meta int
 	if err != nil {
 		return fmt.Errorf("failed to set Certificate Issuer %q (Key Vault %q): %s", name, id.KeyVaultBaseUrl, err)
 	}
-	if resp.ID != nil {
+	if resp.ID != nil || *resp.ID == "" {
 		d.SetId(*resp.ID)
 	}
 
@@ -257,10 +263,6 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 
 	// Certificate Issuer URLs have the name at the same path segment as secret/certificate versions
 	d.Set("name", id.Version)
-
-	if resp.ID != nil {
-		d.SetId(*resp.ID)
-	}
 
 	if resp.Provider != nil {
 		d.Set("provider_name", resp.Provider)
