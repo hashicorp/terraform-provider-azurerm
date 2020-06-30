@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -348,6 +349,22 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+				oldTier := strings.Split(old.(string), "_")
+				newTier := strings.Split(new.(string), "_")
+				// If the sku tier was not changed, we don't need fornew
+				if oldTier[0] == newTier[0] {
+					return false
+				}
+				// Basic tier could not be changed to other tiers
+				if oldTier[0] == "B" || newTier[0] == "B" {
+					return true
+				}
+				return false
+			}),
+		),
 	}
 }
 
@@ -620,8 +637,10 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	tier := postgresql.Basic
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku_name", sku.Name)
+		tier = sku.Tier
 	}
 
 	if props := resp.ServerProperties; props != nil {
@@ -649,15 +668,18 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 	}
 
-	secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
-	if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
-		return fmt.Errorf("error making read request to postgres server security alert policy: %+v", err)
-	}
+	// the basic does not support threat detection policies
+	if tier == postgresql.GeneralPurpose || tier == postgresql.MemoryOptimized {
+		secResp, err := securityClient.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil && !utils.ResponseWasNotFound(secResp.Response) {
+			return fmt.Errorf("error making read request to postgres server security alert policy: %+v", err)
+		}
 
-	if !utils.ResponseWasNotFound(secResp.Response) {
-		block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, d.Get("threat_detection_policy.0.storage_account_access_key").(string))
-		if err := d.Set("threat_detection_policy", block); err != nil {
-			return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
+		if !utils.ResponseWasNotFound(secResp.Response) {
+			block := flattenSecurityAlertPolicy(secResp.SecurityAlertPolicyProperties, d.Get("threat_detection_policy.0.storage_account_access_key").(string))
+			if err := d.Set("threat_detection_policy", block); err != nil {
+				return fmt.Errorf("setting `threat_detection_policy`: %+v", err)
+			}
 		}
 	}
 

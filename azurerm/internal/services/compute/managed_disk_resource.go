@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -203,7 +203,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 
 		if d.HasChange("disk_mbps_read_write") {
 			v := d.Get("disk_mbps_read_write")
-			diskMBps := int32(v.(int))
+			diskMBps := int64(v.(int))
 			props.DiskMBpsReadWrite = &diskMBps
 		}
 	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
@@ -341,7 +341,7 @@ func resourceArmManagedDiskUpdate(d *schema.ResourceData, meta interface{}) erro
 
 		if d.HasChange("disk_mbps_read_write") {
 			v := d.Get("disk_mbps_read_write")
-			diskMBps := int32(v.(int))
+			diskMBps := int64(v.(int))
 			diskUpdate.DiskMBpsReadWrite = &diskMBps
 		}
 	} else if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {

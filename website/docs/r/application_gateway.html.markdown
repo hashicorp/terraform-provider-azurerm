@@ -29,14 +29,14 @@ resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.254.0.0/24"
+  address_prefixes     = ["10.254.0.0/24"]
 }
 
 resource "azurerm_subnet" "backend" {
   name                 = "backend"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.254.2.0/24"
+  address_prefixes     = ["10.254.2.0/24"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -93,7 +93,7 @@ resource "azurerm_application_gateway" "network" {
     path                  = "/path1/"
     port                  = 80
     protocol              = "Http"
-    request_timeout       = 1
+    request_timeout       = 60
   }
 
   http_listener {
@@ -252,7 +252,7 @@ A `frontend_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of the Frontend IP Configuration.
 
-* `subnet_id` - (Required) The ID of the Subnet which the Application Gateway should be connected to.
+* `subnet_id` - (Optional) The ID of the Subnet.
 
 * `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
 
@@ -276,7 +276,7 @@ A `gateway_ip_configuration` block supports the following:
 
 * `name` - (Required) The Name of this Gateway IP Configuration.
 
-* `subnet_id` - (Required) The ID of a Subnet.
+* `subnet_id` - (Required) The ID of the Subnet which the Application Gateway should be connected to.
 
 ---
 
@@ -376,6 +376,8 @@ A `request_routing_rule` block supports the following:
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
 
+-> **NOTE:** `backend_address_pool_name`, `backend_http_settings_name`, `redirect_configuration_name`, and `rewrite_rule_set_name` are applicable only when `rule_type` is `Basic`.
+
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
 ---
@@ -453,7 +455,7 @@ A `waf_configuration` block supports the following:
 
 * `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
 
-* `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall.
+* `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall. Currently, only `OWASP` is supported.
 
 * `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, and `3.1`.
 

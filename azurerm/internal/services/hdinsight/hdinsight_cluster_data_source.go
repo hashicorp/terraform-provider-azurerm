@@ -2,7 +2,6 @@ package hdinsight
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -111,9 +110,7 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 	resp, err := clustersClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] HDInsight Cluster %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
-			d.SetId("")
-			return nil
+			return fmt.Errorf("HDInsight Cluster %q was not found in Resource Group %q", name, resourceGroup)
 		}
 
 		return fmt.Errorf("Error retrieving HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)

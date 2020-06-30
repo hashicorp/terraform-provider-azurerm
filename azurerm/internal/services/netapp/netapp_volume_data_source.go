@@ -42,6 +42,14 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 				ValidateFunc: ValidateNetAppPoolName,
 			},
 
+			"mount_ip_addresses": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"volume_path": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -115,6 +123,9 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 
 		if props.UsageThreshold != nil {
 			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
+		}
+		if err := d.Set("mount_ip_addresses", flattenArmNetAppVolumeMountIPAddresses(props.MountTargets)); err != nil {
+			return fmt.Errorf("setting `mount_ip_addresses`: %+v", err)
 		}
 	}
 

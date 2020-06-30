@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -29,10 +29,13 @@ const (
 var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
 		aciConnectorKey,           // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5510
+		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6462
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
 	},
 	azure.USGovernmentCloud.Name: {
+		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6702
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
+		kubernetesDashboardKey,    // https://github.com/terraform-providers/terraform-provider-azurerm/issues/7136
 	},
 }
 
@@ -127,6 +130,26 @@ func schemaKubernetesAddOnProfiles() *schema.Schema {
 								Optional:     true,
 								ValidateFunc: azureHelpers.ValidateResourceID,
 							},
+							"oms_agent_identity": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"client_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"object_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+										"user_assigned_identity_id": {
+											Type:     schema.TypeString,
+											Computed: true,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
@@ -170,8 +193,8 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if workspaceId, ok := value["log_analytics_workspace_id"]; ok && workspaceId != "" {
-			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
+		if workspaceID, ok := value["log_analytics_workspace_id"]; ok && workspaceID != "" {
+			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceID.(string))
 		}
 
 		addonProfiles[omsAgentKey] = &containerservice.ManagedClusterAddonProfile{
@@ -214,7 +237,9 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 
 		addonProfiles[azurePolicyKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
-			Config:  nil,
+			Config: map[string]*string{
+				"version": utils.String("v2"),
+			},
 		}
 	}
 
@@ -330,14 +355,17 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			enabled = *enabledVal
 		}
 
-		workspaceId := ""
+		workspaceID := ""
 		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceId = *workspaceResourceID
+			workspaceID = *workspaceResourceID
 		}
+
+		omsagentIdentity := flattenKubernetesClusterOmsAgentIdentityProfile(omsAgent.Identity)
 
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"enabled":                    enabled,
-			"log_analytics_workspace_id": workspaceId,
+			"log_analytics_workspace_id": workspaceID,
+			"oms_agent_identity":         omsagentIdentity,
 		})
 	}
 
@@ -355,4 +383,34 @@ func flattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 			"oms_agent":                omsAgents,
 		},
 	}
+}
+
+func flattenKubernetesClusterOmsAgentIdentityProfile(profile *containerservice.ManagedClusterAddonProfileIdentity) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	identity := make([]interface{}, 0)
+	clientID := ""
+	if clientid := profile.ClientID; clientid != nil {
+		clientID = *clientid
+	}
+
+	objectID := ""
+	if objectid := profile.ObjectID; objectid != nil {
+		objectID = *objectid
+	}
+
+	userAssignedIdentityID := ""
+	if resourceid := profile.ResourceID; resourceid != nil {
+		userAssignedIdentityID = *resourceid
+	}
+
+	identity = append(identity, map[string]interface{}{
+		"client_id":                 clientID,
+		"object_id":                 objectID,
+		"user_assigned_identity_id": userAssignedIdentityID,
+	})
+
+	return identity
 }

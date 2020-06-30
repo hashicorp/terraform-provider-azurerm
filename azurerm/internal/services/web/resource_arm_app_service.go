@@ -192,6 +192,7 @@ func resourceArmAppService() *schema.Resource {
 
 func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	aspClient := meta.(*clients.Client).Web.AppServicePlansClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -217,6 +218,19 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		Name: utils.String(name),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
+
+	appServicePlanId := d.Get("app_service_plan_id").(string)
+	aspID, err := ParseAppServicePlanID(appServicePlanId)
+	if err != nil {
+		return err
+	}
+	// Check if App Service Plan is part of ASE
+	// If so, the name needs updating to <app name>.<ASE name>.appserviceenvironment.net and FQDN setting true for name availability check
+	aspDetails, _ := aspClient.Get(ctx, aspID.ResourceGroup, aspID.Name)
+	if aspDetails.HostingEnvironmentProfile != nil {
+		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", name, aspID.Name))
+		availabilityRequest.IsFqdn = utils.Bool(true)
+	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
 	if err != nil {
 		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
@@ -227,7 +241,6 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})

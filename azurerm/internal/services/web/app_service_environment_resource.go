@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	helpersValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -21,6 +22,10 @@ import (
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+const (
+	InternalLoadBalancingModeWebPublishing web.InternalLoadBalancingMode = "Web, Publishing"
 )
 
 func resourceArmAppServiceEnvironment() *schema.Resource {
@@ -60,11 +65,13 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 			"internal_load_balancing_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 				Default:  string(web.InternalLoadBalancingModeNone),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(web.InternalLoadBalancingModeNone),
 					string(web.InternalLoadBalancingModePublishing),
 					string(web.InternalLoadBalancingModeWeb),
+					string(InternalLoadBalancingModeWebPublishing),
 				}, false),
 			},
 
@@ -84,6 +91,29 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 					"I2",
 					"I3",
 				}, false),
+			},
+
+			"allowed_user_ip_cidrs": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				ConflictsWith: []string{"user_whitelisted_ip_ranges"},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: helpersValidate.CIDR,
+				},
+			},
+
+			"user_whitelisted_ip_ranges": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				ConflictsWith: []string{"allowed_user_ip_cidrs"},
+				Deprecated:    "this property has been renamed to `allowed_user_ip_cidrs` better reflect the expected ip range format",
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: helpersValidate.CIDR,
+				},
 			},
 
 			// TODO in 3.0 Make it "Required"
@@ -109,6 +139,10 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	t := d.Get("tags").(map[string]interface{})
+	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*schema.Set).List()
+	if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
+		userWhitelistedIPRangesRaw = v.(*schema.Set).List()
+	}
 
 	subnetId := d.Get("subnet_id").(string)
 	subnet, err := networkParse.SubnetID(subnetId)
@@ -166,6 +200,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 				ID:     utils.String(subnetId),
 				Subnet: utils.String(subnet.Name),
 			},
+			UserWhitelistedIPRanges: utils.ExpandStringSlice(userWhitelistedIPRangesRaw),
 
 			// the SDK is coded primarily for v1, which needs a non-null entry for workerpool, so we construct an empty slice for it
 			// TODO: remove this hack once https://github.com/Azure/azure-rest-api-specs/pull/8433 has been merged
@@ -204,27 +239,34 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	environment := web.AppServiceEnvironmentPatchResource{
+	e := web.AppServiceEnvironmentPatchResource{
 		AppServiceEnvironment: &web.AppServiceEnvironment{},
 	}
 
 	if d.HasChange("internal_load_balancing_mode") {
 		v := d.Get("internal_load_balancing_mode").(string)
-		environment.AppServiceEnvironment.InternalLoadBalancingMode = web.InternalLoadBalancingMode(v)
+		e.AppServiceEnvironment.InternalLoadBalancingMode = web.InternalLoadBalancingMode(v)
 	}
 
 	if d.HasChange("front_end_scale_factor") {
 		v := d.Get("front_end_scale_factor").(int)
-		environment.AppServiceEnvironment.FrontEndScaleFactor = utils.Int32(int32(v))
+		e.AppServiceEnvironment.FrontEndScaleFactor = utils.Int32(int32(v))
 	}
 
 	if d.HasChange("pricing_tier") {
 		v := d.Get("pricing_tier").(string)
 		v = convertFromIsolatedSKU(v)
-		environment.AppServiceEnvironment.MultiSize = utils.String(v)
+		e.AppServiceEnvironment.MultiSize = utils.String(v)
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, environment); err != nil {
+	if d.HasChanges("user_whitelisted_ip_ranges", "allowed_user_ip_cidrs") {
+		e.UserWhitelistedIPRanges = utils.ExpandStringSlice(d.Get("user_whitelisted_ip_ranges").(*schema.Set).List())
+		if v, ok := d.GetOk("user_whitelisted_ip_ranges"); ok {
+			e.UserWhitelistedIPRanges = utils.ExpandStringSlice(v.(*schema.Set).List())
+		}
+	}
+
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, e); err != nil {
 		return fmt.Errorf("Error updating App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -282,6 +324,8 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 			pricingTier = convertToIsolatedSKU(*props.MultiSize)
 		}
 		d.Set("pricing_tier", pricingTier)
+		d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 	}
 
 	return tags.FlattenAndSet(d, existing.Tags)

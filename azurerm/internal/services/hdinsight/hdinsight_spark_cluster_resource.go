@@ -21,7 +21,7 @@ import (
 var hdInsightSparkClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         2,
+	MaxInstanceCount:         utils.Int(2),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
@@ -29,14 +29,13 @@ var hdInsightSparkClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightSparkClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	MaxInstanceCount:        19,
 	CanSpecifyDisks:         false,
 }
 
 var hdInsightSparkClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         3,
+	MaxInstanceCount:         utils.Int(3),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 	CanSpecifyDisks:          false,
 }

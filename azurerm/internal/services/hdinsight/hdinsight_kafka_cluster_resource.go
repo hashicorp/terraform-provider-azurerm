@@ -21,7 +21,7 @@ import (
 var hdInsightKafkaClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         2,
+	MaxInstanceCount:         utils.Int(2),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
@@ -29,7 +29,6 @@ var hdInsightKafkaClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightKafkaClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	MaxInstanceCount:        57,
 	CanSpecifyDisks:         true,
 	MaxNumberOfDisksPerNode: utils.Int(8),
 }
@@ -37,7 +36,7 @@ var hdInsightKafkaClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightKafkaClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         3,
+	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
