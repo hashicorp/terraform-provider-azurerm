@@ -122,11 +122,29 @@ func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.Resource
 		return fmt.Errorf("reading Front Door Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
 
+	// This is because azure doesn't have an 'id' for a custom https configuration
+	// In order to compensate for this and allow importing of this resource we are artificially
+	// creating an identity for a custom https configuration object
+	resourceId := fmt.Sprintf("%s/customHttpsConfiguration/%s", *resp.ID, frontendEndpointName)
+
 	customHttpsProvisioningEnabled := d.Get("custom_https_provisioning_enabled").(bool)
 	customHttpsConfigurationNew := d.Get("custom_https_configuration").([]interface{})
 	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, d, *resp.ID, customHttpsProvisioningEnabled, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 	if err != nil {
 		return fmt.Errorf("Unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, frontDoorName, frontendEndpointName)
+	if err != nil {
+		return fmt.Errorf("retreving Front Door Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read Front Door Endpoint %q (Resource Group %q) ID", frontendEndpointName, resourceGroup)
+	}
+
+	if d.IsNewResource() {
+		d.SetId(resourceId)
 	}
 
 	return nil
