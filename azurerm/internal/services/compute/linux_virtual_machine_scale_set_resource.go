@@ -377,7 +377,7 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	}
 
 	// specialized image does not allow OSProfile assigned, check if the image id is specialized
-	validateResult, err := validateImageOsState(ctx, meta.(*clients.Client).Compute, sourceImageReference)
+	validateResult, err := validateImage(ctx, meta.(*clients.Client).Compute, sourceImageReference)
 	if err != nil {
 		return fmt.Errorf("Error creating Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -898,14 +898,20 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 			d.Set("source_image_id", storageImageId)
 		}
 
+		disablePassword := true // default value of `disable_password_authentication`
+		provisionVMAgent := true // default value of `provision_vm_agent`
 		if osProfile := profile.OsProfile; osProfile != nil {
 			// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
 			d.Set("admin_username", osProfile.AdminUsername)
 			d.Set("computer_name_prefix", osProfile.ComputerNamePrefix)
 
 			if linux := osProfile.LinuxConfiguration; linux != nil {
-				d.Set("disable_password_authentication", linux.DisablePasswordAuthentication)
-				d.Set("provision_vm_agent", linux.ProvisionVMAgent)
+				if linux.DisablePasswordAuthentication != nil {
+					disablePassword = *linux.DisablePasswordAuthentication
+				}
+				if linux.ProvisionVMAgent != nil {
+					provisionVMAgent = *linux.ProvisionVMAgent
+				}
 
 				flattenedSshKeys, err := FlattenSSHKeys(linux.SSH)
 				if err != nil {
@@ -920,6 +926,8 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 				return fmt.Errorf("Error setting `secret`: %+v", err)
 			}
 		}
+		d.Set("disable_password_authentication", disablePassword)
+		d.Set("provision_vm_agent", provisionVMAgent)
 
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {
 			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)

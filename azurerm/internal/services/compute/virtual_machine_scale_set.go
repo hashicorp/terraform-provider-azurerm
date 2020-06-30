@@ -39,10 +39,11 @@ func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *schema.Schema {
 
 type imageReferenceValidateResult struct {
 	isSharedImage bool
+	osType        compute.OperatingSystemTypes
 	osState       compute.OperatingSystemStateTypes
 }
 
-func validateImageOsState(ctx context.Context, client *client.Client, imageReference *compute.ImageReference) (imageReferenceValidateResult, error) {
+func validateImage(ctx context.Context, client *client.Client, imageReference *compute.ImageReference) (imageReferenceValidateResult, error) {
 	if imageReference == nil || imageReference.ID == nil {
 		return imageReferenceValidateResult{
 			isSharedImage: false,
@@ -67,6 +68,7 @@ func validateImageOsState(ctx context.Context, client *client.Client, imageRefer
 		}
 		return imageReferenceValidateResult{
 			isSharedImage: true,
+			osType:        image.GalleryImageProperties.OsType,
 			osState:       image.GalleryImageProperties.OsState,
 		}, nil
 	}
@@ -88,6 +90,7 @@ func validateImageOsState(ctx context.Context, client *client.Client, imageRefer
 		}
 		return imageReferenceValidateResult{
 			isSharedImage: true,
+			osType:        image.GalleryImageProperties.OsType,
 			osState:       image.GalleryImageProperties.OsState,
 		}, nil
 	}

@@ -396,7 +396,7 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 	}
 
 	// specialized image does not allow OSProfile assinged, check if the image id is specialized
-	validateResult, err := validateImageOsState(ctx, meta.(*clients.Client).Compute, sourceImageReference)
+	validateResult, err := validateImage(ctx, meta.(*clients.Client).Compute, sourceImageReference)
 	if err != nil {
 		return fmt.Errorf("Error creating Windows Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

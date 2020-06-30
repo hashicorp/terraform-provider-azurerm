@@ -194,9 +194,9 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 }
 
 func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesSpecialized(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 
-    resource.ParallelTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMLinuxVirtualMachineScaleSetDestroy,
@@ -207,7 +207,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesSpecialized(t *testing.T) {
 					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -218,12 +218,12 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_imagesSpecialized(data acceptance
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_DS1_v2"
-  instances                       = 2
-  upgrade_mode                    = "Manual"
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_DS1_v2"
+  instances           = 2
+  upgrade_mode        = "Manual"
 
   source_image_id = azurerm_shared_image_version.test.id
 

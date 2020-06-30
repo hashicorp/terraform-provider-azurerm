@@ -68,10 +68,6 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 			return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile` was nil", id.Name, id.ResourceGroup)
 		}
 
-		if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.OsProfile == nil {
-			return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile.osProfile` was nil", id.Name, id.ResourceGroup)
-		}
-
 		isCorrectOS := false
 		hasSshKeys := false
 		if profile := vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.OsProfile; profile != nil {
@@ -86,6 +82,24 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 			if profile.WindowsConfiguration != nil && osType == compute.Windows {
 				isCorrectOS = true
 			}
+		} else {
+			// OsProfile could be nil when provisioned using a specialized image
+			storageProfile := vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.StorageProfile
+			if storageProfile == nil {
+				return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.VirtualMachineProfile.StorageProfile` was nil", id.Name, id.ResourceGroup)
+			}
+			imageReference := storageProfile.ImageReference
+			if imageReference == nil {
+				return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.VirtualMachineProfile.StorageProfile.ImageReference` was nil", id.Name, id.ResourceGroup)
+			}
+			validateResult, err := validateImage(ctx, meta.(*clients.Client).Compute, imageReference)
+			if err != nil {
+				return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+			}
+			if !validateResult.isSharedImage {
+				return []*schema.ResourceData{}, fmt.Errorf("Error retrieving Virtual Machine Scale Set %q (Resource Group %q): `properties.virtualMachineProfile.osProfile` was nil", id.Name, id.ResourceGroup)
+			}
+			isCorrectOS = osType == validateResult.osType
 		}
 
 		if !isCorrectOS {
