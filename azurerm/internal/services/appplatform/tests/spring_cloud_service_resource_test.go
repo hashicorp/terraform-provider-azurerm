@@ -228,7 +228,7 @@ resource "azurerm_spring_cloud_service" "test" {
   name                = "acctest-sc-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku_name = "B0"
+  sku_name            = "B0"
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -289,7 +289,7 @@ resource "azurerm_spring_cloud_service" "test" {
   }
 
   trace {
-    enabled = true
+    enabled                         = true
     app_insight_instrumentation_key = azurerm_application_insights.test.instrumentation_key
   }
 
