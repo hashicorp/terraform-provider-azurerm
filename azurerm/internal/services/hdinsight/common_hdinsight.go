@@ -106,7 +106,19 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			}
 		}
 
-		//<<<<<<< HEAD
+		if d.HasChange("monitor") {
+			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
+			extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
+			if v, ok := d.GetOk("monitor"); ok {
+				monitorRaw := v.([]interface{})
+				if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+					return err
+				}
+			} else if err := disableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
+				return nil
+			}
+		}
+
 		if d.HasChange("gateway") {
 			log.Printf("[DEBUG] Updating the HDInsight %q Cluster gateway", clusterKind)
 			vs := d.Get("gateway").([]interface{})[0].(map[string]interface{})
@@ -129,18 +141,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) Gateway to be updated: %s", name, resourceGroup, err)
 			}
 		}
-		if d.HasChange("monitor") {
-			log.Printf("[DEBUG] Chnage Azure Monitor for the HDInsight %q Cluster", clusterKind)
-			extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
-			if v, ok := d.GetOk("monitor"); ok {
-				monitorRaw := v.([]interface{})
-				if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
-					return err
-				}
-			} else if err := disableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
-				return nil
-			}
-		}
+
 		return readFunc(d, meta)
 	}
 }
