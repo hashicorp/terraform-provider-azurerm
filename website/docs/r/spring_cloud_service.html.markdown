@@ -42,8 +42,7 @@ resource "azurerm_spring_cloud_service" "example" {
   }
 
   trace {
-    enabled                         = true
-    app_insight_instrumentation_key = azurerm_application_insights.example.instrumentation_key
+    instrumentation_key = azurerm_application_insights.example.instrumentation_key
   }
 
   tags = {
@@ -130,9 +129,7 @@ The `ssh_auth` block supports the following:
 
 The `trace` block supports the following:
 
-* `enabled` - (Required) Indicates whether the Trace is enabled.
-
-* `app_insight_instrumentation_key` - (Optional) The instrumentationKey of Application Insights.
+* `instrumentation_key` - (Required) The Instrumentation Key used for Application Insights.
 
 ## Attributes Reference
 

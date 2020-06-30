@@ -7,7 +7,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -58,6 +57,7 @@ func resourceArmSpringCloudService() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "S0",
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"B0",
 					"S0",
@@ -147,18 +147,12 @@ func resourceArmSpringCloudService() *schema.Resource {
 			"trace": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     schema.TypeBool,
-							Required: true,
-						},
-
-						"app_insight_instrumentation_key": {
+						"instrumentation_key": {
 							Type:     schema.TypeString,
-							Optional: true,
+							Required: true,
 						},
 					},
 				},
@@ -166,16 +160,6 @@ func resourceArmSpringCloudService() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
-
-		// "sku_name" could update from "B0" to "S0"
-		CustomizeDiff: customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
-			oldSku := old.(string)
-			newSku := new.(string)
-			if oldSku == "B0" && newSku == "S0" {
-				return false
-			}
-			return true
-		}),
 	}
 }
 
@@ -482,12 +466,14 @@ func expandArmSpringCloudGitPatternRepository(input []interface{}) (*[]appplatfo
 
 func expandArmSpringCloudTrace(input []interface{}) *appplatform.TraceProperties {
 	if len(input) == 0 || input[0] == nil {
-		return nil
+		return &appplatform.TraceProperties{
+			Enabled: utils.Bool(false),
+		}
 	}
 	v := input[0].(map[string]interface{})
 	return &appplatform.TraceProperties{
-		Enabled:                      utils.Bool(v["enabled"].(bool)),
-		AppInsightInstrumentationKey: utils.String(v["app_insight_instrumentation_key"].(string)),
+		Enabled:                      utils.Bool(true),
+		AppInsightInstrumentationKey: utils.String(v["instrumentation_key"].(string)),
 	}
 }
 
@@ -694,18 +680,21 @@ func flattenArmSpringCloudTrace(input *appplatform.TraceProperties) []interface{
 	}
 
 	enabled := false
-	appInsightInstrumentationKey := ""
+	instrumentationKey := ""
 	if input.Enabled != nil {
 		enabled = *input.Enabled
 	}
 	if input.AppInsightInstrumentationKey != nil {
-		appInsightInstrumentationKey = *input.AppInsightInstrumentationKey
+		instrumentationKey = *input.AppInsightInstrumentationKey
+	}
+
+	if !enabled {
+		return []interface{}{}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":                         enabled,
-			"app_insight_instrumentation_key": appInsightInstrumentationKey,
+			"instrumentation_key": instrumentationKey,
 		},
 	}
 }

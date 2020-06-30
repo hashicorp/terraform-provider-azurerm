@@ -118,33 +118,6 @@ func TestAccAzureRMSpringCloudService_requiresImport(t *testing.T) {
 	})
 }
 
-// update from "B0" to "S0"
-func TestAccAzureRMSpringCloudService_updateSku(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_service", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSpringCloudServiceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSpringCloudService_basicSku(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMSpringCloudService_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSpringCloudServiceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func testCheckAzureRMSpringCloudServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -213,27 +186,6 @@ resource "azurerm_spring_cloud_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMSpringCloudService_basicSku(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-spring-%d"
-  location = "%s"
-}
-
-resource "azurerm_spring_cloud_service" "test" {
-  name                = "acctest-sc-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "B0"
-}
-
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func testAccAzureRMSpringCloudService_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -289,8 +241,7 @@ resource "azurerm_spring_cloud_service" "test" {
   }
 
   trace {
-    enabled                         = true
-    app_insight_instrumentation_key = azurerm_application_insights.test.instrumentation_key
+    instrumentation_key = azurerm_application_insights.test.instrumentation_key
   }
 
   tags = {
