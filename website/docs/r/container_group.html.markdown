@@ -20,50 +20,12 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_virtual_network" "example" {
-  name                = "example-vnet"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  address_space       = ["10.1.0.0/16"]
-}
-
-resource "azurerm_subnet" "example" {
-  name                 = "example-subnet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.1.0.0/24"
-
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-    }
-  }
-}
-
-resource "azurerm_network_profile" "example" {
-  name                = "example-networkprofile"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  container_network_interface {
-    name = "hellocnic"
-
-    ip_configuration {
-      name      = "helloipconfig"
-      subnet_id = azurerm_subnet.example.id
-    }
-  }
-}
-
 resource "azurerm_container_group" "example" {
   name                = "example-continst"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  ip_address_type     = "Private"
-  network_profile_id  = azurerm_network_profile.example.id
+  ip_address_type     = "public"
+  dns_name_label      = "aci-label"
   os_type             = "Linux"
 
   container {
