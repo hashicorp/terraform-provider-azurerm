@@ -13,6 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -192,7 +194,65 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 
 func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
 
-	return nil
+	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.IntegrationServiceEnvironmentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	name := id.Name
+	resourceGroup := id.ResourceGroup
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	d.Set("name", name)
+	d.Set("resource_group_name", resourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", sku.Name)
+		d.Set("capacity", sku.Capacity)
+	}
+
+	if props := resp.Properties; props != nil {
+
+		if netCfg := props.NetworkConfiguration; netCfg != nil {
+
+			if accessEndpoint := netCfg.AccessEndpoint; accessEndpoint != nil {
+				d.Set("access_endpoint_type", accessEndpoint.Type)
+			}
+
+			d.Set("virtual_network_subnet_ids", flattenSubnetResourceID(netCfg.Subnets))
+		}
+
+		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Connector == nil {
+			d.Set("connector_endpoint_ip_addresses", []interface{}{})
+			d.Set("connector_outbound_ip_addresses", []interface{}{})
+		} else {
+			d.Set("connector_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.AccessEndpointIPAddresses))
+			d.Set("connector_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Connector.OutgoingIPAddresses))
+		}
+
+		if props.EndpointsConfiguration == nil || props.EndpointsConfiguration.Workflow == nil {
+			d.Set("workflow_endpoint_ip_addresses", []interface{}{})
+			d.Set("workflow_outbound_ip_addresses", []interface{}{})
+		} else {
+			d.Set("workflow_endpoint_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.AccessEndpointIPAddresses))
+			d.Set("workflow_outbound_ip_addresses", flattenIPAddresses(props.EndpointsConfiguration.Workflow.OutgoingIPAddresses))
+		}
+	}
+
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
@@ -203,11 +263,27 @@ func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta
 func expandSubnetResourceID(input []interface{}) *[]logic.ResourceReference {
 	results := make([]logic.ResourceReference, 0)
 	for _, item := range input {
-		id := item.(string)
 
 		results = append(results, logic.ResourceReference{
-			ID: utils.String(id),
+			ID: utils.String(item.(string)),
 		})
 	}
 	return &results
+}
+
+func flattenSubnetResourceID(input *[]logic.ResourceReference) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	subnetIDs := make([]interface{}, 0)
+	for _, resourceRef := range *input {
+		if resourceRef.ID == nil || *resourceRef.ID == "" {
+			continue
+		}
+
+		subnetIDs = append(subnetIDs, resourceRef.ID)
+	}
+
+	return subnetIDs
 }
