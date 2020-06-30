@@ -129,6 +129,11 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 						},
 					},
 				},
+				// Service side has a predefined set of diagnostic settings for a certain resource, and it will
+				// always return that set of settings in the returned response.
+				// This suppress function is used to suppress diff only in follow situation:
+				// The intersection part of old state and new state is the same, and the extra part of old state
+				// contains only the default value.
 				DiffSuppressFunc: diagLogSettingSuppress("log"),
 			},
 
@@ -169,6 +174,11 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 						},
 					},
 				},
+				// Service side has a predefined set of diagnostic settings for a certain resource, and it will
+				// always return that set of settings in the returned response.
+				// This suppress function is used to suppress diff only in follow situation:
+				// The intersection part of old state and new state is the same, and the extra part of old state
+				// contains only the default value.
 				DiffSuppressFunc: diagMetricSettingSuppress("metric"),
 			},
 		},

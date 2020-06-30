@@ -36,24 +36,6 @@ func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMonitorDiagnosticSetting_metricOnly(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMMonitorDiagnosticSettingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMMonitorDiagnosticSetting_metricOnly(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
 
@@ -112,11 +94,20 @@ func TestAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(t *te
 				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "log_analytics_workspace_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log_analytics_destination_type", "Dedicated"),
-					resource.TestCheckResourceAttr(data.ResourceName, "log.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "metric.4109484471.category", "AllMetrics"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated_updated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorDiagnosticSettingExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -293,48 +284,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(17))
 }
 
-func testAccAzureRMMonitorDiagnosticSetting_metricOnly(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestVnet-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctest-LAW-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
-resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                       = "acctest-DS-%[1]d"
-  target_resource_id         = azurerm_virtual_network.test.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-
-  metric {
-    category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
 func testAccAzureRMMonitorDiagnosticSetting_requiresImport(data acceptance.TestData) string {
 	template := testAccAzureRMMonitorDiagnosticSetting_eventhub(data)
 	return fmt.Sprintf(`
@@ -422,6 +371,81 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 }
 
 func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "acctest-DS-%d"
+  target_resource_id         = azurerm_data_factory.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  log_analytics_destination_type = "Dedicated"
+
+  log {
+    category = "ActivityRuns"
+    enabled  = true
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  log {
+    category = "PipelineRuns"
+    enabled  = true
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  log {
+    category = "TriggerRuns"
+    enabled  = true
+
+    retention_policy {
+      enabled = true
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+
+    retention_policy {
+      enabled = true
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated_updated(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "acctest-DS-%d"
+  target_resource_id         = azurerm_data_factory.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  log_analytics_destination_type = "Dedicated"
+
+  log {
+    category = "TriggerRuns"
+    enabled  = true
+
+    retention_policy {
+      enabled = true
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMonitorDiagnosticSetting_logAnalyticsWorkspaceDedicated_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -447,49 +471,6 @@ resource "azurerm_data_factory" "test" {
   name                = "acctest-DF-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_monitor_diagnostic_setting" "test" {
-  name                       = "acctest-DS-%[1]d"
-  target_resource_id         = azurerm_data_factory.test.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-
-  log_analytics_destination_type = "Dedicated"
-
-  log {
-    category = "ActivityRuns"
-
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "PipelineRuns"
-    enabled  = false
-
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  log {
-    category = "TriggerRuns"
-    enabled  = false
-
-    retention_policy {
-      enabled = false
-    }
-  }
-
-  metric {
-    category = "AllMetrics"
-    enabled  = false
-
-    retention_policy {
-      enabled = false
-    }
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
