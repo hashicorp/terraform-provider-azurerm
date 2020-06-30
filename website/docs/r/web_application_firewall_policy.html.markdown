@@ -164,7 +164,7 @@ The `policy_settings` block supports the following:
 
 * `enabled` - (Optional) Describes if the policy is in enabled state or disabled state. Defaults to `Enabled`.
 
-* `mode` - (Optional) Describes if it is in detection mode  or prevention mode at the policy level. Defaults to `Prevention`.
+* `mode` - (Optional) Describes if it is in detection mode or prevention mode at the policy level. Defaults to `Prevention`.
 
 * `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1` to `750`. Defaults to `100`.
 
