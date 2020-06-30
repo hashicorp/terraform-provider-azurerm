@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
-* `zone_redundant` - (Optional) Enabling this property creates a Standard Event Hubs Namespace in regions supported availability zones.
+* `zone_redundant` - (Optional) Specifies if the EventHub Namespace should be Zone Redundant (created across Availability Zones).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
