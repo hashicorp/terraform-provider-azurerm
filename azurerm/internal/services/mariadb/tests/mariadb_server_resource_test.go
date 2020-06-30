@@ -579,6 +579,7 @@ resource "azurerm_mariadb_server" "replica" {
   create_mode               = "Replica"
   creation_source_server_id = azurerm_mariadb_server.test.id
   ssl_enforcement_enabled   = true
+  storage_mb                = 51200
 }
 `, testAccAzureRMMariaDbServer_basic(data, version), data.RandomInteger, version)
 }
@@ -597,6 +598,7 @@ resource "azurerm_mariadb_server" "restore" {
   creation_source_server_id = azurerm_mariadb_server.test.id
   restore_point_in_time     = "%s"
   ssl_enforcement_enabled   = true
+  storage_mb                = 51200
 }
 `, testAccAzureRMMariaDbServer_basic(data, version), data.RandomInteger, version, restoreTime)
 }
