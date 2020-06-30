@@ -243,7 +243,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		},
 		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
-			ZoneRedundant: utils.Bool(zoneRedundant),
+			ZoneRedundant:        utils.Bool(zoneRedundant),
 		},
 		Tags: tags.Expand(t),
 	}
