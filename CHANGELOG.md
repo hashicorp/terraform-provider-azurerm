@@ -16,6 +16,7 @@ BUG FIXES:
 * `azurerm_hdinsight_rserver_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
 * `azurerm_hdinsight_spark_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
 * `azurerm_hdinsight_storm_cluster` - the `enabled` property has been deprecated as the API no longer allowed it to be set to false - this fixes resource updates [GH-7111]
+* `azurerm_marketplace_agreement` - fix issue around import [GH-7515]
 
 ## 2.16.0 (June 25, 2020)
 
