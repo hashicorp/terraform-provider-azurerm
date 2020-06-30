@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/appplatform/mgmt/2019-05-01-preview/appplatform"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -52,6 +53,16 @@ func resourceArmSpringCloudService() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "S0",
+				ValidateFunc: validation.StringInSlice([]string{
+					"B0",
+					"S0",
+				}, false),
+			},
 
 			"config_server_git_setting": {
 				Type:     schema.TypeList,
@@ -133,8 +144,38 @@ func resourceArmSpringCloudService() *schema.Resource {
 				},
 			},
 
+			"trace": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+
+						"app_insight_instrumentation_key": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
+
+		// "sku_name" could update from "B0" to "S0"
+		CustomizeDiff: customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+			oldSku := old.(string)
+			newSku := new.(string)
+			if oldSku == "B0" && newSku == "S0" {
+				return false
+			}
+			return true
+		}),
 	}
 }
 
@@ -159,7 +200,13 @@ func resourceArmSpringCloudServiceCreate(d *schema.ResourceData, meta interface{
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resource := appplatform.ServiceResource{
 		Location: utils.String(location),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: &appplatform.ClusterResourceProperties{
+			Trace: expandArmSpringCloudTrace(d.Get("trace").([]interface{})),
+		},
+		Sku: &appplatform.Sku{
+			Name: utils.String(d.Get("sku_name").(string)),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	gitProperty, err := expandArmSpringCloudConfigServerGitProperty(d.Get("config_server_git_setting").([]interface{}))
@@ -233,6 +280,10 @@ func resourceArmSpringCloudServiceUpdate(d *schema.ResourceData, meta interface{
 					GitProperty: gitProperty,
 				},
 			},
+			Trace: expandArmSpringCloudTrace(d.Get("trace").([]interface{})),
+		},
+		Sku: &appplatform.Sku{
+			Name: utils.String(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -284,10 +335,15 @@ func resourceArmSpringCloudServiceRead(d *schema.ResourceData, meta interface{})
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if resp.Properties != nil && resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
-		if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
-			if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
-				return fmt.Errorf("failure setting AzureRM Spring Cloud Service error: %+v", err)
+	if resp.Properties != nil {
+		if err := d.Set("trace", flattenArmSpringCloudTrace(resp.Properties.Trace)); err != nil {
+			return fmt.Errorf("failure setting `trace`: %+v", err)
+		}
+		if resp.Properties.ConfigServerProperties != nil && resp.Properties.ConfigServerProperties.ConfigServer != nil {
+			if props := resp.Properties.ConfigServerProperties.ConfigServer.GitProperty; props != nil {
+				if err := d.Set("config_server_git_setting", flattenArmSpringCloudConfigServerGitProperty(props, d)); err != nil {
+					return fmt.Errorf("failure setting AzureRM Spring Cloud Service error: %+v", err)
+				}
 			}
 		}
 	}
@@ -420,6 +476,17 @@ func expandArmSpringCloudGitPatternRepository(input []interface{}) (*[]appplatfo
 		results = append(results, result)
 	}
 	return &results, nil
+}
+
+func expandArmSpringCloudTrace(input []interface{}) *appplatform.TraceProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	return &appplatform.TraceProperties{
+		Enabled:                      utils.Bool(v["enabled"].(bool)),
+		AppInsightInstrumentationKey: utils.String(v["app_insight_instrumentation_key"].(string)),
+	}
 }
 
 func flattenArmSpringCloudConfigServerGitProperty(input *appplatform.ConfigServerGitProperty, d *schema.ResourceData) []interface{} {
@@ -617,4 +684,26 @@ func flattenArmSpringCloudGitPatternRepository(input *[]appplatform.GitPatternRe
 	}
 
 	return results
+}
+
+func flattenArmSpringCloudTrace(input *appplatform.TraceProperties) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	appInsightInstrumentationKey := ""
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+	if input.AppInsightInstrumentationKey != nil {
+		appInsightInstrumentationKey = *input.AppInsightInstrumentationKey
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"enabled":                         enabled,
+			"app_insight_instrumentation_key": appInsightInstrumentationKey,
+		},
+	}
 }
