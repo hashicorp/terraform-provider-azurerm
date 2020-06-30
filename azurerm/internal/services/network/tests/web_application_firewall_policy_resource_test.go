@@ -252,8 +252,8 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   policy_settings {
-    enabled                     = true
-    mode                        = "Detection"
+    enabled = true
+    mode    = "Detection"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -350,8 +350,8 @@ resource "azurerm_web_application_firewall_policy" "test" {
   }
 
   policy_settings {
-    enabled                     = true
-    mode                        = "Prevention"
+    enabled = true
+    mode    = "Prevention"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
