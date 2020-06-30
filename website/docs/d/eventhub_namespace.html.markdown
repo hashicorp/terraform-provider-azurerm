@@ -42,7 +42,7 @@ output "eventhub_namespace_id" {
 
 * `maximum_throughput_units` -  Specifies the maximum number of throughput units when Auto Inflate is Enabled.
 
-* `zone_redundant` - Enabling this property creates a Standard Event Hubs Namespace in regions supported availability zones.
+* `zone_redundant` - Is this EventHub Namespace deployed across Availability Zones?
 
 * `tags` - A mapping of tags to assign to the EventHub Namespace.
 
