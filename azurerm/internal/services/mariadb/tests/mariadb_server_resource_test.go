@@ -419,7 +419,7 @@ resource "azurerm_mariadb_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -482,7 +482,7 @@ resource "azurerm_mariadb_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   create_mode                  = "Default"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
