@@ -44,7 +44,7 @@ func dataSourceArmSharedImage() *schema.Resource {
 				Computed: true,
 			},
 
-			"generalized": {
+			"specialized": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -130,7 +130,7 @@ func dataSourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("description", props.Description)
 		d.Set("eula", props.Eula)
 		d.Set("os_type", string(props.OsType))
-		d.Set("generalized", props.OsState != compute.Specialized)
+		d.Set("specialized", props.OsState == compute.Specialized)
 		d.Set("hyper_v_generation", string(props.HyperVGeneration))
 		d.Set("privacy_statement_uri", props.PrivacyStatementURI)
 		d.Set("release_note_uri", props.ReleaseNoteURI)
