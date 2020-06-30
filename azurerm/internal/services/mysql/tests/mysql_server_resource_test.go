@@ -437,7 +437,7 @@ resource "azurerm_mysql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "%s"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = "Enabled"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -499,7 +499,7 @@ resource "azurerm_mysql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "%s"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
