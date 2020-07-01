@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `auto_inflate_enabled` - (Optional) Is Auto Inflate enabled for the EventHub Namespace?
 
-* `dedicated_cluster_id` - (Optional) Specifies if the EventHub Namespace should be deployed on a Dedicated EventHubs Cluster. Changing this forces a new resource to be created.
+* `dedicated_cluster_id` - (Optional) Specifies the ID of the EventHub Dedicated Cluster where this Namespace should created. Changing this forces a new resource to be created.
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
