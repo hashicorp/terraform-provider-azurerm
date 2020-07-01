@@ -15,7 +15,7 @@ Use this data source to access information about an existing Resource Graph.
 ```hcl
 data "azurerm_resource_graph_graph_query" "example" {
   resource_group_name = "existing"
-  resource_name = "existing"
+  resource_name       = "existing"
 }
 
 output "id" {

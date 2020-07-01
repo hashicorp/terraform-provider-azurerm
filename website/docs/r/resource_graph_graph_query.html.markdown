@@ -15,8 +15,8 @@ Manages a Resource Graph.
 ```hcl
 resource "azurerm_resource_graph_graph_query" "example" {
   resource_group_name = "example"
-  resource_name = "example"
-  query = "where isnotnull(tags['Prod']) and properties.extensions[0].Name == 'docker'"
+  resource_name       = "example"
+  query               = "where isnotnull(tags['Prod']) and properties.extensions[0].Name == 'docker'"
 }
 ```
 

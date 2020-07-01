@@ -34,8 +34,8 @@ func testAccDataSourceResourceGraphGraphQuery_basic(data acceptance.TestData) st
 
 data "azurerm_resource_graph_graph_query" "test" {
   resource_group_name = azurerm_resource_graph_graph_query.test.resource_group_name
-  resource_name = azurerm_resource_graph_graph_query.test.resource_name
-  query = azurerm_resource_graph_graph_query.test.query
+  resource_name       = azurerm_resource_graph_graph_query.test.resource_name
+  query               = azurerm_resource_graph_graph_query.test.query
 }
 `, config)
 }

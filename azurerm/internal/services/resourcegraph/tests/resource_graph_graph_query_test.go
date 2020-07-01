@@ -158,8 +158,8 @@ func testAccAzureRMResourceGraphGraphQuery_basic(data acceptance.TestData) strin
 
 resource "azurerm_resource_graph_graph_query" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  resource_name = "acctest-rggq-%d"
-  query = "where isnotnull(tags['Prod']) and properties.extensions[0].Name == 'docker'"
+  resource_name       = "acctest-rggq-%d"
+  query               = "where isnotnull(tags['Prod']) and properties.extensions[0].Name == 'docker'"
 }
 `, template, data.RandomInteger)
 }
@@ -171,8 +171,8 @@ func testAccAzureRMResourceGraphGraphQuery_requiresImport(data acceptance.TestDa
 
 resource "azurerm_resource_graph_graph_query" "import" {
   resource_group_name = azurerm_resource_graph_graph_query.test.resource_group_name
-  query = azurerm_resource_graph_graph_query.test.query
-  resource_name = azurerm_resource_graph_graph_query.test.resource_name
+  query               = azurerm_resource_graph_graph_query.test.query
+  resource_name       = azurerm_resource_graph_graph_query.test.resource_name
 }
 `, config)
 }
@@ -184,9 +184,9 @@ func testAccAzureRMResourceGraphGraphQuery_complete(data acceptance.TestData) st
 
 resource "azurerm_resource_graph_graph_query" "test" {
   resource_group_name = azurerm_resource_group.test.name
-  resource_name = "acctest-rggq-%d"
-  query = "where isnotnull(tags['Prod']) and properties.extensions[0].Name == 'docker'"
-  description = "Docker VMs in PROD"
+  resource_name       = "acctest-rggq-%d"
+  query               = "where isnotnull(tags['Prod']) and properties.extensions[0].Name == 'docker'"
+  description         = "Docker VMs in PROD"
   tags = {
     ENV = "Test"
   }
