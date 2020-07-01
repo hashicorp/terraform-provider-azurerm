@@ -128,15 +128,13 @@ func resourceArmKustoClusterPrincipalAssignmentCreateUpdate(d *schema.ResourceDa
 	principalType := d.Get("principal_type").(string)
 	role := d.Get("role").(string)
 
-	props := kusto.ClusterPrincipalProperties{
-		TenantID:      utils.String(tenantID),
-		PrincipalID:   utils.String(principalID),
-		PrincipalType: kusto.PrincipalType(principalType),
-		Role:          kusto.ClusterPrincipalRole(role),
-	}
-
 	principalAssignment := kusto.ClusterPrincipalAssignment{
-		ClusterPrincipalProperties: &props,
+		ClusterPrincipalProperties: &kusto.ClusterPrincipalProperties{
+			TenantID:      utils.String(tenantID),
+			PrincipalID:   utils.String(principalID),
+			PrincipalType: kusto.PrincipalType(principalType),
+			Role:          kusto.ClusterPrincipalRole(role),
+		},
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, clusterName, name, principalAssignment)
