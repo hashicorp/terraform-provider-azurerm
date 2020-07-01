@@ -2,6 +2,7 @@ package tests
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -38,9 +39,9 @@ func TestAccDataSourceAzureRMCosmosDBAccount_complete(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMCosmosDBAccount_complete(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 2),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.0.location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.1.location", data.Locations.Secondary),
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 3),
+					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.0.location", strings.ToLower(data.Locations.Primary)),
+					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.1.location", strings.ToLower(data.Locations.Secondary)),
 					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.0.failover_priority", "0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "geo_location.1.failover_priority", "1"),
 				),

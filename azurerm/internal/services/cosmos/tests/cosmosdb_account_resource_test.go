@@ -142,13 +142,13 @@ func testAccAzureRMCosmosDBAccount_updateConsistency(t *testing.T, kind document
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 7, 770),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.BoundedStaleness, 7, 770),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 77, 700),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.BoundedStaleness, 77, 700),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 			},
 			data.ImportStep(),
 			{
@@ -181,9 +181,9 @@ func testAccAzureRMCosmosDBAccount_completeWith(t *testing.T, kind documentdb.Da
 		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDBAccount_complete(data, kind, documentdb.Eventual),
+				Config: testAccAzureRMCosmosDBAccount_complete(data, kind, documentdb.BoundedStaleness),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 3),
 				),
 			},
 			data.ImportStep(),
@@ -219,16 +219,16 @@ func testAccAzureRMCosmosDBAccount_updateWith(t *testing.T, kind documentdb.Data
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_complete(data, kind, documentdb.Eventual),
+				Config: testAccAzureRMCosmosDBAccount_complete(data, kind, documentdb.BoundedStaleness),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 3),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_completeUpdated(data, kind, documentdb.Eventual),
+				Config: testAccAzureRMCosmosDBAccount_completeUpdated(data, kind, documentdb.BoundedStaleness),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 3),
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 3),
 				),
 			},
 			data.ImportStep(),

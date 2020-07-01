@@ -96,7 +96,7 @@ The following arguments are supported:
 * `location` - (Required) The name of the Azure region to host replicated data.
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
 
-~> **NOTE:** The field `prefix` has been deprecated since it has been updated to readonly field. See more details from https://github.com/Azure/azure-sdk-for-go/pull/4640.
+~> **NOTE:** The field `prefix` is used to set Cosmos DB location ID and previously this ID property allows to be changed by API. However, now it has been updated to readonly field on API level. So it has to be deprecated since it doesn't take effect anymore. See more details from https://github.com/Azure/azure-sdk-for-go/pull/4640.
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
