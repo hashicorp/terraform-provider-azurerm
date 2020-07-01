@@ -127,6 +127,7 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 
 func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -224,7 +225,6 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 	d.SetId(*read.ID)
 
 	// We can only enable monitoring after creation
-	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	if v, ok := d.GetOk("monitor"); ok {
 		monitorRaw := v.([]interface{})
 		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
@@ -238,6 +238,7 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -309,8 +310,6 @@ func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, met
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
-
-		extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {
