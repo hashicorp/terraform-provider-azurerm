@@ -36,10 +36,10 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_web_application_firewall_policy" "example" {
+resource "azurerm_web_application_firewall_policy" "test" {
   name                = "example-wafpolicy"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   custom_rules {
     name      = "Rule1"
@@ -118,9 +118,9 @@ resource "azurerm_web_application_firewall_policy" "example" {
     }
   }
 
-  data "azurerm_web_application_firewall_policy" "example" {
-    resource_group_name = azurerm_resource_group.example.name
-    name                = "example-wafpolicy"
+  data "azurerm_web_application_firewall_policy" "test" {
+    resource_group_name = azurerm_resource_group.test.name
+    name                = azurerm_web_application_firewall_policy.test.name
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
