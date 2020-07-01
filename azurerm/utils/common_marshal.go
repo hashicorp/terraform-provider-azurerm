@@ -129,3 +129,33 @@ func ExpandMap(input map[string]interface{}, t interface{}, convert func(interfa
 	}
 	return result.Interface()
 }
+
+// FlattenSlice flattens the input pointer to slice of element whose type is specified by "t", into slice.
+// If "t" is different from the element type of output, then user has to specify a customized converter via
+// "convert", which guides the conversion from element of the input slice to the element of the output slice.
+// Otherwise, user can pass a nil "convert".
+func FlattenSlicePtr(input interface{}, convert func(interface{}) interface{}) []interface{} {
+	v := reflect.ValueOf(input)
+	// safe guard
+	if v.Type().Kind() != reflect.Ptr {
+		panic("Invalid input: input is not a pointer")
+	}
+
+	ve := v.Elem()
+	if ve.Type().Kind() != reflect.Slice {
+		panic("Invalid input: value of input is not a slice")
+	}
+
+	result := make([]interface{}, 0)
+	if v.IsNil() {
+		return result
+	}
+	for i := 0; i < ve.Len(); i++ {
+		ev := ve.Index(i)
+		if convert != nil {
+			ev = reflect.ValueOf(convert(ev.Interface()))
+		}
+		result = append(result, ev.Interface())
+	}
+	return result
+}
