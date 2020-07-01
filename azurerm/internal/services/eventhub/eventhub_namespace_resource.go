@@ -331,6 +331,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	if props := resp.EHNamespaceProperties; props != nil {
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
