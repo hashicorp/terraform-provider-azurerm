@@ -256,7 +256,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		Tags: tags.Expand(t),
 	}
 
-	if v := d.Get("cluster_id").(string); v != "" {
+	if v := d.Get("dedicated_cluster_id").(string); v != "" {
 		parameters.EHNamespaceProperties.ClusterArmID = utils.String(v)
 	}
 
@@ -344,9 +344,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 		d.Set("zone_redundant", props.ZoneRedundant)
-		if dedicatedClusterID := props.ClusterArmID; dedicatedClusterID != nil {
-			d.Set("dedicated_cluster_id", dedicatedClusterID)
-		}
+		d.Set("dedicated_cluster_id", props.ClusterArmID)
 	}
 
 	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
