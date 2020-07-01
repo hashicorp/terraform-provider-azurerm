@@ -115,7 +115,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 					return err
 				}
 			} else if err := disableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
-				return nil
+				return err
 			}
 		}
 
