@@ -43,28 +43,28 @@ func TestExpandSlice(t *testing.T) {
 			},
 			output: []T2{{"a"}, {"b"}},
 		},
-		// slice of int32 -> slice of int32
+		// slice of int -> slice of int32
 		{
-			input:  []interface{}{int32(1), int32(2)},
-			t:      int32(0),
+			input: []interface{}{1, 2},
+			t:     int32(0),
+			convert: func(x interface{}) interface{} {
+				return int32(x.(int))
+			},
 			output: []int32{1, 2},
 		},
-		// slice of int32 -> slice of int64
+		// slice of int -> slice of int64
 		{
-			input: []interface{}{int32(1), int32(2)},
+			input: []interface{}{1, 2},
 			t:     int64(0),
 			convert: func(x interface{}) interface{} {
-				return int64(x.(int32))
+				return int64(x.(int))
 			},
 			output: []int64{1, 2},
 		},
-		// slice of int32 -> slice of int
+		// slice of int -> slice of int
 		{
-			input: []interface{}{int32(1), int32(2)},
-			t:     0,
-			convert: func(x interface{}) interface{} {
-				return int(x.(int32))
-			},
+			input:  []interface{}{1, 2},
+			t:      0,
 			output: []int{1, 2},
 		},
 		// slice of float64 -> slice of float32
@@ -140,38 +140,38 @@ func TestExpandMap(t *testing.T) {
 				"a": {"b"},
 			},
 		},
-		// map[string]int32  -> map[string]int32
+		// map[string]int  -> map[string]int32
 		{
 			input: map[string]interface{}{
-				"a": int32(1),
+				"a": 1,
 			},
 			t: int32(0),
+			convert: func(x interface{}) interface{} {
+				return int32(x.(int))
+			},
 			output: map[string]int32{
 				"a": 1,
 			},
 		},
-		// map[string]int32  -> map[string]int64
+		// map[string]int  -> map[string]int64
 		{
 			input: map[string]interface{}{
-				"a": int32(1),
+				"a": 1,
 			},
 			t: int64(0),
 			convert: func(x interface{}) interface{} {
-				return int64(x.(int32))
+				return int64(x.(int))
 			},
 			output: map[string]int64{
 				"a": 1,
 			},
 		},
-		// map[string]int32 -> map[string]int
+		// map[string]int -> map[string]int
 		{
 			input: map[string]interface{}{
-				"a": int32(1),
+				"a": 1,
 			},
 			t: 0,
-			convert: func(x interface{}) interface{} {
-				return int(x.(int32))
-			},
 			output: map[string]int{
 				"a": 1,
 			},
