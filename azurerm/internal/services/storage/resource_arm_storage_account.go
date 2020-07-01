@@ -784,8 +784,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	d.Partial(true)
-
 	if d.HasChange("account_replication_type") {
 		sku := storage.Sku{
 			Name: storage.SkuName(storageType),
@@ -950,7 +948,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	d.Partial(false)
 	return resourceArmStorageAccountRead(d, meta)
 }
 
