@@ -257,6 +257,24 @@ func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta i
 
 func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
 
+	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.IntegrationServiceEnvironmentID(d.Id())
+	if err != nil {
+		return fmt.Errorf("parsing Integration Service Environment ID `%q`: %+v", d.Id(), err)
+	}
+
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("deleting Integration Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	// TODO: HACK - How to wait for deletion Op completed?
+	// Currently Delete Op finishes with status 200 instantly, resource is not visible and next Op on resource ends with status NotFound
+	// but resource still exists as hidden and is still occupying the VNET. Not sure how to solve it
+	time.Sleep(time.Minute * 180)
+
 	return nil
 }
 
