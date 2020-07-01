@@ -83,7 +83,7 @@ func FlattenInt32Slice(input *[]int32) []interface{} {
 	return result
 }
 
-// ExpandSlice expands the input slice into slice of element whose type is specified by "t".
+// ExpandSlice expands the input slice into pointer to slice of element whose type is specified by "t".
 // If "t" is different from the element type of input, then user has to specify a customized converter via
 // "convert", which guides the conversion from element of the input slice to the element of the output slice.
 // Otherwise, user can pass a nil "convert".
