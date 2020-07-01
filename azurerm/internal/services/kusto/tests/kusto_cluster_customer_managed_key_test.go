@@ -141,7 +141,8 @@ func testAccAzureRMKustoClusterCustomerManagedKey_basic(data acceptance.TestData
 resource "azurerm_kusto_cluster_customer_managed_key" "test" {
   cluster_id   = azurerm_kusto_cluster.test.id
   key_vault_id = azurerm_key_vault.test.id
-  key_name     = azurerm_key_vault_key.first.name
+  key_name     = 
+  .first.name
   key_version  = azurerm_key_vault_key.first.version
 }
 `, template)
@@ -233,7 +234,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   secret_permissions = ["get"]
 }
 
-resource "azurerm_key_vault_key" "test" {
+resource "azurerm_key_vault_key" "first" {
   name         = "test"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
