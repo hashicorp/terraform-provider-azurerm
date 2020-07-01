@@ -69,7 +69,7 @@ func resourceArmAppService() *schema.Resource {
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  false,
 			},
 
 			"https_only": {
@@ -81,6 +81,7 @@ func resourceArmAppService() *schema.Resource {
 			"client_cert_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"enabled": {
@@ -267,13 +268,9 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	if enabled := d.Get("client_affinity_enabled").(bool); enabled {
-		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
-	}
+	siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(d.Get("client_affinity_enabled").(bool))
 
-	if certEnabled := d.Get("client_cert_enabled").(bool); certEnabled {
-		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
-	}
+	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
 
 	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
@@ -360,9 +357,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		},
 	}
 
-	if certEnabled := d.Get("client_cert_enabled").(bool); certEnabled {
-		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
-	}
+	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, siteEnvelope)
 	if err != nil {
