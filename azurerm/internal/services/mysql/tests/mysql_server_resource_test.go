@@ -590,6 +590,7 @@ resource "azurerm_mysql_server" "replica" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "GP_Gen5_2"
   version             = "%s"
+  storage_mb          = 51200
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_mysql_server.test.id
