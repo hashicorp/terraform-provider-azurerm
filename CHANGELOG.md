@@ -23,6 +23,8 @@ ENHANCEMENTS:
 
 BUG FIXES: 
 
+* `azurerm_api_management_named_value` - polling until the property is fully created [GH-7547]
+* `azurerm_api_management_property` - polling until the property is fully created [GH-7547]
 * `azurerm_marketplace_agreement` - fix issue around import [GH-7515]
 
 ## 2.16.0 (June 25, 2020)
