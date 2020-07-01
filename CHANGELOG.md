@@ -14,8 +14,10 @@ UPGRADE NOTES:
 ENHANCEMENTS:
 
 * dependencies: updating to v43.2.0 of `github.com/Azure/azure-sdk-for-go` [GH-7546]
+* Data Source: `azurerm_eventhub_namespace` - exposing the `zone_redundant` property [GH-7534]
 * Data Source: `azurerm_postgresql_server` - exposing `sku_name` [GH-7523]
 * `azurerm_app_service_environment` - the property `user_whitelisted_ip_ranges` has been deprecated and renamed to `allowed_user_ip_cidrs` to clarify the function and expected format [GH-7499]
+* `azurerm_eventhub_namespace` - support for the `zone_redundant` property [GH-7534]
 * `azurerm_key_vault_certificate` - exposing the `certificate_attribute` block [GH-7387]
 * `azurerm_sentinel_alert_rule_ms_security_incident` - the property `text_whitelist` has been deprecated and renamed to `display_name_filter` to better match the api [GH-7499]
 * `azurerm_shared_image` - support for specialized images via the `specialized` property [GH-7277]
