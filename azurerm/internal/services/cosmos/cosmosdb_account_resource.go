@@ -318,7 +318,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
 		}
 	}
-	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(name, d)
+	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
 	}
@@ -386,7 +386,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 
-	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(name, d)
+	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
 	}
@@ -536,7 +536,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp)); err != nil {
+	if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(resp)); err != nil {
 		return fmt.Errorf("Error setting `geo_location`: %+v", err)
 	}
 
@@ -748,7 +748,7 @@ func resourceArmCosmosDbAccountGenerateDefaultId(databaseName string, location s
 	return fmt.Sprintf("%s-%s", databaseName, location)
 }
 
-func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
+func expandAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData) ([]documentdb.Location, error) {
 	locations := make([]documentdb.Location, 0)
 	for _, l := range d.Get("geo_location").(*schema.Set).List() {
 		data := l.(map[string]interface{})
@@ -825,7 +825,7 @@ func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.Consisten
 	return []interface{}{result}
 }
 
-func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account documentdb.DatabaseAccount) *schema.Set {
+func flattenAzureRmCosmosDBAccountGeoLocations(account documentdb.DatabaseAccount) *schema.Set {
 	locationSet := schema.Set{
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
 	}
