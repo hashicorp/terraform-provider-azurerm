@@ -213,7 +213,7 @@ func TestAccAzureRMLinuxVirtualMachineScaleSet_imagesSpecialized(t *testing.T) {
 }
 
 func testAccAzureRMLinuxVirtualMachineScaleSet_imagesSpecialized(data acceptance.TestData) string {
-	template := testAccAzureRMSharedImageVersion_imageVersionSpecializedByVM(data, "testadmin", "Password1234!", fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger))
+	template := testAccAzureRMSharedImageVersion_imageVersionSpecializedByLinuxVM(data, "testadmin", "Password1234!", fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger))
 	return fmt.Sprintf(`
 %s
 

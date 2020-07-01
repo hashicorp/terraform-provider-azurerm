@@ -955,6 +955,8 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 			d.Set("source_image_id", storageImageId)
 		}
 
+		enableAutomaticUpdates := true // default value of `enable_automatic_updates` to avoid unexpected diff
+		provisionVMAgent := true // default value of `provision_vm_agent` to avoid unexpected diff
 		if osProfile := profile.OsProfile; osProfile != nil {
 			// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
 			d.Set("admin_username", osProfile.AdminUsername)
@@ -969,19 +971,13 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 					return fmt.Errorf("Error setting `additional_unattend_content`: %+v", err)
 				}
 
-				enableAutomaticUpdates := false
 				if windows.EnableAutomaticUpdates != nil {
 					enableAutomaticUpdates = *windows.EnableAutomaticUpdates
 				}
-
-				// the API requires this is set to 'true' on submission (since it's now required for Windows VMSS's with
-				// an Automatic Upgrade Mode configured) however it actually returns false from the API..
-				// after a bunch of testing the least bad option appears to be not to set this if it's an Automatic Upgrade Mode
-				if upgradeMode != compute.Automatic {
-					d.Set("enable_automatic_updates", enableAutomaticUpdates)
+				if windows.ProvisionVMAgent != nil {
+					provisionVMAgent = *windows.ProvisionVMAgent
 				}
 
-				d.Set("provision_vm_agent", windows.ProvisionVMAgent)
 				d.Set("timezone", windows.TimeZone)
 
 				if err := d.Set("winrm_listener", flattenWinRMListener(windows.WinRM)); err != nil {
@@ -989,6 +985,15 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 				}
 			}
 		}
+
+		// the API requires this is set to 'true' on submission (since it's now required for Windows VMSS's with
+		// an Automatic Upgrade Mode configured) however it actually returns false from the API..
+		// after a bunch of testing the least bad option appears to be not to set this if it's an Automatic Upgrade Mode
+		if upgradeMode != compute.Automatic {
+			d.Set("enable_automatic_updates", enableAutomaticUpdates)
+		}
+
+		d.Set("provision_vm_agent", provisionVMAgent)
 
 		if nwProfile := profile.NetworkProfile; nwProfile != nil {
 			flattenedNics := FlattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)

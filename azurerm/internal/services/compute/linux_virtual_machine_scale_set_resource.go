@@ -898,8 +898,8 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 			d.Set("source_image_id", storageImageId)
 		}
 
-		disablePassword := true // default value of `disable_password_authentication`
-		provisionVMAgent := true // default value of `provision_vm_agent`
+		disablePassword := true  // default value of `disable_password_authentication` to avoid unexpected diff
+		provisionVMAgent := true // default value of `provision_vm_agent` to avoid unexpected diff
 		if osProfile := profile.OsProfile; osProfile != nil {
 			// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
 			d.Set("admin_username", osProfile.AdminUsername)

@@ -195,6 +195,62 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesSpecialized(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+
+    resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_imagesSpecialized(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
+func testAccAzureRMWindowsVirtualMachineScaleSet_imagesSpecialized(data acceptance.TestData) string {
+	name := testAccAzureRMWindowsVirtualMachineScaleSet_vmName(data)
+	template := testAccAzureRMSharedImageVersion_imageVersionSpecializedByWindowsVM(data, "testadmin", "Password1234!", fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger))
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_DS1_v2"
+  instances           = 2
+  upgrade_mode        = "Manual"
+
+  source_image_id = azurerm_shared_image_version.test.id
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadOnly"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, template, name)
+}
+
 func testAccAzureRMWindowsVirtualMachineScaleSet_imagesAutomaticUpdate(data acceptance.TestData, version string) string {
 	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
