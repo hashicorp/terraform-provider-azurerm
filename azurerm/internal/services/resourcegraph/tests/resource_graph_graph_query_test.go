@@ -101,7 +101,6 @@ func testCheckAzureRMResourceGraphGraphQueryExists(resourceName string) resource
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("resourceGraph GraphQuery not found: %s", resourceName)
-
 		}
 		id, err := parse.ResourceGraphGraphQueryID(rs.Primary.ID)
 		if err != nil {

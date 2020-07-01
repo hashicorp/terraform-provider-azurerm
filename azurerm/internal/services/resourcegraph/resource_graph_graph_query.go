@@ -99,7 +99,7 @@ func resourceArmResourceGraphGraphQueryCreate(d *schema.ResourceData, meta inter
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, resourceName, props); err != nil {
-		return fmt.Errorf("failure in creating/updating ResourceGraph GraphQuery (Resource Group %q / resourceName %q / properties %q): %+v", resourceGroup, resourceName, props, err)
+		return fmt.Errorf("failure in creating/updating ResourceGraph GraphQuery (Resource Group %q / resourceName %q / properties %v): %+v", resourceGroup, resourceName, props, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, resourceName)
@@ -166,7 +166,7 @@ func resourceArmResourceGraphGraphQueryUpdate(d *schema.ResourceData, meta inter
 	}
 
 	if _, err := client.Update(ctx, resourceGroup, resourceName, body); err != nil {
-		return fmt.Errorf("failure in creating/updating ResourceGraph GraphQuery (Resource Group %q / resourceName %q / body %q): %+v", resourceGroup, resourceName, body, err)
+		return fmt.Errorf("failure in creating/updating ResourceGraph GraphQuery (Resource Group %q / resourceName %q / body %v): %+v", resourceGroup, resourceName, body, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, resourceName)
