@@ -182,12 +182,36 @@ func resourceArmKustoClusterPrincipalAssignmentRead(d *schema.ResourceData, meta
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cluster_name", id.Cluster)
 	d.Set("name", id.Name)
-	d.Set("tenant_id", *resp.TenantID)
-	d.Set("tenant_name", *resp.TenantName)
-	d.Set("principal_id", *resp.PrincipalID)
-	d.Set("principal_name", *resp.PrincipalName)
-	d.Set("principal_type", string(resp.PrincipalType))
-	d.Set("role", string(resp.Role))
+
+	tenantID := ""
+	if resp.TenantID != nil {
+		tenantID = *resp.TenantID
+	}
+
+	tenantName := ""
+	if resp.TenantName != nil {
+		tenantName = *resp.TenantName
+	}
+
+	principalID := ""
+	if resp.PrincipalID != nil {
+		principalID = *resp.PrincipalID
+	}
+
+	principalName := ""
+	if resp.PrincipalName != nil {
+		principalName = *resp.PrincipalName
+	}
+
+	principalType := string(resp.PrincipalType)
+	role := string(resp.Role)
+
+	d.Set("tenant_id", tenantID)
+	d.Set("tenant_name", tenantName)
+	d.Set("principal_id", principalID)
+	d.Set("principal_name", principalName)
+	d.Set("principal_type", principalType)
+	d.Set("role", role)
 
 	return nil
 }
