@@ -26,6 +26,8 @@ ENHANCEMENTS:
 * `azurerm_sentinel_alert_rule_ms_security_incident` - the property `text_whitelist` has been deprecated and renamed to `display_name_filter` to better match the api [GH-7499]
 * `azurerm_shared_image` - support for specialized images via the `specialized` property [GH-7277]
 * `azurerm_shared_image_version` - support for specialized images via the `specialized` property [GH-7277]
+* `azurerm_spring_cloud_service` - support for `sku_name` [GH-7531]
+* `azurerm_spring_cloud_service` - support for the `trace` block [GH-7531]
 
 BUG FIXES: 
 
