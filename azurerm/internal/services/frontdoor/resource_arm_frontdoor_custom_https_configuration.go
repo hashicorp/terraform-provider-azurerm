@@ -98,6 +98,14 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 				},
 			},
 		},
+
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			if err := validate.FrontdoorCustomHttpsSettings(d); err != nil {
+				return fmt.Errorf("creating Front Door Custom Https Configuration for endpoint %q (Frontdoor %q) (Resource Group %q): %+v", d.Get("frontend_endpoint_name").(string), d.Get("front_door_name").(string), d.Get("resource_group_name").(string), err)
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -168,7 +176,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 	d.Set("resource_group_name", resourceGroup)
 
 	if resp.Name != nil {
-		if frontDoorFrontendEndpoint, err := flattenArmFrontDoorFrontendEndpoint(ctx, &resp, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoint != nil {
+		if frontDoorFrontendEndpoint, err := flattenArmFrontDoorFrontendEndpoint(ctx, &resp, resourceGroup, frontDoorName, meta); frontDoorFrontendEndpoint != nil {
 			if err := d.Set("custom_https_configuration", frontDoorFrontendEndpoint["custom_https_configuration"]); err != nil {
 				return fmt.Errorf("setting `custom_https_configuration`: %+v", err)
 			}
