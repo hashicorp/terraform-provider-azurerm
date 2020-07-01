@@ -68,7 +68,9 @@ The following arguments are supported:
 
 * `eula` - (Optional) The End User Licence Agreement for the Shared Image.
 
-* `specialized` - (Optional) Should the Operating System present in this Shared Image be specialized? Defaults to `false`. Setting this to `true` creates a specialized imagine which is the equivalent of sysprepping in windows. Changing this forces a new resource to be created.
+* `specialized` - (Optional) Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run). Defaults to `false`. Changing this forces a new resource to be created.
+
+!> **Note:** It's recommended to Generalize images where possible - Specialized Images reuse the same UUID internally within each Virtual Machine, which can have unintended side-effects.
 
 * `hyper_v_generation` - (Optional) The generation of HyperV that the Virtual Machine used to create the Shared Image is based on. Possible values are `V1` and `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
 
