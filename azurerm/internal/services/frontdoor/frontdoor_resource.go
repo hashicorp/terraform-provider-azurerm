@@ -33,7 +33,6 @@ func resourceArmFrontDoor() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		//MigrateState:  resourceAzureRMFrontDoorMigrateState,
 		SchemaVersion: 1,
 
 		Timeouts: &schema.ResourceTimeout{
@@ -430,7 +429,7 @@ func resourceArmFrontDoor() *schema.Resource {
 							Type:       schema.TypeBool,
 							Optional:   true,
 							Computed:   true,
-							Deprecated: "Deprecated in favour of `custom_https_configuration` resource",
+							Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
 						},
 						"web_application_firewall_policy_link_id": {
 							Type:     schema.TypeString,
@@ -441,7 +440,7 @@ func resourceArmFrontDoor() *schema.Resource {
 							Optional:   true,
 							Computed:   true,
 							MaxItems:   1,
-							Deprecated: "Deprecated in favour of `custom_https_configuration` resource",
+							Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"certificate_source": {
