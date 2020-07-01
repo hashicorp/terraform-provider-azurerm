@@ -2,14 +2,14 @@
 
 UPGRADE NOTES:
 
-* `azurerm_hdinsight_hadoop_cluster` - the `enabled` property within the `gateway` block is no longer configurable, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_hbase_cluster` - the `enabled` property within the `gateway` block is no longer configurable, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_interactive_query_cluster` - the `enabled` property within the `gateway` block is no longer configurable, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_kafka_cluster` - the `enabled` property within the `gateway` block is no longer configurable, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_ml_services_cluster` - the `enabled` property within the `gateway` block is no longer configurable, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_rserver_cluster` - the `enabled` property within the `gateway` block is no longer configurable, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_spark_cluster` - the `enabled` property within the `gateway` block is no longer configurable, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_storm_cluster` - the `enabled` property within the `gateway` block is no longer configurable, due to a behavioural change in the Azure API [GH-7111]
+* `azurerm_hdinsight_hadoop_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
+* `azurerm_hdinsight_hbase_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
+* `azurerm_hdinsight_interactive_query_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
+* `azurerm_hdinsight_kafka_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
+* `azurerm_hdinsight_ml_services_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
+* `azurerm_hdinsight_rserver_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
+* `azurerm_hdinsight_spark_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
+* `azurerm_hdinsight_storm_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
 
 ENHANCEMENTS:
 
