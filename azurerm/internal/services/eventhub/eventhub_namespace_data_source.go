@@ -55,7 +55,6 @@ func dataSourceEventHubNamespace() *schema.Resource {
 
 			"dedicated_cluster_id": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 
