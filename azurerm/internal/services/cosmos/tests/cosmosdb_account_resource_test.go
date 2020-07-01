@@ -583,7 +583,6 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id"
     location          = "%[5]s"
     failover_priority = 1
   }
@@ -626,13 +625,11 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id-updated"
     location          = "%[5]s"
     failover_priority = 1
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id-added"
     location          = "%[6]s"
     failover_priority = 2
   }

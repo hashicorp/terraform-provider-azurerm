@@ -144,6 +144,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
 								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
 							),
+							Deprecated: "This field has been updated to readonly field. See more details from https://github.com/Azure/azure-sdk-for-go/pull/4640.",
 						},
 
 						"id": {
@@ -757,13 +758,6 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
 		}
 
-		if v, ok := data["prefix"].(string); ok {
-			data["id"] = v
-		} else {
-			data["id"] = utils.String(resourceArmCosmosDbAccountGenerateDefaultId(databaseName, *location.LocationName))
-		}
-		location.ID = utils.String(data["id"].(string))
-
 		locations = append(locations, location)
 	}
 
@@ -836,26 +830,12 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
 	}
 
-	// we need to propagate the `prefix` field so fetch existing
-	prefixMap := map[string]string{}
-	if locations, ok := d.GetOk("geo_location"); ok {
-		for _, lRaw := range locations.(*schema.Set).List() {
-			lb := lRaw.(map[string]interface{})
-			prefixMap[lb["location"].(string)] = lb["prefix"].(string)
-		}
-	}
-
 	for _, l := range *account.FailoverPolicies {
 		id := *l.ID
 		lb := map[string]interface{}{
 			"id":                id,
 			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
-		}
-
-		// if id is not the default then it must be set via prefix
-		if id != resourceArmCosmosDbAccountGenerateDefaultId(d.Get("name").(string), lb["location"].(string)) {
-			lb["prefix"] = id
 		}
 
 		locationSet.Add(lb)
@@ -902,14 +882,10 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		prefix := ""
-		if v, ok := m["prefix"].(string); ok {
-			prefix = v
-		}
 		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
 
-		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))
+		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
 	}
 
 	return hashcode.String(buf.String())

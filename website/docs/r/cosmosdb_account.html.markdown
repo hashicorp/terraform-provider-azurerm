@@ -44,7 +44,6 @@ resource "azurerm_cosmosdb_account" "db" {
   }
 
   geo_location {
-    prefix            = "tfex-cosmos-db-${random_integer.ri.result}-customid"
     location          = azurerm_resource_group.rg.location
     failover_priority = 0
   }
@@ -93,7 +92,6 @@ The following arguments are supported:
 
 `geo_location` Configures the geographic locations the data is replicated to and supports the following:
 
-* `prefix` - (Optional) The string used to generate the document endpoints for this region. If not specified it defaults to `${cosmosdb_account.name}-${location}`. Changing this causes the location to be deleted and re-provisioned and cannot be changed for the location with failover priority `0`.
 * `location` - (Required) The name of the Azure region to host replicated data.
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
 
@@ -101,7 +99,7 @@ The following arguments are supported:
 
 * `name` - (Required) The capability to enable - Possible values are `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `MongoDBv3.4`, and `mongoEnableDocLevelTTL`.
 
-**NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
+**NOTE:** The `failover_priority` field of a location cannot be changed for the location with a failover priority of `0`.
 
 `virtual_network_rule` Configures the virtual network subnets allowed to access this Cosmos DB account and supports the following:
 
