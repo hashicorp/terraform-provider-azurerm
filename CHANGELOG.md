@@ -33,7 +33,9 @@ BUG FIXES:
 
 * `azurerm_api_management_named_value` - polling until the property is fully created [GH-7547]
 * `azurerm_api_management_property` - polling until the property is fully created [GH-7547]
+* `azurerm_linux_virtual_machine_scale_set` - using the provider feature `roll_instances_when_required` when `upgrade_mode` is set to `Manual` [GH-7513]
 * `azurerm_marketplace_agreement` - fix issue around import [GH-7515]
+* `azurerm_windows_virtual_machine_scale_set` - using the provider feature `roll_instances_when_required` when `upgrade_mode` is set to `Manual` [GH-7513]
 
 ## 2.16.0 (June 25, 2020)
 
