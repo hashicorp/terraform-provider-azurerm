@@ -23,7 +23,7 @@ func TestExpandSlice(t *testing.T) {
 		{
 			input:  []interface{}{"a", "b"},
 			t:      "",
-			output: []string{"a", "b"},
+			output: ToPtr([]string{"a", "b"}),
 		},
 		// slice of string -> slice of customized string type
 		{
@@ -32,7 +32,7 @@ func TestExpandSlice(t *testing.T) {
 			convert: func(x interface{}) interface{} {
 				return T1(x.(string))
 			},
-			output: []T1{"a", "b"},
+			output: ToPtr([]T1{"a", "b"}),
 		},
 		// slice of string -> slice of customized structure containing string member
 		{
@@ -41,7 +41,7 @@ func TestExpandSlice(t *testing.T) {
 			convert: func(x interface{}) interface{} {
 				return T2{S: x.(string)}
 			},
-			output: []T2{{"a"}, {"b"}},
+			output: ToPtr([]T2{{"a"}, {"b"}}),
 		},
 		// slice of int -> slice of int32
 		{
@@ -50,7 +50,7 @@ func TestExpandSlice(t *testing.T) {
 			convert: func(x interface{}) interface{} {
 				return int32(x.(int))
 			},
-			output: []int32{1, 2},
+			output: ToPtr([]int32{1, 2}),
 		},
 		// slice of int -> slice of int64
 		{
@@ -59,13 +59,13 @@ func TestExpandSlice(t *testing.T) {
 			convert: func(x interface{}) interface{} {
 				return int64(x.(int))
 			},
-			output: []int64{1, 2},
+			output: ToPtr([]int64{1, 2}),
 		},
 		// slice of int -> slice of int
 		{
 			input:  []interface{}{1, 2},
 			t:      0,
-			output: []int{1, 2},
+			output: ToPtr([]int{1, 2}),
 		},
 		// slice of float64 -> slice of float32
 		{
@@ -74,13 +74,13 @@ func TestExpandSlice(t *testing.T) {
 			convert: func(x interface{}) interface{} {
 				return float32(x.(float64))
 			},
-			output: []float32{1, 2},
+			output: ToPtr([]float32{1, 2}),
 		},
 		// slice of float64 -> slice of float64
 		{
 			input:  []interface{}{float64(1), float64(2)},
 			t:      float64(0),
-			output: []float64{1, 2},
+			output: ToPtr([]float64{1, 2}),
 		},
 	}
 

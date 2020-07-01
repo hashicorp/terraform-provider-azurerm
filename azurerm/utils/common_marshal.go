@@ -104,7 +104,10 @@ func ExpandSlice(input []interface{}, t interface{}, convert func(interface{}) i
 			result = reflect.Append(result, reflect.Zero(targetType))
 		}
 	}
-	return result.Interface()
+
+	resultp := reflect.New(result.Type())
+	resultp.Elem().Set(result)
+	return resultp.Interface()
 }
 
 // ExpandMap expands the input map (key is of type string) into map (key is of type string) where the type of value is specified by "t".

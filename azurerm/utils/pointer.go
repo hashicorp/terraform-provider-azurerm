@@ -1,5 +1,7 @@
 package utils
 
+import "reflect"
+
 func Bool(input bool) *bool {
 	return &input
 }
@@ -22,4 +24,12 @@ func Float(input float64) *float64 {
 
 func String(input string) *string {
 	return &input
+}
+
+// ToPtr create a new object from the passed in "obj" and return its address back.
+func ToPtr(obj interface{}) interface{} {
+	v := reflect.ValueOf(obj)
+	vp := reflect.New(v.Type())
+	vp.Elem().Set(v)
+	return vp.Interface()
 }
