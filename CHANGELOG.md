@@ -11,6 +11,10 @@ UPGRADE NOTES:
 * `azurerm_hdinsight_spark_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
 * `azurerm_hdinsight_storm_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
 
+FEATURES: 
+
+* **New Resource:** `azurerm_kusto_cluster_principal_assignment` [GH-7533]
+
 ENHANCEMENTS:
 
 * dependencies: updating to v43.2.0 of `github.com/Azure/azure-sdk-for-go` [GH-7546]
