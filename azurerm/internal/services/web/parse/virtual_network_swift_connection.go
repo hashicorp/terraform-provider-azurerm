@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VirtualNetworkSwitchConnectionId struct {
+type VirtualNetworkSwiftConnectionId struct {
 	SiteName      string
 	ResourceGroup string
 }
 
-func VirtualNetworkSwitchConnectionID(resourceId string) (*VirtualNetworkSwitchConnectionId, error) {
+func VirtualNetworkSwiftConnectionID(resourceId string) (*VirtualNetworkSwiftConnectionId, error) {
 	id, err := azure.ParseAzureResourceID(resourceId)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing Azure Resource ID %q", id)
 	}
 
-	virtualNetworkId := &VirtualNetworkSwitchConnectionId{
+	virtualNetworkId := &VirtualNetworkSwiftConnectionId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

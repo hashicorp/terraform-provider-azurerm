@@ -7,23 +7,23 @@ import (
 )
 
 type SlotVirtualNetworkSwitchConnectionId struct {
-	VirtualNetworkSwitchConnectionId
+	VirtualNetworkSwiftConnectionId
 	SlotName string
 }
 
-func SlotVirtualNetworkSwitchConnectionID(resourceId string) (*SlotVirtualNetworkSwitchConnectionId, error) {
+func SlotVirtualNetworkSwiftConnectionID(resourceId string) (*SlotVirtualNetworkSwitchConnectionId, error) {
 	id, err := azure.ParseAzureResourceID(resourceId)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing Azure Resource ID %q", id)
 	}
 
-	virtualNetworkId, err := VirtualNetworkSwitchConnectionID(resourceId)
+	virtualNetworkId, err := VirtualNetworkSwiftConnectionID(resourceId)
 	if err != nil {
 		return nil, err
 	}
 
 	slotVirtualNetworkId := &SlotVirtualNetworkSwitchConnectionId{
-		VirtualNetworkSwitchConnectionId: *virtualNetworkId,
+		VirtualNetworkSwiftConnectionId: *virtualNetworkId,
 	}
 
 	if slotVirtualNetworkId.SlotName, err = id.PopSegment("slots"); err != nil {

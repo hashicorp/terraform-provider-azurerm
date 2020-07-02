@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestVirtualNetworkSwitchConnectionID(t *testing.T) {
+func TestVirtualNetworkSwiftConnectionID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *VirtualNetworkSwitchConnectionId
+		Expected *VirtualNetworkSwiftConnectionId
 	}{
 		{
 			Name:     "Empty",
@@ -28,7 +28,7 @@ func TestVirtualNetworkSwitchConnectionID(t *testing.T) {
 		{
 			Name:  "Virtual Network Association",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/networkconfig/virtualNetwork",
-			Expected: &VirtualNetworkSwitchConnectionId{
+			Expected: &VirtualNetworkSwiftConnectionId{
 				SiteName:      "instance1",
 				ResourceGroup: "mygroup1",
 			},
@@ -38,7 +38,7 @@ func TestVirtualNetworkSwitchConnectionID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := VirtualNetworkSwitchConnectionID(v.Input)
+		actual, err := VirtualNetworkSwiftConnectionID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
