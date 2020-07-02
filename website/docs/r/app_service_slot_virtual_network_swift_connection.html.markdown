@@ -60,11 +60,6 @@ resource "azurerm_app_service" "example" {
   app_service_plan_id = azurerm_app_service_plan.example.id
 }
 
-resource "azurerm_app_service_virtual_network_swift_connection" "example" {
-  app_service_id = azurerm_app_service.example.id
-  subnet_id      = azurerm_subnet.example.id
-}
-
 resource "azurerm_app_service_slot" "example-staging" {
   name                = "staging"
   app_service_name    = azurerm_app_service.example.name
@@ -84,9 +79,9 @@ resource "azurerm_app_service_slot_virtual_network_swift_connection" "example" {
 
 The following arguments are supported:
 
-* `slot_name` - (Required) The name of the App Service Slot.
-
 * `app_service_id` - (Required) The ID of the App Service to associate to the VNet. Changing this forces a new resource to be created.
+
+* `slot_name` - (Required) The name of the App Service Slot. Changing this forces a new resource to be created.
 
 * `subnet_id` - (Required) The ID of the subnet the app service will be associated to (the subnet must have a `service_delegation` configured for `Microsoft.Web/serverFarms`).
 
