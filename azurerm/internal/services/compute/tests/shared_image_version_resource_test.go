@@ -538,7 +538,7 @@ resource "azurerm_virtual_machine" "testsource" {
 
   os_profile {
     computer_name  = "mdimagesource"
-    admin_username = "%s" 
+    admin_username = "%s"
     admin_password = "%s"
   }
 
