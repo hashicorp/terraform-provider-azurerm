@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+	binarytestfuntime "github.com/hashicorp/terraform-plugin-sdk/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -19,6 +20,21 @@ import (
 )
 
 var once sync.Once
+
+func init() {
+	once.Do(func() {
+		azureProvider := provider.TestAzureProvider().(*schema.Provider)
+
+		AzureProvider = azureProvider
+		SupportedProviders = map[string]terraform.ResourceProvider{
+			"azurerm": azureProvider,
+			"azuread": azuread.Provider().(*schema.Provider),
+		}
+
+		binarytestfuntime.UseBinaryDriver("azurerm", provider.TestAzureProvider)
+		binarytestfuntime.UseBinaryDriver("azuread", azuread.Provider)
+	})
+}
 
 type TestData struct {
 	// Locations is a set of Azure Regions which should be used for this Test
@@ -51,16 +67,6 @@ type TestData struct {
 
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
-	once.Do(func() {
-		azureProvider := provider.TestAzureProvider().(*schema.Provider)
-
-		AzureProvider = azureProvider
-		SupportedProviders = map[string]terraform.ResourceProvider{
-			"azurerm": azureProvider,
-			"azuread": azuread.Provider().(*schema.Provider),
-		}
-	})
-
 	env, err := Environment()
 	if err != nil {
 		t.Fatalf("Error retrieving Environment: %+v", err)
