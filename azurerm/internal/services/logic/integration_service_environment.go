@@ -32,10 +32,10 @@ func resourceArmIntegrationServiceEnvironment() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(4 * time.Hour),
+			Create: schema.DefaultTimeout(5 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(4 * time.Hour),
-			Delete: schema.DefaultTimeout(4 * time.Hour),
+			Update: schema.DefaultTimeout(5 * time.Hour),
+			Delete: schema.DefaultTimeout(5 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -150,6 +150,11 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 	accessEndpointType := d.Get("access_endpoint_type").(string)
 	virtualNetworkSubnetIds := d.Get("virtual_network_subnet_ids").(*schema.Set).List()
 	t := d.Get("tags").(map[string]interface{})
+
+	if !((capacity == 0 && skuName == string(logic.IntegrationServiceEnvironmentSkuNameDeveloper)) ||
+		(capacity >= 0 && skuName == string(logic.IntegrationServiceEnvironmentSkuNamePremium))) {
+		return fmt.Errorf("`capacity` can be greater than zero only for `sku_name` with value specified to `Premium`")
+	}
 
 	properties := logic.IntegrationServiceEnvironment{
 		Name:     &name,
