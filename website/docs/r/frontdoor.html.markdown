@@ -70,6 +70,89 @@ resource "azurerm_frontdoor" "example" {
 }
 ```
 
+Custom https configurations can also be defined as a separate resource. This allows for parallel creation/update.
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "FrontDoorExampleResourceGroup"
+  location = "EastUS2"
+}
+
+data "azurerm_key_vault" "vault" {
+  name                = "example-vault"
+  resource_group_name = "example-vault-rg"
+}
+
+resource "azurerm_frontdoor" "example" {
+  name                                         = "example-FrontDoor"
+  resource_group_name                          = azurerm_resource_group.example.name
+  enforce_backend_pools_certificate_name_check = false
+
+  routing_rule {
+    name               = "exampleRoutingRule1"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = ["exampleFrontendEndpoint1"]
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = "exampleBackendBing"
+    }
+  }
+
+  backend_pool_load_balancing {
+    name = "exampleLoadBalancingSettings1"
+  }
+
+  backend_pool_health_probe {
+    name = "exampleHealthProbeSetting1"
+  }
+
+  backend_pool {
+    name = "exampleBackendBing"
+    backend {
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
+      http_port   = 80
+      https_port  = 443
+    }
+
+    load_balancing_name = "exampleLoadBalancingSettings1"
+    health_probe_name   = "exampleHealthProbeSetting1"
+  }
+
+  frontend_endpoint {
+    name                              = "exampleFrontendEndpoint1"
+    host_name                         = "example-FrontDoor.azurefd.net"
+  }
+
+  frontend_endpoint {
+    name                              = "exampleFrontendEndpoint2"
+    host_name                         = "examplefd1.examplefd.net"
+  }
+}
+
+resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_0" {
+  front_door_name                   = azurerm_frontdoor.example.name
+  frontend_endpoint_name            = azurerm_frontdoor.example.frontend_endpoint[0].name
+  resource_group_name               = azurerm_resource_group.example.name
+  custom_https_provisioning_enabled = false
+}
+
+resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1" {
+  front_door_name                   = azurerm_frontdoor.example.name
+  frontend_endpoint_name            = azurerm_frontdoor.example.frontend_endpoint[1].name
+  resource_group_name               = azurerm_resource_group.example.name
+  custom_https_provisioning_enabled = true
+
+  custom_https_configuration {
+    certificate_source                         = "AzureKeyVault"
+    azure_key_vault_certificate_secret_name    = "examplefd1"
+    azure_key_vault_certificate_secret_version = "ec8d0737e0df4f4gb52ecea858e97a73"
+    azure_key_vault_certificate_vault_id       = data.azurerm_key_vault.vault.id
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -248,6 +331,17 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ---
 
+The `custom_https_configuration` block is also valid inside an `azurerm_frontdoor_custom_https_configuration`, which supports the following arguments: 
+
+* `front_door_name` - (Required) Name of the Front Door Service this configuration refers to.
+* `frontend_endpoint_name` - (Required) Name of the Front Door Fontend endpoint this configuration refers to.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door exists
+* `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for this custom domain associated with the Front Door?
+* `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined above.
+
+---
+
+
 ## Attributes Reference
 
 `backend_pool` exports the following:
@@ -298,14 +392,21 @@ The following attributes are exported:
 
 * `id` - The ID of the FrontDoor.
 
+---
+
+azurerm_frontdoor_custom_https_configuration exports the following attributes:
+
+* `id` - The Resource ID of the Azure Front Door Custom https configuration.
+
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 6 hours) Used when creating the FrontDoor.
-* `update` - (Defaults to 6 hours) Used when updating the FrontDoor.
-* `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor.
-* `delete` - (Defaults to 6 hours) Used when deleting the FrontDoor.
+* `create` - (Defaults to 6 hours) Used when creating the FrontDoor or Custom Https Configuration.
+* `update` - (Defaults to 6 hours) Used when updating the FrontDoor or Custom Https Configuration.
+* `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor or Custom Https Configuration.
+* `delete` - (Defaults to 6 hours) Used when deleting the FrontDoor or Custom Https Configuration.
 
 ## Import
 

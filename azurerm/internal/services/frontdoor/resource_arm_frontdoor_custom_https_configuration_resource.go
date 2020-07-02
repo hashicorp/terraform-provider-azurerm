@@ -1,15 +1,16 @@
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -58,43 +59,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"certificate_source": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  string(frontdoor.CertificateSourceFrontDoor),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(frontdoor.CertificateSourceAzureKeyVault),
-								string(frontdoor.CertificateSourceFrontDoor),
-							}, false),
-						},
-						"minimum_tls_version": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"provisioning_state": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"provisioning_substate": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						// NOTE: None of these attributes are valid if
-						//       certificate_source is set to FrontDoor
-						"azure_key_vault_certificate_secret_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"azure_key_vault_certificate_secret_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"azure_key_vault_certificate_vault_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
+					Schema: azure.SchemaFrontdoorCustomHttpsConfiguration(),
 				},
 			},
 		},
@@ -176,15 +141,18 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 	d.Set("resource_group_name", resourceGroup)
 
 	if resp.Name != nil {
-		if frontDoorFrontendEndpoint, err := flattenArmFrontDoorFrontendEndpoint(ctx, &resp, resourceGroup, frontDoorName, meta); frontDoorFrontendEndpoint != nil {
-			if err := d.Set("custom_https_configuration", frontDoorFrontendEndpoint["custom_https_configuration"]); err != nil {
-				return fmt.Errorf("setting `custom_https_configuration`: %+v", err)
-			}
-		} else {
-			return fmt.Errorf("flattening `frontend_endpoint/custom_https_configuration`: %+v", err)
+		output := make(map[string]interface{})
+		if err := azure.FlattenArmFrontDoorCustomHttpsConfiguration(&resp, output, *resp.Name); err != nil {
+			return fmt.Errorf("flattening `frontend_endpoint/custom_https_configuration`: %s", *resp.Name)
+		}
+		if err := d.Set("custom_https_configuration", output["custom_https_configuration"]); err != nil {
+			return fmt.Errorf("setting `custom_https_configuration`: %+v", err)
+		}
+		if err := d.Set("custom_https_provisioning_enabled", output["custom_https_provisioning_enabled"]); err != nil {
+			return fmt.Errorf("setting `custom_https_provisioning_enabled`: %+v", err)
 		}
 	} else {
-		return fmt.Errorf("flattening `frontend_endpoint/custom_https_configuration`: Unable to read Frontdoor Name")
+		return fmt.Errorf("flattening `frontend_endpoint/custom_https_configuration`: Unable to read Frontend Endpoint Name")
 	}
 
 	return nil
@@ -249,4 +217,102 @@ func frontDoorCustomHttpsConfigurationReadParams(d *schema.ResourceData) (err er
 	}
 
 	return nil, resourceGroup, frontDoorName, frontendEndpointName
+}
+
+func resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx context.Context, frontendEndpointId string, customHttpsProvisioningEnabled bool, frontDoorName string, frontendEndpointName string, resourceGroup string, provisioningState frontdoor.CustomHTTPSProvisioningState, customHTTPSConfigurationCurrent *frontdoor.CustomHTTPSConfiguration, customHttpsConfigurationNew []interface{}, meta interface{}) error {
+	// Locking to prevent parallel changes causing issues
+	locks.ByID(frontendEndpointId)
+	defer locks.UnlockByID(frontendEndpointId)
+
+	if provisioningState != "" {
+		// Check to see if we are going to change the CustomHTTPSProvisioningState, if so check to
+		// see if its current state is configurable, if not return an error...
+		if customHttpsProvisioningEnabled != NormalizeCustomHTTPSProvisioningStateToBool(provisioningState) {
+			if err := IsFrontDoorFrontendEndpointConfigurable(provisioningState, customHttpsProvisioningEnabled, frontendEndpointName, resourceGroup); err != nil {
+				return err
+			}
+		}
+
+		if customHttpsProvisioningEnabled {
+			// Build a custom Https configuration based off the config file to send to the enable call
+			// NOTE: I do not need to check to see if this exists since I already do that in the validation code
+			customHTTPSConfiguration := customHttpsConfigurationNew[0].(map[string]interface{})
+			minTLSVersion := frontdoor.OneFullStopTwo // Default to TLS 1.2
+			if httpsConfig := customHTTPSConfigurationCurrent; httpsConfig != nil {
+				minTLSVersion = httpsConfig.MinimumTLSVersion
+			}
+			customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHTTPSConfiguration, minTLSVersion)
+			if provisioningState == frontdoor.CustomHTTPSProvisioningStateDisabled || customHTTPSConfigurationUpdate != *customHTTPSConfigurationCurrent {
+				// Enable Custom Domain HTTPS for the Frontend Endpoint
+				if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, true, frontDoorName, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
+					return fmt.Errorf("Unable to enable/update Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+				}
+			}
+		} else if !customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled {
+			// Disable Custom Domain HTTPS for the Frontend Endpoint
+			if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, false, frontDoorName, frontendEndpointName, resourceGroup, frontdoor.CustomHTTPSConfiguration{}, meta); err != nil {
+				return fmt.Errorf("Unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx context.Context, enableCustomHttpsProvisioning bool, frontDoorName string, frontendEndpointName string, resourceGroup string, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration, meta interface{}) error {
+	client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
+
+	if enableCustomHttpsProvisioning {
+		future, err := client.EnableHTTPS(ctx, resourceGroup, frontDoorName, frontendEndpointName, customHTTPSConfiguration)
+
+		if err != nil {
+			return fmt.Errorf("enabling Custom Domain HTTPS for Frontend Endpoint: %+v", err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting to enable Custom Domain HTTPS for Frontend Endpoint: %+v", err)
+		}
+	} else {
+		future, err := client.DisableHTTPS(ctx, resourceGroup, frontDoorName, frontendEndpointName)
+
+		if err != nil {
+			return fmt.Errorf("disabling Custom Domain HTTPS for Frontend Endpoint: %+v", err)
+		}
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting to disable Custom Domain HTTPS for Frontend Endpoint: %+v", err)
+		}
+	}
+
+	return nil
+}
+
+func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}, minTLSVersion frontdoor.MinimumTLSVersion) frontdoor.CustomHTTPSConfiguration {
+	// https://github.com/Azure/azure-sdk-for-go/issues/6882
+	defaultProtocolType := "ServerNameIndication"
+
+	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
+		ProtocolType:      &defaultProtocolType,
+		MinimumTLSVersion: minTLSVersion,
+	}
+
+	if customHttpsConfiguration["certificate_source"].(string) == "AzureKeyVault" {
+		vaultSecret := customHttpsConfiguration["azure_key_vault_certificate_secret_name"].(string)
+		vaultVersion := customHttpsConfiguration["azure_key_vault_certificate_secret_version"].(string)
+		vaultId := customHttpsConfiguration["azure_key_vault_certificate_vault_id"].(string)
+
+		customHTTPSConfigurationUpdate.CertificateSource = frontdoor.CertificateSourceAzureKeyVault
+		customHTTPSConfigurationUpdate.KeyVaultCertificateSourceParameters = &frontdoor.KeyVaultCertificateSourceParameters{
+			Vault: &frontdoor.KeyVaultCertificateSourceParametersVault{
+				ID: utils.String(vaultId),
+			},
+			SecretName:    utils.String(vaultSecret),
+			SecretVersion: utils.String(vaultVersion),
+		}
+	} else {
+		customHTTPSConfigurationUpdate.CertificateSource = frontdoor.CertificateSourceFrontDoor
+		customHTTPSConfigurationUpdate.CertificateSourceParameters = &frontdoor.CertificateSourceParameters{
+			CertificateType: frontdoor.Dedicated,
+		}
+	}
+
+	return customHTTPSConfigurationUpdate
 }
