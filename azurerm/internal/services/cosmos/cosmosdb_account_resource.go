@@ -144,7 +144,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
 								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
 							),
-							Deprecated: "This field is used to set Cosmos DB location ID and previously this ID property allows to be changed by API. However, now it has been updated to readonly field on API level. So it has to be deprecated since it doesn't take effect anymore. See more details from https://github.com/Azure/azure-sdk-for-go/pull/4640.",
+							Deprecated: "This is deprecated because the service no longer accepts this as an input since Apr 25, 2019",
 						},
 
 						"id": {

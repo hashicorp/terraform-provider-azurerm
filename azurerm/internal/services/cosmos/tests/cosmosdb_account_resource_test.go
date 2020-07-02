@@ -468,12 +468,12 @@ resource "azurerm_cosmosdb_account" "import" {
   offer_type          = azurerm_cosmosdb_account.test.offer_type
 
   consistency_policy {
-    consistency_level = azurerm_cosmosdb_account.consistency_policy[0].consistency_level
+    consistency_level = azurerm_cosmosdb_account.test.consistency_policy[0].consistency_level
   }
 
   geo_location {
-    location          = azurerm_cosmosdb_account.geo_location[0].location
-    failover_priority = azurerm_cosmosdb_account.geo_location[0].location
+    location          = "${element(azurerm_cosmosdb_account.test.geo_location[*].location, 3358314097)}"
+    failover_priority = "${element(azurerm_cosmosdb_account.test.geo_location[*].failover_priority, 3358314097)}"
   }
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", consistency))
