@@ -65,7 +65,7 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ProximityPlacementGroupID,
-				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
