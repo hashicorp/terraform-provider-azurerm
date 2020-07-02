@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -156,11 +157,9 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				}, false),
 			},
 
-			// hyper_scale can not be changed into other sku
 			"sku_name": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ForceNew:         true,
 				Computed:         true,
 				ValidateFunc:     validate.MsSqlDBSkuName(),
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -268,6 +267,16 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+				// "hyperscale can not change to other sku
+				if strings.HasPrefix(old.(string), "HS") {
+					return true
+				}
+				return false
+			}),
+		),
 	}
 }
 
