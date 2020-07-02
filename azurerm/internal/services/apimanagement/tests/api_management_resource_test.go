@@ -162,6 +162,9 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 	})
 }
 
+// Here we could not update the APIM service out of VNET. The destroy will fail because the subnet is still in use.
+// If we move the service out of VNET, it doesn't remove the link to subnet immediately. It'll be removed within 3 hours.
+// But if we destroy the APIM service, the subnet could be destroyed
 func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 
@@ -170,6 +173,13 @@ func TestAccAzureRMApiManagement_virtualNetworkInternal(t *testing.T) {
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMApiManagementDestroy,
 		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagement_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 			{
 				Config: testAccAzureRMApiManagement_virtualNetworkInternal(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -867,11 +877,10 @@ resource "azurerm_api_management" "test" {
       certificate_password = "terraform"
     }
 
-    #developer_portal {
-    #  host_name            = "developer-portal.terraform.io"
-    #  certificate          = filebase64("testdata/api_management_developer_portal_test.pfx")
-    #  certificate_password = "terraform"
-    #}
+    developer_portal {
+      host_name   = "developer-portal.terraform.io"
+      certificate = filebase64("testdata/api_management_developer_portal_test.pfx")
+    }
   }
 
   sku_name = "Premium_1"
@@ -898,21 +907,60 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestVNET-%d"
+  name                = "acctestVNET-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctestSNET-%d"
+  name                 = "acctestSNET-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-NSG-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "test" {
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+
+resource "azurerm_network_security_rule" "port_3443" {
+  name                        = "Port_3443"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "3443"
+  source_address_prefix       = "ApiManagement"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
+}
+
+resource "azurerm_network_security_rule" "port_443_1433" {
+  name                        = "Port_443_1433"
+  priority                    = 100
+  direction                   = "Outbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_ranges     = ["443", "1433"]
+  source_address_prefix       = "VirtualNetwork"
+  destination_address_prefix  = "VirtualNetwork"
+  resource_group_name         = azurerm_resource_group.test.name
+  network_security_group_name = azurerm_network_security_group.test.name
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"

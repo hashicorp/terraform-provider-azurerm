@@ -88,8 +88,7 @@ func resourceArmApiManagementService() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							// None will not be returned, which will cause refresh diff
-							//Default:  string(apimanagement.None),
+							Default:  string(apimanagement.None),
 							ValidateFunc: validation.StringInSlice([]string{
 								//string(apimanagement.None),
 								string(apimanagement.SystemAssigned),
@@ -639,7 +638,6 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.VirtualNetworkType != apimanagement.VirtualNetworkTypeInternal {
 		signInClient := meta.(*clients.Client).ApiManagement.SignInClient
 		signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -666,7 +664,6 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 			if !utils.ResponseWasNotFound(policy.Response) {
 				return fmt.Errorf("retrieving Policy for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
-		}
 		if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
 			return fmt.Errorf("setting `policy`: %+v", err)
 		}
@@ -722,6 +719,18 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 	if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
 		return fmt.Errorf("setting `sku_name`: %+v", err)
+	}
+
+	if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
+		return fmt.Errorf("setting `sign_in`: %+v", err)
+	}
+
+	if err := d.Set("sign_up", flattenApiManagementSignUpSettings(signUpSettings)); err != nil {
+		return fmt.Errorf("setting `sign_up`: %+v", err)
+	}
+
+	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
+		return fmt.Errorf("setting `policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -1064,6 +1073,14 @@ func expandAzureRmApiManagementIdentity(vs []interface{}) (*apimanagement.Servic
 }
 
 func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceIdentity) []interface{} {
+	// service api will not return identity when type = `None`
+	if v, ok := d.GetOk("identity.0.type"); ok && v.(string) == string(apimanagement.None) && identity == nil {
+		return []interface{}{
+			map[string]interface{}{
+				"type": v.(string),
+			},
+		}
+	}
 	if identity == nil || identity.Type == apimanagement.None {
 		return make([]interface{}, 0)
 	}
