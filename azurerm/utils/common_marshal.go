@@ -90,19 +90,19 @@ func FlattenInt32Slice(input *[]int32) []interface{} {
 func ExpandSlice(input []interface{}, t interface{}, convert func(interface{}) interface{}) interface{} {
 	targetType := reflect.TypeOf(t)
 	result := reflect.MakeSlice(reflect.SliceOf(targetType), 0, 0)
-	for _, item := range input {
-		if item != nil {
-			var vitem reflect.Value
+	for _, v := range input {
+		var vv reflect.Value
+		if v != nil {
 			if convert == nil {
-				vitem = reflect.New(targetType).Elem()
-				vitem.Set(reflect.ValueOf(item))
+				vv = reflect.New(targetType).Elem()
+				vv.Set(reflect.ValueOf(v))
 			} else {
-				vitem = reflect.ValueOf(convert(item))
+				vv = reflect.ValueOf(convert(v))
 			}
-			result = reflect.Append(result, vitem)
 		} else {
-			result = reflect.Append(result, reflect.Zero(targetType))
+			vv = underlyingZeroValue(targetType)
 		}
+		result = reflect.Append(result, vv)
 	}
 
 	resultp := reflect.New(result.Type())
@@ -119,18 +119,22 @@ func ExpandMap(input map[string]interface{}, t interface{}, convert func(interfa
 	result := reflect.MakeMap(reflect.MapOf(reflect.TypeOf(""), targetType))
 	for k, v := range input {
 		var vv reflect.Value
-		if convert == nil {
-			vv = reflect.New(targetType).Elem()
-			vv.Set(reflect.ValueOf(v))
+		if v != nil {
+			if convert == nil {
+				vv = reflect.New(targetType).Elem()
+				vv.Set(reflect.ValueOf(v))
+			} else {
+				vv = reflect.ValueOf(convert(v))
+			}
 		} else {
-			vv = reflect.ValueOf(convert(v))
+			vv = underlyingZeroValue(targetType)
 		}
 		result.SetMapIndex(reflect.ValueOf(k), vv)
 	}
 	return result.Interface()
 }
 
-// FlattenSlice flattens the input pointer to slice of element whose type is specified by "t", into slice.
+// FlattenSlice flattens the input pointer to slice of a certain type ("t"), into slice of type of `interface{}`
 // If "t" is different from the element type of output, then user has to specify a customized converter via
 // "convert", which guides the conversion from element of the input slice to the element of the output slice.
 // Otherwise, user can pass a nil "convert".
@@ -150,12 +154,77 @@ func FlattenSlicePtr(input interface{}, convert func(interface{}) interface{}) [
 	if v.IsNil() {
 		return result
 	}
+
 	for i := 0; i < ve.Len(); i++ {
-		ev := ve.Index(i)
-		if convert != nil {
-			ev = reflect.ValueOf(convert(ev.Interface()))
+		v := ve.Index(i)
+		var ov reflect.Value
+		if isNilable(v) && v.IsNil() {
+			ov = underlyingZeroValue(ve.Type().Elem())
+		} else {
+			if convert == nil {
+				ov = v
+			} else {
+				ov = reflect.ValueOf(convert(v.Interface()))
+			}
 		}
-		result = append(result, ev.Interface())
+		result = append(result, ov.Interface())
 	}
 	return result
+}
+
+// FlattenMap flattens the input map (key is of type string), whose value is of a certain type, into map (key is of type string), whose value is of type of `interface{}`.
+// If "t" is different from the value type of output map, then user has to specify a customized converter via
+// "convert", which guides the conversion from value of the input map to the value of the output map.
+// Otherwise, user can pass a nil "convert".
+func FlattenMap(input interface{}, convert func(interface{}) interface{}) map[string]interface{} {
+	v := reflect.ValueOf(input)
+	// safe guard
+	if v.Type().Kind() != reflect.Map {
+		panic("Invalid input: input is not a map")
+	}
+	if v.Len() == 0 {
+		return map[string]interface{}{}
+	}
+	if v.MapKeys()[0].Kind() != reflect.String {
+		panic("Invalid input: key of input map is not a string")
+	}
+
+	result := make(map[string]interface{}, 0)
+	iter := v.MapRange()
+	for iter.Next() {
+		k, v := iter.Key(), iter.Value()
+		var ov reflect.Value
+
+		if isNilable(v) && v.IsNil() {
+			ov = underlyingZeroValue(v.Type().Elem()) // Elem() of a map type will give you the value's type!
+		} else {
+			if convert == nil {
+				ov = v
+			} else {
+				ov = reflect.ValueOf(convert(v.Interface()))
+			}
+		}
+		result[k.Interface().(string)] = ov.Interface()
+	}
+	return result
+}
+
+// isNilable check whether the passed in value is fine to call the `Nil()` method.
+// The supported kinds are got from the source code of `Nil()` itself.
+func isNilable(v reflect.Value) bool {
+	switch v.Type().Kind() {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
+		return true
+	default:
+		return false
+	}
+}
+
+// underlyingZeroValue returns the zero value of the passed in type. Especially, if the "t" is a pointer
+// then it will return the zero value of the de-referenced value, recursively.
+func underlyingZeroValue(t reflect.Type) reflect.Value {
+	if t.Kind() == reflect.Ptr {
+		return underlyingZeroValue(t.Elem())
+	}
+	return reflect.Zero(t)
 }
