@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -15,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/paths"
+	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
 )
 
 func resourceArmStorageDataLakeGen2Path() *schema.Resource {
@@ -85,6 +87,51 @@ func resourceArmStorageDataLakeGen2Path() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"directory"}, false),
 			},
+
+			"owner": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"group": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IsUUID,
+			},
+
+			"ace": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scope": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice([]string{"default", "access"}, false),
+							Default:      "access",
+						},
+						"type": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"user", "group", "mask", "other"}, false),
+						},
+						"id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"permissions": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateADLSAccessControlPermissions,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -121,11 +168,27 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 	default:
 		return fmt.Errorf("Unhandled resource type %q", resourceString)
 	}
+	aceRaw := d.Get("ace").([]interface{})
+	acl, err := expandArmDataLakeGen2PathAceList(aceRaw)
+	if err != nil {
+		return fmt.Errorf("Error parsing ace list: %s", err)
+	}
+
+	var owner *string
+	if v, ok := d.GetOk("owner"); ok {
+		sv := v.(string)
+		owner = &sv
+	}
+	var group *string
+	if v, ok := d.GetOk("group"); ok {
+		sv := v.(string)
+		group = &sv
+	}
 
 	id := client.GetResourceID(storageID.Name, fileSystemName, path)
 
 	if features.ShouldResourcesBeImported() {
-		resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path)
+		resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Error checking for existence of existing Path %q in  File System %q (Account %q): %+v", path, fileSystemName, storageID.Name, err)
@@ -144,6 +207,22 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 
 	if _, err := client.Create(ctx, storageID.Name, fileSystemName, path, input); err != nil {
 		return fmt.Errorf("Error creating Path %q in File System %q in Storage Account %q: %s", path, fileSystemName, storageID.Name, err)
+	}
+
+	if acl != nil || owner != nil || group != nil {
+		var aclString *string
+		if acl != nil {
+			v := acl.String()
+			aclString = &v
+		}
+		accessControlInput := paths.SetAccessControlInput{
+			ACL:   aclString,
+			Owner: owner,
+			Group: group,
+		}
+		if _, err := client.SetAccessControl(ctx, storageID.Name, fileSystemName, path, accessControlInput); err != nil {
+			return fmt.Errorf("Error setting access control for Path %q in File System %q in Storage Account %q: %s", path, fileSystemName, storageID.Name, err)
+		}
 	}
 
 	d.SetId(id)
@@ -201,7 +280,7 @@ func resourceArmStorageDataLakeGen2PathRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	resp, err := client.GetProperties(ctx, id.AccountName, id.FileSystemName, id.Path)
+	resp, err := client.GetProperties(ctx, id.AccountName, id.FileSystemName, id.Path, paths.GetPropertiesActionGetStatus)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Path %q does not exist in File System %q in Storage Account %q - removing from state...", id.Path, id.FileSystemName, id.AccountName)
@@ -213,8 +292,28 @@ func resourceArmStorageDataLakeGen2PathRead(d *schema.ResourceData, meta interfa
 	}
 
 	d.Set("path", id.Path)
-
 	d.Set("resource", resp.ResourceType)
+	d.Set("owner", resp.Owner)
+	d.Set("group", resp.Group)
+
+	// The above `getStatus` API request doesn't return the ACLs
+	// Have to make a `getAccessControl` request, but that doesn't return all fields either!
+	resp, err = client.GetProperties(ctx, id.AccountName, id.FileSystemName, id.Path, paths.GetPropertiesActionGetAccessControl)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Path %q does not exist in File System %q in Storage Account %q - removing from state...", id.Path, id.FileSystemName, id.AccountName)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving ACLs for Path %q in File System %q in Storage Account %q: %+v", id.Path, id.FileSystemName, id.AccountName, err)
+	}
+
+	acl, err := accesscontrol.ParseACL(resp.ACL)
+	if err != nil {
+		return fmt.Errorf("Error parsing response ACL %q: %s", resp.ACL, err)
+	}
+	d.Set("ace", flattenArmDataLakeGen2PathAceList(acl))
 
 	return nil
 }
@@ -237,4 +336,87 @@ func resourceArmStorageDataLakeGen2PathDelete(d *schema.ResourceData, meta inter
 	}
 
 	return nil
+}
+
+func expandArmDataLakeGen2PathUUIDPtr(v map[string]interface{}, propertyName string) (*uuid.UUID, error) {
+	if raw, ok := v[propertyName]; ok && raw != "" {
+		id, err := uuid.Parse(raw.(string))
+		if err != nil {
+			return nil, err
+		}
+		return &id, nil
+	}
+	return nil, nil
+}
+
+func expandArmDataLakeGen2PathAceList(input []interface{}) (*accesscontrol.ACL, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+	aceList := make([]accesscontrol.ACE, len(input))
+
+	for i := 0; i < len(input); i++ {
+		v := input[i].(map[string]interface{})
+
+		isDefault := false
+		if scopeRaw, ok := v["scope"]; ok {
+			if scopeRaw.(string) == "default" {
+				isDefault = true
+			}
+		}
+
+		tagType := accesscontrol.TagType(v["type"].(string))
+
+		id, err := expandArmDataLakeGen2PathUUIDPtr(v, "id")
+		if err != nil {
+			return nil, err
+		}
+
+		permissions := v["permissions"].(string)
+
+		ace := accesscontrol.ACE{
+			IsDefault:    isDefault,
+			TagType:      tagType,
+			TagQualifier: id,
+			Permissions:  permissions,
+		}
+		aceList[i] = ace
+	}
+
+	return &accesscontrol.ACL{Entries: aceList}, nil
+}
+
+func flattenArmDataLakeGen2PathAceList(acl accesscontrol.ACL) []interface{} {
+	output := make([]interface{}, len(acl.Entries))
+
+	for i, v := range acl.Entries {
+		ace := make(map[string]interface{})
+
+		scope := "access"
+		if v.IsDefault {
+			scope = "default"
+		}
+		ace["scope"] = scope
+		ace["type"] = string(v.TagType)
+		if v.TagQualifier != nil {
+			ace["id"] = (*v.TagQualifier).String()
+		}
+		ace["permissions"] = v.Permissions
+
+		output[i] = ace
+	}
+	return output
+}
+
+func validateADLSAccessControlPermissions(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return warnings, errors
+	}
+	if err := accesscontrol.ValidateACEPermissions(v); err != nil {
+		errors = append(errors, fmt.Errorf("value of %s not valid: %s", k, err))
+		return warnings, errors
+	}
+	return warnings, errors
 }

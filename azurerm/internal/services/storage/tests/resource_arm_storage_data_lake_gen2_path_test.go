@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/paths"
 )
 
 func TestAccAzureRMStorageDataLakeGen2Path_basic(t *testing.T) {
@@ -67,7 +68,7 @@ func testCheckAzureRMStorageDataLakeGen2PathExists(resourceName string) resource
 			return err
 		}
 
-		resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path)
+		resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Path %q in File System %q (Account %q) does not exist", path, fileSystemName, storageID.Name)
@@ -96,7 +97,7 @@ func testCheckAzureRMStorageDataLakeGen2PathDestroy(s *terraform.State) error {
 			return err
 		}
 
-		props, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path)
+		props, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
 		if err != nil {
 			return nil
 		}
