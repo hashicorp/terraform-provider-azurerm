@@ -34,7 +34,7 @@ The following arguments are supported:
 
 * `base_policy_id` - (Optional) The ID of the base Firewall Policy.
 
-* `threat_intelligence_mode` - (Optional) The operation mode for Threat Intelligence. Possible values are `Alert`, `Deny` and `Off`.
+* `threat_intelligence_mode` - (Optional) The operation mode for Threat Intelligence. Possible values are `Alert`, `Deny` and `Off`. Defaults to `Alert`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Firewall Policy.
 

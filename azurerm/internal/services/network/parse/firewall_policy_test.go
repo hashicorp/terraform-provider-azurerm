@@ -37,6 +37,16 @@ func TestFirewallPolicyID(t *testing.T) {
 			Error: true,
 		},
 		{
+			Name:  "Vulnerable segments",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/foo/bar/firewallPolicies/policy1",
+			Error: true,
+		},
+		{
+			Name:  "Missing starting slash",
+			Input: "subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1",
+			Error: true,
+		},
+		{
 			Name:  "Correct Case",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/firewallPolicies/policy1",
 			Expect: &FirewallPolicyId{
