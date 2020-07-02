@@ -172,20 +172,17 @@ func FlattenSlicePtr(input interface{}, convert func(interface{}) interface{}) [
 	return result
 }
 
-// FlattenMap flattens the input map (key is of type string), whose value is of a certain type "t", into map (key is of type string), whose value is of type of `interface{}`.
+// FlattenStringMap flattens the input map (key is of type string), whose value is of a certain type "t", into map (key is of type string), whose value is of type of `interface{}`.
 // If "t" is different from the value type of output map, then user has to specify a customized converter via
 // "convert", which guides the conversion from value of the input map to the value of the output map.
 // Otherwise, user can pass a nil "convert".
-func FlattenMap(input interface{}, convert func(interface{}) interface{}) map[string]interface{} {
+func FlattenStringMap(input interface{}, convert func(interface{}) interface{}) map[string]interface{} {
 	v := reflect.ValueOf(input)
 	// safe guard
 	if v.Type().Kind() != reflect.Map {
 		panic("Invalid input: input is not a map")
 	}
-	if v.Len() == 0 {
-		return map[string]interface{}{}
-	}
-	if v.MapKeys()[0].Kind() != reflect.String {
+	if v.Type().Key().Kind() != reflect.String {
 		panic("Invalid input: key of input map is not a string")
 	}
 

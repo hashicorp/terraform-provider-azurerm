@@ -88,6 +88,12 @@ func TestExpandSlice(t *testing.T) {
 			t:      "",
 			output: ToPtr([]string{"a", "b", ""}),
 		},
+		// empty slice of string -> slice of string
+		{
+			input:  []interface{}{},
+			t:      "",
+			output: ToPtr([]string{}),
+		},
 	}
 
 	for idx, c := range cases {
@@ -217,6 +223,12 @@ func TestExpandMap(t *testing.T) {
 				"c": "",
 			},
 		},
+		// empty map[string]string -> map[string]string
+		{
+			input:  map[string]interface{}{},
+			t:      "",
+			output: map[string]string{},
+		},
 	}
 
 	for idx, c := range cases {
@@ -241,7 +253,7 @@ func TestFlattenSlice(t *testing.T) {
 		// slice of string -> slice of string
 		{
 			input:  ToPtr([]string{"a", "b"}),
-			output:[]interface{}{"a", "b"},
+			output: []interface{}{"a", "b"},
 		},
 		// slice of customized string type -> slice of string
 		{
@@ -265,7 +277,7 @@ func TestFlattenSlice(t *testing.T) {
 			convert: func(x interface{}) interface{} {
 				return int(x.(int32))
 			},
-			output:[]interface{}{1, 2},
+			output: []interface{}{1, 2},
 		},
 		// slice of int64 -> slice of int
 		{
@@ -290,24 +302,29 @@ func TestFlattenSlice(t *testing.T) {
 		},
 		// slice of float64 -> slice of float64
 		{
-			input: ToPtr([]float64{1, 2}),
+			input:  ToPtr([]float64{1, 2}),
 			output: []interface{}{1.0, 2.0},
 		},
 		// slice of string pointer -> slice of string
 		{
-			input:  ToPtr([]*string{String("a"), String("b")}),
+			input: ToPtr([]*string{String("a"), String("b")}),
 			convert: func(x interface{}) interface{} {
 				return *(x.(*string))
 			},
-			output:[]interface{}{"a", "b"},
+			output: []interface{}{"a", "b"},
 		},
 		// slice of string pointer contains nil -> slice of string
 		{
-			input:  ToPtr([]*string{String("a"), String("b"), nil}),
+			input: ToPtr([]*string{String("a"), String("b"), nil}),
 			convert: func(x interface{}) interface{} {
 				return *(x.(*string))
 			},
-			output:[]interface{}{"a", "b", ""},
+			output: []interface{}{"a", "b", ""},
+		},
+		// empty slice of string pointer -> slice of string
+		{
+			input:  ToPtr([]*string{}),
+			output: []interface{}{},
 		},
 	}
 
@@ -319,7 +336,20 @@ func TestFlattenSlice(t *testing.T) {
 	}
 }
 
-func TestFlattenMap(t *testing.T) {
+func TestFlattenSliceGuard(t *testing.T) {
+	inputs := []interface{}{
+		[]int{},
+		1,
+		[]string{},
+		[]*string{},
+		String("a"),
+	}
+	for idx, input := range inputs {
+		shouldPanic(t, func() { FlattenSlicePtr(input, nil) }, idx)
+	}
+}
+
+func TestFlattenStringMap(t *testing.T) {
 	type T1 string
 	type T2 struct {
 		S string
@@ -423,7 +453,7 @@ func TestFlattenMap(t *testing.T) {
 				"a": String("b"),
 			},
 			convert: func(x interface{}) interface{} {
-				return 	*(x.(*string))
+				return *(x.(*string))
 			},
 			output: map[string]interface{}{
 				"a": "b",
@@ -436,19 +466,42 @@ func TestFlattenMap(t *testing.T) {
 				"c": nil,
 			},
 			convert: func(x interface{}) interface{} {
-				return 	*(x.(*string))
+				return *(x.(*string))
 			},
 			output: map[string]interface{}{
 				"a": "b",
 				"c": "",
 			},
 		},
+		// empty map[string]*string -> map[string]string
+		{
+			input:  map[string]*string{},
+			output: map[string]interface{}{},
+		},
 	}
 
 	for idx, c := range cases {
-		out := FlattenMap(c.input, c.convert)
+		out := FlattenStringMap(c.input, c.convert)
 		if !reflect.DeepEqual(out, c.output) {
 			t.Fatalf("%d failed\nexpected:\n%s\nactual:\n%s\n", idx, spew.Sdump(c.output), spew.Sdump(out))
 		}
 	}
+}
+
+func TestFlattenStringMapGuard(t *testing.T) {
+	inputs := []interface{}{
+		[]int{},
+		1,
+		String("a"),
+		map[int]interface{}{},
+	}
+	for idx, input := range inputs {
+		shouldPanic(t, func() { FlattenStringMap(input, nil) }, idx)
+	}
+}
+
+func shouldPanic(t *testing.T, f func(), id int) {
+	defer func() { recover() }()
+	f()
+	t.Errorf("%d should have panicked", id)
 }
