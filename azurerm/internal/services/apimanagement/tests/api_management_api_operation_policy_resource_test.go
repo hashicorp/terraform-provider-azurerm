@@ -85,6 +85,25 @@ func TestAccAzureRMApiManagementAPIOperationPolicy_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementAPIOperationPolicy_rawXml(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api_operation_policy", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementAPIOperationPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementAPIOperationPolicy_rawXml(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementAPIOperationPolicyExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		conn := acceptance.AzureProvider.Meta().(*clients.Client).ApiManagement.ApiOperationPoliciesClient
@@ -193,6 +212,23 @@ resource "azurerm_api_management_api_operation_policy" "test" {
   </inbound>
 </policies>
 XML
+
+}
+`, template)
+}
+
+func testAccAzureRMApiManagementAPIOperationPolicy_rawXml(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApiOperation_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation_policy" "test" {
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  operation_id        = azurerm_api_management_api_operation.test.operation_id
+
+  xml_content = file("testdata/api_management_api_operation_policy.xml")
 
 }
 `, template)

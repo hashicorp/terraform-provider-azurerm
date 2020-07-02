@@ -88,7 +88,7 @@ func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceDa
 
 	if xmlContent != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.XML,
+			Format: apimanagement.Rawxml,
 			Value:  utils.String(xmlContent),
 		}
 	}
