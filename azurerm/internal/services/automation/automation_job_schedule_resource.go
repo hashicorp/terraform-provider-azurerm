@@ -116,7 +116,7 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accountName, err)
 		}
 		if props := jsIterator.Value().JobScheduleProperties; props != nil {
-			if *props.Schedule.Name == scheduleName && *props.Runbook.Name == runbookName {
+			if props.Schedule.Name != nil && *props.Schedule.Name == scheduleName && props.Runbook.Name != nil && *props.Runbook.Name == runbookName {
 				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
 					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accountName, err)
 				}
