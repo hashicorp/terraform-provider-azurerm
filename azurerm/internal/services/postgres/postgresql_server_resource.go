@@ -151,7 +151,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:          schema.TypeString,
 							Optional:      true,
 							Computed:      true,
-							ForceNew:      true,
 							ConflictsWith: []string{"geo_redundant_backup_enabled"},
 							Deprecated:    "this has been moved to the top level and will be removed in version 3.0 of the provider.",
 							ValidateFunc: validation.StringInSlice([]string{
@@ -197,7 +196,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				Computed:      true, // TODO: remove in 2.0 and default to false
-				ForceNew:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 
@@ -561,12 +559,12 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 
 	ssl := postgresql.SslEnforcementEnumEnabled
 	if d.HasChange("ssl_enforcement") {
-		if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(postgresql.SslEnforcementEnumDisabled)) {
+		if v := d.Get("ssl_enforcement"); strings.EqualFold(v.(string), string(postgresql.SslEnforcementEnumDisabled)) {
 			ssl = postgresql.SslEnforcementEnumDisabled
 		}
 	}
 	if d.HasChange("ssl_enforcement_enabled") {
-		if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
+		if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 			ssl = postgresql.SslEnforcementEnumDisabled
 		}
 	}
