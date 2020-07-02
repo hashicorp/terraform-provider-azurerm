@@ -16,7 +16,9 @@ Manages a Windows Virtual Machine Scale Set.
 
 -> **Note** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://www.terraform.io/docs/providers/azurerm/index.html#features).
 
-~> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
+~> **Note:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead.
+
+~> **Note:** This resource supports specialized images, but specialized Images reuse the UUID of the Virtual Machine which can have unexpected consequences, including data corruption (for example, when running in a cluster and two nodes share the same ID) - as such we recommend using a Generalized image where possible.
 
 ## Example Usage
 
@@ -164,7 +166,9 @@ The following arguments are supported:
 
 -> **NOTE:** One of either `source_image_id` or `source_image_reference` must be set.
 
-~> **NOTE:** If `source_image_id` is set to a shared image with `os_state` of `Specialized`, or a shared image version created by a specialized shared image, `admin_username`, `admin_password`, `custom_data`, `additional_unattend_content`, `secret` and `timezone` must not be specified.
+~> **NOTE:** If `source_image_id` is set to a shared image with `specialized = true`, or a shared image version created by a specialized shared image, `admin_username`, `admin_password`, `custom_data`, `additional_unattend_content`, `secret` and `timezone` must not be specified.
+
+!> **Note:** Specialized Images reuse the UUID of the Virtual Machine which can have unexpected consequences, including data corruption (for example, when running in a cluster and two nodes share the same ID) - as such we recommend using a Generalized image where possible.
 
 * `source_image_reference` - (Optional) A `source_image_reference` block as defined below.
 

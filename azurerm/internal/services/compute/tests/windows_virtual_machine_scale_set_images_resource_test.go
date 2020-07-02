@@ -196,9 +196,9 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesPlan(t *testing.T) {
 }
 
 func TestAccAzureRMWindowsVirtualMachineScaleSet_imagesSpecialized(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 
-    resource.ParallelTest(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,

@@ -415,11 +415,11 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 		// admin_username and admin_password should be required in this case
 		adminPassword := d.Get("admin_password").(string)
 		if adminPassword == "" {
-			return fmt.Errorf("`admin_password` is required when using platform image, image or generalized shared image")
+			return fmt.Errorf("`admin_password` is required when not using a specialized image")
 		}
 		adminUserName := d.Get("admin_username").(string)
 		if adminUserName == "" {
-			return fmt.Errorf("`admin_username` is required when using platform image, image or generalized shared image")
+			return fmt.Errorf("`admin_username` is required when not using a specialized image")
 		}
 		virtualMachineProfile.OsProfile = &compute.VirtualMachineScaleSetOSProfile{
 			AdminPassword:      utils.String(adminUserName),
@@ -956,7 +956,7 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 		}
 
 		enableAutomaticUpdates := true // default value of `enable_automatic_updates` to avoid unexpected diff
-		provisionVMAgent := true // default value of `provision_vm_agent` to avoid unexpected diff
+		provisionVMAgent := true       // default value of `provision_vm_agent` to avoid unexpected diff
 		if osProfile := profile.OsProfile; osProfile != nil {
 			// admin_password isn't returned, but it's a top level field so we can ignore it without consequence
 			d.Set("admin_username", osProfile.AdminUsername)
