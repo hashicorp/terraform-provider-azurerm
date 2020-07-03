@@ -401,7 +401,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	oldLocationsMap := map[string]documentdb.Location{}
 	for _, l := range *resp.FailoverPolicies {
 		location := documentdb.Location{
-			ID:               l.ID,
 			LocationName:     l.LocationName,
 			FailoverPriority: l.FailoverPriority,
 		}
@@ -424,13 +423,20 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                     &oldLocations,
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
-			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
+			EnableMultipleWriteLocations:  resp.EnableMultipleWriteLocations,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	// cannot update EnableMultipleWriteLocations flag and other properties at the same time
+	// so just update EnableMultipleWriteLocations property
+	account.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
+	if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+		return fmt.Errorf("Error updating EnableMultipleWriteLocations property of CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// determine if any locations have been renamed/priority reordered and remove them
@@ -444,16 +450,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 				delete(oldLocationsMap, *l.LocationName)
 				removedOne = true
 				continue
-			}
-			if *l.ID == "" && *ol.ID == resourceArmCosmosDbAccountGenerateDefaultId(name, *l.LocationName) {
-				continue
-			}
-			if *l.ID != *ol.ID {
-				if *l.FailoverPriority == 0 {
-					return fmt.Errorf("Cannot change the prefix/ID of the primary Cosmos DB account %q location %s (Resource Group %q)", name, *l.LocationName, resourceGroup)
-				}
-				delete(oldLocationsMap, *l.LocationName)
-				removedOne = true
 			}
 		}
 	}
@@ -688,6 +684,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Deleting", "Initializing"},
 		Target:     []string{"Succeeded"},
+		Timeout:    180 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
 		Refresh: func() (interface{}, string, error) {
@@ -697,8 +694,21 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 			}
 
 			status := "Succeeded"
-			for _, l := range append(*resp.ReadLocations, *resp.WriteLocations...) {
-				if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
+			locations := append(*resp.ReadLocations, *resp.WriteLocations...)
+			for _, desiredLocation := range *account.Locations {
+				for index, l := range locations {
+					if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
+						if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
+							break // return the first non successful status.
+						}
+					} else {
+						if index == len(locations) {
+							status = "Initializing"
+						}
+					}
+				}
+
+				if status != "Succeeded" {
 					break // return the first non successful status.
 				}
 			}
@@ -742,10 +752,6 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *docu
 	}
 
 	return &policy
-}
-
-func resourceArmCosmosDbAccountGenerateDefaultId(databaseName string, location string) string {
-	return fmt.Sprintf("%s-%s", databaseName, location)
 }
 
 func expandAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData) ([]documentdb.Location, error) {

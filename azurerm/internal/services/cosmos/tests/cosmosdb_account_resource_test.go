@@ -472,8 +472,8 @@ resource "azurerm_cosmosdb_account" "import" {
   }
 
   geo_location {
-    location          = "${element(azurerm_cosmosdb_account.test.geo_location[*].location, 3358314097)}"
-    failover_priority = "${element(azurerm_cosmosdb_account.test.geo_location[*].failover_priority, 3358314097)}"
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
   }
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", consistency))
