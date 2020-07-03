@@ -8,7 +8,7 @@ func TestSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *SlotVirtualNetworkSwitchConnectionId
+		Expected *SlotVirtualNetworkSwiftConnectionId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
 		{
 			Name:  "Slot Virtual Network Association",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/instance1/slots/stageing/networkconfig/virtualNetwork",
-			Expected: &SlotVirtualNetworkSwitchConnectionId{
+			Expected: &SlotVirtualNetworkSwiftConnectionId{
 				VirtualNetworkSwiftConnectionId: VirtualNetworkSwiftConnectionId{
 					SiteName:      "instance1",
 					ResourceGroup: "mygroup1",
