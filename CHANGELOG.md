@@ -1,41 +1,41 @@
-## 2.17.0 (Unreleased)
+## 2.17.0 (July 03, 2020)
 
 UPGRADE NOTES:
 
-* `azurerm_hdinsight_hadoop_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_hbase_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_interactive_query_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_kafka_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_ml_services_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_rserver_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_spark_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
-* `azurerm_hdinsight_storm_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API [GH-7111]
+* `azurerm_hdinsight_hadoop_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_hbase_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_interactive_query_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_kafka_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_ml_services_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_rserver_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_spark_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_storm_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
 
 FEATURES: 
 
-* **New Resource:** `azurerm_kusto_cluster_principal_assignment` [GH-7533]
+* **New Resource:** `azurerm_kusto_cluster_principal_assignment` ([#7533](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7533))
 
 ENHANCEMENTS:
 
-* dependencies: updating to v43.2.0 of `github.com/Azure/azure-sdk-for-go` [GH-7546]
-* Data Source: `azurerm_eventhub_namespace` - exposing the `zone_redundant` property [GH-7534]
-* Data Source: `azurerm_postgresql_server` - exposing `sku_name` [GH-7523]
-* `azurerm_app_service_environment` - the property `user_whitelisted_ip_ranges` has been deprecated and renamed to `allowed_user_ip_cidrs` to clarify the function and expected format [GH-7499]
-* `azurerm_eventhub_namespace` - support for the `zone_redundant` property [GH-7534]
-* `azurerm_key_vault_certificate` - exposing the `certificate_attribute` block [GH-7387]
-* `azurerm_sentinel_alert_rule_ms_security_incident` - the property `text_whitelist` has been deprecated and renamed to `display_name_filter` to better match the api [GH-7499]
-* `azurerm_shared_image` - support for specialized images via the `specialized` property [GH-7277]
-* `azurerm_shared_image_version` - support for specialized images via the `specialized` property [GH-7277]
-* `azurerm_spring_cloud_service` - support for `sku_name` [GH-7531]
-* `azurerm_spring_cloud_service` - support for the `trace` block [GH-7531]
+* dependencies: updating to v43.2.0 of `github.com/Azure/azure-sdk-for-go` ([#7546](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7546))
+* Data Source: `azurerm_eventhub_namespace` - exposing the `zone_redundant` property ([#7534](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7534))
+* Data Source: `azurerm_postgresql_server` - exposing `sku_name` ([#7523](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7523))
+* `azurerm_app_service_environment` - the property `user_whitelisted_ip_ranges` has been deprecated and renamed to `allowed_user_ip_cidrs` to clarify the function and expected format ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
+* `azurerm_eventhub_namespace` - support for the `zone_redundant` property ([#7534](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7534))
+* `azurerm_key_vault_certificate` - exposing the `certificate_attribute` block ([#7387](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7387))
+* `azurerm_sentinel_alert_rule_ms_security_incident` - the property `text_whitelist` has been deprecated and renamed to `display_name_filter` to better match the api ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
+* `azurerm_shared_image` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
+* `azurerm_shared_image_version` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
+* `azurerm_spring_cloud_service` - support for `sku_name` ([#7531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7531))
+* `azurerm_spring_cloud_service` - support for the `trace` block ([#7531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7531))
 
 BUG FIXES: 
 
-* `azurerm_api_management_named_value` - polling until the property is fully created [GH-7547]
-* `azurerm_api_management_property` - polling until the property is fully created [GH-7547]
-* `azurerm_linux_virtual_machine_scale_set` - using the provider feature `roll_instances_when_required` when `upgrade_mode` is set to `Manual` [GH-7513]
-* `azurerm_marketplace_agreement` - fix issue around import [GH-7515]
-* `azurerm_windows_virtual_machine_scale_set` - using the provider feature `roll_instances_when_required` when `upgrade_mode` is set to `Manual` [GH-7513]
+* `azurerm_api_management_named_value` - polling until the property is fully created ([#7547](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7547))
+* `azurerm_api_management_property` - polling until the property is fully created ([#7547](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7547))
+* `azurerm_linux_virtual_machine_scale_set` - using the provider feature `roll_instances_when_required` when `upgrade_mode` is set to `Manual` ([#7513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7513))
+* `azurerm_marketplace_agreement` - fix issue around import ([#7515](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7515))
+* `azurerm_windows_virtual_machine_scale_set` - using the provider feature `roll_instances_when_required` when `upgrade_mode` is set to `Manual` ([#7513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7513))
 
 ## 2.16.0 (June 25, 2020)
 
