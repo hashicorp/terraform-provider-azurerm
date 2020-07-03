@@ -302,6 +302,8 @@ A `http_listener` block supports the following:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
+* `firewall_policy_id` - (Optional) The resource ID of a firewall policy.
+
 ---
 
 A `identity` block supports the following:

@@ -465,6 +465,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 								},
 							},
 						},
+
+						"firewall_policy_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
 					},
 				},
 			},
@@ -2217,6 +2223,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 
 		frontendIPConfigID := fmt.Sprintf("%s/frontendIPConfigurations/%s", gatewayID, frontendIPConfigName)
 		frontendPortID := fmt.Sprintf("%s/frontendPorts/%s", gatewayID, frontendPortName)
+		firewallPolicyID := v["firewall_policy_id"].(string)
 
 		customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(v["custom_error_configuration"].([]interface{}))
 
@@ -2232,6 +2239,9 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 				Protocol:                    network.ApplicationGatewayProtocol(protocol),
 				RequireServerNameIndication: utils.Bool(requireSNI),
 				CustomErrorConfigurations:   customErrorConfigurations,
+				FirewallPolicy: &network.SubResource{
+					ID: utils.String(firewallPolicyID),
+				},
 			},
 		}
 
@@ -2330,6 +2340,10 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if sni := props.RequireServerNameIndication; sni != nil {
 				output["require_sni"] = *sni
+			}
+
+			if fwp := props.FirewallPolicy; fwp != nil {
+				output["firewall_policy_id"] = *fwp.ID
 			}
 
 			output["custom_error_configuration"] = flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)
