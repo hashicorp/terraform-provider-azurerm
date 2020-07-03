@@ -110,6 +110,43 @@ func resourceArmKustoCluster() *schema.Resource {
 				Optional: true,
 			},
 
+			"virtual_network_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"subnet_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"engine_public_ip_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"data_management_public_ip_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+					},
+				},
+			},
+
+			"language_extensions": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(kusto.PYTHON),
+						string(kusto.R),
+					}, false),
+				},
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -119,6 +156,8 @@ func resourceArmKustoCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"zones": azure.SchemaZones(),
 
 			"tags": tags.Schema(),
 		},
@@ -155,10 +194,17 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		return err
 	}
 
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
+
 	clusterProperties := kusto.ClusterProperties{
 		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
+	}
+
+	if v, ok := d.GetOk("virtual_network_configuration"); ok {
+		vnet := expandKustoClusterVNET(v.([]interface{}))
+		clusterProperties.VirtualNetworkConfiguration = vnet
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -167,6 +213,7 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		Name:              &name,
 		Location:          &location,
 		Sku:               sku,
+		Zones:             zones,
 		ClusterProperties: &clusterProperties,
 		Tags:              tags.Expand(t),
 	}
@@ -196,6 +243,46 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	d.SetId(*resp.ID)
+
+	if v, ok := d.GetOk("language_extensions"); ok {
+		languageExtensions := expandKustoClusterLanguageExtensions(v.([]interface{}))
+
+		currentLanguageExtensions, err := client.ListLanguageExtensions(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error reading current added language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		languageExtensionsToAdd := diffLanguageExtensions(*languageExtensions.Value, *currentLanguageExtensions.Value)
+		if len(languageExtensionsToAdd) > 0 {
+			languageExtensionsListToAdd := kusto.LanguageExtensionsList{
+				Value: &languageExtensionsToAdd,
+			}
+
+			addLanguageExtensionsFuture, err := client.AddLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToAdd)
+			if err != nil {
+				return fmt.Errorf("Error adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			if err = addLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		languageExtensionsToRemove := diffLanguageExtensions(*currentLanguageExtensions.Value, *languageExtensions.Value)
+		if len(languageExtensionsToRemove) > 0 {
+			languageExtensionsListToRemove := kusto.LanguageExtensionsList{
+				Value: &languageExtensionsToRemove,
+			}
+
+			removeLanguageExtensionsFuture, err := client.RemoveLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToRemove)
+			if err != nil {
+				return fmt.Errorf("Error removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+			if err = removeLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+	}
 
 	return resourceArmKustoClusterRead(d, meta)
 }
@@ -235,10 +322,16 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
+	if err := d.Set("zones", azure.FlattenZones(clusterResponse.Zones)); err != nil {
+		return fmt.Errorf("Error setting `zones`: %+v", err)
+	}
+
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
 		d.Set("enable_purge", clusterProperties.EnablePurge)
+		d.Set("virtual_network_configuration", flatteKustoClusterVNET(clusterProperties.VirtualNetworkConfiguration))
+		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(clusterProperties.LanguageExtensions))
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
 	}
@@ -309,6 +402,41 @@ func expandKustoClusterSku(d *schema.ResourceData) (*kusto.AzureSku, error) {
 	return azureSku, nil
 }
 
+func expandKustoClusterVNET(input []interface{}) *kusto.VirtualNetworkConfiguration {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	vnet := input[0].(map[string]interface{})
+	subnetID := vnet["subnet_id"].(string)
+	enginePublicIPID := vnet["engine_public_ip_id"].(string)
+	dataManagementPublicIPID := vnet["data_management_public_ip_id"].(string)
+
+	return &kusto.VirtualNetworkConfiguration{
+		SubnetID:                 &subnetID,
+		EnginePublicIPID:         &enginePublicIPID,
+		DataManagementPublicIPID: &dataManagementPublicIPID,
+	}
+}
+
+func expandKustoClusterLanguageExtensions(input []interface{}) *kusto.LanguageExtensionsList {
+	if len(input) == 0 {
+		return nil
+	}
+
+	extensions := make([]kusto.LanguageExtension, 0)
+	for _, language := range input {
+		v := kusto.LanguageExtension{
+			LanguageExtensionName: kusto.LanguageExtensionName(language.(string)),
+		}
+		extensions = append(extensions, v)
+	}
+
+	return &kusto.LanguageExtensionsList{
+		Value: &extensions,
+	}
+}
+
 func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
 	if sku == nil {
 		return []interface{}{}
@@ -323,4 +451,62 @@ func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
 	}
 
 	return []interface{}{s}
+}
+
+func flatteKustoClusterVNET(vnet *kusto.VirtualNetworkConfiguration) []interface{} {
+	if vnet == nil {
+		return []interface{}{}
+	}
+
+	subnetID := ""
+	if vnet.SubnetID != nil {
+		subnetID = *vnet.SubnetID
+	}
+
+	enginePublicIPID := ""
+	if vnet.EnginePublicIPID != nil {
+		enginePublicIPID = *vnet.EnginePublicIPID
+	}
+
+	dataManagementPublicIPID := ""
+	if vnet.DataManagementPublicIPID != nil {
+		dataManagementPublicIPID = *vnet.DataManagementPublicIPID
+	}
+
+	output := map[string]interface{}{
+		"subnet_id":                    subnetID,
+		"engine_public_ip_id":          enginePublicIPID,
+		"data_management_public_ip_id": dataManagementPublicIPID,
+	}
+
+	return []interface{}{output}
+}
+
+func flattenKustoClusterLanguageExtensions(extensions *kusto.LanguageExtensionsList) []interface{} {
+	if extensions == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+	for _, v := range *extensions.Value {
+		output = append(output, v.LanguageExtensionName)
+	}
+
+	return output
+}
+
+func diffLanguageExtensions(a, b []kusto.LanguageExtension) []kusto.LanguageExtension {
+	target := make(map[string]bool)
+	for _, x := range b {
+		target[string(x.LanguageExtensionName)] = true
+	}
+
+	diff := make([]kusto.LanguageExtension, 0)
+	for _, x := range a {
+		if _, ok := target[string(x.LanguageExtensionName)]; !ok {
+			diff = append(diff, x)
+		}
+	}
+
+	return diff
 }

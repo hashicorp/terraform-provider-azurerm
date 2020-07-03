@@ -326,6 +326,7 @@ resource "azurerm_firewall" "test" {
     subnet_id            = azurerm_subnet.test.id
     public_ip_address_id = azurerm_public_ip.test.id
   }
+  threat_intel_mode = "Deny"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -405,6 +406,7 @@ resource "azurerm_firewall" "import" {
     subnet_id            = azurerm_subnet.test.id
     public_ip_address_id = azurerm_public_ip.test.id
   }
+  threat_intel_mode = azurerm_firewall.test.threat_intel_mode
 }
 `, template)
 }

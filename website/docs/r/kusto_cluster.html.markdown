@@ -54,7 +54,13 @@ The following arguments are supported:
 
 * `enable_purge` - (Optional) Specifies if the purge operations are enabled.
 
+* `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below.
+
+* `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON` and `R`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.
 
 ---
 
@@ -63,6 +69,16 @@ A `sku` block supports the following:
 * `name` - (Required) The name of the SKU. Valid values are: `Dev(No SLA)_Standard_D11_v2`, `Dev(No SLA)_Standard_E2a_v4`, `Standard_D11_v2`, `Standard_D12_v2`, `Standard_D13_v2`, `Standard_D14_v2`, `Standard_DS13_v2+1TB_PS`, `Standard_DS13_v2+2TB_PS`, `Standard_DS14_v2+3TB_PS`, `Standard_DS14_v2+4TB_PS`, `Standard_E16as_v4+3TB_PS`, `Standard_E16as_v4+4TB_PS`, `Standard_E16a_v4`, `Standard_E2a_v4`, `Standard_E4a_v4`, `Standard_E8as_v4+1TB_PS`, `Standard_E8as_v4+2TB_PS`, `Standard_E8a_v4`, `Standard_L16s`, `Standard_L4s` and `Standard_L8s`
 
 * `capacity` - (Required) Specifies the node count for the cluster. Boundaries depend on the sku name.
+
+---
+
+A `virtual_network_configuration` block supports the following:
+
+* `subnet_id` - (Required) The subnet resource id.
+
+* `engine_public_ip_id` - (Required) Engine service's public IP address resource id.
+
+* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id.
 
 ---
 

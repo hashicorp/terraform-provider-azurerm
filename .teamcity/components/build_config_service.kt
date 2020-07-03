@@ -35,6 +35,7 @@ class serviceDetails(name: String, displayName: String, environment: String) {
                 TerraformAcceptanceTestsFlag()
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
+                WorkingDirectory(providerName, packageName)
             }
 
             triggers {

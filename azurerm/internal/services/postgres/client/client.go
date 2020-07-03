@@ -12,6 +12,7 @@ type Client struct {
 	ServersClient                     *postgresql.ServersClient
 	ServerSecurityAlertPoliciesClient *postgresql.ServerSecurityAlertPoliciesClient
 	VirtualNetworkRulesClient         *postgresql.VirtualNetworkRulesClient
+	ServerAdministratorsClient        *postgresql.ServerAdministratorsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -33,6 +34,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	virtualNetworkRulesClient := postgresql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&virtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	serverAdministratorsClient := postgresql.NewServerAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ConfigurationsClient:              &configurationsClient,
 		DatabasesClient:                   &databasesClient,
@@ -40,5 +44,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServersClient:                     &serversClient,
 		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
 		VirtualNetworkRulesClient:         &virtualNetworkRulesClient,
+		ServerAdministratorsClient:        &serverAdministratorsClient,
 	}
 }

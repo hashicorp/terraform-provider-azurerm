@@ -79,6 +79,12 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Default:  false,
 			},
 
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"maximum_throughput_units": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -226,6 +232,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 	capacity := int32(d.Get("capacity").(int))
 	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
+	zoneRedundant := d.Get("zone_redundant").(bool)
 
 	parameters := eventhub.EHNamespace{
 		Location: &location,
@@ -236,6 +243,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		},
 		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
+			ZoneRedundant:        utils.Bool(zoneRedundant),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -323,6 +331,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	if props := resp.EHNamespaceProperties; props != nil {
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
+		d.Set("zone_redundant", props.ZoneRedundant)
 	}
 
 	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
