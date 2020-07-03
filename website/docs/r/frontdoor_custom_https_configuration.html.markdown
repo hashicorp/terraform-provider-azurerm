@@ -10,7 +10,7 @@ description: |-
 
 Manages the Custom Https Configuration for an Azure Front Door Frontend Endpoint..
 
-~> **NOTE:** Custom https configurations for a Front Door Frontened Endpoint be defined both within [the `azurerm_frontdoor` resource](frontdoor.html) via the `custom_https_configuration` block and by using a separate resource, as described in the following sections.
+~> **NOTE:** Custom https configurations for a Front Door Frontened Endpoint can be defined both within [the `azurerm_frontdoor` resource](frontdoor.html) via the `custom_https_configuration` block and by using a separate resource, as described in the following sections.
 
 -> **NOTE:** Defining custom https configurations using a separate `azurerm_frontdoor_custom_https_configuration` resource allows for parallel creation/update.
  
@@ -64,13 +64,13 @@ resource "azurerm_frontdoor" "example" {
   }
 
   frontend_endpoint {
-    name                              = "exampleFrontendEndpoint1"
-    host_name                         = "example-FrontDoor.azurefd.net"
+    name      = "exampleFrontendEndpoint1"
+    host_name = "example-FrontDoor.azurefd.net"
   }
 
   frontend_endpoint {
-    name                              = "exampleFrontendEndpoint2"
-    host_name                         = "examplefd1.examplefd.net"
+    name      = "exampleFrontendEndpoint2"
+    host_name = "examplefd1.examplefd.net"
   }
 }
 
