@@ -51,6 +51,62 @@ func TestAccAzureRMStorageDataLakeGen2Path_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageDataLakeGen2Path_withSimpleACL(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageDataLakeGen2Path_withSimpleACL(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMStorageDataLakeGen2Path_withOwner(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageDataLakeGen2Path_withOwner(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
 func testCheckAzureRMStorageDataLakeGen2PathExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.ADLSGen2PathsClient
@@ -134,6 +190,124 @@ resource "azurerm_storage_data_lake_gen2_path" "import" {
   resource           = azurerm_storage_data_lake_gen2_path.test.resource
 }
 `, template)
+}
+
+func testAccAzureRMStorageDataLakeGen2Path_withSimpleACL(data acceptance.TestData) string {
+	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_data_lake_gen2_path" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  filesystem_name    = azurerm_storage_data_lake_gen2_filesystem.test.name
+  path               = "testpath"
+  resource           = "directory"
+  ace {
+	type        = "user"
+	permissions = "r-x"
+  }
+  ace {
+	type        = "group"
+	permissions = "-wx"
+  }
+  ace {
+	type        = "other"
+	permissions = "--x"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(data acceptance.TestData) string {
+	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azuread_application" "test" {
+  name = "acctestspa%[2]d"
+}
+	
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+  
+resource "azurerm_storage_data_lake_gen2_path" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  filesystem_name    = azurerm_storage_data_lake_gen2_filesystem.test.name
+  path               = "testpath"
+  resource           = "directory"
+  ace {
+	type        = "user"
+	permissions = "r-x"
+  }
+  ace {
+	type        = "user"
+	id          = azuread_service_principal.test.object_id
+	permissions = "r-x"
+  }
+  ace {
+	type        = "group"
+	permissions = "-wx"
+  }
+  ace {
+	type        = "mask"
+	permissions = "--x"
+  }
+  ace {
+	type        = "other"
+	permissions = "--x"
+  }
+  ace {
+	scope       = "default"
+	type        = "user"
+	permissions = "r-x"
+  }
+  ace {
+	scope       = "default"
+	type        = "user"
+	id          = azuread_service_principal.test.object_id
+	permissions = "r-x"
+  }
+  ace {
+	scope       = "default"
+	type        = "group"
+	permissions = "-wx"
+  }
+  ace {
+	scope       = "default"
+	type        = "mask"
+	permissions = "--x"
+  }
+  ace {
+	scope       = "default"
+	type        = "other"
+	permissions = "--x"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMStorageDataLakeGen2Path_withOwner(data acceptance.TestData) string {
+	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azuread_application" "test" {
+  name = "acctestspa%[2]d"
+}
+  
+resource "azuread_service_principal" "test" {
+  application_id = azuread_application.test.application_id
+}
+
+resource "azurerm_storage_data_lake_gen2_path" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  filesystem_name    = azurerm_storage_data_lake_gen2_filesystem.test.name
+  path               = "testpath"
+  resource           = "directory"
+  owner              = azuread_service_principal.test.object_id
+}
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMStorageDataLakeGen2Path_template(data acceptance.TestData) string {
