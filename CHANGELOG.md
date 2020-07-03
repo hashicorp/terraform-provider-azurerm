@@ -1,4 +1,9 @@
 ## 2.18.0 (Unreleased)
+
+BUG FIXES: 
+
+* `azurerm_storage_data_lake_gen2_filesystem` - prevent a crashe during plan if storage account was deleted [GH-7378]
+
 ## 2.17.0 (July 03, 2020)
 
 UPGRADE NOTES:
