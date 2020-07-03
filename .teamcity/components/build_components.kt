@@ -27,6 +27,15 @@ fun BuildSteps.ConfigureGoEnv() {
     })
 }
 
+fun BuildSteps.DownloadTerraformBinary() {
+    // https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
+    var terraformUrl = "https://releases.hashicorp.com/terraform/%TERRAFORM_CORE_VERSION%/terraform_%TERRAFORM_CORE_VERSION%_linux_amd64.zip"
+    step(ScriptBuildStep {
+        name = "Download Terraform Core v%TERRAFORM_CORE_VERSION%.."
+        scriptContent = "mkdir -p tools && wget -O tf.zip %s && unzip tf.zip && mv terraform tools/".format(terraformUrl)
+    })
+}
+
 fun servicePath(providerName: String, packageName: String) : String {
     return "./%s/internal/services/%s".format(providerName, packageName)
 }
@@ -95,6 +104,11 @@ fun ParametrizedWithType.ReadOnlySettings() {
 
 fun ParametrizedWithType.TerraformAcceptanceTestsFlag() {
     hiddenVariable("env.TF_ACC", "1", "Set to a value to run the Acceptance Tests")
+}
+
+fun ParametrizedWithType.TerraformCoreBinaryTesting() {
+    text("TERRAFORM_CORE_VERSION", defaultTerraformCoreVersion, "The version of Terraform Core which should be used for testing")
+    hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "./tools/terraform", "The path where the Terraform Binary is located")
 }
 
 fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
