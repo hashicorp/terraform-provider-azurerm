@@ -22,6 +22,11 @@ import (
 var once sync.Once
 
 func init() {
+	// unit testing
+	if os.Getenv("TF_ACC") == "" {
+		return
+	}
+
 	once.Do(func() {
 		azureProvider := provider.TestAzureProvider().(*schema.Provider)
 
