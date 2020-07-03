@@ -1,5 +1,9 @@
 ## 2.18.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* `azurerm_kusto_cluster` - support for the `language_extensions` [GH-7421]
+
 BUG FIXES: 
 
 * `azurerm_storage_data_lake_gen2_filesystem` - prevent a crashe during plan if storage account was deleted [GH-7378]
