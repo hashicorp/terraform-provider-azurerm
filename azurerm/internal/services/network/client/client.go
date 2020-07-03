@@ -7,27 +7,27 @@ import (
 )
 
 type Client struct {
-	ApplicationGatewaysClient            *network.ApplicationGatewaysClient
-	ApplicationSecurityGroupsClient      *network.ApplicationSecurityGroupsClient
-	AzureFirewallsClient                 *network.AzureFirewallsClient
-	BastionHostsClient                   *network.BastionHostsClient
-	ConnectionMonitorsClient             *network.ConnectionMonitorsClient
-	DDOSProtectionPlansClient            *network.DdosProtectionPlansClient
-	ExpressRouteAuthsClient              *network.ExpressRouteCircuitAuthorizationsClient
-	ExpressRouteCircuitsClient           *network.ExpressRouteCircuitsClient
-	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
-	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
-	FirewallPoliciesClient               *network.FirewallPoliciesClient
-	InterfacesClient                     *network.InterfacesClient
-	LoadBalancersClient                  *network.LoadBalancersClient
-	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
-	PointToSiteVpnGatewaysClient         *network.P2sVpnGatewaysClient
-	ProfileClient                        *network.ProfilesClient
-	PacketCapturesClient                 *network.PacketCapturesClient
-	PrivateEndpointClient                *network.PrivateEndpointsClient
-	PublicIPsClient                      *network.PublicIPAddressesClient
-	PublicIPPrefixesClient               *network.PublicIPPrefixesClient
-	RoutesClient                         *network.RoutesClient
+	ApplicationGatewaysClient       *network.ApplicationGatewaysClient
+	ApplicationSecurityGroupsClient *network.ApplicationSecurityGroupsClient
+	AzureFirewallsClient            *network.AzureFirewallsClient
+	BastionHostsClient              *network.BastionHostsClient
+	ConnectionMonitorsClient        *network.ConnectionMonitorsClient
+	DDOSProtectionPlansClient       *network.DdosProtectionPlansClient
+	ExpressRouteAuthsClient         *network.ExpressRouteCircuitAuthorizationsClient
+	ExpressRouteCircuitsClient      *network.ExpressRouteCircuitsClient
+	ExpressRouteGatewaysClient      *network.ExpressRouteGatewaysClient
+	ExpressRoutePeeringsClient      *network.ExpressRouteCircuitPeeringsClient
+	FirewallPolicyClient            *network.FirewallPoliciesClient
+	InterfacesClient                *network.InterfacesClient
+	LoadBalancersClient             *network.LoadBalancersClient
+	LocalNetworkGatewaysClient      *network.LocalNetworkGatewaysClient
+	PointToSiteVpnGatewaysClient    *network.P2sVpnGatewaysClient
+	ProfileClient                   *network.ProfilesClient
+	PacketCapturesClient            *network.PacketCapturesClient
+	PrivateEndpointClient           *network.PrivateEndpointsClient
+	PublicIPsClient                 *network.PublicIPAddressesClient
+	PublicIPPrefixesClient          *network.PublicIPPrefixesClient
+	RoutesClient                    *network.RoutesClient
 	RouteTablesClient                    *network.RouteTablesClient
 	SecurityGroupClient                  *network.SecurityGroupsClient
 	SecurityRuleClient                   *network.SecurityRulesClient
@@ -167,27 +167,27 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&WebApplicationFirewallPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ApplicationGatewaysClient:            &ApplicationGatewaysClient,
-		ApplicationSecurityGroupsClient:      &ApplicationSecurityGroupsClient,
-		AzureFirewallsClient:                 &AzureFirewallsClient,
-		BastionHostsClient:                   &BastionHostsClient,
-		ConnectionMonitorsClient:             &ConnectionMonitorsClient,
-		DDOSProtectionPlansClient:            &DDOSProtectionPlansClient,
-		ExpressRouteAuthsClient:              &ExpressRouteAuthsClient,
-		ExpressRouteCircuitsClient:           &ExpressRouteCircuitsClient,
-		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
-		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
-		FirewallPoliciesClient:               &FirewallPolicyClient,
-		InterfacesClient:                     &InterfacesClient,
-		LoadBalancersClient:                  &LoadBalancersClient,
-		LocalNetworkGatewaysClient:           &LocalNetworkGatewaysClient,
-		PointToSiteVpnGatewaysClient:         &pointToSiteVpnGatewaysClient,
-		ProfileClient:                        &ProfileClient,
-		PacketCapturesClient:                 &PacketCapturesClient,
-		PrivateEndpointClient:                &PrivateEndpointClient,
-		PublicIPsClient:                      &PublicIPsClient,
-		PublicIPPrefixesClient:               &PublicIPPrefixesClient,
-		RoutesClient:                         &RoutesClient,
+		ApplicationGatewaysClient:       &ApplicationGatewaysClient,
+		ApplicationSecurityGroupsClient: &ApplicationSecurityGroupsClient,
+		AzureFirewallsClient:            &AzureFirewallsClient,
+		BastionHostsClient:              &BastionHostsClient,
+		ConnectionMonitorsClient:        &ConnectionMonitorsClient,
+		DDOSProtectionPlansClient:       &DDOSProtectionPlansClient,
+		ExpressRouteAuthsClient:         &ExpressRouteAuthsClient,
+		ExpressRouteCircuitsClient:      &ExpressRouteCircuitsClient,
+		ExpressRouteGatewaysClient:      &ExpressRouteGatewaysClient,
+		ExpressRoutePeeringsClient:      &ExpressRoutePeeringsClient,
+		FirewallPolicyClient:            &FirewallPolicyClient,
+		InterfacesClient:                &InterfacesClient,
+		LoadBalancersClient:             &LoadBalancersClient,
+		LocalNetworkGatewaysClient:      &LocalNetworkGatewaysClient,
+		PointToSiteVpnGatewaysClient:    &pointToSiteVpnGatewaysClient,
+		ProfileClient:                   &ProfileClient,
+		PacketCapturesClient:            &PacketCapturesClient,
+		PrivateEndpointClient:           &PrivateEndpointClient,
+		PublicIPsClient:                 &PublicIPsClient,
+		PublicIPPrefixesClient:          &PublicIPPrefixesClient,
+		RoutesClient:                    &RoutesClient,
 		RouteTablesClient:                    &RouteTablesClient,
 		SecurityGroupClient:                  &SecurityGroupClient,
 		SecurityRuleClient:                   &SecurityRuleClient,

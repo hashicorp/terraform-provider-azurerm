@@ -36,7 +36,7 @@ func dataSourceArmFirewallPolicy() *schema.Resource {
 }
 
 func dataSourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPoliciesClient
+	client := meta.(*clients.Client).Network.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

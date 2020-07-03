@@ -93,7 +93,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 }
 
 func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPoliciesClient
+	client := meta.(*clients.Client).Network.FirewallPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -113,7 +113,7 @@ func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	param := network.FirewallPolicy{
+	props := network.FirewallPolicy{
 		FirewallPolicyPropertiesFormat: &network.FirewallPolicyPropertiesFormat{
 			ThreatIntelMode: network.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string)),
 		},
@@ -121,10 +121,10 @@ func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interfac
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if id, ok := d.GetOk("base_policy_id"); ok {
-		param.FirewallPolicyPropertiesFormat.BasePolicy = &network.SubResource{ID: utils.String(id.(string))}
+		props.FirewallPolicyPropertiesFormat.BasePolicy = &network.SubResource{ID: utils.String(id.(string))}
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, param); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, props); err != nil {
 		return fmt.Errorf("creating Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -141,7 +141,7 @@ func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPoliciesClient
+	client := meta.(*clients.Client).Network.FirewallPolicyClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -185,7 +185,7 @@ func resourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.FirewallPoliciesClient
+	client := meta.(*clients.Client).Network.FirewallPolicyClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
