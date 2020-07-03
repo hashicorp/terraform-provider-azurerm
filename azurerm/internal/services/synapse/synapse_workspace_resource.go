@@ -1,18 +1,15 @@
 package synapse
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/url"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -71,7 +68,7 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 
 			"sql_administrator_login_password": {
 				Type:      schema.TypeString,
-				Optional:  true,
+				Required:  true,
 				Sensitive: true,
 			},
 
@@ -81,18 +78,22 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"connectivity_endpoints": {
+				Type:     schema.TypeMap,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"identity": {
 				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(synapse.ResourceIdentityTypeSystemAssigned),
-							}, false),
+							Computed: true,
 						},
 
 						"principal_id": {
@@ -105,14 +106,6 @@ func resourceArmSynapseWorkspace() *schema.Resource {
 							Computed: true,
 						},
 					},
-				},
-			},
-
-			"connectivity_endpoints": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
 				},
 			},
 
@@ -156,8 +149,10 @@ func resourceArmSynapseWorkspaceCreate(d *schema.ResourceData, meta interface{})
 			SQLAdministratorLogin:         utils.String(d.Get("sql_administrator_login").(string)),
 			SQLAdministratorLoginPassword: utils.String(d.Get("sql_administrator_login_password").(string)),
 		},
-		Identity: expandArmWorkspaceManagedIdentity(d.Get("identity").([]interface{})),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: &synapse.ManagedIdentity{
+			Type: synapse.ResourceIdentityTypeSystemAssigned,
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, workspaceInfo)
@@ -205,7 +200,7 @@ func resourceArmSynapseWorkspaceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if err := d.Set("identity", flattenArmWorkspaceManagedIdentity(resp.Identity)); err != nil {
-		return fmt.Errorf("setting identity: %+v", err)
+		return fmt.Errorf("setting `identity`: %+v", err)
 	}
 	if props := resp.WorkspaceProperties; props != nil {
 		managedVirtualNetworkEnabled := false
@@ -261,44 +256,19 @@ func resourceArmSynapseWorkspaceDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
 		return fmt.Errorf("deleting Synapse Workspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	// sometimes the waitforcompletion rest api will return 404, so changed with polling
-	return waitForSynapseWorkspaceToBeDeleted(ctx, client, id.ResourceGroup, id.Name, d)
-}
 
-func waitForSynapseWorkspaceToBeDeleted(ctx context.Context, client *synapse.WorkspacesClient, resourceGroup, name string, d *schema.ResourceData) error {
-	log.Printf("[DEBUG] Waiting for Synapse Workspace %q (Resource Group %q) to be deleted", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"200", "202"},
-		Target:  []string{"404"},
-		Refresh: synapseWorkspaceStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("waiting for Synapse Workspace %q (Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
+	// sometimes the waitForCompletion rest api will return 404
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for Synapse Workspace %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	return nil
-}
-
-func synapseWorkspaceStatusCodeRefreshFunc(ctx context.Context, client *synapse.WorkspacesClient, resourceGroup, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name)
-
-		log.Printf("retrieving Synapse Workspace %q (Resource Group %q) returned Status %d", resourceGroup, name, res.StatusCode)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return res, strconv.Itoa(res.StatusCode), nil
-			}
-			return nil, "", fmt.Errorf("polling for the status of the Synapse Workspace %q (RG: %q): %+v", name, resourceGroup, err)
-		}
-
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
 }
 
 func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2FilesystemId string) *synapse.DataLakeStorageAccountDetails {
@@ -306,16 +276,6 @@ func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2Filesyst
 	return &synapse.DataLakeStorageAccountDetails{
 		AccountURL: utils.String(fmt.Sprintf("%s://%s", uri.Scheme, uri.Host)), // https://storageaccountname.dfs.core.windows.net/filesystemname -> https://storageaccountname.dfs.core.windows.net
 		Filesystem: utils.String(uri.Path[1:]),                                 // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
-	}
-}
-
-func expandArmWorkspaceManagedIdentity(input []interface{}) *synapse.ManagedIdentity {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-	return &synapse.ManagedIdentity{
-		Type: synapse.ResourceIdentityType(v["type"].(string)),
 	}
 }
 

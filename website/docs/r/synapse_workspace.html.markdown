@@ -3,12 +3,12 @@ subcategory: "Synapse"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_synapse_workspace"
 description: |-
-  Manages a synapse Workspace.
+  Manages a Synapse Workspace.
 ---
 
 # azurerm_synapse_workspace
 
-Manages a synapse Workspace.
+Manages a Synapse Workspace.
 
 ## Example Usage
 
@@ -39,10 +39,7 @@ resource "azurerm_synapse_workspace" "example" {
   location                             = azurerm_resource_group.example.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
-
-  identity {
-    type = "SystemAssigned"
-  }
+  sql_administrator_login_password     = "H@Sh1CoR3!"
 }
 ```
 
@@ -58,21 +55,13 @@ The following arguments are supported:
 
 * `storage_data_lake_gen2_filesystem_id` - (Required) Specifies the ID of storage data lake gen2 filesystem resource. Changing this forces a new resource to be created.
 
-* `identity` - (Required) An `identity` block as defined below.
-
 * `sql_administrator_login` - (Required) Specifies The Login Name of the SQL administrator. Changing this forces a new resource to be created.
 
-* `sql_administrator_login_password` - (Optional) The Password associated with the `sql_administrator_login` for the SQL administrator.
+* `sql_administrator_login_password` - (Required) The Password associated with the `sql_administrator_login` for the SQL administrator.
 
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
-
----
-
-An `identity` block supports the following:
-
-* `type` - (Required) Specifies the identity type of the Synapse Workspace. At this time the allowed value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -89,6 +78,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 ---
 
 The `identity` block exports the following:
+
+* `type` - The Identity Type for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Synapse Workspace.
 

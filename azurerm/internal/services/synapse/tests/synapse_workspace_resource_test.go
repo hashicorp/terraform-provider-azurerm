@@ -25,7 +25,7 @@ func TestAccAzureRMSynapseWorkspace_basic(t *testing.T) {
 					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("sql_administrator_login_password"),
 		},
 	})
 }
@@ -79,7 +79,7 @@ func TestAccAzureRMSynapseWorkspace_update(t *testing.T) {
 					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("sql_administrator_login_password"),
 			{
 				Config: testAccAzureRMSynapseWorkspace_withUpdateFields(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -146,10 +146,7 @@ resource "azurerm_synapse_workspace" "test" {
   location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
-
-  identity {
-    type = "SystemAssigned"
-  }
+  sql_administrator_login_password     = "H@Sh1CoR3!"
 }
 `, template, data.RandomInteger)
 }
@@ -164,10 +161,7 @@ resource "azurerm_synapse_workspace" "import" {
   location                             = azurerm_synapse_workspace.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_synapse_workspace.test.storage_data_lake_gen2_filesystem_id
   sql_administrator_login              = azurerm_synapse_workspace.test.sql_administrator_login
-
-  identity {
-    type = azurerm_synapse_workspace.test.identity.0.type
-  }
+  sql_administrator_login_password     = azurerm_synapse_workspace.test.sql_administrator_login_password
 }
 `, config)
 }
@@ -184,10 +178,6 @@ resource "azurerm_synapse_workspace" "test" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
   managed_virtual_network_enabled      = true
-
-  identity {
-    type = "SystemAssigned"
-  }
 
   tags = {
     ENV = "Test"
@@ -207,11 +197,7 @@ resource "azurerm_synapse_workspace" "test" {
   location                             = azurerm_resource_group.test.location
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
-  sql_administrator_login_password     = "H@Sh1CoR3!"
-
-  identity {
-    type = "SystemAssigned"
-  }
+  sql_administrator_login_password     = "H@Sh1CoR4!"
 
   tags = {
     ENV = "Test"

@@ -19,7 +19,7 @@ func SynapseWorkspaceName(i interface{}, k string) (warnings []string, errors []
 	// 3. The value must be between 1 and 45 characters long
 
 	if !regexp.MustCompile(`^[a-z\d]{1,45}$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%s can contain only lowercase letters or numbers, must not end with the string 'ondemand', The value must be between 1 and 45 characters long", k))
+		errors = append(errors, fmt.Errorf("%s can contain only lowercase letters or numbers, and be between 1 and 45 characters long", k))
 		return
 	}
 	if strings.HasSuffix(v, "ondemand") {
