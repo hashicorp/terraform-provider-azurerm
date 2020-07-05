@@ -113,7 +113,7 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualNetworkGatewayConnection_trafficselectorpolicy(t *testing.T) {
+func TestAccAzureRMVirtualNetworkGatewayConnection_trafficSelectorPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -125,9 +125,9 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_trafficselectorpolicy(t *test
 				Config: testAccAzureRMVirtualNetworkGatewayConnection_trafficselectorpolicy(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkGatewayConnectionExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_selector_policy.0.local_address_ranges.0", "10.66.18.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_selector_policy.0.local_address_ranges.1", "10.66.17.0/24"),
-					resource.TestCheckResourceAttr(data.ResourceName, "traffic_selector_policy.0.remote_address_ranges.0", "10.1.1.0/24"),
+					resource.TestCheckResourceAttr(data.ResourceName, "traffic_selector_policy.0.local_address_cidrs.0", "10.66.18.0/24"),
+					resource.TestCheckResourceAttr(data.ResourceName, "traffic_selector_policy.0.local_address_cidrs.1", "10.66.17.0/24"),
+					resource.TestCheckResourceAttr(data.ResourceName, "traffic_selector_policy.0.remote_address_cidrs.0", "10.1.1.0/24"),
 				),
 			},
 		},

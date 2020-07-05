@@ -418,11 +418,9 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		}
 	}
 
-	if conn.TrafficSelectorPolicies != nil {
-		trafficSelectorPolicies := flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(conn.TrafficSelectorPolicies)
-		if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
-			return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
-		}
+	trafficSelectorPolicies := flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(conn.TrafficSelectorPolicies)
+	if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
+		return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -629,18 +627,10 @@ func expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTraff
 		schemaTrafficSelectorPolicy := d.(map[string]interface{})
 		trafficSelectorPolicy := &network.TrafficSelectorPolicy{}
 		if localAddressRanges, ok := schemaTrafficSelectorPolicy["local_address_cidrs"].([]interface{}); ok {
-			localAddressRangesArr := make([]string, 0, len(localAddressRanges))
-			for _, l := range localAddressRanges {
-				localAddressRangesArr = append(localAddressRangesArr, l.(string))
-			}
-			trafficSelectorPolicy.LocalAddressRanges = &localAddressRangesArr
+			trafficSelectorPolicy.LocalAddressRanges = utils.ExpandStringSlice(localAddressRanges)
 		}
 		if remoteAddressRanges, ok := schemaTrafficSelectorPolicy["remote_address_cidrs"].([]interface{}); ok {
-			remoteAddressRangesArr := make([]string, 0, len(remoteAddressRanges))
-			for _, l := range remoteAddressRanges {
-				remoteAddressRangesArr = append(remoteAddressRangesArr, l.(string))
-			}
-			trafficSelectorPolicy.RemoteAddressRanges = &remoteAddressRangesArr
+			trafficSelectorPolicy.RemoteAddressRanges = utils.ExpandStringSlice(remoteAddressRanges)
 		}
 
 		trafficSelectorPolicies = append(trafficSelectorPolicies, *trafficSelectorPolicy)
@@ -683,10 +673,12 @@ func flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSel
 
 	if trafficSelectorPolicies != nil {
 		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
-			schemaTrafficSelectorPolicy := make(map[string]interface{})
-			schemaTrafficSelectorPolicy["local_address_cidrs"] = trafficSelectorPolicy.LocalAddressRanges
-			schemaTrafficSelectorPolicy["remote_address_cidrs"] = trafficSelectorPolicy.RemoteAddressRanges
-			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, schemaTrafficSelectorPolicy)
+
+			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]interface{}{
+				"local_address_cidrs":  utils.FlattenStringSlice(trafficSelectorPolicy.LocalAddressRanges),
+				"remote_address_cidrs": utils.FlattenStringSlice(trafficSelectorPolicy.RemoteAddressRanges),
+			})
+
 		}
 	}
 

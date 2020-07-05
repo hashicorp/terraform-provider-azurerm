@@ -284,10 +284,11 @@ func flattenArmVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(t
 
 	if trafficSelectorPolicies != nil {
 		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
-			schemaTrafficSelectorPolicy := make(map[string]interface{})
-			schemaTrafficSelectorPolicy["local_address_cidrs"] = trafficSelectorPolicy.LocalAddressRanges
-			schemaTrafficSelectorPolicy["remote_address_cidrs"] = trafficSelectorPolicy.RemoteAddressRanges
-			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, schemaTrafficSelectorPolicy)
+			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]interface{}{
+				"local_address_cidrs":  utils.FlattenStringSlice(trafficSelectorPolicy.LocalAddressRanges),
+				"remote_address_cidrs": utils.FlattenStringSlice(trafficSelectorPolicy.RemoteAddressRanges),
+			})
+
 		}
 	}
 
