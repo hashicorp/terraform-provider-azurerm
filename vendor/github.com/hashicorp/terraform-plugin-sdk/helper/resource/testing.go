@@ -1061,7 +1061,7 @@ func testCheckResourceAttr(is *terraform.InstanceState, name string, key string,
 		}
 
 		if !ok {
-			return fmt.Errorf("%s: Attribute '%s' not found", name, key)
+			return fmt.Errorf("%s: Attribute '%s' not found. Buuut it has all these: %#v", name, key, is.Attributes)
 		}
 
 		return fmt.Errorf(
