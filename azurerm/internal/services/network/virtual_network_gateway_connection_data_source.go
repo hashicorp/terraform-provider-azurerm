@@ -288,7 +288,6 @@ func flattenArmVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(t
 				"local_address_cidrs":  utils.FlattenStringSlice(trafficSelectorPolicy.LocalAddressRanges),
 				"remote_address_cidrs": utils.FlattenStringSlice(trafficSelectorPolicy.RemoteAddressRanges),
 			})
-
 		}
 	}
 
