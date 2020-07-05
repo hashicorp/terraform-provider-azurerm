@@ -650,6 +650,7 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 		Target:     []string{"NotFound"},
 		MinTimeout: 30 * time.Second,
 		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Delay:      30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
@@ -695,21 +696,22 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 
 			status := "Succeeded"
 			locations := append(*resp.ReadLocations, *resp.WriteLocations...)
+			for _, l := range locations {
+				status = *l.ProvisioningState
+				if status == "Creating" || status == "Updating" || status == "Deleting" || status == "Initializing" {
+					return resp, status, nil // return the first non successful status.
+				}
+			}
+
 			for _, desiredLocation := range *account.Locations {
 				for index, l := range locations {
 					if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
-						if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
-							break // return the first non successful status.
-						}
-					} else {
-						if index == len(locations) {
-							status = "Initializing"
-						}
+						break
 					}
-				}
 
-				if status != "Succeeded" {
-					break // return the first non successful status.
+					if (index + 1) == len(locations) {
+						return resp, "Updating", nil
+					}
 				}
 			}
 

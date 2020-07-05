@@ -232,13 +232,6 @@ func testAccAzureRMCosmosDBAccount_updateWith(t *testing.T, kind documentdb.Data
 				),
 			},
 			data.ImportStep(),
-			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Eventual),
-				Check:  resource.ComposeAggregateTestCheckFunc(
-				// checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
-				),
-			},
-			data.ImportStep(),
 		},
 	})
 }
@@ -607,8 +600,9 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                = "%[3]s"
 
   consistency_policy {
-    consistency_level    = "%[4]s"
-    max_staleness_prefix = 170000
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 360
+    max_staleness_prefix    = 170000
   }
 
   is_virtual_network_filter_enabled = true
