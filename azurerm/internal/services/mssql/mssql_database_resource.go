@@ -271,7 +271,7 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 		CustomizeDiff: customdiff.All(
 			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
 				// "hyperscale can not change to other sku
-				return strings.HasPrefix(old.(string), "HS")
+				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
 			}),
 		),
 	}
