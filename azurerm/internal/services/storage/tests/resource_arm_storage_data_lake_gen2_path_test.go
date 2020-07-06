@@ -66,6 +66,32 @@ func TestAccAzureRMStorageDataLakeGen2Path_withSimpleACL(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageDataLakeGen2Path_withSimpleACLUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMStorageDataLakeGen2Path_withSimpleACLAndUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_path", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageDataLakeGen2Path_withSimpleACL(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageDataLakeGen2PathExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -205,6 +231,31 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
   ace {
 	type        = "user"
 	permissions = "r-x"
+  }
+  ace {
+	type        = "group"
+	permissions = "-wx"
+  }
+  ace {
+	type        = "other"
+	permissions = "--x"
+  }
+}
+`, template)
+}
+func testAccAzureRMStorageDataLakeGen2Path_withSimpleACLUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMStorageDataLakeGen2Path_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_data_lake_gen2_path" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  filesystem_name    = azurerm_storage_data_lake_gen2_filesystem.test.name
+  path               = "testpath"
+  resource           = "directory"
+  ace {
+	type        = "user"
+	permissions = "rwx"
   }
   ace {
 	type        = "group"

@@ -23,7 +23,7 @@ func resourceArmStorageDataLakeGen2Path() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmStorageDataLakeGen2PathCreate,
 		Read:   resourceArmStorageDataLakeGen2PathRead,
-		// Update: resourceArmStorageDataLakeGen2PathUpdate,
+		Update: resourceArmStorageDataLakeGen2PathUpdate,
 		Delete: resourceArmStorageDataLakeGen2PathDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -230,44 +230,67 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmStorageDataLakeGen2PathUpdate(d *schema.ResourceData, meta interface{}) error {
-	return fmt.Errorf("Not implemented - update")
-	// accountsClient := meta.(*clients.Client).Storage.AccountsClient
-	// client := meta.(*clients.Client).Storage.FileSystemsClient
-	// ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	// defer cancel()
+	accountsClient := meta.(*clients.Client).Storage.AccountsClient
+	client := meta.(*clients.Client).Storage.ADLSGen2PathsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
-	// id, err := filesystems.ParseResourceID(d.Id())
-	// if err != nil {
-	// 	return err
-	// }
+	id, err := paths.ParseResourceID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	// storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
-	// if err != nil {
-	// 	return err
-	// }
+	storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
+	if err != nil {
+		return err
+	}
 
-	// // confirm the storage account exists, otherwise Data Plane API requests will fail
-	// storageAccount, err := accountsClient.GetProperties(ctx, storageID.ResourceGroup, storageID.Name, "")
-	// if err != nil {
-	// 	if utils.ResponseWasNotFound(storageAccount.Response) {
-	// 		return fmt.Errorf("Storage Account %q was not found in Resource Group %q!", storageID.Name, storageID.ResourceGroup)
-	// 	}
+	path := d.Get("path").(string)
 
-	// 	return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
-	// }
+	aceRaw := d.Get("ace").([]interface{})
+	acl, err := expandArmDataLakeGen2PathAceList(aceRaw)
+	if err != nil {
+		return fmt.Errorf("Error parsing ace list: %s", err)
+	}
 
-	// propertiesRaw := d.Get("properties").(map[string]interface{})
-	// properties := ExpandMetaData(propertiesRaw)
+	var owner *string
+	if v, ok := d.GetOk("owner"); ok {
+		sv := v.(string)
+		owner = &sv
+	}
+	var group *string
+	if v, ok := d.GetOk("group"); ok {
+		sv := v.(string)
+		group = &sv
+	}
 
-	// log.Printf("[INFO] Updating Properties for File System %q in Storage Account %q.", id.DirectoryName, id.AccountName)
-	// input := filesystems.SetPropertiesInput{
-	// 	Properties: properties,
-	// }
-	// if _, err = client.SetProperties(ctx, id.AccountName, id.DirectoryName, input); err != nil {
-	// 	return fmt.Errorf("Error updating Properties for File System %q in Storage Account %q: %s", id.DirectoryName, id.AccountName, err)
-	// }
+	// confirm the storage account exists, otherwise Data Plane API requests will fail
+	storageAccount, err := accountsClient.GetProperties(ctx, storageID.ResourceGroup, storageID.Name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(storageAccount.Response) {
+			return fmt.Errorf("Storage Account %q was not found in Resource Group %q!", storageID.Name, storageID.ResourceGroup)
+		}
 
-	// return resourceArmStorageDataLakeGen2FileSystemRead(d, meta)
+		return fmt.Errorf("Error checking for existence of Storage Account %q (Resource Group %q): %+v", storageID.Name, storageID.ResourceGroup, err)
+	}
+
+	if acl != nil || owner != nil || group != nil {
+		var aclString *string
+		if acl != nil {
+			v := acl.String()
+			aclString = &v
+		}
+		accessControlInput := paths.SetAccessControlInput{
+			ACL:   aclString,
+			Owner: owner,
+			Group: group,
+		}
+		if _, err := client.SetAccessControl(ctx, id.AccountName, id.FileSystemName, path, accessControlInput); err != nil {
+			return fmt.Errorf("Error setting access control for Path %q in File System %q in Storage Account %q: %s", id.FileSystemName, path, id.AccountName, err)
+		}
+	}
+
+	return resourceArmStorageDataLakeGen2PathRead(d, meta)
 }
 
 func resourceArmStorageDataLakeGen2PathRead(d *schema.ResourceData, meta interface{}) error {
