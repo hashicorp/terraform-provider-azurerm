@@ -297,8 +297,11 @@ func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 }
 
 func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
-	v := input[0].(map[string]interface{})
+	if len(input) == 0 || input[0] == nil {
+		return map[string]interface{}{}
+	}
 
+	v := input[0].(map[string]interface{})
 	config := map[string]interface{}{}
 
 	if hiveRaw, ok := v["hive"]; ok {

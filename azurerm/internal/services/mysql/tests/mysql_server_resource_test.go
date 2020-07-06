@@ -437,7 +437,7 @@ resource "azurerm_mysql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "%s"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -499,7 +499,7 @@ resource "azurerm_mysql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "%s"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -590,6 +590,7 @@ resource "azurerm_mysql_server" "replica" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "GP_Gen5_2"
   version             = "%s"
+  storage_mb          = 51200
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_mysql_server.test.id
