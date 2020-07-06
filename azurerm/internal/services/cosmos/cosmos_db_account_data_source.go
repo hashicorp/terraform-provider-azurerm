@@ -5,8 +5,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
@@ -211,15 +212,19 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 	}
 	d.Set("kind", string(resp.Kind))
 
-	if props := resp.DatabaseAccountProperties; props != nil {
+	if props := resp.DatabaseAccountGetProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
-		d.Set("ip_range_filter", props.IPRangeFilter)
 		d.Set("endpoint", props.DocumentEndpoint)
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
 
 		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
 			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)
+		}
+
+		ipRangeFilter := parse.CosmosDBIpRulesToIpRangeFilter(props.IPRules)
+		if err := d.Set("ip_range_filter", ipRangeFilter); err != nil {
+			return fmt.Errorf("Error setting `ip_range_filter`: %s", err)
 		}
 
 		// sort `geo_locations` by fail over priority

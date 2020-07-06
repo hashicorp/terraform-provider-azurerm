@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -327,7 +328,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:      utils.String(offerType),
-			IPRangeFilter:                 utils.String(ipRangeFilter),
+			IPRules:                 utils.String(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
 			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
@@ -416,7 +417,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:      utils.String(offerType),
-			IPRangeFilter:                 utils.String(ipRangeFilter),
+			IPRules:                 parse.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
@@ -516,8 +517,12 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("kind", string(resp.Kind))
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
-	d.Set("ip_range_filter", resp.IPRangeFilter)
 	d.Set("endpoint", resp.DocumentEndpoint)
+
+	ipRangeFilter := parse.CosmosDBIpRulesToIpRangeFilter(resp.IPRules)
+	if err := d.Set("ip_range_filter", ipRangeFilter); err != nil {
+		return fmt.Errorf("Error setting `ip_range_filter`: %s", err)
+	}
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
@@ -673,7 +678,7 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *schema.ResourceData) (*documentdb.DatabaseAccount, error) {
+func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters, d *schema.ResourceData) (*documentdb.DatabaseAccountGetResults, error) {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -717,7 +722,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 		return nil, fmt.Errorf("Error waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", name, resourceGroup, err)
 	}
 
-	r := resp.(documentdb.DatabaseAccount)
+	r := resp.(documentdb.DatabaseAccountGetResults)
 	return &r, nil
 }
 
@@ -831,7 +836,7 @@ func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.Consisten
 	return []interface{}{result}
 }
 
-func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account documentdb.DatabaseAccount) *schema.Set {
+func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account documentdb.DatabaseAccountGetResults) *schema.Set {
 	locationSet := schema.Set{
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
 	}
