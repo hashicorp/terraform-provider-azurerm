@@ -328,7 +328,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:      utils.String(offerType),
-			IPRules:                 utils.String(ipRangeFilter),
+			IPRules:                       utils.String(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
 			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
@@ -417,7 +417,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		Kind:     documentdb.DatabaseAccountKind(kind),
 		DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:      utils.String(offerType),
-			IPRules:                 parse.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
+			IPRules:                       parse.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),

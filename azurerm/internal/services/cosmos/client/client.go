@@ -7,11 +7,11 @@ import (
 
 type Client struct {
 	CassandraResourcesClient *documentdb.CassandraResourcesClient
-	DatabaseClient *documentdb.DatabaseAccountsClient
-	GremlinResourcesClient *documentdb.GremlinResourcesClient
-	MongoDBResourcesClient *documentdb.MongoDBResourcesClient
-	SQLResourcesClient *documentdb.SQLResourcesClient
-	TableResourcesClient *documentdb.TableResourcesClient
+	DatabaseClient           *documentdb.DatabaseAccountsClient
+	GremlinResourcesClient   *documentdb.GremlinResourcesClient
+	MongoDBResourcesClient   *documentdb.MongoDBResourcesClient
+	SQLResourcesClient       *documentdb.SQLResourcesClient
+	TableResourcesClient     *documentdb.TableResourcesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -35,10 +35,10 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		CassandraResourcesClient: &cassandraResourcesClient,
-		DatabaseClient: &databaseClient,
-		GremlinResourcesClient: &gremlinResourcesClient,
-		MongoDBResourcesClient: &mongoDBResourcesClient,
-		SQLResourcesClient: &sqlResourcesClient,
-		TableResourcesClient: &tableResourcesClient,
+		DatabaseClient:           &databaseClient,
+		GremlinResourcesClient:   &gremlinResourcesClient,
+		MongoDBResourcesClient:   &mongoDBResourcesClient,
+		SQLResourcesClient:       &sqlResourcesClient,
+		TableResourcesClient:     &tableResourcesClient,
 	}
 }
