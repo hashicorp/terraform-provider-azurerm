@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_eventhub_namespace` - support for setting `partition_count` to `1024` when using a Dedicated Cluster [GH-7548]
 * `azurerm_eventhub_namespace` - support for setting `retention_count` to `90` when using a Dedicated Cluster [GH-7548]
 * `azurerm_kusto_cluster` - support for the `language_extensions` [GH-7421]
+* `azurerm_mssql_database` - the `sku_name` property now only forces a new resource for the `HS` (HyperScale) family [GH-7559]
 
 BUG FIXES: 
 
