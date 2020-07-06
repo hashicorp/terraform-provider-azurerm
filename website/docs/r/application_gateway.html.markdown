@@ -167,7 +167,7 @@ The following arguments are supported:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
-* `firewall_policy_id` - (Optional) The resource ID of a firewall policy.
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
 
 * `redirect_configuration` - (Optional) A `redirect_configuration` block as defined below.
 
@@ -302,8 +302,7 @@ A `http_listener` block supports the following:
 
 * `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
-* `firewall_policy_id` - (Optional) The resource ID of a firewall policy.
-
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as a HTTP Listener.
 ---
 
 A `identity` block supports the following:

@@ -2239,9 +2239,6 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 				Protocol:                    network.ApplicationGatewayProtocol(protocol),
 				RequireServerNameIndication: utils.Bool(requireSNI),
 				CustomErrorConfigurations:   customErrorConfigurations,
-				FirewallPolicy: &network.SubResource{
-					ID: utils.String(firewallPolicyID),
-				},
 			},
 		}
 
@@ -2264,6 +2261,12 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 			certID := fmt.Sprintf("%s/sslCertificates/%s", gatewayID, sslCertName)
 			listener.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate = &network.SubResource{
 				ID: utils.String(certID),
+			}
+		}
+
+		if firewallPolicyID != "" && len(firewallPolicyID) > 0 {
+			listener.ApplicationGatewayHTTPListenerPropertiesFormat.FirewallPolicy = &network.SubResource{
+				ID: utils.String(firewallPolicyID),
 			}
 		}
 
@@ -2342,7 +2345,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 				output["require_sni"] = *sni
 			}
 
-			if fwp := props.FirewallPolicy; fwp != nil {
+			if fwp := props.FirewallPolicy; fwp != nil && fwp.ID != nil {
 				output["firewall_policy_id"] = *fwp.ID
 			}
 
