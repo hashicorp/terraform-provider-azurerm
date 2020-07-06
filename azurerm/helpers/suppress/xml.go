@@ -26,6 +26,9 @@ func XmlDiff(_, old, new string, _ *schema.ResourceData) bool {
 // This function will extract all XML tokens from a string, but ignoring all white-space tokens
 func expandXmlTokensFromString(input string) ([]xml.Token, error) {
 	decoder := xml.NewDecoder(strings.NewReader(input))
+	decoder.Strict = false
+	decoder.AutoClose = xml.HTMLAutoClose
+
 	tokens := make([]xml.Token, 0)
 	for {
 		token, err := decoder.Token()

@@ -184,11 +184,11 @@ func testAccAzureRMApiManagementAPIOperationPolicy_requiresImport(data acceptanc
 %s
 
 resource "azurerm_api_management_api_operation_policy" "import" {
-  api_name            = azurerm_api_management_api_policy.test.api_name
-  api_management_name = azurerm_api_management_api_policy.test.api_management_name
-  resource_group_name = azurerm_api_management_api_policy.test.resource_group_name
-  operation_id        = azurerm_api_management_api_operation.test.operation_id
-  xml_link            = azurerm_api_management_api_policy.test.xml_link
+  api_name            = azurerm_api_management_api_operation_policy.test.api_name
+  api_management_name = azurerm_api_management_api_operation_policy.test.api_management_name
+  resource_group_name = azurerm_api_management_api_operation_policy.test.resource_group_name
+  operation_id        = azurerm_api_management_api_operation_policy.test.operation_id
+  xml_link            = azurerm_api_management_api_operation_policy.test.xml_link
 }
 `, template)
 }
@@ -207,7 +207,7 @@ resource "azurerm_api_management_api_operation_policy" "test" {
   xml_content = <<XML
 <policies>
   <inbound>
-    <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
+    <set-variable name="abc" @(context.Request.Headers.GetValueOrDefault(&quot;X-Header-Name&quot;, &quot;&quot;)) />
     <find-and-replace from="xyz" to="abc" />
   </inbound>
 </policies>
@@ -228,8 +228,7 @@ resource "azurerm_api_management_api_operation_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   operation_id        = azurerm_api_management_api_operation.test.operation_id
 
-  xml_content = file("testdata/api_management_api_operation_policy.xml")
-
+  xml_content = filebase64("testdata/api_management_api_operation_policy.xml")
 }
 `, template)
 }

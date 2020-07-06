@@ -95,7 +95,7 @@ func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceDa
 
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			Format: apimanagement.XMLLink,
+			Format: apimanagement.RawxmlLink,
 			Value:  utils.String(xmlLink),
 		}
 	}

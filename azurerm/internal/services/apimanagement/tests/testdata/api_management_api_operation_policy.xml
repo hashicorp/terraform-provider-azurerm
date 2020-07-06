@@ -21,7 +21,7 @@
         </send-request>
         <set-header name="Authorization" exists-action="override">
             <value>@{
-                var responseObj = ((IResponse)context.Variables["getCertResponse"]).Body.As<JObject>();
+                var responseObj = ((IResponse)context.Variables["getCertResponse"]).Body.As&lt;JObject&gt;();
                 var jwt = (string)responseObj["payload"];
                 return $"Bearer {jwt}";}</value>
         </set-header>
