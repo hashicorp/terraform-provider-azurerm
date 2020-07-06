@@ -176,25 +176,10 @@ func resourceArmFrontDoorCustomHttpsConfigurationDelete(d *schema.ResourceData, 
 		return fmt.Errorf("reading Front Door Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
 
-	resourceId := fmt.Sprintf("%s/customHttpsConfiguration/%s", *resp.ID, frontendEndpointName)
-
 	customHttpsConfigurationNew := make([]interface{}, 0)
 	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, *resp.ID, false, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 	if err != nil {
 		return fmt.Errorf("unable to disable Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, frontDoorName, frontendEndpointName)
-	if err != nil {
-		return fmt.Errorf("retreving Front Door Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
-	}
-
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Front Door Endpoint %q (Resource Group %q) ID", frontendEndpointName, resourceGroup)
-	}
-
-	if d.IsNewResource() {
-		d.SetId(resourceId)
 	}
 
 	return nil
@@ -278,6 +263,15 @@ func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx context.Con
 			return fmt.Errorf("disabling Custom Domain HTTPS for Frontend Endpoint: %+v", err)
 		}
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			// If the endpoint does not exist but this is not a new resource, the custom https
+			// configuration which previously existed was deleted with the endpoint, so reflect
+			// that in state.
+			resp, err := client.Get(ctx, resourceGroup, frontDoorName, frontendEndpointName)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return nil
+				}
+			}
 			return fmt.Errorf("waiting to disable Custom Domain HTTPS for Frontend Endpoint: %+v", err)
 		}
 	}
