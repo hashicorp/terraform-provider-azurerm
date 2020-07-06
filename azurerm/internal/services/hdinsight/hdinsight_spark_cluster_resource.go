@@ -142,11 +142,10 @@ func resourceArmHDInsightSparkClusterCreate(d *schema.ResourceData, meta interfa
 	gatewayRaw := d.Get("gateway").([]interface{})
 	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
-	if metastoresRaw, ok := d.Get("metastores").([]interface{}); ok {
-		metastores := expandHDInsightsMetastore(metastoresRaw)
-		for k, v := range metastores {
-			configurations[k] = v
-		}
+	metastoresRaw := d.Get("metastores").([]interface{})
+	metastores := expandHDInsightsMetastore(metastoresRaw)
+	for k, v := range metastores {
+		configurations[k] = v
 	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
