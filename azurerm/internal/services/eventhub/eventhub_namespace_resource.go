@@ -17,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -83,6 +84,13 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"dedicated_cluster_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ValidateEventHubDedicatedClusterID,
 			},
 
 			"maximum_throughput_units": {
@@ -248,6 +256,10 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		Tags: tags.Expand(t),
 	}
 
+	if v := d.Get("dedicated_cluster_id").(string); v != "" {
+		parameters.EHNamespaceProperties.ClusterArmID = utils.String(v)
+	}
+
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
 		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(int32(v.(int)))
 	}
@@ -332,6 +344,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 		d.Set("zone_redundant", props.ZoneRedundant)
+		d.Set("dedicated_cluster_id", props.ClusterArmID)
 	}
 
 	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
