@@ -1,5 +1,9 @@
 ## 2.18.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_app_service_slot_virtual_network_swift_connection` [GH-5916]
+
 ENHANCEMENTS:
 
 * `azurerm_kusto_cluster` - support for the `language_extensions` [GH-7421]
