@@ -6,11 +6,12 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `network` to `2020-05-01` [GH-7585]
 * `azurerm_kusto_cluster` - support for the `language_extensions` [GH-7421]
 
 BUG FIXES: 
 
-* `azurerm_storage_data_lake_gen2_filesystem` - prevent a crashe during plan if storage account was deleted [GH-7378]
+* `azurerm_storage_data_lake_gen2_filesystem` - prevent a crash during plan if storage account was deleted [GH-7378]
 
 ## 2.17.0 (July 03, 2020)
 
