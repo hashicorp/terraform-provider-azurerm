@@ -33,7 +33,7 @@ func TestAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_basic(t *testing.
 }
 
 func TestAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
+	data := acceptance.BuildTestData(t, "azurerm_app_service_slot_virtual_network_swift_connection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
