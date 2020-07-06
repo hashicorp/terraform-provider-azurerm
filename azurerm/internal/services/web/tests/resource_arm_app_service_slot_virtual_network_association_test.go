@@ -291,7 +291,7 @@ func testAccAzureRMAppServiceSlotVirtualNetworkSwiftConnection_requiresImport(da
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_app_service_slot_virtual_network_swift_connection" "test" {
+resource "azurerm_app_service_slot_virtual_network_swift_connection" "import" {
   slot_name      = azurerm_app_service_slot_virtual_network_swift_connection.test.slot_name
   app_service_id = azurerm_app_service_slot_virtual_network_swift_connection.test.app_service_id
   subnet_id      = azurerm_app_service_slot_virtual_network_swift_connection.test.subnet_id
