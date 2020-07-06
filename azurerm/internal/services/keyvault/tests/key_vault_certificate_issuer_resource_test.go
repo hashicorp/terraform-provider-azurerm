@@ -106,7 +106,7 @@ func TestAccAzureRMKeyVaultCertificateIssuer_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKeyVaultCertificate_basicGenerate(data),
+				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
 					testCheckAzureRMKeyVaultCertificateIssuerDisappears(data.ResourceName),
@@ -307,6 +307,7 @@ resource "azurerm_key_vault" "test" {
 resource "azurerm_key_vault_certificate_issuer" "test" {
   name          = "acctestKVCI-%d"
   key_vault_id  = azurerm_key_vault.test.id
+  org_id        = "accTestOrg"
   account_id    = "test-account"
   password      = "test"
   provider_name = "DigiCert"
@@ -322,6 +323,7 @@ func testAccAzureRMKeyVaultCertificateIssuer_requiresImport(data acceptance.Test
 resource "azurerm_key_vault_certificate_issuer" "import" {
   name          = azurerm_key_vault_certificate_issuer.test.name
   key_vault_id  = azurerm_key_vault_certificate_issuer.test.key_vault_id
+  org_id        = azurerm_key_vault_certificate_issuer.test.org_id
   account_id    = azurerm_key_vault_certificate_issuer.test.account_id
   password      = "test"
   provider_name = azurerm_key_vault_certificate_issuer.test.provider_name

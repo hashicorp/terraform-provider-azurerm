@@ -49,6 +49,12 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 				ValidateFunc: validate.KeyVaultCertificateIssuerName,
 			},
 
+			"org_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"provider_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -86,12 +92,6 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 						},
 					},
 				},
-			},
-
-			"org_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"password": {
