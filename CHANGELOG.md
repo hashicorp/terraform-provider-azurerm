@@ -7,6 +7,10 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: updating `network` to `2020-05-01` [GH-7585]
+* Data Source: `azurerm_eventhub_namespace` - exposing the `dedicated_cluster_id` field [GH-7548]
+* `azurerm_eventhub_namespace` - support for configuring the `dedicated_cluster_id` field [GH-7548]
+* `azurerm_eventhub_namespace` - support for setting `partition_count` to `1024` when using a Dedicated Cluster [GH-7548]
+* `azurerm_eventhub_namespace` - support for setting `retention_count` to `90` when using a Dedicated Cluster [GH-7548]
 * `azurerm_kusto_cluster` - support for the `language_extensions` [GH-7421]
 
 BUG FIXES: 
