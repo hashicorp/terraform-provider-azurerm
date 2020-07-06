@@ -108,7 +108,7 @@ fun ParametrizedWithType.TerraformAcceptanceTestsFlag() {
 
 fun ParametrizedWithType.TerraformCoreBinaryTesting() {
     text("TERRAFORM_CORE_VERSION", defaultTerraformCoreVersion, "The version of Terraform Core which should be used for testing")
-    hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "%teamcity.build.workingDir%/tools/terraform", "The path where the Terraform Binary is located")
+    hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "%system.teamcity.build.checkoutDir%/tools/terraform", "The path where the Terraform Binary is located")
 }
 
 fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
