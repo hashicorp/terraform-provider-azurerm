@@ -27,7 +27,7 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // servicebus quotas are limited and we experience failures if tests
         // execute too quickly as we run out of namespaces in the sub
-        "servicebus" to testConfiguration(10, defaultStartHour)
+        "servicebus" to testConfiguration(10, defaultStartHour),
 
         // SignalR only allows provisioning one "Free" instance at a time,
         // which is used in multiple tests
