@@ -19,7 +19,7 @@ func init() {
 		return
 	}
 
-	EnsureProvidersAreInited()
+	EnsureProvidersAreInitialised()
 }
 
 type TestData struct {
@@ -53,7 +53,7 @@ type TestData struct {
 
 // BuildTestData generates some test data for the given resource
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
-	EnsureProvidersAreInited()
+	EnsureProvidersAreInitialised()
 
 	env, err := Environment()
 	if err != nil {

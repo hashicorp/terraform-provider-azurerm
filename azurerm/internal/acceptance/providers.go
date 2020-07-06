@@ -12,7 +12,7 @@ import (
 
 var once sync.Once
 
-func EnsureProvidersAreInited() {
+func EnsureProvidersAreInitialised() {
 	// NOTE: (@tombuildsstuff) - opting-out of Binary Testing for the moment
 	os.Setenv("TF_DISABLE_BINARY_TESTING", "true")
 
@@ -25,6 +25,8 @@ func EnsureProvidersAreInited() {
 			"azuread": azuread.Provider().(*schema.Provider),
 		}
 
+		// NOTE: (@tombuildsstuff) - intentionally not calling these as Binary Testing
+		// is Disabled
 		//binarytestfuntime.UseBinaryDriver("azurerm", provider.TestAzureProvider)
 		//binarytestfuntime.UseBinaryDriver("azuread", azuread.Provider)
 	})
