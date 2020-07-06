@@ -20,9 +20,11 @@ func TestAccDataSourceAzureRMKeyVaultCertificateIssuer_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "account_id", "test-account"),
 					resource.TestCheckResourceAttr(data.ResourceName, "provider_name", "DigiCert"),
-					resource.TestCheckResourceAttr(data.ResourceName, "password", "test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "org_id", "test"),
-					resource.TestCheckResourceAttr(data.ResourceName, "org_id", "test"),
+					resource.TestCheckResourceAttr(data.ResourceName, "org_id", "accTestOrg"),
+					resource.TestCheckResourceAttr(data.ResourceName, "admin.0.email_address", "admin@contoso.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "admin.0.first_name", "First"),
+					resource.TestCheckResourceAttr(data.ResourceName, "admin.0.last_name", "Last"),
+					resource.TestCheckResourceAttr(data.ResourceName, "admin.0.phone", "01234567890"),
 				),
 			},
 		},
@@ -30,7 +32,7 @@ func TestAccDataSourceAzureRMKeyVaultCertificateIssuer_basic(t *testing.T) {
 }
 
 func testAccDataSourceAzureRMKeyVaultCertificateIssuer_basic(data acceptance.TestData) string {
-	template := testAccAzureRMKeyVaultCertificateIssuer_basic(data)
+	template := testAccAzureRMKeyVaultCertificateIssuer_complete(data)
 	return fmt.Sprintf(`
 %s
 

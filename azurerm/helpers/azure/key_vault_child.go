@@ -15,11 +15,6 @@ type KeyVaultChildID struct {
 	Version         string
 }
 
-type KeyVaultCertificateIssuerID struct {
-	KeyVaultBaseUrl string
-	Name            string
-}
-
 func ParseKeyVaultChildID(id string) (*KeyVaultChildID, error) {
 	// example: https://tharvey-keyvault.vault.azure.net/type/bird/fdf067c93bbb4b22bff4d8b7a9a56217
 	idURL, err := url.ParseRequestURI(id)
@@ -129,33 +124,4 @@ func ValidateKeyVaultChildIdVersionOptional(i interface{}, k string) (warnings [
 	}
 
 	return warnings, errors
-}
-
-func ParseKeyVaultCertificateIssuerID(id string) (*KeyVaultCertificateIssuerID, error) {
-	// example: https://example-keyvault.vault.azure.net/certificates/issuers/ExampleIssuer
-	idURL, err := url.ParseRequestURI(id)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot parse Azure KeyVault Certificate Issuer Id: %s", err)
-	}
-
-	path := idURL.Path
-
-	path = strings.TrimPrefix(path, "/")
-	path = strings.TrimSuffix(path, "/")
-
-	components := strings.Split(path, "/")
-
-	if len(components) != 3 {
-		return nil, fmt.Errorf("Azure KeyVault Certificate Issuer Id should have 3 segments, got %d: '%s'", len(components), path)
-	}
-	if components[0] != "certificates" || components[1] != "issuers" {
-		return nil, fmt.Errorf("Key Vault Certificate Issuer ID path must begin with %q", "/certificates/issuers")
-	}
-
-	issuerId := KeyVaultCertificateIssuerID{
-		KeyVaultBaseUrl: fmt.Sprintf("%s://%s/", idURL.Scheme, idURL.Host),
-		Name:            components[2],
-	}
-
-	return &issuerId, nil
 }

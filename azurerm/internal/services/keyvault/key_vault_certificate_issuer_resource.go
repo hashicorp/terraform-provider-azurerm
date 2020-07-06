@@ -11,18 +11,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKeyVaultCertificateIssuerCreate,
-		Update: resourceArmKeyVaultCertificateIssuerUpdate,
+		Create: resourceArmKeyVaultCertificateIssuerCreateOrUpdate,
+		Update: resourceArmKeyVaultCertificateIssuerCreateOrUpdate,
 		Read:   resourceArmKeyVaultCertificateIssuerRead,
 		Delete: resourceArmKeyVaultCertificateIssuerDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceArmKeyVaultChildResourceImporter,
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -37,14 +39,14 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.KeyVaultID,
 			},
 
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateKeyVaultCertificateIssuerName,
+				ValidateFunc: validate.KeyVaultCertificateIssuerName,
 			},
 
 			"provider_name": {
@@ -61,23 +63,15 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 				Optional: true,
 			},
 
-			"password": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
-			},
-
-			"org_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
-			"admins": {
+			"admin": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"email_address": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
 						"first_name": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -86,10 +80,6 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"email_address": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
 						"phone": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -97,11 +87,23 @@ func resourceArmKeyVaultCertificateIssuer() *schema.Resource {
 					},
 				},
 			},
+
+			"org_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"password": {
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
 
-func resourceArmKeyVaultCertificateIssuerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKeyVaultCertificateIssuerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
 	client := meta.(*clients.Client).KeyVault.ManagementClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -115,25 +117,33 @@ func resourceArmKeyVaultCertificateIssuerCreate(d *schema.ResourceData, meta int
 		return fmt.Errorf("failed to look up Certificate Issuer %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	existing, err := client.GetCertificateIssuer(ctx, keyVaultBaseUri, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, keyVaultBaseUri, err)
+	if d.IsNewResource() {
+		existing, err := client.GetCertificateIssuer(ctx, keyVaultBaseUri, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", name, keyVaultBaseUri, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", *existing.ID)
 		}
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_key_vault_certificate_issuer", *existing.ID)
+	parameter := keyvault.CertificateIssuerSetParameters{
+		Provider: utils.String(d.Get("provider_name").(string)),
 	}
 
-	parameter := keyvault.CertificateIssuerSetParameters{}
-	parameter.Provider = utils.String(d.Get("provider_name").(string))
-	if adminsRaw, ok := d.GetOk("admins"); ok {
-		parameter.OrganizationDetails = &keyvault.OrganizationDetails{
-			ID:           utils.String(d.Get("org_id").(string)),
-			AdminDetails: expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{})),
-		}
+	orgDetails := &keyvault.OrganizationDetails{
+		ID: utils.String(d.Get("org_id").(string)),
 	}
+
+	if adminsRaw, ok := d.GetOk("admin"); ok {
+		orgDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminsRaw.([]interface{}))
+	}
+
+	parameter.OrganizationDetails = orgDetails
+
 	accountId, gotAccountId := d.GetOk("account_id")
 	password, gotPassword := d.GetOk("password")
 
@@ -143,88 +153,21 @@ func resourceArmKeyVaultCertificateIssuerCreate(d *schema.ResourceData, meta int
 			Password:  utils.String(password.(string)),
 		}
 	}
-	resp, err := client.SetCertificateIssuer(ctx, keyVaultBaseUri, name, parameter)
+
+	_, err = client.SetCertificateIssuer(ctx, keyVaultBaseUri, name, parameter)
 	if err != nil {
 		return fmt.Errorf("failed to set Certificate Issuer %q (Key Vault %q): %s", name, keyVaultId, err)
 	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("failure reading Key Vault Certificate Issuer ID for %q", name)
-	}
-	d.SetId(*resp.ID)
 
-	return resourceArmKeyVaultCertificateIssuerRead(d, meta)
-}
-
-func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []interface{}) *[]keyvault.AdministratorDetails {
-	results := make([]keyvault.AdministratorDetails, 0, len(vs))
-
-	for _, v := range vs {
-		administratorDetails := keyvault.AdministratorDetails{}
-		args := v.(map[string]interface{})
-		if firstName, ok := args["first_name"]; ok {
-			administratorDetails.FirstName = utils.String(firstName.(string))
-		}
-		if lastName, ok := args["last_name"]; ok {
-			administratorDetails.LastName = utils.String(lastName.(string))
-		}
-		if emailAddress, ok := args["email_address"]; ok {
-			administratorDetails.EmailAddress = utils.String(emailAddress.(string))
-		}
-		if phone, ok := args["phone"]; ok {
-			administratorDetails.Phone = utils.String(phone.(string))
-		}
-		results = append(results, administratorDetails)
-	}
-
-	return &results
-}
-
-func resourceArmKeyVaultCertificateIssuerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.ManagementClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := azure.ParseKeyVaultCertificateIssuerID(d.Id())
+	resp, err := client.GetCertificateIssuer(ctx, keyVaultBaseUri, name)
 	if err != nil {
 		return err
 	}
 
-	existing, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("failed to check for presence of existing Certificate Issuer %q (Key Vault %q): %s", id.Name, id.KeyVaultBaseUrl, err)
-		}
-		return fmt.Errorf("KeyVault Certificate Issuer %q (KeyVault URI %q) does not exist", id.Name, id.KeyVaultBaseUrl)
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("failure reading Key Vault Certificate Issuer ID for %q", name)
 	}
-
-	parameter := keyvault.CertificateIssuerSetParameters{
-		Provider:            utils.String(d.Get("provider_name").(string)),
-		OrganizationDetails: &keyvault.OrganizationDetails{},
-		Credentials:         &keyvault.IssuerCredentials{},
-	}
-
-	if orgID, ok := d.GetOk("org_id"); ok {
-		parameter.OrganizationDetails.ID = utils.String(orgID.(string))
-	}
-
-	if adminDetails, ok := d.GetOk("admins"); ok {
-		parameter.OrganizationDetails.AdminDetails = expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(adminDetails.([]interface{}))
-	}
-
-	if accountID, ok := d.GetOk("account_id"); ok {
-		parameter.Credentials.AccountID = utils.String(accountID.(string))
-	}
-
-	if password, ok := d.GetOk("password"); ok {
-		parameter.Credentials.Password = utils.String(password.(string))
-	}
-	resp, err := client.SetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name, parameter)
-	if err != nil {
-		return fmt.Errorf("failed to set Certificate Issuer %q (Key Vault %q): %s", id.Name, id.KeyVaultBaseUrl, err)
-	}
-	if resp.ID != nil || *resp.ID == "" {
-		d.SetId(*resp.ID)
-	}
+	d.SetId(*resp.ID)
 
 	return resourceArmKeyVaultCertificateIssuerRead(d, meta)
 }
@@ -235,7 +178,7 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseKeyVaultCertificateIssuerID(d.Id())
+	id, err := parse.KeyVaultCertificateIssuerId(d.Id())
 	if err != nil {
 		return err
 	}
@@ -271,6 +214,8 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("failed to make Read request on Azure KeyVault Certificate Issuer %s: %+v", id.Name, err)
 	}
 
+	d.Set("name", id.Name)
+
 	if resp.Provider != nil {
 		d.Set("provider_name", resp.Provider)
 	}
@@ -283,7 +228,7 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 			if err != nil {
 				return fmt.Errorf("failed to flatten Azure KeyVault Certificate Issuer Admin Details: %v", err)
 			}
-			d.Set("admins", adminDetails)
+			d.Set("admin", adminDetails)
 		}
 	}
 	if resp.Credentials != nil {
@@ -298,24 +243,81 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
+func resourceArmKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).KeyVault.ManagementClient
+	keyVaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.KeyVaultCertificateIssuerId(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// we verify it exists
+	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, keyVaultClient, id.KeyVaultBaseUrl)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
+	}
+
+	ok, err := azure.KeyVaultExists(ctx, keyVaultClient, *keyVaultId)
+	if err != nil {
+		return fmt.Errorf("Error checking if key vault %q for Issuer %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
+	}
+
+	if !ok {
+		log.Printf("[DEBUG] Issuer %q (Key Vault %q) was not found in Key Vault at URI %q - removing from state", id.Name, *keyVaultId, id.KeyVaultBaseUrl)
+		d.SetId("")
+		return nil
+	}
+
+	_, err = client.DeleteCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
+
+	return err
+}
+
+func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []interface{}) *[]keyvault.AdministratorDetails {
+	results := make([]keyvault.AdministratorDetails, 0, len(vs))
+
+	for _, v := range vs {
+		administratorDetails := keyvault.AdministratorDetails{}
+		args := v.(map[string]interface{})
+		if firstName, ok := args["first_name"]; ok {
+			administratorDetails.FirstName = utils.String(firstName.(string))
+		}
+		if lastName, ok := args["last_name"]; ok {
+			administratorDetails.LastName = utils.String(lastName.(string))
+		}
+		if emailAddress, ok := args["email_address"]; ok {
+			administratorDetails.EmailAddress = utils.String(emailAddress.(string))
+		}
+		if phone, ok := args["phone"]; ok {
+			administratorDetails.Phone = utils.String(phone.(string))
+		}
+		results = append(results, administratorDetails)
+	}
+
+	return &results
+}
+
 func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetails) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results, nil
 	}
 
-	for _, admin := range *input {
+	for k, admin := range *input {
 		result := make(map[string]interface{})
+		if admin.EmailAddress != nil {
+			result["email_address"] = admin.EmailAddress
+		} else {
+			return nil, fmt.Errorf("required attribute `email_address` missing in API response for admin index %d", k)
+		}
 		if admin.FirstName != nil {
 			result["first_name"] = admin.FirstName
 		}
 		if admin.LastName != nil {
 			result["last_name"] = admin.LastName
-		}
-		if admin.EmailAddress != nil {
-			result["email_address"] = admin.EmailAddress
-		} else {
-			return nil, fmt.Errorf("email_address is required, but %q was nil in API response with the full struct being %#v", "EmailAddress", admin)
 		}
 		if admin.Phone != nil {
 			result["phone"] = admin.Phone
@@ -324,35 +326,4 @@ func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetai
 	}
 
 	return results, nil
-}
-
-func resourceArmKeyVaultCertificateIssuerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.ManagementClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := azure.ParseKeyVaultCertificateIssuerID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	// we verify it exists
-	resp, err := client.GetCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("KeyVault Certificate Issuer %q (KeyVault URI %q) does not exist", id.Name, id.KeyVaultBaseUrl)
-		}
-		return fmt.Errorf("failed to make Read request on Azure KeyVault Certificate Issuer %s: %+v", id.Name, err)
-	}
-
-	resp, err = client.DeleteCertificateIssuer(ctx, id.KeyVaultBaseUrl, id.Name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
-		return fmt.Errorf("failed to delete Certificate Issuer %q (KeyVault URI %q) from Key Vault: %+v", id.Name, id.KeyVaultBaseUrl, err)
-	}
-
-	return nil
 }

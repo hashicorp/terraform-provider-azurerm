@@ -33,6 +33,70 @@ func TestAccAzureRMKeyVaultCertificateIssuer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKeyVaultCertificateIssuer_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMKeyVaultCertificateIssuer_requiresImport),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultCertificateIssuer_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultCertificateIssuer_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("password"),
+		},
+	})
+}
+
+func TestAccAzureRMKeyVaultCertificateIssuer_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKeyVaultCertificateIssuerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKeyVaultCertificateIssuer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("password"),
+			{
+				Config: testAccAzureRMKeyVaultCertificateIssuer_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKeyVaultCertificateIssuerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("password"),
+		},
+	})
+}
+
 func TestAccAzureRMKeyVaultCertificateIssuer_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_issuer", "test")
 
@@ -211,7 +275,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestkeyvault%s"
+  name                = "acctestkv-%s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -225,9 +289,9 @@ resource "azurerm_key_vault" "test" {
     certificate_permissions = [
       "delete",
       "import",
-	  "get",
-	  "manageissuers",
-	  "setissuers",
+      "get",
+      "manageissuers",
+      "setissuers",
     ]
 
     key_permissions = [
@@ -241,12 +305,89 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_certificate_issuer" "test" {
-  name          = "acctestKVCI-%[1]d"
+  name          = "acctestKVCI-%d"
   key_vault_id  = azurerm_key_vault.test.id
   account_id    = "test-account"
   password      = "test"
-  org_id        = "test"
   provider_name = "DigiCert"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func testAccAzureRMKeyVaultCertificateIssuer_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMKeyVaultCertificateIssuer_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_certificate_issuer" "import" {
+  name          = azurerm_key_vault_certificate_issuer.test.name
+  key_vault_id  = azurerm_key_vault_certificate_issuer.test.key_vault_id
+  account_id    = azurerm_key_vault_certificate_issuer.test.account_id
+  password      = "test"
+  provider_name = azurerm_key_vault_certificate_issuer.test.provider_name
+}
+
+`, template)
+}
+
+func testAccAzureRMKeyVaultCertificateIssuer_complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "delete",
+      "import",
+      "get",
+      "manageissuers",
+      "setissuers",
+    ]
+
+    key_permissions = [
+      "create",
+    ]
+
+    secret_permissions = [
+      "set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate_issuer" "test" {
+  name          = "acctestKVCI-%d"
+  key_vault_id  = azurerm_key_vault.test.id
+  account_id    = "test-account"
+  password      = "test"
+  provider_name = "DigiCert"
+
+  org_id = "accTestOrg"
+  admin {
+    email_address = "admin@contoso.com"
+    first_name    = "First"
+    last_name     = "Last"
+    phone         = "01234567890"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }

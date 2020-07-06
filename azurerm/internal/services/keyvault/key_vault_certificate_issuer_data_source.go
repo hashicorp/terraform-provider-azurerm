@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,7 +31,7 @@ func dataSourceArmKeyVaultCertificateIssuer() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateKeyVaultCertificateIssuerName,
+				ValidateFunc: validate.KeyVaultCertificateIssuerName,
 			},
 
 			"provider_name": {
@@ -48,20 +49,20 @@ func dataSourceArmKeyVaultCertificateIssuer() *schema.Resource {
 				Computed: true,
 			},
 
-			"admins": {
+			"admin": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"email_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"first_name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"last_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"email_address": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -114,7 +115,7 @@ func dataSourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta int
 		if err != nil {
 			return fmt.Errorf("failed to flatten Azure KeyVault Certificate Issuer Admin Details: %v", err)
 		}
-		d.Set("admins", adminDetails)
+		d.Set("admin", adminDetails)
 	}
 
 	return nil

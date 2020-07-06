@@ -30,7 +30,7 @@ resource "azurerm_key_vault" "example" {
 
 resource "azurerm_key_vault_certificate_issuer" "example" {
   name          = "example-issuer"
-  org_id        = "0000"
+  org_id        = "ExampleOrgName"
   key_vault_id  = data.azurerm_key_vault.example.id
   provider_name = "DigiCert"
   account_id    = "0000"
@@ -42,25 +42,23 @@ resource "azurerm_key_vault_certificate_issuer" "example" {
 
 The following arguments are supported:
 
-* `account_id` - (Optional) The account number with the third-party Certificate Issuer.
-
 * `key_vault_id` - (Required) The ID of the Key Vault in which to create the Certificate Issuer.
 
 * `name` - (Required) The name which should be used for this Key Vault Certificate Issuer. Changing this forces a new Key Vault Certificate Issuer to be created.
 
-* `org_id` - (Optional) The organization ID with the third-party Certificate Issuer.
+* `org_id` - (Required) The ID of the organization as provided to the issuer. 
+
+* `account_id` - (Optional) The account number with the third-party Certificate Issuer.
+
+* `admin` - (Optional) One or more `admin` blocks as defined below.
 
 * `provider_name` - (Required) The name of the third-party Certificate Issuer. Possible values are: `DigiCert`, `GlobalSign`.
-
----
-
-* `admins` - (Optional) One or more `admins` blocks as defined below.
 
 * `password` - (Optional) The password associated with the account and organization ID at the third-party Certificate Issuer. If not specified, will not overwrite any previous value.
 
 ---
 
-A `admins` block supports the following:
+An `admin` block supports the following:
 
 * `email_address` - (Required) E-mail address of the admin.
 
@@ -83,5 +81,5 @@ In addition to the Arguments listed above - the following Attributes are exporte
 Key Vault Certificate Issuers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_certificate_issuer.example https://key-vault-name.vault.azure.net/certificates/issuers/issuer-name
+terraform import azurerm_key_vault_certificate_issuer.example "https://key-vault-name.vault.azure.net/certificates/issuers/example"
 ```
