@@ -102,11 +102,6 @@ func resourceArmKustoCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
 						"minimum_instances": {
 							Type:         schema.TypeInt,
 							Required:     true,
@@ -424,21 +419,16 @@ func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string
 }
 
 func expandOptimizedAutoScale(input []interface{}) *kusto.OptimizedAutoscale {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	config := input[0].(map[string]interface{})
-	enabled := config["enabled"].(bool)
-	minimumInstances := int32(config["minimum_instances"].(int))
-	maximumInstances := int32(config["maximum_instances"].(int))
-
-	var version int32 = 1
 	optimizedAutoScale := &kusto.OptimizedAutoscale{
-		Version:   &version,
-		IsEnabled: &enabled,
-		Minimum:   &minimumInstances,
-		Maximum:   &maximumInstances,
+		Version:   utils.Int32(1),
+		IsEnabled: utils.Bool(true),
+		Minimum:   utils.Int32(int32(config["minimum_instances"].(int))),
+		Maximum:   utils.Int32(int32(config["maximum_instances"].(int))),
 	}
 
 	return optimizedAutoScale
@@ -447,11 +437,6 @@ func expandOptimizedAutoScale(input []interface{}) *kusto.OptimizedAutoscale {
 func flattenOptimizedAutoScale(optimizedAutoScale *kusto.OptimizedAutoscale) []interface{} {
 	if optimizedAutoScale == nil {
 		return []interface{}{}
-	}
-
-	enabled := false
-	if optimizedAutoScale.IsEnabled != nil {
-		enabled = *optimizedAutoScale.IsEnabled
 	}
 
 	maxInstances := 0
@@ -466,7 +451,6 @@ func flattenOptimizedAutoScale(optimizedAutoScale *kusto.OptimizedAutoscale) []i
 
 	return []interface{}{
 		map[string]interface{}{
-			"enabled":           enabled,
 			"maximum_instances": maxInstances,
 			"minimum_instances": minInstances,
 		},

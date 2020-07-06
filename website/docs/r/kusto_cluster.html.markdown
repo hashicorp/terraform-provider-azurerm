@@ -103,8 +103,6 @@ An `identity` block supports the following:
 
 A `optimized_auto_scale` block supports the following:
 
-* `enabled` - (Optional) A boolean value that indicate if the optimized autoscale feature is enabled or not. Default is `true`.
-
 * `minimum_instances` - (Required) The minimum number of allowed instances. Must between `0` and `1000`.
 
 * `maximum_instances` - (Required) The maximum number of allowed instances. Must between `0` and `1000`.
