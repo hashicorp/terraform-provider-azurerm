@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 * dependencies: updating `network` to `2020-05-01` [GH-7585]
 * Data Source: `azurerm_eventhub_namespace` - exposing the `dedicated_cluster_id` field [GH-7548]
+* `azurerm_application_gateway` - support for the `firewall_policy_id` attribute within the `http_listener` block [GH-7580]
 * `azurerm_eventhub_namespace` - support for configuring the `dedicated_cluster_id` field [GH-7548]
 * `azurerm_eventhub_namespace` - support for setting `partition_count` to `1024` when using a Dedicated Cluster [GH-7548]
 * `azurerm_eventhub_namespace` - support for setting `retention_count` to `90` when using a Dedicated Cluster [GH-7548]
