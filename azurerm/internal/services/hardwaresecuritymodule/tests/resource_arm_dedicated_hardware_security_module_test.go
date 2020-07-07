@@ -90,6 +90,7 @@ func TestAccAzureRMDedicatedHardwareSecurityModule_update(t *testing.T) {
 					testCheckAzureRMDedicatedHardwareSecurityModuleExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -100,16 +101,16 @@ func testAccAzureRMDedicatedHardwareSecurityModule_requiresImport(data acceptanc
 %s
 
 resource "azurerm_dedicated_hardware_security_module" "import" {
-   name                = azurerm_dedicated_hardware_security_module.test.name
-   resource_group_name = azurerm_dedicated_hardware_security_module.test.resource_group_name
-   location            = azurerm_dedicated_hardware_security_module.test.location
-   sku_name            = azurerm_dedicated_hardware_security_module.test.sku_name
-   stamp_id            = azurerm_dedicated_hardware_security_module.test.stamp_id
+  name                = azurerm_dedicated_hardware_security_module.test.name
+  resource_group_name = azurerm_dedicated_hardware_security_module.test.resource_group_name
+  location            = azurerm_dedicated_hardware_security_module.test.location
+  sku_name            = azurerm_dedicated_hardware_security_module.test.sku_name
+  stamp_id            = azurerm_dedicated_hardware_security_module.test.stamp_id
 
-   network_profile {
-     network_interface_private_ip_addresses = azurerm_dedicated_hardware_security_module.test.network_profile[0].network_interface_private_ip_addresses
-	 subnet_id                              = azurerm_dedicated_hardware_security_module.test.network_profile[0].subnet_id
-   }
+  network_profile {
+    network_interface_private_ip_addresses = azurerm_dedicated_hardware_security_module.test.network_profile[0].network_interface_private_ip_addresses
+    subnet_id                              = azurerm_dedicated_hardware_security_module.test.network_profile[0].subnet_id
+  }
 }
 `, config)
 }
@@ -180,15 +181,15 @@ resource "azurerm_subnet" "test" {
   name                 = "acctest-computesubnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes       = ["10.2.0.0/24"]
+  address_prefixes     = ["10.2.0.0/24"]
 }
 
 resource "azurerm_subnet" "test2" {
   name                 = "acctest-hsmsubnet-%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes       = ["10.2.1.0/24"]
-  
+  address_prefixes     = ["10.2.1.0/24"]
+
   delegation {
     name = "first"
 
@@ -207,7 +208,7 @@ resource "azurerm_subnet" "test3" {
   name                 = "gatewaysubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes       = ["10.2.255.0/26"]
+  address_prefixes     = ["10.2.255.0/26"]
 }
 
 resource "azurerm_public_ip" "test" {
@@ -245,12 +246,12 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "SafeNet Luna Network HSM A790"
-  
+
   network_profile {
     network_interface_private_ip_addresses = ["10.2.1.8"]
-	subnet_id                              = azurerm_subnet.test2.id
+    subnet_id                              = azurerm_subnet.test2.id
   }
-  
+
   stamp_id = "stamp2"
 
   depends_on = [azurerm_virtual_network_gateway.test]
@@ -268,12 +269,12 @@ resource "azurerm_dedicated_hardware_security_module" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "SafeNet Luna Network HSM A790"
-  
+
   network_profile {
     network_interface_private_ip_addresses = ["10.2.1.8"]
-	subnet_id                              = azurerm_subnet.test2.id
+    subnet_id                              = azurerm_subnet.test2.id
   }
-  
+
   stamp_id = "stamp2"
 
   tags = {

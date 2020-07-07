@@ -15,7 +15,27 @@ func TestDedicatedHardwareSecurityModuleName(t *testing.T) {
 			Expected: true,
 		},
 		{
-			Input:    "hello-world$",
+			Input:    "-hello-world",
+			Expected: false,
+		},
+		{
+			Input:    "hello-world-",
+			Expected: false,
+		},
+		{
+			Input:    "9hello-world",
+			Expected: false,
+		},
+		{
+			Input:    "hello-world9",
+			Expected: true,
+		},
+		{
+			Input:    "hello-world-test",
+			Expected: true,
+		},
+		{
+			Input:    "hello--world",
 			Expected: false,
 		},
 		{

@@ -10,7 +10,7 @@ description: |-
 
 Manages a Dedicated Hardware Security Module.
 
--> **Note**: Before using this resource, it's required to submit the request of registering provider with Azure CLI `az provider register --namespace Microsoft.HardwareSecurityModules && az feature register --namespace Microsoft.HardwareSecurityModules --name AzureDedicatedHSM && az provider register --namespace Microsoft.Network && az feature register --namespace Microsoft.Network --name AllowBaremetalServers` and feature and ask service team (hsmrequest@microsoft.com) to approve it. See more details from https://docs.microsoft.com/en-us/azure/dedicated-hsm/tutorial-deploy-hsm-cli#prerequisites.
+-> **Note**: Before using this resource, it's required to submit the request of registering the providers and features with Azure CLI `az provider register --namespace Microsoft.HardwareSecurityModules && az feature register --namespace Microsoft.HardwareSecurityModules --name AzureDedicatedHSM && az provider register --namespace Microsoft.Network && az feature register --namespace Microsoft.Network --name AllowBaremetalServers` and ask service team (hsmrequest@microsoft.com) to approve. See more details from https://docs.microsoft.com/en-us/azure/dedicated-hsm/tutorial-deploy-hsm-cli#prerequisites.
 
 -> **Note**: If the quota is not enough in some region, please submit the quota request to service team.
 
@@ -33,15 +33,15 @@ resource "azurerm_subnet" "example" {
   name                 = "example-compute"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes       = ["10.2.0.0/24"]
+  address_prefixes     = ["10.2.0.0/24"]
 }
 
 resource "azurerm_subnet" "example2" {
   name                 = "example-hsmsubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes       = ["10.2.1.0/24"]
-  
+  address_prefixes     = ["10.2.1.0/24"]
+
   delegation {
     name = "first"
 
@@ -59,7 +59,7 @@ resource "azurerm_subnet" "example3" {
   name                 = "gatewaysubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes       = ["10.2.255.0/26"]
+  address_prefixes     = ["10.2.255.0/26"]
 }
 
 resource "azurerm_public_ip" "example" {
@@ -90,18 +90,18 @@ resource "azurerm_dedicated_hardware_security_module" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "SafeNet Luna Network HSM A790"
-  
+
   network_profile {
     network_interface_private_ip_addresses = ["10.2.1.8"]
-	subnet_id                              = azurerm_subnet.example2.id
+    subnet_id                              = azurerm_subnet.example2.id
   }
-  
+
   stamp_id = "stamp2"
 
   tags = {
     env = "Test"
   }
-  
+
   depends_on = [azurerm_virtual_network_gateway.example]
 }
 ```

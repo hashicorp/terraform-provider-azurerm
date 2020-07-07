@@ -13,10 +13,15 @@ func DedicatedHardwareSecurityModuleName(i interface{}, k string) (warnings []st
 		return
 	}
 
-	if !regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%q can contain only letters, numbers, and hyphens. It must be between 3 and 24 characters long.", k))
+	if !regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{1,22}[a-zA-Z0-9]$`).MatchString(v) {
+		errors = append(errors, fmt.Errorf("%q must be between 3 and 24 alphanumeric characters. It must begin with a letter, end with a letter or digit.", k))
 
 		return
+	}
+
+	// No consecutive hyphens
+	if regexp.MustCompile("(--)").MatchString(v) {
+		errors = append(errors, fmt.Errorf("%q must not contain any consecutive hyphens", k))
 	}
 
 	return

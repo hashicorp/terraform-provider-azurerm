@@ -171,7 +171,7 @@ func resourceArmDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Dedicate Hardware Security Module %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Dedicated Hardware Security Module %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
@@ -194,7 +194,9 @@ func resourceArmDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta
 		d.Set("sku_name", sku.Name)
 	}
 
-	d.Set("zones", resp.Zones)
+	if err := d.Set("zones", resp.Zones); err != nil {
+		return fmt.Errorf("setting `zones`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -287,7 +289,7 @@ func flattenArmDedicatedHsmNetworkProfile(input *hardwaresecuritymodules.Network
 	}
 
 	var subnetId string
-	if input.Subnet != nil {
+	if input.Subnet != nil && input.Subnet.ID != nil {
 		subnetId = *input.Subnet.ID
 	}
 
