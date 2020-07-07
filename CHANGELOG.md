@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_web_application_firewall_policy` [GH-7469]
 * **New Resource:** `azurerm_app_service_slot_virtual_network_swift_connection` [GH-5916]
 
 ENHANCEMENTS:
