@@ -3,10 +3,9 @@ package cosmos
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2019-08-01/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -104,14 +103,12 @@ func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interfa
 			Resource: &documentdb.MongoDBDatabaseResource{
 				ID: &name,
 			},
-			Options: map[string]*string{},
+			Options: &documentdb.CreateUpdateOptions{},
 		},
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-		db.MongoDBDatabaseCreateUpdateProperties.Options = map[string]*string{
-			"throughput": utils.String(strconv.Itoa(throughput.(int))),
-		}
+		db.MongoDBDatabaseCreateUpdateProperties.Options.Throughput = throughput.(*int32)
 	}
 
 	future, err := client.CreateUpdateMongoDBDatabase(ctx, resourceGroup, account, name, db)
@@ -152,7 +149,7 @@ func resourceArmCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interfa
 			Resource: &documentdb.MongoDBDatabaseResource{
 				ID: &id.Name,
 			},
-			Options: map[string]*string{},
+			Options: &documentdb.CreateUpdateOptions{},
 		},
 	}
 

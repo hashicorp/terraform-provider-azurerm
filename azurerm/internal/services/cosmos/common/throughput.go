@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2019-08-01/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 )
 
 func GetThroughputFromResult(throughputResponse documentdb.ThroughputSettingsGetResults) *int32 {

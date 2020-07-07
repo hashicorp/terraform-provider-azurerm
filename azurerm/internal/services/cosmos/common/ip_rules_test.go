@@ -1,9 +1,9 @@
 package common
 
 import (
-"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
-"reflect"
-"testing"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
+	"reflect"
+	"testing"
 )
 
 var (
