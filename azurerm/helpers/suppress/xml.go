@@ -2,6 +2,8 @@ package suppress
 
 import (
 	"encoding/xml"
+	"fmt"
+	"html"
 	"io"
 	"reflect"
 	"strings"
@@ -15,10 +17,11 @@ func XmlDiff(_, old, new string, _ *schema.ResourceData) bool {
 		return false
 	}
 
-	newTokens, err := expandXmlTokensFromString(new)
+	newTokens, err := expandXmlTokensFromString(html.UnescapeString(new))
 	if err != nil {
 		return false
 	}
+	fmt.Printf("old:%s,new:%s,old tokens:%v, new tokens:%v", old, html.UnescapeString(new), oldTokens, newTokens)
 
 	return reflect.DeepEqual(oldTokens, newTokens)
 }

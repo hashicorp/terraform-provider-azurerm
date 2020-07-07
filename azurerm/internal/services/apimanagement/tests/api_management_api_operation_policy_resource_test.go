@@ -228,7 +228,7 @@ resource "azurerm_api_management_api_operation_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   operation_id        = azurerm_api_management_api_operation.test.operation_id
 
-  xml_content = filebase64("testdata/api_management_api_operation_policy.xml")
+  xml_content = file("testdata/api_management_api_operation_policy.xml")
 }
 `, template)
 }
