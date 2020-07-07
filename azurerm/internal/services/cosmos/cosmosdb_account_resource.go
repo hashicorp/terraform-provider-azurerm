@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/go-azure-helpers/response"

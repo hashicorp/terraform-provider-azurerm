@@ -123,8 +123,8 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 	}
 
 	var ttl *int
-	if v, ok := d.GetOkExists("default_ttl_seconds"); ok {
-		ttl = utils.Int(v.(int))
+	if v := d.Get("default_ttl_seconds").(int); v > 0 {
+		ttl = utils.Int(v)
 	}
 
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{

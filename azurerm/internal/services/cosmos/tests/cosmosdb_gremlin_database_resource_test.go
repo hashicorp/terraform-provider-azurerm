@@ -83,7 +83,7 @@ func TestAccAzureRMCosmosGremlinDatabase_complete(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosGremlinDatabaseDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.GremlinClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -112,7 +112,7 @@ func testCheckAzureRMCosmosGremlinDatabaseDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosGremlinDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.GremlinClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
