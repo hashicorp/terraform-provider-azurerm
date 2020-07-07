@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `org_id` - The organization ID with the third-party Certificate Issuer.
 
-* `admin` - Zero or more `admin` blocks as defined below.
+* `admin` - A list of `admin` blocks as defined below.
 
 * `provider_name` - The name of the third-party Certificate Issuer.
 
