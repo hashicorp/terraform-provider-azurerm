@@ -110,13 +110,11 @@ func dataSourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta int
 	if resp.Credentials != nil && resp.Credentials.AccountID != nil {
 		d.Set("account_id", resp.Credentials.AccountID)
 	}
-	if resp.OrganizationDetails.AdminDetails != nil {
-		adminDetails, err := flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails)
-		if err != nil {
-			return fmt.Errorf("failed to flatten Azure KeyVault Certificate Issuer Admin Details: %v", err)
-		}
-		d.Set("admin", adminDetails)
+	adminDetails, err := flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails)
+	if err != nil {
+		return fmt.Errorf("failed to flatten Azure KeyVault Certificate Issuer Admin Details: %v", err)
 	}
+	d.Set("admin", adminDetails)
 
 	return nil
 }
