@@ -685,7 +685,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Deleting", "Initializing"},
 		Target:     []string{"Succeeded"},
-		Timeout:    180 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutUpdate),
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
 		Refresh: func() (interface{}, string, error) {
