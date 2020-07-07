@@ -104,13 +104,15 @@ func dataSourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta int
 	d.SetId(*resp.ID)
 
 	d.Set("provider_name", resp.Provider)
-	if resp.OrganizationDetails != nil && resp.OrganizationDetails.ID != nil {
-		d.Set("org_id", resp.OrganizationDetails.ID)
+	if resp.OrganizationDetails != nil {
+		if resp.OrganizationDetails.ID != nil {
+			d.Set("org_id", resp.OrganizationDetails.ID)
+		}
+		d.Set("admin", flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails))
 	}
 	if resp.Credentials != nil && resp.Credentials.AccountID != nil {
 		d.Set("account_id", resp.Credentials.AccountID)
 	}
-	d.Set("admin", flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails))
 
 	return nil
 }
