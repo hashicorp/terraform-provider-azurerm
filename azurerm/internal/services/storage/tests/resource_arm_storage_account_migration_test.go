@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 

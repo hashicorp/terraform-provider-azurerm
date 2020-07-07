@@ -1,7 +1,7 @@
 package msi
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // TODO: we should probably rename this Identity, or move into Authorization

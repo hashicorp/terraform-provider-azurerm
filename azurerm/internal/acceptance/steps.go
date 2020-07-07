@@ -1,6 +1,6 @@
 package acceptance
 
-import "github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 
 type DisappearsStepData struct {
 	// Config is a function which returns the Terraform Configuration which should be used for this step
