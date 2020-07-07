@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2019-08-01/documentdb"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 
 // CompositePathSortOrder enumerates the values for composite path sort order.
 type CompositePathSortOrder string
@@ -239,6 +239,36 @@ func PossiblePrimaryAggregationTypeValues() []PrimaryAggregationType {
 	return []PrimaryAggregationType{PrimaryAggregationTypeAverage, PrimaryAggregationTypeLast, PrimaryAggregationTypeMaximum, PrimaryAggregationTypeMinimum, PrimaryAggregationTypeNone, PrimaryAggregationTypeTotal}
 }
 
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// Disabled ...
+	Disabled PublicNetworkAccess = "Disabled"
+	// Enabled ...
+	Enabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{Disabled, Enabled}
+}
+
+// ServerVersion enumerates the values for server version.
+type ServerVersion string
+
+const (
+	// ThreeFullStopSix ...
+	ThreeFullStopSix ServerVersion = "3.6"
+	// ThreeFullStopTwo ...
+	ThreeFullStopTwo ServerVersion = "3.2"
+)
+
+// PossibleServerVersionValues returns an array of possible values for the ServerVersion const type.
+func PossibleServerVersionValues() []ServerVersion {
+	return []ServerVersion{ThreeFullStopSix, ThreeFullStopTwo}
+}
+
 // SpatialType enumerates the values for spatial type.
 type SpatialType string
 
@@ -319,6 +349,12 @@ func PossibleUnitTypeValues() []UnitType {
 	return []UnitType{Bytes, BytesPerSecond, Count, CountPerSecond, Milliseconds, Percent, Seconds}
 }
 
+// APIProperties ...
+type APIProperties struct {
+	// ServerVersion - Describes the ServerVersion of an a MongoDB account. Possible values include: 'ThreeFullStopTwo', 'ThreeFullStopSix'
+	ServerVersion ServerVersion `json:"serverVersion,omitempty"`
+}
+
 // ARMProxyResource the resource model definition for a ARM proxy resource. It will have everything other
 // than required location and tags
 type ARMProxyResource struct {
@@ -353,6 +389,40 @@ func (arp ARMResourceProperties) MarshalJSON() ([]byte, error) {
 		objectMap["tags"] = arp.Tags
 	}
 	return json.Marshal(objectMap)
+}
+
+// AutoscaleSettings ...
+type AutoscaleSettings struct {
+	// MaxThroughput - Represents maximum throughput, the resource can scale up to.
+	MaxThroughput *int32 `json:"maxThroughput,omitempty"`
+}
+
+// AutoscaleSettingsResource cosmos DB provisioned throughput settings object
+type AutoscaleSettingsResource struct {
+	// MaxThroughput - Represents maximum throughput container can scale up to.
+	MaxThroughput *int32 `json:"maxThroughput,omitempty"`
+	// AutoUpgradePolicy - Cosmos DB resource auto-upgrade policy
+	AutoUpgradePolicy *AutoUpgradePolicyResource `json:"autoUpgradePolicy,omitempty"`
+	// TargetMaxThroughput - READ-ONLY; Represents target maximum throughput container can scale up to once offer is no longer in pending state.
+	TargetMaxThroughput *int32 `json:"targetMaxThroughput,omitempty"`
+}
+
+// AutoUpgradePolicyResource cosmos DB resource auto-upgrade policy
+type AutoUpgradePolicyResource struct {
+	// ThroughputPolicy - Represents throughput policy which service must adhere to for auto-upgrade
+	ThroughputPolicy *ThroughputPolicyResource `json:"throughputPolicy,omitempty"`
+}
+
+// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // Capability cosmos DB capability object
@@ -466,24 +536,21 @@ type CassandraKeyspaceCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a Cassandra keyspace
 	Resource *CassandraKeyspaceResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for CassandraKeyspaceCreateUpdateProperties.
-func (ckcup CassandraKeyspaceCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ckcup.Resource != nil {
-		objectMap["resource"] = ckcup.Resource
-	}
-	if ckcup.Options != nil {
-		objectMap["options"] = ckcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // CassandraKeyspaceGetProperties the properties of an Azure Cosmos DB Cassandra keyspace
 type CassandraKeyspaceGetProperties struct {
 	Resource *CassandraKeyspaceGetPropertiesResource `json:"resource,omitempty"`
+	Options  *CassandraKeyspaceGetPropertiesOptions  `json:"options,omitempty"`
+}
+
+// CassandraKeyspaceGetPropertiesOptions ...
+type CassandraKeyspaceGetPropertiesOptions struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // CassandraKeyspaceGetPropertiesResource ...
@@ -894,24 +961,21 @@ type CassandraTableCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a Cassandra table
 	Resource *CassandraTableResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for CassandraTableCreateUpdateProperties.
-func (ctcup CassandraTableCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ctcup.Resource != nil {
-		objectMap["resource"] = ctcup.Resource
-	}
-	if ctcup.Options != nil {
-		objectMap["options"] = ctcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // CassandraTableGetProperties the properties of an Azure Cosmos DB Cassandra table
 type CassandraTableGetProperties struct {
 	Resource *CassandraTableGetPropertiesResource `json:"resource,omitempty"`
+	Options  *CassandraTableGetPropertiesOptions  `json:"options,omitempty"`
+}
+
+// CassandraTableGetPropertiesOptions ...
+type CassandraTableGetPropertiesOptions struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // CassandraTableGetPropertiesResource ...
@@ -922,6 +986,8 @@ type CassandraTableGetPropertiesResource struct {
 	DefaultTTL *int32 `json:"defaultTtl,omitempty"`
 	// Schema - Schema of the Cosmos DB Cassandra table
 	Schema *CassandraSchema `json:"schema,omitempty"`
+	// AnalyticalStorageTTL - Analytical TTL.
+	AnalyticalStorageTTL *int32 `json:"analyticalStorageTtl,omitempty"`
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
@@ -1046,6 +1112,8 @@ type CassandraTableResource struct {
 	DefaultTTL *int32 `json:"defaultTtl,omitempty"`
 	// Schema - Schema of the Cosmos DB Cassandra table
 	Schema *CassandraSchema `json:"schema,omitempty"`
+	// AnalyticalStorageTTL - Analytical TTL.
+	AnalyticalStorageTTL *int32 `json:"analyticalStorageTtl,omitempty"`
 }
 
 // ClusterKey cosmos DB Cassandra table cluster key
@@ -1101,6 +1169,15 @@ type ContainerPartitionKey struct {
 	Kind PartitionKind `json:"kind,omitempty"`
 	// Version - Indicates the version of the partition key definition
 	Version *int32 `json:"version,omitempty"`
+}
+
+// CreateUpdateOptions createUpdateOptions are a list of key-value pairs that describe the resource.
+// Supported keys are "If-Match", "If-None-Match", "Session-Token" and "Throughput"
+type CreateUpdateOptions struct {
+	// Throughput - Request Units per second. For example, "throughput": 10000.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // DatabaseAccountConnectionString connection string for the Cosmos DB account
@@ -1231,8 +1308,8 @@ type DatabaseAccountCreateUpdateProperties struct {
 	Locations *[]Location `json:"locations,omitempty"`
 	// DatabaseAccountOfferType - The offer type for the database
 	DatabaseAccountOfferType *string `json:"databaseAccountOfferType,omitempty"`
-	// IPRangeFilter - Cosmos DB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
-	IPRangeFilter *string `json:"ipRangeFilter,omitempty"`
+	// IPRules - List of IpRules.
+	IPRules *[]IPAddressOrRange `json:"ipRules,omitempty"`
 	// IsVirtualNetworkFilterEnabled - Flag to indicate whether to enable/disable Virtual Network ACL rules.
 	IsVirtualNetworkFilterEnabled *bool `json:"isVirtualNetworkFilterEnabled,omitempty"`
 	// EnableAutomaticFailover - Enables automatic failover of the write region in the rare event that the region is unavailable due to an outage. Automatic failover will result in a new write region for the account and is chosen based on the failover priorities configured for the account.
@@ -1249,6 +1326,16 @@ type DatabaseAccountCreateUpdateProperties struct {
 	ConnectorOffer ConnectorOffer `json:"connectorOffer,omitempty"`
 	// DisableKeyBasedMetadataWriteAccess - Disable write operations on metadata resources (databases, containers, throughput) via account keys
 	DisableKeyBasedMetadataWriteAccess *bool `json:"disableKeyBasedMetadataWriteAccess,omitempty"`
+	// KeyVaultKeyURI - The URI of the key vault
+	KeyVaultKeyURI *string `json:"keyVaultKeyUri,omitempty"`
+	// PublicNetworkAccess - Whether requests from Public Network are allowed. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// EnableFreeTier - Flag to indicate whether Free Tier is enabled.
+	EnableFreeTier *bool `json:"enableFreeTier,omitempty"`
+	// APIProperties - API specific properties. Currently, supported only for MongoDB API.
+	APIProperties *APIProperties `json:"apiProperties,omitempty"`
+	// EnableAnalyticalStorage - Flag to indicate whether to enable storage analytics.
+	EnableAnalyticalStorage *bool `json:"enableAnalyticalStorage,omitempty"`
 }
 
 // DatabaseAccountGetProperties properties for the database account.
@@ -1258,8 +1345,8 @@ type DatabaseAccountGetProperties struct {
 	DocumentEndpoint *string `json:"documentEndpoint,omitempty"`
 	// DatabaseAccountOfferType - READ-ONLY; The offer type for the Cosmos DB database account. Default value: Standard. Possible values include: 'Standard'
 	DatabaseAccountOfferType DatabaseAccountOfferType `json:"databaseAccountOfferType,omitempty"`
-	// IPRangeFilter - Cosmos DB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
-	IPRangeFilter *string `json:"ipRangeFilter,omitempty"`
+	// IPRules - List of IpRules.
+	IPRules *[]IPAddressOrRange `json:"ipRules,omitempty"`
 	// IsVirtualNetworkFilterEnabled - Flag to indicate whether to enable/disable Virtual Network ACL rules.
 	IsVirtualNetworkFilterEnabled *bool `json:"isVirtualNetworkFilterEnabled,omitempty"`
 	// EnableAutomaticFailover - Enables automatic failover of the write region in the rare event that the region is unavailable due to an outage. Automatic failover will result in a new write region for the account and is chosen based on the failover priorities configured for the account.
@@ -1278,6 +1365,8 @@ type DatabaseAccountGetProperties struct {
 	FailoverPolicies *[]FailoverPolicy `json:"failoverPolicies,omitempty"`
 	// VirtualNetworkRules - List of Virtual Network ACL rules configured for the Cosmos DB account.
 	VirtualNetworkRules *[]VirtualNetworkRule `json:"virtualNetworkRules,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; List of Private Endpoint Connections configured for the Cosmos DB account.
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	// EnableMultipleWriteLocations - Enables the account to write in multiple locations
 	EnableMultipleWriteLocations *bool `json:"enableMultipleWriteLocations,omitempty"`
 	// EnableCassandraConnector - Enables the cassandra connector on the Cosmos DB C* account
@@ -1286,6 +1375,16 @@ type DatabaseAccountGetProperties struct {
 	ConnectorOffer ConnectorOffer `json:"connectorOffer,omitempty"`
 	// DisableKeyBasedMetadataWriteAccess - Disable write operations on metadata resources (databases, containers, throughput) via account keys
 	DisableKeyBasedMetadataWriteAccess *bool `json:"disableKeyBasedMetadataWriteAccess,omitempty"`
+	// KeyVaultKeyURI - The URI of the key vault
+	KeyVaultKeyURI *string `json:"keyVaultKeyUri,omitempty"`
+	// PublicNetworkAccess - Whether requests from Public Network are allowed. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// EnableFreeTier - Flag to indicate whether Free Tier is enabled.
+	EnableFreeTier *bool `json:"enableFreeTier,omitempty"`
+	// APIProperties - API specific properties.
+	APIProperties *APIProperties `json:"apiProperties,omitempty"`
+	// EnableAnalyticalStorage - Flag to indicate whether to enable storage analytics.
+	EnableAnalyticalStorage *bool `json:"enableAnalyticalStorage,omitempty"`
 }
 
 // DatabaseAccountGetResults an Azure Cosmos DB database account.
@@ -1688,8 +1787,8 @@ type DatabaseAccountUpdateProperties struct {
 	ConsistencyPolicy *ConsistencyPolicy `json:"consistencyPolicy,omitempty"`
 	// Locations - An array that contains the georeplication locations enabled for the Cosmos DB account.
 	Locations *[]Location `json:"locations,omitempty"`
-	// IPRangeFilter - Cosmos DB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
-	IPRangeFilter *string `json:"ipRangeFilter,omitempty"`
+	// IPRules - List of IpRules.
+	IPRules *[]IPAddressOrRange `json:"ipRules,omitempty"`
 	// IsVirtualNetworkFilterEnabled - Flag to indicate whether to enable/disable Virtual Network ACL rules.
 	IsVirtualNetworkFilterEnabled *bool `json:"isVirtualNetworkFilterEnabled,omitempty"`
 	// EnableAutomaticFailover - Enables automatic failover of the write region in the rare event that the region is unavailable due to an outage. Automatic failover will result in a new write region for the account and is chosen based on the failover priorities configured for the account.
@@ -1706,6 +1805,16 @@ type DatabaseAccountUpdateProperties struct {
 	ConnectorOffer ConnectorOffer `json:"connectorOffer,omitempty"`
 	// DisableKeyBasedMetadataWriteAccess - Disable write operations on metadata resources (databases, containers, throughput) via account keys
 	DisableKeyBasedMetadataWriteAccess *bool `json:"disableKeyBasedMetadataWriteAccess,omitempty"`
+	// KeyVaultKeyURI - The URI of the key vault
+	KeyVaultKeyURI *string `json:"keyVaultKeyUri,omitempty"`
+	// PublicNetworkAccess - Whether requests from Public Network are allowed. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// EnableFreeTier - Flag to indicate whether Free Tier is enabled.
+	EnableFreeTier *bool `json:"enableFreeTier,omitempty"`
+	// APIProperties - API specific properties. Currently, supported only for MongoDB API.
+	APIProperties *APIProperties `json:"apiProperties,omitempty"`
+	// EnableAnalyticalStorage - Flag to indicate whether to enable storage analytics.
+	EnableAnalyticalStorage *bool `json:"enableAnalyticalStorage,omitempty"`
 }
 
 // ErrorResponse error Response.
@@ -1853,24 +1962,21 @@ type GremlinDatabaseCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a Gremlin database
 	Resource *GremlinDatabaseResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for GremlinDatabaseCreateUpdateProperties.
-func (gdcup GremlinDatabaseCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if gdcup.Resource != nil {
-		objectMap["resource"] = gdcup.Resource
-	}
-	if gdcup.Options != nil {
-		objectMap["options"] = gdcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // GremlinDatabaseGetProperties the properties of an Azure Cosmos DB SQL database
 type GremlinDatabaseGetProperties struct {
 	Resource *GremlinDatabaseGetPropertiesResource `json:"resource,omitempty"`
+	Options  *GremlinDatabaseGetPropertiesOptions  `json:"options,omitempty"`
+}
+
+// GremlinDatabaseGetPropertiesOptions ...
+type GremlinDatabaseGetPropertiesOptions struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // GremlinDatabaseGetPropertiesResource ...
@@ -2103,24 +2209,21 @@ type GremlinGraphCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a Gremlin graph
 	Resource *GremlinGraphResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for GremlinGraphCreateUpdateProperties.
-func (ggcup GremlinGraphCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if ggcup.Resource != nil {
-		objectMap["resource"] = ggcup.Resource
-	}
-	if ggcup.Options != nil {
-		objectMap["options"] = ggcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // GremlinGraphGetProperties the properties of an Azure Cosmos DB Gremlin graph
 type GremlinGraphGetProperties struct {
 	Resource *GremlinGraphGetPropertiesResource `json:"resource,omitempty"`
+	Options  *GremlinGraphGetPropertiesOptions  `json:"options,omitempty"`
+}
+
+// GremlinGraphGetPropertiesOptions ...
+type GremlinGraphGetPropertiesOptions struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // GremlinGraphGetPropertiesResource ...
@@ -2464,6 +2567,12 @@ type IndexingPolicy struct {
 	SpatialIndexes *[]SpatialSpec `json:"spatialIndexes,omitempty"`
 }
 
+// IPAddressOrRange ipAddressOrRange object
+type IPAddressOrRange struct {
+	// IPAddressOrRange - A single IPv4 address or a single IPv4 address range in CIDR format. Provided IPs must be well-formatted and cannot be contained in one of the following ranges: 10.0.0.0/8, 100.64.0.0/10, 172.16.0.0/12, 192.168.0.0/16, since these are not enforceable by the IP address filter. Example of valid inputs: “23.40.210.245” or “23.40.210.0/8”.
+	IPAddressOrRange *string `json:"ipAddressOrRange,omitempty"`
+}
+
 // Location a region in which the Azure Cosmos DB database account is deployed.
 type Location struct {
 	// ID - READ-ONLY; The unique identifier of the region within the database account. Example: &lt;accountName&gt;-&lt;locationName&gt;.
@@ -2660,24 +2769,21 @@ type MongoDBCollectionCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a MongoDB collection
 	Resource *MongoDBCollectionResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for MongoDBCollectionCreateUpdateProperties.
-func (mdccup MongoDBCollectionCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if mdccup.Resource != nil {
-		objectMap["resource"] = mdccup.Resource
-	}
-	if mdccup.Options != nil {
-		objectMap["options"] = mdccup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // MongoDBCollectionGetProperties the properties of an Azure Cosmos DB MongoDB collection
 type MongoDBCollectionGetProperties struct {
 	Resource *MongoDBCollectionGetPropertiesResource `json:"resource,omitempty"`
+	Options  *MongoDBCollectionGetPropertiesOptions  `json:"options,omitempty"`
+}
+
+// MongoDBCollectionGetPropertiesOptions ...
+type MongoDBCollectionGetPropertiesOptions struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // MongoDBCollectionGetPropertiesResource ...
@@ -2688,6 +2794,8 @@ type MongoDBCollectionGetPropertiesResource struct {
 	ShardKey map[string]*string `json:"shardKey"`
 	// Indexes - List of index keys
 	Indexes *[]MongoIndex `json:"indexes,omitempty"`
+	// AnalyticalStorageTTL - Analytical TTL.
+	AnalyticalStorageTTL *int32 `json:"analyticalStorageTtl,omitempty"`
 	// Rid - READ-ONLY; A system generated property. A unique identifier.
 	Rid *string `json:"_rid,omitempty"`
 	// Ts - READ-ONLY; A system generated property that denotes the last updated timestamp of the resource.
@@ -2707,6 +2815,9 @@ func (mdcgp MongoDBCollectionGetPropertiesResource) MarshalJSON() ([]byte, error
 	}
 	if mdcgp.Indexes != nil {
 		objectMap["indexes"] = mdcgp.Indexes
+	}
+	if mdcgp.AnalyticalStorageTTL != nil {
+		objectMap["analyticalStorageTtl"] = mdcgp.AnalyticalStorageTTL
 	}
 	return json.Marshal(objectMap)
 }
@@ -2827,6 +2938,8 @@ type MongoDBCollectionResource struct {
 	ShardKey map[string]*string `json:"shardKey"`
 	// Indexes - List of index keys
 	Indexes *[]MongoIndex `json:"indexes,omitempty"`
+	// AnalyticalStorageTTL - Analytical TTL.
+	AnalyticalStorageTTL *int32 `json:"analyticalStorageTtl,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for MongoDBCollectionResource.
@@ -2840,6 +2953,9 @@ func (mdcr MongoDBCollectionResource) MarshalJSON() ([]byte, error) {
 	}
 	if mdcr.Indexes != nil {
 		objectMap["indexes"] = mdcr.Indexes
+	}
+	if mdcr.AnalyticalStorageTTL != nil {
+		objectMap["analyticalStorageTtl"] = mdcr.AnalyticalStorageTTL
 	}
 	return json.Marshal(objectMap)
 }
@@ -2948,24 +3064,21 @@ type MongoDBDatabaseCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a MongoDB database
 	Resource *MongoDBDatabaseResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for MongoDBDatabaseCreateUpdateProperties.
-func (mddcup MongoDBDatabaseCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if mddcup.Resource != nil {
-		objectMap["resource"] = mddcup.Resource
-	}
-	if mddcup.Options != nil {
-		objectMap["options"] = mddcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // MongoDBDatabaseGetProperties the properties of an Azure Cosmos DB MongoDB database
 type MongoDBDatabaseGetProperties struct {
 	Resource *MongoDBDatabaseGetPropertiesResource `json:"resource,omitempty"`
+	Options  *MongoDBDatabaseGetPropertiesOptions  `json:"options,omitempty"`
+}
+
+// MongoDBDatabaseGetPropertiesOptions ...
+type MongoDBDatabaseGetPropertiesOptions struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // MongoDBDatabaseGetPropertiesResource ...
@@ -3650,6 +3763,14 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 	return OperationListResultPage{fn: getNextPage}
 }
 
+// OptionsResource cosmos DB options resource object
+type OptionsResource struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
+}
+
 // PartitionMetric the metric values for a single partition.
 type PartitionMetric struct {
 	// PartitionID - READ-ONLY; The partition id (GUID identifier) of the metric values.
@@ -3755,10 +3876,281 @@ type PercentileMetricValue struct {
 	Total *float64 `json:"total,omitempty"`
 }
 
+// PrivateEndpointConnection a private endpoint connection
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// PrivateEndpointConnectionProperties - Resource properties.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionListResult a list of private endpoint connections
+type PrivateEndpointConnectionListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private endpoint connections
+	Value *[]PrivateEndpointConnection `json:"value,omitempty"`
+}
+
+// PrivateEndpointConnectionProperties properties of a private endpoint connection.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - Private endpoint which the connection belongs to.
+	PrivateEndpoint *PrivateEndpointProperty `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - Connection State of the Private Endpoint Connection.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionStateProperty `json:"privateLinkServiceConnectionState,omitempty"`
+	// GroupID - Group id of the private endpoint.
+	GroupID *string `json:"groupId,omitempty"`
+	// ProvisioningState - Provisioning state of the private endpoint.
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+}
+
+// PrivateEndpointConnectionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type PrivateEndpointConnectionsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PrivateEndpointConnectionsCreateOrUpdateFuture) Result(client PrivateEndpointConnectionsClient) (pec PrivateEndpointConnection, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.PrivateEndpointConnectionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.PrivateEndpointConnectionsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if pec.Response.Response, err = future.GetResult(sender); err == nil && pec.Response.Response.StatusCode != http.StatusNoContent {
+		pec, err = client.CreateOrUpdateResponder(pec.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "documentdb.PrivateEndpointConnectionsCreateOrUpdateFuture", "Result", pec.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// PrivateEndpointConnectionsDeleteFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type PrivateEndpointConnectionsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PrivateEndpointConnectionsDeleteFuture) Result(client PrivateEndpointConnectionsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "documentdb.PrivateEndpointConnectionsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("documentdb.PrivateEndpointConnectionsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// PrivateEndpointProperty private endpoint which the connection belongs to.
+type PrivateEndpointProperty struct {
+	// ID - Resource id of the private endpoint.
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	autorest.Response `json:"-"`
+	// PrivateLinkResourceProperties - Resource properties.
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; The unique resource identifier of the database account.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the database account.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of Azure resource.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceListResult a list of private link resources
+type PrivateLinkResourceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - READ-ONLY; The private link resource required zone names.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkServiceConnectionStateProperty connection State of the Private Endpoint Connection.
+type PrivateLinkServiceConnectionStateProperty struct {
+	// Status - The private link service connection status.
+	Status *string `json:"status,omitempty"`
+	// ActionsRequired - READ-ONLY; Any action that is required beyond basic workflow (approve/ reject/ disconnect)
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+	// Description - The private link service connection description.
+	Description *string `json:"description,omitempty"`
+}
+
+// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
+// required location and tags
+type ProxyResource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
 // RegionForOnlineOffline cosmos DB region to online or offline.
 type RegionForOnlineOffline struct {
 	// Region - Cosmos DB region, with spaces between words and each word capitalized.
 	Region *string `json:"region,omitempty"`
+}
+
+// Resource ...
+type Resource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // SpatialSpec ...
@@ -3873,24 +4265,21 @@ type SQLContainerCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a container
 	Resource *SQLContainerResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for SQLContainerCreateUpdateProperties.
-func (sccup SQLContainerCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if sccup.Resource != nil {
-		objectMap["resource"] = sccup.Resource
-	}
-	if sccup.Options != nil {
-		objectMap["options"] = sccup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // SQLContainerGetProperties the properties of an Azure Cosmos DB container
 type SQLContainerGetProperties struct {
 	Resource *SQLContainerGetPropertiesResource `json:"resource,omitempty"`
+	Options  *SQLContainerGetPropertiesOptions  `json:"options,omitempty"`
+}
+
+// SQLContainerGetPropertiesOptions ...
+type SQLContainerGetPropertiesOptions struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // SQLContainerGetPropertiesResource ...
@@ -4142,24 +4531,21 @@ type SQLDatabaseCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a SQL database
 	Resource *SQLDatabaseResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for SQLDatabaseCreateUpdateProperties.
-func (sdcup SQLDatabaseCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if sdcup.Resource != nil {
-		objectMap["resource"] = sdcup.Resource
-	}
-	if sdcup.Options != nil {
-		objectMap["options"] = sdcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // SQLDatabaseGetProperties the properties of an Azure Cosmos DB SQL database
 type SQLDatabaseGetProperties struct {
 	Resource *SQLDatabaseGetPropertiesResource `json:"resource,omitempty"`
+	Options  *SQLDatabaseGetPropertiesOptions  `json:"options,omitempty"`
+}
+
+// SQLDatabaseGetPropertiesOptions ...
+type SQLDatabaseGetPropertiesOptions struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // SQLDatabaseGetPropertiesResource ...
@@ -4714,19 +5100,7 @@ type SQLStoredProcedureCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a storedProcedure
 	Resource *SQLStoredProcedureResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for SQLStoredProcedureCreateUpdateProperties.
-func (sspcup SQLStoredProcedureCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if sspcup.Resource != nil {
-		objectMap["resource"] = sspcup.Resource
-	}
-	if sspcup.Options != nil {
-		objectMap["options"] = sspcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // SQLStoredProcedureGetProperties the properties of an Azure Cosmos DB StoredProcedure
@@ -4968,19 +5342,7 @@ type SQLTriggerCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a trigger
 	Resource *SQLTriggerResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for SQLTriggerCreateUpdateProperties.
-func (stcup SQLTriggerCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if stcup.Resource != nil {
-		objectMap["resource"] = stcup.Resource
-	}
-	if stcup.Options != nil {
-		objectMap["options"] = stcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // SQLTriggerGetProperties the properties of an Azure Cosmos DB trigger
@@ -5231,19 +5593,7 @@ type SQLUserDefinedFunctionCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a userDefinedFunction
 	Resource *SQLUserDefinedFunctionResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for SQLUserDefinedFunctionCreateUpdateProperties.
-func (sudfcup SQLUserDefinedFunctionCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if sudfcup.Resource != nil {
-		objectMap["resource"] = sudfcup.Resource
-	}
-	if sudfcup.Options != nil {
-		objectMap["options"] = sudfcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // SQLUserDefinedFunctionGetProperties the properties of an Azure Cosmos DB userDefinedFunction
@@ -5485,24 +5835,21 @@ type TableCreateUpdateProperties struct {
 	// Resource - The standard JSON format of a Table
 	Resource *TableResource `json:"resource,omitempty"`
 	// Options - A key-value pair of options to be applied for the request. This corresponds to the headers sent with the request.
-	Options map[string]*string `json:"options"`
-}
-
-// MarshalJSON is the custom marshaler for TableCreateUpdateProperties.
-func (tcup TableCreateUpdateProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if tcup.Resource != nil {
-		objectMap["resource"] = tcup.Resource
-	}
-	if tcup.Options != nil {
-		objectMap["options"] = tcup.Options
-	}
-	return json.Marshal(objectMap)
+	Options *CreateUpdateOptions `json:"options,omitempty"`
 }
 
 // TableGetProperties the properties of an Azure Cosmos Table
 type TableGetProperties struct {
 	Resource *TableGetPropertiesResource `json:"resource,omitempty"`
+	Options  *TableGetPropertiesOptions  `json:"options,omitempty"`
+}
+
+// TableGetPropertiesOptions ...
+type TableGetPropertiesOptions struct {
+	// Throughput - Value of the Cosmos DB resource throughput or autoscaleSettings. Use the ThroughputSetting resource when retrieving offer details.
+	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Specifies the Autoscale settings.
+	AutoscaleSettings *AutoscaleSettings `json:"autoscaleSettings,omitempty"`
 }
 
 // TableGetPropertiesResource ...
@@ -5711,6 +6058,14 @@ func (future *TableResourcesUpdateTableThroughputFuture) Result(client TableReso
 	return
 }
 
+// ThroughputPolicyResource cosmos DB resource throughput policy
+type ThroughputPolicyResource struct {
+	// IsEnabled - Determines whether the ThroughputPolicy is active or not
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	// IncrementPercent - Represents the percentage by which throughput can increase every time throughput policy kicks in.
+	IncrementPercent *int32 `json:"incrementPercent,omitempty"`
+}
+
 // ThroughputSettingsGetProperties the properties of an Azure Cosmos DB resource throughput
 type ThroughputSettingsGetProperties struct {
 	Resource *ThroughputSettingsGetPropertiesResource `json:"resource,omitempty"`
@@ -5718,8 +6073,10 @@ type ThroughputSettingsGetProperties struct {
 
 // ThroughputSettingsGetPropertiesResource ...
 type ThroughputSettingsGetPropertiesResource struct {
-	// Throughput - Value of the Cosmos DB resource throughput
+	// Throughput - Value of the Cosmos DB resource throughput. Either throughput is required or autoscaleSettings is required, but not both.
 	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Cosmos DB resource for autoscale settings. Either throughput is required or autoscaleSettings is required, but not both.
+	AutoscaleSettings *AutoscaleSettingsResource `json:"autoscaleSettings,omitempty"`
 	// MinimumThroughput - READ-ONLY; The minimum throughput of the resource
 	MinimumThroughput *string `json:"minimumThroughput,omitempty"`
 	// OfferReplacePending - READ-ONLY; The throughput replace is pending
@@ -5832,10 +6189,13 @@ func (tsgr *ThroughputSettingsGetResults) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ThroughputSettingsResource cosmos DB resource throughput object
+// ThroughputSettingsResource cosmos DB resource throughput object. Either throughput is required or
+// autoscaleSettings is required, but not both.
 type ThroughputSettingsResource struct {
-	// Throughput - Value of the Cosmos DB resource throughput
+	// Throughput - Value of the Cosmos DB resource throughput. Either throughput is required or autoscaleSettings is required, but not both.
 	Throughput *int32 `json:"throughput,omitempty"`
+	// AutoscaleSettings - Cosmos DB resource for autoscale settings. Either throughput is required or autoscaleSettings is required, but not both.
+	AutoscaleSettings *AutoscaleSettingsResource `json:"autoscaleSettings,omitempty"`
 	// MinimumThroughput - READ-ONLY; The minimum throughput of the resource
 	MinimumThroughput *string `json:"minimumThroughput,omitempty"`
 	// OfferReplacePending - READ-ONLY; The throughput replace is pending
@@ -5945,6 +6305,32 @@ func (tsup *ThroughputSettingsUpdateParameters) UnmarshalJSON(body []byte) error
 type ThroughputSettingsUpdateProperties struct {
 	// Resource - The standard JSON format of a resource throughput
 	Resource *ThroughputSettingsResource `json:"resource,omitempty"`
+}
+
+// TrackedResource the resource model definition for a ARM tracked top level resource
+type TrackedResource struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	return json.Marshal(objectMap)
 }
 
 // UniqueKey the unique key on that enforces uniqueness constraint on documents in the collection in the

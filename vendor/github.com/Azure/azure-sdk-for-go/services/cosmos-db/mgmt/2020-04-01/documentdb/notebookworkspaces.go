@@ -45,7 +45,7 @@ func NewNotebookWorkspacesClientWithBaseURI(baseURI string, subscriptionID strin
 
 // CreateOrUpdate creates the notebook workspace for a Cosmos DB account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // notebookCreateUpdateParameters - the notebook workspace to create for the current database account.
 func (client NotebookWorkspacesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, accountName string, notebookCreateUpdateParameters NotebookWorkspaceCreateUpdateParameters) (result NotebookWorkspacesCreateOrUpdateFuture, err error) {
@@ -60,6 +60,8 @@ func (client NotebookWorkspacesClient) CreateOrUpdate(ctx context.Context, resou
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -95,7 +97,7 @@ func (client NotebookWorkspacesClient) CreateOrUpdatePreparer(ctx context.Contex
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -137,7 +139,7 @@ func (client NotebookWorkspacesClient) CreateOrUpdateResponder(resp *http.Respon
 
 // Delete deletes the notebook workspace for a Cosmos DB account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 func (client NotebookWorkspacesClient) Delete(ctx context.Context, resourceGroupName string, accountName string) (result NotebookWorkspacesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -151,6 +153,8 @@ func (client NotebookWorkspacesClient) Delete(ctx context.Context, resourceGroup
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -186,7 +190,7 @@ func (client NotebookWorkspacesClient) DeletePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -225,7 +229,7 @@ func (client NotebookWorkspacesClient) DeleteResponder(resp *http.Response) (res
 
 // Get gets the notebook workspace for a Cosmos DB account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 func (client NotebookWorkspacesClient) Get(ctx context.Context, resourceGroupName string, accountName string) (result NotebookWorkspace, err error) {
 	if tracing.IsEnabled() {
@@ -239,6 +243,8 @@ func (client NotebookWorkspacesClient) Get(ctx context.Context, resourceGroupNam
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -280,7 +286,7 @@ func (client NotebookWorkspacesClient) GetPreparer(ctx context.Context, resource
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -314,7 +320,7 @@ func (client NotebookWorkspacesClient) GetResponder(resp *http.Response) (result
 
 // ListByDatabaseAccount gets the notebook workspace resources of an existing Cosmos DB account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 func (client NotebookWorkspacesClient) ListByDatabaseAccount(ctx context.Context, resourceGroupName string, accountName string) (result NotebookWorkspaceListResult, err error) {
 	if tracing.IsEnabled() {
@@ -328,6 +334,8 @@ func (client NotebookWorkspacesClient) ListByDatabaseAccount(ctx context.Context
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -368,7 +376,7 @@ func (client NotebookWorkspacesClient) ListByDatabaseAccountPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -402,7 +410,7 @@ func (client NotebookWorkspacesClient) ListByDatabaseAccountResponder(resp *http
 
 // ListConnectionInfo retrieves the connection info for the notebook workspace
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 func (client NotebookWorkspacesClient) ListConnectionInfo(ctx context.Context, resourceGroupName string, accountName string) (result NotebookWorkspaceConnectionInfoResult, err error) {
 	if tracing.IsEnabled() {
@@ -416,6 +424,8 @@ func (client NotebookWorkspacesClient) ListConnectionInfo(ctx context.Context, r
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -457,7 +467,7 @@ func (client NotebookWorkspacesClient) ListConnectionInfoPreparer(ctx context.Co
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -491,7 +501,7 @@ func (client NotebookWorkspacesClient) ListConnectionInfoResponder(resp *http.Re
 
 // RegenerateAuthToken regenerates the auth token for the notebook workspace
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 func (client NotebookWorkspacesClient) RegenerateAuthToken(ctx context.Context, resourceGroupName string, accountName string) (result NotebookWorkspacesRegenerateAuthTokenFuture, err error) {
 	if tracing.IsEnabled() {
@@ -505,6 +515,8 @@ func (client NotebookWorkspacesClient) RegenerateAuthToken(ctx context.Context, 
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -540,7 +552,7 @@ func (client NotebookWorkspacesClient) RegenerateAuthTokenPreparer(ctx context.C
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -579,7 +591,7 @@ func (client NotebookWorkspacesClient) RegenerateAuthTokenResponder(resp *http.R
 
 // Start starts the notebook workspace
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 func (client NotebookWorkspacesClient) Start(ctx context.Context, resourceGroupName string, accountName string) (result NotebookWorkspacesStartFuture, err error) {
 	if tracing.IsEnabled() {
@@ -593,6 +605,8 @@ func (client NotebookWorkspacesClient) Start(ctx context.Context, resourceGroupN
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -628,7 +642,7 @@ func (client NotebookWorkspacesClient) StartPreparer(ctx context.Context, resour
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

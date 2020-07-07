@@ -44,7 +44,7 @@ func NewSQLResourcesClientWithBaseURI(baseURI string, subscriptionID string) SQL
 
 // CreateUpdateSQLContainer create or update an Azure Cosmos DB SQL container
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -61,6 +61,8 @@ func (client SQLResourcesClient) CreateUpdateSQLContainer(ctx context.Context, r
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -110,7 +112,7 @@ func (client SQLResourcesClient) CreateUpdateSQLContainerPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -152,7 +154,7 @@ func (client SQLResourcesClient) CreateUpdateSQLContainerResponder(resp *http.Re
 
 // CreateUpdateSQLDatabase create or update an Azure Cosmos DB SQL database
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // createUpdateSQLDatabaseParameters - the parameters to provide for the current SQL database.
@@ -168,6 +170,8 @@ func (client SQLResourcesClient) CreateUpdateSQLDatabase(ctx context.Context, re
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -209,7 +213,7 @@ func (client SQLResourcesClient) CreateUpdateSQLDatabasePreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -251,7 +255,7 @@ func (client SQLResourcesClient) CreateUpdateSQLDatabaseResponder(resp *http.Res
 
 // CreateUpdateSQLStoredProcedure create or update an Azure Cosmos DB SQL storedProcedure
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -269,6 +273,8 @@ func (client SQLResourcesClient) CreateUpdateSQLStoredProcedure(ctx context.Cont
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -312,7 +318,7 @@ func (client SQLResourcesClient) CreateUpdateSQLStoredProcedurePreparer(ctx cont
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -354,7 +360,7 @@ func (client SQLResourcesClient) CreateUpdateSQLStoredProcedureResponder(resp *h
 
 // CreateUpdateSQLTrigger create or update an Azure Cosmos DB SQL trigger
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -372,6 +378,8 @@ func (client SQLResourcesClient) CreateUpdateSQLTrigger(ctx context.Context, res
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -415,7 +423,7 @@ func (client SQLResourcesClient) CreateUpdateSQLTriggerPreparer(ctx context.Cont
 		"triggerName":       autorest.Encode("path", triggerName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -457,7 +465,7 @@ func (client SQLResourcesClient) CreateUpdateSQLTriggerResponder(resp *http.Resp
 
 // CreateUpdateSQLUserDefinedFunction create or update an Azure Cosmos DB SQL userDefinedFunction
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -476,6 +484,8 @@ func (client SQLResourcesClient) CreateUpdateSQLUserDefinedFunction(ctx context.
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -519,7 +529,7 @@ func (client SQLResourcesClient) CreateUpdateSQLUserDefinedFunctionPreparer(ctx 
 		"userDefinedFunctionName": autorest.Encode("path", userDefinedFunctionName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -561,7 +571,7 @@ func (client SQLResourcesClient) CreateUpdateSQLUserDefinedFunctionResponder(res
 
 // DeleteSQLContainer deletes an existing Azure Cosmos DB SQL container.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -577,6 +587,8 @@ func (client SQLResourcesClient) DeleteSQLContainer(ctx context.Context, resourc
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -613,7 +625,7 @@ func (client SQLResourcesClient) DeleteSQLContainerPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -652,7 +664,7 @@ func (client SQLResourcesClient) DeleteSQLContainerResponder(resp *http.Response
 
 // DeleteSQLDatabase deletes an existing Azure Cosmos DB SQL database.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 func (client SQLResourcesClient) DeleteSQLDatabase(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (result SQLResourcesDeleteSQLDatabaseFuture, err error) {
@@ -667,6 +679,8 @@ func (client SQLResourcesClient) DeleteSQLDatabase(ctx context.Context, resource
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -702,7 +716,7 @@ func (client SQLResourcesClient) DeleteSQLDatabasePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -741,7 +755,7 @@ func (client SQLResourcesClient) DeleteSQLDatabaseResponder(resp *http.Response)
 
 // DeleteSQLStoredProcedure deletes an existing Azure Cosmos DB SQL storedProcedure.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -758,6 +772,8 @@ func (client SQLResourcesClient) DeleteSQLStoredProcedure(ctx context.Context, r
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -795,7 +811,7 @@ func (client SQLResourcesClient) DeleteSQLStoredProcedurePreparer(ctx context.Co
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -834,7 +850,7 @@ func (client SQLResourcesClient) DeleteSQLStoredProcedureResponder(resp *http.Re
 
 // DeleteSQLTrigger deletes an existing Azure Cosmos DB SQL trigger.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -851,6 +867,8 @@ func (client SQLResourcesClient) DeleteSQLTrigger(ctx context.Context, resourceG
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -888,7 +906,7 @@ func (client SQLResourcesClient) DeleteSQLTriggerPreparer(ctx context.Context, r
 		"triggerName":       autorest.Encode("path", triggerName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -927,7 +945,7 @@ func (client SQLResourcesClient) DeleteSQLTriggerResponder(resp *http.Response) 
 
 // DeleteSQLUserDefinedFunction deletes an existing Azure Cosmos DB SQL userDefinedFunction.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -944,6 +962,8 @@ func (client SQLResourcesClient) DeleteSQLUserDefinedFunction(ctx context.Contex
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -981,7 +1001,7 @@ func (client SQLResourcesClient) DeleteSQLUserDefinedFunctionPreparer(ctx contex
 		"userDefinedFunctionName": autorest.Encode("path", userDefinedFunctionName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1020,7 +1040,7 @@ func (client SQLResourcesClient) DeleteSQLUserDefinedFunctionResponder(resp *htt
 
 // GetSQLContainer gets the SQL container under an existing Azure Cosmos DB database account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -1036,6 +1056,8 @@ func (client SQLResourcesClient) GetSQLContainer(ctx context.Context, resourceGr
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1078,7 +1100,7 @@ func (client SQLResourcesClient) GetSQLContainerPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1113,7 +1135,7 @@ func (client SQLResourcesClient) GetSQLContainerResponder(resp *http.Response) (
 // GetSQLContainerThroughput gets the RUs per second of the SQL container under an existing Azure Cosmos DB database
 // account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -1129,6 +1151,8 @@ func (client SQLResourcesClient) GetSQLContainerThroughput(ctx context.Context, 
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1171,7 +1195,7 @@ func (client SQLResourcesClient) GetSQLContainerThroughputPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1205,7 +1229,7 @@ func (client SQLResourcesClient) GetSQLContainerThroughputResponder(resp *http.R
 
 // GetSQLDatabase gets the SQL database under an existing Azure Cosmos DB database account with the provided name.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 func (client SQLResourcesClient) GetSQLDatabase(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (result SQLDatabaseGetResults, err error) {
@@ -1220,6 +1244,8 @@ func (client SQLResourcesClient) GetSQLDatabase(ctx context.Context, resourceGro
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1261,7 +1287,7 @@ func (client SQLResourcesClient) GetSQLDatabasePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1296,7 +1322,7 @@ func (client SQLResourcesClient) GetSQLDatabaseResponder(resp *http.Response) (r
 // GetSQLDatabaseThroughput gets the RUs per second of the SQL database under an existing Azure Cosmos DB database
 // account with the provided name.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 func (client SQLResourcesClient) GetSQLDatabaseThroughput(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (result ThroughputSettingsGetResults, err error) {
@@ -1311,6 +1337,8 @@ func (client SQLResourcesClient) GetSQLDatabaseThroughput(ctx context.Context, r
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1352,7 +1380,7 @@ func (client SQLResourcesClient) GetSQLDatabaseThroughputPreparer(ctx context.Co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1386,7 +1414,7 @@ func (client SQLResourcesClient) GetSQLDatabaseThroughputResponder(resp *http.Re
 
 // GetSQLStoredProcedure gets the SQL storedProcedure under an existing Azure Cosmos DB database account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -1403,6 +1431,8 @@ func (client SQLResourcesClient) GetSQLStoredProcedure(ctx context.Context, reso
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1446,7 +1476,7 @@ func (client SQLResourcesClient) GetSQLStoredProcedurePreparer(ctx context.Conte
 		"subscriptionId":      autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1480,7 +1510,7 @@ func (client SQLResourcesClient) GetSQLStoredProcedureResponder(resp *http.Respo
 
 // GetSQLTrigger gets the SQL trigger under an existing Azure Cosmos DB database account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -1497,6 +1527,8 @@ func (client SQLResourcesClient) GetSQLTrigger(ctx context.Context, resourceGrou
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1540,7 +1572,7 @@ func (client SQLResourcesClient) GetSQLTriggerPreparer(ctx context.Context, reso
 		"triggerName":       autorest.Encode("path", triggerName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1574,7 +1606,7 @@ func (client SQLResourcesClient) GetSQLTriggerResponder(resp *http.Response) (re
 
 // GetSQLUserDefinedFunction gets the SQL userDefinedFunction under an existing Azure Cosmos DB database account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -1591,6 +1623,8 @@ func (client SQLResourcesClient) GetSQLUserDefinedFunction(ctx context.Context, 
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1634,7 +1668,7 @@ func (client SQLResourcesClient) GetSQLUserDefinedFunctionPreparer(ctx context.C
 		"userDefinedFunctionName": autorest.Encode("path", userDefinedFunctionName),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1668,7 +1702,7 @@ func (client SQLResourcesClient) GetSQLUserDefinedFunctionResponder(resp *http.R
 
 // ListSQLContainers lists the SQL container under an existing Azure Cosmos DB database account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 func (client SQLResourcesClient) ListSQLContainers(ctx context.Context, resourceGroupName string, accountName string, databaseName string) (result SQLContainerListResult, err error) {
@@ -1683,6 +1717,8 @@ func (client SQLResourcesClient) ListSQLContainers(ctx context.Context, resource
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1724,7 +1760,7 @@ func (client SQLResourcesClient) ListSQLContainersPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1758,7 +1794,7 @@ func (client SQLResourcesClient) ListSQLContainersResponder(resp *http.Response)
 
 // ListSQLDatabases lists the SQL databases under an existing Azure Cosmos DB database account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 func (client SQLResourcesClient) ListSQLDatabases(ctx context.Context, resourceGroupName string, accountName string) (result SQLDatabaseListResult, err error) {
 	if tracing.IsEnabled() {
@@ -1772,6 +1808,8 @@ func (client SQLResourcesClient) ListSQLDatabases(ctx context.Context, resourceG
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1812,7 +1850,7 @@ func (client SQLResourcesClient) ListSQLDatabasesPreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1846,7 +1884,7 @@ func (client SQLResourcesClient) ListSQLDatabasesResponder(resp *http.Response) 
 
 // ListSQLStoredProcedures lists the SQL storedProcedure under an existing Azure Cosmos DB database account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -1862,6 +1900,8 @@ func (client SQLResourcesClient) ListSQLStoredProcedures(ctx context.Context, re
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1904,7 +1944,7 @@ func (client SQLResourcesClient) ListSQLStoredProceduresPreparer(ctx context.Con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1938,7 +1978,7 @@ func (client SQLResourcesClient) ListSQLStoredProceduresResponder(resp *http.Res
 
 // ListSQLTriggers lists the SQL trigger under an existing Azure Cosmos DB database account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -1954,6 +1994,8 @@ func (client SQLResourcesClient) ListSQLTriggers(ctx context.Context, resourceGr
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -1996,7 +2038,7 @@ func (client SQLResourcesClient) ListSQLTriggersPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2030,7 +2072,7 @@ func (client SQLResourcesClient) ListSQLTriggersResponder(resp *http.Response) (
 
 // ListSQLUserDefinedFunctions lists the SQL userDefinedFunction under an existing Azure Cosmos DB database account.
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -2046,6 +2088,8 @@ func (client SQLResourcesClient) ListSQLUserDefinedFunctions(ctx context.Context
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -2088,7 +2132,7 @@ func (client SQLResourcesClient) ListSQLUserDefinedFunctionsPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2122,7 +2166,7 @@ func (client SQLResourcesClient) ListSQLUserDefinedFunctionsResponder(resp *http
 
 // UpdateSQLContainerThroughput update RUs per second of an Azure Cosmos DB SQL container
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // containerName - cosmos DB container name.
@@ -2139,6 +2183,8 @@ func (client SQLResourcesClient) UpdateSQLContainerThroughput(ctx context.Contex
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -2150,7 +2196,9 @@ func (client SQLResourcesClient) UpdateSQLContainerThroughput(ctx context.Contex
 		{TargetValue: updateThroughputParameters,
 			Constraints: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties.Resource", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput", Name: validation.Null, Rule: true, Chain: nil}}},
+					Chain: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings.MaxThroughput", Name: validation.Null, Rule: true, Chain: nil}}},
+					}},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.SQLResourcesClient", "UpdateSQLContainerThroughput", err.Error())
 	}
@@ -2180,7 +2228,7 @@ func (client SQLResourcesClient) UpdateSQLContainerThroughputPreparer(ctx contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -2222,7 +2270,7 @@ func (client SQLResourcesClient) UpdateSQLContainerThroughputResponder(resp *htt
 
 // UpdateSQLDatabaseThroughput update RUs per second of an Azure Cosmos DB SQL database
 // Parameters:
-// resourceGroupName - name of an Azure resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // accountName - cosmos DB database account name.
 // databaseName - cosmos DB database name.
 // updateThroughputParameters - the parameters to provide for the RUs per second of the current SQL database.
@@ -2238,6 +2286,8 @@ func (client SQLResourcesClient) UpdateSQLDatabaseThroughput(ctx context.Context
 		}()
 	}
 	if err := validation.Validate([]validation.Validation{
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
@@ -2249,7 +2299,9 @@ func (client SQLResourcesClient) UpdateSQLDatabaseThroughput(ctx context.Context
 		{TargetValue: updateThroughputParameters,
 			Constraints: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties.Resource", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput", Name: validation.Null, Rule: true, Chain: nil}}},
+					Chain: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "updateThroughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings.MaxThroughput", Name: validation.Null, Rule: true, Chain: nil}}},
+					}},
 				}}}}}); err != nil {
 		return result, validation.NewError("documentdb.SQLResourcesClient", "UpdateSQLDatabaseThroughput", err.Error())
 	}
@@ -2278,7 +2330,7 @@ func (client SQLResourcesClient) UpdateSQLDatabaseThroughputPreparer(ctx context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-08-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
