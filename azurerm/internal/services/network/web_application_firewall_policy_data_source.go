@@ -28,6 +28,8 @@ func dataArmWebApplicationFirewallPolicy() *schema.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"location": azure.SchemaLocationForDataSource(),
+
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"tags": tags.Schema(),
