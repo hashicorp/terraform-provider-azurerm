@@ -159,12 +159,12 @@ func appendTokensForValue(val cty.Value, toks Tokens) Tokens {
 
 func appendTokensForTraversal(traversal hcl.Traversal, toks Tokens) Tokens {
 	for _, step := range traversal {
-		toks = appendTokensForTraversalStep(step, toks)
+		appendTokensForTraversalStep(step, toks)
 	}
 	return toks
 }
 
-func appendTokensForTraversalStep(step hcl.Traverser, toks Tokens) Tokens {
+func appendTokensForTraversalStep(step hcl.Traverser, toks Tokens) {
 	switch ts := step.(type) {
 	case hcl.TraverseRoot:
 		toks = append(toks, &Token{
@@ -188,7 +188,7 @@ func appendTokensForTraversalStep(step hcl.Traverser, toks Tokens) Tokens {
 			Type:  hclsyntax.TokenOBrack,
 			Bytes: []byte{'['},
 		})
-		toks = appendTokensForValue(ts.Key, toks)
+		appendTokensForValue(ts.Key, toks)
 		toks = append(toks, &Token{
 			Type:  hclsyntax.TokenCBrack,
 			Bytes: []byte{']'},
@@ -196,8 +196,6 @@ func appendTokensForTraversalStep(step hcl.Traverser, toks Tokens) Tokens {
 	default:
 		panic(fmt.Sprintf("unsupported traversal step type %T", step))
 	}
-
-	return toks
 }
 
 func escapeQuotedStringLit(s string) []byte {

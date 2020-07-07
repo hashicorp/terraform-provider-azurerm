@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/ext/customdecode"
 	"github.com/zclconf/go-cty/cty"
 	"github.com/zclconf/go-cty/cty/convert"
 	"github.com/zclconf/go-cty/cty/function"
@@ -194,14 +193,6 @@ func (s *AttrSpec) decode(content *hcl.BodyContent, blockLabels []blockLabel, ct
 		return cty.NullVal(s.Type), nil
 	}
 
-	if decodeFn := customdecode.CustomExpressionDecoderForType(s.Type); decodeFn != nil {
-		v, diags := decodeFn(attr.Expr, ctx)
-		if v == cty.NilVal {
-			v = cty.UnknownVal(s.Type)
-		}
-		return v, diags
-	}
-
 	val, diags := attr.Expr.Value(ctx)
 
 	convVal, err := convert.Convert(val, s.Type)
@@ -213,10 +204,8 @@ func (s *AttrSpec) decode(content *hcl.BodyContent, blockLabels []blockLabel, ct
 				"Inappropriate value for attribute %q: %s.",
 				s.Name, err.Error(),
 			),
-			Subject:     attr.Expr.Range().Ptr(),
-			Context:     hcl.RangeBetween(attr.NameRange, attr.Expr.Range()).Ptr(),
-			Expression:  attr.Expr,
-			EvalContext: ctx,
+			Subject: attr.Expr.StartRange().Ptr(),
+			Context: hcl.RangeBetween(attr.NameRange, attr.Expr.StartRange()).Ptr(),
 		})
 		// We'll return an unknown value of the _correct_ type so that the
 		// incomplete result can still be used for some analysis use-cases.
@@ -1232,29 +1221,16 @@ func (s *BlockAttrsSpec) decode(content *hcl.BodyContent, blockLabels []blockLab
 
 	vals := make(map[string]cty.Value, len(attrs))
 	for name, attr := range attrs {
-		if decodeFn := customdecode.CustomExpressionDecoderForType(s.ElementType); decodeFn != nil {
-			attrVal, attrDiags := decodeFn(attr.Expr, ctx)
-			diags = append(diags, attrDiags...)
-			if attrVal == cty.NilVal {
-				attrVal = cty.UnknownVal(s.ElementType)
-			}
-			vals[name] = attrVal
-			continue
-		}
-
 		attrVal, attrDiags := attr.Expr.Value(ctx)
 		diags = append(diags, attrDiags...)
 
 		attrVal, err := convert.Convert(attrVal, s.ElementType)
 		if err != nil {
 			diags = append(diags, &hcl.Diagnostic{
-				Severity:    hcl.DiagError,
-				Summary:     "Invalid attribute value",
-				Detail:      fmt.Sprintf("Invalid value for attribute of %q block: %s.", s.TypeName, err),
-				Subject:     attr.Expr.Range().Ptr(),
-				Context:     hcl.RangeBetween(attr.NameRange, attr.Expr.Range()).Ptr(),
-				Expression:  attr.Expr,
-				EvalContext: ctx,
+				Severity: hcl.DiagError,
+				Summary:  "Invalid attribute value",
+				Detail:   fmt.Sprintf("Invalid value for attribute of %q block: %s.", s.TypeName, err),
+				Subject:  attr.Expr.Range().Ptr(),
 			})
 			attrVal = cty.UnknownVal(s.ElementType)
 		}
