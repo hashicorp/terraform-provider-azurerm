@@ -1,7 +1,6 @@
 package client
 
 import (
-	networkLegacy "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
@@ -17,6 +16,7 @@ type Client struct {
 	ExpressRouteCircuitsClient           *network.ExpressRouteCircuitsClient
 	ExpressRouteGatewaysClient           *network.ExpressRouteGatewaysClient
 	ExpressRoutePeeringsClient           *network.ExpressRouteCircuitPeeringsClient
+	HubVirtualNetworkConnectionClient    *network.HubVirtualNetworkConnectionsClient
 	InterfacesClient                     *network.InterfacesClient
 	LoadBalancersClient                  *network.LoadBalancersClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
@@ -38,8 +38,8 @@ type Client struct {
 	VnetGatewayClient                    *network.VirtualNetworkGatewaysClient
 	VnetClient                           *network.VirtualNetworksClient
 	VnetPeeringsClient                   *network.VirtualNetworkPeeringsClient
-	VirtualWanClient                     *networkLegacy.VirtualWansClient
-	VirtualHubClient                     *networkLegacy.VirtualHubsClient
+	VirtualWanClient                     *network.VirtualWansClient
+	VirtualHubClient                     *network.VirtualHubsClient
 	VpnGatewaysClient                    *network.VpnGatewaysClient
 	VpnServerConfigurationsClient        *network.VpnServerConfigurationsClient
 	WatcherClient                        *network.WatchersClient
@@ -75,6 +75,9 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	ExpressRouteGatewaysClient := network.NewExpressRouteGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRouteGatewaysClient.Client, o.ResourceManagerAuthorizer)
+
+	HubVirtualNetworkConnectionClient := network.NewHubVirtualNetworkConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&HubVirtualNetworkConnectionClient.Client, o.ResourceManagerAuthorizer)
 
 	ExpressRoutePeeringsClient := network.NewExpressRouteCircuitPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ExpressRoutePeeringsClient.Client, o.ResourceManagerAuthorizer)
@@ -151,10 +154,10 @@ func NewClient(o *common.ClientOptions) *Client {
 	VnetGatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetGatewayConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
-	VirtualWanClient := networkLegacy.NewVirtualWansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	VirtualWanClient := network.NewVirtualWansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualWanClient.Client, o.ResourceManagerAuthorizer)
 
-	VirtualHubClient := networkLegacy.NewVirtualHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	VirtualHubClient := network.NewVirtualHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualHubClient.Client, o.ResourceManagerAuthorizer)
 
 	vpnGatewaysClient := network.NewVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
@@ -177,6 +180,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ExpressRouteCircuitsClient:           &ExpressRouteCircuitsClient,
 		ExpressRouteGatewaysClient:           &ExpressRouteGatewaysClient,
 		ExpressRoutePeeringsClient:           &ExpressRoutePeeringsClient,
+		HubVirtualNetworkConnectionClient:    &HubVirtualNetworkConnectionClient,
 		InterfacesClient:                     &InterfacesClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
 		LocalNetworkGatewaysClient:           &LocalNetworkGatewaysClient,
