@@ -19,7 +19,7 @@ func TestAccAzureRMStorageDataLakeGen2Path_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageDataLakeGen2Path_basic(data),
@@ -38,7 +38,7 @@ func TestAccAzureRMStorageDataLakeGen2Path_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageDataLakeGen2Path_basic(data),
@@ -57,7 +57,7 @@ func TestAccAzureRMStorageDataLakeGen2Path_withSimpleACL(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageDataLakeGen2Path_withSimpleACL(data),
@@ -83,7 +83,7 @@ func TestAccAzureRMStorageDataLakeGen2Path_withSimpleACLAndUpdate(t *testing.T) 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageDataLakeGen2Path_withSimpleACL(data),
@@ -102,7 +102,7 @@ func TestAccAzureRMStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(t 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(data),
@@ -121,7 +121,7 @@ func TestAccAzureRMStorageDataLakeGen2Path_withOwner(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2PathDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageDataLakeGen2Path_withOwner(data),
