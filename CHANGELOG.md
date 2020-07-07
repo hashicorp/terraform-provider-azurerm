@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_kusto_cluster` - Support for `optimized_auto_scale` [GH-7371]
 * `azurerm_mssql_database` - the `sku_name` property now only forces a new resource for the `HS` (HyperScale) family [GH-7559]
 * `azurerm_web_application_firewall_policy` - allow setting `version` to `0.1` (for when `type` is set to `Microsoft_BotManagerRuleSet`) [GH-7579]
+* `azurerm_web_application_firewall_policy` - support the `transforms` property in the `custom_rules.match_conditions` block [GH-7545]
 
 BUG FIXES: 
 
