@@ -223,11 +223,7 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 		if resp.OrganizationDetails.ID != nil {
 			d.Set("org_id", resp.OrganizationDetails.ID)
 		}
-		adminDetails, err := flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails)
-		if err != nil {
-			return fmt.Errorf("failed to flatten Azure KeyVault Certificate Issuer Admin Details: %v", err)
-		}
-		d.Set("admin", adminDetails)
+		d.Set("admin", flattenKeyVaultCertificateIssuerAdmins(resp.OrganizationDetails.AdminDetails))
 	}
 	if resp.Credentials != nil {
 		if resp.Credentials.AccountID != nil {
@@ -295,55 +291,40 @@ func expandKeyVaultCertificateIssuerOrganizationDetailsAdminDetails(vs []interfa
 	return &results
 }
 
-func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetails) ([]interface{}, error) {
+func flattenKeyVaultCertificateIssuerAdmins(input *[]keyvault.AdministratorDetails) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
-		return results, nil
+		return results
 	}
 
-	for k, admin := range *input {
-		result := make(map[string]interface{})
-		if admin.EmailAddress != nil {
-			result["email_address"] = admin.EmailAddress
-		} else {
-			return nil, fmt.Errorf("required attribute `email_address` missing in API response for admin index %d", k)
-		}
-		if admin.FirstName != nil {
-			result["first_name"] = admin.FirstName
-		}
-		if admin.LastName != nil {
-			result["last_name"] = admin.LastName
-		}
-		if admin.Phone != nil {
-			result["phone"] = admin.Phone
-		}
+	for _, admin := range *input {
 		emailAddress := ""
 		if admin.EmailAddress != nil {
 			emailAddress = *admin.EmailAddress
 		}
-		
+
 		firstName := ""
 		if admin.FirstName != nil {
 			firstName = *admin.FirstName
 		}
-		
+
 		lastName := ""
 		if admin.LastName != nil {
 			lastName = *admin.LastName
 		}
-		
+
 		phone := ""
 		if admin.Phone != nil {
 			phone = *admin.Phone
 		}
-		
+
 		results = append(results, map[string]interface{}{
 			"email_address": emailAddress,
-			"first_name": firstName,
-			"last_name": lastName,
-			"phone": phone,
+			"first_name":    firstName,
+			"last_name":     lastName,
+			"phone":         phone,
 		})
 	}
 
-	return results, nil
+	return results
 }
