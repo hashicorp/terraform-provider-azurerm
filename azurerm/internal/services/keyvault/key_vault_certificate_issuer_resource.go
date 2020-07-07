@@ -233,9 +233,6 @@ func resourceArmKeyVaultCertificateIssuerRead(d *schema.ResourceData, meta inter
 		if resp.Credentials.AccountID != nil {
 			d.Set("account_id", resp.Credentials.AccountID)
 		}
-		if resp.Credentials.Password != nil {
-			d.Set("password", resp.Credentials.Password)
-		}
 	}
 
 	return nil
