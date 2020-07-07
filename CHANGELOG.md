@@ -6,6 +6,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.11.0` [GH-7608]
 * dependencies: updating `network` to `2020-05-01` [GH-7585]
 * Data Source: `azurerm_eventhub_namespace` - exposing the `dedicated_cluster_id` field [GH-7548]
 * `azurerm_application_gateway` - support for the `firewall_policy_id` attribute within the `http_listener` block [GH-7580]
