@@ -229,16 +229,16 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
   path               = "testpath"
   resource           = "directory"
   ace {
-	type        = "user"
-	permissions = "r-x"
+    type        = "user"
+    permissions = "r-x"
   }
   ace {
-	type        = "group"
-	permissions = "-wx"
+    type        = "group"
+    permissions = "-wx"
   }
   ace {
-	type        = "other"
-	permissions = "--x"
+    type        = "other"
+    permissions = "--x"
   }
 }
 `, template)
@@ -254,16 +254,16 @@ resource "azurerm_storage_data_lake_gen2_path" "test" {
   path               = "testpath"
   resource           = "directory"
   ace {
-	type        = "user"
-	permissions = "rwx"
+    type        = "user"
+    permissions = "rwx"
   }
   ace {
-	type        = "group"
-	permissions = "-wx"
+    type        = "group"
+    permissions = "-wx"
   }
   ace {
-	type        = "other"
-	permissions = "--x"
+    type        = "other"
+    permissions = "--x"
   }
 }
 `, template)
@@ -277,62 +277,62 @@ func testAccAzureRMStorageDataLakeGen2Path_withACLWithSpecificUserAndDefaults(da
 resource "azuread_application" "test" {
   name = "acctestspa%[2]d"
 }
-	
+
 resource "azuread_service_principal" "test" {
   application_id = azuread_application.test.application_id
 }
-  
+
 resource "azurerm_storage_data_lake_gen2_path" "test" {
   storage_account_id = azurerm_storage_account.test.id
   filesystem_name    = azurerm_storage_data_lake_gen2_filesystem.test.name
   path               = "testpath"
   resource           = "directory"
   ace {
-	type        = "user"
-	permissions = "r-x"
+    type        = "user"
+    permissions = "r-x"
   }
   ace {
-	type        = "user"
-	id          = azuread_service_principal.test.object_id
-	permissions = "r-x"
+    type        = "user"
+    id          = azuread_service_principal.test.object_id
+    permissions = "r-x"
   }
   ace {
-	type        = "group"
-	permissions = "-wx"
+    type        = "group"
+    permissions = "-wx"
   }
   ace {
-	type        = "mask"
-	permissions = "--x"
+    type        = "mask"
+    permissions = "--x"
   }
   ace {
-	type        = "other"
-	permissions = "--x"
+    type        = "other"
+    permissions = "--x"
   }
   ace {
-	scope       = "default"
-	type        = "user"
-	permissions = "r-x"
+    scope       = "default"
+    type        = "user"
+    permissions = "r-x"
   }
   ace {
-	scope       = "default"
-	type        = "user"
-	id          = azuread_service_principal.test.object_id
-	permissions = "r-x"
+    scope       = "default"
+    type        = "user"
+    id          = azuread_service_principal.test.object_id
+    permissions = "r-x"
   }
   ace {
-	scope       = "default"
-	type        = "group"
-	permissions = "-wx"
+    scope       = "default"
+    type        = "group"
+    permissions = "-wx"
   }
   ace {
-	scope       = "default"
-	type        = "mask"
-	permissions = "--x"
+    scope       = "default"
+    type        = "mask"
+    permissions = "--x"
   }
   ace {
-	scope       = "default"
-	type        = "other"
-	permissions = "--x"
+    scope       = "default"
+    type        = "other"
+    permissions = "--x"
   }
 }
 `, template, data.RandomInteger)
@@ -346,7 +346,7 @@ func testAccAzureRMStorageDataLakeGen2Path_withOwner(data acceptance.TestData) s
 resource "azuread_application" "test" {
   name = "acctestspa%[2]d"
 }
-  
+
 resource "azuread_service_principal" "test" {
   application_id = azuread_application.test.application_id
 }
@@ -388,7 +388,7 @@ data "azurerm_client_config" "current" {
 resource "azurerm_role_assignment" "storageAccountRoleAssignment" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         =  data.azurerm_client_config.current.object_id
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 

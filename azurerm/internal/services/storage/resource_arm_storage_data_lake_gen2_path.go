@@ -422,7 +422,7 @@ func flattenArmDataLakeGen2PathAceList(acl accesscontrol.ACL) []interface{} {
 		ace["scope"] = scope
 		ace["type"] = string(v.TagType)
 		if v.TagQualifier != nil {
-			ace["id"] = (*v.TagQualifier).String()
+			ace["id"] = v.TagQualifier.String()
 		}
 		ace["permissions"] = v.Permissions
 
