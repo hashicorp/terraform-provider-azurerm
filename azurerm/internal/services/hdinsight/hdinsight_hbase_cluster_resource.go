@@ -297,7 +297,7 @@ func resourceArmHDInsightHBaseClusterRead(d *schema.ResourceData, meta interface
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Error reading monitor configuation for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("failed reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
