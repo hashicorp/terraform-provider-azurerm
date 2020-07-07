@@ -19,6 +19,7 @@ ENHANCEMENTS:
 
 BUG FIXES: 
 
+* `azurerm_policy_remediation` - removing the validation for the `policy_definition_reference_id` field since this isn't a Resource ID [GH-7600]
 * `azurerm_storage_data_lake_gen2_filesystem` - prevent a crash during plan if storage account was deleted [GH-7378]
 
 ## 2.17.0 (July 03, 2020)
