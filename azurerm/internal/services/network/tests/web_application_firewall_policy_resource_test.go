@@ -238,6 +238,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
+
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
@@ -268,6 +269,10 @@ resource "azurerm_web_application_firewall_policy" "test" {
   name                = "acctestwafpolicy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "test"
+  }
 
   custom_rules {
     name      = "Rule1"
