@@ -48,6 +48,16 @@ func dataSourceEventHubNamespace() *schema.Resource {
 				Computed: true,
 			},
 
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"dedicated_cluster_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"capacity": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -141,6 +151,8 @@ func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 		d.Set("kafka_enabled", props.KafkaEnabled)
 		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
+		d.Set("zone_redundant", props.ZoneRedundant)
+		d.Set("dedicated_cluster_id", props.ClusterArmID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

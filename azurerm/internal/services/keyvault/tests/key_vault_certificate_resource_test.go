@@ -112,6 +112,7 @@ func TestAccAzureRMKeyVaultCertificate_basicGenerate(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secret_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_data"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "certificate_attribute.0.created"),
 				),
 			},
 			data.ImportStep(),

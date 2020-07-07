@@ -33,7 +33,7 @@ resource "azurerm_subnet" "service" {
   name                 = "service"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.1.0/24"
+  address_prefixes     = ["10.0.1.0/24"]
 
   enforce_private_link_service_network_policies = true
 }
@@ -42,7 +42,7 @@ resource "azurerm_subnet" "endpoint" {
   name                 = "endpoint"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.0.2.0/24"
+  address_prefixes     = ["10.0.2.0/24"]
 
   enforce_private_link_endpoint_network_policies = true
 }
@@ -119,7 +119,7 @@ The following arguments are supported:
 
 A `private_dns_zone_group` supports the following:
 
-* `name` - (Required) Specifies the Name of the Private Service Connection. Changing this forces the a new `private_dns_zone_group` to be created.
+* `name` - (Required) Specifies the Name of the Private DNS Zone Group. Changing this forces a new `private_dns_zone_group` resource to be created.
 
 * `private_dns_zone_ids` - (Required) Specifies the list of Private DNS Zones to include within the `private_dns_zone_group`.
 

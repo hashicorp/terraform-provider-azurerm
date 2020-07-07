@@ -36,7 +36,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Kubernetes Managed Cluster.
 
-* `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the masters.
+* `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
 -> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
 
@@ -266,9 +266,9 @@ The `identity` block exports the following:
 
 * `type` - The type of identity used for the managed cluster.
 
-* `principal_id` - The principal id of the system assigned identity which is used by master components.
+* `principal_id` - The principal id of the system assigned identity which is used by primary components.
 
-* `tenant_id` - The tenant id of the system assigned identity which is used by master components.
+* `tenant_id` - The tenant id of the system assigned identity which is used by primary components.
 
 ---
 

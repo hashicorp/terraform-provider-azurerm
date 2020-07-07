@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -464,6 +464,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 									},
 								},
 							},
+						},
+
+						"firewall_policy_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -2217,6 +2223,7 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 
 		frontendIPConfigID := fmt.Sprintf("%s/frontendIPConfigurations/%s", gatewayID, frontendIPConfigName)
 		frontendPortID := fmt.Sprintf("%s/frontendPorts/%s", gatewayID, frontendPortName)
+		firewallPolicyID := v["firewall_policy_id"].(string)
 
 		customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(v["custom_error_configuration"].([]interface{}))
 
@@ -2254,6 +2261,12 @@ func expandApplicationGatewayHTTPListeners(d *schema.ResourceData, gatewayID str
 			certID := fmt.Sprintf("%s/sslCertificates/%s", gatewayID, sslCertName)
 			listener.ApplicationGatewayHTTPListenerPropertiesFormat.SslCertificate = &network.SubResource{
 				ID: utils.String(certID),
+			}
+		}
+
+		if firewallPolicyID != "" && len(firewallPolicyID) > 0 {
+			listener.ApplicationGatewayHTTPListenerPropertiesFormat.FirewallPolicy = &network.SubResource{
+				ID: utils.String(firewallPolicyID),
 			}
 		}
 
@@ -2330,6 +2343,10 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if sni := props.RequireServerNameIndication; sni != nil {
 				output["require_sni"] = *sni
+			}
+
+			if fwp := props.FirewallPolicy; fwp != nil && fwp.ID != nil {
+				output["firewall_policy_id"] = *fwp.ID
 			}
 
 			output["custom_error_configuration"] = flattenApplicationGatewayCustomErrorConfigurations(props.CustomErrorConfigurations)

@@ -21,7 +21,7 @@ import (
 var hdInsightStormClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         4,
-	MaxInstanceCount:         4,
+	MaxInstanceCount:         utils.Int(4),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
@@ -29,15 +29,13 @@ var hdInsightStormClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightStormClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	// can't find a hard limit - appears to be limited by the subscription; setting something sensible for now
-	MaxInstanceCount: 9999,
-	CanSpecifyDisks:  false,
+	CanSpecifyDisks:         false,
 }
 
 var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         3,
+	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }

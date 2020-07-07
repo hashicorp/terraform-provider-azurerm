@@ -6,9 +6,10 @@ import (
 )
 
 type Client struct {
-	ClustersClient        *kusto.ClustersClient
-	DatabasesClient       *kusto.DatabasesClient
-	DataConnectionsClient *kusto.DataConnectionsClient
+	ClustersClient                    *kusto.ClustersClient
+	DatabasesClient                   *kusto.DatabasesClient
+	DataConnectionsClient             *kusto.DataConnectionsClient
+	ClusterPrincipalAssignmentsClient *kusto.ClusterPrincipalAssignmentsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -21,9 +22,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	DataConnectionsClient := kusto.NewDataConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DataConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
+	ClusterPrincipalAssignmentsClient := kusto.NewClusterPrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ClusterPrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		ClustersClient:        &ClustersClient,
-		DatabasesClient:       &DatabasesClient,
-		DataConnectionsClient: &DataConnectionsClient,
+		ClustersClient:                    &ClustersClient,
+		DatabasesClient:                   &DatabasesClient,
+		DataConnectionsClient:             &DataConnectionsClient,
+		ClusterPrincipalAssignmentsClient: &ClusterPrincipalAssignmentsClient,
 	}
 }
