@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -279,7 +280,7 @@ func resourceArmMySqlServer() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(cxt context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			tier, _ := diff.GetOk("sku_name")
 
 			var storageMB int

@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -3778,7 +3779,7 @@ func flattenApplicationGatewayCustomErrorConfigurations(input *[]network.Applica
 	return results
 }
 
-func ApplicationGatewayCustomizeDiff(d *schema.ResourceDiff, _ interface{}) error {
+func ApplicationGatewayCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
 	tier := d.Get("sku.0.tier").(string)

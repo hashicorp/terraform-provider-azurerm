@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -67,7 +68,7 @@ func ResourceStorageTableStateResourceV0V1() *schema.Resource {
 	}
 }
 
-func ResourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func ResourceStorageTableStateUpgradeV0ToV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	tableName := rawState["name"].(string)
 	accountName := rawState["storage_account_name"].(string)
 	environment := meta.(*clients.Client).Account.Environment
@@ -80,7 +81,7 @@ func ResourceStorageTableStateUpgradeV0ToV1(rawState map[string]interface{}, met
 	return rawState, nil
 }
 
-func ResourceStorageTableStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func ResourceStorageTableStateUpgradeV1ToV2(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	tableName := rawState["name"].(string)
 	accountName := rawState["storage_account_name"].(string)
 	environment := meta.(*clients.Client).Account.Environment

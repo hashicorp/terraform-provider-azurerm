@@ -1,6 +1,7 @@
 package migration
 
 import (
+	"context"
 	"log"
 	"strings"
 
@@ -28,7 +29,7 @@ func EventHubNamespaceAuthorizationRuleUpgradeV0Schema() *schema.Resource {
 	}
 }
 
-func EventHubNamespaceAuthorizationRuleUpgradeV0ToV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func EventHubNamespaceAuthorizationRuleUpgradeV0ToV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	oldId := rawState["id"].(string)
 
 	newId := strings.Replace(rawState["id"].(string), "/authorizationRules/", "/AuthorizationRules/", 1)

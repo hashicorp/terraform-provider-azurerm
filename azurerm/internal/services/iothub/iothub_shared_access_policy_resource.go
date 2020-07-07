@@ -1,6 +1,7 @@
 package iothub
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -108,7 +109,7 @@ func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 	}
 }
 
-func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}) (err error) {
+func iothubSharedAccessPolicyCustomizeDiff(ctx context.Context, d *schema.ResourceDiff, _ interface{}) (err error) {
 	registryRead, hasRegistryRead := d.GetOk("registry_read")
 	registryWrite, hasRegistryWrite := d.GetOk("registry_write")
 	serviceConnect, hasServieConnect := d.GetOk("service_connect")

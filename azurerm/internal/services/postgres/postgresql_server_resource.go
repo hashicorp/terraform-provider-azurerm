@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
@@ -350,7 +351,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 		},
 
 		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+			customdiff.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
 				oldTier := strings.Split(old.(string), "_")
 				newTier := strings.Split(new.(string), "_")
 				// If the sku tier was not changed, we don't need fornew

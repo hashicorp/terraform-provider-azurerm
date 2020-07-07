@@ -481,7 +481,7 @@ func resourceArmFrontDoor() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 			if err := validate.FrontdoorSettings(d); err != nil {
 				return fmt.Errorf("creating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 			}

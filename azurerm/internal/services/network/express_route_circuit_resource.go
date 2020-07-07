@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -34,7 +35,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 
 		CustomizeDiff: customdiff.Sequence(
 			// If bandwidth is reduced force a new resource
-			customdiff.ForceNewIfChange("bandwidth_in_mbps", func(old, new, meta interface{}) bool {
+			customdiff.ForceNewIfChange("bandwidth_in_mbps", func(ctx context.Context, old, new, meta interface{}) bool {
 				return new.(int) < old.(int)
 			}),
 		),

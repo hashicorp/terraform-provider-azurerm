@@ -139,7 +139,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 			if err := ValidatePrivateLinkNatIpConfiguration(d); err != nil {
 				return err
 			}

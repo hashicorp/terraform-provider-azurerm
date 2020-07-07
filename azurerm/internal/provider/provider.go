@@ -9,20 +9,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func AzureProvider() terraform.ResourceProvider {
+func AzureProvider() *schema.Provider {
 	return azureProvider(false)
 }
 
-func TestAzureProvider() terraform.ResourceProvider {
+func TestAzureProvider() *schema.Provider {
 	return azureProvider(true)
 }
 
-func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
+func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	// avoids this showing up in test output
 	var debugLog = func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {

@@ -1,6 +1,7 @@
 package kusto
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -107,7 +108,7 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 				}, false),
 			},
 		},
-		CustomizeDiff: func(d *schema.ResourceDiff, _ interface{}) error {
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, _ interface{}) error {
 			_, hasTableName := d.GetOk("table_name")
 			_, hasMappingRuleName := d.GetOk("mapping_rule_name")
 			_, hasDataFormat := d.GetOk("data_format")

@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -42,7 +43,7 @@ func resourceStorageShareStateResourceV0V1() *schema.Resource {
 	}
 }
 
-func ResourceStorageShareStateUpgradeV0ToV1(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+func ResourceStorageShareStateUpgradeV0ToV1(ctx context.Context, rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
 	shareName := rawState["name"].(string)
 	resourceGroup := rawState["resource_group_name"].(string)
 	accountName := rawState["storage_account_name"].(string)
@@ -55,7 +56,7 @@ func ResourceStorageShareStateUpgradeV0ToV1(rawState map[string]interface{}, _ i
 	return rawState, nil
 }
 
-func ResourceStorageShareStateUpgradeV1ToV2(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func ResourceStorageShareStateUpgradeV1ToV2(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	id := rawState["id"].(string)
 
 	// name/resourceGroup/accountName
