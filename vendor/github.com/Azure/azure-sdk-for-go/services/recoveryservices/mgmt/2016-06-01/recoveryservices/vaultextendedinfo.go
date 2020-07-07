@@ -113,7 +113,6 @@ func (client VaultExtendedInfoClient) CreateOrUpdateSender(req *http.Request) (*
 func (client VaultExtendedInfoClient) CreateOrUpdateResponder(resp *http.Response) (result VaultExtendedInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client VaultExtendedInfoClient) GetSender(req *http.Request) (*http.Respon
 func (client VaultExtendedInfoClient) GetResponder(resp *http.Response) (result VaultExtendedInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -268,7 +266,6 @@ func (client VaultExtendedInfoClient) UpdateSender(req *http.Request) (*http.Res
 func (client VaultExtendedInfoClient) UpdateResponder(resp *http.Response) (result VaultExtendedInfoResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

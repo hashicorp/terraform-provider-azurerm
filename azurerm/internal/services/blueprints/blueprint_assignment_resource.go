@@ -86,8 +86,8 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 				Default:  string(blueprint.None),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(blueprint.None),
-					string(blueprint.AllResourcesReadOnly),
-					string(blueprint.AllResourcesDoNotDelete),
+					string(blueprint.AssignmentLockModeAllResourcesReadOnly),
+					string(blueprint.AssignmentLockModeAllResourcesDoNotDelete),
 				}, false),
 				// The first character of value returned by the service is always in lower case.
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -311,7 +311,7 @@ func resourceArmBlueprintAssignmentDelete(d *schema.ResourceData, meta interface
 	name := assignmentID.Name
 	targetScope := assignmentID.Scope
 
-	resp, err := client.Delete(ctx, targetScope, name)
+	resp, err := client.Delete(ctx, targetScope, name, blueprint.All)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

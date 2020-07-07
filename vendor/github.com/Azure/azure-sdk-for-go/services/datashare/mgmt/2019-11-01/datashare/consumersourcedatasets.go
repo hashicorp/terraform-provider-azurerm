@@ -117,7 +117,6 @@ func (client ConsumerSourceDataSetsClient) ListByShareSubscriptionSender(req *ht
 func (client ConsumerSourceDataSetsClient) ListByShareSubscriptionResponder(resp *http.Response) (result ConsumerSourceDataSetList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -126,7 +126,6 @@ func (client ComponentsClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client ComponentsClient) CreateOrUpdateResponder(resp *http.Response) (result ApplicationInsightsComponent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -212,7 +211,6 @@ func (client ComponentsClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client ComponentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -297,7 +295,6 @@ func (client ComponentsClient) GetSender(req *http.Request) (*http.Response, err
 func (client ComponentsClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -385,7 +382,6 @@ func (client ComponentsClient) GetPurgeStatusSender(req *http.Request) (*http.Re
 func (client ComponentsClient) GetPurgeStatusResponder(resp *http.Response) (result ComponentPurgeStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -463,7 +459,6 @@ func (client ComponentsClient) ListSender(req *http.Request) (*http.Response, er
 func (client ComponentsClient) ListResponder(resp *http.Response) (result ApplicationInsightsComponentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -585,7 +580,6 @@ func (client ComponentsClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client ComponentsClient) ListByResourceGroupResponder(resp *http.Response) (result ApplicationInsightsComponentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -719,7 +713,6 @@ func (client ComponentsClient) PurgeSender(req *http.Request) (*http.Response, e
 func (client ComponentsClient) PurgeResponder(resp *http.Response) (result ComponentPurgeResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -808,7 +801,6 @@ func (client ComponentsClient) UpdateTagsSender(req *http.Request) (*http.Respon
 func (client ComponentsClient) UpdateTagsResponder(resp *http.Response) (result ApplicationInsightsComponent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

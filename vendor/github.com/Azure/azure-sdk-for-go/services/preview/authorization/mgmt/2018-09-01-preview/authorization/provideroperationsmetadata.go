@@ -114,7 +114,6 @@ func (client ProviderOperationsMetadataClient) GetSender(req *http.Request) (*ht
 func (client ProviderOperationsMetadataClient) GetResponder(resp *http.Response) (result ProviderOperationsMetadata, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client ProviderOperationsMetadataClient) ListSender(req *http.Request) (*h
 func (client ProviderOperationsMetadataClient) ListResponder(resp *http.Response) (result ProviderOperationsMetadataListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

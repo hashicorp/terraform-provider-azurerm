@@ -128,7 +128,6 @@ func (client FunctionsClient) CreateOrReplaceSender(req *http.Request) (*http.Re
 func (client FunctionsClient) CreateOrReplaceResponder(resp *http.Response) (result Function, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client FunctionsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client FunctionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -285,7 +283,6 @@ func (client FunctionsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client FunctionsClient) GetResponder(resp *http.Response) (result Function, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -369,7 +366,6 @@ func (client FunctionsClient) ListByStreamingJobSender(req *http.Request) (*http
 func (client FunctionsClient) ListByStreamingJobResponder(resp *http.Response) (result FunctionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -492,7 +488,6 @@ func (client FunctionsClient) RetrieveDefaultDefinitionSender(req *http.Request)
 func (client FunctionsClient) RetrieveDefaultDefinitionResponder(resp *http.Response) (result Function, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -582,7 +577,6 @@ func (client FunctionsClient) TestSender(req *http.Request) (future FunctionsTes
 func (client FunctionsClient) TestResponder(resp *http.Response) (result ResourceTestStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -674,7 +668,6 @@ func (client FunctionsClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client FunctionsClient) UpdateResponder(resp *http.Response) (result Function, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

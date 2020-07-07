@@ -129,7 +129,6 @@ func (client InstanceFailoverGroupsClient) CreateOrUpdateSender(req *http.Reques
 func (client InstanceFailoverGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result InstanceFailoverGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client InstanceFailoverGroupsClient) DeleteSender(req *http.Request) (futu
 func (client InstanceFailoverGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -286,7 +284,6 @@ func (client InstanceFailoverGroupsClient) FailoverSender(req *http.Request) (fu
 func (client InstanceFailoverGroupsClient) FailoverResponder(resp *http.Response) (result InstanceFailoverGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -366,7 +363,6 @@ func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossSender(req 
 func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossResponder(resp *http.Response) (result InstanceFailoverGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -445,7 +441,6 @@ func (client InstanceFailoverGroupsClient) GetSender(req *http.Request) (*http.R
 func (client InstanceFailoverGroupsClient) GetResponder(resp *http.Response) (result InstanceFailoverGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -523,7 +518,6 @@ func (client InstanceFailoverGroupsClient) ListByLocationSender(req *http.Reques
 func (client InstanceFailoverGroupsClient) ListByLocationResponder(resp *http.Response) (result InstanceFailoverGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

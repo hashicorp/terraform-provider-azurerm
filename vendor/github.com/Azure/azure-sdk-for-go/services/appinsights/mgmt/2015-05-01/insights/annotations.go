@@ -124,7 +124,6 @@ func (client AnnotationsClient) CreateSender(req *http.Request) (*http.Response,
 func (client AnnotationsClient) CreateResponder(resp *http.Response) (result ListAnnotation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -212,7 +211,6 @@ func (client AnnotationsClient) DeleteSender(req *http.Request) (*http.Response,
 func (client AnnotationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -299,7 +297,6 @@ func (client AnnotationsClient) GetSender(req *http.Request) (*http.Response, er
 func (client AnnotationsClient) GetResponder(resp *http.Response) (result ListAnnotation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -389,7 +386,6 @@ func (client AnnotationsClient) ListSender(req *http.Request) (*http.Response, e
 func (client AnnotationsClient) ListResponder(resp *http.Response) (result AnnotationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

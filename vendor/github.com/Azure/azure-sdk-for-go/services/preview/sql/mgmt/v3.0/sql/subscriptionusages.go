@@ -112,7 +112,6 @@ func (client SubscriptionUsagesClient) GetSender(req *http.Request) (*http.Respo
 func (client SubscriptionUsagesClient) GetResponder(resp *http.Response) (result SubscriptionUsage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -187,7 +186,6 @@ func (client SubscriptionUsagesClient) ListByLocationSender(req *http.Request) (
 func (client SubscriptionUsagesClient) ListByLocationResponder(resp *http.Response) (result SubscriptionUsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

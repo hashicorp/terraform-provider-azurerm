@@ -115,7 +115,6 @@ func (client ElasticPoolActivitiesClient) ListByElasticPoolSender(req *http.Requ
 func (client ElasticPoolActivitiesClient) ListByElasticPoolResponder(resp *http.Response) (result ElasticPoolActivityListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

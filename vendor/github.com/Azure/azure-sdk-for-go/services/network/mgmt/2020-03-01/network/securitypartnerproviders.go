@@ -114,7 +114,6 @@ func (client SecurityPartnerProvidersClient) CreateOrUpdateSender(req *http.Requ
 func (client SecurityPartnerProvidersClient) CreateOrUpdateResponder(resp *http.Response) (result SecurityPartnerProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,7 +189,6 @@ func (client SecurityPartnerProvidersClient) DeleteSender(req *http.Request) (fu
 func (client SecurityPartnerProvidersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -265,7 +263,6 @@ func (client SecurityPartnerProvidersClient) GetSender(req *http.Request) (*http
 func (client SecurityPartnerProvidersClient) GetResponder(resp *http.Response) (result SecurityPartnerProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -337,7 +334,6 @@ func (client SecurityPartnerProvidersClient) ListSender(req *http.Request) (*htt
 func (client SecurityPartnerProvidersClient) ListResponder(resp *http.Response) (result SecurityPartnerProviderListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -449,7 +445,6 @@ func (client SecurityPartnerProvidersClient) ListByResourceGroupSender(req *http
 func (client SecurityPartnerProvidersClient) ListByResourceGroupResponder(resp *http.Response) (result SecurityPartnerProviderListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -565,7 +560,6 @@ func (client SecurityPartnerProvidersClient) UpdateTagsSender(req *http.Request)
 func (client SecurityPartnerProvidersClient) UpdateTagsResponder(resp *http.Response) (result SecurityPartnerProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

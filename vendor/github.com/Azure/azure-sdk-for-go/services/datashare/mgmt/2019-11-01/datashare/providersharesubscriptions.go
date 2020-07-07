@@ -114,7 +114,6 @@ func (client ProviderShareSubscriptionsClient) GetByShareSender(req *http.Reques
 func (client ProviderShareSubscriptionsClient) GetByShareResponder(resp *http.Response) (result ProviderShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client ProviderShareSubscriptionsClient) ListByShareSender(req *http.Reque
 func (client ProviderShareSubscriptionsClient) ListByShareResponder(resp *http.Response) (result ProviderShareSubscriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -314,7 +312,6 @@ func (client ProviderShareSubscriptionsClient) ReinstateSender(req *http.Request
 func (client ProviderShareSubscriptionsClient) ReinstateResponder(resp *http.Response) (result ProviderShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -394,7 +391,6 @@ func (client ProviderShareSubscriptionsClient) RevokeSender(req *http.Request) (
 func (client ProviderShareSubscriptionsClient) RevokeResponder(resp *http.Response) (result ProviderShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
