@@ -19,7 +19,7 @@ func TestAccDataSourceAzureRMWebApplicationFirewallPolicy_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceAzureRMWebApplicationFirewallPolicyBasic(data),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(data.ResourceName, "name", "example-wafpolicy"),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestwafpolicy-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.env", "test"),
@@ -36,6 +36,7 @@ func testAccDataSourceAzureRMWebApplicationFirewallPolicyBasic(data acceptance.T
 data "azurerm_web_application_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   name                = azurerm_web_application_firewall_policy.test.name
+
 }
 `, testAccAzureRMWebApplicationFirewallPolicy_complete(data))
 }
