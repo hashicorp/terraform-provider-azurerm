@@ -14,7 +14,7 @@ Manages a Data Lake Gen2 Path in a File System within an Azure Storage Account.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -54,6 +54,27 @@ The following arguments are supported:
 * `storage_account_id` - (Required) Specifies the ID of the Storage Account in which the Data Lake Gen2 File System should exist. Changing this forces a new resource to be created.
 
 * `resource` - (Required) Specifies the type for path to create. Currently only `directory` is supported.
+
+* `owner` - (Optional) Specifies the Object ID of the Azure Active Directory User to make the owning user.
+
+* `group` - (Optional) Specifies the Object ID of the Azure Active Directory Group to make the owning group.
+
+* `ace` - (Required) One or more `ace` blocks as defined below to specify the entries for the ACL for the path.
+
+
+---
+
+An `ace` block supports the following:
+
+* `scope` - (Optional) Specifies whether the ACE represents an `access` entry or a `default` entry. Default value is `access`.
+
+* `type` - (Required) Specifies the type of entry. Can be `user`, `group`, `mask` or `other`.
+
+* `id` - (Optional) Specifies the Object ID of the Azure Active Directory User or Group that the entry relates to. Only valid for `user` or `group` entries.
+
+* `permissions` - (Required) Specifies the permissions for the entry in `rwx` form. For example, `rwx` gives full permissions but `r--` only gives read permissions.
+
+More details on ACLs can be found here: https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-access-control#access-control-lists-on-files-and-directories
 
 ~> **NOTE:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `is_hns_enabled` has to be set to `true`.
 
