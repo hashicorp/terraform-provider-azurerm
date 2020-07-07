@@ -22,15 +22,27 @@ resource "azurerm_resource_group" "example" {
   location = "Southeast Asia"
 }
 
+resource "azurerm_application_insights" "example" {
+  name                = "tf-test-appinsights"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  application_type    = "web"
+}
+
 resource "azurerm_spring_cloud_service" "example" {
   name                = "example-springcloud"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
+  sku_name            = "S0"
 
   config_server_git_setting {
     uri          = "https://github.com/Azure-Samples/piggymetrics"
     label        = "config"
     search_paths = ["dir1", "dir2"]
+  }
+
+  trace {
+    instrumentation_key = azurerm_application_insights.example.instrumentation_key
   }
 
   tags = {
@@ -51,7 +63,11 @@ The following arguments are supported:
 
 -> **Note:** At this time Azure Spring Cloud Service is only supported in a subset of regions (including `East US`, `South East Asia`, `West Europe` and `West US 2`.
 
+* `sku_name` - (Optional) Specifies the SKU Name for this Spring Cloud Service. Possible values are `B0` and `S0`. Defaults to `S0`.
+
 * `config_server_git_setting` - (Optional) A `config_server_git_setting` block as defined below.
+
+* `trace` - (Optional) A `trace` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -108,6 +124,12 @@ The `ssh_auth` block supports the following:
 * `host_key_algorithm` - (Optional) The host key algorithm, should be `ssh-dss`, `ssh-rsa`, `ecdsa-sha2-nistp256`, `ecdsa-sha2-nistp384`, or `ecdsa-sha2-nistp521`. Required only if `host-key` exists.
 
 * `strict_host_key_checking_enabled` - (Optional) Indicates whether the Config Server instance will fail to start if the host_key does not match.
+
+---
+
+The `trace` block supports the following:
+
+* `instrumentation_key` - (Required) The Instrumentation Key used for Application Insights.
 
 ## Attributes Reference
 

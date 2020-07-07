@@ -208,13 +208,10 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 		Sku:      sku,
 		Tags:     tags.Expand(t),
 		ElasticPoolProperties: &sql.ElasticPoolProperties{
-			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
 			LicenseType:         sql.ElasticPoolLicenseType(d.Get("license_type").(string)),
+			PerDatabaseSettings: expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d),
+			ZoneRedundant:       utils.Bool(d.Get("zone_redundant").(bool)),
 		},
-	}
-
-	if v, ok := d.GetOkExists("zone_redundant"); ok {
-		elasticPool.ElasticPoolProperties.ZoneRedundant = utils.Bool(v.(bool))
 	}
 
 	if d.HasChange("max_size_gb") {
@@ -310,8 +307,15 @@ func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	_, err = client.Delete(ctx, elasticPool.ResourceGroup, elasticPool.MsSqlServer, elasticPool.Name)
-	return err
+	future, err := client.Delete(ctx, elasticPool.ResourceGroup, elasticPool.MsSqlServer, elasticPool.Name)
+	if err != nil {
+		return fmt.Errorf("deleting ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.MsSqlServer, elasticPool.ResourceGroup, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of ElasticPool %q (Server %q / Resource Group %q): %+v", elasticPool.Name, elasticPool.MsSqlServer, elasticPool.ResourceGroup, err)
+	}
+
+	return nil
 }
 
 func expandAzureRmMsSqlElasticPoolPerDatabaseSettings(d *schema.ResourceData) *sql.ElasticPoolPerDatabaseSettings {

@@ -152,8 +152,8 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 	}
 
 	var ttl *int
-	if v, ok := d.GetOkExists("default_ttl_seconds"); ok {
-		ttl = utils.Int(v.(int))
+	if v := d.Get("default_ttl_seconds").(int); v > 0 {
+		ttl = utils.Int(v)
 	}
 
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{
@@ -172,9 +172,9 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	if v, ok := d.GetOkExists("shard_key"); ok {
+	if shardKey := d.Get("shard_key").(string); shardKey != "" {
 		db.MongoDBCollectionCreateUpdateProperties.Resource.ShardKey = map[string]*string{
-			v.(string): utils.String("Hash"), // looks like only hash is supported for now
+			shardKey: utils.String("Hash"), // looks like only hash is supported for now
 		}
 	}
 
@@ -212,8 +212,8 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 	}
 
 	var ttl *int
-	if v, ok := d.GetOkExists("default_ttl_seconds"); ok {
-		ttl = utils.Int(v.(int))
+	if v := d.Get("default_ttl_seconds").(int); v > 0 {
+		ttl = utils.Int(v)
 	}
 
 	db := documentdb.MongoDBCollectionCreateUpdateParameters{
@@ -226,9 +226,9 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		},
 	}
 
-	if v, ok := d.GetOkExists("shard_key"); ok {
+	if shardKey := d.Get("shard_key").(string); shardKey != "" {
 		db.MongoDBCollectionCreateUpdateProperties.Resource.ShardKey = map[string]*string{
-			v.(string): utils.String("Hash"), // looks like only hash is supported for now
+			shardKey: utils.String("Hash"), // looks like only hash is supported for now
 		}
 	}
 
