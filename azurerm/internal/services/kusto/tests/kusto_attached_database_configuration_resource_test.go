@@ -67,7 +67,7 @@ resource "azurerm_kusto_database" "followed_database" {
   name                = "acctestkd-%d"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  cluster_name        = azurerm_kusto_cluster.cluster.name
+  cluster_name        = azurerm_kusto_cluster.cluster1.name
 }
 
 resource "azurerm_kusto_attached_database_configuration" "configuration1" {
