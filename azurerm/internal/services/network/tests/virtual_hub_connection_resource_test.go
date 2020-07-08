@@ -187,6 +187,7 @@ func testAccAzureRMVirtualHubConnection_basic(data acceptance.TestData) string {
 	template := testAccAzureRMVirtualHubConnection_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_virtual_hub_connection" "test" {
   name                      = "acctestbasicvhubconn-%d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
@@ -199,6 +200,7 @@ func testAccAzureRMVirtualHubConnection_requiresImport(data acceptance.TestData)
 	template := testAccAzureRMVirtualHubConnection_basic(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_virtual_hub_connection" "import" {
   name                      = azurerm_virtual_hub_connection.test.name
   virtual_hub_id            = azurerm_virtual_hub_connection.test.virtual_hub_id
@@ -211,33 +213,39 @@ func testAccAzureRMVirtualHubConnection_complete(data acceptance.TestData) strin
 	template := testAccAzureRMVirtualHubConnection_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_virtual_network" "test2" {
   name                = "acctestvirtnet2%d"
   address_space       = ["10.6.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_network_security_group" "test2" {
   name                = "acctestnsg2%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_subnet" "test2" {
   name                 = "acctestsubnet2%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["10.6.1.0/24"]
 }
+
 resource "azurerm_subnet_network_security_group_association" "test2" {
   subnet_id                 = azurerm_subnet.test2.id
   network_security_group_id = azurerm_network_security_group.test2.id
 }
+
 resource "azurerm_virtual_hub_connection" "test" {
   name                      = "acctestvhubconn-%d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
   internet_security_enabled = false
 }
+
 resource "azurerm_virtual_hub_connection" "test2" {
   name                      = "acctestvhubconn2-%d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
@@ -251,6 +259,7 @@ func testAccAzureRMVirtualHubConnection_enableInternetSecurity(data acceptance.T
 	template := testAccAzureRMVirtualHubConnection_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_virtual_hub_connection" "test" {
   name                      = "acctestbasicvhubconn-%d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
@@ -265,36 +274,43 @@ func testAccAzureRMVirtualHubConnection_template(data acceptance.TestData) strin
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-vhub-%d"
   location = "%s"
 }
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.5.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_network_security_group" "test" {
   name                = "acctestnsg%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
 }
+
 resource "azurerm_subnet_network_security_group_association" "test" {
   subnet_id                 = azurerm_subnet.test.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
+
 resource "azurerm_virtual_wan" "test" {
   name                = "acctestvwan-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
+
 resource "azurerm_virtual_hub" "test" {
   name                = "acctest-VHUB-%d"
   resource_group_name = azurerm_resource_group.test.name

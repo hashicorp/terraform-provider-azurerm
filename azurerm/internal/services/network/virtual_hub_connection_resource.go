@@ -59,7 +59,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 				Type:       schema.TypeBool,
 				Optional:   true,
 				ForceNew:   true,
-				Deprecated: "this property has been deprecated in the API and will be removed in version 3.0 of the provider",
+				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
 			},
 
 			// TODO 3.0: remove this property
@@ -67,7 +67,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 				Type:       schema.TypeBool,
 				Optional:   true,
 				ForceNew:   true,
-				Deprecated: "this property has been deprecated in the API and will be removed in version 3.0 of the provider",
+				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
 			},
 
 			"internet_security_enabled": {
