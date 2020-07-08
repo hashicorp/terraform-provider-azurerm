@@ -19,6 +19,7 @@ import (
 func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema.UpdateFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		client := meta.(*clients.Client).HDInsight.ClustersClient
+		extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
@@ -108,7 +109,6 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 
 		if d.HasChange("monitor") {
 			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
-			extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 			if v, ok := d.GetOk("monitor"); ok {
 				monitorRaw := v.([]interface{})
 				if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {

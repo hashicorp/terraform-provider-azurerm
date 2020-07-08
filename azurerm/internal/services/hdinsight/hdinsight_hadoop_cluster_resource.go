@@ -305,14 +305,6 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	// We can only enable monitoring after creation
-	if v, ok := d.GetOk("monitor"); ok {
-		monitorRaw := v.([]interface{})
-		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
-			return err
-		}
-	}
-
 	return resourceArmHDInsightHadoopClusterRead(d, meta)
 }
 
