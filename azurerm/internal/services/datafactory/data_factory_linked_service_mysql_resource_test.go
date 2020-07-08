@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,63 +12,61 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryDatasetMySQL_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
+func TestAccAzureRMDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetMySQLDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryDatasetMySQL_basic(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceMySQL_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetMySQLExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("connection_string"),
 		},
 	})
 }
 
-func TestAccAzureRMDataFactoryDatasetMySQL_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
+func TestAccAzureRMDataFactoryLinkedServiceMySQL_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetMySQLDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryDatasetMySQL_update1(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceMySQL_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetMySQLExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
 			{
-				Config: testAccAzureRMDataFactoryDatasetMySQL_update2(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceMySQL_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetMySQLExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("connection_string"),
 		},
 	})
 }
 
-func testCheckAzureRMDataFactoryDatasetMySQLExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryLinkedServiceMySQLExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -86,23 +84,23 @@ func testCheckAzureRMDataFactoryDatasetMySQLExists(name string) resource.TestChe
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on dataFactoryDatasetClient: %+v", err)
+			return fmt.Errorf("Bad: Get on dataFactoryLinkedServiceClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Dataset MySQL %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Linked Service MySQL %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryDatasetMySQLDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
+func testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_dataset_mysql" {
+		if rs.Type != "azurerm_data_factory_linked_service_mysql" {
 			continue
 		}
 
@@ -117,21 +115,21 @@ func testCheckAzureRMDataFactoryDatasetMySQLDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Dataset MySQL still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Linked Service MySQL still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryDatasetMySQL_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceMySQL_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -147,24 +145,17 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   data_factory_name   = azurerm_data_factory.test.name
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
-
-resource "azurerm_data_factory_dataset_mysql" "test" {
-  name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_mysql.test.name
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetMySQL_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceMySQL_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -179,18 +170,8 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
-}
-
-resource "azurerm_data_factory_dataset_mysql" "test" {
-  name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_mysql.test.name
-
-  description = "test description"
-  annotations = ["test1", "test2", "test3"]
-  table_name  = "testTable"
-  folder      = "testFolder"
+  annotations         = ["test1", "test2", "test3"]
+  description         = "test description"
 
   parameters = {
     foo = "test1"
@@ -201,24 +182,18 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
     foo = "test1"
     bar = "test2"
   }
-
-  schema_column {
-    name        = "test1"
-    type        = "Byte"
-    description = "description"
-  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetMySQL_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceMySQL_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -233,18 +208,8 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
-}
-
-resource "azurerm_data_factory_dataset_mysql" "test" {
-  name                = "acctestds%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_mysql.test.name
-
-  description = "test description 2"
-  annotations = ["test1", "test2"]
-  table_name  = "testTable"
-  folder      = "testFolder"
+  annotations         = ["test1", "test2"]
+  description         = "test description 2"
 
   parameters = {
     foo  = "test1"
@@ -255,18 +220,6 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
   additional_properties = {
     foo = "test1"
   }
-
-  schema_column {
-    name        = "test1"
-    type        = "Byte"
-    description = "description"
-  }
-
-  schema_column {
-    name        = "test2"
-    type        = "Byte"
-    description = "description"
-  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

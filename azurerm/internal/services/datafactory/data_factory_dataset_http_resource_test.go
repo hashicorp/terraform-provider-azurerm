@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryDatasetPostgreSQL_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_postgresql", "test")
+func TestAccAzureRMDataFactoryDatasetHTTP_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_http", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetHTTPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryDatasetPostgreSQL_basic(data),
+				Config: testAccAzureRMDataFactoryDatasetHTTP_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetPostgreSQLExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetHTTPExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,18 +31,18 @@ func TestAccAzureRMDataFactoryDatasetPostgreSQL_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataFactoryDatasetPostgreSQL_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_postgresql", "test")
+func TestAccAzureRMDataFactoryDatasetHTTP_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_http", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetHTTPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryDatasetPostgreSQL_update1(data),
+				Config: testAccAzureRMDataFactoryDatasetHTTP_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetPostgreSQLExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetHTTPExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "1"),
@@ -50,10 +50,11 @@ func TestAccAzureRMDataFactoryDatasetPostgreSQL_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataFactoryDatasetPostgreSQL_update2(data),
+				Config: testAccAzureRMDataFactoryDatasetHTTP_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetPostgreSQLExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetHTTPExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "2"),
@@ -66,7 +67,7 @@ func TestAccAzureRMDataFactoryDatasetPostgreSQL_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataFactoryDatasetPostgreSQLExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryDatasetHTTPExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -90,19 +91,19 @@ func testCheckAzureRMDataFactoryDatasetPostgreSQLExists(name string) resource.Te
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Dataset PostgreSQL %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Dataset HTTP %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryDatasetHTTPDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_dataset_postgredql" {
+		if rs.Type != "azurerm_data_factory_dataset_http" {
 			continue
 		}
 
@@ -117,21 +118,21 @@ func testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy(s *terraform.State) err
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Dataset PostgreSQL still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Dataset HTTP still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryDatasetPostgreSQL_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetHTTP_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -141,30 +142,37 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_postgresql" "test" {
-  name                = "acctestlssql%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
+
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 
-resource "azurerm_data_factory_dataset_postgresql" "test" {
+resource "azurerm_data_factory_dataset_http" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_postgresql.test.name
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
+
+  relative_url   = "/foo/bar"
+  request_body   = "OK"
+  request_method = "POST"
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetPostgreSQL_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetHTTP_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -174,22 +182,27 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_postgresql" "test" {
-  name                = "acctestlssql%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
+
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 
-resource "azurerm_data_factory_dataset_postgresql" "test" {
+resource "azurerm_data_factory_dataset_http" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_postgresql.test.name
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
+
+  relative_url   = "/foo/bar"
+  request_body   = "OK"
+  request_method = "POST"
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
-  table_name  = "testTable"
   folder      = "testFolder"
 
   parameters = {
@@ -211,14 +224,14 @@ resource "azurerm_data_factory_dataset_postgresql" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetPostgreSQL_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetHTTP_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -228,22 +241,26 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_postgresql" "test" {
-  name                = "acctestlssql%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 
-resource "azurerm_data_factory_dataset_postgresql" "test" {
+resource "azurerm_data_factory_dataset_http" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_postgresql.test.name
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
+
+  relative_url   = "/foo/bar"
+  request_body   = "OK"
+  request_method = "POST"
 
   description = "test description 2"
   annotations = ["test1", "test2"]
-  table_name  = "testTable"
   folder      = "testFolder"
 
   parameters = {

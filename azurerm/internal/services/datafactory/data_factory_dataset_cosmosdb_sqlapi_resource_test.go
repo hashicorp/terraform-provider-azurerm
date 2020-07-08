@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,61 +12,64 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
+func TestAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_sqlapi", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceMySQL_basic(data),
+				Config: testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("connection_string"),
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceMySQL_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
+func TestAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_sqlapi", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceMySQL_update1(data),
+				Config: testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceMySQL_update2(data),
+				Config: testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
 			},
-			data.ImportStep("connection_string"),
+			data.ImportStep(),
 		},
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceMySQLExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -84,23 +87,23 @@ func testCheckAzureRMDataFactoryLinkedServiceMySQLExists(name string) resource.T
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on dataFactoryLinkedServiceClient: %+v", err)
+			return fmt.Errorf("Bad: Get on dataFactoryDatasetClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service MySQL %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Dataset HTTP %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+func testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_mysql" {
+		if rs.Type != "azurerm_data_factory_dataset_cosmosdb_sqlapi" {
 			continue
 		}
 
@@ -115,21 +118,21 @@ func testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy(s *terraform.State) er
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service MySQL still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Dataset HTTP still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceMySQL_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -139,23 +142,33 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_mysql" "test" {
-  name                = "acctestlssql%d"
+resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
+  name                = "acctestlscosmosdb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+
+resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_cosmosdb.test.name
+
+  collection_name = "Foo"
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceMySQL_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -165,13 +178,24 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_mysql" "test" {
-  name                = "acctestlssql%d"
+resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
+  name                = "acctestlscosmosdb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+}
+
+resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_cosmosdb.test.name
+
+  collection_name = "Foo"
+
+  description = "test description"
+  annotations = ["test1", "test2", "test3"]
+  folder      = "testFolder"
 
   parameters = {
     foo = "test1"
@@ -182,18 +206,24 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
     foo = "test1"
     bar = "test2"
   }
+
+  schema_column {
+    name        = "test1"
+    type        = "Byte"
+    description = "description"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceMySQL_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
 }
 
@@ -203,13 +233,24 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_mysql" "test" {
-  name                = "acctestlssql%d"
+resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
+  name                = "acctestlscosmosdb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
-  annotations         = ["test1", "test2"]
-  description         = "test description 2"
+}
+
+resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_cosmosdb.test.name
+
+  collection_name = "Foo"
+
+  description = "test description 2"
+  annotations = ["test1", "test2"]
+  folder      = "testFolder"
 
   parameters = {
     foo  = "test1"
@@ -220,6 +261,18 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   additional_properties = {
     foo = "test1"
   }
+
+  schema_column {
+    name        = "test1"
+    type        = "Byte"
+    description = "description"
+  }
+
+  schema_column {
+    name        = "test2"
+    type        = "Byte"
+    description = "description"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
