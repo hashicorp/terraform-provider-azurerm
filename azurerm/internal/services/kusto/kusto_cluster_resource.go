@@ -104,9 +104,9 @@ func resourceArmKustoCluster() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
-        },
+				},
 			},
-      
+
 			"optimized_auto_scale": {
 				Type:     schema.TypeList,
 				Optional: true,
