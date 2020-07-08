@@ -24,7 +24,6 @@ func TestAccAzureRMKustoCluster_basic(t *testing.T) {
 				Config: testAccAzureRMKustoCluster_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "trusted_external_tenants", "*"),
 				),
 			},
 			data.ImportStep(),
