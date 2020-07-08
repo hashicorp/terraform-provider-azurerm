@@ -113,7 +113,6 @@ func (client IPAllocationsClient) CreateOrUpdateSender(req *http.Request) (futur
 func (client IPAllocationsClient) CreateOrUpdateResponder(resp *http.Response) (result IPAllocation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client IPAllocationsClient) DeleteSender(req *http.Request) (future IPAllo
 func (client IPAllocationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -268,7 +266,6 @@ func (client IPAllocationsClient) GetSender(req *http.Request) (*http.Response, 
 func (client IPAllocationsClient) GetResponder(resp *http.Response) (result IPAllocation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -340,7 +337,6 @@ func (client IPAllocationsClient) ListSender(req *http.Request) (*http.Response,
 func (client IPAllocationsClient) ListResponder(resp *http.Response) (result IPAllocationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -452,7 +448,6 @@ func (client IPAllocationsClient) ListByResourceGroupSender(req *http.Request) (
 func (client IPAllocationsClient) ListByResourceGroupResponder(resp *http.Response) (result IPAllocationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -568,7 +563,6 @@ func (client IPAllocationsClient) UpdateTagsSender(req *http.Request) (*http.Res
 func (client IPAllocationsClient) UpdateTagsResponder(resp *http.Response) (result IPAllocation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

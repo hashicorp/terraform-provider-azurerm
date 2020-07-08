@@ -112,7 +112,6 @@ func (client ProvidersClient) GetSender(req *http.Request) (*http.Response, erro
 func (client ProvidersClient) GetResponder(resp *http.Response) (result Provider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,7 +194,6 @@ func (client ProvidersClient) ListSender(req *http.Request) (*http.Response, err
 func (client ProvidersClient) ListResponder(resp *http.Response) (result ProviderListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -306,7 +304,6 @@ func (client ProvidersClient) RegisterSender(req *http.Request) (*http.Response,
 func (client ProvidersClient) RegisterResponder(resp *http.Response) (result Provider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -380,7 +377,6 @@ func (client ProvidersClient) UnregisterSender(req *http.Request) (*http.Respons
 func (client ProvidersClient) UnregisterResponder(resp *http.Response) (result Provider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -125,7 +125,6 @@ func (client ConnectionMonitorsClient) CreateOrUpdateSender(req *http.Request) (
 func (client ConnectionMonitorsClient) CreateOrUpdateResponder(resp *http.Response) (result ConnectionMonitorResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client ConnectionMonitorsClient) DeleteSender(req *http.Request) (future C
 func (client ConnectionMonitorsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,7 +278,6 @@ func (client ConnectionMonitorsClient) GetSender(req *http.Request) (*http.Respo
 func (client ConnectionMonitorsClient) GetResponder(resp *http.Response) (result ConnectionMonitorResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -356,7 +353,6 @@ func (client ConnectionMonitorsClient) ListSender(req *http.Request) (*http.Resp
 func (client ConnectionMonitorsClient) ListResponder(resp *http.Response) (result ConnectionMonitorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -434,7 +430,6 @@ func (client ConnectionMonitorsClient) QuerySender(req *http.Request) (future Co
 func (client ConnectionMonitorsClient) QueryResponder(resp *http.Response) (result ConnectionMonitorQueryResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -512,7 +507,6 @@ func (client ConnectionMonitorsClient) StartSender(req *http.Request) (future Co
 func (client ConnectionMonitorsClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -589,7 +583,6 @@ func (client ConnectionMonitorsClient) StopSender(req *http.Request) (future Con
 func (client ConnectionMonitorsClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -669,7 +662,6 @@ func (client ConnectionMonitorsClient) UpdateTagsSender(req *http.Request) (*htt
 func (client ConnectionMonitorsClient) UpdateTagsResponder(resp *http.Response) (result ConnectionMonitorResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -108,7 +108,6 @@ func (client VirtualApplianceSkusClient) GetSender(req *http.Request) (*http.Res
 func (client VirtualApplianceSkusClient) GetResponder(resp *http.Response) (result VirtualApplianceSku, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -180,7 +179,6 @@ func (client VirtualApplianceSkusClient) ListSender(req *http.Request) (*http.Re
 func (client VirtualApplianceSkusClient) ListResponder(resp *http.Response) (result VirtualApplianceSkuListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

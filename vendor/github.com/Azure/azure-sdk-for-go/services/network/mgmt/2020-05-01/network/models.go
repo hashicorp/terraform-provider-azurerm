@@ -17517,8 +17517,8 @@ type HopLink struct {
 	*HopLinkProperties `json:"properties,omitempty"`
 	// Issues - READ-ONLY; List of issues.
 	Issues *[]ConnectivityIssue `json:"issues,omitempty"`
-	// Context - READ-ONLY; Provides additional context on the issue.
-	Context *[]map[string]*string `json:"context,omitempty"`
+	// Context - READ-ONLY; Provides additional context on links.
+	Context map[string]*string `json:"context"`
 	// ResourceID - READ-ONLY; Resource ID.
 	ResourceID *string `json:"resourceId,omitempty"`
 }
@@ -17579,12 +17579,12 @@ func (hl *HopLink) UnmarshalJSON(body []byte) error {
 			}
 		case "context":
 			if v != nil {
-				var context []map[string]*string
+				var context map[string]*string
 				err = json.Unmarshal(*v, &context)
 				if err != nil {
 					return err
 				}
-				hl.Context = &context
+				hl.Context = context
 			}
 		case "resourceId":
 			if v != nil {
@@ -17860,9 +17860,9 @@ type HubRouteTableProperties struct {
 	// Labels - List of labels associated with this route table.
 	Labels *[]string `json:"labels,omitempty"`
 	// AssociatedConnections - READ-ONLY; List of all connections associated with this route table.
-	AssociatedConnections *[]SubResource `json:"associatedConnections,omitempty"`
+	AssociatedConnections *[]string `json:"associatedConnections,omitempty"`
 	// PropagatingConnections - READ-ONLY; List of all connections that advertise to this route table.
-	PropagatingConnections *[]SubResource `json:"propagatingConnections,omitempty"`
+	PropagatingConnections *[]string `json:"propagatingConnections,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state of the RouteTable resource. Possible values include: 'Succeeded', 'Updating', 'Deleting', 'Failed'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 }
@@ -27911,6 +27911,64 @@ type PrivateLinkServicePropertiesVisibility struct {
 	Subscriptions *[]string `json:"subscriptions,omitempty"`
 }
 
+// PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture an abstraction for monitoring
+// and retrieving the results of a long-running operation.
+type PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture) Result(client PrivateLinkServicesClient) (plsv PrivateLinkServiceVisibility, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if plsv.Response.Response, err = future.GetResult(sender); err == nil && plsv.Response.Response.StatusCode != http.StatusNoContent {
+		plsv, err = client.CheckPrivateLinkServiceVisibilityByResourceGroupResponder(plsv.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityByResourceGroupFuture", "Result", plsv.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture an abstraction for monitoring and retrieving
+// the results of a long-running operation.
+type PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture) Result(client PrivateLinkServicesClient) (plsv PrivateLinkServiceVisibility, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if plsv.Response.Response, err = future.GetResult(sender); err == nil && plsv.Response.Response.StatusCode != http.StatusNoContent {
+		plsv, err = client.CheckPrivateLinkServiceVisibilityResponder(plsv.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "network.PrivateLinkServicesCheckPrivateLinkServiceVisibilityFuture", "Result", plsv.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // PrivateLinkServicesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type PrivateLinkServicesCreateOrUpdateFuture struct {
@@ -34508,8 +34566,8 @@ type VirtualHubEffectiveRoute struct {
 	RouteOrigin *string `json:"routeOrigin,omitempty"`
 }
 
-// VirtualHubEffectiveRouteEffectiveRouteList effectiveRoutes List.
-type VirtualHubEffectiveRouteEffectiveRouteList struct {
+// VirtualHubEffectiveRouteList effectiveRoutes List.
+type VirtualHubEffectiveRouteList struct {
 	// Value - The list of effective routes configured on the virtual hub or the specified resource.
 	Value *[]VirtualHubEffectiveRoute `json:"value,omitempty"`
 }

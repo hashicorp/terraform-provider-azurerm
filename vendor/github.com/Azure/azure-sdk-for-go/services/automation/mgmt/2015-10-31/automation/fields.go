@@ -122,7 +122,6 @@ func (client FieldsClient) ListByTypeSender(req *http.Request) (*http.Response, 
 func (client FieldsClient) ListByTypeResponder(resp *http.Response) (result TypeFieldListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

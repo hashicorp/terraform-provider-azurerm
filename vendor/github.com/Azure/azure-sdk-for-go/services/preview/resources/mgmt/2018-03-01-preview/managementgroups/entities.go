@@ -161,7 +161,6 @@ func (client EntitiesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client EntitiesClient) ListResponder(resp *http.Response) (result EntityListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

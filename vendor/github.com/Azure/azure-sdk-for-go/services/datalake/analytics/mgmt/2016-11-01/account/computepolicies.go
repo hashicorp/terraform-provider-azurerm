@@ -129,7 +129,6 @@ func (client ComputePoliciesClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client ComputePoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ComputePolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client ComputePoliciesClient) DeleteSender(req *http.Request) (*http.Respo
 func (client ComputePoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -284,7 +282,6 @@ func (client ComputePoliciesClient) GetSender(req *http.Request) (*http.Response
 func (client ComputePoliciesClient) GetResponder(resp *http.Response) (result ComputePolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -362,7 +359,6 @@ func (client ComputePoliciesClient) ListByAccountSender(req *http.Request) (*htt
 func (client ComputePoliciesClient) ListByAccountResponder(resp *http.Response) (result ComputePolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -483,7 +479,6 @@ func (client ComputePoliciesClient) UpdateSender(req *http.Request) (*http.Respo
 func (client ComputePoliciesClient) UpdateResponder(resp *http.Response) (result ComputePolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

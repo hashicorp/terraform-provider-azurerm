@@ -101,7 +101,6 @@ func (client EdgeNodesClient) ListSender(req *http.Request) (*http.Response, err
 func (client EdgeNodesClient) ListResponder(resp *http.Response) (result EdgenodeResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

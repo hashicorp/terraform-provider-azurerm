@@ -146,7 +146,6 @@ func (client GatewayClient) CreateOrUpdateSender(req *http.Request) (*http.Respo
 func (client GatewayClient) CreateOrUpdateResponder(resp *http.Response) (result GatewayContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -239,7 +238,6 @@ func (client GatewayClient) DeleteSender(req *http.Request) (*http.Response, err
 func (client GatewayClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -332,7 +330,6 @@ func (client GatewayClient) GenerateTokenSender(req *http.Request) (*http.Respon
 func (client GatewayClient) GenerateTokenResponder(resp *http.Response) (result GatewayTokenContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -422,7 +419,6 @@ func (client GatewayClient) GetSender(req *http.Request) (*http.Response, error)
 func (client GatewayClient) GetResponder(resp *http.Response) (result GatewayContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -512,7 +508,6 @@ func (client GatewayClient) GetEntityTagSender(req *http.Request) (*http.Respons
 func (client GatewayClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -610,7 +605,6 @@ func (client GatewayClient) ListByServiceSender(req *http.Request) (*http.Respon
 func (client GatewayClient) ListByServiceResponder(resp *http.Response) (result GatewayCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -737,7 +731,6 @@ func (client GatewayClient) ListKeysSender(req *http.Request) (*http.Response, e
 func (client GatewayClient) ListKeysResponder(resp *http.Response) (result GatewayKeysContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -829,7 +822,6 @@ func (client GatewayClient) RegenerateKeySender(req *http.Request) (*http.Respon
 func (client GatewayClient) RegenerateKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -923,7 +915,6 @@ func (client GatewayClient) UpdateSender(req *http.Request) (*http.Response, err
 func (client GatewayClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

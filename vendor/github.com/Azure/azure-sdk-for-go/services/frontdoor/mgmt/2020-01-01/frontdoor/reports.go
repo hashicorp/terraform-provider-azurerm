@@ -136,7 +136,6 @@ func (client ReportsClient) GetLatencyScorecardsSender(req *http.Request) (*http
 func (client ReportsClient) GetLatencyScorecardsResponder(resp *http.Response) (result LatencyScorecard, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -243,7 +242,6 @@ func (client ReportsClient) GetTimeseriesSender(req *http.Request) (*http.Respon
 func (client ReportsClient) GetTimeseriesResponder(resp *http.Response) (result Timeseries, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

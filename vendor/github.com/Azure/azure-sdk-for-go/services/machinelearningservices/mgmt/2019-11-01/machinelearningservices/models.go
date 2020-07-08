@@ -3293,6 +3293,29 @@ func (future *WorkspacesCreateOrUpdateFuture) Result(client WorkspacesClient) (w
 	return
 }
 
+// WorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type WorkspacesDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *WorkspacesDeleteFuture) Result(client WorkspacesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.WorkspacesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // WorkspaceSku describes Workspace Sku details and features
 type WorkspaceSku struct {
 	// Locations - READ-ONLY; The set of locations that the SKU is available. This will be supported and registered Azure Geo Regions (e.g. West US, East US, Southeast Asia, etc.).

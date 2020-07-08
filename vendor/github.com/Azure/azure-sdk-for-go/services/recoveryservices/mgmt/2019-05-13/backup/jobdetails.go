@@ -111,7 +111,6 @@ func (client JobDetailsClient) GetSender(req *http.Request) (*http.Response, err
 func (client JobDetailsClient) GetResponder(resp *http.Response) (result JobResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

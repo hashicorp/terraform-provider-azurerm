@@ -114,7 +114,6 @@ func (client FirewallPoliciesClient) CreateOrUpdateSender(req *http.Request) (fu
 func (client FirewallPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result FirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,7 +189,6 @@ func (client FirewallPoliciesClient) DeleteSender(req *http.Request) (future Fir
 func (client FirewallPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -269,7 +267,6 @@ func (client FirewallPoliciesClient) GetSender(req *http.Request) (*http.Respons
 func (client FirewallPoliciesClient) GetResponder(resp *http.Response) (result FirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -344,7 +341,6 @@ func (client FirewallPoliciesClient) ListSender(req *http.Request) (*http.Respon
 func (client FirewallPoliciesClient) ListResponder(resp *http.Response) (result FirewallPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -453,7 +449,6 @@ func (client FirewallPoliciesClient) ListAllSender(req *http.Request) (*http.Res
 func (client FirewallPoliciesClient) ListAllResponder(resp *http.Response) (result FirewallPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

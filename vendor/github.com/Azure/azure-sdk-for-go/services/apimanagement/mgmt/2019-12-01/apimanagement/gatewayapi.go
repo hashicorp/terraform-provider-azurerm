@@ -134,7 +134,6 @@ func (client GatewayAPIClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client GatewayAPIClient) CreateOrUpdateResponder(resp *http.Response) (result APIContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -229,7 +228,6 @@ func (client GatewayAPIClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client GatewayAPIClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -323,7 +321,6 @@ func (client GatewayAPIClient) GetEntityTagSender(req *http.Request) (*http.Resp
 func (client GatewayAPIClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -427,7 +424,6 @@ func (client GatewayAPIClient) ListByServiceSender(req *http.Request) (*http.Res
 func (client GatewayAPIClient) ListByServiceResponder(resp *http.Response) (result APICollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

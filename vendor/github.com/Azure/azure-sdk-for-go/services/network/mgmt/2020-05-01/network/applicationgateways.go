@@ -115,7 +115,6 @@ func (client ApplicationGatewaysClient) BackendHealthSender(req *http.Request) (
 func (client ApplicationGatewaysClient) BackendHealthResponder(resp *http.Response) (result ApplicationGatewayBackendHealth, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,7 +198,6 @@ func (client ApplicationGatewaysClient) BackendHealthOnDemandSender(req *http.Re
 func (client ApplicationGatewaysClient) BackendHealthOnDemandResponder(resp *http.Response) (result ApplicationGatewayBackendHealthOnDemand, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -307,7 +305,6 @@ func (client ApplicationGatewaysClient) CreateOrUpdateSender(req *http.Request) 
 func (client ApplicationGatewaysClient) CreateOrUpdateResponder(resp *http.Response) (result ApplicationGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -383,7 +380,6 @@ func (client ApplicationGatewaysClient) DeleteSender(req *http.Request) (future 
 func (client ApplicationGatewaysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -458,7 +454,6 @@ func (client ApplicationGatewaysClient) GetSender(req *http.Request) (*http.Resp
 func (client ApplicationGatewaysClient) GetResponder(resp *http.Response) (result ApplicationGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -532,7 +527,6 @@ func (client ApplicationGatewaysClient) GetSslPredefinedPolicySender(req *http.R
 func (client ApplicationGatewaysClient) GetSslPredefinedPolicyResponder(resp *http.Response) (result ApplicationGatewaySslPredefinedPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -607,7 +601,6 @@ func (client ApplicationGatewaysClient) ListSender(req *http.Request) (*http.Res
 func (client ApplicationGatewaysClient) ListResponder(resp *http.Response) (result ApplicationGatewayListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -716,7 +709,6 @@ func (client ApplicationGatewaysClient) ListAllSender(req *http.Request) (*http.
 func (client ApplicationGatewaysClient) ListAllResponder(resp *http.Response) (result ApplicationGatewayListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -824,7 +816,6 @@ func (client ApplicationGatewaysClient) ListAvailableRequestHeadersSender(req *h
 func (client ApplicationGatewaysClient) ListAvailableRequestHeadersResponder(resp *http.Response) (result ListString, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -895,7 +886,6 @@ func (client ApplicationGatewaysClient) ListAvailableResponseHeadersSender(req *
 func (client ApplicationGatewaysClient) ListAvailableResponseHeadersResponder(resp *http.Response) (result ListString, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -966,7 +956,6 @@ func (client ApplicationGatewaysClient) ListAvailableServerVariablesSender(req *
 func (client ApplicationGatewaysClient) ListAvailableServerVariablesResponder(resp *http.Response) (result ListString, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -1037,7 +1026,6 @@ func (client ApplicationGatewaysClient) ListAvailableSslOptionsSender(req *http.
 func (client ApplicationGatewaysClient) ListAvailableSslOptionsResponder(resp *http.Response) (result ApplicationGatewayAvailableSslOptions, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1109,7 +1097,6 @@ func (client ApplicationGatewaysClient) ListAvailableSslPredefinedPoliciesSender
 func (client ApplicationGatewaysClient) ListAvailableSslPredefinedPoliciesResponder(resp *http.Response) (result ApplicationGatewayAvailableSslPredefinedPolicies, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1217,7 +1204,6 @@ func (client ApplicationGatewaysClient) ListAvailableWafRuleSetsSender(req *http
 func (client ApplicationGatewaysClient) ListAvailableWafRuleSetsResponder(resp *http.Response) (result ApplicationGatewayAvailableWafRuleSetsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1293,7 +1279,6 @@ func (client ApplicationGatewaysClient) StartSender(req *http.Request) (future A
 func (client ApplicationGatewaysClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1368,7 +1353,6 @@ func (client ApplicationGatewaysClient) StopSender(req *http.Request) (future Ap
 func (client ApplicationGatewaysClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1446,7 +1430,6 @@ func (client ApplicationGatewaysClient) UpdateTagsSender(req *http.Request) (*ht
 func (client ApplicationGatewaysClient) UpdateTagsResponder(resp *http.Response) (result ApplicationGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

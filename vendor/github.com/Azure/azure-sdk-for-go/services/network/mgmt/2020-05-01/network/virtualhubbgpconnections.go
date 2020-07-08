@@ -111,7 +111,6 @@ func (client VirtualHubBgpConnectionsClient) ListSender(req *http.Request) (*htt
 func (client VirtualHubBgpConnectionsClient) ListResponder(resp *http.Response) (result ListVirtualHubBgpConnectionResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

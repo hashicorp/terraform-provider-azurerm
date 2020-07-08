@@ -129,7 +129,6 @@ func (client DatabaseAccountRegionClient) ListMetricsSender(req *http.Request) (
 func (client DatabaseAccountRegionClient) ListMetricsResponder(resp *http.Response) (result MetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

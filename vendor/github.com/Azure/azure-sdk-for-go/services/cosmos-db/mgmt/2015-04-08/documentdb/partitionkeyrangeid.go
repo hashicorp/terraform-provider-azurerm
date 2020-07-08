@@ -133,7 +133,6 @@ func (client PartitionKeyRangeIDClient) ListMetricsSender(req *http.Request) (*h
 func (client PartitionKeyRangeIDClient) ListMetricsResponder(resp *http.Response) (result PartitionMetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

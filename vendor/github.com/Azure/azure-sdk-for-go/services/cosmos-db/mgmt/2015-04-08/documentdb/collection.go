@@ -126,7 +126,6 @@ func (client CollectionClient) ListMetricDefinitionsSender(req *http.Request) (*
 func (client CollectionClient) ListMetricDefinitionsResponder(resp *http.Response) (result MetricDefinitionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -222,7 +221,6 @@ func (client CollectionClient) ListMetricsSender(req *http.Request) (*http.Respo
 func (client CollectionClient) ListMetricsResponder(resp *http.Response) (result MetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,7 +317,6 @@ func (client CollectionClient) ListUsagesSender(req *http.Request) (*http.Respon
 func (client CollectionClient) ListUsagesResponder(resp *http.Response) (result UsagesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

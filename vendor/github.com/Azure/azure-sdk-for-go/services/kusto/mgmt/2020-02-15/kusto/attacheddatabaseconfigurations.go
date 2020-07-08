@@ -127,7 +127,6 @@ func (client AttachedDatabaseConfigurationsClient) CreateOrUpdateSender(req *htt
 func (client AttachedDatabaseConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result AttachedDatabaseConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client AttachedDatabaseConfigurationsClient) DeleteSender(req *http.Reques
 func (client AttachedDatabaseConfigurationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -282,7 +280,6 @@ func (client AttachedDatabaseConfigurationsClient) GetSender(req *http.Request) 
 func (client AttachedDatabaseConfigurationsClient) GetResponder(resp *http.Response) (result AttachedDatabaseConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -358,7 +355,6 @@ func (client AttachedDatabaseConfigurationsClient) ListByClusterSender(req *http
 func (client AttachedDatabaseConfigurationsClient) ListByClusterResponder(resp *http.Response) (result AttachedDatabaseConfigurationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

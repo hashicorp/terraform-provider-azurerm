@@ -110,7 +110,6 @@ func (client VirtualMachinesClient) ListHostsSender(req *http.Request) (*http.Re
 func (client VirtualMachinesClient) ListHostsResponder(resp *http.Response) (result ListHostInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -195,7 +194,6 @@ func (client VirtualMachinesClient) RestartHostsSender(req *http.Request) (futur
 func (client VirtualMachinesClient) RestartHostsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

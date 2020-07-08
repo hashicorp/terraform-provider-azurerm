@@ -139,7 +139,6 @@ func (client AppsClient) CreateOrUpdateSender(req *http.Request) (future AppsCre
 func (client AppsClient) CreateOrUpdateResponder(resp *http.Response) (result AppResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -218,7 +217,6 @@ func (client AppsClient) DeleteSender(req *http.Request) (*http.Response, error)
 func (client AppsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -300,7 +298,6 @@ func (client AppsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) GetResponder(resp *http.Response) (result AppResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -379,7 +376,6 @@ func (client AppsClient) GetResourceUploadURLSender(req *http.Request) (*http.Re
 func (client AppsClient) GetResourceUploadURLResponder(resp *http.Response) (result ResourceUploadDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -457,7 +453,6 @@ func (client AppsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) ListResponder(resp *http.Response) (result AppResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -576,7 +571,6 @@ func (client AppsClient) UpdateSender(req *http.Request) (future AppsUpdateFutur
 func (client AppsClient) UpdateResponder(resp *http.Response) (result AppResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -9193,6 +9193,45 @@ type QuotaCounterValueContractProperties struct {
 	KbTransferred *float64 `json:"kbTransferred,omitempty"`
 }
 
+// QuotaCounterValueUpdateContract quota counter value details.
+type QuotaCounterValueUpdateContract struct {
+	// QuotaCounterValueContractProperties - Quota counter value details.
+	*QuotaCounterValueContractProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for QuotaCounterValueUpdateContract.
+func (qcvuc QuotaCounterValueUpdateContract) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if qcvuc.QuotaCounterValueContractProperties != nil {
+		objectMap["properties"] = qcvuc.QuotaCounterValueContractProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for QuotaCounterValueUpdateContract struct.
+func (qcvuc *QuotaCounterValueUpdateContract) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var quotaCounterValueContractProperties QuotaCounterValueContractProperties
+				err = json.Unmarshal(*v, &quotaCounterValueContractProperties)
+				if err != nil {
+					return err
+				}
+				qcvuc.QuotaCounterValueContractProperties = &quotaCounterValueContractProperties
+			}
+		}
+	}
+
+	return nil
+}
+
 // RecipientEmailCollection paged Recipient User list representation.
 type RecipientEmailCollection struct {
 	autorest.Response `json:"-"`
