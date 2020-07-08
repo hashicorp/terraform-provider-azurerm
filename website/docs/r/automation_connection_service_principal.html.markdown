@@ -3,12 +3,12 @@ subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_connection_service_principal"
 description: |-
-  Manages a Automation Connection with type `AzureServicePrincipal`.
+  Manages an Automation Connection with type `AzureServicePrincipal`.
 ---
 
 # azurerm_automation_connection_service_principal
 
-Manages a Automation Connection with type `AzureServicePrincipal`.
+Manages an Automation Connection with type `AzureServicePrincipal`.
 
 ## Example Usage
 

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_automation_connection_certificate
 
-Manages a Automation Connection with type `Azure`.
+Manages an Automation Connection with type `Azure`.
 
 ## Example Usage
 
@@ -86,5 +86,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Automation Connection can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automation_connection_certificate.conn1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/connections/conn1
+terraform import azurerm_automation_connection_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/connections/conn1
 ```

@@ -3,12 +3,12 @@ subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_connection_classic_certificate"
 description: |-
-  Manages a Automation Connection with type `AzureClassicCertificate`.
+  Manages an Automation Connection with type `AzureClassicCertificate`.
 ---
 
 # azurerm_automation_connection_classic_certificate
 
-Manages a Automation Connection with type `AzureClassicCertificate`.
+Manages an Automation Connection with type `AzureClassicCertificate`.
 
 ## Example Usage
 

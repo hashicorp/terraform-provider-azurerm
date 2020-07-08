@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_automation_connection
 
-Manages a Automation Connection.
+Manages an Automation Connection.
 
 ## Example Usage
 
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `automation_account_name` - (Required) The name of the automation account in which the Connection is created. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of the Connection - can be either builtin type `Azure`, `AzureClassicCertificate` `AzureServicePrincipal` or user custom types. Changing this forces a new resource to be created.
+* `type` - (Required) The type of the Connection - can be either builtin type such as `Azure`, `AzureClassicCertificate`, and `AzureServicePrincipal`, or a user defined types. Changing this forces a new resource to be created.
 
 * `values` - (Optional) A mapping of key value pairs passed to the connection. Different `type` needs different parameters in the `values`. Builtin types have required field values as below:
 
@@ -91,5 +91,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Automation Connection can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automation_connection.conn1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/connections/conn1
+terraform import azurerm_automation_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/connections/conn1
 ```
