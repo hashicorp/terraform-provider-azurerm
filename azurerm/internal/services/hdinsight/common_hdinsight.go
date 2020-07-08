@@ -106,6 +106,29 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			}
 		}
 
+		if d.HasChange("gateway") {
+			log.Printf("[DEBUG] Updating the HDInsight %q Cluster gateway", clusterKind)
+			vs := d.Get("gateway").([]interface{})[0].(map[string]interface{})
+
+			enabled := true
+			username := vs["username"].(string)
+			password := vs["password"].(string)
+
+			future, err := client.UpdateGatewaySettings(ctx, resourceGroup, name, hdinsight.UpdateGatewaySettingsParameters{
+				IsCredentialEnabled: &enabled,
+				UserName:            utils.String(username),
+				Password:            utils.String(password),
+			})
+
+			if err != nil {
+				return err
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) Gateway to be updated: %s", name, resourceGroup, err)
+			}
+		}
+
 		return readFunc(d, meta)
 	}
 }
@@ -274,8 +297,11 @@ func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 }
 
 func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
-	v := input[0].(map[string]interface{})
+	if len(input) == 0 || input[0] == nil {
+		return map[string]interface{}{}
+	}
 
+	v := input[0].(map[string]interface{})
 	config := map[string]interface{}{}
 
 	if hiveRaw, ok := v["hive"]; ok {

@@ -6,14 +6,19 @@ import (
 )
 
 type Client struct {
-	ConfigurationsClient *maintenance.ConfigurationsClient
+	ConfigurationsClient           *maintenance.ConfigurationsClient
+	ConfigurationAssignmentsClient *maintenance.ConfigurationAssignmentsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	configurationsClient := maintenance.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
 
+	configurationAssignmentsClient := maintenance.NewConfigurationAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&configurationAssignmentsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		ConfigurationsClient: &configurationsClient,
+		ConfigurationsClient:           &configurationsClient,
+		ConfigurationAssignmentsClient: &configurationAssignmentsClient,
 	}
 }

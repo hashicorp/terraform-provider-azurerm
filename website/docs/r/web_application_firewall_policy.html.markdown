@@ -117,7 +117,7 @@ The following arguments are supported:
 
 * `policy_settings` - (Optional) A `policy_settings` block as defined below.
 
-* `managed_rules` - (Optional) A `managed_rules` blocks as defined below.
+* `managed_rules` - (Required) A `managed_rules` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the Web Application Firewall Policy.
 
@@ -141,11 +141,13 @@ The `match_conditions` block supports the following:
 
 * `match_variables` - (Required) One or more `match_variables` blocks as defined below.
 
+* `match_values` - (Required) A list of match values.
+
 * `operator` - (Required) Describes operator to be matched.
 
 * `negation_condition` - (Optional) Describes if this is negate condition or not
 
-* `match_values` - (Required) A list of match values.
+* `transforms` - (Optional) A list of transformations to do before the match is attempted.
 
 ---
 
@@ -185,9 +187,9 @@ The `exclusion` block supports the following:
 
 The `managed_rule_set` block supports the following:
 
-* `type` - (Optional) The rule set type.
+* `type` - (Optional) The rule set type. Possible values: `Microsoft_BotManagerRuleSet` and `OWASP`.
 
-* `version` - (Required) The rule set version.
+* `version` - (Required) The rule set version. Possible values: `0.1`, `1.0`, `2.2.9`, `3.0` and `3.1`.
 
 * `rule_group_override` - (Optional) One or more `rule_group_override` block defined below.
 

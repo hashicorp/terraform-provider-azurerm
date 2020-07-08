@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `expiry_time` -  (Optional) The end time of the schedule.
 
-* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://msdn.microsoft.com/en-us/library/ms912391(v=winembedded.11).aspx
+* `timezone` - (Optional) The timezone of the start time. Defaults to `UTC`. For possible values see: https://support.microsoft.com/en-us/help/973627/microsoft-time-zone-index-values
 
 * `week_days` - (Optional) List of days of the week that the job should execute on. Only valid when frequency is `Week`.
 

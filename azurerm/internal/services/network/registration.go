@@ -45,6 +45,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_virtual_network_gateway":                   dataSourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_gateway_connection":        dataSourceArmVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network":                           dataSourceArmVirtualNetwork(),
+		"azurerm_web_application_firewall_policy":           dataArmWebApplicationFirewallPolicy(),
 	}
 }
 

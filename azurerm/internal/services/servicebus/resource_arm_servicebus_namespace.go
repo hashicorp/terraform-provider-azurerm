@@ -147,6 +147,9 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 			Name: servicebus.SkuName(sku),
 			Tier: servicebus.SkuTier(sku),
 		},
+		SBNamespaceProperties: &servicebus.SBNamespaceProperties{
+			ZoneRedundant: utils.Bool(d.Get("zone_redundant").(bool)),
+		},
 		Tags: tags.Expand(t),
 	}
 
@@ -158,13 +161,6 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4 or 8", sku)
 		}
 		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
-	}
-
-	if zoneRedundant, ok := d.GetOkExists("zone_redundant"); ok {
-		properties := servicebus.SBNamespaceProperties{
-			ZoneRedundant: utils.Bool(zoneRedundant.(bool)),
-		}
-		parameters.SBNamespaceProperties = &properties
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
