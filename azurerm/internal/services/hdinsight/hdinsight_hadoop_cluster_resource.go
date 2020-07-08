@@ -202,7 +202,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
 	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `storage_account`: %s", err)
+		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
 
 	rolesRaw := d.Get("roles").([]interface{})
@@ -213,14 +213,14 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	}
 	roles, err := expandHDInsightRoles(rolesRaw, hadoopRoles)
 	if err != nil {
-		return fmt.Errorf("Error expanding `roles`: %+v", err)
+		return fmt.Errorf("failure expanding `roles`: %+v", err)
 	}
 
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("failure checking for presence of existing HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -253,20 +253,20 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("Error creating HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure creating HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failed waiting for creation of HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error reading ID for HDInsight Hadoop Cluster %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("failure reading ID for HDInsight Hadoop Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -293,7 +293,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
-			return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
+			return fmt.Errorf("failure waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 		}
 	}
 
@@ -331,18 +331,18 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
 	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving Configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	gateway, exists := configurations.Configurations["gateway"]
 	if !exists {
-		return fmt.Errorf("Error retrieving gateway for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving gateway for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -359,11 +359,11 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 
 		if def := props.ClusterDefinition; def != nil {
 			if err := d.Set("component_version", flattenHDInsightHadoopComponentVersion(def.ComponentVersion)); err != nil {
-				return fmt.Errorf("Error flattening `component_version`: %+v", err)
+				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
 
 			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
-				return fmt.Errorf("Error flattening `gateway`: %+v", err)
+				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
 
 			flattenHDInsightsMetastores(d, configurations.Configurations)
@@ -381,7 +381,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 		edgeNode, err := applicationsClient.Get(ctx, resourceGroup, name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(edgeNode.Response) {
-				return fmt.Errorf("Error reading edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("failure reading edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -390,7 +390,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 		}
 
 		if err := d.Set("roles", flattenedRoles); err != nil {
-			return fmt.Errorf("Error flattening `roles`: %+v", err)
+			return fmt.Errorf("failure flattening `roles`: %+v", err)
 		}
 
 		httpEndpoint := azure.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
@@ -400,7 +400,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Error reading monitor configuation for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("failure reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
@@ -492,7 +492,7 @@ func hdInsightWaitForReadyRefreshFunc(ctx context.Context, client *hdinsight.Clu
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {
-			return nil, "Error", fmt.Errorf("Error issuing read request in hdInsightWaitForReadyRefreshFunc to Hadoop Cluster %q (Resource Group %q): %s", name, resourceGroupName, err)
+			return nil, "Error", fmt.Errorf("failure issuing read request in hdInsightWaitForReadyRefreshFunc to Hadoop Cluster %q (Resource Group %q): %s", name, resourceGroupName, err)
 		}
 		if props := res.Properties; props != nil {
 			if state := props.ClusterState; state != nil {

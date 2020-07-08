@@ -191,12 +191,10 @@ func SchemaHDInsightsMonitor() *schema.Schema {
 				"log_analytics_workspace_id": {
 					Type:     schema.TypeString,
 					Required: true,
-					ForceNew: false,
 				},
 				"primary_key": {
 					Type:         schema.TypeString,
 					Required:     true,
-					ForceNew:     false,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					// Azure doesn't return the key
