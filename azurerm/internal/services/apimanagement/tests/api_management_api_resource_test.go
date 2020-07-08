@@ -34,29 +34,6 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 	})
 }
 
-// Remove in 2.0
-func TestAccAzureRMApiManagementApi_basicClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_basicClassic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "soap_pass_through", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_current", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 
@@ -393,24 +370,6 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 
 func testAccAzureRMApiManagementApi_basic(data acceptance.TestData) string {
 	template := testAccAzureRMApiManagementApi_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management_api" "test" {
-  name                = "acctestapi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  display_name        = "api1"
-  path                = "api1"
-  protocols           = ["https"]
-  revision            = "1"
-}
-`, template, data.RandomInteger)
-}
-
-// Remove in 2.0
-func testAccAzureRMApiManagementApi_basicClassic(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_templateClassic(data)
 	return fmt.Sprintf(`
 %s
 
