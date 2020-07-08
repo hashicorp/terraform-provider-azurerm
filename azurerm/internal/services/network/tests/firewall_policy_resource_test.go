@@ -198,6 +198,15 @@ resource "azurerm_firewall_policy" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   threat_intelligence_mode = "Off"
+  threat_intelligence_whitelist {
+    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    fqdns        = ["foo.com", "bar.com"]
+  }
+  dns_setting {
+    servers                    = ["1.1.1.1", "2.2.2.2"]
+    proxy_enabled              = true
+    network_rules_fqdn_enabled = true
+  }
   tags = {
     env = "Test"
   }
