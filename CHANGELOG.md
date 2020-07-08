@@ -74,6 +74,7 @@ ENHANCEMENTS:
 * `azurerm_app_service_environment` - the property `user_whitelisted_ip_ranges` has been deprecated and renamed to `allowed_user_ip_cidrs` to clarify the function and expected format ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
 * `azurerm_eventhub_namespace` - support for the `zone_redundant` property ([#7534](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7534))
 * `azurerm_key_vault_certificate` - exposing the `certificate_attribute` block ([#7387](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7387))
+* `azurerm_kusto_cluster` - Support `trusted_external_tenants` [GH-7374]
 * `azurerm_sentinel_alert_rule_ms_security_incident` - the property `text_whitelist` has been deprecated and renamed to `display_name_filter` to better match the api ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
 * `azurerm_shared_image` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
 * `azurerm_shared_image_version` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
