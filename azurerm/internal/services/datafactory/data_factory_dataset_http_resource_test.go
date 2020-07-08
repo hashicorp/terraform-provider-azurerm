@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_sqlapi", "test")
+func TestAccAzureRMDataFactoryDatasetHTTP_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_http", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetHTTPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_basic(data),
+				Config: testAccAzureRMDataFactoryDatasetHTTP_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetHTTPExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,18 +31,18 @@ func TestAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_cosmosdb_sqlapi", "test")
+func TestAccAzureRMDataFactoryDatasetHTTP_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_http", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetHTTPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update1(data),
+				Config: testAccAzureRMDataFactoryDatasetHTTP_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetHTTPExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "1"),
@@ -52,9 +52,9 @@ func TestAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update2(data),
+				Config: testAccAzureRMDataFactoryDatasetHTTP_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetHTTPExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "2"),
@@ -67,7 +67,7 @@ func TestAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryDatasetHTTPExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -98,12 +98,12 @@ func testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIExists(name string) resourc
 	}
 }
 
-func testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryDatasetHTTPDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_dataset_cosmosdb_sqlapi" {
+		if rs.Type != "azurerm_data_factory_dataset_http" {
 			continue
 		}
 
@@ -125,7 +125,7 @@ func testCheckAzureRMDataFactoryDatasetCosmosDbSQLAPIDestroy(s *terraform.State)
 	return nil
 }
 
-func testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetHTTP_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -142,26 +142,30 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 
-resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "test" {
+resource "azurerm_data_factory_dataset_http" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_cosmosdb.test.name
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
-  collection_name = "Foo"
+  relative_url   = "/foo/bar"
+  request_body   = "OK"
+  request_method = "POST"
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetHTTP_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -178,20 +182,24 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 
-resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "test" {
+resource "azurerm_data_factory_dataset_http" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_cosmosdb.test.name
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
-  collection_name = "Foo"
+  relative_url   = "/foo/bar"
+  request_body   = "OK"
+  request_method = "POST"
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
@@ -216,7 +224,7 @@ resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetCosmosDbSQLAPI_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetHTTP_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -233,20 +241,23 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 
-resource "azurerm_data_factory_dataset_cosmosdb_sqlapi" "test" {
+resource "azurerm_data_factory_dataset_http" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_cosmosdb.test.name
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
 
-  collection_name = "Foo"
+  relative_url   = "/foo/bar"
+  request_body   = "OK"
+  request_method = "POST"
 
   description = "test description 2"
   annotations = ["test1", "test2"]

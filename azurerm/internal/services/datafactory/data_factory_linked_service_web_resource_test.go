@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,105 +12,87 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
+func TestAccAzureRMDataFactoryLinkedServiceWeb_anon_auth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceWebDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_basic(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceWeb_anon_auth(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("connection_string"),
-		},
-	})
-}
-func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("account_key"),
-		},
-	})
-}
-func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "database", "fizz"),
-				),
-			},
-			data.ImportStep("account_key"),
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey_update1(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "database", "buzz"),
-				),
-			},
-			data.ImportStep("account_key"),
+			data.ImportStep(),
 		},
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceCosmosDb_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_cosmosdb", "test")
+func TestAccAzureRMDataFactoryLinkedServiceWeb_basic_auth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceWebDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_update1(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceWeb_basic_auth(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "url", "http://www.bing.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "authentication_type", "Basic"),
+					resource.TestCheckResourceAttr(data.ResourceName, "username", "foo"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "password"),
+				),
+			},
+			data.ImportStep("password"),
+		},
+	})
+}
+
+func TestAccAzureRMDataFactoryLinkedServiceWeb_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceWebDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMDataFactoryLinkedServiceWeb_update1(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
+					resource.TestCheckResourceAttr(data.ResourceName, "url", "http://www.google.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "authentication_type", "Anonymous"),
 				),
 			},
-			data.ImportStep("connection_string"),
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceCosmosDb_update2(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceWeb_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test Description 2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "url", "http://www.yahoo.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "authentication_type", "Anonymous"),
 				),
 			},
-			data.ImportStep("connection_string"),
+			data.ImportStep(),
 		},
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryLinkedServiceWebExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -134,19 +116,19 @@ func testCheckAzureRMDataFactoryLinkedServiceCosmosDbExists(name string) resourc
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service CosmosDb %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Linked Service Web %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryLinkedServiceWebDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_cosmosdb" {
+		if rs.Type != "azurerm_data_factory_linked_service_web" {
 			continue
 		}
 
@@ -161,14 +143,14 @@ func testCheckAzureRMDataFactoryLinkedServiceCosmosDbDestroy(s *terraform.State)
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service CosmosDb still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Linked Service Web still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceCosmosDb_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceWeb_anon_auth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -185,70 +167,17 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-func testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  account_endpoint    = "foo"
-  account_key         = "bar"
-  database            = "fizz"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-func testAccAzureRMDataFactoryLinkedServiceCosmosDb_accountkey_update1(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  account_endpoint    = "foo"
-  account_key         = "bar"
-  database            = "buzz"
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceCosmosDb_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceWeb_basic_auth(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -265,11 +194,41 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  authentication_type = "Basic"
+  url                 = "http://www.bing.com"
+  username            = "foo"
+  password            = "bar"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMDataFactoryLinkedServiceWeb_update1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  authentication_type = "Anonymous"
+  url                 = "http://www.google.com"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
@@ -286,7 +245,7 @@ resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceCosmosDb_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceWeb_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -303,22 +262,23 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_cosmosdb" "test" {
-  name                = "acctestlscosmosdb%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  authentication_type = "Anonymous"
+  url                 = "http://www.yahoo.com"
   annotations         = ["test1", "test2"]
-  description         = "test description 2"
+  description         = "Test Description 2"
 
   parameters = {
-    foo  = "test1"
-    bar  = "test2"
-    buzz = "test3"
+    foo  = "Test1"
+    bar  = "Test2"
+    buzz = "Test3"
   }
 
   additional_properties = {
-    foo = "test1"
+    foo = "Test1"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

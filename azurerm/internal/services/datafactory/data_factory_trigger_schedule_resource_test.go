@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"

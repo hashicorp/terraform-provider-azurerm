@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceAzureFileStorage_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
+func TestAccAzureRMDataFactoryLinkedServiceMySQL_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureFileStorage_basic(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceMySQL_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("connection_string"),
@@ -31,29 +31,28 @@ func TestAccAzureRMDataFactoryLinkedServiceAzureFileStorage_basic(t *testing.T) 
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceAzureFileStorage_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_file_storage", "test")
+func TestAccAzureRMDataFactoryLinkedServiceMySQL_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureFileStorage_update1(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceMySQL_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
-			data.ImportStep("connection_string"),
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureFileStorage_update2(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceMySQL_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceMySQLExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
@@ -65,7 +64,7 @@ func TestAccAzureRMDataFactoryLinkedServiceAzureFileStorage_update(t *testing.T)
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryLinkedServiceMySQLExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -89,19 +88,19 @@ func testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageExists(name string)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service BlobStorage %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Linked Service MySQL %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryLinkedServiceMySQLDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_azure_file_storage" {
+		if rs.Type != "azurerm_data_factory_linked_service_mysql" {
 			continue
 		}
 
@@ -116,14 +115,14 @@ func testCheckAzureRMDataFactoryLinkedServiceAzureFileStorageDestroy(s *terrafor
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service BlobStorage still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Linked Service MySQL still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureFileStorage_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceMySQL_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -140,16 +139,16 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
-  name                = "acctestlsblob%d"
+resource "azurerm_data_factory_linked_service_mysql" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
+  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureFileStorage_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceMySQL_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -166,16 +165,16 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
-  name                = "acctestlsblob%d"
+resource "azurerm_data_factory_linked_service_mysql" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo2;AccountKey=bar"
+  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
   parameters = {
-    foO = "test1"
+    foo = "test1"
     bar = "test2"
   }
 
@@ -187,7 +186,7 @@ resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureFileStorage_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceMySQL_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -204,17 +203,16 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_azure_file_storage" "test" {
-  name                = "acctestlsblob%d"
+resource "azurerm_data_factory_linked_service_mysql" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-
-  connection_string = "DefaultEndpointsProtocol=https;AccountName=foo3;AccountKey=bar"
-  annotations       = ["Test1", "Test2"]
-  description       = "test description 2"
+  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  annotations         = ["test1", "test2"]
+  description         = "test description 2"
 
   parameters = {
-    foo  = "Test1"
+    foo  = "test1"
     bar  = "test2"
     buzz = "test3"
   }

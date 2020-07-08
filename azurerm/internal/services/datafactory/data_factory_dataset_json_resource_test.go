@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceKeyVault_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_key_vault", "test")
+func TestAccAzureRMDataFactoryDatasetJSON_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceKeyVaultDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetJSONDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceKeyVault_basic(data),
+				Config: testAccAzureRMDataFactoryDatasetJSON_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceKeyVaultExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetJSONExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,30 +31,33 @@ func TestAccAzureRMDataFactoryLinkedServiceKeyVault_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceKeyVault_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_key_vault", "test")
+func TestAccAzureRMDataFactoryDatasetJSON_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceKeyVaultDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetJSONDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceKeyVault_update1(data),
+				Config: testAccAzureRMDataFactoryDatasetJSON_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceKeyVaultExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetJSONExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
+					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
+			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceKeyVault_update2(data),
+				Config: testAccAzureRMDataFactoryDatasetJSON_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceKeyVaultExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetJSONExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
@@ -64,9 +67,9 @@ func TestAccAzureRMDataFactoryLinkedServiceKeyVault_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceKeyVaultExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryDatasetJSONExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -84,23 +87,23 @@ func testCheckAzureRMDataFactoryLinkedServiceKeyVaultExists(name string) resourc
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
-			return fmt.Errorf("Bad: Get on dataFactoryLinkedServiceClient: %+v", err)
+			return fmt.Errorf("Bad: Get on dataFactoryDatasetClient: %+v", err)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service Key Vault %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Dataset JSON %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceKeyVaultDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
+func testCheckAzureRMDataFactoryDatasetJSONDestroy(s *terraform.State) error {
+	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_key_vault" {
+		if rs.Type != "azurerm_data_factory_dataset_json" {
 			continue
 		}
 
@@ -115,33 +118,22 @@ func testCheckAzureRMDataFactoryLinkedServiceKeyVaultDestroy(s *terraform.State)
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service Key Vault still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Dataset HTTP still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceKeyVault_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetJSON_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "atkv%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
 }
 
 resource "azurerm_data_factory" "test" {
@@ -150,35 +142,40 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "acctestlskv%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  key_vault_id        = azurerm_key_vault.test.id
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
+}
+
+resource "azurerm_data_factory_dataset_json" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
+
+  http_server_location {
+    relative_url = "/fizz/buzz/"
+    path         = "foo/bar/"
+    filename     = "foo.json"
+  }
+
+  encoding = "UTF-8"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceKeyVault_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetJSON_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "atkv%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
 }
 
 resource "azurerm_data_factory" "test" {
@@ -187,47 +184,60 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "acctestlskv%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  key_vault_id        = azurerm_key_vault.test.id
-  annotations         = ["test1", "test2", "test3"]
-  description         = "test description"
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
+}
+
+resource "azurerm_data_factory_dataset_json" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
+
+  http_server_location {
+    relative_url = "/fizz/buzz/"
+    path         = "foo/bar/"
+    filename     = "foo.json"
+  }
+
+  encoding = "UTF-8"
+
+  description = "test description"
+  annotations = ["test1", "test2", "test3"]
+  folder      = "testFolder"
 
   parameters = {
     foo = "test1"
-    bar = "test2"
+    Bar = "Test2"
   }
 
   additional_properties = {
     foo = "test1"
     bar = "test2"
   }
+
+  schema_column {
+    name        = "test1"
+    type        = "Byte"
+    description = "description"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceKeyVault_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetJSON_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {
-}
-
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-df-%d"
   location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                = "atkv%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "standard"
 }
 
 resource "azurerm_data_factory" "test" {
@@ -236,13 +246,31 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_key_vault" "test" {
-  name                = "acctestlskv%d"
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  key_vault_id        = azurerm_key_vault.test.id
-  annotations         = ["test1", "test2"]
-  description         = "test description 2"
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
+}
+
+resource "azurerm_data_factory_dataset_json" "test" {
+  name                = "acctestds%d"
+  resource_group_name = azurerm_resource_group.test.name
+  data_factory_name   = azurerm_data_factory.test.name
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
+
+  http_server_location {
+    relative_url = "/fizz/buzz/"
+    path         = "foo/bar/"
+    filename     = "foo.json"
+  }
+
+  encoding = "UTF-8"
+
+  description = "test description 2"
+  annotations = ["test1", "test2"]
+  folder      = "testFolder"
 
   parameters = {
     foo  = "test1"
@@ -252,6 +280,18 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 
   additional_properties = {
     foo = "test1"
+  }
+
+  schema_column {
+    name        = "test1"
+    type        = "Byte"
+    description = "description"
+  }
+
+  schema_column {
+    name        = "test2"
+    type        = "Byte"
+    description = "description"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)

@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,60 +12,59 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceAzureFunction_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_function", "test")
+func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_postgresql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureFunctionDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureFunction_basic(data),
+				Config: testAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureFunctionExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(data.ResourceName),
 				),
 			},
-			data.ImportStep("key"),
+			data.ImportStep("connection_string"),
 		},
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceAzureFunction_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_function", "test")
+func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_postgresql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureFunctionDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureFunction_update1(data),
+				Config: testAccAzureRMDataFactoryLinkedServicePostgreSQL_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureFunctionExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
-			data.ImportStep("key"),
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureFunction_update2(data),
+				Config: testAccAzureRMDataFactoryLinkedServicePostgreSQL_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureFunctionExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
 			},
-			data.ImportStep("key"),
+			data.ImportStep("connection_string"),
 		},
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceAzureFunctionExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -89,19 +88,19 @@ func testCheckAzureRMDataFactoryLinkedServiceAzureFunctionExists(name string) re
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service BlobStorage %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Linked Service PostgreSQL %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceAzureFunctionDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_azure_function" {
+		if rs.Type != "azurerm_data_factory_linked_service_postgresql" {
 			continue
 		}
 
@@ -116,14 +115,14 @@ func testCheckAzureRMDataFactoryLinkedServiceAzureFunctionDestroy(s *terraform.S
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service BlobStorage still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Linked Service PostgreSQL still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureFunction_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -140,17 +139,16 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_azure_function" "test" {
-  name                = "acctestlsblob%d"
+resource "azurerm_data_factory_linked_service_postgresql" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  url                 = "foo"
-  key                 = "bar"
+  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureFunction_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServicePostgreSQL_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -167,17 +165,16 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_azure_function" "test" {
-  name                = "acctestlsblob%d"
+resource "azurerm_data_factory_linked_service_postgresql" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  url                 = "foo"
-  key                 = "bar"
+  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
   parameters = {
-    foO = "test1"
+    foo = "test1"
     bar = "test2"
   }
 
@@ -189,7 +186,7 @@ resource "azurerm_data_factory_linked_service_azure_function" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureFunction_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServicePostgreSQL_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -206,18 +203,16 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_azure_function" "test" {
-  name                = "acctestlsblob%d"
+resource "azurerm_data_factory_linked_service_postgresql" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-
-  url         = "foo"
-  key         = "bar"
-  annotations = ["Test1", "Test2"]
-  description = "test description 2"
+  connection_string   = "Host=example;Port=5432;Database=example;UID=example;EncryptionMethod=0;Password=example"
+  annotations         = ["test1", "test2"]
+  description         = "test description 2"
 
   parameters = {
-    foo  = "Test1"
+    foo  = "test1"
     bar  = "test2"
     buzz = "test3"
   }

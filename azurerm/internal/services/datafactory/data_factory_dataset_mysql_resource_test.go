@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,18 +12,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryDatasetJSON_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
+func TestAccAzureRMDataFactoryDatasetMySQL_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetJSONDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetMySQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryDatasetJSON_basic(data),
+				Config: testAccAzureRMDataFactoryDatasetMySQL_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetJSONExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetMySQLExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -31,18 +31,18 @@ func TestAccAzureRMDataFactoryDatasetJSON_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDataFactoryDatasetJSON_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
+func TestAccAzureRMDataFactoryDatasetMySQL_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_mysql", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryDatasetJSONDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryDatasetMySQLDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryDatasetJSON_update1(data),
+				Config: testAccAzureRMDataFactoryDatasetMySQL_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetJSONExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetMySQLExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "1"),
@@ -50,11 +50,10 @@ func TestAccAzureRMDataFactoryDatasetJSON_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
 				),
 			},
-			data.ImportStep(),
 			{
-				Config: testAccAzureRMDataFactoryDatasetJSON_update2(data),
+				Config: testAccAzureRMDataFactoryDatasetMySQL_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryDatasetJSONExists(data.ResourceName),
+					testCheckAzureRMDataFactoryDatasetMySQLExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "schema_column.#", "2"),
@@ -67,7 +66,7 @@ func TestAccAzureRMDataFactoryDatasetJSON_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMDataFactoryDatasetJSONExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryDatasetMySQLExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -91,19 +90,19 @@ func testCheckAzureRMDataFactoryDatasetJSONExists(name string) resource.TestChec
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Dataset JSON %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Dataset MySQL %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryDatasetJSONDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryDatasetMySQLDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.DatasetClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_dataset_json" {
+		if rs.Type != "azurerm_data_factory_dataset_mysql" {
 			continue
 		}
 
@@ -118,14 +117,14 @@ func testCheckAzureRMDataFactoryDatasetJSONDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Dataset HTTP still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Dataset MySQL still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryDatasetJSON_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetMySQL_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -142,32 +141,23 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlsweb%d"
+resource "azurerm_data_factory_linked_service_mysql" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Anonymous"
-  url                 = "http://www.bing.com"
+  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 
-resource "azurerm_data_factory_dataset_json" "test" {
+resource "azurerm_data_factory_dataset_mysql" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_web.test.name
-
-  http_server_location {
-    relative_url = "/fizz/buzz/"
-    path         = "foo/bar/"
-    filename     = "foo.json"
-  }
-
-  encoding = "UTF-8"
+  linked_service_name = azurerm_data_factory_linked_service_mysql.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetJSON_update1(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetMySQL_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -184,35 +174,27 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlsweb%d"
+resource "azurerm_data_factory_linked_service_mysql" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Anonymous"
-  url                 = "http://www.bing.com"
+  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 
-resource "azurerm_data_factory_dataset_json" "test" {
+resource "azurerm_data_factory_dataset_mysql" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_web.test.name
-
-  http_server_location {
-    relative_url = "/fizz/buzz/"
-    path         = "foo/bar/"
-    filename     = "foo.json"
-  }
-
-  encoding = "UTF-8"
+  linked_service_name = azurerm_data_factory_linked_service_mysql.test.name
 
   description = "test description"
   annotations = ["test1", "test2", "test3"]
+  table_name  = "testTable"
   folder      = "testFolder"
 
   parameters = {
     foo = "test1"
-    Bar = "Test2"
+    bar = "test2"
   }
 
   additional_properties = {
@@ -229,7 +211,7 @@ resource "azurerm_data_factory_dataset_json" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryDatasetJSON_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryDatasetMySQL_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -246,30 +228,22 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlsweb%d"
+resource "azurerm_data_factory_linked_service_mysql" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Anonymous"
-  url                 = "http://www.bing.com"
+  connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 
-resource "azurerm_data_factory_dataset_json" "test" {
+resource "azurerm_data_factory_dataset_mysql" "test" {
   name                = "acctestds%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  linked_service_name = azurerm_data_factory_linked_service_web.test.name
-
-  http_server_location {
-    relative_url = "/fizz/buzz/"
-    path         = "foo/bar/"
-    filename     = "foo.json"
-  }
-
-  encoding = "UTF-8"
+  linked_service_name = azurerm_data_factory_linked_service_mysql.test.name
 
   description = "test description 2"
   annotations = ["test1", "test2"]
+  table_name  = "testTable"
   folder      = "testFolder"
 
   parameters = {

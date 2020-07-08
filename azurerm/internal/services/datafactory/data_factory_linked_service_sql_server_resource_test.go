@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,60 +12,42 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
+func TestAccAzureRMDataFactoryLinkedServiceSQLServer_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_sql_server", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_basic(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageExists(data.ResourceName),
-				),
-			},
-			data.ImportStep("connection_string"),
-		},
-	})
-}
-
-func TestAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_blob_storage", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update1(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "connection_string"),
 				),
 			},
-			data.ImportStep("connection_string"),
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update2(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceSQLServer_update(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "connection_string"),
 				),
 			},
-			data.ImportStep("connection_string"),
+			data.ImportStep(),
 		},
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -89,19 +71,19 @@ func testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageExists(name string)
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service BlobStorage %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Linked Service SQL Server %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_azure_blob_storage" {
+		if rs.Type != "azurerm_data_factory_linked_service_sql_server" {
 			continue
 		}
 
@@ -116,14 +98,14 @@ func testCheckAzureRMDataFactoryLinkedServiceAzureBlobStorageDestroy(s *terrafor
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service BlobStorage still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Linked Service SQL Server still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_basic(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceSQLServer_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -140,42 +122,16 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
+resource "azurerm_data_factory_linked_service_sql_server" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo;AccountKey=bar"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update1(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  connection_string   = "DefaultEndpointsProtocol=https;AccountName=foo2;AccountKey=bar"
+  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
   parameters = {
-    foO = "test1"
+    foo = "test1"
     bar = "test2"
   }
 
@@ -187,7 +143,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceAzureBlobStorage_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceSQLServer_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -204,17 +160,16 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
-  name                = "acctestlsblob%d"
+resource "azurerm_data_factory_linked_service_sql_server" "test" {
+  name                = "acctestlssql%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-
-  connection_string = "DefaultEndpointsProtocol=https;AccountName=foo3;AccountKey=bar"
-  annotations       = ["Test1", "Test2"]
-  description       = "test description 2"
+  connection_string   = "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test"
+  annotations         = ["test1", "test2"]
+  description         = "test description 2"
 
   parameters = {
-    foo  = "Test1"
+    foo  = "test1"
     bar  = "test2"
     buzz = "test3"
   }

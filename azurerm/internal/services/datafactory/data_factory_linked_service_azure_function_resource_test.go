@@ -1,4 +1,4 @@
-package tests
+package datafactory_test
 
 import (
 	"fmt"
@@ -12,87 +12,60 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMDataFactoryLinkedServiceWeb_anon_auth(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
+func TestAccAzureRMDataFactoryLinkedServiceAzureFunction_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_function", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceWebDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureFunctionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceWeb_anon_auth(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceAzureFunction_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceAzureFunctionExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("key"),
 		},
 	})
 }
 
-func TestAccAzureRMDataFactoryLinkedServiceWeb_basic_auth(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
+func TestAccAzureRMDataFactoryLinkedServiceAzureFunction_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_azure_function", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceWebDestroy,
+		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceAzureFunctionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceWeb_basic_auth(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceAzureFunction_update1(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "url", "http://www.bing.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "authentication_type", "Basic"),
-					resource.TestCheckResourceAttr(data.ResourceName, "username", "foo"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "password"),
-				),
-			},
-			data.ImportStep("password"),
-		},
-	})
-}
-
-func TestAccAzureRMDataFactoryLinkedServiceWeb_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_web", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMDataFactoryLinkedServiceWebDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMDataFactoryLinkedServiceWeb_update1(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceAzureFunctionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description"),
-					resource.TestCheckResourceAttr(data.ResourceName, "url", "http://www.google.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "authentication_type", "Anonymous"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("key"),
 			{
-				Config: testAccAzureRMDataFactoryLinkedServiceWeb_update2(data),
+				Config: testAccAzureRMDataFactoryLinkedServiceAzureFunction_update2(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMDataFactoryLinkedServiceWebExists(data.ResourceName),
+					testCheckAzureRMDataFactoryLinkedServiceAzureFunctionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "parameters.%", "3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "annotations.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "additional_properties.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "Test Description 2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "url", "http://www.yahoo.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "authentication_type", "Anonymous"),
+					resource.TestCheckResourceAttr(data.ResourceName, "description", "test description 2"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("key"),
 		},
 	})
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceWebExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMDataFactoryLinkedServiceAzureFunctionExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -116,19 +89,19 @@ func testCheckAzureRMDataFactoryLinkedServiceWebExists(name string) resource.Tes
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Data Factory Linked Service Web %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
+			return fmt.Errorf("Bad: Data Factory Linked Service BlobStorage %q (data factory name: %q / resource group: %q) does not exist", name, dataFactoryName, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMDataFactoryLinkedServiceWebDestroy(s *terraform.State) error {
+func testCheckAzureRMDataFactoryLinkedServiceAzureFunctionDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).DataFactory.LinkedServiceClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_data_factory_linked_service_web" {
+		if rs.Type != "azurerm_data_factory_linked_service_azure_function" {
 			continue
 		}
 
@@ -143,14 +116,14 @@ func testCheckAzureRMDataFactoryLinkedServiceWebDestroy(s *terraform.State) erro
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Data Factory Linked Service Web still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Data Factory Linked Service BlobStorage still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMDataFactoryLinkedServiceWeb_anon_auth(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceAzureFunction_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -167,17 +140,17 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlsweb%d"
+resource "azurerm_data_factory_linked_service_azure_function" "test" {
+  name                = "acctestlsblob%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Anonymous"
-  url                 = "http://www.bing.com"
+  url                 = "foo"
+  key                 = "bar"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceWeb_basic_auth(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceAzureFunction_update1(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -194,46 +167,17 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlsweb%d"
+resource "azurerm_data_factory_linked_service_azure_function" "test" {
+  name                = "acctestlsblob%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Basic"
-  url                 = "http://www.bing.com"
-  username            = "foo"
-  password            = "bar"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func testAccAzureRMDataFactoryLinkedServiceWeb_update1(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdf%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlsweb%d"
-  resource_group_name = azurerm_resource_group.test.name
-  data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Anonymous"
-  url                 = "http://www.google.com"
+  url                 = "foo"
+  key                 = "bar"
   annotations         = ["test1", "test2", "test3"]
   description         = "test description"
 
   parameters = {
-    foo = "test1"
+    foO = "test1"
     bar = "test2"
   }
 
@@ -245,7 +189,7 @@ resource "azurerm_data_factory_linked_service_web" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMDataFactoryLinkedServiceWeb_update2(data acceptance.TestData) string {
+func testAccAzureRMDataFactoryLinkedServiceAzureFunction_update2(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -262,23 +206,24 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_data_factory_linked_service_web" "test" {
-  name                = "acctestlsweb%d"
+resource "azurerm_data_factory_linked_service_azure_function" "test" {
+  name                = "acctestlsblob%d"
   resource_group_name = azurerm_resource_group.test.name
   data_factory_name   = azurerm_data_factory.test.name
-  authentication_type = "Anonymous"
-  url                 = "http://www.yahoo.com"
-  annotations         = ["test1", "test2"]
-  description         = "Test Description 2"
+
+  url         = "foo"
+  key         = "bar"
+  annotations = ["Test1", "Test2"]
+  description = "test description 2"
 
   parameters = {
     foo  = "Test1"
-    bar  = "Test2"
-    buzz = "Test3"
+    bar  = "test2"
+    buzz = "test3"
   }
 
   additional_properties = {
-    foo = "Test1"
+    foo = "test1"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
