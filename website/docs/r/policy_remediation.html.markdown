@@ -95,7 +95,7 @@ The following arguments are supported:
 
 * `policy_assignment_id` - (Required) The resource ID of the policy assignment that should be remediated.
 
-* `policy_definition_reference_id` - (Optional) The policy definition reference ID of the individual definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
+* `policy_definition_reference_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
 
 * `location_filters` - (Optional) A list of the resource locations that will be remediated.
 

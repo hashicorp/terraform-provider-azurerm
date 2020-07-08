@@ -66,7 +66,7 @@ func TestAccAzureRMMsSqlDatabase_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 					resource.TestCheckResourceAttr(data.ResourceName, "max_size_gb", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),
@@ -204,7 +204,7 @@ func TestAccAzureRMMsSqlDatabase_HS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "read_replica_count", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "HS_Gen4_1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "HS_Gen5_2"),
 				),
 			},
 			data.ImportStep(),
@@ -213,7 +213,7 @@ func TestAccAzureRMMsSqlDatabase_HS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "read_replica_count", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "HS_Gen4_1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "HS_Gen5_2"),
 				),
 			},
 			data.ImportStep(),
@@ -235,7 +235,7 @@ func TestAccAzureRMMsSqlDatabase_createCopyMode(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
 				),
 			},
 			data.ImportStep("create_mode", "creation_source_database_id"),
@@ -286,7 +286,7 @@ func TestAccAzureRMMsSqlDatabase_createSecondaryMode(t *testing.T) {
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
 				),
 			},
 			data.ImportStep("create_mode", "creation_source_database_id", "sample_name"),
@@ -358,6 +358,39 @@ func TestAccAzureRMMsSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 			data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
 			{
 				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlDatabase_updateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_updateSku(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_updateSku2(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
@@ -478,7 +511,7 @@ resource "azurerm_mssql_database" "test" {
   license_type = "BasePrice"
   max_size_gb  = 1
   sample_name  = "AdventureWorksLT"
-  sku_name     = "GP_Gen4_2"
+  sku_name     = "GP_Gen5_2"
 
   tags = {
     ENV = "Test"
@@ -498,7 +531,7 @@ resource "azurerm_mssql_database" "test" {
   collation    = "SQL_AltDiction_CP850_CI_AI"
   license_type = "LicenseIncluded"
   max_size_gb  = 2
-  sku_name     = "GP_Gen4_2"
+  sku_name     = "GP_Gen5_2"
 
   tags = {
     ENV = "Staging"
@@ -592,7 +625,7 @@ resource "azurerm_mssql_database" "test" {
   name               = "acctest-db-%d"
   server_id          = azurerm_sql_server.test.id
   read_replica_count = 2
-  sku_name           = "HS_Gen4_1"
+  sku_name           = "HS_Gen5_2"
 }
 `, template, data.RandomInteger)
 }
@@ -606,7 +639,7 @@ resource "azurerm_mssql_database" "test" {
   name               = "acctest-db-%d"
   server_id          = azurerm_sql_server.test.id
   read_replica_count = 4
-  sku_name           = "HS_Gen4_1"
+  sku_name           = "HS_Gen5_2"
 }
 `, template, data.RandomInteger)
 }
@@ -720,7 +753,7 @@ resource "azurerm_mssql_database" "test" {
   license_type = "BasePrice"
   max_size_gb  = 1
   sample_name  = "AdventureWorksLT"
-  sku_name     = "GP_Gen4_2"
+  sku_name     = "GP_Gen5_2"
 
   threat_detection_policy {
     retention_days             = 15
@@ -805,4 +838,30 @@ resource "azurerm_mssql_database" "test" {
   }
 }
 `, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_updateSku(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%d"
+  server_id = azurerm_sql_server.test.id
+  sku_name  = "HS_Gen5_2"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_updateSku2(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%d"
+  server_id = azurerm_sql_server.test.id
+  sku_name  = "HS_Gen5_4"
+}
+`, template, data.RandomInteger)
 }

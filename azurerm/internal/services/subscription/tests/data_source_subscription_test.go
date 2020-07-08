@@ -75,6 +75,10 @@ func testCheckAzureRMSubscriptionId(resourceName string) resource.TestCheckFunc 
 }
 
 const testAccDataSourceAzureRMSubscription_currentConfig = `
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "current" {}
 `
 
@@ -82,10 +86,11 @@ func testAccDataSourceAzureRMSubscription_specificConfig(subscriptionId string) 
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+  subscription_id = "%s"
 }
 
 data "azurerm_subscription" "specific" {
   subscription_id = "%s"
 }
-`, subscriptionId)
+`, subscriptionId, subscriptionId)
 }

@@ -92,20 +92,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 			"gateway": azure.SchemaHDInsightsGateway(),
 
-			"metastores": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"hive": azure.SchemaHDInsightsExternalMetastore(),
-
-						"oozie": azure.SchemaHDInsightsExternalMetastore(),
-
-						"ambari": azure.SchemaHDInsightsExternalMetastore(),
-					},
-				},
-			},
+			"metastores": azure.SchemaHDInsightsExternalMetastores(),
 
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
@@ -202,11 +189,10 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	gatewayRaw := d.Get("gateway").([]interface{})
 	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
-	if metastoresRaw, ok := d.GetOkExists("metastores"); ok {
-		metastores := expandHDInsightsMetastore(metastoresRaw.([]interface{}))
-		for k, v := range metastores {
-			configurations[k] = v
-		}
+	metastoresRaw := d.Get("metastores").([]interface{})
+	metastores := expandHDInsightsMetastore(metastoresRaw)
+	for k, v := range metastores {
+		configurations[k] = v
 	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})

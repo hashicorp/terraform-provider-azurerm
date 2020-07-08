@@ -46,7 +46,7 @@ func NewVirtualMachinesClientWithBaseURI(baseURI string, subscriptionID string) 
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // clusterName - the name of the cluster.
-func (client VirtualMachinesClient) ListHosts(ctx context.Context, resourceGroupName string, clusterName string) (result HostInfoListResult, err error) {
+func (client VirtualMachinesClient) ListHosts(ctx context.Context, resourceGroupName string, clusterName string) (result ListHostInfo, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachinesClient.ListHosts")
 		defer func() {
@@ -107,12 +107,12 @@ func (client VirtualMachinesClient) ListHostsSender(req *http.Request) (*http.Re
 
 // ListHostsResponder handles the response to the ListHosts request. The method always
 // closes the http.Response Body.
-func (client VirtualMachinesClient) ListHostsResponder(resp *http.Response) (result HostInfoListResult, err error) {
+func (client VirtualMachinesClient) ListHostsResponder(resp *http.Response) (result ListHostInfo, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
