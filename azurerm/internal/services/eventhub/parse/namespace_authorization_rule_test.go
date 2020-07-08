@@ -58,7 +58,7 @@ func TestNamespaceAuthorizationRuleID(t *testing.T) {
 		},
 		{
 			Name:  "Wrong Casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/authorizationRules/rule1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/AuthorizationRules/rule1",
 			Error: true,
 		},
 	}
