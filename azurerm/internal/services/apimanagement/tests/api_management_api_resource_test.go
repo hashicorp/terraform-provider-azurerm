@@ -644,7 +644,7 @@ resource "azurerm_api_management_api" "test" {
     ]
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMApiManagementApi_template(data acceptance.TestData) string {
