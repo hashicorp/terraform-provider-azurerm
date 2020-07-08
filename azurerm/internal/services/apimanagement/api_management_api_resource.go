@@ -175,6 +175,53 @@ func resourceArmApiManagementApi() *schema.Resource {
 				Default:  false,
 			},
 
+			"oauth2_authorization": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"authorization_server_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApiManagementChildName,
+						},
+						"scope": {
+							Type:     schema.TypeString,
+							Optional: true,
+							// There is currently no validation, as any length and characters can be used in the field
+						},
+					},
+				},
+			},
+
+			"openid_authentication": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"openid_provider_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.ApiManagementChildName,
+						},
+						"bearer_token_sending_methods": {
+							Type:         schema.TypeSet,
+							Optional:     true,
+							ValidateFunc: nil,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(apimanagement.BearerTokenSendingMethodsAuthorizationHeader),
+									string(apimanagement.BearerTokenSendingMethodsQuery),
+								}, false),
+							},
+						},
+					},
+				},
+			},
+
 			// Computed
 			"is_current": {
 				Type:     schema.TypeBool,
@@ -306,6 +353,24 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	subscriptionKeyParameterNamesRaw := d.Get("subscription_key_parameter_names").([]interface{})
 	subscriptionKeyParameterNames := expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
 
+	authenticationSettings := &apimanagement.AuthenticationSettingsContract{}
+	if vs, hasOAuth2Authorization := d.GetOk("oauth2_authorization"); hasOAuth2Authorization {
+		oAuth2AuthorizationVs := vs.([]interface{})
+		oAuth2AuthorizationV := oAuth2AuthorizationVs[0].(map[string]interface{})
+		authenticationSettings.OAuth2 = &apimanagement.OAuth2AuthenticationSettingsContract{
+			AuthorizationServerID: utils.String(oAuth2AuthorizationV["authorization_server_name"].(string)),
+			Scope:                 utils.String(oAuth2AuthorizationV["scope"].(string)),
+		}
+	}
+	if vs, hasOpenIDAuthorization := d.GetOk("openid_authentication"); hasOpenIDAuthorization {
+		openIDAuthorizationVs := vs.([]interface{})
+		openIDAuthorizationV := openIDAuthorizationVs[0].(map[string]interface{})
+		authenticationSettings.Openid = &apimanagement.OpenIDAuthenticationSettingsContract{
+			OpenidProviderID:          utils.String(openIDAuthorizationV["openid_provider_name"].(string)),
+			BearerTokenSendingMethods: expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(openIDAuthorizationV["bearer_token_sending_methods"].([]interface{})),
+		}
+	}
+
 	params := apimanagement.APICreateOrUpdateParameter{
 		APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
 			APIType:                       apiType,
@@ -318,6 +383,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
 			APIVersion:                    utils.String(version),
 			SubscriptionRequired:          &subscriptionRequired,
+			AuthenticationSettings:        authenticationSettings,
 		},
 	}
 
@@ -402,6 +468,14 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 
 		if err := d.Set("subscription_key_parameter_names", flattenApiManagementApiSubscriptionKeyParamNames(props.SubscriptionKeyParameterNames)); err != nil {
 			return fmt.Errorf("setting `subscription_key_parameter_names`: %+v", err)
+		}
+
+		if err := d.Set("oauth2_authorization", flattenApiManagementOAuth2Authorization(props.AuthenticationSettings.OAuth2)); err != nil {
+			return fmt.Errorf("setting `oauth2_authorization`: %+v", err)
+		}
+
+		if err := d.Set("openid_authentication", flattenApiManagementOpenidAuthentication(props.AuthenticationSettings.Openid)); err != nil {
+			return fmt.Errorf("setting `openid_authentication`: %+v", err)
 		}
 	}
 
@@ -491,6 +565,55 @@ func flattenApiManagementApiSubscriptionKeyParamNames(paramNames *apimanagement.
 	if paramNames.Query != nil {
 		result["query"] = *paramNames.Query
 	}
+
+	return []interface{}{result}
+}
+
+func expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(input interface{}) *[]apimanagement.BearerTokenSendingMethods {
+	if input == nil {
+		return nil
+	}
+	results := make([]apimanagement.BearerTokenSendingMethods, 0)
+
+	vs := input.(*schema.Set).List()
+	for _, v := range vs {
+		results = append(results, apimanagement.BearerTokenSendingMethods(v.(string)))
+	}
+
+	return &results
+}
+
+func flattenApiManagementOAuth2Authorization(input *apimanagement.OAuth2AuthenticationSettingsContract) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	result["authorization_server_name"] = *input.AuthorizationServerID
+	if input.Scope != nil {
+		result["scope"] = *input.Scope
+	}
+
+	return []interface{}{result}
+}
+
+func flattenApiManagementOpenidAuthentication(input *apimanagement.OpenIDAuthenticationSettingsContract) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	result["openid_provider_name"] = *input.OpenidProviderID
+
+	bearerTokenSendingMethods := make([]interface{}, 0)
+	if s := input.BearerTokenSendingMethods; s != nil {
+		for _, v := range *s {
+			bearerTokenSendingMethods = append(bearerTokenSendingMethods, v)
+		}
+	}
+	result["bearer_token_sending_methods"] = schema.NewSet(schema.HashString, bearerTokenSendingMethods)
 
 	return []interface{}{result}
 }

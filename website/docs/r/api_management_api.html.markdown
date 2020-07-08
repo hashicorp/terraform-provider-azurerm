@@ -68,6 +68,10 @@ The following arguments are supported:
 
 * `import` - (Optional) A `import` block as documented below.
 
+* `oauth2_authorization` - (Optional) An `oauth2_authorization` block as documented below.
+
+* `openid_authentication` - (Optional) An `openid_authentication` block as documented below.
+
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
 * `soap_pass_through` - (Optional) Should this API expose a SOAP frontend, rather than a HTTP frontend? Defaults to `false`.
@@ -91,6 +95,22 @@ A `import` block supports the following:
 * `content_value` - (Required) The Content from which the API Definition should be imported. When a `content_format` of `*-link-*` is specified this must be a URL, otherwise this must be defined inline.
 
 * `wsdl_selector` - (Optional) A `wsdl_selector` block as defined below, which allows you to limit the import of a WSDL to only a subset of the document. This can only be specified when `content_format` is `wsdl` or `wsdl-link`.
+
+---
+
+A `oauth2_authorization` block supports the following:
+
+* `authorization_server_name` - (Required) OAuth authorization server identifier. The name of an [OAuth2 Authorization Server](https://www.terraform.io/docs/providers/azurerm/r/api_management_authorization_server.html).
+
+* `scope` - (Optional) Operations scope.
+
+---
+
+A `openid_authentication` block supports the following:
+
+* `openid_provider_name` - (Required) OpenID Connect provider identifier. The name of an [OpenID Connect Provider](https://www.terraform.io/docs/providers/azurerm/r/api_management_openid_connect_provider.html).
+
+* `bearer_token_sending_methods` - (Optional) How to send token to the server. A list of zero or more methods. Valid values are `authorizationHeader` and `query`.
 
 ---
 
