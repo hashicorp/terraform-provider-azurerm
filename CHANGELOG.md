@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_key_vault_certificate_issuer` [GH-7074]
 * **New Data Source:** `azurerm_web_application_firewall_policy` [GH-7469]
 * **New Resource:** `azurerm_app_service_slot_virtual_network_swift_connection` [GH-5916]
 * **New Resource:** `azurerm_data_factory_dataset_azure_blob` [GH-6366]
@@ -15,6 +16,7 @@ FEATURES:
 * **New Resource:** `azurerm_data_factory_linked_service_cosmosdb` [GH-6366]
 * **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
 * **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
+* **New Resource:** `azurerm_key_vault_certificate_issuer` [GH-7074]
 
 ENHANCEMENTS:
 
