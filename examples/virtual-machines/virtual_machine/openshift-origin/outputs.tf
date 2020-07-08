@@ -1,9 +1,9 @@
 output "openshift_console_url" {
-  value = "https://${azurerm_public_ip.openshift_master_pip.fqdn}:8443/console"
+  value = "https://${azurerm_public_ip.openshift_primary_pip.fqdn}:8443/console"
 }
 
-output "openshift_master_ssh" {
-  value = "ssh ${var.admin_username}@${azurerm_public_ip.openshift_master_pip.fqdn} -p 2200"
+output "openshift_primary_ssh" {
+  value = "ssh ${var.admin_username}@${azurerm_public_ip.openshift_primary_pip.fqdn} -p 2200"
 }
 
 output "openshift_infra_load_balancer_fqdn" {

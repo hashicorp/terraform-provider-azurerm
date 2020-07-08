@@ -312,6 +312,13 @@ func TestAccAzureRMPostgreSQLServer_updateSKU(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMPostgreSQLServer_sku(data, "10.0", "B_Gen5_2"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"),
+			{
 				Config: testAccAzureRMPostgreSQLServer_sku(data, "10.0", "GP_Gen5_2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLServerExists(data.ResourceName),

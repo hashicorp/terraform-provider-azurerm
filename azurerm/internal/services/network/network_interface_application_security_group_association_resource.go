@@ -82,7 +82,9 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", networkInterfaceName, resourceGroup)
+			log.Printf("[INFO] Network Interface %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
 		}
 
 		return fmt.Errorf("Error retrieving Network Interface %q (Resource Group %q): %+v", networkInterfaceName, resourceGroup, err)
