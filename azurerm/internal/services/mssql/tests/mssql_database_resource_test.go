@@ -96,11 +96,25 @@ func TestAccAzureRMMsSqlDatabase_elasticPool(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMMsSqlDatabase_elasticPool(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "elastic_pool_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "ElasticPool"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -569,6 +583,7 @@ resource "azurerm_mssql_database" "test" {
   name            = "acctest-db-%[2]d"
   server_id       = azurerm_sql_server.test.id
   elastic_pool_id = azurerm_mssql_elasticpool.test.id
+  sku_name        = "ElasticPool"
 }
 `, template, data.RandomInteger)
 }
