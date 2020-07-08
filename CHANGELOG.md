@@ -4,6 +4,17 @@ FEATURES:
 
 * **New Data Source:** `azurerm_web_application_firewall_policy` [GH-7469]
 * **New Resource:** `azurerm_app_service_slot_virtual_network_swift_connection` [GH-5916]
+* **New Resource:** `azurerm_data_factory_dataset_azure_blob` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_cosmosdb_sqlapi` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_delimited_text` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_http` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_json` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_blob_storage` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
 
 ENHANCEMENTS:
 
