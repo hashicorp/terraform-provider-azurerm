@@ -189,8 +189,9 @@ func SchemaHDInsightsMonitor() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"log_analytics_workspace_id": {
-					Type:     schema.TypeString,
-					Required: true,
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsUUID,
 				},
 				"primary_key": {
 					Type:         schema.TypeString,
