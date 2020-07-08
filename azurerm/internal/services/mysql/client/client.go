@@ -6,11 +6,12 @@ import (
 )
 
 type Client struct {
-	ConfigurationsClient      *mysql.ConfigurationsClient
-	DatabasesClient           *mysql.DatabasesClient
-	FirewallRulesClient       *mysql.FirewallRulesClient
-	ServersClient             *mysql.ServersClient
-	VirtualNetworkRulesClient *mysql.VirtualNetworkRulesClient
+	ConfigurationsClient              *mysql.ConfigurationsClient
+	DatabasesClient                   *mysql.DatabasesClient
+	FirewallRulesClient               *mysql.FirewallRulesClient
+	ServersClient                     *mysql.ServersClient
+	ServerSecurityAlertPoliciesClient *mysql.ServerSecurityAlertPoliciesClient
+	VirtualNetworkRulesClient         *mysql.VirtualNetworkRulesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -26,14 +27,18 @@ func NewClient(o *common.ClientOptions) *Client {
 	ServersClient := mysql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServersClient.Client, o.ResourceManagerAuthorizer)
 
+	serverSecurityAlertPoliciesClient := mysql.NewServerSecurityAlertPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverSecurityAlertPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	VirtualNetworkRulesClient := mysql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ConfigurationsClient:      &ConfigurationsClient,
-		DatabasesClient:           &DatabasesClient,
-		FirewallRulesClient:       &FirewallRulesClient,
-		ServersClient:             &ServersClient,
-		VirtualNetworkRulesClient: &VirtualNetworkRulesClient,
+		ConfigurationsClient:              &ConfigurationsClient,
+		DatabasesClient:                   &DatabasesClient,
+		FirewallRulesClient:               &FirewallRulesClient,
+		ServersClient:                     &ServersClient,
+		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
+		VirtualNetworkRulesClient:         &VirtualNetworkRulesClient,
 	}
 }
