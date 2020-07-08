@@ -164,6 +164,23 @@ func SchemaHDInsightsExternalMetastore() *schema.Schema {
 	}
 }
 
+func SchemaHDInsightsExternalMetastores() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"hive": SchemaHDInsightsExternalMetastore(),
+
+				"oozie": SchemaHDInsightsExternalMetastore(),
+
+				"ambari": SchemaHDInsightsExternalMetastore(),
+			},
+		},
+	}
+}
+
 func SchemaHDInsightsMonitor() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,

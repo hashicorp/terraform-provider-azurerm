@@ -110,6 +110,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight HBase Cluster.
 
+* `metastores` - (Optional) A `metastores` block as defined below.
+
 * `monitor` - (Optional) A `monitor` block as defined below.
 
 ---
@@ -234,6 +236,53 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+--- 
+
+A `metastores` block supports the following:
+
+* `hive` - (Optional) A `hive` block as defined below.
+
+* `oozie` - (Optional) An `oozie` block as defined below.
+
+* `ambari` - (Optional) An `ambari` block as defined below.
+
+---
+
+A `hive` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Hive metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Hive metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Hive metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
+
+---
+
+An `oozie` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Oozie metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Oozie metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Oozie metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Oozie metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
+---
+
+An `ambari` block supports the following:
+
+* `server` - (Required) The fully-qualified domain name (FQDN) of the SQL server to use for the external Ambari metastore.  Changing this forces a new resource to be created.
+
+* `database_name` - (Required) The external Hive metastore's existing SQL database.  Changing this forces a new resource to be created.
+
+* `username` - (Required) The external Ambari metastore's existing SQL server admin username.  Changing this forces a new resource to be created.
+
+* `password` - (Required) The external Ambari metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
+
 ---
 
 A `monitor` block supports the following:
@@ -253,8 +302,6 @@ The following attributes are exported:
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight HBase Cluster.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

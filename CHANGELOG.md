@@ -1,9 +1,92 @@
-## 2.17.0 (Unreleased)
+## 2.18.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_key_vault_certificate_issuer` [GH-7074]
+* **New Data Source:** `azurerm_web_application_firewall_policy` [GH-7469]
+* **New Resource:** `azurerm_automation_connection` [GH-6847]
+* **New Resource:** `azurerm_automation_connection_certificate` [GH-6847]
+* **New Resource:** `azurerm_automation_connection_classic_certificate` [GH-6847]
+* **New Resource:** `azurerm_automation_connection_service_pricipal` [GH-6847]
+* **New Resource:** `azurerm_app_service_slot_virtual_network_swift_connection` [GH-5916]
+* **New Resource:** `azurerm_data_factory_dataset_azure_blob` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_cosmosdb_sqlapi` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_delimited_text` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_http` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_json` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_blob_storage` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
+* **New Resource:** `azurerm_key_vault_certificate_issuer` [GH-7074]
 
 ENHANCEMENTS:
 
-* `azurerm_app_service_environment` - the `user_whitelisted_ip_ranges` property has been deprecated and renamed to `allowed_user_ip_cidrs` to clearify the function and expected format [GH-7499]
-* `azurerm_sentinel_alert_rule_ms_security_incident` - the `text_whitelist` propety has been deprecated and renamed to `display_name_filter` to better match the api [GH-7499]
+* dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.11.0` [GH-7608]
+* dependencies: updating `network` to `2020-05-01` [GH-7585]
+* Data Source: `azurerm_eventhub_namespace` - exposing the `dedicated_cluster_id` field [GH-7548]
+* `azurerm_application_gateway` - support for the `firewall_policy_id` attribute within the `http_listener` block [GH-7580]
+* `azurerm_eventhub_namespace` - support for configuring the `dedicated_cluster_id` field [GH-7548]
+* `azurerm_eventhub_namespace` - support for setting `partition_count` to `1024` when using a Dedicated Cluster [GH-7548]
+* `azurerm_eventhub_namespace` - support for setting `retention_count` to `90` when using a Dedicated Cluster [GH-7548]
+* `azurerm_hdinsight_hbase_cluster` - now supports external metastores [GH-6969]
+* `azurerm_hdinsight_interactive_query_cluster` - now supports external metastores [GH-6969]
+* `azurerm_hdinsight_kafka_cluster` - now supports external metastores [GH-6969]
+* `azurerm_hdinsight_spark_cluster` - now supports external metastores [GH-6969]
+* `azurerm_hdinsight_storm_cluster` - now supports external metastores [GH-6969]
+* `azurerm_kusto_cluster` - support for the `language_extensions` property [GH-7421]
+* `azurerm_kusto_cluster` - Support for the `optimized_auto_scale` property [GH-7371]
+* `azurerm_mysql_server` - support for the `threat_detection_policy` property [GH-7156]
+* `azurerm_mssql_database` - the `sku_name` property now only forces a new resource for the `HS` (HyperScale) family [GH-7559]
+* `azurerm_web_application_firewall_policy` - allow setting `version` to `0.1` (for when `type` is set to `Microsoft_BotManagerRuleSet`) [GH-7579]
+* `azurerm_web_application_firewall_policy` - support the `transforms` property in the `custom_rules.match_conditions` block [GH-7545]
+
+BUG FIXES: 
+
+* `azurerm_api_management_identity_provider_aad` - fix perpetual diff on the `client_secret` property [GH-7529]
+* `azurerm_policy_remediation` - removing the validation for the `policy_definition_reference_id` field since this isn't a Resource ID [GH-7600]
+* `azurerm_storage_data_lake_gen2_filesystem` - prevent a crash during plan if storage account was deleted [GH-7378]
+
+## 2.17.0 (July 03, 2020)
+
+UPGRADE NOTES:
+
+* `azurerm_hdinsight_hadoop_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_hbase_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_interactive_query_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_kafka_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_ml_services_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_rserver_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_spark_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+* `azurerm_hdinsight_storm_cluster` - the `enabled` property within the `gateway` block now defaults to `true` and cannot be disabled, due to a behavioural change in the Azure API ([#7111](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7111))
+
+FEATURES: 
+
+* **New Resource:** `azurerm_kusto_cluster_principal_assignment` ([#7533](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7533))
+
+ENHANCEMENTS:
+
+* dependencies: updating to v43.2.0 of `github.com/Azure/azure-sdk-for-go` ([#7546](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7546))
+* Data Source: `azurerm_eventhub_namespace` - exposing the `zone_redundant` property ([#7534](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7534))
+* Data Source: `azurerm_postgresql_server` - exposing `sku_name` ([#7523](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7523))
+* `azurerm_app_service_environment` - the property `user_whitelisted_ip_ranges` has been deprecated and renamed to `allowed_user_ip_cidrs` to clarify the function and expected format ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
+* `azurerm_eventhub_namespace` - support for the `zone_redundant` property ([#7534](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7534))
+* `azurerm_key_vault_certificate` - exposing the `certificate_attribute` block ([#7387](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7387))
+* `azurerm_sentinel_alert_rule_ms_security_incident` - the property `text_whitelist` has been deprecated and renamed to `display_name_filter` to better match the api ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
+* `azurerm_shared_image` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
+* `azurerm_shared_image_version` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
+* `azurerm_spring_cloud_service` - support for `sku_name` ([#7531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7531))
+* `azurerm_spring_cloud_service` - support for the `trace` block ([#7531](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7531))
+
+BUG FIXES: 
+
+* `azurerm_api_management_named_value` - polling until the property is fully created ([#7547](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7547))
+* `azurerm_api_management_property` - polling until the property is fully created ([#7547](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7547))
+* `azurerm_linux_virtual_machine_scale_set` - using the provider feature `roll_instances_when_required` when `upgrade_mode` is set to `Manual` ([#7513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7513))
+* `azurerm_marketplace_agreement` - fix issue around import ([#7515](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7515))
+* `azurerm_windows_virtual_machine_scale_set` - using the provider feature `roll_instances_when_required` when `upgrade_mode` is set to `Manual` ([#7513](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7513))
 
 ## 2.16.0 (June 25, 2020)
 

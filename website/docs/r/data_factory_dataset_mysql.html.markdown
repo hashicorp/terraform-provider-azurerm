@@ -41,7 +41,7 @@ resource "azurerm_data_factory_dataset_mysql" "example" {
 
 ## Argument Reference
 
-The following arguments are supported:
+The following supported arguments are common across all Azure Data Factory Datasets:
 
 * `name` - (Required) Specifies the name of the Data Factory Dataset MySQL. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
 
@@ -50,8 +50,6 @@ The following arguments are supported:
 * `data_factory_name` - (Required) The Data Factory name in which to associate the Dataset with. Changing this forces a new resource.
 
 * `linked_service_name` - (Required) The Data Factory Linked Service name in which to associate the Dataset with.
-
-* `table_name` - (Optional) The table name of the Data Factory Dataset MySQL.
 
 * `folder` - (Optional) The folder that this Dataset is in. If not specified, the Dataset will appear at the root level.
 
@@ -64,6 +62,10 @@ The following arguments are supported:
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Dataset MySQL.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Dataset MySQL.
+
+The following supported arguments are specific to MySQL Dataset:
+
+* `table_name` - (Optional) The table name of the Data Factory Dataset MySQL.
 
 ---
 

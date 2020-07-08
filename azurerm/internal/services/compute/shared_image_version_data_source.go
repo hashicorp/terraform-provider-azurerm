@@ -51,6 +51,11 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 				Computed: true,
 			},
 
+			"os_disk_snapshot_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"target_region": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -113,8 +118,7 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 		if profile := props.PublishingProfile; profile != nil {
 			d.Set("exclude_from_latest", profile.ExcludeFromLatest)
 
-			flattenedRegions := flattenSharedImageVersionDataSourceTargetRegions(profile.TargetRegions)
-			if err := d.Set("target_region", flattenedRegions); err != nil {
+			if err := d.Set("target_region", flattenSharedImageVersionDataSourceTargetRegions(profile.TargetRegions)); err != nil {
 				return fmt.Errorf("Error setting `target_region`: %+v", err)
 			}
 		}
@@ -123,6 +127,12 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 			if source := profile.Source; source != nil {
 				d.Set("managed_image_id", source.ID)
 			}
+
+			osDiskSnapShotID := ""
+			if profile.OsDiskImage != nil && profile.OsDiskImage.Source != nil && profile.OsDiskImage.Source.ID != nil {
+				osDiskSnapShotID = *profile.OsDiskImage.Source.ID
+			}
+			d.Set("os_disk_snapshot_id", osDiskSnapShotID)
 		}
 	}
 

@@ -596,7 +596,7 @@ resource "azurerm_postgresql_server" "test" {
   public_network_access_enabled     = false
   ssl_minimal_tls_version_enforced  = "TLS1_2"
 
-  ssl_enforcement = "Enabled"
+  ssl_enforcement_enabled = true
 
   storage_profile {
     storage_mb            = 640000

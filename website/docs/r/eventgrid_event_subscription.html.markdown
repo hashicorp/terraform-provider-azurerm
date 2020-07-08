@@ -103,7 +103,7 @@ A `storage_queue_endpoint` supports the following:
 
 An `azure_function_endpoint` supports the following:
 
-* `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events.
+* `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events. This must be the functions ID in format {function_app.id}/functions/{name}.
 
 * `max_events_per_batch` - (Optional) Maximum number of events per batch.
 
