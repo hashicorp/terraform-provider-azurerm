@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* `metadata_url` can be set at the provider level to obtain an environment from a specific url [GH-7664]
 * **New Data Source:** `azurerm_key_vault_certificate_issuer` [GH-7074]
 * **New Data Source:** `azurerm_web_application_firewall_policy` [GH-7469]
 * **New Resource:** `azurerm_automation_connection` [GH-6847]
