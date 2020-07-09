@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -156,11 +157,9 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				}, false),
 			},
 
-			// hyper_scale can not be changed into other sku
 			"sku_name": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ForceNew:         true,
 				Computed:         true,
 				ValidateFunc:     validate.MsSqlDBSkuName(),
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -268,6 +267,13 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+				// "hyperscale can not change to other sku
+				return strings.HasPrefix(old.(string), "HS") && !strings.HasPrefix(new.(string), "HS")
+			}),
+		),
 	}
 }
 
@@ -340,13 +346,11 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		params.DatabaseProperties.MaxSizeBytes = utils.Int64(int64(v.(int) * 1073741824))
 	}
 
-	if v, ok := d.GetOkExists("read_scale"); ok {
-		if v.(bool) {
-			params.DatabaseProperties.ReadScale = sql.DatabaseReadScaleEnabled
-		} else {
-			params.DatabaseProperties.ReadScale = sql.DatabaseReadScaleDisabled
-		}
+	readScale := sql.DatabaseReadScaleDisabled
+	if v := d.Get("read_scale").(bool); v {
+		readScale = sql.DatabaseReadScaleEnabled
 	}
+	params.DatabaseProperties.ReadScale = readScale
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
 		if cm, ok := d.GetOk("create_mode"); ok && cm.(string) != string(sql.CreateModePointInTimeRestore) {

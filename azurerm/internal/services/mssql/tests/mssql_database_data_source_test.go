@@ -41,7 +41,7 @@ func TestAccDataSourceAzureRMMsSqlDatabase_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "collation", "SQL_AltDiction_CP850_CI_AI"),
 					resource.TestCheckResourceAttr(data.ResourceName, "license_type", "BasePrice"),
 					resource.TestCheckResourceAttr(data.ResourceName, "max_size_gb", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen4_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "GP_Gen5_2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.ENV", "Test"),
 				),

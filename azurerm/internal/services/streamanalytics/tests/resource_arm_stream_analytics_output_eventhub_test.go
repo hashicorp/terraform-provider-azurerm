@@ -332,6 +332,12 @@ resource "azurerm_stream_analytics_output_eventhub" "import" {
   servicebus_namespace      = azurerm_stream_analytics_output_eventhub.test.servicebus_namespace
   shared_access_policy_key  = azurerm_stream_analytics_output_eventhub.test.shared_access_policy_key
   shared_access_policy_name = azurerm_stream_analytics_output_eventhub.test.shared_access_policy_name
+
+  serialization {
+    type     = azurerm_stream_analytics_output_eventhub.test.serialization.0.type
+    encoding = azurerm_stream_analytics_output_eventhub.test.serialization.0.encoding
+    format   = azurerm_stream_analytics_output_eventhub.test.serialization.0.format
+  }
 }
 `, template)
 }
