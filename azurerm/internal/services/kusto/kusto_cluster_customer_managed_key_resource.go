@@ -86,7 +86,7 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 	if err != nil {
 		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
 	}
-	if cluster.KeyVaultProperties == nil {
+	if cluster.ClusterProperties == nil {
 		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): `properties` was nil", clusterID.Name, clusterID.ResourceGroup)
 	}
 
