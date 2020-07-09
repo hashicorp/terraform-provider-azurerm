@@ -108,7 +108,7 @@ func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta int
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-		db.CassandraKeyspaceCreateUpdateProperties.Options.Throughput = throughput.(*int32)
+		db.CassandraKeyspaceCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
 	}
 
 	future, err := client.CreateUpdateCassandraKeyspace(ctx, resourceGroup, account, name, db)
@@ -166,7 +166,7 @@ func resourceArmCosmosDbCassandraKeyspaceUpdate(d *schema.ResourceData, meta int
 		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
 			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
 				Resource: &documentdb.ThroughputSettingsResource{
-					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
+					Throughput: common.ConvertThroughputFromResourceData(d.Get("throughput")),
 				},
 			},
 		}

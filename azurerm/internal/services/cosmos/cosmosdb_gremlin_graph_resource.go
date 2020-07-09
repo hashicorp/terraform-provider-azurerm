@@ -235,7 +235,7 @@ func resourceArmCosmosDbGremlinGraphCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-		db.GremlinGraphCreateUpdateProperties.Options.Throughput = throughput.(*int32)
+		db.GremlinGraphCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
 	}
 
 	future, err := client.CreateUpdateGremlinGraph(ctx, resourceGroup, account, database, name, db)
@@ -309,7 +309,7 @@ func resourceArmCosmosDbGremlinGraphUpdate(d *schema.ResourceData, meta interfac
 		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
 			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
 				Resource: &documentdb.ThroughputSettingsResource{
-					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
+					Throughput: common.ConvertThroughputFromResourceData(d.Get("throughput")),
 				},
 			},
 		}

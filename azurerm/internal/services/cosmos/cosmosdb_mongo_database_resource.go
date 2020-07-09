@@ -108,7 +108,7 @@ func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interfa
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-		db.MongoDBDatabaseCreateUpdateProperties.Options.Throughput = throughput.(*int32)
+		db.MongoDBDatabaseCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
 	}
 
 	future, err := client.CreateUpdateMongoDBDatabase(ctx, resourceGroup, account, name, db)
@@ -166,7 +166,7 @@ func resourceArmCosmosDbMongoDatabaseUpdate(d *schema.ResourceData, meta interfa
 		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
 			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
 				Resource: &documentdb.ThroughputSettingsResource{
-					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
+					Throughput: common.ConvertThroughputFromResourceData(d.Get("throughput")),
 				},
 			},
 		}

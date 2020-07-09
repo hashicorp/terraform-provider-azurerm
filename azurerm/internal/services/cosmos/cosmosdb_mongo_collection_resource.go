@@ -138,7 +138,7 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
-		db.MongoDBCollectionCreateUpdateProperties.Options.Throughput = throughput.(*int32)
+		db.MongoDBCollectionCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
@@ -214,7 +214,7 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
 			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
 				Resource: &documentdb.ThroughputSettingsResource{
-					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
+					Throughput: common.ConvertThroughputFromResourceData(d.Get("throughput")),
 				},
 			},
 		}

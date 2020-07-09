@@ -2,6 +2,7 @@ package common
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func GetThroughputFromResult(throughputResponse documentdb.ThroughputSettingsGetResults) *int32 {
@@ -16,4 +17,8 @@ func GetThroughputFromResult(throughputResponse documentdb.ThroughputSettingsGet
 	}
 
 	return res.Throughput
+}
+
+func ConvertThroughputFromResourceData(throughput interface{}) *int32 {
+	return utils.Int32(int32(throughput.(int)))
 }
