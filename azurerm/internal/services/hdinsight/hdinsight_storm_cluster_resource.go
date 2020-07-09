@@ -87,6 +87,8 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 
 			"gateway": azure.SchemaHDInsightsGateway(),
 
+			"metastores": azure.SchemaHDInsightsExternalMetastores(),
+
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
 			"roles": {
@@ -136,7 +138,13 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 	componentVersions := expandHDInsightStormComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
-	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+
+	metastoresRaw := d.Get("metastores").([]interface{})
+	metastores := expandHDInsightsMetastore(metastoresRaw)
+	for k, v := range metastores {
+		configurations[k] = v
+	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
@@ -178,7 +186,7 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Storm"),
 				ComponentVersion: componentVersions,
-				Configurations:   gateway,
+				Configurations:   configurations,
 			},
 			StorageProfile: &hdinsight.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -238,9 +246,15 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error retrieving HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
+	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
+	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Configuration for HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	gateway, exists := configurations.Configurations["gateway"]
+	if !exists {
+		return fmt.Errorf("Error retrieving gateway for HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -260,9 +274,11 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 				return fmt.Errorf("Error flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
+
+			flattenHDInsightsMetastores(d, configurations.Configurations)
 		}
 
 		stormRoles := hdInsightRoleDefinition{

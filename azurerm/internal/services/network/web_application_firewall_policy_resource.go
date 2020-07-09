@@ -122,6 +122,21 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 										Type:     schema.TypeBool,
 										Optional: true,
 									},
+									"transforms": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(network.HTMLEntityDecode),
+												string(network.Lowercase),
+												string(network.RemoveNulls),
+												string(network.Trim),
+												string(network.URLDecode),
+												string(network.URLEncode),
+											}, false),
+										},
+									},
 								},
 							},
 						},
@@ -522,12 +537,18 @@ func expandArmWebApplicationFirewallPolicyMatchCondition(input []interface{}) *[
 		operator := v["operator"].(string)
 		negationCondition := v["negation_condition"].(bool)
 		matchValues := v["match_values"].([]interface{})
+		transformsRaw := v["transforms"].(*schema.Set).List()
 
+		var transforms []network.WebApplicationFirewallTransform
+		for _, trans := range transformsRaw {
+			transforms = append(transforms, network.WebApplicationFirewallTransform(trans.(string)))
+		}
 		result := network.MatchCondition{
 			MatchValues:      utils.ExpandStringSlice(matchValues),
 			MatchVariables:   expandArmWebApplicationFirewallPolicyMatchVariable(matchVariables),
 			NegationConditon: utils.Bool(negationCondition),
 			Operator:         network.WebApplicationFirewallOperator(operator),
+			Transforms:       &transforms,
 		}
 
 		results = append(results, result)
@@ -689,12 +710,19 @@ func flattenArmWebApplicationFirewallPolicyMatchCondition(input *[]network.Match
 	for _, item := range *input {
 		v := make(map[string]interface{})
 
+		var transforms []interface{}
+		if item.Transforms != nil {
+			for _, trans := range *item.Transforms {
+				transforms = append(transforms, string(trans))
+			}
+		}
 		v["match_values"] = utils.FlattenStringSlice(item.MatchValues)
 		v["match_variables"] = flattenArmWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
 		if negationCondition := item.NegationConditon; negationCondition != nil {
 			v["negation_condition"] = *negationCondition
 		}
 		v["operator"] = string(item.Operator)
+		v["transforms"] = transforms
 
 		results = append(results, v)
 	}

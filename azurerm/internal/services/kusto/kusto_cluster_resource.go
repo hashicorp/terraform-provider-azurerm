@@ -96,6 +96,17 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"trusted_external_tenants": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+				},
+			},
+
 			"optimized_auto_scale": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -247,6 +258,11 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 		clusterProperties.VirtualNetworkConfiguration = vnet
 	}
 
+	if v, ok := d.GetOk("trusted_external_tenants"); ok {
+		trustedExternalTenants := azure.ExpandKustoClusterTrustedExternalTenants(v.([]interface{}))
+		clusterProperties.TrustedExternalTenants = trustedExternalTenants
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 
 	kustoCluster := kusto.Cluster{
@@ -370,6 +386,7 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
+		d.Set("trusted_external_tenants", azure.FlattenKustoClusterTrustedExternalTenants(clusterProperties.TrustedExternalTenants))
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
 		d.Set("enable_purge", clusterProperties.EnablePurge)
