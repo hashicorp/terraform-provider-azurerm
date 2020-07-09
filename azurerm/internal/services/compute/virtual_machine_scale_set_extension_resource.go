@@ -135,7 +135,7 @@ func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, me
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", *resp.ID)
 		}
 	}
 
