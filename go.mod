@@ -21,8 +21,9 @@ require (
 	github.com/sergi/go-diff v1.1.0
 	github.com/terraform-providers/terraform-provider-azuread v0.9.0
 	github.com/tombuildsstuff/giovanni v0.11.0
-	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
-	golang.org/x/net v0.0.0-20200301022130-244492dfa37a
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/net v0.0.0-20200625001655-4c5254603344
+	golang.org/x/tools v0.0.0-20200708183856-df98bc6d456c // indirect
 	gopkg.in/yaml.v2 v2.2.4
 )
 
