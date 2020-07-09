@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func SchemaKustoIdentity() *schema.Schema {
@@ -88,4 +89,34 @@ func FlattenKustoIdentity(input *kusto.Identity) []interface{} {
 			"tenant_id":    tenantID,
 		},
 	}
+}
+
+func ExpandKustoClusterTrustedExternalTenants(input []interface{}) *[]kusto.TrustedExternalTenant {
+	output := make([]kusto.TrustedExternalTenant, 0)
+
+	for _, v := range input {
+		output = append(output, kusto.TrustedExternalTenant{
+			Value: utils.String(v.(string)),
+		})
+	}
+
+	return &output
+}
+
+func FlattenKustoClusterTrustedExternalTenants(input *[]kusto.TrustedExternalTenant) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, v := range *input {
+		if v.Value == nil {
+			continue
+		}
+
+		output = append(output, *v.Value)
+	}
+
+	return output
 }
