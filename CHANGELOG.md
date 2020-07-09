@@ -21,6 +21,7 @@ FEATURES:
 * **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
 * **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
 * **New Resource:** `azurerm_key_vault_certificate_issuer` [GH-7074]
+* **New Resource:** `azurerm_kusto_attached_database_configuration` [GH-7377]
 
 ENHANCEMENTS:
 
