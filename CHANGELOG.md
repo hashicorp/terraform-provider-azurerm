@@ -24,6 +24,7 @@ FEATURES:
 * **New Resource:** `azurerm_key_vault_certificate_issuer` [GH-7074]
 * **New Resource:** `azurerm_kusto_attached_database_configuration` [GH-7377]
 * **New Resource:** `azurerm_kusto_database_principal_assignment` [GH-7484]
+* **New Resource:** `azurerm_mysql_active_directory_administrator` [GH-7621]
 
 ENHANCEMENTS:
 
