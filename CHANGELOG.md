@@ -47,6 +47,7 @@ ENHANCEMENTS:
 * `azurerm_hdinsight_spark_cluster` - now supports external Azure Monitor [GH-7045]
 * `azurerm_hdinsight_storm_cluster` - now supports external metastores [GH-6969]
 * `azurerm_hdinsight_storm_cluster` - now supports external Azure Monitor [GH-7045]
+* `azurerm_policy_set_definition` - the `management_group_id` property has been deprecated in favour of `management_group_name` to align with the behaviour in `azurerm_policy_definition` [GH-6943]
 * `azurerm_kusto_cluster` - support for the `language_extensions` property [GH-7421]
 * `azurerm_kusto_cluster` - Support for the `optimized_auto_scale` property [GH-7371]
 * `azurerm_mysql_server` - support for the `threat_detection_policy` property [GH-7156]
