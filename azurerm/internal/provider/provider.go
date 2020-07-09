@@ -97,6 +97,13 @@ func azureProvider(supportLegacyTestSuite bool) terraform.ResourceProvider {
 				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, german, and china. Defaults to public.",
 			},
 
+			"metadata_url": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_METADATA_URL", ""),
+				Description: "The Metadata URL which will be used to obtain the Cloud Environment.",
+			},
+
 			// Client Certificate specific fields
 			"client_certificate_path": {
 				Type:        schema.TypeString,
