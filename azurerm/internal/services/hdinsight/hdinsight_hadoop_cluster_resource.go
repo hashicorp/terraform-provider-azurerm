@@ -92,20 +92,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 			"gateway": azure.SchemaHDInsightsGateway(),
 
-			"metastores": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"hive": azure.SchemaHDInsightsExternalMetastore(),
-
-						"oozie": azure.SchemaHDInsightsExternalMetastore(),
-
-						"ambari": azure.SchemaHDInsightsExternalMetastore(),
-					},
-				},
-			},
+			"metastores": azure.SchemaHDInsightsExternalMetastores(),
 
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
