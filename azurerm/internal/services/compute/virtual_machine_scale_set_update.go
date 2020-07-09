@@ -52,11 +52,11 @@ func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.C
 					return err
 				}
 			}
-		}
 
-		if upgradeMode == compute.Manual {
-			if err := metadata.upgradeInstancesForManualUpgradePolicy(ctx); err != nil {
-				return err
+			if upgradeMode == compute.Manual {
+				if err := metadata.upgradeInstancesForManualUpgradePolicy(ctx); err != nil {
+					return err
+				}
 			}
 		}
 	}

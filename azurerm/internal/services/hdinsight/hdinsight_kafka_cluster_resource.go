@@ -21,7 +21,7 @@ import (
 var hdInsightKafkaClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         2,
+	MaxInstanceCount:         utils.Int(2),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
@@ -29,7 +29,6 @@ var hdInsightKafkaClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightKafkaClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	MaxInstanceCount:        57,
 	CanSpecifyDisks:         true,
 	MaxNumberOfDisksPerNode: utils.Int(8),
 }
@@ -37,7 +36,7 @@ var hdInsightKafkaClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightKafkaClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         3,
+	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
@@ -71,6 +70,8 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 			"tier": azure.SchemaHDInsightTier(),
 
 			"tls_min_version": azure.SchemaHDInsightTls(),
+
+			"metastores": azure.SchemaHDInsightsExternalMetastores(),
 
 			"component_version": {
 				Type:     schema.TypeList,
@@ -140,7 +141,13 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 	componentVersions := expandHDInsightKafkaComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
-	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+
+	metastoresRaw := d.Get("metastores").([]interface{})
+	metastores := expandHDInsightsMetastore(metastoresRaw)
+	for k, v := range metastores {
+		configurations[k] = v
+	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
@@ -183,7 +190,7 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Kafka"),
 				ComponentVersion: componentVersions,
-				Configurations:   gateway,
+				Configurations:   configurations,
 			},
 			StorageProfile: &hdinsight.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -243,9 +250,15 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error retrieving HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
+	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
+	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Configuration for HDInsight Kafka Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	gateway, exists := configurations.Configurations["gateway"]
+	if !exists {
+		return fmt.Errorf("Error retrieving gateway for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -265,9 +278,11 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 				return fmt.Errorf("Error flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
+
+			flattenHDInsightsMetastores(d, configurations.Configurations)
 		}
 
 		kafkaRoles := hdInsightRoleDefinition{

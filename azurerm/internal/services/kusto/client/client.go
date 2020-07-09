@@ -9,6 +9,7 @@ type Client struct {
 	ClustersClient                       *kusto.ClustersClient
 	DatabasesClient                      *kusto.DatabasesClient
 	DataConnectionsClient                *kusto.DataConnectionsClient
+	ClusterPrincipalAssignmentsClient    *kusto.ClusterPrincipalAssignmentsClient
 	AttachedDatabaseConfigurationsClient *kusto.AttachedDatabaseConfigurationsClient
 }
 
@@ -21,6 +22,8 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	DataConnectionsClient := kusto.NewDataConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DataConnectionsClient.Client, o.ResourceManagerAuthorizer)
+	ClusterPrincipalAssignmentsClient := kusto.NewClusterPrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ClusterPrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	AttachedDatabaseConfigurationsClient := kusto.NewAttachedDatabaseConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AttachedDatabaseConfigurationsClient.Client, o.ResourceManagerAuthorizer)
@@ -29,6 +32,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ClustersClient:                       &ClustersClient,
 		DatabasesClient:                      &DatabasesClient,
 		DataConnectionsClient:                &DataConnectionsClient,
+		ClusterPrincipalAssignmentsClient:    &ClusterPrincipalAssignmentsClient,
 		AttachedDatabaseConfigurationsClient: &AttachedDatabaseConfigurationsClient,
 	}
 }

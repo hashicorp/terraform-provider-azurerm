@@ -189,6 +189,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error parsing Role Definition ID: %+v", err)
 		}
 		if roleDefinitionId != nil {
+			d.Set("scope", roleDefinitionId.scope)
 			d.Set("role_definition_id", roleDefinitionId.roleDefinitionId)
 		}
 	}
@@ -351,9 +352,9 @@ func parseRoleDefinitionId(input string) (*roleDefinitionId, error) {
 		return nil, fmt.Errorf("Expected Role Definition ID to be in the format `{scope}/providers/Microsoft.Authorization/roleDefinitions/{name}` but got %q", input)
 	}
 
-	// /{scope}/providers/Microsoft.Authorization/roleDefinitions/{roleDefinitionId}
+	// {scope}/providers/Microsoft.Authorization/roleDefinitions/{roleDefinitionId}
 	id := roleDefinitionId{
-		scope:            strings.TrimPrefix(segments[0], "/"),
+		scope:            segments[0],
 		roleDefinitionId: segments[1],
 	}
 	return &id, nil
