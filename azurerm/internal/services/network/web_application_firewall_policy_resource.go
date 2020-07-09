@@ -262,6 +262,23 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 							}, false),
 							Default: string(network.Prevention),
 						},
+						"request_body_check": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"file_upload_limit_in_mb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 750),
+							Default:      100,
+						},
+						"max_request_body_size_in_kb": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(8, 128),
+							Default:      128,
+						},
 					},
 				},
 			},
@@ -431,10 +448,16 @@ func expandArmWebApplicationFirewallPolicyPolicySettings(input []interface{}) *n
 		enabled = network.WebApplicationFirewallEnabledStateEnabled
 	}
 	mode := v["mode"].(string)
+	requestBodyCheck := v["request_body_check"].(bool)
+	maxRequestBodySizeInKb := v["max_request_body_size_in_kb"].(int)
+	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
 
 	result := network.PolicySettings{
-		State: enabled,
-		Mode:  network.WebApplicationFirewallMode(mode),
+		State:                  enabled,
+		Mode:                   network.WebApplicationFirewallMode(mode),
+		RequestBodyCheck:       utils.Bool(requestBodyCheck),
+		MaxRequestBodySizeInKb: utils.Int32(int32(maxRequestBodySizeInKb)),
+		FileUploadLimitInMb:    utils.Int32(int32(fileUploadLimitInMb)),
 	}
 	return &result
 }
@@ -607,6 +630,9 @@ func flattenArmWebApplicationFirewallPolicyPolicySettings(input *network.PolicyS
 
 	result["enabled"] = input.State == network.WebApplicationFirewallEnabledStateEnabled
 	result["mode"] = string(input.Mode)
+	result["request_body_check"] = input.RequestBodyCheck
+	result["max_request_body_size_in_kb"] = int(*input.MaxRequestBodySizeInKb)
+	result["file_upload_limit_in_mb"] = int(*input.FileUploadLimitInMb)
 
 	return []interface{}{result}
 }
