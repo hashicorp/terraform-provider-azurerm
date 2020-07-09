@@ -238,7 +238,7 @@ resource "azurerm_application_insights_web_test" "test" {
 </WebTest>
 XML
 
-lifecycle {
+  lifecycle {
     ignore_changes = ["tags"]
   }
 }
