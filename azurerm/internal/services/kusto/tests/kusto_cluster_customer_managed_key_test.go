@@ -153,10 +153,10 @@ func testAccAzureRMKustoClusterCustomerManagedKey_requiresImport(data acceptance
 %s
 
 resource "azurerm_kusto_cluster_customer_managed_key" "import" {
-  cluster_id   = azurerm_storage_account_customer_managed_key.test.cluster_id
-  key_vault_id = azurerm_storage_account_customer_managed_key.test.key_vault_id
-  key_name     = azurerm_storage_account_customer_managed_key.test.key_name
-  key_version  = azurerm_storage_account_customer_managed_key.test.key_version
+  cluster_id   = azurerm_kusto_cluster_customer_managed_key.test.cluster_id
+  key_vault_id = azurerm_kusto_cluster_customer_managed_key.test.key_vault_id
+  key_name     = azurerm_kusto_cluster_customer_managed_key.test.key_name
+  key_version  = azurerm_kusto_cluster_customer_managed_key.test.key_version
 }
 `, template)
 }
