@@ -2,7 +2,7 @@
 
 FEATURES:
 
-* `metadata_url` can be set at the provider level to obtain an environment from a specific url [GH-7664]
+* `metadata_url` can be set at the provider level to use an environment provided by a specific url [GH-7664]
 * **New Data Source:** `azurerm_key_vault_certificate_issuer` [GH-7074]
 * **New Data Source:** `azurerm_web_application_firewall_policy` [GH-7469]
 * **New Resource:** `azurerm_automation_connection` [GH-6847]
@@ -30,6 +30,7 @@ ENHANCEMENTS:
 * dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.11.0` [GH-7608]
 * dependencies: updating `network` to `2020-05-01` [GH-7585]
 * Data Source: `azurerm_eventhub_namespace` - exposing the `dedicated_cluster_id` field [GH-7548]
+* `azurerm_cosmosdb_account` - support for the `ignore_missing_vnet_service_endpoint` property [GH-7348]
 * `azurerm_application_gateway` - support for the `firewall_policy_id` attribute within the `http_listener` block [GH-7580]
 * `azurerm_eventhub_namespace` - support for configuring the `dedicated_cluster_id` field [GH-7548]
 * `azurerm_eventhub_namespace` - support for setting `partition_count` to `1024` when using a Dedicated Cluster [GH-7548]
