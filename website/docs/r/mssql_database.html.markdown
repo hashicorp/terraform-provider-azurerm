@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `collation` - (Optional) Specifies the collation of the database. Changing this forces a new resource to be created.
 
-* `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database. Changing this forces a new resource to be created.
+* `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database.
 
 * `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
