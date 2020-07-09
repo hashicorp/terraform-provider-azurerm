@@ -36,7 +36,7 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 
 	// during the authentication phase the client first attempts the "none" method
 	// then any untried methods suggested by the server.
-	var tried []string
+	tried := make(map[string]bool)
 	var lastMethods []string
 
 	sessionID := c.transport.getSessionID()
@@ -49,9 +49,7 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 			// success
 			return nil
 		} else if ok == authFailure {
-			if m := auth.method(); !contains(tried, m) {
-				tried = append(tried, m)
-			}
+			tried[auth.method()] = true
 		}
 		if methods == nil {
 			methods = lastMethods
@@ -63,7 +61,7 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 	findNext:
 		for _, a := range config.Auth {
 			candidateMethod := a.method()
-			if contains(tried, candidateMethod) {
+			if tried[candidateMethod] {
 				continue
 			}
 			for _, meth := range methods {
@@ -74,16 +72,16 @@ func (c *connection) clientAuthenticate(config *ClientConfig) error {
 			}
 		}
 	}
-	return fmt.Errorf("ssh: unable to authenticate, attempted methods %v, no supported methods remain", tried)
+	return fmt.Errorf("ssh: unable to authenticate, attempted methods %v, no supported methods remain", keys(tried))
 }
 
-func contains(list []string, e string) bool {
-	for _, s := range list {
-		if s == e {
-			return true
-		}
+func keys(m map[string]bool) []string {
+	s := make([]string, 0, len(m))
+
+	for key := range m {
+		s = append(s, key)
 	}
-	return false
+	return s
 }
 
 // An AuthMethod represents an instance of an RFC 4252 authentication method.

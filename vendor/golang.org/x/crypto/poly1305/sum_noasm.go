@@ -2,10 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build !amd64,!ppc64le gccgo appengine
+// +build s390x,!go1.11 !arm,!amd64,!s390x,!ppc64le gccgo appengine nacl
 
 package poly1305
 
-type mac struct{ macGeneric }
-
-func newMAC(key *[32]byte) mac { return mac{newMACGeneric(key)} }
+func sum(out *[TagSize]byte, msg []byte, key *[32]byte) {
+	h := newMAC(key)
+	h.Write(msg)
+	h.Sum(out)
+}
