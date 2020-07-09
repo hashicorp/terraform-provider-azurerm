@@ -50,6 +50,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_database` - the `sku_name` property now only forces a new resource for the `HS` (HyperScale) family [GH-7559]
 * `azurerm_web_application_firewall_policy` - allow setting `version` to `0.1` (for when `type` is set to `Microsoft_BotManagerRuleSet`) [GH-7579]
 * `azurerm_web_application_firewall_policy` - support the `transforms` property in the `custom_rules.match_conditions` block [GH-7545]
+* `azurerm_web_application_firewall_policy` - support the `request_body_check`, `file_upload_limit_in_mb`, and `max_request_body_size_in_kb` properties in the `policy_settings` block [GH-7363]
 
 BUG FIXES: 
 
