@@ -97,8 +97,24 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 	appInsightsName := id.Path["components"]
 
 	if features.ShouldResourcesBeImported() {
+		var existingAPIKeyList insights.ApplicationInsightsComponentAPIKeyListResult
+		var keyId string
+		existingAPIKeyList, err = client.List(ctx, resGroup, appInsightsName)
+		for _, existingAPIKey := range *existingAPIKeyList.Value {
+			existingAPIKeyId, err := azure.ParseAzureResourceID(*existingAPIKey.ID)
+			if err != nil {
+				return err
+			}
+
+			existingAppInsightsName := existingAPIKeyId.Path["components"]
+			if appInsightsName == existingAppInsightsName {
+				keyId = existingAPIKeyId.Path["apikeys"]
+				break
+			}
+		}
+
 		var existing insights.ApplicationInsightsComponentAPIKey
-		existing, err = client.Get(ctx, resGroup, appInsightsName, name)
+		existing, err = client.Get(ctx, resGroup, appInsightsName, keyId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Application Insights API key %q (Resource Group %q): %s", name, resGroup, err)
