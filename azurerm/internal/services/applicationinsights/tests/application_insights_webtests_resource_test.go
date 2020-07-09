@@ -194,6 +194,9 @@ resource "azurerm_application_insights_web_test" "test" {
 </WebTest>
 XML
 
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
