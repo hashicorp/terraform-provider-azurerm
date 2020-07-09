@@ -85,7 +85,28 @@ The following arguments are supported:
 
 * `storage_mb` - (Required) Max storage allowed for a server. Possible values are between `5120` MB(5GB) and `1048576` MB(1TB) for the Basic SKU and between `5120` MB(5GB) and `4194304` MB(4TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/mysql/servers/create#StorageProfile).
 
+* `threat_detection_policy` - (Optional) Threat detection policy configuration, known in the API as Server Security Alerts Policy. The `threat_detection_policy` block supports fields documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+a `threat_detection_policy` block supports the following:
+
+* `enabled` - (Required) Is the policy enabled?
+
+* `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
+
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+
+* `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
+
+* `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
+
+* `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account.
+
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
+
 
 ## Attributes Reference
 

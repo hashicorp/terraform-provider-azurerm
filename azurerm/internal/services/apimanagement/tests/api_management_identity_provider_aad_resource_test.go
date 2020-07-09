@@ -26,7 +26,7 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_basic(t *testing.T) {
 					testCheckAzureRMApiManagementIdentityProviderAADExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
@@ -60,7 +60,7 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.1", data.Client().TenantID),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
