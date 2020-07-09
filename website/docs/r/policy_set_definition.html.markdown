@@ -15,10 +15,6 @@ Manages a policy set definition.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_policy_set_definition" "example" {
   name         = "testPolicySet"
   policy_type  = "Custom"
@@ -66,9 +62,11 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the policy set definition.
 
-* `management_group_id` - (Optional) The ID of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
+* `management_group_name` - (Optional) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
 
-~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `.group_id` and not `.id`.
+* `management_group_id` - (Optional / **Deprecated in favour of `management_group_name`**) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
+
+~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
 
 * `metadata` - (Optional) The metadata for the policy set definition. This is a json object representing additional metadata that should be stored with the policy definition.
 
