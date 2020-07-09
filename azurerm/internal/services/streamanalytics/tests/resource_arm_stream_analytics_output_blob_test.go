@@ -293,7 +293,6 @@ resource "azurerm_stream_analytics_output_blob" "import" {
     for_each = azurerm_stream_analytics_output_blob.test.serialization
     content {
       encoding        = lookup(serialization.value, "encoding", null)
-      field_delimiter = lookup(serialization.value, "field_delimiter", null)
       format          = lookup(serialization.value, "format", null)
       type            = serialization.value.type
     }
