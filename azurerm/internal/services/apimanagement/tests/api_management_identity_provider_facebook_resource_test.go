@@ -27,7 +27,7 @@ func TestAccAzureRMApiManagementIdentityProviderFacebook_basic(t *testing.T) {
 					testCheckAzureRMApiManagementIdentityProviderFacebookExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("app_secret"),
 		},
 	})
 }
@@ -47,18 +47,17 @@ func TestAccAzureRMApiManagementIdentityProviderFacebook_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderFacebookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "app_id", "00000000000000000000000000000000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_secret", "00000000000000000000000000000000"),
 				),
 			},
+			data.ImportStep("app_secret"),
 			{
 				Config: updateConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderFacebookExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "app_id", "11111111111111111111111111111111"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_secret", "11111111111111111111111111111111"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("app_secret"),
 		},
 	})
 }
