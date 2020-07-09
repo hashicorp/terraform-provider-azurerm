@@ -139,7 +139,7 @@ func IsEnvironmentAzureStack(ctx context.Context, endpoint string, environmentNa
 			return false, fmt.Errorf("unable to decode environment from %q response: %+v", endpoint, err)
 		}
 		if strings.EqualFold(env.Name, environmentName) {
-			if strings.EqualFold(env.Authentication.IdentityProvider, "AAD") || strings.EqualFold(env.Authentication.Tenant, "common") {
+			if !strings.EqualFold(env.Authentication.IdentityProvider, "AAD") || !strings.EqualFold(env.Authentication.Tenant, "common") {
 				return true, nil
 			}
 			return false, nil
