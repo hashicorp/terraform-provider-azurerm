@@ -2,7 +2,6 @@ package suppress
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io"
 	"reflect"
 	"strings"
@@ -20,7 +19,6 @@ func XmlDiff(_, old, new string, _ *schema.ResourceData) bool {
 	if err != nil {
 		return false
 	}
-	fmt.Printf("old tokens:%v, \nnew tokens:%v\n", oldTokens, newTokens)
 
 	return reflect.DeepEqual(oldTokens, newTokens)
 }
@@ -28,12 +26,9 @@ func XmlDiff(_, old, new string, _ *schema.ResourceData) bool {
 // This function will extract all XML tokens from a string, but ignoring all white-space tokens
 func expandXmlTokensFromString(input string) ([]xml.Token, error) {
 	decoder := xml.NewDecoder(strings.NewReader(input))
-	decoder.Strict = false
-	decoder.AutoClose = xml.HTMLAutoClose
-
 	tokens := make([]xml.Token, 0)
 	for {
-		token, err := decoder.RawToken()
+		token, err := decoder.Token()
 		if err != nil {
 			if err == io.EOF {
 				break
