@@ -54,6 +54,7 @@ ENHANCEMENTS:
 
 BUG FIXES: 
 
+* `azurerm_application_insights_api_key` - now correctly checks if the resource exists upon creation [GH-7650]
 * `azurerm_api_management_identity_provider_aad` - fix perpetual diff on the `client_secret` property [GH-7529]
 * `azurerm_policy_remediation` - removing the validation for the `policy_definition_reference_id` field since this isn't a Resource ID [GH-7600]
 * `azurerm_storage_data_lake_gen2_filesystem` - prevent a crash during plan if storage account was deleted [GH-7378]
