@@ -374,6 +374,8 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+	var upsertResponse *documentdb.DatabaseAccountGetResults
+
 	client := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -416,8 +418,8 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		oldLocationsMap[azure.NormalizeLocation(*location.LocationName)] = location
 	}
 
-	// cannot update properties and add/remove replication locations at the same time
-	// so first just update any changed properties
+	// cannot update properties and add/remove replication locations or updating enabling of multiple
+	// write locations at the same time. so first just update any changed properties
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
@@ -430,13 +432,19 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                     &oldLocations,
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
-			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 		},
 		Tags: tags.Expand(t),
 	}
 
-	if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+	if upsertResponse, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if upsertResponse.EnableMultipleWriteLocations != utils.Bool(enableMultipleWriteLocations) {
+		account.DatabaseAccountCreateUpdateProperties.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
+		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	// determine if any locations have been renamed/priority reordered and remove them
@@ -478,7 +486,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 
 	// add any new/renamed locations
 	account.DatabaseAccountCreateUpdateProperties.Locations = &newLocations
-	upsertResponse, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
+	upsertResponse, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
 	}
