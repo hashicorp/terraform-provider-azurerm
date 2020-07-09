@@ -2,8 +2,26 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_key_vault_certificate_issuer` [GH-7074]
 * **New Data Source:** `azurerm_web_application_firewall_policy` [GH-7469]
+* **New Resource:** `azurerm_automation_connection` [GH-6847]
+* **New Resource:** `azurerm_automation_connection_certificate` [GH-6847]
+* **New Resource:** `azurerm_automation_connection_classic_certificate` [GH-6847]
+* **New Resource:** `azurerm_automation_connection_service_pricipal` [GH-6847]
 * **New Resource:** `azurerm_app_service_slot_virtual_network_swift_connection` [GH-5916]
+* **New Resource:** `azurerm_data_factory_dataset_azure_blob` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_cosmosdb_sqlapi` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_delimited_text` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_http` [GH-6366]
+* **New Resource:** `azurerm_data_factory_dataset_json` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_blob_storage` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
+* **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
+* **New Resource:** `azurerm_key_vault_certificate_issuer` [GH-7074]
+* **New Resource:** `azurerm_kusto_attached_database_configuration` [GH-7377]
 
 ENHANCEMENTS:
 
@@ -14,8 +32,14 @@ ENHANCEMENTS:
 * `azurerm_eventhub_namespace` - support for configuring the `dedicated_cluster_id` field [GH-7548]
 * `azurerm_eventhub_namespace` - support for setting `partition_count` to `1024` when using a Dedicated Cluster [GH-7548]
 * `azurerm_eventhub_namespace` - support for setting `retention_count` to `90` when using a Dedicated Cluster [GH-7548]
-* `azurerm_kusto_cluster` - support for the `language_extensions` [GH-7421]
-* `azurerm_kusto_cluster` - Support for `optimized_auto_scale` [GH-7371]
+* `azurerm_hdinsight_hbase_cluster` - now supports external metastores [GH-6969]
+* `azurerm_hdinsight_interactive_query_cluster` - now supports external metastores [GH-6969]
+* `azurerm_hdinsight_kafka_cluster` - now supports external metastores [GH-6969]
+* `azurerm_hdinsight_spark_cluster` - now supports external metastores [GH-6969]
+* `azurerm_hdinsight_storm_cluster` - now supports external metastores [GH-6969]
+* `azurerm_kusto_cluster` - support for the `language_extensions` property [GH-7421]
+* `azurerm_kusto_cluster` - Support for the `optimized_auto_scale` property [GH-7371]
+* `azurerm_mysql_server` - support for the `threat_detection_policy` property [GH-7156]
 * `azurerm_mssql_database` - the `sku_name` property now only forces a new resource for the `HS` (HyperScale) family [GH-7559]
 * `azurerm_web_application_firewall_policy` - allow setting `version` to `0.1` (for when `type` is set to `Microsoft_BotManagerRuleSet`) [GH-7579]
 * `azurerm_web_application_firewall_policy` - support the `transforms` property in the `custom_rules.match_conditions` block [GH-7545]
@@ -51,6 +75,7 @@ ENHANCEMENTS:
 * `azurerm_app_service_environment` - the property `user_whitelisted_ip_ranges` has been deprecated and renamed to `allowed_user_ip_cidrs` to clarify the function and expected format ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
 * `azurerm_eventhub_namespace` - support for the `zone_redundant` property ([#7534](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7534))
 * `azurerm_key_vault_certificate` - exposing the `certificate_attribute` block ([#7387](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7387))
+* `azurerm_kusto_cluster` - Support `trusted_external_tenants` [GH-7374]
 * `azurerm_sentinel_alert_rule_ms_security_incident` - the property `text_whitelist` has been deprecated and renamed to `display_name_filter` to better match the api ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
 * `azurerm_shared_image` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
 * `azurerm_shared_image_version` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
