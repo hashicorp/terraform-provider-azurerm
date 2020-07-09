@@ -20,6 +20,8 @@ func TestAccDataSourceAzureRMStreamAnalyticsJob_basic(t *testing.T) {
 				Config: testAccDataSourceAzureRMStreamAnalyticsJob_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(data.ResourceName, "job_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "streaming_units"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "transformation_query"),
 				),
 			},
 		},
