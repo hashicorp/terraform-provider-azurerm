@@ -172,10 +172,6 @@ func validateManagedDiskSizeGB(v interface{}, _ string) (warnings []string, erro
 		errors = append(errors, fmt.Errorf(
 			"The `disk_size_gb` can only be between 0 and 65536"))
 	}
-	if value > 32767 {
-		warnings = append(warnings,
-			"The `disk_size_gb` can be higher than 32767 only for `storage_account_type` UltraSSDLRS")
-	}
 	return warnings, errors
 }
 
