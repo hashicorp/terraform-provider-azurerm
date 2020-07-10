@@ -124,8 +124,39 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+
+			"metadata": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				ValidateFunc:     validation.StringIsJSON,
+				DiffSuppressFunc: policyAssignmentsMetadataDiffSuppressFunc,
+			},
 		},
 	}
+}
+
+func policyAssignmentsMetadataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+	var oldPolicyAssignmentsMetadata map[string]interface{}
+	errOld := json.Unmarshal([]byte(old), &oldPolicyAssignmentsMetadata)
+	if errOld != nil {
+		return false
+	}
+
+	var newPolicyAssignmentsMetadata map[string]interface{}
+	errNew := json.Unmarshal([]byte(new), &newPolicyAssignmentsMetadata)
+	if errNew != nil {
+		return false
+	}
+
+	// Ignore the following keys if they're found in the metadata JSON
+	ignoreKeys := [5]string{"assignedBy", "createdBy", "createdOn", "updatedBy", "updatedOn"}
+	for _, key := range ignoreKeys {
+		delete(oldPolicyAssignmentsMetadata, key)
+		delete(newPolicyAssignmentsMetadata, key)
+	}
+
+	return reflect.DeepEqual(oldPolicyAssignmentsMetadata, newPolicyAssignmentsMetadata)
 }
 
 func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -184,6 +215,14 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 		}
 
 		assignment.AssignmentProperties.Parameters = expandedParams
+	}
+
+	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
+		metaData, err := structure.ExpandJsonFromString(metaDataString)
+		if err != nil {
+			return fmt.Errorf("unable to parse metadata: %s", err)
+		}
+		properties.Metadata = &metaData
 	}
 
 	if _, ok := d.GetOk("not_scopes"); ok {
@@ -259,7 +298,11 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("enforcement_mode", props.EnforcementMode == policy.Default)
-
+		
+		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
+			d.Set("metadata", metadataStr)
+		}
+		
 		if params := props.Parameters; params != nil {
 			json, err := flattenParameterValuesValueToString(params)
 			if err != nil {
