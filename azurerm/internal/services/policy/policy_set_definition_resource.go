@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -106,11 +106,41 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
-			"policy_definitions": {
+			"policy_definitions": { // TODO -- remove in the next major version
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: policyDefinitionsDiffSuppressFunc,
+				ExactlyOneOf:     []string{"policy_definitions", "policy_definition_reference"},
+				Deprecated:       "Deprecated in favor of `policy_definition_reference`",
+			},
+
+			"policy_definition_reference": { // TODO -- rename this back to `policy_definition` after the deprecation
+				Type:         schema.TypeList,
+				Optional:     true,                                                          // TODO -- change this to Required after the deprecation
+				Computed:     true,                                                          // TODO -- remove Computed after the deprecation
+				ExactlyOneOf: []string{"policy_definitions", "policy_definition_reference"}, // TODO -- remove after the deprecation
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"policy_definition_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.PolicyDefinitionID,
+						},
+
+						"parameters": {
+							Type:     schema.TypeMap,
+							Optional: true,
+						},
+
+						"reference_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -139,28 +169,30 @@ func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *schema.
 	return reflect.DeepEqual(oldPolicySetDefinitionsMetadata, newPolicySetDefinitionsMetadata)
 }
 
+// This function only serves the deprecated attribute `policy_definitions` in the old api-version.
+// The old api-version only support two attribute - `policy_definition_id` and `parameters` in each element.
+// Therefore this function is used for ignoring any other keys and then compare if there is a diff
 func policyDefinitionsDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
-	var oldPolicyDefinitions []policy.DefinitionReference
+	var oldPolicyDefinitions []DefinitionReferenceInOldApiVersion
 	errOld := json.Unmarshal([]byte(old), &oldPolicyDefinitions)
 	if errOld != nil {
 		return false
 	}
 
-	var newPolicyDefinitions []policy.DefinitionReference
+	var newPolicyDefinitions []DefinitionReferenceInOldApiVersion
 	errNew := json.Unmarshal([]byte(new), &newPolicyDefinitions)
 	if errNew != nil {
 		return false
 	}
 
-	for i := range newPolicyDefinitions {
-		newPolicyDefinitions[i].PolicyDefinitionReferenceID = nil
-	}
-
-	for i := range oldPolicyDefinitions {
-		oldPolicyDefinitions[i].PolicyDefinitionReferenceID = nil
-	}
-
 	return reflect.DeepEqual(oldPolicyDefinitions, newPolicyDefinitions)
+}
+
+type DefinitionReferenceInOldApiVersion struct {
+	// PolicyDefinitionID - The ID of the policy definition or policy set definition.
+	PolicyDefinitionID *string `json:"policyDefinitionId,omitempty"`
+	// Parameters - The parameter values for the referenced policy rule. The keys are the parameter names.
+	Parameters map[string]*policy.ParameterValuesValue `json:"parameters"`
 }
 
 func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -169,9 +201,6 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	defer cancel()
 
 	name := d.Get("name").(string)
-	policyType := d.Get("policy_type").(string)
-	displayName := d.Get("display_name").(string)
-	description := d.Get("description").(string)
 	managementGroupName := ""
 	if v, ok := d.GetOk("management_group_name"); ok {
 		managementGroupName = v.(string)
@@ -180,11 +209,11 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 		managementGroupName = v.(string)
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Policy Set Definition %q: %s", name, err)
+				return fmt.Errorf("checking for presence of existing Policy Set Definition %q: %+v", name, err)
 			}
 		}
 
@@ -194,15 +223,15 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	properties := policy.SetDefinitionProperties{
-		PolicyType:  policy.Type(policyType),
-		DisplayName: utils.String(displayName),
-		Description: utils.String(description),
+		PolicyType:  policy.Type(d.Get("policy_type").(string)),
+		DisplayName: utils.String(d.Get("display_name").(string)),
+		Description: utils.String(d.Get("description").(string)),
 	}
 
 	if metaDataString := d.Get("metadata").(string); metaDataString != "" {
 		metaData, err := structure.ExpandJsonFromString(metaDataString)
 		if err != nil {
-			return fmt.Errorf("unable to expand metadata json: %s", err)
+			return fmt.Errorf("expanding JSON for `metadata`: %+v", err)
 		}
 		properties.Metadata = &metaData
 	}
@@ -210,18 +239,21 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	if parametersString := d.Get("parameters").(string); parametersString != "" {
 		parameters, err := expandParameterDefinitionsValueFromString(parametersString)
 		if err != nil {
-			return fmt.Errorf("unable to expand parameters json: %s", err)
+			return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 		}
 		properties.Parameters = parameters
 	}
 
-	if policyDefinitionsString := d.Get("policy_definitions").(string); policyDefinitionsString != "" {
+	if v, ok := d.GetOk("policy_definitions"); ok {
 		var policyDefinitions []policy.DefinitionReference
-		err := json.Unmarshal([]byte(policyDefinitionsString), &policyDefinitions)
+		err := json.Unmarshal([]byte(v.(string)), &policyDefinitions)
 		if err != nil {
-			return fmt.Errorf("unable to expand parameters json: %s", err)
+			return fmt.Errorf("expanding JSON for `policy_definitions`: %+v", err)
 		}
 		properties.PolicyDefinitions = &policyDefinitions
+	}
+	if v, ok := d.GetOk("policy_definition_reference"); ok {
+		properties.PolicyDefinitions = expandAzureRMPolicySetDefinitionPolicyDefinitions(v.([]interface{}))
 	}
 
 	definition := policy.SetDefinition{
@@ -237,7 +269,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error creating/updating Policy Set Definition %q: %s", name, err)
+		return fmt.Errorf("creating/updating Policy Set Definition %q: %+v", name, err)
 	}
 
 	// Policy Definitions are eventually consistent; wait for them to stabilize
@@ -257,13 +289,13 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Policy Set Definition %q to become available: %s", name, err)
+		return fmt.Errorf("waiting for Policy Set Definition %q to become available: %+v", name, err)
 	}
 
 	var resp policy.SetDefinition
 	resp, err = getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Policy Set Definition %q: %s", name, err)
+		return fmt.Errorf("retrieving Policy Set Definition %q: %+v", name, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -296,7 +328,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Policy Set Definition %+v", err)
+		return fmt.Errorf("reading Policy Set Definition %+v", err)
 	}
 
 	d.Set("name", resp.Name)
@@ -312,16 +344,16 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 			metadataVal := metadata.(map[string]interface{})
 			metadataStr, err := structure.FlattenJsonToString(metadataVal)
 			if err != nil {
-				return fmt.Errorf("unable to flatten JSON for `metadata`: %s", err)
+				return fmt.Errorf("flattening JSON for `metadata`: %+v", err)
 			}
 
 			d.Set("metadata", metadataStr)
 		}
 
-		if props.Parameters != nil {
-			parametersStr, err := flattenParameterDefintionsValueToString(props.Parameters)
+		if parameters := props.Parameters; parameters != nil {
+			parametersStr, err := flattenParameterDefintionsValueToString(parameters)
 			if err != nil {
-				return fmt.Errorf("unable to flatten JSON for `parameters`: %s", err)
+				return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
 			}
 
 			d.Set("parameters", parametersStr)
@@ -330,11 +362,13 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 		if policyDefinitions := props.PolicyDefinitions; policyDefinitions != nil {
 			policyDefinitionsRes, err := json.Marshal(policyDefinitions)
 			if err != nil {
-				return fmt.Errorf("unable to flatten JSON for `policy_defintions`: %s", err)
+				return fmt.Errorf("flattening JSON for `policy_defintions`: %+v", err)
 			}
 
-			policyDefinitionsStr := string(policyDefinitionsRes)
-			d.Set("policy_definitions", policyDefinitionsStr)
+			d.Set("policy_definitions", string(policyDefinitionsRes))
+		}
+		if err := d.Set("policy_definition_reference", flattenAzureRMPolicySetDefinitionPolicyDefinitions(props.PolicyDefinitions)); err != nil {
+			return fmt.Errorf("setting `policy_definition_reference`: %+v", err)
 		}
 	}
 
@@ -369,7 +403,7 @@ func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Policy Set Definition %q: %+v", id.Name, err)
+		return fmt.Errorf("deleting Policy Set Definition %q: %+v", id.Name, err)
 	}
 
 	return nil
@@ -379,9 +413,66 @@ func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefin
 	return func() (interface{}, string, error) {
 		res, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupId)
 		if err != nil {
-			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error issuing read request in policySetDefinitionRefreshFunc for Policy Set Definition %q: %s", name, err)
+			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("issuing read request in policySetDefinitionRefreshFunc for Policy Set Definition %q: %+v", name, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
+}
+
+func expandAzureRMPolicySetDefinitionPolicyDefinitions(input []interface{}) *[]policy.DefinitionReference {
+	result := make([]policy.DefinitionReference, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		parameters := make(map[string]*policy.ParameterValuesValue)
+		for k, value := range v["parameters"].(map[string]interface{}) {
+			parameters[k] = &policy.ParameterValuesValue{
+				Value: value.(string),
+			}
+		}
+
+		result = append(result, policy.DefinitionReference{
+			PolicyDefinitionID:          utils.String(v["policy_definition_id"].(string)),
+			Parameters:                  parameters,
+			PolicyDefinitionReferenceID: utils.String(v["reference_id"].(string)),
+		})
+	}
+
+	return &result
+}
+
+func flattenAzureRMPolicySetDefinitionPolicyDefinitions(input *[]policy.DefinitionReference) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, definition := range *input {
+		policyDefinitionID := ""
+		if definition.PolicyDefinitionID != nil {
+			policyDefinitionID = *definition.PolicyDefinitionID
+		}
+
+		parametersMap := make(map[string]interface{})
+		for k, v := range definition.Parameters {
+			if v == nil {
+				continue
+			}
+			parametersMap[k] = v.Value
+		}
+
+		policyDefinitionReference := ""
+		if definition.PolicyDefinitionReferenceID != nil {
+			policyDefinitionReference = *definition.PolicyDefinitionReferenceID
+		}
+
+		result = append(result, map[string]interface{}{
+			"policy_definition_id": policyDefinitionID,
+			"parameters":           parametersMap,
+			"reference_id":         policyDefinitionReference,
+		})
+	}
+	return result
 }
