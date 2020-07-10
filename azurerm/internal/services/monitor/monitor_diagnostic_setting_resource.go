@@ -1,8 +1,11 @@
 package monitor
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"log"
 	"strings"
 	"time"
@@ -36,6 +39,21 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 			Update: schema.DefaultTimeout(30 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
+
+		CustomizeDiff: customdiff.All(
+			customdiff.If(
+				func(d *schema.ResourceDiff, meta interface{}) bool {
+					return d.HasChange("log")
+				},
+				diagLogSettingSuppress,
+			),
+			customdiff.If(
+				func(d *schema.ResourceDiff, meta interface{}) bool {
+					return d.HasChange("metric")
+				},
+				diagMetricSettingSuppress,
+			),
+		),
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -95,6 +113,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 			"log": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"category": {
@@ -129,17 +148,19 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 						},
 					},
 				},
+				Set:  resourceAzureRMMonitorDiagnosticSettingLogMetricHash,
 				// Service side has a predefined set of diagnostic settings for a certain resource, and it will
 				// always return that set of settings in the returned response.
 				// This suppress function is used to suppress diff only in follow situation:
 				// The intersection part of old state and new state is the same, and the extra part of old state
 				// contains only the default value.
-				DiffSuppressFunc: diagLogSettingSuppress("log"),
+				//DiffSuppressFunc: diagLogSettingSuppress("log"),
 			},
 
 			"metric": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"category": {
@@ -174,12 +195,13 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 						},
 					},
 				},
+				Set:  resourceAzureRMMonitorDiagnosticSettingLogMetricHash,
 				// Service side has a predefined set of diagnostic settings for a certain resource, and it will
 				// always return that set of settings in the returned response.
 				// This suppress function is used to suppress diff only in follow situation:
 				// The intersection part of old state and new state is the same, and the extra part of old state
 				// contains only the default value.
-				DiffSuppressFunc: diagMetricSettingSuppress("metric"),
+				//DiffSuppressFunc: diagMetricSettingSuppress("metric"),
 			},
 		},
 	}
@@ -557,82 +579,101 @@ func parseMonitorDiagnosticId(monitorId string) (*monitorDiagnosticId, error) {
 
 // diagLogSettingSuppress suppresses the not specified log settings which have the default value (0/disabled) set in service.
 // Otherwise, user always has to specify all the possible log settings in the terraform config.
-func diagLogSettingSuppress(key string) func(k string, old string, new string, d *schema.ResourceData) bool {
-	return func(k string, old string, new string, d *schema.ResourceData) bool {
-		o, n := d.GetChange(key)
+func diagLogSettingSuppress(d *schema.ResourceDiff, _ interface{}) error {
+	o, n := d.GetChange("log")
 
-		if o == nil || n == nil {
-			return false
-		}
-
-		oset, nset := o.(*schema.Set), n.(*schema.Set)
-
-		// If new set contains more settings than old one, which mostly indicates the new resource case.
-		// (NOTE: d.IsNewResource() seems not work here)
-		if nset.Difference(oset).Len() > 0 {
-			return false
-		}
-
-		// There is diff in the intersection elements, then don't suppress diff
-		if !oset.Intersection(nset).Equal(nset.Intersection(oset)) {
-			return false
-		}
-
-		// Check those only appear in old settings to see if they have the default disabled value
-		for _, osetting := range expandMonitorDiagnosticsSettingsLogs(oset.Difference(nset).List()) {
-			if osetting.Enabled != nil && *osetting.Enabled {
-				return false
-			}
-			if policy := osetting.RetentionPolicy; policy != nil {
-				if policy.Enabled != nil && *policy.Enabled {
-					return false
-				}
-				if policy.Days != nil && *policy.Days != 0 {
-					return false
-				}
-			}
-		}
-		return true
+	if o == nil || n == nil {
+		return nil
 	}
+
+	oset, nset := o.(*schema.Set), n.(*schema.Set)
+
+	// If new set contains more settings than old one, which mostly indicates the new resource case.
+	// (NOTE: d.IsNewResource() seems not work here)
+	if nset.Difference(oset).Len() > 0 {
+		return nil
+	}
+
+	// There is diff in the intersection elements, then don't suppress diff
+	if !oset.Intersection(nset).Equal(nset.Intersection(oset)) {
+		return nil
+	}
+
+	// Check those only appear in old settings to see if they have the default disabled value
+	for _, osetting := range expandMonitorDiagnosticsSettingsLogs(oset.Difference(nset).List()) {
+		if !isDiagLogAsDefault(osetting) {
+			return nil
+		}
+	}
+	return d.Clear("log")
 }
 
 // diagMetricSettingSuppress suppresses the not specified metric settings which have the default value (0/disabled) set in service.
 // Otherwise, user always has to specify all the possible metric settings in the terraform config.
-func diagMetricSettingSuppress(key string) func(k string, old string, new string, d *schema.ResourceData) bool {
-	return func(k string, old string, new string, d *schema.ResourceData) bool {
-		o, n := d.GetChange(key)
+func diagMetricSettingSuppress(d *schema.ResourceDiff, _ interface{}) error {
+	o, n := d.GetChange("metric")
 
-		if o == nil || n == nil {
-			return false
-		}
-
-		oset, nset := o.(*schema.Set), n.(*schema.Set)
-
-		// If new set contains more settings than old one, which mostly indicates the new resource case.
-		// (NOTE: d.IsNewResource() seems not work here)
-		if nset.Difference(oset).Len() > 0 {
-			return false
-		}
-
-		// There is diff in the intersection elements, then don't suppress diff
-		if !oset.Intersection(nset).Equal(nset.Intersection(oset)) {
-			return false
-		}
-
-		// Check those only appear in old settings to see if they have the default disabled value
-		for _, osetting := range expandMonitorDiagnosticsSettingsMetrics(oset.Difference(nset).List()) {
-			if osetting.Enabled != nil && *osetting.Enabled {
-				return false
-			}
-			if policy := osetting.RetentionPolicy; policy != nil {
-				if policy.Enabled != nil && *policy.Enabled {
-					return false
-				}
-				if policy.Days != nil && *policy.Days != 0 {
-					return false
-				}
-			}
-		}
-		return true
+	if o == nil || n == nil {
+		return nil
 	}
+
+	oset, nset := o.(*schema.Set), n.(*schema.Set)
+
+	// If new set contains more settings than old one, which mostly indicates the new resource case.
+	// (NOTE: d.IsNewResource() seems not work here)
+	if nset.Difference(oset).Len() > 0 {
+		return nil
+	}
+
+	// There is diff in the intersection elements, then don't suppress diff
+	if !oset.Intersection(nset).Equal(nset.Intersection(oset)) {
+		return nil
+	}
+
+	// Check those only appear in old settings to see if they have the default disabled value
+	for _, osetting := range expandMonitorDiagnosticsSettingsMetrics(oset.Difference(nset).List()) {
+		if !isDiagMetricAsDefault(osetting) {
+			return nil
+		}
+	}
+	return d.Clear("metric")
+}
+
+func resourceAzureRMMonitorDiagnosticSettingLogMetricHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(m["category"].(string))
+	}
+	return hashcode.String(buf.String())
+}
+
+func  isDiagMetricAsDefault(v insights.MetricSettings) bool {
+	if v.Enabled != nil && *v.Enabled {
+		return false
+	}
+	if policy := v.RetentionPolicy; policy != nil {
+		if policy.Enabled != nil && *policy.Enabled {
+			return false
+		}
+		if policy.Days != nil && *policy.Days != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func  isDiagLogAsDefault(v insights.LogSettings) bool {
+	if v.Enabled != nil && *v.Enabled {
+		return false
+	}
+	if policy := v.RetentionPolicy; policy != nil {
+		if policy.Enabled != nil && *policy.Enabled {
+			return false
+		}
+		if policy.Days != nil && *policy.Days != 0 {
+			return false
+		}
+	}
+	return true
 }
