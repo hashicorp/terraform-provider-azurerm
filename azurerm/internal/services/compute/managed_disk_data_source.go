@@ -55,7 +55,7 @@ func dataSourceArmManagedDisk() *schema.Resource {
 			},
 
 			"image_reference_id": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
