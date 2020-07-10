@@ -184,7 +184,6 @@ func resourceArmMySqlServer() *schema.Resource {
 			"ssl_enforcement_enabled": {
 				Type:         schema.TypeBool,
 				Optional:     true, // required in 3.0
-				Computed:     true, // remove computed in 3.0
 				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 			},
 
@@ -409,10 +408,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	ssl := mysql.SslEnforcementEnumEnabled
-	if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(mysql.SslEnforcementEnumDisabled)) {
-		ssl = mysql.SslEnforcementEnumDisabled
-	}
-	if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
+	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = mysql.SslEnforcementEnumDisabled
 	}
 
@@ -560,15 +556,8 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	ssl := mysql.SslEnforcementEnumEnabled
-	if d.HasChange("ssl_enforcement") {
-		if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(mysql.SslEnforcementEnumDisabled)) {
-			ssl = mysql.SslEnforcementEnumDisabled
-		}
-	}
-	if d.HasChange("ssl_enforcement_enabled") {
-		if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
-			ssl = mysql.SslEnforcementEnumDisabled
-		}
+	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
+		ssl = mysql.SslEnforcementEnumDisabled
 	}
 
 	storageProfile := expandMySQLStorageProfile(d)
