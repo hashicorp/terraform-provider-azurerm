@@ -1,69 +1,79 @@
-## 2.18.0 (Unreleased)
+## 2.19.0 (Unreleased)
 
-FEATURES:
+BUG FIXES:
 
-* `metadata_url` can be set at the provider level to use an environment provided by a specific url [GH-7664]
-* **New Data Source:** `azurerm_key_vault_certificate_issuer` [GH-7074]
-* **New Data Source:** `azurerm_web_application_firewall_policy` [GH-7469]
-* **New Resource:** `azurerm_automation_connection` [GH-6847]
-* **New Resource:** `azurerm_automation_connection_certificate` [GH-6847]
-* **New Resource:** `azurerm_automation_connection_classic_certificate` [GH-6847]
-* **New Resource:** `azurerm_automation_connection_service_pricipal` [GH-6847]
-* **New Resource:** `azurerm_app_service_slot_virtual_network_swift_connection` [GH-5916]
-* **New Resource:** `azurerm_data_factory_dataset_azure_blob` [GH-6366]
-* **New Resource:** `azurerm_data_factory_dataset_cosmosdb_sqlapi` [GH-6366]
-* **New Resource:** `azurerm_data_factory_dataset_delimited_text` [GH-6366]
-* **New Resource:** `azurerm_data_factory_dataset_http` [GH-6366]
-* **New Resource:** `azurerm_data_factory_dataset_json` [GH-6366]
-* **New Resource:** `azurerm_data_factory_linked_service_azure_blob_storage` [GH-6366]
-* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` [GH-6366]
-* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` [GH-6366]
-* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb` [GH-6366]
-* **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
-* **New Resource:** `azurerm_data_factory_linked_service_sftp` [GH-6366]
-* **New Resource:** `azurerm_key_vault_certificate_issuer` [GH-7074]
-* **New Resource:** `azurerm_kusto_attached_database_configuration` [GH-7377]
-* **New Resource:** `azurerm_kusto_database_principal_assignment` [GH-7484]
-* **New Resource:** `azurerm_mysql_active_directory_administrator` [GH-7621]
+* `azurerm_eventhub_namespace` - changes to `zone_redundant` now force a new resource [GH-7612]
 
 ENHANCEMENTS:
 
-* dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.11.0` [GH-7608]
-* dependencies: updating `network` to `2020-05-01` [GH-7585]
-* Data Source: `azurerm_eventhub_namespace` - exposing the `dedicated_cluster_id` field [GH-7548]
-* `azurerm_cosmosdb_account` - support for the `ignore_missing_vnet_service_endpoint` property [GH-7348]
-* `azurerm_application_gateway` - support for the `firewall_policy_id` attribute within the `http_listener` block [GH-7580]
-* `azurerm_eventhub_namespace` - support for configuring the `dedicated_cluster_id` field [GH-7548]
-* `azurerm_eventhub_namespace` - support for setting `partition_count` to `1024` when using a Dedicated Cluster [GH-7548]
-* `azurerm_eventhub_namespace` - support for setting `retention_count` to `90` when using a Dedicated Cluster [GH-7548]
-* `azurerm_hdinsight_hadoop_cluster` - now supports Azure Monitor [GH-7045]
-* `azurerm_hdinsight_hbase_cluster` - now supports external metastores [GH-6969]
-* `azurerm_hdinsight_hbase_cluster` - now supports Azure Monitor [GH-7045]
-* `azurerm_hdinsight_interactive_query_cluster` - now supports external metastores [GH-6969]
-* `azurerm_hdinsight_interactive_query_cluster` - now supports Azure Monitor [GH-7045]
-* `azurerm_hdinsight_kafka_cluster` - now supports external metastores [GH-6969]
-* `azurerm_hdinsight_kafka_cluster` - now supports external Azure Monitor [GH-7045]
-* `azurerm_hdinsight_spark_cluster` - now supports external metastores [GH-6969]
-* `azurerm_hdinsight_spark_cluster` - now supports external Azure Monitor [GH-7045]
-* `azurerm_hdinsight_storm_cluster` - now supports external metastores [GH-6969]
-* `azurerm_hdinsight_storm_cluster` - now supports external Azure Monitor [GH-7045]
-* `azurerm_policy_set_definition` - the `management_group_id` property has been deprecated in favour of `management_group_name` to align with the behaviour in `azurerm_policy_definition` [GH-6943]
-* `azurerm_kusto_cluster` - support for the `language_extensions` property [GH-7421]
-* `azurerm_kusto_cluster` - Support for the `optimized_auto_scale` property [GH-7371]
-* `azurerm_mysql_server` - support for the `threat_detection_policy` property [GH-7156]
-* `azurerm_mssql_database` - the `sku_name` property now only forces a new resource for the `HS` (HyperScale) family [GH-7559]
-* `azurerm_web_application_firewall_policy` - allow setting `version` to `0.1` (for when `type` is set to `Microsoft_BotManagerRuleSet`) [GH-7579]
-* `azurerm_web_application_firewall_policy` - support the `transforms` property in the `custom_rules.match_conditions` block [GH-7545]
-* `azurerm_web_application_firewall_policy` - support the `request_body_check`, `file_upload_limit_in_mb`, and `max_request_body_size_in_kb` properties in the `policy_settings` block [GH-7363]
+* `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property [GH-7018]
+
+## 2.18.0 (July 10, 2020)
+
+FEATURES:
+
+* `metadata_url` can be set at the provider level to use an environment provided by a specific url ([#7664](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7664))
+* **New Data Source:** `azurerm_key_vault_certificate_issuer` ([#7074](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7074))
+* **New Data Source:** `azurerm_web_application_firewall_policy` ([#7469](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7469))
+* **New Resource:** `azurerm_automation_connection` ([#6847](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6847))
+* **New Resource:** `azurerm_automation_connection_certificate` ([#6847](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6847))
+* **New Resource:** `azurerm_automation_connection_classic_certificate` ([#6847](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6847))
+* **New Resource:** `azurerm_automation_connection_service_pricipal` ([#6847](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6847))
+* **New Resource:** `azurerm_app_service_slot_virtual_network_swift_connection` ([#5916](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5916))
+* **New Resource:** `azurerm_data_factory_dataset_azure_blob` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_dataset_cosmosdb_sqlapi` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_dataset_delimited_text` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_dataset_http` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_dataset_json` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_linked_service_azure_blob_storage` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_linked_service_azure_file_storage` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_linked_service_cosmosdb` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_linked_service_sftp` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_data_factory_linked_service_sftp` ([#6366](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6366))
+* **New Resource:** `azurerm_key_vault_certificate_issuer` ([#7074](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7074))
+* **New Resource:** `azurerm_kusto_attached_database_configuration` ([#7377](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7377))
+* **New Resource:** `azurerm_kusto_database_principal_assignment` ([#7484](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7484))
+* **New Resource:** `azurerm_mysql_active_directory_administrator` ([#7621](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7621))
+
+ENHANCEMENTS:
+
+* dependencies: updating `github.com/tombuildsstuff/giovanni` to `v0.11.0` ([#7608](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7608))
+* dependencies: updating `network` to `2020-05-01` ([#7585](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7585))
+* Data Source: `azurerm_eventhub_namespace` - exposing the `dedicated_cluster_id` field ([#7548](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7548))
+* `azurerm_cosmosdb_account` - support for the `ignore_missing_vnet_service_endpoint` property ([#7348](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7348))
+* `azurerm_application_gateway` - support for the `firewall_policy_id` attribute within the `http_listener` block ([#7580](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7580))
+* `azurerm_eventhub_namespace` - support for configuring the `dedicated_cluster_id` field ([#7548](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7548))
+* `azurerm_eventhub_namespace` - support for setting `partition_count` to `1024` when using a Dedicated Cluster ([#7548](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7548))
+* `azurerm_eventhub_namespace` - support for setting `retention_count` to `90` when using a Dedicated Cluster ([#7548](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7548))
+* `azurerm_hdinsight_hadoop_cluster` - now supports Azure Monitor ([#7045](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7045))
+* `azurerm_hdinsight_hbase_cluster` - now supports external metastores ([#6969](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6969))
+* `azurerm_hdinsight_hbase_cluster` - now supports Azure Monitor ([#7045](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7045))
+* `azurerm_hdinsight_interactive_query_cluster` - now supports external metastores ([#6969](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6969))
+* `azurerm_hdinsight_interactive_query_cluster` - now supports Azure Monitor ([#7045](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7045))
+* `azurerm_hdinsight_kafka_cluster` - now supports external metastores ([#6969](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6969))
+* `azurerm_hdinsight_kafka_cluster` - now supports external Azure Monitor ([#7045](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7045))
+* `azurerm_hdinsight_spark_cluster` - now supports external metastores ([#6969](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6969))
+* `azurerm_hdinsight_spark_cluster` - now supports external Azure Monitor ([#7045](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7045))
+* `azurerm_hdinsight_storm_cluster` - now supports external metastores ([#6969](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6969))
+* `azurerm_hdinsight_storm_cluster` - now supports external Azure Monitor ([#7045](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7045))
+* `azurerm_policy_set_definition` - the `management_group_id` property has been deprecated in favour of `management_group_name` to align with the behaviour in `azurerm_policy_definition` ([#6943](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6943))
+* `azurerm_kusto_cluster` - support for the `language_extensions` property ([#7421](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7421))
+* `azurerm_kusto_cluster` - Support for the `optimized_auto_scale` property ([#7371](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7371))
+* `azurerm_mysql_server` - support for the `threat_detection_policy` property ([#7156](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7156))
+* `azurerm_mssql_database` - the `sku_name` property now only forces a new resource for the `HS` (HyperScale) family ([#7559](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7559))
+* `azurerm_web_application_firewall_policy` - allow setting `version` to `0.1` (for when `type` is set to `Microsoft_BotManagerRuleSet`) ([#7579](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7579))
+* `azurerm_web_application_firewall_policy` - support the `transforms` property in the `custom_rules.match_conditions` block ([#7545](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7545))
+* `azurerm_web_application_firewall_policy` - support the `request_body_check`, `file_upload_limit_in_mb`, and `max_request_body_size_in_kb` properties in the `policy_settings` block ([#7363](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7363))
 
 BUG FIXES: 
 
-* `azurerm_api_management_api_operation_policy` - correctly parse XLM [GH-7345]
-* `azurerm_application_insights_api_key` - now correctly checks if the resource exists upon creation [GH-7650]
-* `azurerm_api_management_identity_provider_aad` - fix perpetual diff on the `client_secret` property [GH-7529]
-* `azurerm_eventhub_namespace_authorization_rule` - correctly update old resource IDs [GH-7622]
-* `azurerm_policy_remediation` - removing the validation for the `policy_definition_reference_id` field since this isn't a Resource ID [GH-7600]
-* `azurerm_storage_data_lake_gen2_filesystem` - prevent a crash during plan if storage account was deleted [GH-7378]
+* `azurerm_api_management_api_operation_policy` - correctly parse XLM ([#7345](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7345))
+* `azurerm_application_insights_api_key` - now correctly checks if the resource exists upon creation ([#7650](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7650))
+* `azurerm_api_management_identity_provider_aad` - fix perpetual diff on the `client_secret` property ([#7529](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7529))
+* `azurerm_eventhub_namespace_authorization_rule` - correctly update old resource IDs ([#7622](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7622))
+* `azurerm_policy_remediation` - removing the validation for the `policy_definition_reference_id` field since this isn't a Resource ID ([#7600](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7600))
+* `azurerm_storage_data_lake_gen2_filesystem` - prevent a crash during plan if storage account was deleted ([#7378](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7378))
 
 ## 2.17.0 (July 03, 2020)
 
@@ -90,7 +100,7 @@ ENHANCEMENTS:
 * `azurerm_app_service_environment` - the property `user_whitelisted_ip_ranges` has been deprecated and renamed to `allowed_user_ip_cidrs` to clarify the function and expected format ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
 * `azurerm_eventhub_namespace` - support for the `zone_redundant` property ([#7534](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7534))
 * `azurerm_key_vault_certificate` - exposing the `certificate_attribute` block ([#7387](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7387))
-* `azurerm_kusto_cluster` - Support `trusted_external_tenants` [GH-7374]
+* `azurerm_kusto_cluster` - Support `trusted_external_tenants` ([#7374](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7374))
 * `azurerm_sentinel_alert_rule_ms_security_incident` - the property `text_whitelist` has been deprecated and renamed to `display_name_filter` to better match the api ([#7499](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7499))
 * `azurerm_shared_image` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
 * `azurerm_shared_image_version` - support for specialized images via the `specialized` property ([#7277](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7277))
