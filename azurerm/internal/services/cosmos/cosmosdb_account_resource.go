@@ -443,13 +443,10 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
 		enableMultipleWriteLocationsCreateUpdateParameters := documentdb.DatabaseAccountCreateUpdateParameters{
 			Location: utils.String(location),
-			Kind:     documentdb.DatabaseAccountKind(kind),
 			DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-				DatabaseAccountOfferType:     utils.String(offerType),
 				EnableMultipleWriteLocations: utils.Bool(enableMultipleWriteLocations),
 				Locations:                    &oldLocations,
 			},
-			Tags: tags.Expand(t),
 		}
 
 		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, enableMultipleWriteLocationsCreateUpdateParameters, d); err != nil {
@@ -717,10 +714,9 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, resourceGroup, name)
-			if err2 != nil {
+			if err2 != nil || resp.StatusCode == http.StatusNotFound {
 				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
 			}
-
 			status := "Succeeded"
 			for _, l := range append(*resp.ReadLocations, *resp.WriteLocations...) {
 				if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
