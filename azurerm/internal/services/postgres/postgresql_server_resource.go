@@ -180,14 +180,12 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"auto_grow_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
-				Computed:      true, // TODO: remove in 3.0 and default to true
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
 			},
 
 			"backup_retention_days": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				Computed:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.backup_retention_days"},
 				ValidateFunc:  validation.IntBetween(7, 35),
 			},
@@ -195,7 +193,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"geo_redundant_backup_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
-				Computed:      true, // TODO: remove in 2.0 and default to false
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 
@@ -238,7 +235,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"storage_mb": {
 				Type:          schema.TypeInt,
 				Optional:      true,
-				Computed:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.storage_mb"},
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 4194304),
@@ -261,7 +257,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"ssl_enforcement_enabled": {
 				Type:         schema.TypeBool,
 				Optional:     true, // required in 3.0
-				Computed:     true, // remove computed in 3.0
 				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 			},
 
@@ -414,9 +409,6 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	ssl := postgresql.SslEnforcementEnumEnabled
-	if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(postgresql.SslEnforcementEnumDisabled)) {
-		ssl = postgresql.SslEnforcementEnumDisabled
-	}
 	if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
 	}
@@ -558,11 +550,6 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	ssl := postgresql.SslEnforcementEnumEnabled
-	if d.HasChange("ssl_enforcement") {
-		if v := d.Get("ssl_enforcement"); strings.EqualFold(v.(string), string(postgresql.SslEnforcementEnumDisabled)) {
-			ssl = postgresql.SslEnforcementEnumDisabled
-		}
-	}
 	if d.HasChange("ssl_enforcement_enabled") {
 		if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 			ssl = postgresql.SslEnforcementEnumDisabled
@@ -758,43 +745,25 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 
 func expandPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageProfile {
 	storage := postgresql.StorageProfile{}
-	if v, ok := d.GetOk("storage_profile"); ok {
-		storageprofile := v.([]interface{})[0].(map[string]interface{})
 
-		storage.BackupRetentionDays = utils.Int32(int32(storageprofile["backup_retention_days"].(int)))
-		storage.StorageMB = utils.Int32(int32(storageprofile["storage_mb"].(int)))
-		storage.StorageAutogrow = postgresql.StorageAutogrow(storageprofile["auto_grow"].(string))
-		storage.GeoRedundantBackup = postgresql.GeoRedundantBackup(storageprofile["geo_redundant_backup"].(string))
-	}
-
-	// now override whatever we may have from the block with the top level properties
-	// without d.HasChange, the fields in block will not be updated
 	if d.HasChange("auto_grow_enabled") {
-		if v, ok := d.GetOkExists("auto_grow_enabled"); ok {
-			storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
-			if v.(bool) {
-				storage.StorageAutogrow = postgresql.StorageAutogrowEnabled
-			}
+		storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
+		if v := d.Get("auto_grow_enabled"); v.(bool) {
+			storage.StorageAutogrow = postgresql.StorageAutogrowEnabled
 		}
 	}
 
-	if d.HasChange("backup_retention_days") {
-		if v, ok := d.GetOk("backup_retention_days"); ok {
-			storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
-		}
+	if v, ok := d.GetOk("backup_retention_days"); ok {
+		storage.BackupRetentionDays = utils.Int32(int32(v.(int)))
 	}
 
-	if v, ok := d.GetOk("geo_redundant_backup_enabled"); ok {
-		storage.GeoRedundantBackup = postgresql.Disabled
-		if v.(bool) {
-			storage.GeoRedundantBackup = postgresql.Enabled
-		}
+	storage.GeoRedundantBackup = postgresql.Disabled
+	if v := d.Get("geo_redundant_backup_enabled"); v.(bool) {
+		storage.GeoRedundantBackup = postgresql.Enabled
 	}
 
-	if d.HasChange("storage_mb") {
-		if v, ok := d.GetOk("storage_mb"); ok {
-			storage.StorageMB = utils.Int32(int32(v.(int)))
-		}
+	if v, ok := d.GetOk("storage_mb"); ok {
+		storage.StorageMB = utils.Int32(int32(v.(int)))
 	}
 
 	return &storage
