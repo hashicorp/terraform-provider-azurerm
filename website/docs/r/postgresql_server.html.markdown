@@ -38,10 +38,9 @@ resource "azurerm_postgresql_server" "example" {
   geo_redundant_backup_enabled = true
   auto_grow_enabled            = true
 
-  infrastructure_encryption_enabled = true
-  public_network_access_enabled     = false
-  ssl_enforcement_enabled           = true
-  ssl_minimal_tls_version_enforced  = "TLS1_2"
+  public_network_access_enabled    = false
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "TLS1_2"
 }
 ```
 
@@ -75,6 +74,8 @@ The following arguments are supported:
 
 * `infrastructure_encryption_enabled` - (Optional) Whether or not infrastructure is encrypted for this server. Defaults to `false`. Changing this forces a new resource to be created.
 
+~> **NOTE:** This property is currently still in development and not supported by Microsoft. If the `infrastructure_encryption_enabled` attribute is set to `true` the postgreSQL instance will incur a substantial performance degradation due to a second encryption pass on top of the existing default encryption that is already provided by Azure Storage. It is strongly suggested to leave this value `false` as not doing so can lead to unclear error messages.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this server. Defaults to `true`.
 
 * `restore_point_in_time` - (Optional) When `create_mode` is `PointInTimeRestore` the point in time to restore from `creation_source_server_id`. 
@@ -85,7 +86,28 @@ The following arguments are supported:
  
 * `storage_mb` - (Optional) Max storage allowed for a server. Possible values are between `5120` MB(5GB) and `1048576` MB(1TB) for the Basic SKU and between `5120` MB(5GB) and `4194304` MB(4TB) for General Purpose/Memory Optimized SKUs. For more information see the [product documentation](https://docs.microsoft.com/en-us/rest/api/postgresql/servers/create#StorageProfile).
 
+* `threat_detection_policy` - (Optional) Threat detection policy configuration, known in the API as Server Security Alerts Policy. The `threat_detection_policy` block supports fields documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.  
+
+---
+
+a `threat_detection_policy` block supports the following:
+
+* `enabled` - (Required) Is the policy enabled?
+
+* `disabled_alerts` - (Optional) Specifies a list of alerts which should be disabled. Possible values include `Access_Anomaly`, `Sql_Injection` and `Sql_Injection_Vulnerability`.
+
+* `email_account_admins` - (Optional) Should the account administrators be emailed when this alert is triggered?
+
+* `email_addresses` - (Optional) A list of email addresses which alerts should be sent to.
+
+* `retention_days` - (Optional) Specifies the number of days to keep in the Threat Detection audit logs.
+
+* `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account.
+
+* `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs.
+
 
 ## Attributes Reference
 

@@ -672,6 +672,11 @@ func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error
 
 	// RDB Backup
 	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
+		if v.(bool) {
+			if connStr, connOk := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); !connOk || connStr.(string) == "" {
+				return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+			}
+		}
 		delta := strconv.FormatBool(v.(bool))
 		output["rdb-backup-enabled"] = utils.String(delta)
 	}
@@ -708,8 +713,7 @@ func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error
 		output["aof-storage-connection-string-1"] = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOkExists("redis_configuration.0.enable_authentication"); ok {
-		authEnabled := v.(bool)
+	if authEnabled := d.Get("redis_configuration.0.enable_authentication").(bool); authEnabled {
 		_, isPrivate := d.GetOk("subnet_id")
 
 		// Redis authentication can only be disabled if it is launched inside a VNET.
@@ -895,10 +899,12 @@ func validateRedisMaxMemoryPolicy(v interface{}, _ string) (warnings []string, e
 		"allkeys-random":  true,
 		"volatile-random": true,
 		"volatile-ttl":    true,
+		"allkeys-lfu":     true,
+		"volatile-lfu":    true,
 	}
 
 	if !families[value] {
-		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl'"))
+		errors = append(errors, fmt.Errorf("Redis Max Memory Policy can only be 'noeviction' / 'allkeys-lru' / 'volatile-lru' / 'allkeys-random' / 'volatile-random' / 'volatile-ttl' / 'allkeys-lfu' / 'volatile-lfu'"))
 	}
 
 	return warnings, errors

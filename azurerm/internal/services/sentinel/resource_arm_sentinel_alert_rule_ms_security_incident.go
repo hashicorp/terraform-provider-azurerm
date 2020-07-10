@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2017-08-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -97,10 +97,25 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 				Default:  true,
 			},
 
+			"display_name_filter": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				MinItems:      1,
+				ConflictsWith: []string{"text_whitelist"},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"text_whitelist": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				MinItems: 1,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				MinItems:      1,
+				ConflictsWith: []string{"display_name_filter"},
+				Deprecated:    "this property has been renamed to display_name_filter to better match the SDK & API",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -122,7 +137,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 	}
 
 	if d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("checking for existing Sentinel Alert Rule Ms Security Incident %q (Resource Group %q): %+v", name, workspaceID.ResourceGroup, err)
@@ -146,13 +161,15 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 		},
 	}
 
-	if whitelist, ok := d.GetOk("text_whitelist"); ok {
-		param.DisplayNamesFilter = utils.ExpandStringSlice(whitelist.(*schema.Set).List())
+	if dnf, ok := d.GetOk("display_name_filter"); ok {
+		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*schema.Set).List())
+	} else if dnf, ok := d.GetOk("text_whitelist"); ok {
+		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*schema.Set).List())
 	}
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
 	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
+		resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name)
 		if err != nil {
 			return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q (Resource Group %q / Workspace: %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
 		}
@@ -163,11 +180,11 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 		param.Etag = resp.Value.(securityinsight.MicrosoftSecurityIncidentCreationAlertRule).Etag
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, workspaceID.Name, name, param); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name, param); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Ms Security Incident %q (Resource Group %q / Workspace: %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
 	}
 
-	resp, err := client.Get(ctx, workspaceID.ResourceGroup, workspaceID.Name, name)
+	resp, err := client.Get(ctx, workspaceID.ResourceGroup, "Microsoft.OperationalInsights", workspaceID.Name, name)
 	if err != nil {
 		return fmt.Errorf("retrieving Sentinel Alert Rule Ms Security Incident %q (Resource Group %q / Workspace: %q): %+v", name, workspaceID.ResourceGroup, workspaceID.Name, err)
 	}
@@ -191,7 +208,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Workspace, id.Name)
+	resp, err := client.Get(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Sentinel Alert Rule Ms Security Incident %q was not found in Workspace: %q in Resource Group %q - removing from state!", id.Name, id.Workspace, id.ResourceGroup)
@@ -223,6 +240,9 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 		if err := d.Set("text_whitelist", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
 			return fmt.Errorf(`setting "text_whitelist": %+v`, err)
 		}
+		if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
+			return fmt.Errorf(`setting "display_name_filter": %+v`, err)
+		}
 		if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
 			return fmt.Errorf(`setting "severity_filter": %+v`, err)
 		}
@@ -241,7 +261,7 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentDelete(d *schema.ResourceData
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Workspace, id.Name); err != nil {
+	if _, err := client.Delete(ctx, id.ResourceGroup, "Microsoft.OperationalInsights", id.Workspace, id.Name); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule Ms Security Incident %q (Resource Group %q / Workspace: %q): %+v", id.Name, id.ResourceGroup, id.Workspace, err)
 	}
 

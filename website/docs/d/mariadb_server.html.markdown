@@ -47,8 +47,6 @@ The following attributes are exported:
 
 * `administrator_login` - The Administrator Login for the MariaDB Server.
 
-* `administrator_login_password` - The password associated with the `administrator_login` for the MariaDB Server.
-
 * `version` - The version of MariaDB being used.
 
 * `ssl_enforcement` - The SSL being enforced on connections.

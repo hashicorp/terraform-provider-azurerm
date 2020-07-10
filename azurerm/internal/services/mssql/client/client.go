@@ -12,6 +12,7 @@ type Client struct {
 	DatabaseThreatDetectionPoliciesClient              *sql.DatabaseThreatDetectionPoliciesClient
 	ElasticPoolsClient                                 *sql.ElasticPoolsClient
 	DatabaseVulnerabilityAssessmentRuleBaselinesClient *sql.DatabaseVulnerabilityAssessmentRuleBaselinesClient
+	ServerAzureADAdministratorsClient                  *sql.ServerAzureADAdministratorsClient
 	ServersClient                                      *sql.ServersClient
 	ServerExtendedBlobAuditingPoliciesClient           *sql.ExtendedServerBlobAuditingPoliciesClient
 	ServerConnectionPoliciesClient                     *sql.ServerConnectionPoliciesClient
@@ -45,6 +46,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	serverVulnerabilityAssessmentsClient := sql.NewServerVulnerabilityAssessmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serverVulnerabilityAssessmentsClient.Client, o.ResourceManagerAuthorizer)
 
+	serverAzureADAdministratorsClient := sql.NewServerAzureADAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverAzureADAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+
 	serversClient := sql.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&serversClient.Client, o.ResourceManagerAuthorizer)
 
@@ -60,6 +64,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		DatabaseThreatDetectionPoliciesClient:              &databaseThreatDetectionPoliciesClient,
 		DatabaseVulnerabilityAssessmentRuleBaselinesClient: &databaseVulnerabilityAssessmentRuleBaselinesClient,
 		ElasticPoolsClient:                                 &elasticPoolsClient,
+		ServerAzureADAdministratorsClient:                  &serverAzureADAdministratorsClient,
 		ServersClient:                                      &serversClient,
 		ServerExtendedBlobAuditingPoliciesClient:           &serverExtendedBlobAuditingPoliciesClient,
 		ServerConnectionPoliciesClient:                     &serverConnectionPoliciesClient,

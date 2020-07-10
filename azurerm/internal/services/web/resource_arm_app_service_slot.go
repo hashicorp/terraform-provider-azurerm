@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -42,7 +43,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAppServiceName,
+				ValidateFunc: webValidate.AppServiceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -324,7 +325,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 	// and DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS app settings to the app service.
 	// If the app settings are updated, also update the logging configuration if it exists, otherwise
 	// updating the former will clobber the log settings
-	_, hasLogs := d.GetOkExists("logs")
+	hasLogs := len(d.Get("logs").([]interface{})) > 0
 	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
 		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
 		logsResource := web.SiteLogsConfig{

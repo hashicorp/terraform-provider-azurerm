@@ -106,6 +106,7 @@ The following arguments are supported:
 `virtual_network_rule` Configures the virtual network subnets allowed to access this Cosmos DB account and supports the following:
 
 * `id` - (Required) The ID of the virtual network subnet.
+* `ignore_missing_vnet_service_endpoint` - (Optional) If set to true, the specified subnet will be added as a virtual network rule even if its CosmosDB service endpoint is not active. Defaults to `false`.
 
 ## Attributes Reference
 
@@ -127,7 +128,7 @@ The following attributes are exported:
 
 * `secondary_readonly_master_key` - The Secondary read-only master key for the CosmosDB Account.
 
-* `connection_strings` - A list of connection strings available for this CosmosDB account. If the kind is `GlobalDocumentDB`, this will be empty.
+* `connection_strings` - A list of connection strings available for this CosmosDB account.
 
 ## Timeouts
 

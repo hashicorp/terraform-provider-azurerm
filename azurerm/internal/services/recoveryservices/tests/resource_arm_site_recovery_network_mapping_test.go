@@ -112,7 +112,7 @@ func testCheckAzureRMSiteRecoveryNetworkMappingExists(resourceName string) resou
 		if err != nil {
 			return err
 		}
-		networkName := id.Path["virtualNetworks"]
+		networkName := id.Path["virtualnetworks"]
 
 		client := acceptance.AzureProvider.Meta().(*clients.Client).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 
@@ -120,7 +120,7 @@ func testCheckAzureRMSiteRecoveryNetworkMappingExists(resourceName string) resou
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
 		if err != nil {
 			if resp.Response.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: networkMapping %q (network %q) does not exist", mappingName, networkName)
+				return fmt.Errorf("Bad: networkMapping %q (network %q, %q) does not exist", mappingName, networkName, networkId)
 			}
 
 			return fmt.Errorf("Bad: Get on networkMappingClient: %+v", err)

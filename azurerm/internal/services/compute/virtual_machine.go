@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -96,6 +96,11 @@ func virtualMachineIdentitySchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -149,11 +154,17 @@ func flattenVirtualMachineIdentity(input *compute.VirtualMachineIdentity) []inte
 		principalId = *input.PrincipalID
 	}
 
+	tenantId := ""
+	if input.TenantID != nil {
+		tenantId = *input.TenantID
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"type":         string(input.Type),
 			"identity_ids": identityIds,
 			"principal_id": principalId,
+			"tenant_id":    tenantId,
 		},
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -35,6 +35,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 		Read:   resourceWindowsVirtualMachineRead,
 		Update: resourceWindowsVirtualMachineUpdate,
 		Delete: resourceWindowsVirtualMachineDelete,
+
 		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parse.VirtualMachineID(id)
 			return err
@@ -115,7 +116,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				// TODO: raise a GH issue for the broken API
 				// availability_set_id:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/ACCTESTAVSET-200122113424880096" => "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/acctestavset-200122113424880096" (forces new resource)
 				ConflictsWith: []string{
-					// TODO: "virtual_machine_scale_set_id"
+					"virtual_machine_scale_set_id",
 					"zone",
 				},
 			},
@@ -236,15 +237,28 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				ValidateFunc: validate.VirtualMachineTimeZone(),
 			},
 
+			"virtual_machine_scale_set_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ConflictsWith: []string{
+					"availability_set_id",
+				},
+				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+			},
+
 			"winrm_listener": winRmListenerSchema(),
 
 			"zone": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
+				// the VMO mode VMSS will assign a zone for each of its instance.
+				// and if the VMSS in not zonal, this value should be left empty
+				Computed: true,
 				ConflictsWith: []string{
 					"availability_set_id",
-					// TODO: "virtual_machine_scale_set_id"
 				},
 			},
 
@@ -394,11 +408,6 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 			// Optional
 			AdditionalCapabilities: additionalCapabilities,
 			DiagnosticsProfile:     bootDiagnostics,
-
-			// @tombuildsstuff: passing in a VMSS ID returns:
-			// > Code="InvalidParameter" Message="The value of parameter virtualMachineScaleSet is invalid." Target="virtualMachineScaleSet"
-			// presuming this isn't finished yet; note: this'll conflict with availability set id
-			VirtualMachineScaleSet: nil,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -453,6 +462,12 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		params.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
+		params.VirtualMachineScaleSet = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
@@ -570,6 +585,12 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 		dedicatedHostId = *props.Host.ID
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
+
+	virtualMachineScaleSetId := ""
+	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
+		virtualMachineScaleSetId = *props.VirtualMachineScaleSet.ID
+	}
+	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId)
 
 	if profile := props.OsProfile; profile != nil {
 		d.Set("admin_username", profile.AdminUsername)
@@ -889,6 +910,37 @@ func resourceWindowsVirtualMachineUpdate(d *schema.ResourceData, meta interface{
 		}
 
 		log.Printf("[DEBUG] Resized OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %dGB.", diskName, id.Name, id.ResourceGroup, newSize)
+	}
+
+	if d.HasChange("os_disk.0.disk_encryption_set_id") {
+		if diskEncryptionSetId := d.Get("os_disk.0.disk_encryption_set_id").(string); diskEncryptionSetId != "" {
+			diskName := d.Get("os_disk.0.name").(string)
+			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q..", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
+
+			disksClient := meta.(*clients.Client).Compute.DisksClient
+
+			update := compute.DiskUpdate{
+				DiskUpdateProperties: &compute.DiskUpdateProperties{
+					Encryption: &compute.Encryption{
+						Type:                compute.EncryptionAtRestWithCustomerKey,
+						DiskEncryptionSetID: utils.String(diskEncryptionSetId),
+					},
+				},
+			}
+
+			future, err := disksClient.Update(ctx, id.ResourceGroup, diskName, update)
+			if err != nil {
+				return fmt.Errorf("Error updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting to update encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+			}
+
+			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)
+		} else {
+			return fmt.Errorf("Once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+		}
 	}
 
 	if shouldUpdate {

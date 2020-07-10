@@ -202,7 +202,6 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  resource_group_name   = azurerm_resource_group.example.name
   storage_account_name  = azurerm_storage_account.example.name
   container_access_type = "private"
 }
@@ -304,7 +303,7 @@ The following arguments are supported:
 
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 
-* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
+* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned. Defaults to `true`.
 
 * `plan` - (Optional) A plan block as documented below.
 

@@ -43,80 +43,6 @@ func NewPolicyEventsClientWithBaseURI(baseURI string) PolicyEventsClient {
 	return PolicyEventsClient{NewWithBaseURI(baseURI)}
 }
 
-// GetMetadata gets OData metadata XML document.
-// Parameters:
-// scope - a valid scope, i.e. management group, subscription, resource group, or resource ID. Scope used has
-// no effect on metadata returned.
-func (client PolicyEventsClient) GetMetadata(ctx context.Context, scope string) (result String, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.GetMetadata")
-		defer func() {
-			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	req, err := client.GetMetadataPreparer(ctx, scope)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "GetMetadata", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.GetMetadataSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "GetMetadata", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.GetMetadataResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "GetMetadata", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// GetMetadataPreparer prepares the GetMetadata request.
-func (client PolicyEventsClient) GetMetadataPreparer(ctx context.Context, scope string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"scope": scope,
-	}
-
-	const APIVersion = "2018-04-04"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/{scope}/providers/Microsoft.PolicyInsights/policyEvents/$metadata", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// GetMetadataSender sends the GetMetadata request. The method will close the
-// http.Response Body if it receives an error.
-func (client PolicyEventsClient) GetMetadataSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-}
-
-// GetMetadataResponder handles the response to the GetMetadata request. The method always
-// closes the http.Response Body.
-func (client PolicyEventsClient) GetMetadataResponder(resp *http.Response) (result String, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result.Value),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
 // ListQueryResultsForManagementGroup queries policy events for the resources under the management group.
 // Parameters:
 // managementGroupName - management group name.
@@ -131,13 +57,15 @@ func (client PolicyEventsClient) GetMetadataResponder(resp *http.Response) (resu
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-func (client PolicyEventsClient) ListQueryResultsForManagementGroup(ctx context.Context, managementGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (result PolicyEventsQueryResults, err error) {
+// skipToken - skiptoken is only provided if a previous response returned a partial result as a part of
+// nextLink element.
+func (client PolicyEventsClient) ListQueryResultsForManagementGroup(ctx context.Context, managementGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForManagementGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.peqr.Response.Response != nil {
+				sc = result.peqr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -149,7 +77,8 @@ func (client PolicyEventsClient) ListQueryResultsForManagementGroup(ctx context.
 		return result, validation.NewError("policyinsights.PolicyEventsClient", "ListQueryResultsForManagementGroup", err.Error())
 	}
 
-	req, err := client.ListQueryResultsForManagementGroupPreparer(ctx, managementGroupName, top, orderBy, selectParameter, from, toParameter, filter, apply)
+	result.fn = client.listQueryResultsForManagementGroupNextResults
+	req, err := client.ListQueryResultsForManagementGroupPreparer(ctx, managementGroupName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForManagementGroup", nil, "Failure preparing request")
 		return
@@ -157,12 +86,12 @@ func (client PolicyEventsClient) ListQueryResultsForManagementGroup(ctx context.
 
 	resp, err := client.ListQueryResultsForManagementGroupSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.peqr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForManagementGroup", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListQueryResultsForManagementGroupResponder(resp)
+	result.peqr, err = client.ListQueryResultsForManagementGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForManagementGroup", resp, "Failure responding to request")
 	}
@@ -171,14 +100,14 @@ func (client PolicyEventsClient) ListQueryResultsForManagementGroup(ctx context.
 }
 
 // ListQueryResultsForManagementGroupPreparer prepares the ListQueryResultsForManagementGroup request.
-func (client PolicyEventsClient) ListQueryResultsForManagementGroupPreparer(ctx context.Context, managementGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (*http.Request, error) {
+func (client PolicyEventsClient) ListQueryResultsForManagementGroupPreparer(ctx context.Context, managementGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"managementGroupName":       autorest.Encode("path", managementGroupName),
 		"managementGroupsNamespace": autorest.Encode("path", "Microsoft.Management"),
 		"policyEventsResource":      autorest.Encode("path", "default"),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -202,6 +131,9 @@ func (client PolicyEventsClient) ListQueryResultsForManagementGroupPreparer(ctx 
 	}
 	if len(apply) > 0 {
 		queryParameters["$apply"] = autorest.Encode("query", apply)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skiptoken"] = autorest.Encode("query", skipToken)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -231,6 +163,43 @@ func (client PolicyEventsClient) ListQueryResultsForManagementGroupResponder(res
 	return
 }
 
+// listQueryResultsForManagementGroupNextResults retrieves the next set of results, if any.
+func (client PolicyEventsClient) listQueryResultsForManagementGroupNextResults(ctx context.Context, lastResults PolicyEventsQueryResults) (result PolicyEventsQueryResults, err error) {
+	req, err := lastResults.policyEventsQueryResultsPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForManagementGroupNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListQueryResultsForManagementGroupSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForManagementGroupNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListQueryResultsForManagementGroupResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForManagementGroupNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListQueryResultsForManagementGroupComplete enumerates all values, automatically crossing page boundaries as required.
+func (client PolicyEventsClient) ListQueryResultsForManagementGroupComplete(ctx context.Context, managementGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForManagementGroup")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListQueryResultsForManagementGroup(ctx, managementGroupName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
+	return
+}
+
 // ListQueryResultsForPolicyDefinition queries policy events for the subscription level policy definition.
 // Parameters:
 // subscriptionID - microsoft Azure subscription ID.
@@ -246,13 +215,15 @@ func (client PolicyEventsClient) ListQueryResultsForManagementGroupResponder(res
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-func (client PolicyEventsClient) ListQueryResultsForPolicyDefinition(ctx context.Context, subscriptionID string, policyDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (result PolicyEventsQueryResults, err error) {
+// skipToken - skiptoken is only provided if a previous response returned a partial result as a part of
+// nextLink element.
+func (client PolicyEventsClient) ListQueryResultsForPolicyDefinition(ctx context.Context, subscriptionID string, policyDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForPolicyDefinition")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.peqr.Response.Response != nil {
+				sc = result.peqr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -264,7 +235,8 @@ func (client PolicyEventsClient) ListQueryResultsForPolicyDefinition(ctx context
 		return result, validation.NewError("policyinsights.PolicyEventsClient", "ListQueryResultsForPolicyDefinition", err.Error())
 	}
 
-	req, err := client.ListQueryResultsForPolicyDefinitionPreparer(ctx, subscriptionID, policyDefinitionName, top, orderBy, selectParameter, from, toParameter, filter, apply)
+	result.fn = client.listQueryResultsForPolicyDefinitionNextResults
+	req, err := client.ListQueryResultsForPolicyDefinitionPreparer(ctx, subscriptionID, policyDefinitionName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForPolicyDefinition", nil, "Failure preparing request")
 		return
@@ -272,12 +244,12 @@ func (client PolicyEventsClient) ListQueryResultsForPolicyDefinition(ctx context
 
 	resp, err := client.ListQueryResultsForPolicyDefinitionSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.peqr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForPolicyDefinition", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListQueryResultsForPolicyDefinitionResponder(resp)
+	result.peqr, err = client.ListQueryResultsForPolicyDefinitionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForPolicyDefinition", resp, "Failure responding to request")
 	}
@@ -286,7 +258,7 @@ func (client PolicyEventsClient) ListQueryResultsForPolicyDefinition(ctx context
 }
 
 // ListQueryResultsForPolicyDefinitionPreparer prepares the ListQueryResultsForPolicyDefinition request.
-func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionPreparer(ctx context.Context, subscriptionID string, policyDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (*http.Request, error) {
+func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionPreparer(ctx context.Context, subscriptionID string, policyDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"authorizationNamespace": autorest.Encode("path", "Microsoft.Authorization"),
 		"policyDefinitionName":   autorest.Encode("path", policyDefinitionName),
@@ -294,7 +266,7 @@ func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionPreparer(ctx
 		"subscriptionId":         autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -318,6 +290,9 @@ func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionPreparer(ctx
 	}
 	if len(apply) > 0 {
 		queryParameters["$apply"] = autorest.Encode("query", apply)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skiptoken"] = autorest.Encode("query", skipToken)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -347,6 +322,43 @@ func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionResponder(re
 	return
 }
 
+// listQueryResultsForPolicyDefinitionNextResults retrieves the next set of results, if any.
+func (client PolicyEventsClient) listQueryResultsForPolicyDefinitionNextResults(ctx context.Context, lastResults PolicyEventsQueryResults) (result PolicyEventsQueryResults, err error) {
+	req, err := lastResults.policyEventsQueryResultsPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForPolicyDefinitionNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListQueryResultsForPolicyDefinitionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForPolicyDefinitionNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListQueryResultsForPolicyDefinitionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForPolicyDefinitionNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListQueryResultsForPolicyDefinitionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionComplete(ctx context.Context, subscriptionID string, policyDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForPolicyDefinition")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListQueryResultsForPolicyDefinition(ctx, subscriptionID, policyDefinitionName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
+	return
+}
+
 // ListQueryResultsForPolicySetDefinition queries policy events for the subscription level policy set definition.
 // Parameters:
 // subscriptionID - microsoft Azure subscription ID.
@@ -362,13 +374,15 @@ func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionResponder(re
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinition(ctx context.Context, subscriptionID string, policySetDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (result PolicyEventsQueryResults, err error) {
+// skipToken - skiptoken is only provided if a previous response returned a partial result as a part of
+// nextLink element.
+func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinition(ctx context.Context, subscriptionID string, policySetDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForPolicySetDefinition")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.peqr.Response.Response != nil {
+				sc = result.peqr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -380,7 +394,8 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinition(ctx cont
 		return result, validation.NewError("policyinsights.PolicyEventsClient", "ListQueryResultsForPolicySetDefinition", err.Error())
 	}
 
-	req, err := client.ListQueryResultsForPolicySetDefinitionPreparer(ctx, subscriptionID, policySetDefinitionName, top, orderBy, selectParameter, from, toParameter, filter, apply)
+	result.fn = client.listQueryResultsForPolicySetDefinitionNextResults
+	req, err := client.ListQueryResultsForPolicySetDefinitionPreparer(ctx, subscriptionID, policySetDefinitionName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForPolicySetDefinition", nil, "Failure preparing request")
 		return
@@ -388,12 +403,12 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinition(ctx cont
 
 	resp, err := client.ListQueryResultsForPolicySetDefinitionSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.peqr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForPolicySetDefinition", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListQueryResultsForPolicySetDefinitionResponder(resp)
+	result.peqr, err = client.ListQueryResultsForPolicySetDefinitionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForPolicySetDefinition", resp, "Failure responding to request")
 	}
@@ -402,7 +417,7 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinition(ctx cont
 }
 
 // ListQueryResultsForPolicySetDefinitionPreparer prepares the ListQueryResultsForPolicySetDefinition request.
-func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionPreparer(ctx context.Context, subscriptionID string, policySetDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (*http.Request, error) {
+func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionPreparer(ctx context.Context, subscriptionID string, policySetDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"authorizationNamespace":  autorest.Encode("path", "Microsoft.Authorization"),
 		"policyEventsResource":    autorest.Encode("path", "default"),
@@ -410,7 +425,7 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionPreparer(
 		"subscriptionId":          autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -434,6 +449,9 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionPreparer(
 	}
 	if len(apply) > 0 {
 		queryParameters["$apply"] = autorest.Encode("query", apply)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skiptoken"] = autorest.Encode("query", skipToken)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -463,6 +481,43 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionResponder
 	return
 }
 
+// listQueryResultsForPolicySetDefinitionNextResults retrieves the next set of results, if any.
+func (client PolicyEventsClient) listQueryResultsForPolicySetDefinitionNextResults(ctx context.Context, lastResults PolicyEventsQueryResults) (result PolicyEventsQueryResults, err error) {
+	req, err := lastResults.policyEventsQueryResultsPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForPolicySetDefinitionNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListQueryResultsForPolicySetDefinitionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForPolicySetDefinitionNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListQueryResultsForPolicySetDefinitionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForPolicySetDefinitionNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListQueryResultsForPolicySetDefinitionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionComplete(ctx context.Context, subscriptionID string, policySetDefinitionName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForPolicySetDefinition")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListQueryResultsForPolicySetDefinition(ctx, subscriptionID, policySetDefinitionName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
+	return
+}
+
 // ListQueryResultsForResource queries policy events for the resource.
 // Parameters:
 // resourceID - resource ID.
@@ -477,13 +532,16 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionResponder
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-func (client PolicyEventsClient) ListQueryResultsForResource(ctx context.Context, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (result PolicyEventsQueryResults, err error) {
+// expand - the $expand query parameter. For example, to expand components use $expand=components
+// skipToken - skiptoken is only provided if a previous response returned a partial result as a part of
+// nextLink element.
+func (client PolicyEventsClient) ListQueryResultsForResource(ctx context.Context, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, expand string, skipToken string) (result PolicyEventsQueryResultsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForResource")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.peqr.Response.Response != nil {
+				sc = result.peqr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -495,7 +553,8 @@ func (client PolicyEventsClient) ListQueryResultsForResource(ctx context.Context
 		return result, validation.NewError("policyinsights.PolicyEventsClient", "ListQueryResultsForResource", err.Error())
 	}
 
-	req, err := client.ListQueryResultsForResourcePreparer(ctx, resourceID, top, orderBy, selectParameter, from, toParameter, filter, apply)
+	result.fn = client.listQueryResultsForResourceNextResults
+	req, err := client.ListQueryResultsForResourcePreparer(ctx, resourceID, top, orderBy, selectParameter, from, toParameter, filter, apply, expand, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResource", nil, "Failure preparing request")
 		return
@@ -503,12 +562,12 @@ func (client PolicyEventsClient) ListQueryResultsForResource(ctx context.Context
 
 	resp, err := client.ListQueryResultsForResourceSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.peqr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResource", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListQueryResultsForResourceResponder(resp)
+	result.peqr, err = client.ListQueryResultsForResourceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResource", resp, "Failure responding to request")
 	}
@@ -517,13 +576,13 @@ func (client PolicyEventsClient) ListQueryResultsForResource(ctx context.Context
 }
 
 // ListQueryResultsForResourcePreparer prepares the ListQueryResultsForResource request.
-func (client PolicyEventsClient) ListQueryResultsForResourcePreparer(ctx context.Context, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (*http.Request, error) {
+func (client PolicyEventsClient) ListQueryResultsForResourcePreparer(ctx context.Context, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, expand string, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"policyEventsResource": autorest.Encode("path", "default"),
 		"resourceId":           resourceID,
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -547,6 +606,12 @@ func (client PolicyEventsClient) ListQueryResultsForResourcePreparer(ctx context
 	}
 	if len(apply) > 0 {
 		queryParameters["$apply"] = autorest.Encode("query", apply)
+	}
+	if len(expand) > 0 {
+		queryParameters["$expand"] = autorest.Encode("query", expand)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skiptoken"] = autorest.Encode("query", skipToken)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -576,6 +641,43 @@ func (client PolicyEventsClient) ListQueryResultsForResourceResponder(resp *http
 	return
 }
 
+// listQueryResultsForResourceNextResults retrieves the next set of results, if any.
+func (client PolicyEventsClient) listQueryResultsForResourceNextResults(ctx context.Context, lastResults PolicyEventsQueryResults) (result PolicyEventsQueryResults, err error) {
+	req, err := lastResults.policyEventsQueryResultsPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForResourceNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListQueryResultsForResourceSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForResourceNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListQueryResultsForResourceResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForResourceNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListQueryResultsForResourceComplete enumerates all values, automatically crossing page boundaries as required.
+func (client PolicyEventsClient) ListQueryResultsForResourceComplete(ctx context.Context, resourceID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, expand string, skipToken string) (result PolicyEventsQueryResultsIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForResource")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListQueryResultsForResource(ctx, resourceID, top, orderBy, selectParameter, from, toParameter, filter, apply, expand, skipToken)
+	return
+}
+
 // ListQueryResultsForResourceGroup queries policy events for the resources under the resource group.
 // Parameters:
 // subscriptionID - microsoft Azure subscription ID.
@@ -591,13 +693,15 @@ func (client PolicyEventsClient) ListQueryResultsForResourceResponder(resp *http
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-func (client PolicyEventsClient) ListQueryResultsForResourceGroup(ctx context.Context, subscriptionID string, resourceGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (result PolicyEventsQueryResults, err error) {
+// skipToken - skiptoken is only provided if a previous response returned a partial result as a part of
+// nextLink element.
+func (client PolicyEventsClient) ListQueryResultsForResourceGroup(ctx context.Context, subscriptionID string, resourceGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.peqr.Response.Response != nil {
+				sc = result.peqr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -609,7 +713,8 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroup(ctx context.Co
 		return result, validation.NewError("policyinsights.PolicyEventsClient", "ListQueryResultsForResourceGroup", err.Error())
 	}
 
-	req, err := client.ListQueryResultsForResourceGroupPreparer(ctx, subscriptionID, resourceGroupName, top, orderBy, selectParameter, from, toParameter, filter, apply)
+	result.fn = client.listQueryResultsForResourceGroupNextResults
+	req, err := client.ListQueryResultsForResourceGroupPreparer(ctx, subscriptionID, resourceGroupName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResourceGroup", nil, "Failure preparing request")
 		return
@@ -617,12 +722,12 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroup(ctx context.Co
 
 	resp, err := client.ListQueryResultsForResourceGroupSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.peqr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListQueryResultsForResourceGroupResponder(resp)
+	result.peqr, err = client.ListQueryResultsForResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResourceGroup", resp, "Failure responding to request")
 	}
@@ -631,14 +736,14 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroup(ctx context.Co
 }
 
 // ListQueryResultsForResourceGroupPreparer prepares the ListQueryResultsForResourceGroup request.
-func (client PolicyEventsClient) ListQueryResultsForResourceGroupPreparer(ctx context.Context, subscriptionID string, resourceGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (*http.Request, error) {
+func (client PolicyEventsClient) ListQueryResultsForResourceGroupPreparer(ctx context.Context, subscriptionID string, resourceGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"policyEventsResource": autorest.Encode("path", "default"),
 		"resourceGroupName":    autorest.Encode("path", resourceGroupName),
 		"subscriptionId":       autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -662,6 +767,9 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupPreparer(ctx co
 	}
 	if len(apply) > 0 {
 		queryParameters["$apply"] = autorest.Encode("query", apply)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skiptoken"] = autorest.Encode("query", skipToken)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -691,6 +799,43 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupResponder(resp 
 	return
 }
 
+// listQueryResultsForResourceGroupNextResults retrieves the next set of results, if any.
+func (client PolicyEventsClient) listQueryResultsForResourceGroupNextResults(ctx context.Context, lastResults PolicyEventsQueryResults) (result PolicyEventsQueryResults, err error) {
+	req, err := lastResults.policyEventsQueryResultsPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForResourceGroupNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListQueryResultsForResourceGroupSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForResourceGroupNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListQueryResultsForResourceGroupResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForResourceGroupNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListQueryResultsForResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
+func (client PolicyEventsClient) ListQueryResultsForResourceGroupComplete(ctx context.Context, subscriptionID string, resourceGroupName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForResourceGroup")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListQueryResultsForResourceGroup(ctx, subscriptionID, resourceGroupName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
+	return
+}
+
 // ListQueryResultsForResourceGroupLevelPolicyAssignment queries policy events for the resource group level policy
 // assignment.
 // Parameters:
@@ -708,13 +853,15 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupResponder(resp 
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssignment(ctx context.Context, subscriptionID string, resourceGroupName string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (result PolicyEventsQueryResults, err error) {
+// skipToken - skiptoken is only provided if a previous response returned a partial result as a part of
+// nextLink element.
+func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssignment(ctx context.Context, subscriptionID string, resourceGroupName string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForResourceGroupLevelPolicyAssignment")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.peqr.Response.Response != nil {
+				sc = result.peqr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -726,7 +873,8 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 		return result, validation.NewError("policyinsights.PolicyEventsClient", "ListQueryResultsForResourceGroupLevelPolicyAssignment", err.Error())
 	}
 
-	req, err := client.ListQueryResultsForResourceGroupLevelPolicyAssignmentPreparer(ctx, subscriptionID, resourceGroupName, policyAssignmentName, top, orderBy, selectParameter, from, toParameter, filter, apply)
+	result.fn = client.listQueryResultsForResourceGroupLevelPolicyAssignmentNextResults
+	req, err := client.ListQueryResultsForResourceGroupLevelPolicyAssignmentPreparer(ctx, subscriptionID, resourceGroupName, policyAssignmentName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResourceGroupLevelPolicyAssignment", nil, "Failure preparing request")
 		return
@@ -734,12 +882,12 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 
 	resp, err := client.ListQueryResultsForResourceGroupLevelPolicyAssignmentSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.peqr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResourceGroupLevelPolicyAssignment", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListQueryResultsForResourceGroupLevelPolicyAssignmentResponder(resp)
+	result.peqr, err = client.ListQueryResultsForResourceGroupLevelPolicyAssignmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForResourceGroupLevelPolicyAssignment", resp, "Failure responding to request")
 	}
@@ -748,7 +896,7 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 }
 
 // ListQueryResultsForResourceGroupLevelPolicyAssignmentPreparer prepares the ListQueryResultsForResourceGroupLevelPolicyAssignment request.
-func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssignmentPreparer(ctx context.Context, subscriptionID string, resourceGroupName string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (*http.Request, error) {
+func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssignmentPreparer(ctx context.Context, subscriptionID string, resourceGroupName string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"authorizationNamespace": autorest.Encode("path", "Microsoft.Authorization"),
 		"policyAssignmentName":   autorest.Encode("path", policyAssignmentName),
@@ -757,7 +905,7 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 		"subscriptionId":         autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -781,6 +929,9 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 	}
 	if len(apply) > 0 {
 		queryParameters["$apply"] = autorest.Encode("query", apply)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skiptoken"] = autorest.Encode("query", skipToken)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -810,6 +961,43 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 	return
 }
 
+// listQueryResultsForResourceGroupLevelPolicyAssignmentNextResults retrieves the next set of results, if any.
+func (client PolicyEventsClient) listQueryResultsForResourceGroupLevelPolicyAssignmentNextResults(ctx context.Context, lastResults PolicyEventsQueryResults) (result PolicyEventsQueryResults, err error) {
+	req, err := lastResults.policyEventsQueryResultsPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForResourceGroupLevelPolicyAssignmentNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListQueryResultsForResourceGroupLevelPolicyAssignmentSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForResourceGroupLevelPolicyAssignmentNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListQueryResultsForResourceGroupLevelPolicyAssignmentResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForResourceGroupLevelPolicyAssignmentNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListQueryResultsForResourceGroupLevelPolicyAssignmentComplete enumerates all values, automatically crossing page boundaries as required.
+func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssignmentComplete(ctx context.Context, subscriptionID string, resourceGroupName string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForResourceGroupLevelPolicyAssignment")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListQueryResultsForResourceGroupLevelPolicyAssignment(ctx, subscriptionID, resourceGroupName, policyAssignmentName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
+	return
+}
+
 // ListQueryResultsForSubscription queries policy events for the resources under the subscription.
 // Parameters:
 // subscriptionID - microsoft Azure subscription ID.
@@ -824,13 +1012,15 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-func (client PolicyEventsClient) ListQueryResultsForSubscription(ctx context.Context, subscriptionID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (result PolicyEventsQueryResults, err error) {
+// skipToken - skiptoken is only provided if a previous response returned a partial result as a part of
+// nextLink element.
+func (client PolicyEventsClient) ListQueryResultsForSubscription(ctx context.Context, subscriptionID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForSubscription")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.peqr.Response.Response != nil {
+				sc = result.peqr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -842,7 +1032,8 @@ func (client PolicyEventsClient) ListQueryResultsForSubscription(ctx context.Con
 		return result, validation.NewError("policyinsights.PolicyEventsClient", "ListQueryResultsForSubscription", err.Error())
 	}
 
-	req, err := client.ListQueryResultsForSubscriptionPreparer(ctx, subscriptionID, top, orderBy, selectParameter, from, toParameter, filter, apply)
+	result.fn = client.listQueryResultsForSubscriptionNextResults
+	req, err := client.ListQueryResultsForSubscriptionPreparer(ctx, subscriptionID, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForSubscription", nil, "Failure preparing request")
 		return
@@ -850,12 +1041,12 @@ func (client PolicyEventsClient) ListQueryResultsForSubscription(ctx context.Con
 
 	resp, err := client.ListQueryResultsForSubscriptionSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.peqr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForSubscription", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListQueryResultsForSubscriptionResponder(resp)
+	result.peqr, err = client.ListQueryResultsForSubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForSubscription", resp, "Failure responding to request")
 	}
@@ -864,13 +1055,13 @@ func (client PolicyEventsClient) ListQueryResultsForSubscription(ctx context.Con
 }
 
 // ListQueryResultsForSubscriptionPreparer prepares the ListQueryResultsForSubscription request.
-func (client PolicyEventsClient) ListQueryResultsForSubscriptionPreparer(ctx context.Context, subscriptionID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (*http.Request, error) {
+func (client PolicyEventsClient) ListQueryResultsForSubscriptionPreparer(ctx context.Context, subscriptionID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"policyEventsResource": autorest.Encode("path", "default"),
 		"subscriptionId":       autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -894,6 +1085,9 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionPreparer(ctx con
 	}
 	if len(apply) > 0 {
 		queryParameters["$apply"] = autorest.Encode("query", apply)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skiptoken"] = autorest.Encode("query", skipToken)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -923,6 +1117,43 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionResponder(resp *
 	return
 }
 
+// listQueryResultsForSubscriptionNextResults retrieves the next set of results, if any.
+func (client PolicyEventsClient) listQueryResultsForSubscriptionNextResults(ctx context.Context, lastResults PolicyEventsQueryResults) (result PolicyEventsQueryResults, err error) {
+	req, err := lastResults.policyEventsQueryResultsPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForSubscriptionNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListQueryResultsForSubscriptionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForSubscriptionNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListQueryResultsForSubscriptionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForSubscriptionNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListQueryResultsForSubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client PolicyEventsClient) ListQueryResultsForSubscriptionComplete(ctx context.Context, subscriptionID string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForSubscription")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListQueryResultsForSubscription(ctx, subscriptionID, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
+	return
+}
+
 // ListQueryResultsForSubscriptionLevelPolicyAssignment queries policy events for the subscription level policy
 // assignment.
 // Parameters:
@@ -939,13 +1170,15 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionResponder(resp *
 // specified, the service uses request time.
 // filter - oData filter expression.
 // apply - oData apply expression for aggregations.
-func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssignment(ctx context.Context, subscriptionID string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (result PolicyEventsQueryResults, err error) {
+// skipToken - skiptoken is only provided if a previous response returned a partial result as a part of
+// nextLink element.
+func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssignment(ctx context.Context, subscriptionID string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForSubscriptionLevelPolicyAssignment")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.peqr.Response.Response != nil {
+				sc = result.peqr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -957,7 +1190,8 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 		return result, validation.NewError("policyinsights.PolicyEventsClient", "ListQueryResultsForSubscriptionLevelPolicyAssignment", err.Error())
 	}
 
-	req, err := client.ListQueryResultsForSubscriptionLevelPolicyAssignmentPreparer(ctx, subscriptionID, policyAssignmentName, top, orderBy, selectParameter, from, toParameter, filter, apply)
+	result.fn = client.listQueryResultsForSubscriptionLevelPolicyAssignmentNextResults
+	req, err := client.ListQueryResultsForSubscriptionLevelPolicyAssignmentPreparer(ctx, subscriptionID, policyAssignmentName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForSubscriptionLevelPolicyAssignment", nil, "Failure preparing request")
 		return
@@ -965,12 +1199,12 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 
 	resp, err := client.ListQueryResultsForSubscriptionLevelPolicyAssignmentSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.peqr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForSubscriptionLevelPolicyAssignment", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListQueryResultsForSubscriptionLevelPolicyAssignmentResponder(resp)
+	result.peqr, err = client.ListQueryResultsForSubscriptionLevelPolicyAssignmentResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "ListQueryResultsForSubscriptionLevelPolicyAssignment", resp, "Failure responding to request")
 	}
@@ -979,7 +1213,7 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 }
 
 // ListQueryResultsForSubscriptionLevelPolicyAssignmentPreparer prepares the ListQueryResultsForSubscriptionLevelPolicyAssignment request.
-func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssignmentPreparer(ctx context.Context, subscriptionID string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string) (*http.Request, error) {
+func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssignmentPreparer(ctx context.Context, subscriptionID string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"authorizationNamespace": autorest.Encode("path", "Microsoft.Authorization"),
 		"policyAssignmentName":   autorest.Encode("path", policyAssignmentName),
@@ -987,7 +1221,7 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 		"subscriptionId":         autorest.Encode("path", subscriptionID),
 	}
 
-	const APIVersion = "2018-04-04"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1011,6 +1245,9 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 	}
 	if len(apply) > 0 {
 		queryParameters["$apply"] = autorest.Encode("query", apply)
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skiptoken"] = autorest.Encode("query", skipToken)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -1037,5 +1274,42 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listQueryResultsForSubscriptionLevelPolicyAssignmentNextResults retrieves the next set of results, if any.
+func (client PolicyEventsClient) listQueryResultsForSubscriptionLevelPolicyAssignmentNextResults(ctx context.Context, lastResults PolicyEventsQueryResults) (result PolicyEventsQueryResults, err error) {
+	req, err := lastResults.policyEventsQueryResultsPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForSubscriptionLevelPolicyAssignmentNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListQueryResultsForSubscriptionLevelPolicyAssignmentSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForSubscriptionLevelPolicyAssignmentNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListQueryResultsForSubscriptionLevelPolicyAssignmentResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "policyinsights.PolicyEventsClient", "listQueryResultsForSubscriptionLevelPolicyAssignmentNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListQueryResultsForSubscriptionLevelPolicyAssignmentComplete enumerates all values, automatically crossing page boundaries as required.
+func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssignmentComplete(ctx context.Context, subscriptionID string, policyAssignmentName string, top *int32, orderBy string, selectParameter string, from *date.Time, toParameter *date.Time, filter string, apply string, skipToken string) (result PolicyEventsQueryResultsIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PolicyEventsClient.ListQueryResultsForSubscriptionLevelPolicyAssignment")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListQueryResultsForSubscriptionLevelPolicyAssignment(ctx, subscriptionID, policyAssignmentName, top, orderBy, selectParameter, from, toParameter, filter, apply, skipToken)
 	return
 }

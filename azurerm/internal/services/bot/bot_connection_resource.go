@@ -1,0 +1,307 @@
+package bot
+
+import (
+	"fmt"
+	"log"
+	"strings"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
+	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+func resourceArmBotConnection() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceArmBotConnectionCreate,
+		Read:   resourceArmBotConnectionRead,
+		Update: resourceArmBotConnectionUpdate,
+		Delete: resourceArmBotConnectionDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"location": azure.SchemaLocation(),
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"bot_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"service_provider_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"client_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"client_secret": {
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"scopes": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"parameters": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"tags": tags.Schema(),
+		},
+	}
+}
+
+func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Bot.ConnectionClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	botName := d.Get("bot_name").(string)
+
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name, botName)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of creating Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+			}
+		}
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_bot_connection", *existing.ID)
+		}
+	}
+
+	serviceProviderName := d.Get("service_provider_name").(string)
+	var serviceProviderId *string
+	var availableProviders []string
+
+	serviceProviders, err := client.ListServiceProviders(ctx)
+	if err != nil {
+		return fmt.Errorf("listing Bot Connection service provider: %+v", err)
+	}
+
+	if serviceProviders.Value == nil {
+		return fmt.Errorf("no service providers were returned from the Azure API")
+	}
+	for _, provider := range *serviceProviders.Value {
+		if provider.Properties == nil || provider.Properties.ServiceProviderName == nil {
+			continue
+		}
+		name := provider.Properties.ServiceProviderName
+		if strings.EqualFold(serviceProviderName, *name) {
+			serviceProviderId = provider.Properties.ID
+			break
+		}
+		availableProviders = append(availableProviders, *name)
+	}
+
+	if serviceProviderId == nil {
+		return fmt.Errorf("the Service Provider %q was not found. The available service providers are %s", serviceProviderName, strings.Join(availableProviders, ","))
+	}
+
+	connection := botservice.ConnectionSetting{
+		Properties: &botservice.ConnectionSettingProperties{
+			ServiceProviderID: serviceProviderId,
+			ClientID:          utils.String(d.Get("client_id").(string)),
+			ClientSecret:      utils.String(d.Get("client_secret").(string)),
+			Scopes:            utils.String(d.Get("scopes").(string)),
+			Parameters:        expandAzureRMBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
+		},
+		Kind:     botservice.KindBot,
+		Location: utils.String(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if _, err := client.Create(ctx, resourceGroup, botName, name, connection); err != nil {
+		return fmt.Errorf("Error issuing create request for creating Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+	}
+
+	resp, err := client.Get(ctx, resourceGroup, botName, name)
+	if err != nil {
+		return fmt.Errorf("Error making get request for Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+	}
+
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+	}
+
+	d.SetId(*resp.ID)
+
+	return resourceArmBotConnectionRead(d, meta)
+}
+
+func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Bot.ConnectionClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	botName := id.Path["botServices"]
+	name := id.Path["connections"]
+
+	resp, err := client.Get(ctx, id.ResourceGroup, botName, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Error reading Bot Connection %q (Resource Group %q / Bot %q)", name, id.ResourceGroup, botName)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error reading Bot Connection %q (Resource Group %q / Bot %q): %+v", name, id.ResourceGroup, botName, err)
+	}
+
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", name)
+	d.Set("bot_name", botName)
+	d.Set("location", resp.Location)
+
+	if props := resp.Properties; props != nil {
+		d.Set("client_id", props.ClientID)
+		d.Set("scopes", props.Scopes)
+		if err := d.Set("parameters", flattenAzureRMBotConnectionParameters(props.Parameters)); err != nil {
+			return fmt.Errorf("Error setting `parameters`: %+v", err)
+		}
+	}
+
+	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Bot.ConnectionClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	botName := d.Get("bot_name").(string)
+
+	connection := botservice.ConnectionSetting{
+		Properties: &botservice.ConnectionSettingProperties{
+			ServiceProviderDisplayName: utils.String(d.Get("service_provider_name").(string)),
+			ClientID:                   utils.String(d.Get("client_id").(string)),
+			ClientSecret:               utils.String(d.Get("client_secret").(string)),
+			Scopes:                     utils.String(d.Get("scopes").(string)),
+			Parameters:                 expandAzureRMBotConnectionParameters(d.Get("parameters").(map[string]interface{})),
+		},
+		Kind:     botservice.KindBot,
+		Location: utils.String(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if _, err := client.Update(ctx, resourceGroup, botName, name, connection); err != nil {
+		return fmt.Errorf("Error issuing update request for creating Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+	}
+
+	resp, err := client.Get(ctx, resourceGroup, botName, name)
+	if err != nil {
+		return fmt.Errorf("Error making get request for Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+	}
+
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read Bot Connection %q (Resource Group %q / Bot %q): %+v", name, resourceGroup, botName, err)
+	}
+
+	d.SetId(*resp.ID)
+
+	return resourceArmBotConnectionRead(d, meta)
+}
+
+func resourceArmBotConnectionDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Bot.ConnectionClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	botName := id.Path["botServices"]
+	name := id.Path["connections"]
+
+	resp, err := client.Delete(ctx, id.ResourceGroup, botName, name)
+	if err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error deleting Bot Connection %q (Resource Group %q / Bot %q): %+v", name, id.ResourceGroup, botName, err)
+		}
+	}
+
+	return nil
+}
+
+func expandAzureRMBotConnectionParameters(input map[string]interface{}) *[]botservice.ConnectionSettingParameter {
+	output := make([]botservice.ConnectionSettingParameter, 0)
+
+	for k, v := range input {
+		output = append(output, botservice.ConnectionSettingParameter{
+			Key:   utils.String(k),
+			Value: utils.String(v.(string)),
+		})
+	}
+	return &output
+}
+
+func flattenAzureRMBotConnectionParameters(input *[]botservice.ConnectionSettingParameter) map[string]interface{} {
+	output := make(map[string]interface{})
+	if input == nil {
+		return output
+	}
+
+	for _, parameter := range *input {
+		if key := parameter.Key; key != nil {
+			// We disregard the clientSecret and clientId as one is sensitive and the other is returned in the ClientId attribute.
+			if *key != "clientSecret" && *key != "clientId" && *key != "scopes" {
+				if value := parameter.Value; value != nil {
+					output[*key] = *value
+				}
+			}
+		}
+	}
+
+	return output
+}

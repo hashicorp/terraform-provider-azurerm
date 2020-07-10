@@ -20,6 +20,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.AppPlatform":             {},
 		"Microsoft.Authorization":           {},
 		"Microsoft.Automation":              {},
+		"Microsoft.Blueprints":              {},
 		"Microsoft.BotService":              {},
 		"Microsoft.Cache":                   {},
 		"Microsoft.Cdn":                     {},
@@ -75,6 +76,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.Storage":                 {},
 		"Microsoft.StorageCache":            {},
 		"Microsoft.StreamAnalytics":         {},
+		"Microsoft.TimeSeriesInsights":      {},
 		"Microsoft.Web":                     {},
 	}
 }
