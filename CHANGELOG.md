@@ -1,4 +1,9 @@
 ## 2.19.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_eventhub_namespace` - changes to `zone_redundant` now force a new resource [GH-7612]
+
 ## 2.18.0 (July 10, 2020)
 
 FEATURES:
