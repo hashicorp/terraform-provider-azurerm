@@ -444,7 +444,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		enableMultipleWriteLocationsCreateUpdateParameters := documentdb.DatabaseAccountCreateUpdateParameters{
 			Location: utils.String(location),
 			DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-				DatabaseAccountOfferType:      utils.String(offerType),
+				DatabaseAccountOfferType:     utils.String(offerType),
 				EnableMultipleWriteLocations: utils.Bool(enableMultipleWriteLocations),
 				Locations:                    &oldLocations,
 			},
