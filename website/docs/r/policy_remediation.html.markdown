@@ -13,10 +13,6 @@ Manages an Azure Policy Remediation at the specified Scope.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"

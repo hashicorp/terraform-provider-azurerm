@@ -12,6 +12,7 @@ type Client struct {
 	ServersClient                     *mysql.ServersClient
 	ServerSecurityAlertPoliciesClient *mysql.ServerSecurityAlertPoliciesClient
 	VirtualNetworkRulesClient         *mysql.VirtualNetworkRulesClient
+	ServerAdministratorsClient        *mysql.ServerAdministratorsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -33,6 +34,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	VirtualNetworkRulesClient := mysql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	serverAdministratorsClient := mysql.NewServerAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&serverAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ConfigurationsClient:              &ConfigurationsClient,
 		DatabasesClient:                   &DatabasesClient,
@@ -40,5 +44,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServersClient:                     &ServersClient,
 		ServerSecurityAlertPoliciesClient: &serverSecurityAlertPoliciesClient,
 		VirtualNetworkRulesClient:         &VirtualNetworkRulesClient,
+		ServerAdministratorsClient:        &serverAdministratorsClient,
 	}
 }

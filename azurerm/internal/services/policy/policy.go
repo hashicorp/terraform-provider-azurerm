@@ -19,7 +19,7 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 		policyDefinitions, err = client.ListComplete(ctx)
 	}
 	if err != nil {
-		return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: %+v", err)
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: %+v", err)
 	}
 
 	var results []policy.Definition
@@ -30,18 +30,18 @@ func getPolicyDefinitionByDisplayName(ctx context.Context, client *policy.Defini
 		}
 
 		if err := policyDefinitions.NextWithContext(ctx); err != nil {
-			return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: %s", err)
+			return policy.Definition{}, fmt.Errorf("loading Policy Definition List: %s", err)
 		}
 	}
 
 	// we found none
 	if len(results) == 0 {
-		return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: could not find policy '%s'", displayName)
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: could not find policy '%s'", displayName)
 	}
 
 	// we found more than one
 	if len(results) > 1 {
-		return policy.Definition{}, fmt.Errorf("failed to load Policy Definition List: found more than one policy '%s'", displayName)
+		return policy.Definition{}, fmt.Errorf("loading Policy Definition List: found more than one policy '%s'", displayName)
 	}
 
 	return results[0], nil
@@ -77,7 +77,7 @@ func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.Set
 		setDefinitions, err = client.ListComplete(ctx)
 	}
 	if err != nil {
-		return policy.SetDefinition{}, fmt.Errorf("failed to load Policy Set Definition List: %+v", err)
+		return policy.SetDefinition{}, fmt.Errorf("loading Policy Set Definition List: %+v", err)
 	}
 
 	var results []policy.SetDefinition
@@ -88,18 +88,18 @@ func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.Set
 		}
 
 		if err := setDefinitions.NextWithContext(ctx); err != nil {
-			return policy.SetDefinition{}, fmt.Errorf("failed to load Policy Set Definition List: %s", err)
+			return policy.SetDefinition{}, fmt.Errorf("loading Policy Set Definition List: %s", err)
 		}
 	}
 
 	// throw error when we found none
 	if len(results) == 0 {
-		return policy.SetDefinition{}, fmt.Errorf("failed to load Policy Set Definition List: could not find policy '%s'", displayName)
+		return policy.SetDefinition{}, fmt.Errorf("loading Policy Set Definition List: could not find policy '%s'", displayName)
 	}
 
 	// throw error when we found more than one
 	if len(results) > 1 {
-		return policy.SetDefinition{}, fmt.Errorf("failed to load Policy Set Definition List: found more than one policy set definition '%s'", displayName)
+		return policy.SetDefinition{}, fmt.Errorf("loading Policy Set Definition List: found more than one policy set definition '%s'", displayName)
 	}
 
 	return results[0], nil

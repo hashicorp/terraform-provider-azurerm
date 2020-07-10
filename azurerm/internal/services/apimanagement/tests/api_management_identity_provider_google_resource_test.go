@@ -26,7 +26,7 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_basic(t *testing.T) {
 					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
@@ -44,18 +44,17 @@ func TestAccAzureRMApiManagementIdentityProviderGoogle_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "00000000.apps.googleusercontent.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_secret", "00000000000000000000000000000000"),
 				),
 			},
+			data.ImportStep("client_secret"),
 			{
 				Config: testAccAzureRMApiManagementIdentityProviderGoogle_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderGoogleExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "11111111.apps.googleusercontent.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_secret", "11111111111111111111111111111111"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }

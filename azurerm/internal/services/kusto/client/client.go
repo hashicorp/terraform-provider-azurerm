@@ -6,33 +6,39 @@ import (
 )
 
 type Client struct {
+	AttachedDatabaseConfigurationsClient *kusto.AttachedDatabaseConfigurationsClient
 	ClustersClient                       *kusto.ClustersClient
+	ClusterPrincipalAssignmentsClient    *kusto.ClusterPrincipalAssignmentsClient
 	DatabasesClient                      *kusto.DatabasesClient
 	DataConnectionsClient                *kusto.DataConnectionsClient
-	ClusterPrincipalAssignmentsClient    *kusto.ClusterPrincipalAssignmentsClient
-	AttachedDatabaseConfigurationsClient *kusto.AttachedDatabaseConfigurationsClient
+	DatabasePrincipalAssignmentsClient   *kusto.DatabasePrincipalAssignmentsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	ClustersClient := kusto.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ClustersClient.Client, o.ResourceManagerAuthorizer)
 
+	ClusterPrincipalAssignmentsClient := kusto.NewClusterPrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ClusterPrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
+
 	DatabasesClient := kusto.NewDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DatabasesClient.Client, o.ResourceManagerAuthorizer)
 
+	DatabasePrincipalAssignmentsClient := kusto.NewDatabasePrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DatabasePrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
+
 	DataConnectionsClient := kusto.NewDataConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DataConnectionsClient.Client, o.ResourceManagerAuthorizer)
-	ClusterPrincipalAssignmentsClient := kusto.NewClusterPrincipalAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ClusterPrincipalAssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
 	AttachedDatabaseConfigurationsClient := kusto.NewAttachedDatabaseConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AttachedDatabaseConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		AttachedDatabaseConfigurationsClient: &AttachedDatabaseConfigurationsClient,
 		ClustersClient:                       &ClustersClient,
+		ClusterPrincipalAssignmentsClient:    &ClusterPrincipalAssignmentsClient,
 		DatabasesClient:                      &DatabasesClient,
 		DataConnectionsClient:                &DataConnectionsClient,
-		ClusterPrincipalAssignmentsClient:    &ClusterPrincipalAssignmentsClient,
-		AttachedDatabaseConfigurationsClient: &AttachedDatabaseConfigurationsClient,
+		DatabasePrincipalAssignmentsClient:   &DatabasePrincipalAssignmentsClient,
 	}
 }
