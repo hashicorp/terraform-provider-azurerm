@@ -207,7 +207,7 @@ func resourceArmNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) e
 	// Then it tries to immediately delete NetApp Volume but it still throws error `Can not delete resource before nested resources are deleted.`
 	// In this case we're going to re-check status code again.
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/11475
-	log.Printf("[DEBUG] Waiting for NetApp Snapshot Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
+	log.Printf("[DEBUG] Waiting for NetApp Snapshot %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
 		ContinuousTargetOccurence: 5,
 		Delay:                     10 * time.Second,
@@ -219,7 +219,7 @@ func resourceArmNetAppSnapshotDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for NetApp Snapshot Provisioning Service %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for NetApp Snapshot %q (Resource Group %q) to be deleted: %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
