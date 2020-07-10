@@ -1379,13 +1379,6 @@ type HostInfo struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// HostInfoListResult result of the request to list cluster hosts
-type HostInfoListResult struct {
-	autorest.Response `json:"-"`
-	// Value - The list of cluster hosts.
-	Value *[]HostInfo `json:"value,omitempty"`
-}
-
 // KafkaRestProperties the kafka rest proxy configuration which contains AAD security group information.
 type KafkaRestProperties struct {
 	// ClientGroupInfo - The information of AAD security group.
@@ -1400,6 +1393,12 @@ type LinuxOperatingSystemProfile struct {
 	Password *string `json:"password,omitempty"`
 	// SSHProfile - The SSH profile.
 	SSHProfile *SSHProfile `json:"sshProfile,omitempty"`
+}
+
+// ListHostInfo ...
+type ListHostInfo struct {
+	autorest.Response `json:"-"`
+	Value             *[]HostInfo `json:"value,omitempty"`
 }
 
 // LocalizedName the details about the localizable name of a type of usage.

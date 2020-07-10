@@ -303,7 +303,7 @@ The following arguments are supported:
 
 * `os_profile_secrets` - (Optional) A collection of Secret blocks as documented below.
 
-* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned.
+* `overprovision` - (Optional) Specifies whether the virtual machine scale set should be overprovisioned. Defaults to `true`.
 
 * `plan` - (Optional) A plan block as documented below.
 

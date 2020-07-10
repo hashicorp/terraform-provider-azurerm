@@ -204,6 +204,11 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
+						"ignore_missing_vnet_service_endpoint": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 				Set: resourceAzureRMCosmosDBAccountVirtualNetworkRuleHash,
@@ -813,7 +818,10 @@ func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *schema.ResourceData) *[]
 	s := make([]documentdb.VirtualNetworkRule, len(virtualNetworkRules))
 	for i, r := range virtualNetworkRules {
 		m := r.(map[string]interface{})
-		s[i] = documentdb.VirtualNetworkRule{ID: utils.String(m["id"].(string))}
+		s[i] = documentdb.VirtualNetworkRule{
+			ID:                               utils.String(m["id"].(string)),
+			IgnoreMissingVNetServiceEndpoint: utils.Bool(m["ignore_missing_vnet_service_endpoint"].(bool)),
+		}
 	}
 	return &s
 }
@@ -889,7 +897,8 @@ func flattenAzureRmCosmosDBAccountVirtualNetworkRules(rules *[]documentdb.Virtua
 	if rules != nil {
 		for _, r := range *rules {
 			rule := map[string]interface{}{
-				"id": *r.ID,
+				"id":                                   *r.ID,
+				"ignore_missing_vnet_service_endpoint": *r.IgnoreMissingVNetServiceEndpoint,
 			}
 			results.Add(rule)
 		}

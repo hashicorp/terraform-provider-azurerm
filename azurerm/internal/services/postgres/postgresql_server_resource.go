@@ -180,12 +180,14 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"auto_grow_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
+				Default:       true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.auto_grow"},
 			},
 
 			"backup_retention_days": {
 				Type:          schema.TypeInt,
 				Optional:      true,
+				Computed:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.backup_retention_days"},
 				ValidateFunc:  validation.IntBetween(7, 35),
 			},
@@ -193,6 +195,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"geo_redundant_backup_enabled": {
 				Type:          schema.TypeBool,
 				Optional:      true,
+				Default:       false,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 
@@ -218,6 +221,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
+				Default:  false,
 			},
 
 			"public_network_access_enabled": {
@@ -235,6 +239,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"storage_mb": {
 				Type:          schema.TypeInt,
 				Optional:      true,
+				Computed:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.storage_mb"},
 				ValidateFunc: validation.All(
 					validation.IntBetween(5120, 4194304),
@@ -257,6 +262,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"ssl_enforcement_enabled": {
 				Type:         schema.TypeBool,
 				Optional:     true, // required in 3.0
+				Default:      true,
 				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 			},
 
@@ -409,7 +415,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	ssl := postgresql.SslEnforcementEnumEnabled
-	if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
+	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
 	}
 
@@ -509,7 +515,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Server %q (Resource Group %q) ID", name, resourceGroup)
+		return fmt.Errorf("cannot read PostgreSQL Server %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -537,6 +543,8 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	// TODO: support for Delta updates
+
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
 
 	id, err := parse.PostgresServerServerID(d.Id())
@@ -549,33 +557,27 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("expanding `sku_name` for PostgreSQL Server %s (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
+	publicAccess := postgresql.PublicNetworkAccessEnumEnabled
+	if v := d.Get("public_network_access_enabled"); !v.(bool) {
+		publicAccess = postgresql.PublicNetworkAccessEnumDisabled
+	}
+
 	ssl := postgresql.SslEnforcementEnumEnabled
-	if d.HasChange("ssl_enforcement_enabled") {
-		if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
-			ssl = postgresql.SslEnforcementEnumDisabled
-		}
+	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
+		ssl = postgresql.SslEnforcementEnumDisabled
 	}
 
 	properties := postgresql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
+			PublicNetworkAccess:        publicAccess,
 			SslEnforcement:             ssl,
+			MinimalTLSVersion:          postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string)),
 			StorageProfile:             expandPostgreSQLStorageProfile(d),
 			Version:                    postgresql.ServerVersion(d.Get("version").(string)),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if d.HasChange("ssl_minimal_tls_version_enforced") {
-		properties.ServerUpdateParametersProperties.MinimalTLSVersion = postgresql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string))
-	}
-
-	if d.HasChange("public_network_access_enabled") {
-		properties.ServerUpdateParametersProperties.PublicNetworkAccess = postgresql.PublicNetworkAccessEnumEnabled
-		if v, ok := d.GetOkExists("public_network_access_enabled"); ok && !v.(bool) {
-			properties.ServerUpdateParametersProperties.PublicNetworkAccess = postgresql.PublicNetworkAccessEnumDisabled
-		}
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.Name, properties)
@@ -746,11 +748,9 @@ func expandServerSkuName(skuName string) (*postgresql.Sku, error) {
 func expandPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageProfile {
 	storage := postgresql.StorageProfile{}
 
-	if d.HasChange("auto_grow_enabled") {
-		storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
-		if v := d.Get("auto_grow_enabled"); v.(bool) {
-			storage.StorageAutogrow = postgresql.StorageAutogrowEnabled
-		}
+	storage.StorageAutogrow = postgresql.StorageAutogrowDisabled
+	if v := d.Get("auto_grow_enabled"); v.(bool) {
+		storage.StorageAutogrow = postgresql.StorageAutogrowEnabled
 	}
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -186,17 +187,11 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 													Type:     schema.TypeInt,
 													Optional: true,
 													ForceNew: true,
-													ConflictsWith: []string{
-														"certificate_policy.0.lifetime_action.0.trigger.0.lifetime_percentage",
-													},
 												},
 												"lifetime_percentage": {
 													Type:     schema.TypeInt,
 													Optional: true,
 													ForceNew: true,
-													ConflictsWith: []string{
-														"certificate_policy.0.lifetime_action.0.trigger.0.days_before_expiry",
-													},
 												},
 											},
 										},
@@ -310,6 +305,44 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 			},
 
 			// Computed
+			"certificate_attribute": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"created": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
+						"expires": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"not_before": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"recovery_level": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"updated": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -419,6 +452,13 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 			MinTimeout: 15 * time.Second,
 			Timeout:    d.Timeout(schema.TimeoutCreate),
 		}
+		// It has been observed that at least one certificate issuer responds to a request with manual processing by issuer staff. SLA's may differ among issuers.
+		// The total create timeout duration is divided by a modified poll interval of 30s to calculate the number of times to allow not found instead of the default 20.
+		// Using math.Floor, the calculation will err on the lower side of the creation timeout, so as to return before the overall create timeout occurs.
+		if policy.IssuerParameters != nil && policy.IssuerParameters.Name != nil && *policy.IssuerParameters.Name != "Self" {
+			stateConf.PollInterval = 30 * time.Second
+			stateConf.NotFoundChecks = int(math.Floor(float64(stateConf.Timeout) / float64(stateConf.PollInterval)))
+		}
 
 		if _, err := stateConf.WaitForState(); err != nil {
 			return fmt.Errorf("Error waiting for Certificate %q in Vault %q to become available: %s", name, keyVaultBaseUrl, err)
@@ -504,6 +544,10 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	certificatePolicy := flattenKeyVaultCertificatePolicy(cert.Policy)
 	if err := d.Set("certificate_policy", certificatePolicy); err != nil {
 		return fmt.Errorf("Error setting Key Vault Certificate Policy: %+v", err)
+	}
+
+	if err := d.Set("certificate_attribute", flattenKeyVaultCertificateAttribute(cert.Attributes)); err != nil {
+		return fmt.Errorf("setting Key Vault Certificate Attributes: %+v", err)
 	}
 
 	// Computed
@@ -772,6 +816,43 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 	}
 
 	return []interface{}{policy}
+}
+
+func flattenKeyVaultCertificateAttribute(input *keyvault.CertificateAttributes) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	enabled := false
+	created := ""
+	expires := ""
+	notBefore := ""
+	updated := ""
+	if input.Enabled != nil {
+		enabled = *input.Enabled
+	}
+	if input.Created != nil {
+		created = time.Time(*input.Created).Format(time.RFC3339)
+	}
+	if input.Expires != nil {
+		expires = time.Time(*input.Expires).Format(time.RFC3339)
+	}
+	if input.NotBefore != nil {
+		notBefore = time.Time(*input.NotBefore).Format(time.RFC3339)
+	}
+	if input.Updated != nil {
+		updated = time.Time(*input.Updated).Format(time.RFC3339)
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"created":        created,
+			"enabled":        enabled,
+			"expires":        expires,
+			"not_before":     notBefore,
+			"recovery_level": string(input.RecoveryLevel),
+			"updated":        updated,
+		},
+	}
 }
 
 type KeyVaultCertificateImportParameters struct {

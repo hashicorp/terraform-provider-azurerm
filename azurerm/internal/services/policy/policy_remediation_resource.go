@@ -77,8 +77,6 @@ func resourceArmPolicyRemediation() *schema.Resource {
 				Optional: true,
 				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
-				// TODO: use the validation function in azurerm_policy_definition when implemented
-				ValidateFunc: validate.PolicyDefinitionID,
 			},
 		},
 	}
@@ -129,7 +127,7 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 	case parse.ScopeAtResource:
 		_, err = client.CreateOrUpdateAtResource(ctx, scope.ScopeId(), name, parameters)
 	case parse.ScopeAtManagementGroup:
-		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.ManagementGroupId, name, parameters)
+		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.ManagementGroupName, name, parameters)
 	default:
 		return fmt.Errorf("unable to create Policy Remediation %q: invalid scope type", name)
 	}
@@ -206,7 +204,7 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 	case parse.ScopeAtResource:
 		_, err = client.DeleteAtResource(ctx, scope.ScopeId(), id.Name)
 	case parse.ScopeAtManagementGroup:
-		_, err = client.DeleteAtManagementGroup(ctx, scope.ManagementGroupId, id.Name)
+		_, err = client.DeleteAtManagementGroup(ctx, scope.ManagementGroupName, id.Name)
 	default:
 		return fmt.Errorf("unable to delete Policy Remediation %q: invalid scope type", id.Name)
 	}
@@ -227,7 +225,7 @@ func RemediationGetAtScope(ctx context.Context, client *policyinsights.Remediati
 	case parse.ScopeAtResource:
 		return client.GetAtResource(ctx, scopeId.ScopeId(), name)
 	case parse.ScopeAtManagementGroup:
-		return client.GetAtManagementGroup(ctx, scopeId.ManagementGroupId, name)
+		return client.GetAtManagementGroup(ctx, scopeId.ManagementGroupName, name)
 	default:
 		return policyinsights.Remediation{}, fmt.Errorf("unable to read Policy Remediation %q: invalid scope type", name)
 	}

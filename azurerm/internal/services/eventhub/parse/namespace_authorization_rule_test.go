@@ -42,13 +42,13 @@ func TestNamespaceAuthorizationRuleID(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name:  "Missing AuthorizationRules Key",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/AuthorizationRules",
+			Name:  "Missing authorizationRules Key",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/authorizationRules",
 			Error: true,
 		},
 		{
 			Name:  "Namespace Authorization Rule ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/AuthorizationRules/rule1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/authorizationRules/rule1",
 			Error: false,
 			Expect: &NamespaceAuthorizationRuleId{
 				ResourceGroup: "group1",
@@ -58,7 +58,7 @@ func TestNamespaceAuthorizationRuleID(t *testing.T) {
 		},
 		{
 			Name:  "Wrong Casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/authorizationRules/rule1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/AuthorizationRules/rule1",
 			Error: true,
 		},
 	}

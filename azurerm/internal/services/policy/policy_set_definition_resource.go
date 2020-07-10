@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
@@ -66,9 +64,20 @@ func resourceArmPolicySetDefinition() *schema.Resource {
 			},
 
 			"management_group_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ConflictsWith: []string{"management_group_name"},
+				Deprecated:    "Deprecated in favour of `management_group_name`", // TODO -- remove this in next major version
+			},
+
+			"management_group_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true, // TODO -- remove this when deprecation resolves
+				ConflictsWith: []string{"management_group_id"},
 			},
 
 			"display_name": {
@@ -163,10 +172,16 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	policyType := d.Get("policy_type").(string)
 	displayName := d.Get("display_name").(string)
 	description := d.Get("description").(string)
-	managementGroupID := d.Get("management_group_id").(string)
+	managementGroupName := ""
+	if v, ok := d.GetOk("management_group_name"); ok {
+		managementGroupName = v.(string)
+	}
+	if v, ok := d.GetOk("management_group_id"); ok {
+		managementGroupName = v.(string)
+	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupID)
+		existing, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Policy Set Definition %q: %s", name, err)
@@ -215,10 +230,10 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	var err error
-	if managementGroupID == "" {
+	if managementGroupName == "" {
 		_, err = client.CreateOrUpdate(ctx, name, definition)
 	} else {
-		_, err = client.CreateOrUpdateAtManagementGroup(ctx, name, definition, managementGroupID)
+		_, err = client.CreateOrUpdateAtManagementGroup(ctx, name, definition, managementGroupName)
 	}
 
 	if err != nil {
@@ -230,7 +245,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
-		Refresh:                   policySetDefinitionRefreshFunc(ctx, client, name, managementGroupID),
+		Refresh:                   policySetDefinitionRefreshFunc(ctx, client, name, managementGroupName),
 		MinTimeout:                10 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
@@ -246,7 +261,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	var resp policy.SetDefinition
-	resp, err = getPolicySetDefinitionByName(ctx, client, name, managementGroupID)
+	resp, err = getPolicySetDefinitionByName(ctx, client, name, managementGroupName)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Policy Set Definition %q: %s", name, err)
 	}
@@ -261,14 +276,18 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name, err := parsePolicySetDefinitionNameFromId(d.Id())
+	id, err := parse.PolicySetDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	managementGroupID := parseManagementGroupIdFromPolicySetId(d.Id())
+	managementGroupName := ""
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	case parse.ScopeAtManagementGroup:
+		managementGroupName = scopeId.ManagementGroupName
+	}
 
-	resp, err := getPolicySetDefinitionByName(ctx, client, name, managementGroupID)
+	resp, err := getPolicySetDefinitionByName(ctx, client, id.Name, managementGroupName)
 
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -281,7 +300,8 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("management_group_id", managementGroupID)
+	d.Set("management_group_id", managementGroupName)
+	d.Set("management_group_name", managementGroupName)
 
 	if props := resp.SetDefinitionProperties; props != nil {
 		d.Set("policy_type", string(props.PolicyType))
@@ -326,18 +346,22 @@ func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name, err := parsePolicySetDefinitionNameFromId(d.Id())
+	id, err := parse.PolicySetDefinitionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	managementGroupID := parseManagementGroupIdFromPolicySetId(d.Id())
+	managementGroupName := ""
+	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
+	case parse.ScopeAtManagementGroup:
+		managementGroupName = scopeId.ManagementGroupName
+	}
 
 	var resp autorest.Response
-	if managementGroupID == "" {
-		resp, err = client.Delete(ctx, name)
+	if managementGroupName == "" {
+		resp, err = client.Delete(ctx, id.Name)
 	} else {
-		resp, err = client.DeleteAtManagementGroup(ctx, name, managementGroupID)
+		resp, err = client.DeleteAtManagementGroup(ctx, id.Name, managementGroupName)
 	}
 
 	if err != nil {
@@ -345,31 +369,10 @@ func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting Policy Set Definition %q: %+v", name, err)
+		return fmt.Errorf("Error deleting Policy Set Definition %q: %+v", id.Name, err)
 	}
 
 	return nil
-}
-
-func parsePolicySetDefinitionNameFromId(id string) (string, error) {
-	components := strings.Split(id, "/")
-
-	if len(components) == 0 {
-		return "", fmt.Errorf("Azure Policy Set Definition Id is empty or not formatted correctly: %s", id)
-	}
-
-	return components[len(components)-1], nil
-}
-
-func parseManagementGroupIdFromPolicySetId(id string) string {
-	r := regexp.MustCompile("managementgroups/(.+)/providers/.*$")
-
-	if r.MatchString(id) {
-		matches := r.FindAllStringSubmatch(id, -1)[0]
-		return matches[1]
-	}
-
-	return ""
 }
 
 func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupId string) resource.StateRefreshFunc {

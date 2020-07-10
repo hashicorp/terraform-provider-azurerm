@@ -263,7 +263,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 	managementGroupName := ""
 	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
-		managementGroupName = scopeId.ManagementGroupId
+		managementGroupName = scopeId.ManagementGroupName
 	}
 
 	resp, err := getPolicyDefinitionByName(ctx, client, id.Name, managementGroupName)
@@ -316,17 +316,17 @@ func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	managementGroupID := ""
+	managementGroupName := ""
 	switch scopeId := id.PolicyScopeId.(type) { // nolint gocritic
 	case parse.ScopeAtManagementGroup:
-		managementGroupID = scopeId.ManagementGroupId
+		managementGroupName = scopeId.ManagementGroupName
 	}
 
 	var resp autorest.Response
-	if managementGroupID == "" {
+	if managementGroupName == "" {
 		resp, err = client.Delete(ctx, id.Name)
 	} else {
-		resp, err = client.DeleteAtManagementGroup(ctx, id.Name, managementGroupID)
+		resp, err = client.DeleteAtManagementGroup(ctx, id.Name, managementGroupName)
 	}
 
 	if err != nil {

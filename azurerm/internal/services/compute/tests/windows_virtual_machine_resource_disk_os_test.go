@@ -487,11 +487,6 @@ resource "azurerm_windows_virtual_machine" "test" {
 }
 
 func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
-	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
-	// TODO: switch back to default location
-	// once that's done this can also use the same template as everything else too
-	location := "westus2"
-
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -582,7 +577,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, data.RandomString, data.RandomInteger, location, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomString, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func testWindowsVirtualMachine_diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {
