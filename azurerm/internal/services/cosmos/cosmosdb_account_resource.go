@@ -442,11 +442,14 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 
 	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
 		enableMultipleWriteLocationsCreateUpdateParameters := documentdb.DatabaseAccountCreateUpdateParameters{
+			Location: utils.String(location),
+			Kind:     documentdb.DatabaseAccountKind(kind),
 			DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
 				DatabaseAccountOfferType:     utils.String(offerType),
 				EnableMultipleWriteLocations: utils.Bool(enableMultipleWriteLocations),
 				Locations:                    &oldLocations,
 			},
+			Tags: tags.Expand(t),
 		}
 
 		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, enableMultipleWriteLocationsCreateUpdateParameters, d); err != nil {
