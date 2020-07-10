@@ -353,10 +353,6 @@ func netappVolumeDeleteStateRefreshFunc(ctx context.Context, client *netapp.Volu
 			return nil, "", fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): %s", name, resourceGroupName, err)
 		}
 
-		if _, err := client.Delete(ctx, resourceGroupName, accountName, poolName, name); err != nil {
-			log.Printf("Error reissuing NetApp Volume %q delete request (Resource Group %q): %+v", name, resourceGroupName, err)
-		}
-
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
 }
