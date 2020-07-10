@@ -31,6 +31,39 @@ func TestAccAzureRMServiceFabricMeshApplication_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceFabricMeshApplication_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_fabric_mesh_application", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceFabricMeshApplicationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceFabricMeshApplication_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("service"),
+			{
+				Config: testAccAzureRMServiceFabricMeshApplication_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("service"),
+			{
+				Config: testAccAzureRMServiceFabricMeshApplication_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceFabricMeshApplicationExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("service"),
+		},
+	})
+}
+
 func testCheckAzureRMServiceFabricMeshApplicationDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceFabricMesh.ApplicationClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -95,12 +128,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-sfm-%d"
   location = "%s"
 }
 
 resource "azurerm_service_fabric_mesh_application" "test" {
-  name                = "acctest-%d"
+  name                = "accTest-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
@@ -119,6 +152,63 @@ resource "azurerm_service_fabric_mesh_application" "test" {
         }
       }
     }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMServiceFabricMeshApplication_update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-sfm-%d"
+  location = "%s"
+}
+
+resource "azurerm_service_fabric_mesh_application" "test" {
+  name                = "accTest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  service {
+    name    = "testservice1"
+    os_type = "Linux"
+
+    code_package {
+      name       = "testcodepackage1"
+      image_name = "seabreeze/sbz-helloworld:1.0-alpine"
+
+      resources {
+        requests {
+          memory = 1
+          cpu    = 1
+        }
+      }
+    }
+  }
+
+  service {
+    name    = "testservice2"
+    os_type = "Linux"
+
+    code_package {
+      name       = "testcodepackage2"
+      image_name = "seabreeze/sbz-helloworld:1.0-alpine"
+
+      resources {
+        requests {
+          memory = 2
+          cpu    = 2
+        }
+      }
+    }
+  }
+
+  tags = {
+    Hello = "World"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

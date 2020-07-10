@@ -157,7 +157,7 @@ type Client struct {
 	Sentinel              *sentinel.Client
 	ServiceBus            *serviceBus.Client
 	ServiceFabric         *serviceFabric.Client
-	ServiceFabricMesh  *serviceFabricMesh.Client
+	ServiceFabricMesh     *serviceFabricMesh.Client
 	SignalR               *signalr.Client
 	Storage               *storage.Client
 	StreamAnalytics       *streamAnalytics.Client
