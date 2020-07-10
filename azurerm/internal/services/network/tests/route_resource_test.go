@@ -308,13 +308,22 @@ resource "azurerm_route_table" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
-resource "azurerm_route" "test1" {
+resource "azurerm_route" "test" {
   name                = "acctestroute%d"
+  resource_group_name = azurerm_resource_group.test.name
+  route_table_name    = azurerm_route_table.test.name
+
+  address_prefix = "10.1.0.0/16"
+  next_hop_type  = "vnetlocal"
+}
+
+resource "azurerm_route" "test1" {
+  name                = "acctestroute%d1"
   resource_group_name = azurerm_resource_group.test.name
   route_table_name    = azurerm_route_table.test.name
 
   address_prefix = "10.2.0.0/16"
   next_hop_type  = "none"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
