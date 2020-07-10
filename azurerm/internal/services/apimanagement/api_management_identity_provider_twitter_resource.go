@@ -129,7 +129,6 @@ func resourceArmApiManagementIdentityProviderTwitterRead(d *schema.ResourceData,
 
 	if props := resp.IdentityProviderContractProperties; props != nil {
 		d.Set("api_key", props.ClientID)
-		d.Set("api_secret_key", props.ClientSecret)
 	}
 
 	return nil

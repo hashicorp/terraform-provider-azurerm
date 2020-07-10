@@ -7,7 +7,7 @@ import (
 )
 
 type ManagementGroupId struct {
-	GroupId string
+	Name string
 }
 
 func ManagementGroupID(input string) (*ManagementGroupId, error) {
@@ -31,7 +31,7 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 	}
 
 	id := ManagementGroupId{
-		GroupId: groupID,
+		Name: groupID,
 	}
 
 	return &id, nil

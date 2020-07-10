@@ -38,7 +38,15 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf(azureStackEnvironmentError)
 	}
 
-	env, err := authentication.DetermineEnvironment(builder.AuthConfig.Environment)
+	isAzureStack, err := authentication.IsEnvironmentAzureStack(ctx, builder.AuthConfig.MetadataURL, builder.AuthConfig.Environment)
+	if err != nil {
+		return nil, err
+	}
+	if isAzureStack {
+		return nil, fmt.Errorf(azureStackEnvironmentError)
+	}
+
+	env, err := authentication.AzureEnvironmentByNameFromEndpoint(ctx, builder.AuthConfig.MetadataURL, builder.AuthConfig.Environment)
 	if err != nil {
 		return nil, err
 	}

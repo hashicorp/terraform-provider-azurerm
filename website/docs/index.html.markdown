@@ -95,6 +95,10 @@ The following arguments are supported:
 
 * `tenant_id` - (Optional) The Tenant ID which should be used. This can also be sourced from the `ARM_TENANT_ID` Environment Variable.
 
+* `metadata_url` - (Optional) The Metadata URL which will be used to obtain the Cloud Environment.
+
+~> **Note:** `environment` must be set to the requested environment name in the list of available environments held in the `metadata_url`.
+
 ---
 
 When authenticating as a Service Principal using a Client Certificate, the following fields can be set:

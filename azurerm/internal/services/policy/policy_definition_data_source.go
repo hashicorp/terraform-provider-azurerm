@@ -103,13 +103,13 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	if displayName != "" {
 		policyDefinition, err = getPolicyDefinitionByDisplayName(ctx, client, displayName, managementGroupName)
 		if err != nil {
-			return fmt.Errorf("failed to read Policy Definition (Display Name %q): %+v", displayName, err)
+			return fmt.Errorf("reading Policy Definition (Display Name %q): %+v", displayName, err)
 		}
 	}
 	if name != "" {
 		policyDefinition, err = getPolicyDefinitionByName(ctx, client, name, managementGroupName)
 		if err != nil {
-			return fmt.Errorf("failed to read Policy Definition %q: %+v", name, err)
+			return fmt.Errorf("reading Policy Definition %q: %+v", name, err)
 		}
 	}
 
@@ -124,7 +124,7 @@ func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{})
 	if policyRuleStr := flattenJSON(policyRule); policyRuleStr != "" {
 		d.Set("policy_rule", policyRuleStr)
 	} else {
-		return fmt.Errorf("failed to flatten Policy Definition Rule %q: %+v", name, err)
+		return fmt.Errorf("flattening Policy Definition Rule %q: %+v", name, err)
 	}
 
 	if metadataStr := flattenJSON(policyDefinition.Metadata); metadataStr != "" {

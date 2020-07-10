@@ -112,6 +112,8 @@ The following arguments are supported:
 
 * `metastores` - (Optional) A `metastores` block as defined below.
 
+* `monitor` - (Optional) A `monitor` block as defined below.
+
 ---
 
 A `component_version` block supports the following:
@@ -299,6 +301,13 @@ An `ambari` block supports the following:
 
 * `password` - (Required) The external Ambari metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
 
+---
+
+A `monitor` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
+
+* `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
 
 ## Attributes Reference
 

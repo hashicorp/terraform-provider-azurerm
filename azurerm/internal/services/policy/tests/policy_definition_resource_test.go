@@ -74,7 +74,7 @@ func TestAccAzureRMPolicyDefinitionAtMgmtGroup_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroyInMgmtGroup,
 		Steps: []resource.TestStep{
 			{
-				Config: testAzureRMPolicyDefinition_ManagementGroup(data),
+				Config: testAzureRMPolicyDefinition_managementGroup(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(data.ResourceName),
 				),
@@ -122,7 +122,7 @@ func testCheckAzureRMPolicyDefinitionExistsInMgmtGroup(policyName string) resour
 			return fmt.Errorf("Bad: cannot get the management group from Policy Definition %q", id.Name)
 		}
 
-		if resp, err := client.GetAtManagementGroup(ctx, id.Name, scopeId.ManagementGroupId); err != nil {
+		if resp, err := client.GetAtManagementGroup(ctx, id.Name, scopeId.ManagementGroupName); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Policy Definition %q does not exist", id.Name)
 			}
@@ -152,7 +152,7 @@ func testCheckAzureRMPolicyDefinitionDestroyInMgmtGroup(s *terraform.State) erro
 			return fmt.Errorf("Bad: cannot get the management group from Policy Definition %q", id.Name)
 		}
 
-		if resp, err := client.GetAtManagementGroup(ctx, id.Name, scopeId.ManagementGroupId); err != nil {
+		if resp, err := client.GetAtManagementGroup(ctx, id.Name, scopeId.ManagementGroupName); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Get on Policy.DefinitionsClient: %+v", err)
 			}
@@ -308,7 +308,7 @@ POLICY_RULE
 `, data.RandomInteger)
 }
 
-func testAzureRMPolicyDefinition_ManagementGroup(data acceptance.TestData) string {
+func testAzureRMPolicyDefinition_managementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

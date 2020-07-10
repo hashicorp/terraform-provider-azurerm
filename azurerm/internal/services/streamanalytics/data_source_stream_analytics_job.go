@@ -79,14 +79,13 @@ func dataSourceArmStreamAnalyticsJob() *schema.Resource {
 
 func dataSourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).StreamAnalytics.JobsClient
-	transformationsClient := meta.(*clients.Client).StreamAnalytics.TransformationsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroup, name, "")
+	resp, err := client.Get(ctx, resourceGroup, name, "transformation")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Stream Analytics Job %q was not found in Resource Group %q!", name, resourceGroup)
@@ -95,20 +94,10 @@ func dataSourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error retrieving Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	transformation, err := transformationsClient.Get(ctx, resourceGroup, name, "Transformation")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Transformation for Stream Analytics Job %q was not found in Resource Group %q!", name, resourceGroup)
-		}
-
-		return fmt.Errorf("Error retrieving Transformation for Stream Analytics Job %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-
 	if resp.Location != nil {
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
@@ -125,13 +114,11 @@ func dataSourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{
 		d.Set("events_out_of_order_policy", string(props.EventsOutOfOrderPolicy))
 		d.Set("job_id", props.JobID)
 		d.Set("output_error_policy", string(props.OutputErrorPolicy))
-	}
 
-	if props := transformation.TransformationProperties; props != nil {
-		if units := props.StreamingUnits; units != nil {
-			d.Set("streaming_units", int(*units))
+		if props.Transformation != nil && props.Transformation.TransformationProperties != nil {
+			d.Set("streaming_units", props.Transformation.TransformationProperties.StreamingUnits)
+			d.Set("transformation_query", props.Transformation.TransformationProperties.Query)
 		}
-		d.Set("transformation_query", props.Query)
 	}
 
 	return nil
