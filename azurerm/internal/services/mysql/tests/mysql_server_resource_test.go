@@ -505,19 +505,20 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                         = "acctestmysqlsvr-%[1]d"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
-  sku_name                     = "GP_Gen5_2"
-  administrator_login          = "acctestun"
-  administrator_login_password = "H@Sh1CoR3!updated"
-  auto_grow_enabled            = true
-  backup_retention_days        = 7
-  create_mode                  = "Default"
-  geo_redundant_backup_enabled = false
-  ssl_enforcement_enabled      = true
-  storage_mb                   = 51200
-  version                      = "%[3]s"
+  name                             = "acctestmysqlsvr-%[1]d"
+  location                         = azurerm_resource_group.test.location
+  resource_group_name              = azurerm_resource_group.test.name
+  sku_name                         = "GP_Gen5_2"
+  administrator_login              = "acctestun"
+  administrator_login_password     = "H@Sh1CoR3!updated"
+  auto_grow_enabled                = true
+  backup_retention_days            = 7
+  create_mode                      = "Default"
+  geo_redundant_backup_enabled     = false
+  ssl_enforcement_enabled          = true
+  ssl_minimal_tls_version_enforced = "TLS1_1"
+  storage_mb                       = 51200
+  version                          = "%[3]s"
   threat_detection_policy {
     enabled                    = true
     disabled_alerts            = ["Sql_Injection"]
@@ -655,7 +656,6 @@ resource "azurerm_mysql_server" "replica" {
   create_mode               = "Replica"
   creation_source_server_id = azurerm_mysql_server.test.id
   ssl_enforcement_enabled   = true
-  storage_mb                = 51200
 }
 `, testAccAzureRMMySQLServer_basic(data, version), data.RandomInteger, version)
 }

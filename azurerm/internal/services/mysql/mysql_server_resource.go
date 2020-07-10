@@ -567,6 +567,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 			AdministratorLoginPassword: utils.String(d.Get("administrator_login_password").(string)),
 			PublicNetworkAccess:        publicAccess,
 			SslEnforcement:             ssl,
+			MinimalTLSVersion:          mysql.MinimalTLSVersionEnum(d.Get("ssl_minimal_tls_version_enforced").(string)),
 			StorageProfile:             storageProfile,
 			Version:                    mysql.ServerVersion(d.Get("version").(string)),
 		},
