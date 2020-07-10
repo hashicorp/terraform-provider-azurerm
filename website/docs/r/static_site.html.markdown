@@ -3,12 +3,12 @@ subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_static_site"
 description: |-
-  Manages a Static Web App.
+  Manages an App Service Static Site.
 ---
 
 # azurerm_static_site
 
-Manages a Static Web App.
+Manages an App Service Static Site.
 
 ## Example Usage
 
@@ -17,13 +17,10 @@ resource "azurerm_static_site" "example" {
   name                = "example"
   resource_group_name = "example"
   location            = "West Europe"
-
-  github_configuration {
-    repo_token   = "personal-access-token-github"
-    repo_url     = "https://github.com/example/static-web-app-example"
-    branch       = "master"
-    app_location = "/"
-  }
+  github_repo_url     = "https://github.com/example/static-web-app-example"
+  github_token        = "personal-access-token-github"
+  branch              = "release"
+  app_directory       = "/"
 }
 ```
 
@@ -37,27 +34,20 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Static Web App should exist. Changing this forces a new Static Web App to be created.
 
-* `github_configuration` - (Required) A `github_configuration` block as defined below.
-
----
-
-* `tags` - (Optional) A mapping of tags which should be assigned to the Static Web App.
-
----
-
-A `github_configuration` block supports the following:
-
-* `app_location` - (Required) The path to the Static Web App site code within the repository.
+* `app_directory` - (Required) The path to the Static Web App site code within the repository.
 
 * `branch` - (Required) The target branch in the repository.
 
-* `repo_token` - (Required) A user's github repository token. This is used to setup the Github Actions workflow file and API secrets.
+* `github_token` - (Required) A user's github repository token. This is used to setup the Github Actions workflow file and API secrets.
 
-* `repo_url` - (Required) URL for the repository of the Static Web App site.
+* `github_repo_url` - (Required) URL for the repository of the Static Web App site.
+ 
+* `api_directory` - (Optional) The path to the Function App api code within the repository.
 
-* `api_location` - (Optional) The path to the Function App api code within the repository.
+* `artifact_directory` - (Optional) The path of the Static Web App artifacts after building.
 
-* `artifact_location` - (Optional) The path of the Static Web App artifacts after building.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Static Web App.
+
 
 ## Attributes Reference
 

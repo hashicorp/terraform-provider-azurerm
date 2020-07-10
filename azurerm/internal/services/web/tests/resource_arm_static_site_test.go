@@ -16,7 +16,7 @@ func TestAccAzureRMStaticSite_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_static_site", "test")
 
 	if ok := skipStaticSite(); ok {
-		t.Skip("Skipping as `ARM_TEST_GITHUB_TOKEN` was not specified")
+		t.Skip("Skipping as both `ARM_TEST_GITHUB_TOKEN` and `ARM_TEST_GITHUB_REPO` were not specified")
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,10 +31,10 @@ func TestAccAzureRMStaticSite_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(
-				"github_configuration.0.api_location",
-				"github_configuration.0.app_location",
-				"github_configuration.0.artifact_location",
-				"github_configuration.0.repo_token"),
+				"api_directory",
+				"app_directory",
+				"artifact_directory",
+				"github_token"),
 		},
 	})
 }
@@ -134,18 +134,14 @@ resource "azurerm_static_site" "test" {
   name                = "acctestSS-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  github_configuration {
-    repo_url   = "https://github.com/aristosvo/azure-static-web-app"
-    branch     = "master"
-    repo_token = "%s"
-
-    app_location      = "/"
-    api_location      = ""
-    artifact_location = "dist/angular-basic"
-  }
+  github_repo_url     = "%s"
+  branch              = "master"
+  github_token        = "%s"
+  app_directory       = "/"
+  api_directory       = ""
+  artifact_directory  = "dist/angular-basic"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, os.Getenv("ARM_TEST_GITHUB_TOKEN"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, os.Getenv("ARM_TEST_GITHUB_REPO"), os.Getenv("ARM_TEST_GITHUB_TOKEN"))
 }
 
 func testAccAzureRMStaticSite_requiresImport(data acceptance.TestData) string {
@@ -157,16 +153,12 @@ resource "azurerm_static_site" "import" {
   name                = azurerm_static_site.test.name
   location            = azurerm_static_site.test.location
   resource_group_name = azurerm_static_site.test.resource_group_name
-
-  github_configuration {
-    repo_url   = azurerm_static_site.test.github_configuration.0.repo_url
-    branch     = azurerm_static_site.test.github_configuration.0.branch
-    repo_token = azurerm_static_site.test.github_configuration.0.repo_token
-
-    app_location      = azurerm_static_site.test.github_configuration.0.app_location
-    api_location      = azurerm_static_site.test.github_configuration.0.api_location
-    artifact_location = azurerm_static_site.test.github_configuration.0.artifact_location
-  }
+  github_repo_url     = azurerm_static_site.test.github_repo_url
+  branch              = azurerm_static_site.test.branch
+  github_token        = azurerm_static_site.test.github_token
+  app_directory       = azurerm_static_site.test.app_directory
+  api_directory       = azurerm_static_site.test.api_directory
+  artifact_directory  = azurerm_static_site.test.artifact_directory
 }
 `, template)
 }

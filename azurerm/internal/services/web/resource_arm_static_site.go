@@ -79,24 +79,16 @@ func resourceArmStaticSite() *schema.Resource {
 				Default:  "",
 			},
 
-			"sku": {
-				Type:     schema.TypeList,
+			"sku_tier": {
+				Type:     schema.TypeString,
 				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"tier": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "Free",
-						},
-						"size": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "Free",
-						},
-					},
-				},
+				Default:  "Free",
+			},
+
+			"sku_size": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "Free",
 			},
 
 			"tags": tags.Schema(),
@@ -130,10 +122,10 @@ func resourceArmStaticSiteCreateOrUpdate(d *schema.ResourceData, meta interface{
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	nameSku := d.Get("sku.0.name").(string)
-	tierSku := d.Get("sku.0.tier").(string)
+	skuName := d.Get("sku_size").(string)
+	skuTier := d.Get("sku_tier").(string)
 
-	staticSiteSkuDescription := &web.SkuDescription{Name: &nameSku, Tier: &tierSku}
+	staticSiteSkuDescription := &web.SkuDescription{Name: &skuName, Tier: &skuTier}
 
 	githubRepoURL := d.Get("github_repo_url").(string)
 	branch := d.Get("branch").(string)
@@ -205,9 +197,51 @@ func resourceArmStaticSiteRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	sc := flattenStaticSiteSourceControl(resp.StaticSite, d)
-	if err := d.Set("github_configuration", sc); err != nil {
-		return fmt.Errorf("failed setting `github_configuration`: %s", err)
+	if resp.StaticSite != nil {
+		repoUrl := ""
+		if v := resp.StaticSite.RepositoryURL; v != nil {
+			repoUrl = *v
+		}
+		d.Set("github_repo_url", repoUrl)
+
+		branch := ""
+		if v := resp.StaticSite.Branch; v != nil {
+			branch = *v
+		}
+		d.Set("branch", branch)
+
+		if resp.StaticSite.BuildProperties != nil {
+			appLocation := ""
+			if v := resp.StaticSite.BuildProperties.AppLocation; v != nil {
+				appLocation = *v
+			}
+			d.Set("app_directory", appLocation)
+
+			apiLocation := ""
+			if v := resp.StaticSite.BuildProperties.APILocation; v != nil {
+				apiLocation = *v
+			}
+			d.Set("api_directory", apiLocation)
+
+			appArtifactLocation := ""
+			if v := resp.StaticSite.BuildProperties.AppArtifactLocation; v != nil {
+				appArtifactLocation = *v
+			}
+			d.Set("artifact_directory", appArtifactLocation)
+		}
+	}
+	if resp.Sku != nil {
+		skuName := "Free"
+		if v := resp.Sku.Name; v != nil {
+			skuName = *v
+		}
+		d.Set("sku_size", skuName)
+
+		skuTier := "Free"
+		if v := resp.Sku.Tier; v != nil {
+			skuTier = *v
+		}
+		d.Set("sku_tier", skuTier)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -233,51 +267,4 @@ func resourceArmStaticSiteDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	return nil
-}
-
-func flattenStaticSiteSourceControl(input *web.StaticSite, d *schema.ResourceData) []interface{} {
-	if input == nil {
-		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
-		return []interface{}{}
-	}
-
-	githubRepoURL := ""
-	if input.RepositoryURL != nil {
-		githubRepoURL = *input.RepositoryURL
-	}
-	branch := ""
-	if input.Branch != nil && *input.Branch != "" {
-		branch = *input.Branch
-	}
-
-	githubToken := ""
-	apiDirectory := ""
-	appDirectory := ""
-	artifactDirectory := ""
-	if sc, ok := d.GetOk("github_configuration"); ok {
-		var val []interface{}
-
-		if v, ok := sc.([]interface{}); ok {
-			val = v
-		}
-
-		if len(val) > 0 && val[0] != nil {
-			raw := val[0].(map[string]interface{})
-			githubToken = raw["github_token"].(string)
-			apiDirectory = raw["api_directory"].(string)
-			appDirectory = raw["app_directory"].(string)
-			artifactDirectory = raw["artifact_directory"].(string)
-		}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"github_repo_url":    githubRepoURL,
-			"branch":             branch,
-			"github_token":       githubToken,
-			"api_directory":      apiDirectory,
-			"artifact_directory": artifactDirectory,
-			"app_directory":      appDirectory,
-		},
-	}
 }
