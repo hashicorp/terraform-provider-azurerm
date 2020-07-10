@@ -137,18 +137,18 @@ func testAccAzureRMCosmosDBAccount_updateConsistency(t *testing.T, kind document
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Eventual),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.BoundedStaleness),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 7, 770),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.BoundedStaleness, 7, 770),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 77, 700),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.BoundedStaleness, 77, 700),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 			},
 			data.ImportStep(),
 			{
