@@ -87,7 +87,7 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
 	}
 	if cluster.ClusterProperties == nil {
-		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): `properties` was nil", clusterID.Name, clusterID.ResourceGroup)
+		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): `ClusterProperties` was nil", clusterID.Name, clusterID.ResourceGroup)
 	}
 
 	// since we're mutating the kusto cluster here, we can use that as the ID
@@ -143,8 +143,12 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 		},
 	}
 
-	if _, err = clusterClient.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props); err != nil {
+	future, err := clusterClient.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props)
+	if err != nil {
 		return fmt.Errorf("Error updating Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Kusto Cluster Update %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
 	}
 
 	d.SetId(resourceID)
@@ -174,7 +178,7 @@ func resourceArmKustoClusterCustomerManagedKeyRead(d *schema.ResourceData, meta 
 		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
 	}
 	if cluster.ClusterProperties == nil {
-		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): `properties` was nil", clusterID.Name, clusterID.ResourceGroup)
+		return fmt.Errorf("Error retrieving Kusto Cluster %q (Resource Group %q): `ClusterProperties` was nil", clusterID.Name, clusterID.ResourceGroup)
 	}
 	if cluster.ClusterProperties.KeyVaultProperties == nil {
 		log.Printf("[DEBUG] Customer Managed Key was not defined for Kusto Cluster %q (Resource Group %q) - removing from state!", clusterID.Name, clusterID.ResourceGroup)
@@ -250,8 +254,12 @@ func resourceArmKustoClusterCustomerManagedKeyDelete(d *schema.ResourceData, met
 		},
 	}
 
-	if _, err = client.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props); err != nil {
+	future, err := client.Update(ctx, clusterID.ResourceGroup, clusterID.Name, props)
+	if err != nil {
 		return fmt.Errorf("Error removing Customer Managed Key for Kusto Cluster %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Kusto Cluster Update %q (Resource Group %q): %+v", clusterID.Name, clusterID.ResourceGroup, err)
 	}
 
 	return nil
