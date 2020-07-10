@@ -115,7 +115,6 @@ func (client ProtectionContainersGroupClient) ListSender(req *http.Request) (*ht
 func (client ProtectionContainersGroupClient) ListResponder(resp *http.Response) (result ProtectionContainerResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

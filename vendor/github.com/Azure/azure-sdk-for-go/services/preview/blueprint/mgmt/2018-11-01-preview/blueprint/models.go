@@ -30,21 +30,36 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
 
+// AssignmentDeleteBehavior enumerates the values for assignment delete behavior.
+type AssignmentDeleteBehavior string
+
+const (
+	// All ...
+	All AssignmentDeleteBehavior = "all"
+	// None ...
+	None AssignmentDeleteBehavior = "none"
+)
+
+// PossibleAssignmentDeleteBehaviorValues returns an array of possible values for the AssignmentDeleteBehavior const type.
+func PossibleAssignmentDeleteBehaviorValues() []AssignmentDeleteBehavior {
+	return []AssignmentDeleteBehavior{All, None}
+}
+
 // AssignmentLockMode enumerates the values for assignment lock mode.
 type AssignmentLockMode string
 
 const (
-	// AllResourcesDoNotDelete ...
-	AllResourcesDoNotDelete AssignmentLockMode = "AllResourcesDoNotDelete"
-	// AllResourcesReadOnly ...
-	AllResourcesReadOnly AssignmentLockMode = "AllResourcesReadOnly"
-	// None ...
-	None AssignmentLockMode = "None"
+	// AssignmentLockModeAllResourcesDoNotDelete ...
+	AssignmentLockModeAllResourcesDoNotDelete AssignmentLockMode = "AllResourcesDoNotDelete"
+	// AssignmentLockModeAllResourcesReadOnly ...
+	AssignmentLockModeAllResourcesReadOnly AssignmentLockMode = "AllResourcesReadOnly"
+	// AssignmentLockModeNone ...
+	AssignmentLockModeNone AssignmentLockMode = "None"
 )
 
 // PossibleAssignmentLockModeValues returns an array of possible values for the AssignmentLockMode const type.
 func PossibleAssignmentLockModeValues() []AssignmentLockMode {
-	return []AssignmentLockMode{AllResourcesDoNotDelete, AllResourcesReadOnly, None}
+	return []AssignmentLockMode{AssignmentLockModeAllResourcesDoNotDelete, AssignmentLockModeAllResourcesReadOnly, AssignmentLockModeNone}
 }
 
 // AssignmentProvisioningState enumerates the values for assignment provisioning state.
@@ -753,7 +768,7 @@ func NewAssignmentListPage(getNextPage func(context.Context, AssignmentList) (As
 
 // AssignmentLockSettings defines how resources deployed by a blueprint assignment are locked.
 type AssignmentLockSettings struct {
-	// Mode - Lock mode. Possible values include: 'None', 'AllResourcesReadOnly', 'AllResourcesDoNotDelete'
+	// Mode - Lock mode. Possible values include: 'AssignmentLockModeNone', 'AssignmentLockModeAllResourcesReadOnly', 'AssignmentLockModeAllResourcesDoNotDelete'
 	Mode AssignmentLockMode `json:"mode,omitempty"`
 	// ExcludedPrincipals - List of AAD principals excluded from blueprint locks. Up to 5 principals are permitted.
 	ExcludedPrincipals *[]string `json:"excludedPrincipals,omitempty"`

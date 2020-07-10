@@ -109,7 +109,6 @@ func (client AvailablePrivateEndpointTypesClient) ListSender(req *http.Request) 
 func (client AvailablePrivateEndpointTypesClient) ListResponder(resp *http.Response) (result AvailablePrivateEndpointTypesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -224,7 +223,6 @@ func (client AvailablePrivateEndpointTypesClient) ListByResourceGroupSender(req 
 func (client AvailablePrivateEndpointTypesClient) ListByResourceGroupResponder(resp *http.Response) (result AvailablePrivateEndpointTypesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -132,7 +132,6 @@ func (client BaseClient) CheckDomainAvailabilitySender(req *http.Request) (*http
 func (client BaseClient) CheckDomainAvailabilityResponder(resp *http.Response) (result CheckDomainAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -219,7 +218,6 @@ func (client BaseClient) CheckSkuAvailabilitySender(req *http.Request) (*http.Re
 func (client BaseClient) CheckSkuAvailabilityResponder(resp *http.Response) (result CheckSkuAvailabilityResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

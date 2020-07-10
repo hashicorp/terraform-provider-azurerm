@@ -155,7 +155,6 @@ func (client PolicyEventsClient) ListQueryResultsForManagementGroupSender(req *h
 func (client PolicyEventsClient) ListQueryResultsForManagementGroupResponder(resp *http.Response) (result PolicyEventsQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -314,7 +313,6 @@ func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionSender(req *
 func (client PolicyEventsClient) ListQueryResultsForPolicyDefinitionResponder(resp *http.Response) (result PolicyEventsQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -473,7 +471,6 @@ func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionSender(re
 func (client PolicyEventsClient) ListQueryResultsForPolicySetDefinitionResponder(resp *http.Response) (result PolicyEventsQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -633,7 +630,6 @@ func (client PolicyEventsClient) ListQueryResultsForResourceSender(req *http.Req
 func (client PolicyEventsClient) ListQueryResultsForResourceResponder(resp *http.Response) (result PolicyEventsQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -791,7 +787,6 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupSender(req *htt
 func (client PolicyEventsClient) ListQueryResultsForResourceGroupResponder(resp *http.Response) (result PolicyEventsQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -953,7 +948,6 @@ func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssi
 func (client PolicyEventsClient) ListQueryResultsForResourceGroupLevelPolicyAssignmentResponder(resp *http.Response) (result PolicyEventsQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1109,7 +1103,6 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionSender(req *http
 func (client PolicyEventsClient) ListQueryResultsForSubscriptionResponder(resp *http.Response) (result PolicyEventsQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1269,7 +1262,6 @@ func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssig
 func (client PolicyEventsClient) ListQueryResultsForSubscriptionLevelPolicyAssignmentResponder(resp *http.Response) (result PolicyEventsQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

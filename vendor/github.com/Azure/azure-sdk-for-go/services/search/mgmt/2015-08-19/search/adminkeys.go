@@ -118,7 +118,6 @@ func (client AdminKeysClient) GetSender(req *http.Request) (*http.Response, erro
 func (client AdminKeysClient) GetResponder(resp *http.Response) (result AdminKeyResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client AdminKeysClient) RegenerateSender(req *http.Request) (*http.Respons
 func (client AdminKeysClient) RegenerateResponder(resp *http.Response) (result AdminKeyResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

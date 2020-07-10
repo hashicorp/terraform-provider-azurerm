@@ -124,7 +124,6 @@ func (client IssueClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client IssueClient) GetResponder(resp *http.Response) (result IssueContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -233,7 +232,6 @@ func (client IssueClient) ListByServiceSender(req *http.Request) (*http.Response
 func (client IssueClient) ListByServiceResponder(resp *http.Response) (result IssueCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

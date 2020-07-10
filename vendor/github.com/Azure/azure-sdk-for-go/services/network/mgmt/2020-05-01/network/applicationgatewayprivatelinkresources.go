@@ -112,7 +112,6 @@ func (client ApplicationGatewayPrivateLinkResourcesClient) ListSender(req *http.
 func (client ApplicationGatewayPrivateLinkResourcesClient) ListResponder(resp *http.Response) (result ApplicationGatewayPrivateLinkResourceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

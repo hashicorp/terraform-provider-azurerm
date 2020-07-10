@@ -126,7 +126,6 @@ func (client DedicatedHostGroupsClient) CreateOrUpdateSender(req *http.Request) 
 func (client DedicatedHostGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result DedicatedHostGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client DedicatedHostGroupsClient) DeleteSender(req *http.Request) (*http.R
 func (client DedicatedHostGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -277,7 +275,6 @@ func (client DedicatedHostGroupsClient) GetSender(req *http.Request) (*http.Resp
 func (client DedicatedHostGroupsClient) GetResponder(resp *http.Response) (result DedicatedHostGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -353,7 +350,6 @@ func (client DedicatedHostGroupsClient) ListByResourceGroupSender(req *http.Requ
 func (client DedicatedHostGroupsClient) ListByResourceGroupResponder(resp *http.Response) (result DedicatedHostGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -463,7 +459,6 @@ func (client DedicatedHostGroupsClient) ListBySubscriptionSender(req *http.Reque
 func (client DedicatedHostGroupsClient) ListBySubscriptionResponder(resp *http.Response) (result DedicatedHostGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -579,7 +574,6 @@ func (client DedicatedHostGroupsClient) UpdateSender(req *http.Request) (*http.R
 func (client DedicatedHostGroupsClient) UpdateResponder(resp *http.Response) (result DedicatedHostGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

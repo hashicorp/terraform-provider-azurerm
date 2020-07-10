@@ -114,7 +114,6 @@ func (client TasksClient) CancelSender(req *http.Request) (*http.Response, error
 func (client TasksClient) CancelResponder(resp *http.Response) (result ProjectTask, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,7 +198,6 @@ func (client TasksClient) CreateOrUpdateSender(req *http.Request) (*http.Respons
 func (client TasksClient) CreateOrUpdateResponder(resp *http.Response) (result ProjectTask, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -284,7 +282,6 @@ func (client TasksClient) DeleteSender(req *http.Request) (*http.Response, error
 func (client TasksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -368,7 +365,6 @@ func (client TasksClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client TasksClient) GetResponder(resp *http.Response) (result ProjectTask, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -453,7 +449,6 @@ func (client TasksClient) ListSender(req *http.Request) (*http.Response, error) 
 func (client TasksClient) ListResponder(resp *http.Response) (result TaskList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -574,7 +569,6 @@ func (client TasksClient) UpdateSender(req *http.Request) (*http.Response, error
 func (client TasksClient) UpdateResponder(resp *http.Response) (result ProjectTask, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

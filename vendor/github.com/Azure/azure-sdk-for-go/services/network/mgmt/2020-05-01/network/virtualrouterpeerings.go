@@ -129,7 +129,6 @@ func (client VirtualRouterPeeringsClient) CreateOrUpdateSender(req *http.Request
 func (client VirtualRouterPeeringsClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualRouterPeering, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client VirtualRouterPeeringsClient) DeleteSender(req *http.Request) (futur
 func (client VirtualRouterPeeringsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -284,7 +282,6 @@ func (client VirtualRouterPeeringsClient) GetSender(req *http.Request) (*http.Re
 func (client VirtualRouterPeeringsClient) GetResponder(resp *http.Response) (result VirtualRouterPeering, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,7 +358,6 @@ func (client VirtualRouterPeeringsClient) ListSender(req *http.Request) (*http.R
 func (client VirtualRouterPeeringsClient) ListResponder(resp *http.Response) (result VirtualRouterPeeringListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -153,6 +153,36 @@ func PossibleOSTypeValues() []OSType {
 	return []OSType{Linux, Windows}
 }
 
+// OutboundOnlyPublicNetworkAccessType enumerates the values for outbound only public network access type.
+type OutboundOnlyPublicNetworkAccessType string
+
+const (
+	// PublicLoadBalancer ...
+	PublicLoadBalancer OutboundOnlyPublicNetworkAccessType = "PublicLoadBalancer"
+	// UDR ...
+	UDR OutboundOnlyPublicNetworkAccessType = "UDR"
+)
+
+// PossibleOutboundOnlyPublicNetworkAccessTypeValues returns an array of possible values for the OutboundOnlyPublicNetworkAccessType const type.
+func PossibleOutboundOnlyPublicNetworkAccessTypeValues() []OutboundOnlyPublicNetworkAccessType {
+	return []OutboundOnlyPublicNetworkAccessType{PublicLoadBalancer, UDR}
+}
+
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// InboundAndOutbound ...
+	InboundAndOutbound PublicNetworkAccess = "InboundAndOutbound"
+	// OutboundOnly ...
+	OutboundOnly PublicNetworkAccess = "OutboundOnly"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{InboundAndOutbound, OutboundOnly}
+}
+
 // ResourceIdentityType enumerates the values for resource identity type.
 type ResourceIdentityType string
 
@@ -704,6 +734,8 @@ type ClusterCreateProperties struct {
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
+	// NetworkSettings - The network settings.
+	NetworkSettings *NetworkSettings `json:"networkSettings,omitempty"`
 }
 
 // ClusterDefinition the cluster definition.
@@ -778,6 +810,8 @@ type ClusterGetProperties struct {
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
+	// NetworkSettings - The network settings.
+	NetworkSettings *NetworkSettings `json:"networkSettings,omitempty"`
 }
 
 // ClusterIdentity identity for the cluster.
@@ -1407,6 +1441,14 @@ type LocalizedName struct {
 	Value *string `json:"value,omitempty"`
 	// LocalizedValue - The localized name of the used resource.
 	LocalizedValue *string `json:"localizedValue,omitempty"`
+}
+
+// NetworkSettings the network settings.
+type NetworkSettings struct {
+	// PublicNetworkAccess - Specifies whether public network access is enabled for inbound and outbound, or outbound only. Possible values include: 'InboundAndOutbound', 'OutboundOnly'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// OutboundOnlyPublicNetworkAccessType - The mechanism through which the cluster will have outbound access to the public network. Possible values include: 'PublicLoadBalancer', 'UDR'
+	OutboundOnlyPublicNetworkAccessType OutboundOnlyPublicNetworkAccessType `json:"outboundOnlyPublicNetworkAccessType,omitempty"`
 }
 
 // Operation the HDInsight REST API operation.

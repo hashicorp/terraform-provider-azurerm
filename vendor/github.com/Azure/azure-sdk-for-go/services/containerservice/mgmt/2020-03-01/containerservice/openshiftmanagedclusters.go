@@ -127,7 +127,6 @@ func (client OpenShiftManagedClustersClient) CreateOrUpdateSender(req *http.Requ
 func (client OpenShiftManagedClustersClient) CreateOrUpdateResponder(resp *http.Response) (result OpenShiftManagedCluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -209,7 +208,6 @@ func (client OpenShiftManagedClustersClient) DeleteSender(req *http.Request) (fu
 func (client OpenShiftManagedClustersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -290,7 +288,6 @@ func (client OpenShiftManagedClustersClient) GetSender(req *http.Request) (*http
 func (client OpenShiftManagedClustersClient) GetResponder(resp *http.Response) (result OpenShiftManagedCluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -363,7 +360,6 @@ func (client OpenShiftManagedClustersClient) ListSender(req *http.Request) (*htt
 func (client OpenShiftManagedClustersClient) ListResponder(resp *http.Response) (result OpenShiftManagedClusterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -482,7 +478,6 @@ func (client OpenShiftManagedClustersClient) ListByResourceGroupSender(req *http
 func (client OpenShiftManagedClustersClient) ListByResourceGroupResponder(resp *http.Response) (result OpenShiftManagedClusterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -604,7 +599,6 @@ func (client OpenShiftManagedClustersClient) UpdateTagsSender(req *http.Request)
 func (client OpenShiftManagedClustersClient) UpdateTagsResponder(resp *http.Response) (result OpenShiftManagedCluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

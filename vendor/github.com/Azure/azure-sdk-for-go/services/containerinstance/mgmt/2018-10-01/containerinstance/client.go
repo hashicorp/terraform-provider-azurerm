@@ -121,7 +121,6 @@ func (client BaseClient) ListCachedImagesSender(req *http.Request) (*http.Respon
 func (client BaseClient) ListCachedImagesResponder(resp *http.Response) (result CachedImagesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,7 +194,6 @@ func (client BaseClient) ListCapabilitiesSender(req *http.Request) (*http.Respon
 func (client BaseClient) ListCapabilitiesResponder(resp *http.Response) (result CapabilitiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

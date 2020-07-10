@@ -119,7 +119,6 @@ func (client BaseClient) ListSkusSender(req *http.Request) (*http.Response, erro
 func (client BaseClient) ListSkusResponder(resp *http.Response) (result SkuListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

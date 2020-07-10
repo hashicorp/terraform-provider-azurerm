@@ -113,7 +113,6 @@ func (client PartnerRegistrationsClient) CreateOrUpdateSender(req *http.Request)
 func (client PartnerRegistrationsClient) CreateOrUpdateResponder(resp *http.Response) (result PartnerRegistration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client PartnerRegistrationsClient) DeleteSender(req *http.Request) (*http.
 func (client PartnerRegistrationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -264,7 +262,6 @@ func (client PartnerRegistrationsClient) GetSender(req *http.Request) (*http.Res
 func (client PartnerRegistrationsClient) GetResponder(resp *http.Response) (result PartnerRegistration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -331,7 +328,6 @@ func (client PartnerRegistrationsClient) ListSender(req *http.Request) (*http.Re
 func (client PartnerRegistrationsClient) ListResponder(resp *http.Response) (result PartnerRegistrationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -420,7 +416,6 @@ func (client PartnerRegistrationsClient) ListByResourceGroupSender(req *http.Req
 func (client PartnerRegistrationsClient) ListByResourceGroupResponder(resp *http.Response) (result PartnerRegistrationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -544,7 +539,6 @@ func (client PartnerRegistrationsClient) ListBySubscriptionSender(req *http.Requ
 func (client PartnerRegistrationsClient) ListBySubscriptionResponder(resp *http.Response) (result PartnerRegistrationsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -660,7 +654,6 @@ func (client PartnerRegistrationsClient) UpdateSender(req *http.Request) (*http.
 func (client PartnerRegistrationsClient) UpdateResponder(resp *http.Response) (result PartnerRegistration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
