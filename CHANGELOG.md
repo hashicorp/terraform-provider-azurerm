@@ -1,8 +1,14 @@
 ## 2.19.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating to v44.0.0 of `github.com/Azure/azure-sdk-for-go` [GH-7616]
+
 BUG FIXES:
 
-* `azurerm_eventhub_namespace` - changes to `zone_redundant` now force a new resource [GH-7612]
+* `azurerm_eventhub_namespace` - changing to `zone_redundant` now force a new resource [GH-7612]
+* `azurerm_managed_disk` - allow up to `65536` GB for the `disk_size_gb` property [GH-7689]
+* `azurerm_machine_learning_workspace`: correctly wait on future during deletion [GH-7635]
 
 ENHANCEMENTS:
 

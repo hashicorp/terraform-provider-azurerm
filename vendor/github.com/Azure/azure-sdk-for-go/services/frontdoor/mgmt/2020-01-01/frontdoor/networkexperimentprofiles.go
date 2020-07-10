@@ -124,7 +124,6 @@ func (client NetworkExperimentProfilesClient) CreateOrUpdateSender(req *http.Req
 func (client NetworkExperimentProfilesClient) CreateOrUpdateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -210,7 +209,6 @@ func (client NetworkExperimentProfilesClient) DeleteSender(req *http.Request) (f
 func (client NetworkExperimentProfilesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -295,7 +293,6 @@ func (client NetworkExperimentProfilesClient) GetSender(req *http.Request) (*htt
 func (client NetworkExperimentProfilesClient) GetResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -367,7 +364,6 @@ func (client NetworkExperimentProfilesClient) ListSender(req *http.Request) (*ht
 func (client NetworkExperimentProfilesClient) ListResponder(resp *http.Response) (result ProfileList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -487,7 +483,6 @@ func (client NetworkExperimentProfilesClient) ListByResourceGroupSender(req *htt
 func (client NetworkExperimentProfilesClient) ListByResourceGroupResponder(resp *http.Response) (result ProfileList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -613,7 +608,6 @@ func (client NetworkExperimentProfilesClient) UpdateSender(req *http.Request) (f
 func (client NetworkExperimentProfilesClient) UpdateResponder(resp *http.Response) (result Profile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

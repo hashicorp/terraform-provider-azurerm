@@ -116,7 +116,6 @@ func (client HubRouteTablesClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client HubRouteTablesClient) CreateOrUpdateResponder(resp *http.Response) (result HubRouteTable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,7 +193,6 @@ func (client HubRouteTablesClient) DeleteSender(req *http.Request) (future HubRo
 func (client HubRouteTablesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -271,7 +269,6 @@ func (client HubRouteTablesClient) GetSender(req *http.Request) (*http.Response,
 func (client HubRouteTablesClient) GetResponder(resp *http.Response) (result HubRouteTable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -348,7 +345,6 @@ func (client HubRouteTablesClient) ListSender(req *http.Request) (*http.Response
 func (client HubRouteTablesClient) ListResponder(resp *http.Response) (result ListHubRouteTablesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

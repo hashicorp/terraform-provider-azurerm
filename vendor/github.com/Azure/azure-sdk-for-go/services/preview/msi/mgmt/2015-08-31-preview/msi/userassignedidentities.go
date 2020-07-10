@@ -114,7 +114,6 @@ func (client UserAssignedIdentitiesClient) CreateOrUpdateSender(req *http.Reques
 func (client UserAssignedIdentitiesClient) CreateOrUpdateResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -190,7 +189,6 @@ func (client UserAssignedIdentitiesClient) DeleteSender(req *http.Request) (*htt
 func (client UserAssignedIdentitiesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -265,7 +263,6 @@ func (client UserAssignedIdentitiesClient) GetSender(req *http.Request) (*http.R
 func (client UserAssignedIdentitiesClient) GetResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -340,7 +337,6 @@ func (client UserAssignedIdentitiesClient) ListByResourceGroupSender(req *http.R
 func (client UserAssignedIdentitiesClient) ListByResourceGroupResponder(resp *http.Response) (result UserAssignedIdentitiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -449,7 +445,6 @@ func (client UserAssignedIdentitiesClient) ListBySubscriptionSender(req *http.Re
 func (client UserAssignedIdentitiesClient) ListBySubscriptionResponder(resp *http.Response) (result UserAssignedIdentitiesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -566,7 +561,6 @@ func (client UserAssignedIdentitiesClient) UpdateSender(req *http.Request) (*htt
 func (client UserAssignedIdentitiesClient) UpdateResponder(resp *http.Response) (result Identity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

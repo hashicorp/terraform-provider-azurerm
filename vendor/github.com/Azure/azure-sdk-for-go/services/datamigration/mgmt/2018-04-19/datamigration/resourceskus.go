@@ -105,7 +105,6 @@ func (client ResourceSkusClient) ListSkusSender(req *http.Request) (*http.Respon
 func (client ResourceSkusClient) ListSkusResponder(resp *http.Response) (result ResourceSkusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -109,7 +109,6 @@ func (client SecurityPINsClient) GetSender(req *http.Request) (*http.Response, e
 func (client SecurityPINsClient) GetResponder(resp *http.Response) (result TokenInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

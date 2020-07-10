@@ -117,7 +117,6 @@ func (client ServiceEndpointPolicyDefinitionsClient) CreateOrUpdateSender(req *h
 func (client ServiceEndpointPolicyDefinitionsClient) CreateOrUpdateResponder(resp *http.Response) (result ServiceEndpointPolicyDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,7 +194,6 @@ func (client ServiceEndpointPolicyDefinitionsClient) DeleteSender(req *http.Requ
 func (client ServiceEndpointPolicyDefinitionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,7 +270,6 @@ func (client ServiceEndpointPolicyDefinitionsClient) GetSender(req *http.Request
 func (client ServiceEndpointPolicyDefinitionsClient) GetResponder(resp *http.Response) (result ServiceEndpointPolicyDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -349,7 +346,6 @@ func (client ServiceEndpointPolicyDefinitionsClient) ListByResourceGroupSender(r
 func (client ServiceEndpointPolicyDefinitionsClient) ListByResourceGroupResponder(resp *http.Response) (result ServiceEndpointPolicyDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

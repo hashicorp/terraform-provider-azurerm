@@ -130,7 +130,6 @@ func (client FirewallPolicyRuleCollectionGroupsClient) CreateOrUpdateSender(req 
 func (client FirewallPolicyRuleCollectionGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result FirewallPolicyRuleCollectionGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client FirewallPolicyRuleCollectionGroupsClient) DeleteSender(req *http.Re
 func (client FirewallPolicyRuleCollectionGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -285,7 +283,6 @@ func (client FirewallPolicyRuleCollectionGroupsClient) GetSender(req *http.Reque
 func (client FirewallPolicyRuleCollectionGroupsClient) GetResponder(resp *http.Response) (result FirewallPolicyRuleCollectionGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -362,7 +359,6 @@ func (client FirewallPolicyRuleCollectionGroupsClient) ListSender(req *http.Requ
 func (client FirewallPolicyRuleCollectionGroupsClient) ListResponder(resp *http.Response) (result FirewallPolicyRuleCollectionGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

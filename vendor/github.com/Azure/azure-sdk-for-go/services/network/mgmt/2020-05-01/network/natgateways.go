@@ -113,7 +113,6 @@ func (client NatGatewaysClient) CreateOrUpdateSender(req *http.Request) (future 
 func (client NatGatewaysClient) CreateOrUpdateResponder(resp *http.Response) (result NatGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client NatGatewaysClient) DeleteSender(req *http.Request) (future NatGatew
 func (client NatGatewaysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -268,7 +266,6 @@ func (client NatGatewaysClient) GetSender(req *http.Request) (*http.Response, er
 func (client NatGatewaysClient) GetResponder(resp *http.Response) (result NatGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -343,7 +340,6 @@ func (client NatGatewaysClient) ListSender(req *http.Request) (*http.Response, e
 func (client NatGatewaysClient) ListResponder(resp *http.Response) (result NatGatewayListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -452,7 +448,6 @@ func (client NatGatewaysClient) ListAllSender(req *http.Request) (*http.Response
 func (client NatGatewaysClient) ListAllResponder(resp *http.Response) (result NatGatewayListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -568,7 +563,6 @@ func (client NatGatewaysClient) UpdateTagsSender(req *http.Request) (*http.Respo
 func (client NatGatewaysClient) UpdateTagsResponder(resp *http.Response) (result NatGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

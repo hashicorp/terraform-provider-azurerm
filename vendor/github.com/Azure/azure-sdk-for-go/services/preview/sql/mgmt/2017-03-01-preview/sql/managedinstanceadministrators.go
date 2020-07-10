@@ -128,7 +128,6 @@ func (client ManagedInstanceAdministratorsClient) CreateOrUpdateSender(req *http
 func (client ManagedInstanceAdministratorsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedInstanceAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -206,7 +205,6 @@ func (client ManagedInstanceAdministratorsClient) DeleteSender(req *http.Request
 func (client ManagedInstanceAdministratorsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -283,7 +281,6 @@ func (client ManagedInstanceAdministratorsClient) GetSender(req *http.Request) (
 func (client ManagedInstanceAdministratorsClient) GetResponder(resp *http.Response) (result ManagedInstanceAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,7 +358,6 @@ func (client ManagedInstanceAdministratorsClient) ListByInstanceSender(req *http
 func (client ManagedInstanceAdministratorsClient) ListByInstanceResponder(resp *http.Response) (result ManagedInstanceAdministratorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

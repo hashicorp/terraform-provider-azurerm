@@ -116,7 +116,6 @@ func (client DataSetsClient) CreateSender(req *http.Request) (*http.Response, er
 func (client DataSetsClient) CreateResponder(resp *http.Response) (result DataSetModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client DataSetsClient) DeleteSender(req *http.Request) (future DataSetsDel
 func (client DataSetsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -275,7 +273,6 @@ func (client DataSetsClient) GetSender(req *http.Request) (*http.Response, error
 func (client DataSetsClient) GetResponder(resp *http.Response) (result DataSetModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -358,7 +355,6 @@ func (client DataSetsClient) ListByShareSender(req *http.Request) (*http.Respons
 func (client DataSetsClient) ListByShareResponder(resp *http.Response) (result DataSetList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

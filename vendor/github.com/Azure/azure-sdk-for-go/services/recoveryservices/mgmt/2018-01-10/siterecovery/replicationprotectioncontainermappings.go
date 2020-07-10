@@ -119,7 +119,6 @@ func (client ReplicationProtectionContainerMappingsClient) CreateSender(req *htt
 func (client ReplicationProtectionContainerMappingsClient) CreateResponder(resp *http.Response) (result ProtectionContainerMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client ReplicationProtectionContainerMappingsClient) DeleteSender(req *htt
 func (client ReplicationProtectionContainerMappingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -281,7 +279,6 @@ func (client ReplicationProtectionContainerMappingsClient) GetSender(req *http.R
 func (client ReplicationProtectionContainerMappingsClient) GetResponder(resp *http.Response) (result ProtectionContainerMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -355,7 +352,6 @@ func (client ReplicationProtectionContainerMappingsClient) ListSender(req *http.
 func (client ReplicationProtectionContainerMappingsClient) ListResponder(resp *http.Response) (result ProtectionContainerMappingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -471,7 +467,6 @@ func (client ReplicationProtectionContainerMappingsClient) ListByReplicationProt
 func (client ReplicationProtectionContainerMappingsClient) ListByReplicationProtectionContainersResponder(resp *http.Response) (result ProtectionContainerMappingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -588,7 +583,6 @@ func (client ReplicationProtectionContainerMappingsClient) PurgeSender(req *http
 func (client ReplicationProtectionContainerMappingsClient) PurgeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -670,7 +664,6 @@ func (client ReplicationProtectionContainerMappingsClient) UpdateSender(req *htt
 func (client ReplicationProtectionContainerMappingsClient) UpdateResponder(resp *http.Response) (result ProtectionContainerMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

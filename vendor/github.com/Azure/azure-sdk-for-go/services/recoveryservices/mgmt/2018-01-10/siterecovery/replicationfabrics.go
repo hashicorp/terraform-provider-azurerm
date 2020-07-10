@@ -110,7 +110,6 @@ func (client ReplicationFabricsClient) CheckConsistencySender(req *http.Request)
 func (client ReplicationFabricsClient) CheckConsistencyResponder(resp *http.Response) (result Fabric, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client ReplicationFabricsClient) CreateSender(req *http.Request) (future R
 func (client ReplicationFabricsClient) CreateResponder(resp *http.Response) (result Fabric, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -265,7 +263,6 @@ func (client ReplicationFabricsClient) DeleteSender(req *http.Request) (future R
 func (client ReplicationFabricsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -340,7 +337,6 @@ func (client ReplicationFabricsClient) GetSender(req *http.Request) (*http.Respo
 func (client ReplicationFabricsClient) GetResponder(resp *http.Response) (result Fabric, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -414,7 +410,6 @@ func (client ReplicationFabricsClient) ListSender(req *http.Request) (*http.Resp
 func (client ReplicationFabricsClient) ListResponder(resp *http.Response) (result FabricCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -527,7 +522,6 @@ func (client ReplicationFabricsClient) MigrateToAadSender(req *http.Request) (fu
 func (client ReplicationFabricsClient) MigrateToAadResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -602,7 +596,6 @@ func (client ReplicationFabricsClient) PurgeSender(req *http.Request) (future Re
 func (client ReplicationFabricsClient) PurgeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -680,7 +673,6 @@ func (client ReplicationFabricsClient) ReassociateGatewaySender(req *http.Reques
 func (client ReplicationFabricsClient) ReassociateGatewayResponder(resp *http.Response) (result Fabric, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -759,7 +751,6 @@ func (client ReplicationFabricsClient) RenewCertificateSender(req *http.Request)
 func (client ReplicationFabricsClient) RenewCertificateResponder(resp *http.Response) (result Fabric, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

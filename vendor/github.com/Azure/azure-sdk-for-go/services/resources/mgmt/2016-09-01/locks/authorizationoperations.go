@@ -103,7 +103,6 @@ func (client AuthorizationOperationsClient) ListSender(req *http.Request) (*http
 func (client AuthorizationOperationsClient) ListResponder(resp *http.Response) (result OperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

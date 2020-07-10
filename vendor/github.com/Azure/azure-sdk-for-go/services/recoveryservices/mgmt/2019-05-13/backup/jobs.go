@@ -118,7 +118,6 @@ func (client JobsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client JobsClient) ListResponder(resp *http.Response) (result JobResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

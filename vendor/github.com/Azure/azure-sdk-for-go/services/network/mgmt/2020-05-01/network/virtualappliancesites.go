@@ -117,7 +117,6 @@ func (client VirtualApplianceSitesClient) CreateOrUpdateSender(req *http.Request
 func (client VirtualApplianceSitesClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualApplianceSite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,7 +194,6 @@ func (client VirtualApplianceSitesClient) DeleteSender(req *http.Request) (futur
 func (client VirtualApplianceSitesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,7 +270,6 @@ func (client VirtualApplianceSitesClient) GetSender(req *http.Request) (*http.Re
 func (client VirtualApplianceSitesClient) GetResponder(resp *http.Response) (result VirtualApplianceSite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -349,7 +346,6 @@ func (client VirtualApplianceSitesClient) ListSender(req *http.Request) (*http.R
 func (client VirtualApplianceSitesClient) ListResponder(resp *http.Response) (result VirtualApplianceSiteListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

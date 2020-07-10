@@ -134,7 +134,6 @@ func (client CollectionPartitionRegionClient) ListMetricsSender(req *http.Reques
 func (client CollectionPartitionRegionClient) ListMetricsResponder(resp *http.Response) (result PartitionMetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

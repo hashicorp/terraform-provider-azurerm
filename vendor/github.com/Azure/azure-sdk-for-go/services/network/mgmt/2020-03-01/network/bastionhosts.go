@@ -113,7 +113,6 @@ func (client BastionHostsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client BastionHostsClient) CreateOrUpdateResponder(resp *http.Response) (result BastionHost, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client BastionHostsClient) DeleteSender(req *http.Request) (future Bastion
 func (client BastionHostsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -264,7 +262,6 @@ func (client BastionHostsClient) GetSender(req *http.Request) (*http.Response, e
 func (client BastionHostsClient) GetResponder(resp *http.Response) (result BastionHost, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -336,7 +333,6 @@ func (client BastionHostsClient) ListSender(req *http.Request) (*http.Response, 
 func (client BastionHostsClient) ListResponder(resp *http.Response) (result BastionHostListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -448,7 +444,6 @@ func (client BastionHostsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client BastionHostsClient) ListByResourceGroupResponder(resp *http.Response) (result BastionHostListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

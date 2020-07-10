@@ -127,7 +127,6 @@ func (client JobAgentsClient) CreateOrUpdateSender(req *http.Request) (future Jo
 func (client JobAgentsClient) CreateOrUpdateResponder(resp *http.Response) (result JobAgent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -206,7 +205,6 @@ func (client JobAgentsClient) DeleteSender(req *http.Request) (future JobAgentsD
 func (client JobAgentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -284,7 +282,6 @@ func (client JobAgentsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client JobAgentsClient) GetResponder(resp *http.Response) (result JobAgent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -362,7 +359,6 @@ func (client JobAgentsClient) ListByServerSender(req *http.Request) (*http.Respo
 func (client JobAgentsClient) ListByServerResponder(resp *http.Response) (result JobAgentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -481,7 +477,6 @@ func (client JobAgentsClient) UpdateSender(req *http.Request) (future JobAgentsU
 func (client JobAgentsClient) UpdateResponder(resp *http.Response) (result JobAgent, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
