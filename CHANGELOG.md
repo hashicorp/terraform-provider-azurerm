@@ -8,6 +8,7 @@ BUG FIXES:
 
 * `azurerm_eventhub_namespace` - changing to `zone_redundant` now force a new resource [GH-7612]
 * `azurerm_managed_disk` - allow up to `65536` GB for the `disk_size_gb` property [GH-7689]
+* `azurerm_machine_learning_workspace`: correctly wait on future during deletion [GH-7635]
 
 ENHANCEMENTS:
 
