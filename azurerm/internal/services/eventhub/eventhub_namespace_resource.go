@@ -84,6 +84,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+				ForceNew: true,
 			},
 
 			"dedicated_cluster_id": {
