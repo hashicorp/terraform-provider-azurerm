@@ -429,9 +429,9 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
 			// TODO: The consistency policy isn't getting updated here
-			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
-			Locations:                     &oldLocations,
-			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+			ConsistencyPolicy:   expandAzureRmCosmosDBAccountConsistencyPolicy(d),
+			Locations:           &oldLocations,
+			VirtualNetworkRules: expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 		},
 		Tags: tags.Expand(t),
 	}
