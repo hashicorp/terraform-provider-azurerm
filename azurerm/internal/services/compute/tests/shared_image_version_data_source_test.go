@@ -22,7 +22,7 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(data, username, password, hostname),
+				Config: testAccAzureRMSharedImageVersion_setup(data, username, password, hostname),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
@@ -57,7 +57,7 @@ func TestAccDataSourceAzureRMSharedImageVersion_latest(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(data, username, password, hostname),
+				Config: testAccAzureRMSharedImageVersion_setup(data, username, password, hostname),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(resourceGroup, "testsource", username, password, hostname, "22", data.Locations.Primary),
