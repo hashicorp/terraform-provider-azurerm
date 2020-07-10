@@ -1,5 +1,9 @@
 ## 2.19.0 (Unreleased)
 
+ENHANCEMENTS:
+
+* dependencies: updating to v44.0.0 of `github.com/Azure/azure-sdk-for-go` [GH-7616]
+
 BUG FIXES:
 
 * `azurerm_eventhub_namespace` - changing to `zone_redundant` now force a new resource [GH-7612]
