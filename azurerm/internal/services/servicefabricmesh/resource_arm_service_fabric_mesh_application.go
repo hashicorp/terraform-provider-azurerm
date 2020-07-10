@@ -335,13 +335,13 @@ func expandServiceFabricMeshCodePackageResourceRequests(input []interface{}) *se
 
 // nolint: deadcode unused
 func flattenServiceFabricMeshApplicationServices(input *[]servicefabricmesh.ServiceResourceDescription) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0)
+	result := make([]map[string]interface{})
 	if input == nil {
 		return result
 	}
 
 	for _, service := range *input {
-		attr := make(map[string]interface{}, 0)
+		attr := make(map[string]interface{})
 		if service.Name != nil {
 			attr["name"] = *service.Name
 		}
@@ -355,13 +355,13 @@ func flattenServiceFabricMeshApplicationServices(input *[]servicefabricmesh.Serv
 }
 
 func flattenServiceFabricMeshApplicationCodePackage(input *[]servicefabricmesh.ContainerCodePackageProperties) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0)
+	result := make([]map[string]interface{})
 	if input == nil {
 		return result
 	}
 
 	for _, codePackage := range *input {
-		attr := make(map[string]interface{}, 0)
+		attr := make(map[string]interface{})
 		if codePackage.Name != nil {
 			attr["name"] = *codePackage.Name
 		}
