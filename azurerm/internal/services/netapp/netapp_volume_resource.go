@@ -329,10 +329,13 @@ func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) err
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6485
 	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"200", "202"},
-		Target:  []string{"404"},
-		Refresh: netappVolumeDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.PoolName, id.Name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netappVolumeDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.PoolName, id.Name),
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -346,11 +349,9 @@ func netappVolumeDeleteStateRefreshFunc(ctx context.Context, client *netapp.Volu
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, accountName, poolName, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return nil, "404", nil
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): %s", name, resourceGroupName, err)
 			}
-
-			return nil, "", fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): %s", name, resourceGroupName, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

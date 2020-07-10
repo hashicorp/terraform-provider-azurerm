@@ -199,10 +199,13 @@ func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6374
 	log.Printf("[DEBUG] Waiting for NetApp Pool %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"200", "202"},
-		Target:  []string{"404"},
-		Refresh: netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.Name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netappPoolDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.Name),
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -216,11 +219,9 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *netapp.PoolsC
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, accountName, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return nil, "404", nil
+			if !utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("Error retrieving NetApp Pool %q (Resource Group %q): %s", name, resourceGroupName, err)
 			}
-
-			return nil, "", fmt.Errorf("Error retrieving NetApp Pool %q (Resource Group %q): %s", name, resourceGroupName, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil
