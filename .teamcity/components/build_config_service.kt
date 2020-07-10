@@ -19,6 +19,7 @@ class serviceDetails(name: String, displayName: String, environment: String) {
 
             steps {
                 ConfigureGoEnv()
+                DownloadTerraformBinary()
                 RunAcceptanceTests(providerName, packageName)
             }
 
@@ -33,8 +34,10 @@ class serviceDetails(name: String, displayName: String, environment: String) {
             params {
                 TerraformAcceptanceTestParameters(parallelism, "TestAcc", "12")
                 TerraformAcceptanceTestsFlag()
+                TerraformCoreBinaryTesting()
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
+                WorkingDirectory(providerName, packageName)
             }
 
             triggers {

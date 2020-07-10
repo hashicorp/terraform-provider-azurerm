@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basic(t *testing.T) {
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,26 +31,7 @@ func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
-				),
-			},
-			data.RequiresImportErrorStep(testAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport),
-		},
-	})
-}
-
-func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinuxUpdate(t *testing.T) {
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_updateZonal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -79,6 +60,44 @@ func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicLinuxUpdate(t *testin
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_basicNonZonal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basicNonZonal(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMOrchestratedVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMOrchestratedVirtualMachineScaleSet_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMOrchestratedVirtualMachineScaleSetExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMOrchestratedVirtualMachineScaleSet_requiresImport),
 		},
 	})
 }
@@ -149,8 +168,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  platform_fault_domain_count = 5
-  single_placement_group      = true
+  platform_fault_domain_count = 1
 
   zones = ["1"]
 
@@ -171,8 +189,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  platform_fault_domain_count = 5
-  single_placement_group      = true
+  platform_fault_domain_count = 1
 
   zones = ["1"]
 
@@ -200,10 +217,26 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "import" {
 `, template)
 }
 
+func testAccAzureRMOrchestratedVirtualMachineScaleSet_basicNonZonal(data acceptance.TestData) string {
+	template := testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestVMO-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 2
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger)
+}
+
 func testAccAzureRMOrchestratedVirtualMachineScaleSet_template(data acceptance.TestData) string {
-	// in VMSS VMO mode, the `platform_fault_domain_count` has different acceptable values for different locations,
-	// therefore this location is fixed to EastUS2 to make sure the acceptance test has no issues about this value
-	location := "EastUS2"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -213,5 +246,5 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-VMSS-%d"
   location = "%s"
 }
-`, data.RandomInteger, location)
+`, data.RandomInteger, data.Locations.Primary)
 }

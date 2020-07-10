@@ -163,6 +163,12 @@ func resourceArmApiManagementApi() *schema.Resource {
 				},
 			},
 
+			"subscription_required": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"soap_pass_through": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -258,6 +264,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 			},
 		}
 		wsdlSelectorVs := importV["wsdl_selector"].([]interface{})
+
+		//`wsdl_selector` is necessary under format `wsdl`
+		if len(wsdlSelectorVs) == 0 && contentFormat == string(apimanagement.Wsdl) {
+			return fmt.Errorf("`wsdl_selector` is required when content format is `wsdl` in API Management API %q", name)
+		}
+
 		if len(wsdlSelectorVs) > 0 {
 			wsdlSelectorV := wsdlSelectorVs[0].(map[string]interface{})
 			wSvcName := wsdlSelectorV["service_name"].(string)
@@ -273,14 +285,20 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 			apiParams.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
 		}
 
-		if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, apiParams, ""); err != nil {
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, apiParams, "")
+		if err != nil {
 			return fmt.Errorf("creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("waiting on creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	description := d.Get("description").(string)
 	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
+	subscriptionRequired := d.Get("subscription_required").(bool)
 
 	protocolsRaw := d.Get("protocols").(*schema.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
@@ -299,6 +317,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 			ServiceURL:                    utils.String(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
 			APIVersion:                    utils.String(version),
+			SubscriptionRequired:          &subscriptionRequired,
 		},
 	}
 
@@ -306,8 +325,13 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		params.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, ""); err != nil {
-		return fmt.Errorf("creating/updating API %q / Revision %q (API Management Service %q / Resource Group %q): %+v", name, revision, serviceName, resourceGroup, err)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, "")
+	if err != nil {
+		return fmt.Errorf("creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on creating/updating API Management API %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serviceName, apiId)
@@ -368,6 +392,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("service_url", props.ServiceURL)
 		d.Set("revision", props.APIRevision)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
+		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
 

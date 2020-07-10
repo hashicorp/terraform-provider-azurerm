@@ -112,6 +112,8 @@ The following arguments are supported:
 
 * `metastores` - (Optional) A `metastores` block as defined below.
 
+* `monitor` - (Optional) A `monitor` block as defined below.
+
 ---
 
 A `component_version` block supports the following:
@@ -122,9 +124,9 @@ A `component_version` block supports the following:
 
 A `gateway` block supports the following:
 
-* `enabled` - (Required) Is the Ambari portal enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional/ **Deprecated) Is the Ambari portal enabled? The HDInsight API doesn't support disabling gateway anymore.
 
-* `password` - (Required) The password used for the Ambari Portal. Changing this forces a new resource to be created.
+* `password` - (Required) The password used for the Ambari Portal.
 
 -> **NOTE:** This password must be different from the one used for the `head_node`, `worker_node` and `zookeeper_node` roles.
 
@@ -200,7 +202,7 @@ A `worker_node` block supports the following:
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
 
-* `min_instance_count` - (Optional) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
+* `min_instance_count` - (Optional / **Deprecated** ) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
@@ -299,6 +301,13 @@ An `ambari` block supports the following:
 
 * `password` - (Required) The external Ambari metastore's existing SQL server admin password.  Changing this forces a new resource to be created.
 
+---
+
+A `monitor` block supports the following:
+
+* `log_analytics_workspace_id` - (Required) The Operations Management Suite (OMS) workspace ID.
+
+* `primary_key` - (Required) The Operations Management Suite (OMS) workspace key.
 
 ## Attributes Reference
 

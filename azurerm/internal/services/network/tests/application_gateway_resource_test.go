@@ -235,6 +235,26 @@ func TestAccAzureRMApplicationGateway_customFirewallPolicy(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationGateway_customHttpListenerFirewallPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApplicationGateway_customHttpListenerFirewallPolicy(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "http_listener.0.firewall_policy_id"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 // TODO required soft delete on the keyvault
 func TestAccAzureRMApplicationGateway_trustedRootCertificate_keyvault(t *testing.T) {
 	t.Skip()
@@ -323,11 +343,6 @@ func TestAccAzureRMApplicationGateway_routingRedirect_httpListener(t *testing.T)
 				Config: testAccAzureRMApplicationGateway_routingRedirect_httpListener(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.0.name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.redirect_type", "Temporary"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.0.target_listener_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.include_path", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.include_query_string", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -363,15 +378,6 @@ func TestAccAzureRMApplicationGateway_routingRedirect_pathBased(t *testing.T) {
 				Config: testAccAzureRMApplicationGateway_routingRedirect_pathBased(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.0.name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.redirect_type", "Found"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.target_url", "http://www.example.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.include_query_string", "true"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.1.name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.1.redirect_type", "Permanent"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.1.target_listener_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.1.include_path", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.1.include_query_string", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -2044,6 +2050,128 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
   location            = azurerm_resource_group.test.location
 
   policy_settings {
+    enabled                     = true
+    mode                        = "Prevention"
+    file_upload_limit_in_mb     = 100
+    max_request_body_size_in_kb = 100
+    request_body_check          = "true"
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }
+  }
+}
+
+resource "azurerm_application_gateway" "test" {
+  name                = "acctestag-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 2
+  }
+
+  firewall_policy_id = azurerm_web_application_firewall_policy.testfwp.id
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.teststd.id
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.http_setting_name
+    cookie_based_affinity = "Disabled"
+    port                  = 443
+    protocol              = "Https"
+    request_timeout       = 1
+
+    pick_host_name_from_backend_address = true
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.http_setting_name
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMApplicationGateway_customHttpListenerFirewallPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMApplicationGateway_template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+# since these variables are re-used - a locals block makes this more maintainable
+locals {
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+}
+
+resource "azurerm_public_ip" "teststd" {
+  name                = "acctest-PubIpStd-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_web_application_firewall_policy" "testfwp" {
+  name                = "acctest-fwp-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.1"
+    }
+  }
+}
+
+resource "azurerm_web_application_firewall_policy" "testfwp_listener" {
+  name                = "acctest-fwp-listener-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
     enabled = true
     mode    = "Prevention"
   }
@@ -2103,6 +2231,7 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
+    firewall_policy_id             = azurerm_web_application_firewall_policy.testfwp_listener.id
   }
 
   request_routing_rule {

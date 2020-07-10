@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -29,10 +29,13 @@ const (
 var unsupportedAddonsForEnvironment = map[string][]string{
 	azure.ChinaCloud.Name: {
 		aciConnectorKey,           // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5510
+		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6462
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
 	},
 	azure.USGovernmentCloud.Name: {
+		azurePolicyKey,            // https://github.com/terraform-providers/terraform-provider-azurerm/issues/6702
 		httpApplicationRoutingKey, // https://github.com/terraform-providers/terraform-provider-azurerm/issues/5960
+		kubernetesDashboardKey,    // https://github.com/terraform-providers/terraform-provider-azurerm/issues/7136
 	},
 }
 
@@ -234,7 +237,9 @@ func expandKubernetesAddOnProfiles(input []interface{}, env azure.Environment) (
 
 		addonProfiles[azurePolicyKey] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
-			Config:  nil,
+			Config: map[string]*string{
+				"version": utils.String("v2"),
+			},
 		}
 	}
 

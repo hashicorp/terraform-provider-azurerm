@@ -112,6 +112,12 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				DiffSuppressFunc: structure.SuppressJsonDiff,
 			},
 
+			"enforcement_mode": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"not_scopes": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -147,6 +153,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 			PolicyDefinitionID: utils.String(d.Get("policy_definition_id").(string)),
 			DisplayName:        utils.String(d.Get("display_name").(string)),
 			Scope:              utils.String(scope),
+			EnforcementMode:    convertEnforcementMode(d.Get("enforcement_mode").(bool)),
 		},
 	}
 
@@ -248,14 +255,15 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("policy_definition_id", props.PolicyDefinitionID)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
+		d.Set("enforcement_mode", props.EnforcementMode == policy.Default)
 
 		if params := props.Parameters; params != nil {
-			parameterValuesString, err := flattenParameterValuesValueToString(params)
+			json, err := flattenParameterValuesValueToString(params)
 			if err != nil {
 				return fmt.Errorf("serializing JSON from `parameters`: %+v", err)
 			}
 
-			d.Set("parameters", parameterValuesString)
+			d.Set("parameters", json)
 		}
 
 		d.Set("not_scopes", props.NotScopes)
@@ -331,4 +339,12 @@ func expandAzureRmPolicyNotScopes(input []interface{}) *[]string {
 	}
 
 	return &notScopesRes
+}
+
+func convertEnforcementMode(mode bool) policy.EnforcementMode {
+	if mode {
+		return policy.Default
+	} else {
+		return policy.DoNotEnforce
+	}
 }

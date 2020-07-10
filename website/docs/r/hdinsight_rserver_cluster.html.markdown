@@ -115,9 +115,9 @@ The following arguments are supported:
 
 A `gateway` block supports the following:
 
-* `enabled` - (Required) Is the Ambari portal enabled? Changing this forces a new resource to be created.
+* `enabled` - (Optional/ **Deprecated) Is the Ambari portal enabled? The HDInsight API doesn't support disabling gateway anymore.
 
-* `password` - (Required) The password used for the Ambari Portal. Changing this forces a new resource to be created.
+* `password` - (Required) The password used for the Ambari Portal.
 
 -> **NOTE:** This password must be different from the one used for the `head_node`, `worker_node` and `zookeeper_node` roles.
 
@@ -195,7 +195,7 @@ A `worker_node` block supports the following:
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Worker Nodes. Changing this forces a new resource to be created.
 
-* `min_instance_count` - (Optional) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
+* `min_instance_count` - (Optional / **Deprecated** ) The minimum number of instances which should be run for the Worker Nodes. Changing this forces a new resource to be created.
 
 * `password` - (Optional) The Password associated with the local administrator for the Worker Nodes. Changing this forces a new resource to be created.
 
@@ -244,8 +244,6 @@ The following attributes are exported:
 * `ssh_endpoint` - The SSH Connectivity Endpoint for this HDInsight RServer Cluster.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 

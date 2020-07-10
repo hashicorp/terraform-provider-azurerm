@@ -1373,6 +1373,12 @@ type HardwareProfile struct {
 	VMSize *string `json:"vmSize,omitempty"`
 }
 
+// HostInfo the cluster host information.
+type HostInfo struct {
+	// Name - The host name
+	Name *string `json:"name,omitempty"`
+}
+
 // KafkaRestProperties the kafka rest proxy configuration which contains AAD security group information.
 type KafkaRestProperties struct {
 	// ClientGroupInfo - The information of AAD security group.
@@ -1387,6 +1393,12 @@ type LinuxOperatingSystemProfile struct {
 	Password *string `json:"password,omitempty"`
 	// SSHProfile - The SSH profile.
 	SSHProfile *SSHProfile `json:"sshProfile,omitempty"`
+}
+
+// ListHostInfo ...
+type ListHostInfo struct {
+	autorest.Response `json:"-"`
+	Value             *[]HostInfo `json:"value,omitempty"`
 }
 
 // LocalizedName the details about the localizable name of a type of usage.
@@ -2181,6 +2193,29 @@ func (vs VersionSpec) MarshalJSON() ([]byte, error) {
 		objectMap["componentVersions"] = vs.ComponentVersions
 	}
 	return json.Marshal(objectMap)
+}
+
+// VirtualMachinesRestartHostsFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type VirtualMachinesRestartHostsFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *VirtualMachinesRestartHostsFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesRestartHostsFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("hdinsight.VirtualMachinesRestartHostsFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // VirtualNetworkProfile the virtual network properties.
