@@ -151,7 +151,6 @@ func resourceArmApiManagementOpenIDConnectProviderRead(d *schema.ResourceData, m
 
 	if props := resp.OpenidConnectProviderContractProperties; props != nil {
 		d.Set("client_id", props.ClientID)
-		d.Set("client_secret", props.ClientSecret)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("metadata_endpoint", props.MetadataEndpoint)
