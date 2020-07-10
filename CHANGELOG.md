@@ -4,6 +4,10 @@ BUG FIXES:
 
 * `azurerm_eventhub_namespace` - changes to `zone_redundant` now force a new resource [GH-7612]
 
+ENHANCEMENTS:
+
+* `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property [GH-7018]
+
 ## 2.18.0 (July 10, 2020)
 
 FEATURES:
