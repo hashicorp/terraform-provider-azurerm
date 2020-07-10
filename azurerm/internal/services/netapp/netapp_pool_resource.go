@@ -195,7 +195,7 @@ func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error
 	// The resource NetApp Pool depends on the resource NetApp Account.
 	// Although the delete API returns 404 which means the NetApp Pool resource has been deleted.
 	// Then it tries to immediately delete NetApp Account but it still throws error `Can not delete resource before nested resources are deleted.`
-	// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
+	// In this case we're going to re-check status code again.
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6374
 	log.Printf("[DEBUG] Waiting for NetApp Pool %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{

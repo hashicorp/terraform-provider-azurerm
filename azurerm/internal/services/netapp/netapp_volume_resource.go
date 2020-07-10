@@ -325,7 +325,7 @@ func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) err
 	// The resource NetApp Volume depends on the resource NetApp Pool.
 	// Although the delete API returns 404 which means the NetApp Volume resource has been deleted.
 	// Then it tries to immediately delete NetApp Pool but it still throws error `Can not delete resource before nested resources are deleted.`
-	// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
+	// In this case we're going to re-check status code again.
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6485
 	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
