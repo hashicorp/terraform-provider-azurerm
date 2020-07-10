@@ -428,6 +428,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
+			// TODO: The consistency policy isn't getting updated here
 			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                     &oldLocations,
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
@@ -439,9 +440,14 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if upsertResponse.EnableMultipleWriteLocations != utils.Bool(enableMultipleWriteLocations) {
-		account.DatabaseAccountCreateUpdateProperties.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
-		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
+		enableMultipleWriteLocationsCreateUpdateParameters := documentdb.DatabaseAccountCreateUpdateParameters{
+			DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
+				EnableMultipleWriteLocations: utils.Bool(enableMultipleWriteLocations),
+			},
+		}
+
+		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, enableMultipleWriteLocationsCreateUpdateParameters, d); err != nil {
 			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
