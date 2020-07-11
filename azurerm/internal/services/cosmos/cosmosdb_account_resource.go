@@ -26,6 +26,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// If the consistency policy of the Cosmos DB Database Account is not bounded staleness,
+// any changes to the configuration for bounded staleness should be suppressed.
+func suppressConsistencyPolicyStalenessConfiguration(_, _, _ string, d *schema.ResourceData) bool {
+	consistencyPolicyList := d.Get("consistency_policy").([]interface{})
+	if len(consistencyPolicyList) == 0 || consistencyPolicyList[0] == nil {
+		return false
+	}
+
+	consistencyPolicy := consistencyPolicyList[0].(map[string]interface{})
+
+	return consistencyPolicy["consistency_level"].(string) != string(documentdb.BoundedStaleness)
+}
+
 func resourceArmCosmosDbAccount() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmCosmosDbAccountCreate,
@@ -116,19 +129,19 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						},
 
 						"max_interval_in_seconds": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Computed:     true,
-							Default:      nil,
-							ValidateFunc: validation.IntBetween(5, 86400), // single region values
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Computed:         true,
+							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
+							ValidateFunc:     validation.IntBetween(5, 86400), // single region values
 						},
 
 						"max_staleness_prefix": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							Computed:     true,
-							Default:      nil,
-							ValidateFunc: validation.IntBetween(10, 1000000), // single region values
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Computed:         true,
+							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
+							ValidateFunc:     validation.IntBetween(10, 1000000), // single region values
 						},
 					},
 				},
@@ -330,11 +343,6 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
 	}
 
-	consistencyPolicy, err := expandAzureRmCosmosDBAccountConsistencyPolicy(d)
-	if err != nil {
-		return fmt.Errorf("Error building the default consistency policy for CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
-	}
-
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
 		Location: utils.String(location),
 		Kind:     documentdb.DatabaseAccountKind(kind),
@@ -343,7 +351,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			IPRules:                       common.CosmosDBIpRangeFilterToIpRules(ipRangeFilter),
 			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
-			ConsistencyPolicy:             consistencyPolicy,
+			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                     &geoLocations,
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
@@ -353,7 +361,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
-
+	consistencyPolicy := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy
 	if len(geoLocations) > 1 && consistencyPolicy != nil && consistencyPolicy.DefaultConsistencyLevel == documentdb.BoundedStaleness {
 		if msp := consistencyPolicy.MaxStalenessPrefix; msp != nil && *msp < 100000 {
 			return fmt.Errorf("Error max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
@@ -423,12 +431,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		oldLocationsMap[azure.NormalizeLocation(*location.LocationName)] = location
 	}
 
-	// Validate consistency parameters
-	consistencyPolicy, err := expandAzureRmCosmosDBAccountConsistencyPolicy(d)
-	if err != nil {
-		return fmt.Errorf("Error building the default consistency policy for CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
-	}
-
 	// cannot update properties and add/remove replication locations or updating enabling of multiple
 	// write locations at the same time. so first just update any changed properties
 	account := documentdb.DatabaseAccountCreateUpdateParameters{
@@ -440,7 +442,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			IsVirtualNetworkFilterEnabled: utils.Bool(isVirtualNetworkFilterEnabled),
 			EnableAutomaticFailover:       utils.Bool(enableAutomaticFailover),
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
-			ConsistencyPolicy:             consistencyPolicy,
+			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                     &oldLocations,
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 		},
@@ -754,10 +756,10 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 	return &r, nil
 }
 
-func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) (*documentdb.ConsistencyPolicy, error) {
+func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *documentdb.ConsistencyPolicy {
 	i := d.Get("consistency_policy").([]interface{})
 	if len(i) == 0 || i[0] == nil {
-		return nil, nil
+		return nil
 	}
 	input := i[0].(map[string]interface{})
 
@@ -766,38 +768,20 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) (*doc
 		DefaultConsistencyLevel: documentdb.DefaultConsistencyLevel(consistencyLevel),
 	}
 
-	boundedStalenessConsistency := consistencyLevel == string(documentdb.BoundedStaleness)
-	changedFromBoundedStalenessConsistency := false
-
-	oldInput, _ := d.GetChange("consistency_policy")
-	if !(len(oldInput.([]interface{})) == 0 || i[0] == nil) {
-		oldConsistencyPolicy := i[0].(map[string]interface{})
-		changedFromBoundedStalenessConsistency = oldConsistencyPolicy["consistency_level"].(string) == string(documentdb.BoundedStaleness)
-	}
-
-	ableToSetBoundedStalenessProperties := boundedStalenessConsistency && changedFromBoundedStalenessConsistency
-
 	if stalenessPrefix, ok := input["max_staleness_prefix"].(int); ok {
-		if stalenessPrefix > 0 {
-			if !ableToSetBoundedStalenessProperties {
-				return nil, fmt.Errorf("max_staleness_prefix can not be specified when the default consistency level is not BoundedStaleness")
-			}
-
-			policy.MaxStalenessPrefix = utils.Int64(int64(stalenessPrefix))
+		if stalenessPrefix == 0 {
+			stalenessPrefix = 5
 		}
+		policy.MaxStalenessPrefix = utils.Int64(int64(stalenessPrefix))
 	}
-
 	if maxInterval, ok := input["max_interval_in_seconds"].(int); ok {
-		if maxInterval > 0 {
-			if !ableToSetBoundedStalenessProperties {
-				return nil, fmt.Errorf("max_interval_in_seconds can not be specified when the default consistency level is not BoundedStaleness")
-			}
-
-			policy.MaxIntervalInSeconds = utils.Int32(int32(maxInterval))
+		if maxInterval == 0 {
+			maxInterval = 100
 		}
+		policy.MaxIntervalInSeconds = utils.Int32(int32(maxInterval))
 	}
 
-	return &policy, nil
+	return &policy
 }
 
 func resourceArmCosmosDbAccountGenerateDefaultId(databaseName string, location string) string {
