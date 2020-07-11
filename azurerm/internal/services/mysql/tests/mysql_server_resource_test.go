@@ -177,6 +177,13 @@ func TestAccAzureRMMySQLServer_update(t *testing.T) {
 			},
 			data.ImportStep("administrator_login_password"), // not returned as sensitive
 			{
+				Config: testAccAzureRMMySQLServer_complete2(data, mysqlVersion),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password", "threat_detection_policy.0.storage_account_access_key"),
+			{
 				Config: testAccAzureRMMySQLServer_basic(data, mysqlVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMySQLServerExists(data.ResourceName),
@@ -437,7 +444,7 @@ resource "azurerm_mysql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "%s"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -449,12 +456,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_mysql_server" "test" {
-  name                         = "acctestmysqlsvr-%d"
+  name                         = "acctestmysqlsvr-%[1]d"
   location                     = azurerm_resource_group.test.location
   resource_group_name          = azurerm_resource_group.test.name
   sku_name                     = "GP_Gen5_2"
@@ -466,9 +473,62 @@ resource "azurerm_mysql_server" "test" {
   geo_redundant_backup_enabled = false
   ssl_enforcement_enabled      = true
   storage_mb                   = 51200
-  version                      = "%s"
+  version                      = "%[3]s"
+  threat_detection_policy {
+    enabled              = true
+    disabled_alerts      = ["Sql_Injection", "Data_Exfiltration"]
+    email_account_admins = true
+    email_addresses      = ["pearcec@example.com", "admin@example.com"]
+    retention_days       = 7
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
+`, data.RandomInteger, data.Locations.Primary, version)
+}
+
+func testAccAzureRMMySQLServer_complete2(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mysql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                         = "acctestmysqlsvr-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku_name                     = "GP_Gen5_2"
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+  auto_grow_enabled            = true
+  backup_retention_days        = 7
+  create_mode                  = "Default"
+  geo_redundant_backup_enabled = false
+  ssl_enforcement_enabled      = true
+  storage_mb                   = 51200
+  version                      = "%[3]s"
+  threat_detection_policy {
+    enabled                    = true
+    disabled_alerts            = ["Sql_Injection"]
+    email_account_admins       = true
+    email_addresses            = ["pearcec@example.com"]
+    retention_days             = 7
+    storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, version)
 }
 
 func testAccAzureRMMySQLServer_completeDeprecated(data acceptance.TestData, version string) string { // remove in v3.0
@@ -499,7 +559,7 @@ resource "azurerm_mysql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "%s"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -590,6 +650,7 @@ resource "azurerm_mysql_server" "replica" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "GP_Gen5_2"
   version             = "%s"
+  storage_mb          = 51200
 
   create_mode               = "Replica"
   creation_source_server_id = azurerm_mysql_server.test.id

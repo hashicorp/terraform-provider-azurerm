@@ -155,7 +155,6 @@ func (client OperationClient) ListByTagsSender(req *http.Request) (*http.Respons
 func (client OperationClient) ListByTagsResponder(resp *http.Response) (result TagResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

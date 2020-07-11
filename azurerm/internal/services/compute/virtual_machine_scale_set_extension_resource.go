@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
@@ -135,7 +135,7 @@ func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, me
 		}
 
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_linux_virtual_machine_scale_set", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", *resp.ID)
 		}
 	}
 

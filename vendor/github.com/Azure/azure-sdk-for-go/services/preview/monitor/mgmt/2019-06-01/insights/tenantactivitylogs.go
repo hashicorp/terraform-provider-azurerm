@@ -129,7 +129,6 @@ func (client TenantActivityLogsClient) ListSender(req *http.Request) (*http.Resp
 func (client TenantActivityLogsClient) ListResponder(resp *http.Response) (result EventDataCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

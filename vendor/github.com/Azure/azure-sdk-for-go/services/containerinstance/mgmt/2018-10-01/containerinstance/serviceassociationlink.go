@@ -113,7 +113,6 @@ func (client ServiceAssociationLinkClient) DeleteSender(req *http.Request) (*htt
 func (client ServiceAssociationLinkClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

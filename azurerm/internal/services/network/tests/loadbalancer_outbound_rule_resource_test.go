@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -113,8 +113,8 @@ func TestAccAzureRMLoadBalancerOutboundRule_removal(t *testing.T) {
 }
 
 func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
-	data1 := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test")
-	data2 := acceptance.BuildTestData(t, "azurerm_lb_nat_rule", "test2")
+	data1 := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test")
+	data2 := acceptance.BuildTestData(t, "azurerm_lb_outbound_rule", "test2")
 
 	var lb network.LoadBalancer
 	outboundRuleName := fmt.Sprintf("OutboundRule-%d", data1.RandomInteger)
@@ -131,18 +131,20 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRule2Name, &lb),
-					resource.TestCheckResourceAttr(data2.ResourceName, "protocol", "Udp"),
 				),
 			},
+			data1.ImportStep(),
+			data2.ImportStep(),
 			{
 				Config: testAccAzureRMLoadBalancerOutboundRule_multipleRulesUpdate(data1, outboundRuleName, outboundRule2Name),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
 					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRule2Name, &lb),
-					resource.TestCheckResourceAttr(data2.ResourceName, "protocol", "All"),
 				),
 			},
+			data1.ImportStep(),
+			data2.ImportStep(),
 		},
 	})
 }

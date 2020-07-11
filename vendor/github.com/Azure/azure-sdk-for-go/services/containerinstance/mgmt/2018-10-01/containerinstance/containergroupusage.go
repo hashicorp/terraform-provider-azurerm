@@ -108,7 +108,6 @@ func (client ContainerGroupUsageClient) ListSender(req *http.Request) (*http.Res
 func (client ContainerGroupUsageClient) ListResponder(resp *http.Response) (result UsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

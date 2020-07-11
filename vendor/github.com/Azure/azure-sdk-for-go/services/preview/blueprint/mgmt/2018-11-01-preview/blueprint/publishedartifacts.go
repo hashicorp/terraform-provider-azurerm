@@ -115,7 +115,6 @@ func (client PublishedArtifactsClient) GetSender(req *http.Request) (*http.Respo
 func (client PublishedArtifactsClient) GetResponder(resp *http.Response) (result ArtifactModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,7 +194,6 @@ func (client PublishedArtifactsClient) ListSender(req *http.Request) (*http.Resp
 func (client PublishedArtifactsClient) ListResponder(resp *http.Response) (result ArtifactList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

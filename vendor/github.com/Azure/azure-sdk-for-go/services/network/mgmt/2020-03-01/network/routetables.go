@@ -113,7 +113,6 @@ func (client RouteTablesClient) CreateOrUpdateSender(req *http.Request) (future 
 func (client RouteTablesClient) CreateOrUpdateResponder(resp *http.Response) (result RouteTable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client RouteTablesClient) DeleteSender(req *http.Request) (future RouteTab
 func (client RouteTablesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -268,7 +266,6 @@ func (client RouteTablesClient) GetSender(req *http.Request) (*http.Response, er
 func (client RouteTablesClient) GetResponder(resp *http.Response) (result RouteTable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -343,7 +340,6 @@ func (client RouteTablesClient) ListSender(req *http.Request) (*http.Response, e
 func (client RouteTablesClient) ListResponder(resp *http.Response) (result RouteTableListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -452,7 +448,6 @@ func (client RouteTablesClient) ListAllSender(req *http.Request) (*http.Response
 func (client RouteTablesClient) ListAllResponder(resp *http.Response) (result RouteTableListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -568,7 +563,6 @@ func (client RouteTablesClient) UpdateTagsSender(req *http.Request) (*http.Respo
 func (client RouteTablesClient) UpdateTagsResponder(resp *http.Response) (result RouteTable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

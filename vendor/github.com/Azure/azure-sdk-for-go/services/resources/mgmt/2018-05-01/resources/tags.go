@@ -108,7 +108,6 @@ func (client TagsClient) CreateOrUpdateSender(req *http.Request) (*http.Response
 func (client TagsClient) CreateOrUpdateResponder(resp *http.Response) (result TagDetails, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -184,7 +183,6 @@ func (client TagsClient) CreateOrUpdateValueSender(req *http.Request) (*http.Res
 func (client TagsClient) CreateOrUpdateValueResponder(resp *http.Response) (result TagValue, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -258,7 +256,6 @@ func (client TagsClient) DeleteSender(req *http.Request) (*http.Response, error)
 func (client TagsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -333,7 +330,6 @@ func (client TagsClient) DeleteValueSender(req *http.Request) (*http.Response, e
 func (client TagsClient) DeleteValueResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -404,7 +400,6 @@ func (client TagsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client TagsClient) ListResponder(resp *http.Response) (result TagsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

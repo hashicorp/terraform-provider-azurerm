@@ -183,22 +183,22 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_module" "test" {
-  name                    = "AzureRM.Profile"
+  name                    = "xActiveDirectory"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
 
   module_link {
-    uri = "https://psg-prod-eastus.azureedge.net/packages/azurerm.profile.5.8.2.nupkg"
+    uri = "https://devopsgallerystorage.blob.core.windows.net/packages/xactivedirectory.2.19.0.nupkg"
   }
 }
 
 resource "azurerm_automation_module" "second" {
-  name                    = "AzureRM.OperationalInsights"
+  name                    = "AzureRmMinus"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
 
   module_link {
-    uri = "https://psg-prod-eastus.azureedge.net/packages/azurerm.operationalinsights.5.0.6.nupkg"
+    uri = "https://www.powershellgallery.com/api/v2/package/AzureRmMinus/0.3.0.0"
   }
 
   depends_on = [azurerm_automation_module.test]

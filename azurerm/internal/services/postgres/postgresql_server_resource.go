@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -260,7 +261,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"ssl_enforcement_enabled": {
 				Type:         schema.TypeBool,
 				Optional:     true, // required in 3.0
-				Computed:     true, // remove computed in 3.0
 				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 			},
 
@@ -348,6 +348,22 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+				oldTier := strings.Split(old.(string), "_")
+				newTier := strings.Split(new.(string), "_")
+				// If the sku tier was not changed, we don't need fornew
+				if oldTier[0] == newTier[0] {
+					return false
+				}
+				// Basic tier could not be changed to other tiers
+				if oldTier[0] == "B" || newTier[0] == "B" {
+					return true
+				}
+				return false
+			}),
+		),
 	}
 }
 
@@ -397,10 +413,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	ssl := postgresql.SslEnforcementEnumEnabled
-	if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(postgresql.SslEnforcementEnumDisabled)) {
-		ssl = postgresql.SslEnforcementEnumDisabled
-	}
-	if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
+	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
 	}
 
@@ -528,6 +541,8 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	// TODO: support for Delta updates
+
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
 
 	id, err := parse.PostgresServerServerID(d.Id())
@@ -546,9 +561,6 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	ssl := postgresql.SslEnforcementEnumEnabled
-	if v := d.Get("ssl_enforcement"); strings.EqualFold(v.(string), string(postgresql.SslEnforcementEnumDisabled)) {
-		ssl = postgresql.SslEnforcementEnumDisabled
-	}
 	if v := d.Get("ssl_enforcement_enabled"); !v.(bool) {
 		ssl = postgresql.SslEnforcementEnumDisabled
 	}

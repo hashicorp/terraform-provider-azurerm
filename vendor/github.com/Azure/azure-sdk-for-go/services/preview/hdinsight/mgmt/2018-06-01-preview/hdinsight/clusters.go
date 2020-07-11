@@ -113,7 +113,6 @@ func (client ClustersClient) CreateSender(req *http.Request) (future ClustersCre
 func (client ClustersClient) CreateResponder(resp *http.Response) (result Cluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDel
 func (client ClustersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -273,7 +271,6 @@ func (client ClustersClient) ExecuteScriptActionsSender(req *http.Request) (futu
 func (client ClustersClient) ExecuteScriptActionsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -348,7 +345,6 @@ func (client ClustersClient) GetSender(req *http.Request) (*http.Response, error
 func (client ClustersClient) GetResponder(resp *http.Response) (result Cluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -424,7 +420,6 @@ func (client ClustersClient) GetGatewaySettingsSender(req *http.Request) (*http.
 func (client ClustersClient) GetGatewaySettingsResponder(resp *http.Response) (result GatewaySettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -496,7 +491,6 @@ func (client ClustersClient) ListSender(req *http.Request) (*http.Response, erro
 func (client ClustersClient) ListResponder(resp *http.Response) (result ClusterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -608,7 +602,6 @@ func (client ClustersClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client ClustersClient) ListByResourceGroupResponder(resp *http.Response) (result ClusterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -725,7 +718,6 @@ func (client ClustersClient) ResizeSender(req *http.Request) (future ClustersRes
 func (client ClustersClient) ResizeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -803,7 +795,6 @@ func (client ClustersClient) RotateDiskEncryptionKeySender(req *http.Request) (f
 func (client ClustersClient) RotateDiskEncryptionKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -881,7 +872,6 @@ func (client ClustersClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client ClustersClient) UpdateResponder(resp *http.Response) (result Cluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -960,7 +950,6 @@ func (client ClustersClient) UpdateGatewaySettingsSender(req *http.Request) (fut
 func (client ClustersClient) UpdateGatewaySettingsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

@@ -131,7 +131,6 @@ func (client AnalyticsItemsClient) DeleteSender(req *http.Request) (*http.Respon
 func (client AnalyticsItemsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -227,7 +226,6 @@ func (client AnalyticsItemsClient) GetSender(req *http.Request) (*http.Response,
 func (client AnalyticsItemsClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentAnalyticsItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -334,7 +332,6 @@ func (client AnalyticsItemsClient) ListSender(req *http.Request) (*http.Response
 func (client AnalyticsItemsClient) ListResponder(resp *http.Response) (result ListApplicationInsightsComponentAnalyticsItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -435,7 +432,6 @@ func (client AnalyticsItemsClient) PutSender(req *http.Request) (*http.Response,
 func (client AnalyticsItemsClient) PutResponder(resp *http.Response) (result ApplicationInsightsComponentAnalyticsItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

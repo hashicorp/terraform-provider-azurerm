@@ -23,6 +23,7 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "protocols.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "protocols.0", "https"),
 					resource.TestCheckResourceAttr(data.ResourceName, "soap_pass_through", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "subscription_required", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_current", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
 				),
