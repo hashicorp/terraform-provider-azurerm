@@ -1,4 +1,5 @@
 # Terraform Provider for Azure (Resource Manager)
+![Travis CI Build](https://travis-ci.org/terraform-providers/terraform-provider-azurerm.svg?branch=master)
 
 Version 2.0 of the AzureRM Provider requires Terraform 0.12.x and later.
 
