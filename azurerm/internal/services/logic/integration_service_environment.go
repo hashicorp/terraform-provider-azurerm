@@ -1,11 +1,15 @@
 package logic
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -16,9 +20,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
+	networkParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+const (
+	stateDeleting string = "Deleting"
+	stateDeleted  string = "Deleted"
 )
 
 func resourceArmIntegrationServiceEnvironment() *schema.Resource {
@@ -271,14 +281,48 @@ func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta
 		return fmt.Errorf("parsing Integration Service Environment ID `%q`: %+v", d.Id(), err)
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("deleting Integration Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	name := id.Name
+	resourceGroup := id.ResourceGroup
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return nil
+		}
+		return fmt.Errorf("retrieving Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	// TODO: HACK - How to wait for deletion Op completed?
-	// Currently Delete Op finishes with status 200 instantly, resource is not visible and next Op on resource ends with status NotFound
-	// but resource still exists as hidden and is still occupying the VNET. Not sure how to solve it
-	time.Sleep(time.Minute * 180)
+	// Get subnet IDs before delete
+	subnetIDs := getSubnetIDs(&resp)
+
+	// Not optimal behavior for now
+	// It deletes synchronously and resource is not available anymore after return from delete operation
+	// Next, after return - delete operation is still in progress in the background and is still occupying subnets.
+	// As workaround we are checking on all involved subnets presense of serviceAssociationLink and resourceNavigationLink
+	// If the operation fails we are lost. We do not have original resource and we cannot resume delete operation.
+	// User has to wait for completion of delete operation in the background.
+	// It would be great to have async call with future struct
+	if resp, err := client.Delete(ctx, resourceGroup, name); err != nil {
+		if utils.ResponseWasNotFound(resp) {
+			return nil
+		}
+
+		return fmt.Errorf("issuing delete request for Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{stateDeleting},
+		Target:                    []string{stateDeleted},
+		MinTimeout:                5 * time.Minute,
+		Refresh:                   integrationServiceEnvironmentDeleteStateRefreshFunc(ctx, meta.(*clients.Client), d.Id(), subnetIDs),
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
+		ContinuousTargetOccurence: 1,
+		NotFoundChecks:            1,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("waiting for deletion of Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
 
 	return nil
 }
@@ -295,11 +339,12 @@ func expandSubnetResourceID(input []interface{}) *[]logic.ResourceReference {
 }
 
 func flattenSubnetResourceID(input *[]logic.ResourceReference) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
 
 	subnetIDs := make([]interface{}, 0)
+	if input == nil {
+		return subnetIDs
+	}
+
 	for _, resourceRef := range *input {
 		if resourceRef.ID == nil || *resourceRef.ID == "" {
 			continue
@@ -309,4 +354,122 @@ func flattenSubnetResourceID(input *[]logic.ResourceReference) []interface{} {
 	}
 
 	return subnetIDs
+}
+
+func getSubnetIDs(input *logic.IntegrationServiceEnvironment) []interface{} {
+
+	emptySubnetIDs := make([]interface{}, 0)
+	if input == nil {
+		return emptySubnetIDs
+	}
+
+	if props := input.Properties; props != nil {
+
+		if netCfg := props.NetworkConfiguration; netCfg != nil {
+
+			return flattenSubnetResourceID(netCfg.Subnets)
+		}
+	}
+
+	return emptySubnetIDs
+}
+
+func integrationServiceEnvironmentDeleteStateRefreshFunc(ctx context.Context, client *clients.Client, iseID string, subnetIDs []interface{}) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+
+		linkExists, err := linkExists(ctx, client, iseID, subnetIDs)
+		if err != nil {
+			return stateDeleting, stateDeleting, err
+		}
+
+		if linkExists {
+			return stateDeleting, stateDeleting, nil
+		}
+
+		return stateDeleted, stateDeleted, nil
+	}
+}
+
+func linkExists(ctx context.Context, client *clients.Client, iseID string, subnetIDs []interface{}) (bool, error) {
+
+	for _, subnetID := range subnetIDs {
+
+		id := *(subnetID.(*string))
+		log.Printf("Checking links on subnetID: %q\n", id)
+
+		hasLink, err := serviceAssociationLinkExists(ctx, client.Network.ServiceAssociationLinksClient, iseID, id)
+		if err != nil {
+			return false, err
+		}
+
+		if hasLink {
+			return true, nil
+		} else {
+
+			hasLink, err := resourceNavigationLinkExists(ctx, client.Network.ResourceNavigationLinksClient, id)
+			if err != nil {
+				return false, err
+			}
+
+			if hasLink {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
+func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAssociationLinksClient, iseID string, subnetID string) (bool, error) {
+
+	id, err := networkParse.SubnetID(subnetID)
+	if err != nil {
+		return false, err
+	}
+
+	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
+
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return false, nil
+		}
+		return false, fmt.Errorf("listing Service Association Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.Name, id.ResourceGroup, err)
+	}
+
+	if resp.Value != nil {
+		for _, link := range *resp.Value {
+			if strings.EqualFold(iseID, *link.ServiceAssociationLinkPropertiesFormat.Link) {
+				log.Printf("Has Service Association Link: %q\n", *link.ID)
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
+func resourceNavigationLinkExists(ctx context.Context, client *network.ResourceNavigationLinksClient, subnetID string) (bool, error) {
+
+	id, err := networkParse.SubnetID(subnetID)
+	if err != nil {
+		return false, err
+	}
+
+	resp, err := client.List(ctx, id.ResourceGroup, id.VirtualNetworkName, id.Name)
+
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			return false, nil
+		}
+		return false, fmt.Errorf("listing Resource Navigation Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.Name, id.ResourceGroup, err)
+	}
+
+	if resp.Value != nil {
+		for _, link := range *resp.Value {
+			log.Printf("Has Resource Navigation Link: %q\n", *link.ID)
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
