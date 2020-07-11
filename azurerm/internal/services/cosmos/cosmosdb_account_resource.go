@@ -771,7 +771,7 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) (*doc
 
 	oldInput, _ := d.GetChange("consistency_policy")
 	if !(len(oldInput.([]interface{})) == 0 || i[0] == nil) {
-		oldConsistencyPolicy := i[0].([]interface{})
+		oldConsistencyPolicy := i[0].(map[string]interface{})
 		changedFromBoundedStalenessConsistency = oldConsistencyPolicy["consistency_level"].(string) == string(documentdb.BoundedStaleness)
 	}
 
