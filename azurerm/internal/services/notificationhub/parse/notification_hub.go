@@ -23,15 +23,15 @@ func NotificationHubID(input string) (*NotificationHubId, error) {
 	}
 
 	if app.NamespaceName, err = id.PopSegment("namespaces"); err != nil {
-		return nil, fmt.Errorf("parsing Notification Hub ID %q: %+v", input, err)
+		return nil, err
 	}
 
 	if app.Name, err = id.PopSegment("notificationHubs"); err != nil {
-		return nil, fmt.Errorf("parsing Notification Hub ID %q: %+v", input, err)
+		return nil, err
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, fmt.Errorf("parsing Notification Hub ID %q: %+v", input, err)
+		return nil, err
 	}
 
 	return &app, nil
