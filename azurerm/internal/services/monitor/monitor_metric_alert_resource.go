@@ -24,130 +24,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func buildMonitorMetricAlertMultiMetricCriteriaSchema(extra map[string]*schema.Schema) map[string]*schema.Schema {
-	base := map[string]*schema.Schema{
-		"metric_namespace": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"metric_name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"aggregation": {
-			Type:     schema.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				"Average",
-				"Count",
-				"Minimum",
-				"Maximum",
-				"Total",
-			}, false),
-		},
-		"dimension": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"name": {
-						Type:         schema.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-					"operator": {
-						Type:     schema.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Include",
-							"Exclude",
-						}, false),
-					},
-					"values": {
-						Type:     schema.TypeList,
-						Required: true,
-						MinItems: 1,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
-						},
-					},
-				},
-			},
-		},
-	}
-	for k, v := range extra {
-		base[k] = v
-	}
-	return base
-}
-
-var (
-	monitorMetricAlertStaticMetricCriteriaSchema = buildMonitorMetricAlertMultiMetricCriteriaSchema(
-		map[string]*schema.Schema{
-			"operator": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(insights.OperatorEquals),
-					string(insights.OperatorGreaterThan),
-					string(insights.OperatorGreaterThanOrEqual),
-					string(insights.OperatorLessThan),
-					string(insights.OperatorLessThanOrEqual),
-					string(insights.OperatorNotEquals),
-				}, false),
-			},
-			"threshold": {
-				Type:     schema.TypeFloat,
-				Required: true,
-			},
-		},
-	)
-	monitorMetricAlertDynamicMetricCriteriaSchema = buildMonitorMetricAlertMultiMetricCriteriaSchema(
-		map[string]*schema.Schema{
-			"operator": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(insights.DynamicThresholdOperatorLessThan),
-					string(insights.DynamicThresholdOperatorGreaterThan),
-					string(insights.DynamicThresholdOperatorGreaterOrLessThan),
-				}, false),
-			},
-			"alert_sensitivity": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(insights.Low),
-					string(insights.Medium),
-					string(insights.High),
-				}, false),
-			},
-
-			"evaluation_total_count": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-				Default:      4,
-			},
-
-			"evaluation_failure_count": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntAtLeast(1),
-				Default:      4,
-			},
-
-			"ignore_data_before": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsRFC3339Time,
-			},
-		},
-	)
-)
-
 func resourceArmMonitorMetricAlert() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmMonitorMetricAlertCreateUpdate,
@@ -210,7 +86,74 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				MinItems:     1,
 				ExactlyOneOf: []string{"dynamic_criteria", "webtest_location_availability_criteria"},
 				Elem: &schema.Resource{
-					Schema: monitorMetricAlertStaticMetricCriteriaSchema,
+					Schema: map[string]*schema.Schema{
+						"metric_namespace": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"metric_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"aggregation": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Average",
+								"Count",
+								"Minimum",
+								"Maximum",
+								"Total",
+							}, false),
+						},
+						"dimension": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Include",
+											"Exclude",
+										}, false),
+									},
+									"values": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
+						"operator": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(insights.OperatorEquals),
+								string(insights.OperatorGreaterThan),
+								string(insights.OperatorGreaterThanOrEqual),
+								string(insights.OperatorLessThan),
+								string(insights.OperatorLessThanOrEqual),
+								string(insights.OperatorNotEquals),
+							}, false),
+						},
+						"threshold": {
+							Type:     schema.TypeFloat,
+							Required: true,
+						},
+					},
 				},
 			},
 
@@ -222,7 +165,96 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				MaxItems:     1,
 				ExactlyOneOf: []string{"criteria", "webtest_location_availability_criteria"},
 				Elem: &schema.Resource{
-					Schema: monitorMetricAlertDynamicMetricCriteriaSchema,
+					Schema: map[string]*schema.Schema{
+						"metric_namespace": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"metric_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"aggregation": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Average",
+								"Count",
+								"Minimum",
+								"Maximum",
+								"Total",
+							}, false),
+						},
+						"dimension": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Include",
+											"Exclude",
+										}, false),
+									},
+									"values": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
+						"operator": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(insights.DynamicThresholdOperatorLessThan),
+								string(insights.DynamicThresholdOperatorGreaterThan),
+								string(insights.DynamicThresholdOperatorGreaterOrLessThan),
+							}, false),
+						},
+						"alert_sensitivity": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(insights.Low),
+								string(insights.Medium),
+								string(insights.High),
+							}, false),
+						},
+
+						"evaluation_total_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+							Default:      4,
+						},
+
+						"evaluation_failure_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+							Default:      4,
+						},
+
+						"ignore_data_before": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.IsRFC3339Time,
+						},
+					},
 				},
 			},
 
@@ -368,6 +400,10 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
+	criteria, err := expandMonitorMetricAlertCriteria(d)
+	if err != nil {
+		return fmt.Errorf(`Expandding criteria: %+v`, err)
+	}
 	parameters := insights.MetricAlertResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),
 		MetricAlertProperties: &insights.MetricAlertProperties{
@@ -378,7 +414,7 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 			EvaluationFrequency:  utils.String(frequency),
 			WindowSize:           utils.String(windowSize),
 			Scopes:               utils.ExpandStringSlice(scopesRaw),
-			Criteria:             expandMonitorMetricAlertCriteria(d),
+			Criteria:             criteria,
 			Actions:              expandMonitorMetricAlertAction(actionRaw),
 			TargetResourceType:   utils.String(targetResourceType),
 			TargetResourceRegion: utils.String(targetResourceLocation),
@@ -491,17 +527,17 @@ func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandMonitorMetricAlertCriteria(d *schema.ResourceData) insights.BasicMetricAlertCriteria {
+func expandMonitorMetricAlertCriteria(d *schema.ResourceData) (insights.BasicMetricAlertCriteria, error) {
 	switch {
 	case d.Get("criteria").(*schema.Set).Len() != 0:
-		return expandMonitorMetricAlertMetricCriteria(d.Get("criteria").(*schema.Set).List())
+		return expandMonitorMetricAlertMetricCriteria(d.Get("criteria").(*schema.Set).List()), nil
 	case d.Get("dynamic_criteria").(*schema.Set).Len() != 0:
-		return expandMonitorMetricAlertDynamicMetricCriteria(d.Get("dynamic_criteria").(*schema.Set).List())
+		return expandMonitorMetricAlertDynamicMetricCriteria(d.Get("dynamic_criteria").(*schema.Set).List()), nil
 	case d.Get("webtest_location_availability_criteria").(*schema.Set).Len() != 0:
-		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("webtest_location_availability_criteria").([]interface{}))
+		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("webtest_location_availability_criteria").([]interface{})), nil
 	default:
 		// Guaranteed by schema `AtLeastOne` constraint
-		panic("will never happen")
+		return nil, errors.New("unknwon criteria type")
 	}
 }
 
