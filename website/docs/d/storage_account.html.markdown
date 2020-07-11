@@ -43,6 +43,8 @@ output "storage_account_tier" {
 
 * `access_tier` - The access tier for `BlobStorage` accounts.
 
+* `allow_blob_public_access` - Can blobs in this storage account be configured for public access.
+
 * `enable_https_traffic_only` - Is traffic only allowed via HTTPS? See [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information.
 
