@@ -129,7 +129,6 @@ func (client NotebookWorkspacesClient) CreateOrUpdateSender(req *http.Request) (
 func (client NotebookWorkspacesClient) CreateOrUpdateResponder(resp *http.Response) (result NotebookWorkspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -220,7 +219,6 @@ func (client NotebookWorkspacesClient) DeleteSender(req *http.Request) (future N
 func (client NotebookWorkspacesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -310,7 +308,6 @@ func (client NotebookWorkspacesClient) GetSender(req *http.Request) (*http.Respo
 func (client NotebookWorkspacesClient) GetResponder(resp *http.Response) (result NotebookWorkspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -400,7 +397,6 @@ func (client NotebookWorkspacesClient) ListByDatabaseAccountSender(req *http.Req
 func (client NotebookWorkspacesClient) ListByDatabaseAccountResponder(resp *http.Response) (result NotebookWorkspaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -491,7 +487,6 @@ func (client NotebookWorkspacesClient) ListConnectionInfoSender(req *http.Reques
 func (client NotebookWorkspacesClient) ListConnectionInfoResponder(resp *http.Response) (result NotebookWorkspaceConnectionInfoResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -582,7 +577,6 @@ func (client NotebookWorkspacesClient) RegenerateAuthTokenSender(req *http.Reque
 func (client NotebookWorkspacesClient) RegenerateAuthTokenResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -672,7 +666,6 @@ func (client NotebookWorkspacesClient) StartSender(req *http.Request) (future No
 func (client NotebookWorkspacesClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

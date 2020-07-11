@@ -117,7 +117,6 @@ func (client DatabaseAccountsClient) CheckNameExistsSender(req *http.Request) (*
 func (client DatabaseAccountsClient) CheckNameExistsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -225,7 +224,6 @@ func (client DatabaseAccountsClient) CreateOrUpdateSender(req *http.Request) (fu
 func (client DatabaseAccountsClient) CreateOrUpdateResponder(resp *http.Response) (result DatabaseAccountGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -315,7 +313,6 @@ func (client DatabaseAccountsClient) DeleteSender(req *http.Request) (future Dat
 func (client DatabaseAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -411,7 +408,6 @@ func (client DatabaseAccountsClient) FailoverPriorityChangeSender(req *http.Requ
 func (client DatabaseAccountsClient) FailoverPriorityChangeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -500,8 +496,7 @@ func (client DatabaseAccountsClient) GetSender(req *http.Request) (*http.Respons
 func (client DatabaseAccountsClient) GetResponder(resp *http.Response) (result DatabaseAccountGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -590,7 +585,6 @@ func (client DatabaseAccountsClient) GetReadOnlyKeysSender(req *http.Request) (*
 func (client DatabaseAccountsClient) GetReadOnlyKeysResponder(resp *http.Response) (result DatabaseAccountListReadOnlyKeysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -667,7 +661,6 @@ func (client DatabaseAccountsClient) ListSender(req *http.Request) (*http.Respon
 func (client DatabaseAccountsClient) ListResponder(resp *http.Response) (result DatabaseAccountsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -751,7 +744,6 @@ func (client DatabaseAccountsClient) ListByResourceGroupSender(req *http.Request
 func (client DatabaseAccountsClient) ListByResourceGroupResponder(resp *http.Response) (result DatabaseAccountsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -841,7 +833,6 @@ func (client DatabaseAccountsClient) ListConnectionStringsSender(req *http.Reque
 func (client DatabaseAccountsClient) ListConnectionStringsResponder(resp *http.Response) (result DatabaseAccountListConnectionStringsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -931,7 +922,6 @@ func (client DatabaseAccountsClient) ListKeysSender(req *http.Request) (*http.Re
 func (client DatabaseAccountsClient) ListKeysResponder(resp *http.Response) (result DatabaseAccountListKeysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1021,7 +1011,6 @@ func (client DatabaseAccountsClient) ListMetricDefinitionsSender(req *http.Reque
 func (client DatabaseAccountsClient) ListMetricDefinitionsResponder(resp *http.Response) (result MetricDefinitionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1115,7 +1104,6 @@ func (client DatabaseAccountsClient) ListMetricsSender(req *http.Request) (*http
 func (client DatabaseAccountsClient) ListMetricsResponder(resp *http.Response) (result MetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1205,7 +1193,6 @@ func (client DatabaseAccountsClient) ListReadOnlyKeysSender(req *http.Request) (
 func (client DatabaseAccountsClient) ListReadOnlyKeysResponder(resp *http.Response) (result DatabaseAccountListReadOnlyKeysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1300,7 +1287,6 @@ func (client DatabaseAccountsClient) ListUsagesSender(req *http.Request) (*http.
 func (client DatabaseAccountsClient) ListUsagesResponder(resp *http.Response) (result UsagesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1395,7 +1381,6 @@ func (client DatabaseAccountsClient) OfflineRegionSender(req *http.Request) (fut
 func (client DatabaseAccountsClient) OfflineRegionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1489,7 +1474,6 @@ func (client DatabaseAccountsClient) OnlineRegionSender(req *http.Request) (futu
 func (client DatabaseAccountsClient) OnlineRegionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1581,7 +1565,6 @@ func (client DatabaseAccountsClient) RegenerateKeySender(req *http.Request) (fut
 func (client DatabaseAccountsClient) RegenerateKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1673,7 +1656,6 @@ func (client DatabaseAccountsClient) UpdateSender(req *http.Request) (future Dat
 func (client DatabaseAccountsClient) UpdateResponder(resp *http.Response) (result DatabaseAccountGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

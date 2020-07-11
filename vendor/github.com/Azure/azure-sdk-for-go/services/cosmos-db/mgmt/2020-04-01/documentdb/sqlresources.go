@@ -144,7 +144,6 @@ func (client SQLResourcesClient) CreateUpdateSQLContainerSender(req *http.Reques
 func (client SQLResourcesClient) CreateUpdateSQLContainerResponder(resp *http.Response) (result SQLContainerGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -245,7 +244,6 @@ func (client SQLResourcesClient) CreateUpdateSQLDatabaseSender(req *http.Request
 func (client SQLResourcesClient) CreateUpdateSQLDatabaseResponder(resp *http.Response) (result SQLDatabaseGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -350,7 +348,6 @@ func (client SQLResourcesClient) CreateUpdateSQLStoredProcedureSender(req *http.
 func (client SQLResourcesClient) CreateUpdateSQLStoredProcedureResponder(resp *http.Response) (result SQLStoredProcedureGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -455,7 +452,6 @@ func (client SQLResourcesClient) CreateUpdateSQLTriggerSender(req *http.Request)
 func (client SQLResourcesClient) CreateUpdateSQLTriggerResponder(resp *http.Response) (result SQLTriggerGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -561,7 +557,6 @@ func (client SQLResourcesClient) CreateUpdateSQLUserDefinedFunctionSender(req *h
 func (client SQLResourcesClient) CreateUpdateSQLUserDefinedFunctionResponder(resp *http.Response) (result SQLUserDefinedFunctionGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -655,7 +650,6 @@ func (client SQLResourcesClient) DeleteSQLContainerSender(req *http.Request) (fu
 func (client SQLResourcesClient) DeleteSQLContainerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -746,7 +740,6 @@ func (client SQLResourcesClient) DeleteSQLDatabaseSender(req *http.Request) (fut
 func (client SQLResourcesClient) DeleteSQLDatabaseResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -841,7 +834,6 @@ func (client SQLResourcesClient) DeleteSQLStoredProcedureSender(req *http.Reques
 func (client SQLResourcesClient) DeleteSQLStoredProcedureResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -936,7 +928,6 @@ func (client SQLResourcesClient) DeleteSQLTriggerSender(req *http.Request) (futu
 func (client SQLResourcesClient) DeleteSQLTriggerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1031,7 +1022,6 @@ func (client SQLResourcesClient) DeleteSQLUserDefinedFunctionSender(req *http.Re
 func (client SQLResourcesClient) DeleteSQLUserDefinedFunctionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1124,7 +1114,6 @@ func (client SQLResourcesClient) GetSQLContainerSender(req *http.Request) (*http
 func (client SQLResourcesClient) GetSQLContainerResponder(resp *http.Response) (result SQLContainerGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1219,7 +1208,6 @@ func (client SQLResourcesClient) GetSQLContainerThroughputSender(req *http.Reque
 func (client SQLResourcesClient) GetSQLContainerThroughputResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1311,7 +1299,6 @@ func (client SQLResourcesClient) GetSQLDatabaseSender(req *http.Request) (*http.
 func (client SQLResourcesClient) GetSQLDatabaseResponder(resp *http.Response) (result SQLDatabaseGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1404,7 +1391,6 @@ func (client SQLResourcesClient) GetSQLDatabaseThroughputSender(req *http.Reques
 func (client SQLResourcesClient) GetSQLDatabaseThroughputResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1500,7 +1486,6 @@ func (client SQLResourcesClient) GetSQLStoredProcedureSender(req *http.Request) 
 func (client SQLResourcesClient) GetSQLStoredProcedureResponder(resp *http.Response) (result SQLStoredProcedureGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1596,7 +1581,6 @@ func (client SQLResourcesClient) GetSQLTriggerSender(req *http.Request) (*http.R
 func (client SQLResourcesClient) GetSQLTriggerResponder(resp *http.Response) (result SQLTriggerGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1692,7 +1676,6 @@ func (client SQLResourcesClient) GetSQLUserDefinedFunctionSender(req *http.Reque
 func (client SQLResourcesClient) GetSQLUserDefinedFunctionResponder(resp *http.Response) (result SQLUserDefinedFunctionGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1784,7 +1767,6 @@ func (client SQLResourcesClient) ListSQLContainersSender(req *http.Request) (*ht
 func (client SQLResourcesClient) ListSQLContainersResponder(resp *http.Response) (result SQLContainerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1874,7 +1856,6 @@ func (client SQLResourcesClient) ListSQLDatabasesSender(req *http.Request) (*htt
 func (client SQLResourcesClient) ListSQLDatabasesResponder(resp *http.Response) (result SQLDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1968,7 +1949,6 @@ func (client SQLResourcesClient) ListSQLStoredProceduresSender(req *http.Request
 func (client SQLResourcesClient) ListSQLStoredProceduresResponder(resp *http.Response) (result SQLStoredProcedureListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2062,7 +2042,6 @@ func (client SQLResourcesClient) ListSQLTriggersSender(req *http.Request) (*http
 func (client SQLResourcesClient) ListSQLTriggersResponder(resp *http.Response) (result SQLTriggerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2156,7 +2135,6 @@ func (client SQLResourcesClient) ListSQLUserDefinedFunctionsSender(req *http.Req
 func (client SQLResourcesClient) ListSQLUserDefinedFunctionsResponder(resp *http.Response) (result SQLUserDefinedFunctionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2260,7 +2238,6 @@ func (client SQLResourcesClient) UpdateSQLContainerThroughputSender(req *http.Re
 func (client SQLResourcesClient) UpdateSQLContainerThroughputResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2362,7 +2339,6 @@ func (client SQLResourcesClient) UpdateSQLDatabaseThroughputSender(req *http.Req
 func (client SQLResourcesClient) UpdateSQLDatabaseThroughputResponder(resp *http.Response) (result ThroughputSettingsGetResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
