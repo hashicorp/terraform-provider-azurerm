@@ -451,20 +451,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
-		enableMultipleWriteLocationsCreateUpdateParameters := documentdb.DatabaseAccountCreateUpdateParameters{
-			Location: utils.String(location),
-			DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-				DatabaseAccountOfferType:     utils.String(offerType),
-				EnableMultipleWriteLocations: utils.Bool(enableMultipleWriteLocations),
-			},
-		}
-
-		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, enableMultipleWriteLocationsCreateUpdateParameters, d); err != nil {
-			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-	}
-
 	// determine if any locations have been renamed/priority reordered and remove them
 	removedOne := false
 	for _, l := range newLocations {
@@ -507,6 +493,21 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	upsertResponse, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
+		enableMultipleWriteLocationsCreateUpdateParameters := documentdb.DatabaseAccountCreateUpdateParameters{
+			Location: utils.String(location),
+			DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
+				DatabaseAccountOfferType:     utils.String(offerType),
+				EnableMultipleWriteLocations: utils.Bool(enableMultipleWriteLocations),
+				Locations:                    &newLocations,
+			},
+		}
+
+		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, enableMultipleWriteLocationsCreateUpdateParameters, d); err != nil {
+			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	if upsertResponse.ID == nil {
@@ -689,11 +690,10 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return resp, "NotFound", nil
+				}
 				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after delete (Resource Group %q): %+v", name, resourceGroup, err2)
-			}
-
-			if utils.ResponseWasNotFound(resp.Response) {
-				return resp, "NotFound", nil
 			}
 
 			return resp, "Deleting", nil
