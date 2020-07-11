@@ -132,7 +132,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"allow_public_access": {
+			"allow_blob_public_access": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -616,7 +616,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
-	allowBlobPublicAccess := d.Get("allow_public_access").(bool)
+	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 
 	accountTier := d.Get("account_tier").(string)
@@ -867,8 +867,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("allow_public_access") {
-		allowBlobPublicAccess := d.Get("allow_public_access").(bool)
+	if d.HasChange("allow_blob_public_access") {
+		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -877,7 +877,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account allow_public_access %q: %+v", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1034,7 +1034,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
-		d.Set("allow_public_access", props.AllowBlobPublicAccess)
+		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 
 		if customDomain := props.CustomDomain; customDomain != nil {

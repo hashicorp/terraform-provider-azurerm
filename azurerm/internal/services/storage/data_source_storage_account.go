@@ -67,7 +67,7 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"allow_public_access": {
+			"allow_blob_public_access": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -310,7 +310,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
-		d.Set("allow_public_access", props.AllowBlobPublicAccess)
+		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 
