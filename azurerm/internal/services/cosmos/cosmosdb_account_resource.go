@@ -160,6 +160,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
 								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
 							),
+							Deprecated: "This is deprecated because the service no longer accepts this as an input since Apr 25, 2019",
 						},
 
 						"id": {
@@ -338,7 +339,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
 		}
 	}
-	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(name, d)
+	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
 	}
@@ -407,7 +408,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
 
-	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(name, d)
+	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding CosmosDB Account %q (Resource Group %q) geo locations: %+v", name, resourceGroup, err)
 	}
@@ -445,12 +446,21 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			ConsistencyPolicy:             expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                     &oldLocations,
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
+			EnableMultipleWriteLocations:  resp.EnableMultipleWriteLocations,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if upsertResponse, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q properties (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	// Update the property independently after the initial upsert as no other properties may change at the same time.
+	account.DatabaseAccountCreateUpdateProperties.EnableMultipleWriteLocations = utils.Bool(enableMultipleWriteLocations)
+	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
+		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d); err != nil {
+			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
 
 	// determine if any locations have been renamed/priority reordered and remove them
@@ -464,16 +474,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 				delete(oldLocationsMap, *l.LocationName)
 				removedOne = true
 				continue
-			}
-			if *l.ID == "" && *ol.ID == resourceArmCosmosDbAccountGenerateDefaultId(name, *l.LocationName) {
-				continue
-			}
-			if *l.ID != *ol.ID {
-				if *l.FailoverPriority == 0 {
-					return fmt.Errorf("Cannot change the prefix/ID of the primary Cosmos DB account %q location %s (Resource Group %q)", name, *l.LocationName, resourceGroup)
-				}
-				delete(oldLocationsMap, *l.LocationName)
-				removedOne = true
 			}
 		}
 	}
@@ -495,21 +495,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	upsertResponse, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account, d)
 	if err != nil {
 		return fmt.Errorf("Error updating CosmosDB Account %q locations (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	if *resp.EnableMultipleWriteLocations != enableMultipleWriteLocations {
-		enableMultipleWriteLocationsCreateUpdateParameters := documentdb.DatabaseAccountCreateUpdateParameters{
-			Location: utils.String(location),
-			DatabaseAccountCreateUpdateProperties: &documentdb.DatabaseAccountCreateUpdateProperties{
-				DatabaseAccountOfferType:     utils.String(offerType),
-				EnableMultipleWriteLocations: utils.Bool(enableMultipleWriteLocations),
-				Locations:                    &newLocations,
-			},
-		}
-
-		if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, enableMultipleWriteLocationsCreateUpdateParameters, d); err != nil {
-			return fmt.Errorf("Error updating CosmosDB Account %q EnableMultipleWriteLocations (Resource Group %q): %+v", name, resourceGroup, err)
-		}
 	}
 
 	if upsertResponse.ID == nil {
@@ -571,7 +556,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting CosmosDB Account %q `consistency_policy` (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(d, resp)); err != nil {
+	if err = d.Set("geo_location", flattenAzureRmCosmosDBAccountGeoLocations(resp)); err != nil {
 		return fmt.Errorf("Error setting `geo_location`: %+v", err)
 	}
 
@@ -731,7 +716,8 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
 			}
 			status := "Succeeded"
-			for _, l := range append(*resp.ReadLocations, *resp.WriteLocations...) {
+			locations := append(*resp.ReadLocations, *resp.WriteLocations...)
+			for _, l := range locations {
 				if status = *l.ProvisioningState; status == "Creating" || status == "Updating" || status == "Deleting" {
 					break // return the first non successful status.
 				}
@@ -784,11 +770,7 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *docu
 	return &policy
 }
 
-func resourceArmCosmosDbAccountGenerateDefaultId(databaseName string, location string) string {
-	return fmt.Sprintf("%s-%s", databaseName, location)
-}
-
-func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
+func expandAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData) ([]documentdb.Location, error) {
 	locations := make([]documentdb.Location, 0)
 	for _, l := range d.Get("geo_location").(*schema.Set).List() {
 		data := l.(map[string]interface{})
@@ -797,13 +779,6 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 			LocationName:     utils.String(azure.NormalizeLocation(data["location"].(string))),
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
 		}
-
-		if v, ok := data["prefix"].(string); ok {
-			data["id"] = v
-		} else {
-			data["id"] = utils.String(resourceArmCosmosDbAccountGenerateDefaultId(databaseName, *location.LocationName))
-		}
-		location.ID = utils.String(data["id"].(string))
 
 		locations = append(locations, location)
 	}
@@ -875,18 +850,9 @@ func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.Consisten
 	return []interface{}{result}
 }
 
-func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account documentdb.DatabaseAccountGetResults) *schema.Set {
+func flattenAzureRmCosmosDBAccountGeoLocations(account documentdb.DatabaseAccountGetResults) *schema.Set {
 	locationSet := schema.Set{
 		F: resourceAzureRMCosmosDBAccountGeoLocationHash,
-	}
-
-	// we need to propagate the `prefix` field so fetch existing
-	prefixMap := map[string]string{}
-	if locations, ok := d.GetOk("geo_location"); ok {
-		for _, lRaw := range locations.(*schema.Set).List() {
-			lb := lRaw.(map[string]interface{})
-			prefixMap[lb["location"].(string)] = lb["prefix"].(string)
-		}
 	}
 
 	for _, l := range *account.FailoverPolicies {
@@ -895,11 +861,6 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 			"id":                id,
 			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
-		}
-
-		// if id is not the default then it must be set via prefix
-		if id != resourceArmCosmosDbAccountGenerateDefaultId(d.Get("name").(string), lb["location"].(string)) {
-			lb["prefix"] = id
 		}
 
 		locationSet.Add(lb)
@@ -947,14 +908,10 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		prefix := ""
-		if v, ok := m["prefix"].(string); ok {
-			prefix = v
-		}
 		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
 
-		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))
+		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
 	}
 
 	return hashcode.String(buf.String())

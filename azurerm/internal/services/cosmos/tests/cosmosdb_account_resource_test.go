@@ -494,12 +494,12 @@ resource "azurerm_cosmosdb_account" "import" {
   offer_type          = azurerm_cosmosdb_account.test.offer_type
 
   consistency_policy {
-    consistency_level = azurerm_cosmosdb_account.consistency_policy[0].consistency_level
+    consistency_level = azurerm_cosmosdb_account.test.consistency_policy[0].consistency_level
   }
 
   geo_location {
-    location          = azurerm_cosmosdb_account.geo_location[0].location
-    failover_priority = azurerm_cosmosdb_account.geo_location[0].location
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
   }
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", consistency))
@@ -609,7 +609,6 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id"
     location          = "%[5]s"
     failover_priority = 1
   }
@@ -635,6 +634,7 @@ resource "azurerm_cosmosdb_account" "test" {
 
   consistency_policy {
     consistency_level    = "%[4]s"
+	max_interval_in_seconds = 360
     max_staleness_prefix = 170000
   }
 
@@ -652,13 +652,11 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id-updated"
     location          = "%[5]s"
     failover_priority = 1
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id-added"
     location          = "%[6]s"
     failover_priority = 2
   }
