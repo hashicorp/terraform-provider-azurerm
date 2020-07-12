@@ -85,7 +85,7 @@ func (client MachineLearningComputeClient) CreateOrUpdatePreparer(ctx context.Co
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -166,7 +166,7 @@ func (client MachineLearningComputeClient) DeletePreparer(ctx context.Context, r
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version":              APIVersion,
 		"underlyingResourceAction": autorest.Encode("query", underlyingResourceAction),
@@ -250,7 +250,7 @@ func (client MachineLearningComputeClient) GetPreparer(ctx context.Context, reso
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -327,7 +327,7 @@ func (client MachineLearningComputeClient) ListByWorkspacePreparer(ctx context.C
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -444,7 +444,7 @@ func (client MachineLearningComputeClient) ListKeysPreparer(ctx context.Context,
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -521,7 +521,7 @@ func (client MachineLearningComputeClient) ListNodesPreparer(ctx context.Context
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -594,7 +594,7 @@ func (client MachineLearningComputeClient) UpdatePreparer(ctx context.Context, r
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
