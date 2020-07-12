@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"time"
+
+	"encoding/json"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-09-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -189,6 +192,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 			DisplayName:        utils.String(displayName),
 			Scope:              utils.String(scope),
 			EnforcementMode:    enforcementMode,
+			Metadata:           nil,
 		},
 	}
 
@@ -222,7 +226,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 		if err != nil {
 			return fmt.Errorf("unable to parse metadata: %s", err)
 		}
-		properties.Metadata = &metaData
+		assignment.AssignmentProperties.Metadata = &metaData
 	}
 
 	if _, ok := d.GetOk("not_scopes"); ok {
@@ -298,11 +302,11 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)
 		d.Set("enforcement_mode", props.EnforcementMode == policy.Default)
-		
+
 		if metadataStr := flattenJSON(props.Metadata); metadataStr != "" {
 			d.Set("metadata", metadataStr)
 		}
-		
+
 		if params := props.Parameters; params != nil {
 			json, err := flattenParameterValuesValueToString(params)
 			if err != nil {
