@@ -573,25 +573,17 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"file_system": {
-								Type:     schema.TypeList,
-								Optional: true,
-								MaxItems: 1,
-								Elem: &schema.Resource{
-									Schema: map[string]*schema.Schema{
-										"level": {
-											Type:     schema.TypeString,
-											Required: true,
-											ValidateFunc: validation.StringInSlice([]string{
-												string(web.Error),
-												string(web.Information),
-												string(web.Off),
-												string(web.Verbose),
-												string(web.Warning),
-											}, false),
-										}},
-								},
+							"file_system_level": {
+								Type:          schema.TypeString,
+								Required:      true,
 								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+								ValidateFunc: validation.StringInSlice([]string{
+									string(web.Error),
+									string(web.Information),
+									string(web.Off),
+									string(web.Verbose),
+									string(web.Warning),
+								}, false),
 							},
 							"azure_blob_storage": {
 								Type:     schema.TypeList,
@@ -1297,13 +1289,8 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 	if input.ApplicationLogs != nil {
 		appLogsItem := make(map[string]interface{})
 
-		fileSystem := make([]interface{}, 0)
 		if fileSystemInput := input.ApplicationLogs.FileSystem; fileSystemInput != nil {
-			fileSystemItem := make(map[string]interface{})
-
-			fileSystemItem["level"] = string(fileSystemInput.Level)
-
-			fileSystem = append(fileSystem, fileSystemItem)
+			appLogsItem["file_system_level"] = string(fileSystemInput.Level)
 		}
 
 		blobStorage := make([]interface{}, 0)
@@ -1326,7 +1313,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 			}
 		}
 
-		appLogsItem["file_system"] = fileSystem
 		appLogsItem["azure_blob_storage"] = blobStorage
 		appLogs = append(appLogs, appLogsItem)
 	}
@@ -1399,15 +1385,9 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 
 			logs.ApplicationLogs = &web.ApplicationLogsConfig{}
 
-			if v, ok := appLogsConfig["file_system"]; ok {
-				fileSystemConfigs := v.([]interface{})
-
-				for _, config := range fileSystemConfigs {
-					fileSystemConfig := config.(map[string]interface{})
-
-					logs.ApplicationLogs.FileSystem = &web.FileSystemApplicationLogsConfig{
-						Level: web.LogLevel(fileSystemConfig["level"].(string)),
-					}
+			if v, ok := appLogsConfig["file_system_level"]; ok {
+				logs.ApplicationLogs.FileSystem = &web.FileSystemApplicationLogsConfig{
+					Level: web.LogLevel(v.(string)),
 				}
 			}
 

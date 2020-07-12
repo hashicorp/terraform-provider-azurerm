@@ -1261,7 +1261,7 @@ func TestAccAzureRMAppServiceSlot_applicationBlobStorageLogs(t *testing.T) {
 				Config: testAccAzureRMAppServiceSlot_applicationBlobStorageLogs(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.file_system.0.level", "Warning"),
+					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.file_system_level", "Warning"),
 					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.level", "Information"),
 					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.sas_url", "https://example.com/"),
 					resource.TestCheckResourceAttr(data.ResourceName, "logs.0.application_logs.0.azure_blob_storage.0.retention_in_days", "3"),
@@ -3511,9 +3511,7 @@ resource "azurerm_app_service_slot" "test" {
 
   logs {
     application_logs {
-      file_system {
-        level = "Warning"
-      }
+      file_system_level = "Warning"
       azure_blob_storage {
         level             = "Information"
         sas_url           = "https://example.com/"
