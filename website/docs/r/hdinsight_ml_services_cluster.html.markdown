@@ -10,6 +10,8 @@ description: |-
 
 Manages a HDInsight ML Services Cluster.
 
+~> **NOTE:** This resource has been deprecated due to HDInsight 3.6 retirement on December 31, 2020. More details: https://docs.microsoft.com/en-us/azure/hdinsight/r-server/r-server-overview#simple-secure-and-high-scale-operationalization-and-administration
+
 ## Example Usage
 
 ```hcl

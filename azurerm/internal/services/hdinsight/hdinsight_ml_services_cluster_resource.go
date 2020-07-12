@@ -53,10 +53,11 @@ var hdInsightMLServicesClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition
 
 func resourceArmHDInsightMLServicesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightMLServicesClusterCreate,
-		Read:   resourceArmHDInsightMLServicesClusterRead,
-		Update: hdinsightClusterUpdate("MLServices", resourceArmHDInsightMLServicesClusterRead),
-		Delete: hdinsightClusterDelete("MLServices"),
+		DeprecationMessage: "Due to HDInsight 3.6 retirement on December 31, 2020",
+		Create:             resourceArmHDInsightMLServicesClusterCreate,
+		Read:               resourceArmHDInsightMLServicesClusterRead,
+		Update:             hdinsightClusterUpdate("MLServices", resourceArmHDInsightMLServicesClusterRead),
+		Delete:             hdinsightClusterDelete("MLServices"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

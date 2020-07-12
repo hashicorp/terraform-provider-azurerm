@@ -53,10 +53,11 @@ var hdInsightRServerClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
 
 func resourceArmHDInsightRServerCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightRServerClusterCreate,
-		Read:   resourceArmHDInsightRServerClusterRead,
-		Update: hdinsightClusterUpdate("RServer", resourceArmHDInsightRServerClusterRead),
-		Delete: hdinsightClusterDelete("RServer"),
+		DeprecationMessage: "Due to HDInsight 3.6 retirement on December 31, 2020",
+		Create:             resourceArmHDInsightRServerClusterCreate,
+		Read:               resourceArmHDInsightRServerClusterRead,
+		Update:             hdinsightClusterUpdate("RServer", resourceArmHDInsightRServerClusterRead),
+		Delete:             hdinsightClusterDelete("RServer"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
