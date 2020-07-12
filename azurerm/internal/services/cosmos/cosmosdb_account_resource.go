@@ -754,13 +754,13 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *docu
 
 	if stalenessPrefix, ok := input["max_staleness_prefix"].(int); ok {
 		if stalenessPrefix == 0 {
-			stalenessPrefix = 5
+			stalenessPrefix = 100
 		}
 		policy.MaxStalenessPrefix = utils.Int64(int64(stalenessPrefix))
 	}
 	if maxInterval, ok := input["max_interval_in_seconds"].(int); ok {
 		if maxInterval == 0 {
-			maxInterval = 100
+			maxInterval = 5
 		}
 		policy.MaxIntervalInSeconds = utils.Int32(int32(maxInterval))
 	}
