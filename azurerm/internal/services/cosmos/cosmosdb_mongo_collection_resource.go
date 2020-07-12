@@ -338,13 +338,12 @@ func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) *int 
 	var ttl int
 	for _, i := range *indexes {
 		if key := i.Key; key != nil {
-			var ttlInner int32
-
 			if keys := key.Keys; keys != nil && len(*keys) > 0 {
 				k := (*keys)[0]
 
 				if k == "_ts" {
-					ttl = int(ttlInner)
+					ttl = int(*i.Options.ExpireAfterSeconds)
+					break
 				}
 			}
 		}
