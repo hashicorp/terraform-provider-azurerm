@@ -10,6 +10,9 @@ description: |-
 
 Manages a HDInsight Storm Cluster.
 
+~> **NOTE:** This resource has been deprecated due to HDInsight 3.6 retirement on December 31, 2020 and Apache Storm isn't supported in HDInsight 4.0. More details about available versions of HDInsight: https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions 
+
+
 ## Example Usage
 
 ```hcl

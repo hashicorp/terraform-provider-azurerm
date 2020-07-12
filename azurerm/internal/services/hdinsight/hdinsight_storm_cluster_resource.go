@@ -42,10 +42,11 @@ var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 
 func resourceArmHDInsightStormCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmHDInsightStormClusterCreate,
-		Read:   resourceArmHDInsightStormClusterRead,
-		Update: hdinsightClusterUpdate("Storm", resourceArmHDInsightStormClusterRead),
-		Delete: hdinsightClusterDelete("Storm"),
+		DeprecationMessage: "Due to HDInsight 3.6 retirement on December 31, 2020",
+		Create:             resourceArmHDInsightStormClusterCreate,
+		Read:               resourceArmHDInsightStormClusterRead,
+		Update:             hdinsightClusterUpdate("Storm", resourceArmHDInsightStormClusterRead),
+		Delete:             hdinsightClusterDelete("Storm"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
