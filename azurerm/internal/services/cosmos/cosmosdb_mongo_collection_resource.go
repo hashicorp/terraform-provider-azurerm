@@ -93,6 +93,44 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
+			"index": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"keys": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+
+						"unique": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
+			"system_indexes": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"keys": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+
+						"unique": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -131,7 +169,7 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &name,
-				Indexes: expandCosmosMongoCollectionIndexes(ttl),
+				Indexes: expandCosmosMongoCollectionIndex(d.Get("index").(*schema.Set).List(), ttl),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -189,7 +227,7 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
 			Resource: &documentdb.MongoDBCollectionResource{
 				ID:      &id.Name,
-				Indexes: expandCosmosMongoCollectionIndexes(ttl),
+				Indexes: expandCosmosMongoCollectionIndex(d.Get("index").(*schema.Set).List(), ttl),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -272,8 +310,15 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 				d.Set("shard_key", k)
 			}
 
-			if res.Indexes != nil {
-				d.Set("default_ttl_seconds", flattenCosmosMongoCollectionIndexes(res.Indexes))
+			indexes, systemIndexes, ttl := flattenCosmosMongoCollectionIndex(res.Indexes)
+			if err := d.Set("default_ttl_seconds", ttl); err != nil {
+				return fmt.Errorf("failed to set `default_ttl_seconds`: %+v", err)
+			}
+			if err := d.Set("index", indexes); err != nil {
+				return fmt.Errorf("failed to set `index`: %+v", err)
+			}
+			if err := d.Set("system_indexes", systemIndexes); err != nil {
+				return fmt.Errorf("failed to set `system_indexes`: %+v", err)
 			}
 		}
 	}
@@ -317,11 +362,26 @@ func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandCosmosMongoCollectionIndexes(defaultTtl *int) *[]documentdb.MongoIndex {
-	outputs := make([]documentdb.MongoIndex, 0)
+func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) *[]documentdb.MongoIndex {
+	results := make([]documentdb.MongoIndex, 0)
+
+	if len(indexes) != 0 {
+		for _, v := range indexes {
+			index := v.(map[string]interface{})
+
+			results = append(results, documentdb.MongoIndex{
+				Key: &documentdb.MongoIndexKeys{
+					Keys: utils.ExpandStringSlice(index["keys"].(*schema.Set).List()),
+				},
+				Options: &documentdb.MongoIndexOptions{
+					Unique: utils.Bool(index["unique"].(bool)),
+				},
+			})
+		}
+	}
 
 	if defaultTtl != nil {
-		outputs = append(outputs, documentdb.MongoIndex{
+		results = append(results, documentdb.MongoIndex{
 			Key: &documentdb.MongoIndexKeys{
 				Keys: &[]string{"_ts"},
 			},
@@ -331,23 +391,62 @@ func expandCosmosMongoCollectionIndexes(defaultTtl *int) *[]documentdb.MongoInde
 		})
 	}
 
-	return &outputs
+	return &results
 }
 
-func flattenCosmosMongoCollectionIndexes(indexes *[]documentdb.MongoIndex) *int {
-	var ttl int
-	for _, i := range *indexes {
-		if key := i.Key; key != nil {
-			if keys := key.Keys; keys != nil && len(*keys) > 0 {
-				k := (*keys)[0]
+func flattenCosmosMongoCollectionIndex(input *[]documentdb.MongoIndex) (*[]map[string]interface{}, *[]map[string]interface{}, *int32) {
+	indexes := make([]map[string]interface{}, 0)
+	systemIndexes := make([]map[string]interface{}, 0)
+	var ttl *int32
+	if input == nil {
+		return &indexes, &systemIndexes, ttl
+	}
 
-				if k == "_ts" {
-					ttl = int(*i.Options.ExpireAfterSeconds)
-					break
+	for _, v := range *input {
+		index := map[string]interface{}{}
+		systemIndex := map[string]interface{}{}
+
+		if v.Key != nil && v.Key.Keys != nil && len(*v.Key.Keys) > 0 {
+			key := (*v.Key.Keys)[0]
+
+			switch key {
+			// As `DocumentDBDefaultIndex` and `_id` cannot be updated, so they would be moved into `system_indexes`.
+			case "_id":
+				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+				// The system index `_id` is always unique but api returns nil and it would be converted to `false` by zero-value. So it has to be manually set as `true`.
+				systemIndex["unique"] = true
+
+				systemIndexes = append(systemIndexes, systemIndex)
+			case "DocumentDBDefaultIndex":
+				// Updating system index `DocumentDBDefaultIndex` is not a supported scenario.
+				systemIndex["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+
+				isUnique := false
+				if v.Options != nil && v.Options.Unique != nil {
+					isUnique = *v.Options.Unique
 				}
+				systemIndex["unique"] = isUnique
+
+				systemIndexes = append(systemIndexes, systemIndex)
+			case "_ts":
+				if v.Options != nil && v.Options.ExpireAfterSeconds != nil {
+					// As `ExpireAfterSeconds` only can be applied to system index `_ts`, so it would be set in `default_ttl_seconds`.
+					ttl = v.Options.ExpireAfterSeconds
+				}
+			default:
+				// The other settable indexes would be set in `index`
+				index["keys"] = utils.FlattenStringSlice(v.Key.Keys)
+
+				isUnique := false
+				if v.Options != nil && v.Options.Unique != nil {
+					isUnique = *v.Options.Unique
+				}
+				index["unique"] = isUnique
+
+				indexes = append(indexes, index)
 			}
 		}
 	}
 
-	return &ttl
+	return &indexes, &systemIndexes, ttl
 }
