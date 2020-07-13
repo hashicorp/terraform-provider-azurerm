@@ -10,7 +10,7 @@ description: |-
 
 Manages a HDInsight RServer Cluster.
 
-~> **NOTE:** This resource has been deprecated due to HDInsight 3.6 retirement on December 31, 2020. More details: https://docs.microsoft.com/en-us/azure/hdinsight/r-server/r-server-overview#simple-secure-and-high-scale-operationalization-and-administration
+!> **Note:** [HDInsight 3.6 is deprecated and will be retired on 2020-12-31 - HDInsight 4.0 no longer supports RServer Clusters](https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions) - as such this Terraform resource is deprecated and will be removed in the next major version of the AzureRM Terraform Provider.
 
 ## Example Usage
 
