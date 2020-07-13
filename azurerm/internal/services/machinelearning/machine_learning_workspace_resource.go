@@ -143,7 +143,6 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 			"hbi_workspace": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
 			},
 		},
 	}
@@ -277,6 +276,7 @@ func resourceArmMachineLearningWorkspaceRead(d *schema.ResourceData, meta interf
 		d.Set("container_registry_id", props.ContainerRegistry)
 		d.Set("description", props.Description)
 		d.Set("friendly_name", props.FriendlyName)
+		d.Set("hbi_workspace", props.HbiWorkspace)
 	}
 
 	if err := d.Set("identity", flattenArmMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {

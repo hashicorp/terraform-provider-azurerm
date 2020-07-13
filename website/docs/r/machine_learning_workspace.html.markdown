@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
-* `hbi_workspace` - (Optional) Flag to signal HBI (High Business Impact) data in the workspace and reduce diagnostic data collected by the service. Default to `false`
+* `hbi_workspace` - (Optional) Flag to signal HBI (High Business Impact) data in the workspace and reduce diagnostic data collected by the service
 
 ---
 
