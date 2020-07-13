@@ -47,10 +47,10 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 More information on the HDInsight 3.6 deprecation can be found at:
 
 https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
-		Create:             resourceArmHDInsightStormClusterCreate,
-		Read:               resourceArmHDInsightStormClusterRead,
-		Update:             hdinsightClusterUpdate("Storm", resourceArmHDInsightStormClusterRead),
-		Delete:             hdinsightClusterDelete("Storm"),
+		Create: resourceArmHDInsightStormClusterCreate,
+		Read:   resourceArmHDInsightStormClusterRead,
+		Update: hdinsightClusterUpdate("Storm", resourceArmHDInsightStormClusterRead),
+		Delete: hdinsightClusterDelete("Storm"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

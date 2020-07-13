@@ -58,10 +58,10 @@ func resourceArmHDInsightRServerCluster() *schema.Resource {
 More information on the HDInsight 3.6 deprecation can be found at:
 
 https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
-		Create:             resourceArmHDInsightRServerClusterCreate,
-		Read:               resourceArmHDInsightRServerClusterRead,
-		Update:             hdinsightClusterUpdate("RServer", resourceArmHDInsightRServerClusterRead),
-		Delete:             hdinsightClusterDelete("RServer"),
+		Create: resourceArmHDInsightRServerClusterCreate,
+		Read:   resourceArmHDInsightRServerClusterRead,
+		Update: hdinsightClusterUpdate("RServer", resourceArmHDInsightRServerClusterRead),
+		Delete: hdinsightClusterDelete("RServer"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
