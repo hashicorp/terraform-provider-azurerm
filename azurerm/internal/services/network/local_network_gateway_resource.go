@@ -50,7 +50,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 			},
 
 			"address_space": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -111,7 +111,7 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	ipAddress := d.Get("gateway_address").(string)
 
-	addressSpaces := expandLocalNetworkGatewayAddressSpaces(d)
+	addressSpaces := utils.ExpandStringSlice(d.Get("address_space").(*schema.Set).List())
 
 	t := d.Get("tags").(map[string]interface{})
 
@@ -120,7 +120,7 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 		Location: &location,
 		LocalNetworkGatewayPropertiesFormat: &network.LocalNetworkGatewayPropertiesFormat{
 			LocalNetworkAddressSpace: &network.AddressSpace{
-				AddressPrefixes: &addressSpaces,
+				AddressPrefixes: addressSpaces,
 			},
 			GatewayIPAddress: &ipAddress,
 			BgpSettings:      expandLocalNetworkGatewayBGPSettings(d),
@@ -180,7 +180,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 		d.Set("gateway_address", props.GatewayIPAddress)
 
 		if lnas := props.LocalNetworkAddressSpace; lnas != nil {
-			d.Set("address_space", lnas.AddressPrefixes)
+			d.Set("address_space", utils.FlattenStringSlice(lnas.AddressPrefixes))
 		}
 		flattenedSettings := flattenLocalNetworkGatewayBGPSettings(props.BgpSettings)
 		if err := d.Set("bgp_settings", flattenedSettings); err != nil {
@@ -248,16 +248,6 @@ func expandLocalNetworkGatewayBGPSettings(d *schema.ResourceData) *network.BgpSe
 	}
 
 	return &bgpSettings
-}
-
-func expandLocalNetworkGatewayAddressSpaces(d *schema.ResourceData) []string {
-	prefixes := make([]string, 0)
-
-	for _, pref := range d.Get("address_space").([]interface{}) {
-		prefixes = append(prefixes, pref.(string))
-	}
-
-	return prefixes
 }
 
 func flattenLocalNetworkGatewayBGPSettings(input *network.BgpSettings) []interface{} {

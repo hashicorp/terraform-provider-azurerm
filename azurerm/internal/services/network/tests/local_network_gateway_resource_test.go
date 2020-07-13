@@ -26,7 +26,6 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gateway_address", "127.0.0.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "127.0.0.0/8"),
 				),
 			},
 			data.ImportStep(),
@@ -69,7 +68,6 @@ func TestAccAzureRMLocalNetworkGateway_disappears(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gateway_address", "127.0.0.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "127.0.0.0/8"),
 					testCheckAzureRMLocalNetworkGatewayDisappears(data.ResourceName),
 				),
 				ExpectNonEmptyPlan: true,
@@ -112,7 +110,6 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettings(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gateway_address", "127.0.0.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "127.0.0.0/8"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.#", "1"),
 				),
 			},
@@ -134,7 +131,6 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsDisable(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gateway_address", "127.0.0.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "127.0.0.0/8"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.0.asn", "2468"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.0.bgp_peering_address", "10.104.1.1"),
@@ -145,7 +141,6 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsDisable(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gateway_address", "127.0.0.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "127.0.0.0/8"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.#", "0"),
 				),
 			},
@@ -166,7 +161,6 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsEnable(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gateway_address", "127.0.0.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "127.0.0.0/8"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.#", "0"),
 				),
 			},
@@ -175,7 +169,6 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsEnable(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gateway_address", "127.0.0.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "127.0.0.0/8"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.0.asn", "2468"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.0.bgp_peering_address", "10.104.1.1"),
@@ -198,11 +191,29 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "gateway_address", "127.0.0.1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "address_space.0", "127.0.0.0/8"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.0.asn", "2468"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.0.bgp_peering_address", "10.104.1.1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "bgp_settings.0.peer_weight", "15"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMLocalNetworkGateway_multipleAddressSpace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_multipleAddressSpace(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -424,6 +435,30 @@ resource "azurerm_local_network_gateway" "test" {
     bgp_peering_address = "10.104.1.1"
     peer_weight         = 15
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMLocalNetworkGatewayConfig_multipleAddressSpace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "%s"
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctestlng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  gateway_address     = "127.0.0.1"
+  address_space = [
+    "10.1.12.0/24",
+    "10.1.11.0/24"
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
