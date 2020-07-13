@@ -131,8 +131,24 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		AccessLevel: accessLevel,
 		MetaData:    metaData,
 	}
-	if err := resource.Retry(300*time.Second, retryStorageContainerCreate(ctx, client, accountName, containerName, account.ResourceGroup, input)); err != nil {
-		return err
+	if resp, err := client.Create(ctx, accountName, containerName, input); err != nil {
+		// If we fail due to previous delete still in progress, then we can retry
+		if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
+			stateConf := &resource.StateChangeConf{
+				Pending:        []string{"waitingOnDelete"},
+				Target:         []string{"succeeded"},
+				Refresh:        storageContainerCreateRefreshFunc(ctx, client, accountName, containerName, input),
+				PollInterval:   30 * time.Second,
+				NotFoundChecks: 60,
+				Timeout:        d.Timeout(schema.TimeoutCreate),
+			}
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("failed creating container: %+v", err)
+			}
+		} else {
+			return fmt.Errorf("failed creating container: %+v", err)
+		}
 	}
 
 	d.SetId(id)
@@ -291,16 +307,19 @@ func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
 	return string(input)
 }
 
-func retryStorageContainerCreate(ctx context.Context, client *containers.Client, accountName string, containerName string, resourceGroup string, input containers.CreateInput) func() *resource.RetryError {
-	return func() *resource.RetryError {
+func storageContainerCreateRefreshFunc(ctx context.Context, client *containers.Client, accountName string, containerName string, input containers.CreateInput) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
 		resp, err := client.Create(ctx, accountName, containerName, input)
 		if err != nil {
-			if resp.Response.StatusCode == 409 && strings.Contains(err.Error(), "ContainerBeingDeleted") {
-				return resource.RetryableError(err)
+			if !utils.ResponseWasConflict(resp.Response) {
+				return nil, "", err
 			}
-			return resource.NonRetryableError(fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, resourceGroup, err))
+
+			if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
+				return nil, "waitingOnDelete", nil
+			}
 		}
 
-		return nil
+		return "succeeded", "succeeded", nil
 	}
 }
