@@ -109,6 +109,30 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 				Computed: true,
 			},
 
+			"traffic_selector_policy": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"local_address_cidrs": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"remote_address_cidrs": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
 			"ipsec_policy": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -216,6 +240,11 @@ func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, me
 		if err := d.Set("ipsec_policy", ipsecPoliciesSettingsFlat); err != nil {
 			return fmt.Errorf("Error setting `ipsec_policy`: %+v", err)
 		}
+
+		trafficSelectorsPolicyFlat := flattenArmVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(gwc.TrafficSelectorPolicies)
+		if err := d.Set("traffic_selector_policy", trafficSelectorsPolicyFlat); err != nil {
+			return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
+		}
 	}
 
 	return nil
@@ -248,4 +277,19 @@ func flattenArmVirtualNetworkGatewayConnectionDataSourceIpsecPolicies(ipsecPolic
 	}
 
 	return schemaIpsecPolicies
+}
+
+func flattenArmVirtualNetworkGatewayConnectionDataSourcePolicyTrafficSelectors(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
+	schemaTrafficSelectorPolicies := make([]interface{}, 0)
+
+	if trafficSelectorPolicies != nil {
+		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
+			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]interface{}{
+				"local_address_cidrs":  utils.FlattenStringSlice(trafficSelectorPolicy.LocalAddressRanges),
+				"remote_address_cidrs": utils.FlattenStringSlice(trafficSelectorPolicy.RemoteAddressRanges),
+			})
+		}
+	}
+
+	return schemaTrafficSelectorPolicies
 }
