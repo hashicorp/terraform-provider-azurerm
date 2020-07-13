@@ -721,6 +721,18 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 				}
 			}
 
+			for _, desiredLocation := range *account.Locations {
+				for index, l := range locations {
+					if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
+						break
+					}
+
+					if (index + 1) == len(locations) {
+						return resp, "Updating", nil
+					}
+				}
+			}
+
 			return resp, status, nil
 		},
 	}
