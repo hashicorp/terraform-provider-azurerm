@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
-* `allow_blob_public_access` = (Optional) Boolean flag wich disallows blobs to be confiured for public access. Enabling it does not allow public access to the blobs directly, each blob still need to be configured to allow public access. Setting this to false will remove all public access from the blobs does not matter per-blob configuration. Defaults to `true`
+* `allow_blob_public_access` = (Optional) Boolean flag which disallows blobs to be confiured for public access. Enabling it does not allow public access to the blobs directly, each blob still need to be configured to allow public access. Setting this to false will remove all public access from the blobs does not matter per-blob configuration. Defaults to `true`
 
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information. Defaults to `true`.
