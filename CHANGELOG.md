@@ -15,6 +15,7 @@ BUG FIXES:
 * `azurerm_managed_disk` - allow up to `65536` GB for the `disk_size_gb` property [GH-7689]
 * `azurerm_machine_learning_workspace` - waiting until the Machine Learning Workspace has been fully deleted [GH-7635]
 * `azurerm_mysql_server` - `ssl_minimal_tls_version_enforced` now correctly set in updates [GH-7307]
+* `azurerm_virtual_hub` - the field `address_prefix` is now `ForceNew` to match the behaviour of the Azure API [GH-7713]
 
 ## 2.18.0 (July 10, 2020)
 
