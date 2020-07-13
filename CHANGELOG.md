@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property [GH-7018]
 * `azurerm_storage_container` - container creation will retry if a container of the same name has not completed it's delete operation [GH-7179]
 * `azurerm_storage_share` - share creation will retry if a share of the same name has not completed it's previous delete operation [GH-7179]
+* `azurerm_virtual_network_gateway_connection` - support for the `traffic_selector_policy` block [GH-6586]
 
 BUG FIXES:
 
