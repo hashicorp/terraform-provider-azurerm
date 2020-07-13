@@ -96,11 +96,25 @@ func TestAccAzureRMMsSqlDatabase_elasticPool(t *testing.T) {
 		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMMsSqlDatabase_elasticPool(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "elastic_pool_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "ElasticPool"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_elasticPoolDisassociation(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -550,18 +564,18 @@ resource "azurerm_mssql_elasticpool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   server_name         = azurerm_sql_server.test.name
-  max_size_gb         = 4.8828125
-  zone_redundant      = false
+  max_size_gb         = 5
 
   sku {
-    name     = "BasicPool"
-    tier     = "Basic"
-    capacity = 50
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
   }
 
   per_database_settings {
-    min_capacity = 0
-    max_capacity = 5
+    min_capacity = 0.25
+    max_capacity = 4
   }
 }
 
@@ -569,6 +583,40 @@ resource "azurerm_mssql_database" "test" {
   name            = "acctest-db-%[2]d"
   server_id       = azurerm_sql_server.test.id
   elastic_pool_id = azurerm_mssql_elasticpool.test.id
+  sku_name        = "ElasticPool"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_elasticPoolDisassociation(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_sql_server.test.name
+  max_size_gb         = 5
+
+  sku {
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_sql_server.test.id
+  sku_name  = "GP_Gen5_2"
 }
 `, template, data.RandomInteger)
 }
