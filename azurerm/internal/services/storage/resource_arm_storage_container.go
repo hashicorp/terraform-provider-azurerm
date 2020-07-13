@@ -138,8 +138,8 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 				Pending:        []string{"waitingOnDelete"},
 				Target:         []string{"succeeded"},
 				Refresh:        storageContainerCreateRefreshFunc(ctx, client, accountName, containerName, input),
-				PollInterval:   30 * time.Second,
-				NotFoundChecks: 60,
+				PollInterval:   10 * time.Second,
+				NotFoundChecks: 180,
 				Timeout:        d.Timeout(schema.TimeoutCreate),
 			}
 

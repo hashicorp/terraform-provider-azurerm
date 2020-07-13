@@ -177,8 +177,8 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 				Pending:        []string{"waitingOnDelete"},
 				Target:         []string{"succeeded"},
 				Refresh:        storageShareCreateRefreshFunc(ctx, client, accountName, shareName, input),
-				PollInterval:   30 * time.Second,
-				NotFoundChecks: 60,
+				PollInterval:   10 * time.Second,
+				NotFoundChecks: 180,
 				Timeout:        d.Timeout(schema.TimeoutCreate),
 			}
 
