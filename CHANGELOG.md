@@ -8,11 +8,12 @@ BUG FIXES:
 
 * `azurerm_eventhub_namespace` - changing to `zone_redundant` now force a new resource [GH-7612]
 * `azurerm_managed_disk` - allow up to `65536` GB for the `disk_size_gb` property [GH-7689]
-* `azurerm_machine_learning_workspace` - correctly wait on future during deletion [GH-7635]
+* `azurerm_machine_learning_workspace` - waiting until the Machine Learning Workspace has been fully deleted [GH-7635]
 * `azurerm_mysql_server` - `ssl_minimal_tls_version_enforced` now correctly set in updates [GH-7307]
 
 ENHANCEMENTS:
 
+* `azurerm_kubernetes_cluster` - no longer sending the `kubernetes_dashboard` addon in Azure China since this is not supported in this region [GH-7714]
 * `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property [GH-7018]
 
 ## 2.18.0 (July 10, 2020)
