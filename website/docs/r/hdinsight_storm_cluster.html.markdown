@@ -10,7 +10,7 @@ description: |-
 
 Manages a HDInsight Storm Cluster.
 
-~> **NOTE:** This resource has been deprecated due to HDInsight 3.6 retirement on December 31, 2020 and Apache Storm isn't supported in HDInsight 4.0. More details about available versions of HDInsight: https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions 
+!> **Note:** [HDInsight 3.6 is deprecated and will be retired on 2020-12-31 - HDInsight 4.0 no longer supports Storm Clusters](https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions) - as such this Terraform resource is deprecated and will be removed in the next major version of the AzureRM Terraform Provider.
 
 
 ## Example Usage
