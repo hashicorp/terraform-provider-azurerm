@@ -169,8 +169,25 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 		QuotaInGB: quota,
 		MetaData:  metaData,
 	}
-	if err := resource.Retry(300*time.Second, retryStorageShareCreate(ctx, client, accountName, shareName, account.ResourceGroup, input)); err != nil {
-		return err
+
+	if resp, err := client.Create(ctx, accountName, shareName, input); err != nil {
+		// If we fail due to previous delete still in progress, then we can retry
+		if utils.ResponseWasConflict(resp) && strings.Contains(err.Error(), "ShareBeingDeleted") {
+			stateConf := &resource.StateChangeConf{
+				Pending:        []string{"waitingOnDelete"},
+				Target:         []string{"succeeded"},
+				Refresh:        storageShareCreateRefreshFunc(ctx, client, accountName, shareName, input),
+				PollInterval:   30 * time.Second,
+				NotFoundChecks: 60,
+				Timeout:        d.Timeout(schema.TimeoutCreate),
+			}
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("failed creating share: %+v", err)
+			}
+		} else {
+			return fmt.Errorf("failed creating share: %+v", err)
+		}
 	}
 
 	if _, err := client.SetACL(ctx, accountName, shareName, acls); err != nil {
@@ -378,16 +395,19 @@ func flattenStorageShareACLs(input shares.GetACLResult) []interface{} {
 	return result
 }
 
-func retryStorageShareCreate(ctx context.Context, client *shares.Client, accountName string, shareName string, resourceGroup string, input shares.CreateInput) func() *resource.RetryError {
-	return func() *resource.RetryError {
+func storageShareCreateRefreshFunc(ctx context.Context, client *shares.Client, accountName string, shareName string, input shares.CreateInput) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
 		resp, err := client.Create(ctx, accountName, shareName, input)
 		if err != nil {
-			if resp.Response.StatusCode == 409 && strings.Contains(err.Error(), "ShareBeingDeleted") {
-				return resource.RetryableError(err)
+			if !utils.ResponseWasConflict(resp) {
+				return nil, "", err
 			}
-			return resource.NonRetryableError(fmt.Errorf("Error creating Share %q (Account %q / Resource Group %q): %s", shareName, accountName, resourceGroup, err))
+
+			if utils.ResponseWasConflict(resp) && strings.Contains(err.Error(), "ShareBeingDeleted") {
+				return nil, "waitingOnDelete", nil
+			}
 		}
 
-		return nil
+		return "succeeded", "succeeded", nil
 	}
 }
