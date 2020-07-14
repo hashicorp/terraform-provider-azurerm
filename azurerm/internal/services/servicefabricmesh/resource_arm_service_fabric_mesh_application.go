@@ -381,7 +381,7 @@ func flattenServiceFabricMeshApplicationCodePackageResources(input *servicefabri
 	if input == nil {
 		return result
 	}
-	attr := make(map[string]interface{}, 0)
+	attr := make(map[string]interface{})
 	attr["requests"] = flattenServiceFabricMeshApplicationCodePackageResourceRequests(input.Requests)
 	attr["limits"] = flattenServiceFabricMeshApplicationCodePackageResourceLimits(input.Limits)
 
@@ -395,7 +395,7 @@ func flattenServiceFabricMeshApplicationCodePackageResourceRequests(input *servi
 	if input == nil {
 		return result
 	}
-	attr := make(map[string]interface{}, 0)
+	attr := make(map[string]interface{})
 	if input.MemoryInGB != nil {
 		attr["memory"] = *input.MemoryInGB
 	}
@@ -412,7 +412,7 @@ func flattenServiceFabricMeshApplicationCodePackageResourceLimits(input *service
 	if input == nil {
 		return result
 	}
-	attr := make(map[string]interface{}, 0)
+	attr := make(map[string]interface{})
 	if input.MemoryInGB != nil {
 		attr["memory"] = *input.MemoryInGB
 	}
