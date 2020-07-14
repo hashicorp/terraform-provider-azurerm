@@ -132,6 +132,27 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 	url := d.Get("url").(string)
 	authenticationType := d.Get("authentication_type").(string)
 
+	if authenticationType == "AadServicePrincipal" {
+		servicePrincipalId := d.Get("service_principal_id").(string)
+		aadServicePrincipalCredentialType := d.Get("aad_service_principal_credential_type").(string)
+		tenant := d.Get("tenant").(string)
+		aadResourceID := d.Get("aad_resource_id").(string)
+		servicePrincipalKeySecureString := datafactory.SecureString{
+			Value: utils.String(d.Get("service_principal_key").(string)),
+			Type:  datafactory.TypeSecureString,
+		}
+		servicePrincipalAuthProperties := &datafactory.ODataLinkedServiceTypeProperties{
+			AuthenticationType:                datafactory.ODataAuthenticationType(authenticationType),
+			URL:                               utils.String(url),
+			ServicePrincipalID:                utils.String(servicePrincipalId),
+			AadServicePrincipalCredentialType: datafactory.ODataAadServicePrincipalCredentialType(aadServicePrincipalCredentialType),
+			ServicePrincipalKey:               &servicePrincipalKeySecureString,
+			Tenant:                            utils.String(tenant),
+			AadResourceID:                     utils.String(aadResourceID),
+		}
+		odataLinkedService.ODataLinkedServiceTypeProperties = servicePrincipalAuthProperties
+	}
+
 	if authenticationType == "Anonymous" {
 		// TODO string compare with datafactory.ODataAuthenticationTypeAnonymous
 		anonAuthProperties := &datafactory.ODataLinkedServiceTypeProperties{
@@ -235,6 +256,20 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *schema.ResourceData, meta i
 	if props.AuthenticationType == datafactory.ODataAuthenticationTypeBasic || props.AuthenticationType == datafactory.ODataAuthenticationTypeWindows {
 		d.Set("username", props.UserName)
 		d.Set("password", props.Password)
+	}
+	if props.AuthenticationType == datafactory.ODataAuthenticationTypeAadServicePrincipal {
+		d.Set("aad_resource_id", props.AadResourceID)
+		d.Set("tenant", props.Tenant)
+		d.Set("service_principal_id", props.ServicePrincipalID)
+		d.Set("aad_service_principal_credential_type", props.AadServicePrincipalCredentialType)
+		if props.AadServicePrincipalCredentialType == datafactory.ServicePrincipalCert {
+			d.Set("service_principal_embedded_cert", props.ServicePrincipalEmbeddedCert)
+			d.Set("service_principal_embedded_cert_password", props.ServicePrincipalEmbeddedCertPassword)
+		} else if props.AadServicePrincipalCredentialType == datafactory.ServicePrincipalKey {
+			d.Set("service_principal_key", props.ServicePrincipalKey)
+		} else {
+			return fmt.Errorf("Unsupported `aad_service_principal_credential_type`: %+v", props.AadServicePrincipalCredentialType)
+		}
 	}
 
 	d.Set("additional_properties", odata.AdditionalProperties)
