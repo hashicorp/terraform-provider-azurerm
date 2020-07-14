@@ -145,7 +145,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"allow_public_blob_access": {
+			"allow_blob_public_access": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
@@ -617,7 +617,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	t := d.Get("tags").(map[string]interface{})
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
-	allowPublicBlobAccess := d.Get("allow_public_blob_access").(bool)
+	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -634,7 +634,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
-			AllowBlobPublicAccess:  &allowPublicBlobAccess,
+			AllowBlobPublicAccess:  &allowBlobPublicAccess,
 		},
 	}
 
@@ -868,17 +868,17 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if d.HasChange("allow_public_blob_access") {
-		allowPublicBlobAccess := d.Get("allow_public_blob_access").(bool)
+	if d.HasChange("allow_blob_public_access") {
+		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				AllowBlobPublicAccess: &allowPublicBlobAccess,
+				AllowBlobPublicAccess: &allowBlobPublicAccess,
 			},
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account allow_public_blob_access %q: %+v", storageAccountName, err)
+			return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
 		}
 	}
 
@@ -1036,7 +1036,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
-		d.Set("allow_public_blob_access", props.AllowBlobPublicAccess)
+		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {

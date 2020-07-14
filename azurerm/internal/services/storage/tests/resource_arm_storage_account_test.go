@@ -234,7 +234,7 @@ func TestAccAzureRMStorageAccount_enableHttpsTrafficOnly(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_allowPublicBlobAccess(t *testing.T) {
+func TestAccAzureRMStorageAccount_allowBlobPublicAccess(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -243,18 +243,18 @@ func TestAccAzureRMStorageAccount_allowPublicBlobAccess(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: TestAccAzureRMStorageAccount_allowPublicBlobAccess(data),
+				Config: testAccAzureRMStorageAccount_allowBlobPublicAccess(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_public_blob_access", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_blob_public_access", "true"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: TestAccAzureRMStorageAccount_disAllowPublicBlobAccess(data),
+				Config: testAccAzureRMStorageAccount_disAllowBlobPublicAccess(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "allow_public_blob_access", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_blob_public_access", "false"),
 				),
 			},
 		},
@@ -969,7 +969,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func TestAccAzureRMStorageAccount_allowPublicBlobAccess(data acceptance.TestData) string {
+func testAccAzureRMStorageAccount_allowBlobPublicAccess(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 provider "azurerm" {
@@ -988,7 +988,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  allow_public_blob_access = true
+  allow_blob_public_access = true
 
   tags = {
     environment = "production"
@@ -998,7 +998,7 @@ resource "azurerm_storage_account" "test" {
 	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func TestAccAzureRMStorageAccount_disAllowPublicBlobAccess(data acceptance.TestData) string {
+func testAccAzureRMStorageAccount_disAllowBlobPublicAccess(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 provider "azurerm" {
@@ -1017,7 +1017,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  allow_public_blob_access = false
+  allow_blob_public_access = false
 
   tags = {
     environment = "production"
