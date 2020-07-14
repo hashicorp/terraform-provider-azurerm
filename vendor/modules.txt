@@ -199,7 +199,7 @@ github.com/google/uuid
 github.com/googleapis/gax-go/v2
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.10.0
+# github.com/hashicorp/go-azure-helpers v0.11.1
 github.com/hashicorp/go-azure-helpers/authentication
 github.com/hashicorp/go-azure-helpers/resourceproviders
 github.com/hashicorp/go-azure-helpers/response
@@ -359,7 +359,7 @@ github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/slices
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate
 github.com/terraform-providers/terraform-provider-azuread/version
-# github.com/tombuildsstuff/giovanni v0.10.0
+# github.com/tombuildsstuff/giovanni v0.11.0
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers

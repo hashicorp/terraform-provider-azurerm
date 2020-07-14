@@ -358,7 +358,7 @@ func testAccAzureRMNetworkSecurityGroup_requiresImport(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_network_security_group" "test" {
+resource "azurerm_network_security_group" "import" {
   name                = azurerm_network_security_group.test.name
   location            = azurerm_network_security_group.test.location
   resource_group_name = azurerm_network_security_group.test.resource_group_name

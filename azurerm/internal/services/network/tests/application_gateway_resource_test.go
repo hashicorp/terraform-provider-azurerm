@@ -343,11 +343,6 @@ func TestAccAzureRMApplicationGateway_routingRedirect_httpListener(t *testing.T)
 				Config: testAccAzureRMApplicationGateway_routingRedirect_httpListener(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.0.name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.redirect_type", "Temporary"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.0.target_listener_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.include_path", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.include_query_string", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -383,15 +378,6 @@ func TestAccAzureRMApplicationGateway_routingRedirect_pathBased(t *testing.T) {
 				Config: testAccAzureRMApplicationGateway_routingRedirect_pathBased(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.0.name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.redirect_type", "Found"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.target_url", "http://www.example.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.0.include_query_string", "true"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.1.name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.1.redirect_type", "Permanent"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "redirect_configuration.1.target_listener_name"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.1.include_path", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "redirect_configuration.1.include_query_string", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -2064,8 +2050,11 @@ resource "azurerm_web_application_firewall_policy" "testfwp" {
   location            = azurerm_resource_group.test.location
 
   policy_settings {
-    enabled = true
-    mode    = "Prevention"
+    enabled                     = true
+    mode                        = "Prevention"
+    file_upload_limit_in_mb     = 100
+    max_request_body_size_in_kb = 100
+    request_body_check          = "true"
   }
 
   managed_rules {

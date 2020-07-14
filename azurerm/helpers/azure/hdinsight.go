@@ -164,6 +164,50 @@ func SchemaHDInsightsExternalMetastore() *schema.Schema {
 	}
 }
 
+func SchemaHDInsightsExternalMetastores() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"hive": SchemaHDInsightsExternalMetastore(),
+
+				"oozie": SchemaHDInsightsExternalMetastore(),
+
+				"ambari": SchemaHDInsightsExternalMetastore(),
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsMonitor() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"log_analytics_workspace_id": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsUUID,
+				},
+				"primary_key": {
+					Type:         schema.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					// Azure doesn't return the key
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
+				},
+			},
+		},
+	}
+}
+
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
 	vs := input[0].(map[string]interface{})
 
@@ -258,6 +302,18 @@ func ExpandHDInsightsAmbariMetastore(input []interface{}) map[string]interface{}
 			"database-user-name":     username,
 			"database-user-password": password,
 		},
+	}
+}
+
+func ExpandHDInsightsMonitor(input []interface{}) hdinsight.ClusterMonitoringRequest {
+	vs := input[0].(map[string]interface{})
+
+	workspace := vs["log_analytics_workspace_id"].(string)
+	key := vs["primary_key"].(string)
+
+	return hdinsight.ClusterMonitoringRequest{
+		WorkspaceID: utils.String(workspace),
+		PrimaryKey:  utils.String(key),
 	}
 }
 

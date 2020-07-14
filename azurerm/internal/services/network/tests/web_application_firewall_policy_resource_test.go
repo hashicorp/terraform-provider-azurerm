@@ -71,7 +71,7 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.operator", "Contains"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.negation_condition", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.0", "Windows"),
+					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.0", "windows"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.action", "Block"),
 					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.#", "2"),
@@ -92,6 +92,9 @@ func TestAccAzureRMWebApplicationFirewallPolicy_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.mode", "Prevention"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.request_body_check", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.file_upload_limit_in_mb", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.max_request_body_size_in_kb", "128"),
 				),
 			},
 			data.ImportStep(),
@@ -146,7 +149,7 @@ func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.operator", "Contains"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.negation_condition", "false"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.0", "Windows"),
+					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.match_conditions.1.match_values.0", "windows"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rules.1.action", "Block"),
 					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "managed_rules.0.exclusion.#", "2"),
@@ -167,6 +170,9 @@ func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.enabled", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.mode", "Prevention"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.request_body_check", "true"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.file_upload_limit_in_mb", "100"),
+					resource.TestCheckResourceAttr(data.ResourceName, "policy_settings.0.max_request_body_size_in_kb", "128"),
 				),
 			},
 			data.ImportStep(),
@@ -238,6 +244,7 @@ resource "azurerm_web_application_firewall_policy" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
+
   managed_rules {
     managed_rule_set {
       type    = "OWASP"
@@ -268,6 +275,10 @@ resource "azurerm_web_application_firewall_policy" "test" {
   name                = "acctestwafpolicy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
+  tags = {
+    env = "test"
+  }
 
   custom_rules {
     name      = "Rule1"
@@ -310,7 +321,8 @@ resource "azurerm_web_application_firewall_policy" "test" {
 
       operator           = "Contains"
       negation_condition = false
-      match_values       = ["Windows"]
+      match_values       = ["windows"]
+      transforms         = ["Lowercase"]
     }
 
     action = "Block"

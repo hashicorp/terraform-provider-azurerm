@@ -275,16 +275,20 @@ func testAccAzureRMStreamAnalyticsStreamInputIoTHub_requiresImport(data acceptan
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_stream_analytics_stream_input_eventhub" "import" {
-  name                         = "${azurerm_stream_analytics_stream_input_eventhub.test.name}"
-  stream_analytics_job_name    = "${azurerm_stream_analytics_stream_input_eventhub.test.stream_analytics_job_name}"
-  resource_group_name          = "${azurerm_stream_analytics_stream_input_eventhub.test.resource_group_name}"
-  endpoint                     = "${azurerm_stream_analytics_stream_input_eventhub.test.endpoint}"
-  eventhub_consumer_group_name = "${azurerm_stream_analytics_stream_input_eventhub.test.eventhub_consumer_group_name}"
-  iothub_namespace             = "${azurerm_stream_analytics_stream_input_eventhub.test.iothub_namespace}"
-  shared_access_policy_key     = "${azurerm_stream_analytics_stream_input_eventhub.test.shared_access_policy_key}"
-  shared_access_policy_name    = "${azurerm_stream_analytics_stream_input_eventhub.test.resource_group_name}"
-  serialization                = "${azurerm_stream_analytics_stream_input_eventhub.test.serialization}"
+resource "azurerm_stream_analytics_stream_input_iothub" "import" {
+  name                         = azurerm_stream_analytics_stream_input_iothub.test.name
+  stream_analytics_job_name    = azurerm_stream_analytics_stream_input_iothub.test.stream_analytics_job_name
+  resource_group_name          = azurerm_stream_analytics_stream_input_iothub.test.resource_group_name
+  endpoint                     = azurerm_stream_analytics_stream_input_iothub.test.endpoint
+  eventhub_consumer_group_name = azurerm_stream_analytics_stream_input_iothub.test.eventhub_consumer_group_name
+  iothub_namespace             = azurerm_stream_analytics_stream_input_iothub.test.iothub_namespace
+  shared_access_policy_key     = azurerm_stream_analytics_stream_input_iothub.test.shared_access_policy_key
+  shared_access_policy_name    = azurerm_stream_analytics_stream_input_iothub.test.resource_group_name
+
+  serialization {
+    type     = azurerm_stream_analytics_stream_input_iothub.test.serialization.0.type
+    encoding = azurerm_stream_analytics_stream_input_iothub.test.serialization.0.encoding
+  }
 }
 `, template)
 }
