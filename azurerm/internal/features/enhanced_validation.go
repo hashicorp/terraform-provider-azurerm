@@ -19,5 +19,5 @@ func EnhancedValidationEnabled() bool {
 		return true
 	}
 
-	return strings.EqualFold(os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION"), "true")
+	return strings.EqualFold(value, "true")
 }
