@@ -85,7 +85,7 @@ func (client VirtualMachineScaleSetVMsClient) DeallocatePreparer(ctx context.Con
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -161,7 +161,7 @@ func (client VirtualMachineScaleSetVMsClient) DeletePreparer(ctx context.Context
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -244,7 +244,7 @@ func (client VirtualMachineScaleSetVMsClient) GetPreparer(ctx context.Context, r
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -324,7 +324,7 @@ func (client VirtualMachineScaleSetVMsClient) GetInstanceViewPreparer(ctx contex
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -404,7 +404,7 @@ func (client VirtualMachineScaleSetVMsClient) ListPreparer(ctx context.Context, 
 		"virtualMachineScaleSetName": autorest.Encode("path", virtualMachineScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -521,7 +521,7 @@ func (client VirtualMachineScaleSetVMsClient) PerformMaintenancePreparer(ctx con
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -601,7 +601,7 @@ func (client VirtualMachineScaleSetVMsClient) PowerOffPreparer(ctx context.Conte
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -683,7 +683,7 @@ func (client VirtualMachineScaleSetVMsClient) RedeployPreparer(ctx context.Conte
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -760,7 +760,7 @@ func (client VirtualMachineScaleSetVMsClient) ReimagePreparer(ctx context.Contex
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -842,7 +842,7 @@ func (client VirtualMachineScaleSetVMsClient) ReimageAllPreparer(ctx context.Con
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -918,7 +918,7 @@ func (client VirtualMachineScaleSetVMsClient) RestartPreparer(ctx context.Contex
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -951,6 +951,90 @@ func (client VirtualMachineScaleSetVMsClient) RestartResponder(resp *http.Respon
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
+	return
+}
+
+// RetrieveBootDiagnosticsData the operation to retrieve SAS URIs of boot diagnostic logs for a virtual machine in a VM
+// scale set.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMScaleSetName - the name of the VM scale set.
+// instanceID - the instance ID of the virtual machine.
+// sasURIExpirationTimeInMinutes - expiration duration in minutes for the SAS URIs with a value between 1 to
+// 1440 minutes. <br><br>NOTE: If not specified, SAS URIs will be generated with a default expiration duration
+// of 120 minutes.
+func (client VirtualMachineScaleSetVMsClient) RetrieveBootDiagnosticsData(ctx context.Context, resourceGroupName string, VMScaleSetName string, instanceID string, sasURIExpirationTimeInMinutes *int32) (result RetrieveBootDiagnosticsDataResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachineScaleSetVMsClient.RetrieveBootDiagnosticsData")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.RetrieveBootDiagnosticsDataPreparer(ctx, resourceGroupName, VMScaleSetName, instanceID, sasURIExpirationTimeInMinutes)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineScaleSetVMsClient", "RetrieveBootDiagnosticsData", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.RetrieveBootDiagnosticsDataSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineScaleSetVMsClient", "RetrieveBootDiagnosticsData", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.RetrieveBootDiagnosticsDataResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachineScaleSetVMsClient", "RetrieveBootDiagnosticsData", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// RetrieveBootDiagnosticsDataPreparer prepares the RetrieveBootDiagnosticsData request.
+func (client VirtualMachineScaleSetVMsClient) RetrieveBootDiagnosticsDataPreparer(ctx context.Context, resourceGroupName string, VMScaleSetName string, instanceID string, sasURIExpirationTimeInMinutes *int32) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"instanceId":        autorest.Encode("path", instanceID),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
+	}
+
+	const APIVersion = "2020-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if sasURIExpirationTimeInMinutes != nil {
+		queryParameters["sasUriExpirationTimeInMinutes"] = autorest.Encode("query", *sasURIExpirationTimeInMinutes)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachineScaleSets/{vmScaleSetName}/virtualmachines/{instanceId}/retrieveBootDiagnosticsData", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RetrieveBootDiagnosticsDataSender sends the RetrieveBootDiagnosticsData request. The method will close the
+// http.Response Body if it receives an error.
+func (client VirtualMachineScaleSetVMsClient) RetrieveBootDiagnosticsDataSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// RetrieveBootDiagnosticsDataResponder handles the response to the RetrieveBootDiagnosticsData request. The method always
+// closes the http.Response Body.
+func (client VirtualMachineScaleSetVMsClient) RetrieveBootDiagnosticsDataResponder(resp *http.Response) (result RetrieveBootDiagnosticsDataResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -1001,7 +1085,7 @@ func (client VirtualMachineScaleSetVMsClient) RunCommandPreparer(ctx context.Con
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1087,7 +1171,7 @@ func (client VirtualMachineScaleSetVMsClient) SimulateEvictionPreparer(ctx conte
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1157,7 +1241,7 @@ func (client VirtualMachineScaleSetVMsClient) StartPreparer(ctx context.Context,
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1255,7 +1339,7 @@ func (client VirtualMachineScaleSetVMsClient) UpdatePreparer(ctx context.Context
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
