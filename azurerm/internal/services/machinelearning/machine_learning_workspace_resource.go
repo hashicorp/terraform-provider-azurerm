@@ -128,6 +128,11 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 				Optional: true,
 			},
 
+			"high_business_impact_workspace": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"sku_name": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -139,11 +144,6 @@ func resourceArmMachineLearningWorkspace() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
-
-			"hbi_workspace": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
 		},
 	}
 }
@@ -202,7 +202,7 @@ func resourceArmMachineLearningWorkspaceCreate(d *schema.ResourceData, meta inte
 		workspace.ContainerRegistry = utils.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("hbi_workspace"); ok {
+	if v, ok := d.GetOk("high_business_impact_workspace"); ok {
 		workspace.HbiWorkspace = utils.Bool(v.(bool))
 	}
 
@@ -276,7 +276,7 @@ func resourceArmMachineLearningWorkspaceRead(d *schema.ResourceData, meta interf
 		d.Set("container_registry_id", props.ContainerRegistry)
 		d.Set("description", props.Description)
 		d.Set("friendly_name", props.FriendlyName)
-		d.Set("hbi_workspace", props.HbiWorkspace)
+		d.Set("high_business_impact_workspace", props.HbiWorkspace)
 	}
 
 	if err := d.Set("identity", flattenArmMachineLearningWorkspaceIdentity(resp.Identity)); err != nil {
