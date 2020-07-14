@@ -1,5 +1,9 @@
 ## 2.19.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* HDInsight 3.6 will be retired (in Azure Public) on 2020-12-30 - HDInsight 4.0 does not support ML Services, RServer or Storm Clusters - as such the `azurerm_hdinsight_ml_services_cluster`, `azurerm_hdinsight_rserver_cluster` and `azurerm_hdinsight_storm_cluster` resources are deprecated and will be removed in the next major version of the Azure Provider. [GH-7706]
+
 ENHANCEMENTS:
 
 * dependencies: updating to v44.0.0 of `github.com/Azure/azure-sdk-for-go` [GH-7616]
