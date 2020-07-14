@@ -434,11 +434,11 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -488,11 +488,11 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -572,7 +572,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
         for_each = lookup(roles.value, "head_node", [])
         content {
           password           = lookup(head_node.value, "password", null)
-          ssh_keys           = lookup(head_node.value, "ssh_keys", null)
           subnet_id          = lookup(head_node.value, "subnet_id", null)
           username           = head_node.value.username
           virtual_network_id = lookup(head_node.value, "virtual_network_id", null)
@@ -584,7 +583,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
         for_each = lookup(roles.value, "worker_node", [])
         content {
           password              = lookup(worker_node.value, "password", null)
-          ssh_keys              = lookup(worker_node.value, "ssh_keys", null)
           subnet_id             = lookup(worker_node.value, "subnet_id", null)
           target_instance_count = worker_node.value.target_instance_count
           username              = worker_node.value.username
@@ -597,7 +595,6 @@ resource "azurerm_hdinsight_interactive_query_cluster" "import" {
         for_each = lookup(roles.value, "zookeeper_node", [])
         content {
           password           = lookup(zookeeper_node.value, "password", null)
-          ssh_keys           = lookup(zookeeper_node.value, "ssh_keys", null)
           subnet_id          = lookup(zookeeper_node.value, "subnet_id", null)
           username           = zookeeper_node.value.username
           virtual_network_id = lookup(zookeeper_node.value, "virtual_network_id", null)
@@ -623,11 +620,11 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -675,11 +672,11 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -745,11 +742,11 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -817,11 +814,11 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -949,12 +946,12 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
   tls_min_version     = "1.2"
 
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
 
   gateway {
@@ -1043,10 +1040,10 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
   gateway {
     enabled  = true
@@ -1132,10 +1129,10 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
   gateway {
     enabled  = true
@@ -1193,11 +1190,11 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    interactive_hive = "2.1"
+    interactive_hive = "3.1"
   }
 
   gateway {

@@ -42,6 +42,11 @@ var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 
 func resourceArmHDInsightStormCluster() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `HDInsight 3.6 will be retired on 2020-12-31 - Storm is not supported in HDInsight 4.0 and so this resource will be removed in the next major version of the AzureRM Terraform Provider.
+		
+More information on the HDInsight 3.6 deprecation can be found at:
+
+https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
 		Create: resourceArmHDInsightStormClusterCreate,
 		Read:   resourceArmHDInsightStormClusterRead,
 		Update: hdinsightClusterUpdate("Storm", resourceArmHDInsightStormClusterRead),
