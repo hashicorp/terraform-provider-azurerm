@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -57,6 +58,19 @@ func (client WorkspacesClient) CreateOrUpdate(ctx context.Context, resourceGroup
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.WorkspaceProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Encryption", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Encryption.KeyVaultProperties", Name: validation.Null, Rule: true,
+						Chain: []validation.Constraint{{Target: "parameters.WorkspaceProperties.Encryption.KeyVaultProperties.KeyVaultArmID", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "parameters.WorkspaceProperties.Encryption.KeyVaultProperties.KeyIdentifier", Name: validation.Null, Rule: true, Chain: nil},
+						}},
+					}},
+				}}}}}); err != nil {
+		return result, validation.NewError("machinelearningservices.WorkspacesClient", "CreateOrUpdate", err.Error())
+	}
+
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, workspaceName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -80,7 +94,7 @@ func (client WorkspacesClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -157,7 +171,7 @@ func (client WorkspacesClient) DeletePreparer(ctx context.Context, resourceGroup
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -237,7 +251,7 @@ func (client WorkspacesClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -312,7 +326,7 @@ func (client WorkspacesClient) ListByResourceGroupPreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -425,7 +439,7 @@ func (client WorkspacesClient) ListBySubscriptionPreparer(ctx context.Context, s
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -541,7 +555,7 @@ func (client WorkspacesClient) ListKeysPreparer(ctx context.Context, resourceGro
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -617,7 +631,7 @@ func (client WorkspacesClient) ResyncKeysPreparer(ctx context.Context, resourceG
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -692,7 +706,7 @@ func (client WorkspacesClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
