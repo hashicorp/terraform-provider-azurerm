@@ -21,6 +21,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* provider: deprecating `metadata_url` to `metadata_host` since this is a hostname [GH-7740]
 * `azurerm_eventhub_namespace` - changing to `zone_redundant` now force a new resource [GH-7612]
 * `azurerm_managed_disk` - allow up to `65536` GB for the `disk_size_gb` property [GH-7689]
 * `azurerm_machine_learning_workspace` - waiting until the Machine Learning Workspace has been fully deleted [GH-7635]
