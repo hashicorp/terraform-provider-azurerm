@@ -230,9 +230,9 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *schema.ResourceData, meta i
 	}
 
 	props := odata.ODataLinkedServiceTypeProperties
+	d.Set("authentication_type", props.AuthenticationType)
 	d.Set("url", props.URL)
 	if props.AuthenticationType == datafactory.ODataAuthenticationTypeBasic {
-		d.Set("authentication_type", props.AuthenticationType)
 		d.Set("username", props.UserName)
 		d.Set("password", props.Password)
 	}
