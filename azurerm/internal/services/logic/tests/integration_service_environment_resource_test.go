@@ -25,6 +25,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			data.ImportStep(),
 		},
@@ -43,6 +44,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
 				),
+				ExpectNonEmptyPlan: true,
 			},
 			data.RequiresImportErrorStep(testAccAzureRMIntegrationServiceEnvironment_requiresImport),
 		},
