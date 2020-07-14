@@ -9,14 +9,17 @@ import (
 
 func ExtendedAuditingSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
+		Type:       schema.TypeList,
+		Optional:   true,
+		Computed:   true,
+		Deprecated: "all `extended_auditing_policy` properties have been moved to `azurerm_mssql_server_extended_auditing_policy` and `azurerm_mssql_database_extended_auditing_policy`. This block will be removed in version 3.0 of the provider.",
+		ConfigMode: schema.SchemaConfigModeAttr,
+		MaxItems:   1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"storage_account_access_key": {
 					Type:         schema.TypeString,
-					Required:     true,
+					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},

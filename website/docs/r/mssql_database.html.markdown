@@ -10,6 +10,9 @@ description: |-
 
 Manages a MS SQL Database.
 
+~> **NOTE on Ms Sql Database and Ms Sql Database Extended Auditing Policy:** Terraform currently provides both a standalone [mssql_database_extended_auditing_policy resource](mssql_database_extended_auditing_policy.html), and allows for extended auditing policy to be defined in-line within the [mssql_database resource](mssql_database.html) and [sql_database resource](sql_database.html).
+At this time you cannot use a Sql Database with in-line Extended Auditing Policy in conjunction with any Sql Database Extended Auditing Policy resources. Doing so will cause a conflict of policy settings and will overwrite the policy.
+
 ## Example Usage
 
 ```hcl
