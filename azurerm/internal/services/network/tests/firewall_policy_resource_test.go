@@ -203,8 +203,8 @@ resource "azurerm_firewall_policy" "test" {
     fqdns        = ["foo.com", "bar.com"]
   }
   dns {
-    servers                    = ["1.1.1.1", "2.2.2.2"]
-    proxy_enabled              = true
+    servers                   = ["1.1.1.1", "2.2.2.2"]
+    proxy_enabled             = true
     network_rule_fqdn_enabled = true
   }
   tags = {
@@ -248,8 +248,8 @@ resource "azurerm_firewall_policy" "test" {
     fqdns        = ["foo.com", "bar.com"]
   }
   dns {
-    servers                    = ["1.1.1.1", "2.2.2.2"]
-    proxy_enabled              = true
+    servers                   = ["1.1.1.1", "2.2.2.2"]
+    proxy_enabled             = true
     network_rule_fqdn_enabled = true
   }
   tags = {
