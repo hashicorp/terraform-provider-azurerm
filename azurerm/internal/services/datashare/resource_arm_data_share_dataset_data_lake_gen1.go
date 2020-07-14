@@ -72,6 +72,7 @@ func resourceArmDataShareDataSetDataLakeGen1() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
+							Sensitive:    true,
 							ValidateFunc: validation.IsUUID,
 						},
 					},

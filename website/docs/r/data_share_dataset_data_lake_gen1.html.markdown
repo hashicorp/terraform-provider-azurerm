@@ -80,15 +80,15 @@ resource "azurerm_data_share_dataset_data_lake_gen1" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Data Share Data Lake Gen1 Dataset. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
+* `name` - (Required) The name of the Data Share Data Lake Gen1 Dataset. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
 
-* `data_share_id` - (Required) The ID of the Data Share in which this Data Share Data Lake Gen1 Dataset should be created. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
+* `data_share_id` - (Required) The resource ID of the Data Share where this Data Share Data Lake Gen1 Dataset should be created. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
 
 * `data_lake_store` - (Required) A `data_lake_store` block as defined below.
 
 * `folder_path` - (Required) The folder path of the data lake store to be shared with the receiver. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
 
-* `file_name` - (Optional) The file name in the folder path of the data lake store to be shared with the receiver. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
+* `file_name` - (Optional) The file name of the data lake store to be shared with the receiver. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
 
 ---
 
@@ -104,9 +104,9 @@ A `data_lake_store` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Data Share Data Lake Gen1 Dataset.
+* `id` - The resource ID of the Data Share Data Lake Gen1 Dataset.
 
-* `display_name` - The name of the Data Share Dataset.
+* `display_name` - The displayed name of the Data Share Dataset.
 
 ## Timeouts
 
