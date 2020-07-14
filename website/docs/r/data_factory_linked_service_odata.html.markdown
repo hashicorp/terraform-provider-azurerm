@@ -67,7 +67,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to OData Linked Service:
 
-* `authentication_type` - (Required) The type of authentication used to connect to the OData source. Valid options are `Anonymous` and `Basic` (`AadServicePrincipal`, `ManagedServiceIdentity` and `Windows` are not supported at this moment by this provider)
+* `authentication_type` - (Required) The type of authentication used to connect to the OData source. Valid options are `Anonymous`, `Basic` and `Windows` (`AadServicePrincipal`, `ManagedServiceIdentity` are not supported at this moment by this provider)
 
 * `url` - (Required) The URL of the OData service endpoint (e.g. https://services.odata.org/v4/TripPinServiceRW/People).
 
