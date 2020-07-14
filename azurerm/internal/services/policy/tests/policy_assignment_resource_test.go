@@ -242,9 +242,9 @@ resource "azurerm_policy_assignment" "test" {
   scope                = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
   metadata = <<METADATA
-	{
-		"category": "General"
-	}
+  {
+    "category": "General"
+  }
 METADATA  
 }
 `, data.RandomInteger, data.Locations.Primary)
