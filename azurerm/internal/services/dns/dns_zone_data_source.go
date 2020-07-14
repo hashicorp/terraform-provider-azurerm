@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
-
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -117,7 +116,7 @@ func findZone(client *dns.ZonesClient, ctx context.Context, name string) (dns.Zo
 	var found *dns.Zone
 	for zonesIterator.NotDone() {
 		zone := zonesIterator.Value()
-		if *zone.Name == name {
+		if zone.Name != nil && *zone.Name == name {
 			if found != nil {
 				return dns.Zone{}, "", fmt.Errorf("found multiple DNS zones with name %q, please specify the resource group", name)
 			}
@@ -128,10 +127,13 @@ func findZone(client *dns.ZonesClient, ctx context.Context, name string) (dns.Zo
 		}
 	}
 
-	if found == nil {
+	if found == nil || found.ID == nil {
 		return dns.Zone{}, "", fmt.Errorf("could not find DNS zone with name: %q", name)
 	}
 
-	id, _ := parse.DnsZoneID(*found.ID)
+	id, err := parse.DnsZoneID(*found.ID)
+	if err != nil {
+		return dns.Zone{}, "", fmt.Errorf("DNS zone id not valid: %+v", err)
+	}
 	return *found, id.ResourceGroup, nil
 }
