@@ -113,7 +113,6 @@ func (client P2sVpnGatewaysClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client P2sVpnGatewaysClient) CreateOrUpdateResponder(resp *http.Response) (result P2SVpnGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client P2sVpnGatewaysClient) DeleteSender(req *http.Request) (future P2sVp
 func (client P2sVpnGatewaysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -268,7 +266,6 @@ func (client P2sVpnGatewaysClient) DisconnectP2sVpnConnectionsSender(req *http.R
 func (client P2sVpnGatewaysClient) DisconnectP2sVpnConnectionsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -346,7 +343,6 @@ func (client P2sVpnGatewaysClient) GenerateVpnProfileSender(req *http.Request) (
 func (client P2sVpnGatewaysClient) GenerateVpnProfileResponder(resp *http.Response) (result VpnProfileResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -422,7 +418,6 @@ func (client P2sVpnGatewaysClient) GetSender(req *http.Request) (*http.Response,
 func (client P2sVpnGatewaysClient) GetResponder(resp *http.Response) (result P2SVpnGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -499,7 +494,6 @@ func (client P2sVpnGatewaysClient) GetP2sVpnConnectionHealthSender(req *http.Req
 func (client P2sVpnGatewaysClient) GetP2sVpnConnectionHealthResponder(resp *http.Response) (result P2SVpnGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -579,7 +573,6 @@ func (client P2sVpnGatewaysClient) GetP2sVpnConnectionHealthDetailedSender(req *
 func (client P2sVpnGatewaysClient) GetP2sVpnConnectionHealthDetailedResponder(resp *http.Response) (result P2SVpnConnectionHealth, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -651,7 +644,6 @@ func (client P2sVpnGatewaysClient) ListSender(req *http.Request) (*http.Response
 func (client P2sVpnGatewaysClient) ListResponder(resp *http.Response) (result ListP2SVpnGatewaysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -763,7 +755,6 @@ func (client P2sVpnGatewaysClient) ListByResourceGroupSender(req *http.Request) 
 func (client P2sVpnGatewaysClient) ListByResourceGroupResponder(resp *http.Response) (result ListP2SVpnGatewaysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -879,7 +870,6 @@ func (client P2sVpnGatewaysClient) UpdateTagsSender(req *http.Request) (*http.Re
 func (client P2sVpnGatewaysClient) UpdateTagsResponder(resp *http.Response) (result P2SVpnGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

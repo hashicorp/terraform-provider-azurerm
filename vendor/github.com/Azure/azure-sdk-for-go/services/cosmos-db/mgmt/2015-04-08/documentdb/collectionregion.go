@@ -134,7 +134,6 @@ func (client CollectionRegionClient) ListMetricsSender(req *http.Request) (*http
 func (client CollectionRegionClient) ListMetricsResponder(resp *http.Response) (result MetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

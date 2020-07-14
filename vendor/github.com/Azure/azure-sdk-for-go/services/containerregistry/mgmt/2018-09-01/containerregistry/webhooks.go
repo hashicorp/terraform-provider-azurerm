@@ -135,7 +135,6 @@ func (client WebhooksClient) CreateSender(req *http.Request) (future WebhooksCre
 func (client WebhooksClient) CreateResponder(resp *http.Response) (result Webhook, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -227,7 +226,6 @@ func (client WebhooksClient) DeleteSender(req *http.Request) (future WebhooksDel
 func (client WebhooksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -318,7 +316,6 @@ func (client WebhooksClient) GetSender(req *http.Request) (*http.Response, error
 func (client WebhooksClient) GetResponder(resp *http.Response) (result Webhook, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -410,7 +407,6 @@ func (client WebhooksClient) GetCallbackConfigSender(req *http.Request) (*http.R
 func (client WebhooksClient) GetCallbackConfigResponder(resp *http.Response) (result CallbackConfig, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -497,7 +493,6 @@ func (client WebhooksClient) ListSender(req *http.Request) (*http.Response, erro
 func (client WebhooksClient) ListResponder(resp *http.Response) (result WebhookListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -627,7 +622,6 @@ func (client WebhooksClient) ListEventsSender(req *http.Request) (*http.Response
 func (client WebhooksClient) ListEventsResponder(resp *http.Response) (result EventListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -756,7 +750,6 @@ func (client WebhooksClient) PingSender(req *http.Request) (*http.Response, erro
 func (client WebhooksClient) PingResponder(resp *http.Response) (result EventInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -851,7 +844,6 @@ func (client WebhooksClient) UpdateSender(req *http.Request) (future WebhooksUpd
 func (client WebhooksClient) UpdateResponder(resp *http.Response) (result Webhook, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

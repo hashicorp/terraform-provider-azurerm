@@ -124,7 +124,6 @@ func (client UserIdentitiesClient) ListSender(req *http.Request) (*http.Response
 func (client UserIdentitiesClient) ListResponder(resp *http.Response) (result UserIdentityCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

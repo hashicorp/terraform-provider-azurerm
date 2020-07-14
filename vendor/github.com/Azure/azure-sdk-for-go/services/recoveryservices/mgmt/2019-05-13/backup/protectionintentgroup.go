@@ -119,7 +119,6 @@ func (client ProtectionIntentGroupClient) ListSender(req *http.Request) (*http.R
 func (client ProtectionIntentGroupClient) ListResponder(resp *http.Response) (result ProtectionIntentResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

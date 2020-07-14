@@ -125,7 +125,6 @@ func (client AutomationsClient) CreateOrUpdateSender(req *http.Request) (*http.R
 func (client AutomationsClient) CreateOrUpdateResponder(resp *http.Response) (result Automation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -212,7 +211,6 @@ func (client AutomationsClient) DeleteSender(req *http.Request) (*http.Response,
 func (client AutomationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -298,7 +296,6 @@ func (client AutomationsClient) GetSender(req *http.Request) (*http.Response, er
 func (client AutomationsClient) GetResponder(resp *http.Response) (result Automation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -377,7 +374,6 @@ func (client AutomationsClient) ListSender(req *http.Request) (*http.Response, e
 func (client AutomationsClient) ListResponder(resp *http.Response) (result AutomationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -501,7 +497,6 @@ func (client AutomationsClient) ListByResourceGroupSender(req *http.Request) (*h
 func (client AutomationsClient) ListByResourceGroupResponder(resp *http.Response) (result AutomationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -629,7 +624,6 @@ func (client AutomationsClient) ValidateSender(req *http.Request) (*http.Respons
 func (client AutomationsClient) ValidateResponder(resp *http.Response) (result AutomationValidationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

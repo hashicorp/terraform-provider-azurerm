@@ -130,7 +130,6 @@ func (client VirtualHubBgpConnectionClient) CreateOrUpdateSender(req *http.Reque
 func (client VirtualHubBgpConnectionClient) CreateOrUpdateResponder(resp *http.Response) (result BgpConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client VirtualHubBgpConnectionClient) DeleteSender(req *http.Request) (fut
 func (client VirtualHubBgpConnectionClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -285,7 +283,6 @@ func (client VirtualHubBgpConnectionClient) GetSender(req *http.Request) (*http.
 func (client VirtualHubBgpConnectionClient) GetResponder(resp *http.Response) (result BgpConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

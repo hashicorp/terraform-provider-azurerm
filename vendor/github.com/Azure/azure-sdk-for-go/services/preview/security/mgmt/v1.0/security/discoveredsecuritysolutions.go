@@ -123,7 +123,6 @@ func (client DiscoveredSecuritySolutionsClient) GetSender(req *http.Request) (*h
 func (client DiscoveredSecuritySolutionsClient) GetResponder(resp *http.Response) (result DiscoveredSecuritySolution, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client DiscoveredSecuritySolutionsClient) ListSender(req *http.Request) (*
 func (client DiscoveredSecuritySolutionsClient) ListResponder(resp *http.Response) (result DiscoveredSecuritySolutionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,7 +315,6 @@ func (client DiscoveredSecuritySolutionsClient) ListByHomeRegionSender(req *http
 func (client DiscoveredSecuritySolutionsClient) ListByHomeRegionResponder(resp *http.Response) (result DiscoveredSecuritySolutionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

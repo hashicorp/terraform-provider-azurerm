@@ -124,7 +124,6 @@ func (client AssignmentsClient) CreateOrUpdateSender(req *http.Request) (*http.R
 func (client AssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (result Assignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -138,7 +137,9 @@ func (client AssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (re
 // '/providers/Microsoft.Management/managementGroups/{managementGroup}'), subscription (format:
 // '/subscriptions/{subscriptionId}').
 // assignmentName - name of the blueprint assignment.
-func (client AssignmentsClient) Delete(ctx context.Context, resourceScope string, assignmentName string) (result Assignment, err error) {
+// deleteBehavior - when deleteBehavior=all, the resources that were created by the blueprint assignment will
+// be deleted.
+func (client AssignmentsClient) Delete(ctx context.Context, resourceScope string, assignmentName string, deleteBehavior AssignmentDeleteBehavior) (result Assignment, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AssignmentsClient.Delete")
 		defer func() {
@@ -149,7 +150,7 @@ func (client AssignmentsClient) Delete(ctx context.Context, resourceScope string
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.DeletePreparer(ctx, resourceScope, assignmentName)
+	req, err := client.DeletePreparer(ctx, resourceScope, assignmentName, deleteBehavior)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "blueprint.AssignmentsClient", "Delete", nil, "Failure preparing request")
 		return
@@ -171,7 +172,7 @@ func (client AssignmentsClient) Delete(ctx context.Context, resourceScope string
 }
 
 // DeletePreparer prepares the Delete request.
-func (client AssignmentsClient) DeletePreparer(ctx context.Context, resourceScope string, assignmentName string) (*http.Request, error) {
+func (client AssignmentsClient) DeletePreparer(ctx context.Context, resourceScope string, assignmentName string, deleteBehavior AssignmentDeleteBehavior) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"assignmentName": autorest.Encode("path", assignmentName),
 		"resourceScope":  resourceScope,
@@ -180,6 +181,9 @@ func (client AssignmentsClient) DeletePreparer(ctx context.Context, resourceScop
 	const APIVersion = "2018-11-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(string(deleteBehavior)) > 0 {
+		queryParameters["deleteBehavior"] = autorest.Encode("query", deleteBehavior)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -201,7 +205,6 @@ func (client AssignmentsClient) DeleteSender(req *http.Request) (*http.Response,
 func (client AssignmentsClient) DeleteResponder(resp *http.Response) (result Assignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -278,7 +281,6 @@ func (client AssignmentsClient) GetSender(req *http.Request) (*http.Response, er
 func (client AssignmentsClient) GetResponder(resp *http.Response) (result Assignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -354,7 +356,6 @@ func (client AssignmentsClient) ListSender(req *http.Request) (*http.Response, e
 func (client AssignmentsClient) ListResponder(resp *http.Response) (result AssignmentList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -468,7 +469,6 @@ func (client AssignmentsClient) WhoIsBlueprintSender(req *http.Request) (*http.R
 func (client AssignmentsClient) WhoIsBlueprintResponder(resp *http.Response) (result WhoIsBlueprintContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -116,7 +116,6 @@ func (client PrivateDNSZoneGroupsClient) CreateOrUpdateSender(req *http.Request)
 func (client PrivateDNSZoneGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateDNSZoneGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,7 +193,6 @@ func (client PrivateDNSZoneGroupsClient) DeleteSender(req *http.Request) (future
 func (client PrivateDNSZoneGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -271,7 +269,6 @@ func (client PrivateDNSZoneGroupsClient) GetSender(req *http.Request) (*http.Res
 func (client PrivateDNSZoneGroupsClient) GetResponder(resp *http.Response) (result PrivateDNSZoneGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -348,7 +345,6 @@ func (client PrivateDNSZoneGroupsClient) ListSender(req *http.Request) (*http.Re
 func (client PrivateDNSZoneGroupsClient) ListResponder(resp *http.Response) (result PrivateDNSZoneGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

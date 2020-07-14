@@ -108,7 +108,6 @@ func (client DenyAssignmentsClient) GetSender(req *http.Request) (*http.Response
 func (client DenyAssignmentsClient) GetResponder(resp *http.Response) (result DenyAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -184,7 +183,6 @@ func (client DenyAssignmentsClient) GetByIDSender(req *http.Request) (*http.Resp
 func (client DenyAssignmentsClient) GetByIDResponder(resp *http.Response) (result DenyAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -269,7 +267,6 @@ func (client DenyAssignmentsClient) ListSender(req *http.Request) (*http.Respons
 func (client DenyAssignmentsClient) ListResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -401,7 +398,6 @@ func (client DenyAssignmentsClient) ListForResourceSender(req *http.Request) (*h
 func (client DenyAssignmentsClient) ListForResourceResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -525,7 +521,6 @@ func (client DenyAssignmentsClient) ListForResourceGroupSender(req *http.Request
 func (client DenyAssignmentsClient) ListForResourceGroupResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -648,7 +643,6 @@ func (client DenyAssignmentsClient) ListForScopeSender(req *http.Request) (*http
 func (client DenyAssignmentsClient) ListForScopeResponder(resp *http.Response) (result DenyAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

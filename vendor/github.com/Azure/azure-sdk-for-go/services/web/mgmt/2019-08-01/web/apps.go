@@ -123,7 +123,6 @@ func (client AppsClient) AddPremierAddOnSender(req *http.Request) (*http.Respons
 func (client AppsClient) AddPremierAddOnResponder(resp *http.Response) (result PremierAddOn, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,7 +214,6 @@ func (client AppsClient) AddPremierAddOnSlotSender(req *http.Request) (*http.Res
 func (client AppsClient) AddPremierAddOnSlotResponder(resp *http.Response) (result PremierAddOn, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -303,7 +301,6 @@ func (client AppsClient) AnalyzeCustomHostnameSender(req *http.Request) (*http.R
 func (client AppsClient) AnalyzeCustomHostnameResponder(resp *http.Response) (result CustomHostnameAnalysisResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -393,7 +390,6 @@ func (client AppsClient) AnalyzeCustomHostnameSlotSender(req *http.Request) (*ht
 func (client AppsClient) AnalyzeCustomHostnameSlotResponder(resp *http.Response) (result CustomHostnameAnalysisResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -484,7 +480,6 @@ func (client AppsClient) ApplySlotConfigToProductionSender(req *http.Request) (*
 func (client AppsClient) ApplySlotConfigToProductionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -576,7 +571,6 @@ func (client AppsClient) ApplySlotConfigurationSlotSender(req *http.Request) (*h
 func (client AppsClient) ApplySlotConfigurationSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -662,7 +656,6 @@ func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionSender(req *htt
 func (client AppsClient) ApproveOrRejectPrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnectionResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -758,7 +751,6 @@ func (client AppsClient) BackupSender(req *http.Request) (*http.Response, error)
 func (client AppsClient) BackupResponder(resp *http.Response) (result BackupItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -857,7 +849,6 @@ func (client AppsClient) BackupSlotSender(req *http.Request) (*http.Response, er
 func (client AppsClient) BackupSlotResponder(resp *http.Response) (result BackupItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -957,7 +948,6 @@ func (client AppsClient) CopyProductionSlotSender(req *http.Request) (future App
 func (client AppsClient) CopyProductionSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1058,7 +1048,6 @@ func (client AppsClient) CopySlotSlotSender(req *http.Request) (future AppsCopyS
 func (client AppsClient) CopySlotSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1146,7 +1135,6 @@ func (client AppsClient) CreateDeploymentSender(req *http.Request) (*http.Respon
 func (client AppsClient) CreateDeploymentResponder(resp *http.Response) (result Deployment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1238,7 +1226,6 @@ func (client AppsClient) CreateDeploymentSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) CreateDeploymentSlotResponder(resp *http.Response) (result Deployment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1327,7 +1314,6 @@ func (client AppsClient) CreateFunctionSender(req *http.Request) (future AppsCre
 func (client AppsClient) CreateFunctionResponder(resp *http.Response) (result FunctionEnvelope, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1418,7 +1404,6 @@ func (client AppsClient) CreateInstanceFunctionSlotSender(req *http.Request) (fu
 func (client AppsClient) CreateInstanceFunctionSlotResponder(resp *http.Response) (result FunctionEnvelope, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1507,7 +1492,6 @@ func (client AppsClient) CreateInstanceMSDeployOperationSender(req *http.Request
 func (client AppsClient) CreateInstanceMSDeployOperationResponder(resp *http.Response) (result MSDeployStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusConflict),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1598,7 +1582,6 @@ func (client AppsClient) CreateInstanceMSDeployOperationSlotSender(req *http.Req
 func (client AppsClient) CreateInstanceMSDeployOperationSlotResponder(resp *http.Response) (result MSDeployStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusConflict),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1685,7 +1668,6 @@ func (client AppsClient) CreateMSDeployOperationSender(req *http.Request) (futur
 func (client AppsClient) CreateMSDeployOperationResponder(resp *http.Response) (result MSDeployStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusConflict),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1774,7 +1756,6 @@ func (client AppsClient) CreateMSDeployOperationSlotSender(req *http.Request) (f
 func (client AppsClient) CreateMSDeployOperationSlotResponder(resp *http.Response) (result MSDeployStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusConflict),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1878,7 +1859,6 @@ func (client AppsClient) CreateOrUpdateSender(req *http.Request) (future AppsCre
 func (client AppsClient) CreateOrUpdateResponder(resp *http.Response) (result Site, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1976,7 +1956,6 @@ func (client AppsClient) CreateOrUpdateConfigurationSender(req *http.Request) (*
 func (client AppsClient) CreateOrUpdateConfigurationResponder(resp *http.Response) (result SiteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2077,7 +2056,6 @@ func (client AppsClient) CreateOrUpdateConfigurationSlotSender(req *http.Request
 func (client AppsClient) CreateOrUpdateConfigurationSlotResponder(resp *http.Response) (result SiteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2167,7 +2145,6 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierSender(req *http
 func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierResponder(resp *http.Response) (result Identifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2260,7 +2237,6 @@ func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierSlotSender(req *
 func (client AppsClient) CreateOrUpdateDomainOwnershipIdentifierSlotResponder(resp *http.Response) (result Identifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2351,7 +2327,6 @@ func (client AppsClient) CreateOrUpdateFunctionSecretSender(req *http.Request) (
 func (client AppsClient) CreateOrUpdateFunctionSecretResponder(resp *http.Response) (result KeyInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2444,7 +2419,6 @@ func (client AppsClient) CreateOrUpdateFunctionSecretSlotSender(req *http.Reques
 func (client AppsClient) CreateOrUpdateFunctionSecretSlotResponder(resp *http.Response) (result KeyInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2533,7 +2507,6 @@ func (client AppsClient) CreateOrUpdateHostNameBindingSender(req *http.Request) 
 func (client AppsClient) CreateOrUpdateHostNameBindingResponder(resp *http.Response) (result HostNameBinding, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2625,7 +2598,6 @@ func (client AppsClient) CreateOrUpdateHostNameBindingSlotSender(req *http.Reque
 func (client AppsClient) CreateOrUpdateHostNameBindingSlotResponder(resp *http.Response) (result HostNameBinding, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2716,7 +2688,6 @@ func (client AppsClient) CreateOrUpdateHostSecretSender(req *http.Request) (*htt
 func (client AppsClient) CreateOrUpdateHostSecretResponder(resp *http.Response) (result KeyInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2809,7 +2780,6 @@ func (client AppsClient) CreateOrUpdateHostSecretSlotSender(req *http.Request) (
 func (client AppsClient) CreateOrUpdateHostSecretSlotResponder(resp *http.Response) (result KeyInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2900,7 +2870,6 @@ func (client AppsClient) CreateOrUpdateHybridConnectionSender(req *http.Request)
 func (client AppsClient) CreateOrUpdateHybridConnectionResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2993,7 +2962,6 @@ func (client AppsClient) CreateOrUpdateHybridConnectionSlotSender(req *http.Requ
 func (client AppsClient) CreateOrUpdateHybridConnectionSlotResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3083,7 +3051,6 @@ func (client AppsClient) CreateOrUpdatePublicCertificateSender(req *http.Request
 func (client AppsClient) CreateOrUpdatePublicCertificateResponder(resp *http.Response) (result PublicCertificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3176,7 +3143,6 @@ func (client AppsClient) CreateOrUpdatePublicCertificateSlotSender(req *http.Req
 func (client AppsClient) CreateOrUpdatePublicCertificateSlotResponder(resp *http.Response) (result PublicCertificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3266,7 +3232,6 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionSender(req *http.Re
 func (client AppsClient) CreateOrUpdateRelayServiceConnectionResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3359,7 +3324,6 @@ func (client AppsClient) CreateOrUpdateRelayServiceConnectionSlotSender(req *htt
 func (client AppsClient) CreateOrUpdateRelayServiceConnectionSlotResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3466,7 +3430,6 @@ func (client AppsClient) CreateOrUpdateSlotSender(req *http.Request) (future App
 func (client AppsClient) CreateOrUpdateSlotResponder(resp *http.Response) (result Site, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3553,7 +3516,6 @@ func (client AppsClient) CreateOrUpdateSourceControlSender(req *http.Request) (f
 func (client AppsClient) CreateOrUpdateSourceControlResponder(resp *http.Response) (result SiteSourceControl, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3643,7 +3605,6 @@ func (client AppsClient) CreateOrUpdateSourceControlSlotSender(req *http.Request
 func (client AppsClient) CreateOrUpdateSourceControlSlotResponder(resp *http.Response) (result SiteSourceControl, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3733,7 +3694,6 @@ func (client AppsClient) CreateOrUpdateSwiftVirtualNetworkConnectionSender(req *
 func (client AppsClient) CreateOrUpdateSwiftVirtualNetworkConnectionResponder(resp *http.Response) (result SwiftVirtualNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3826,7 +3786,6 @@ func (client AppsClient) CreateOrUpdateSwiftVirtualNetworkConnectionSlotSender(r
 func (client AppsClient) CreateOrUpdateSwiftVirtualNetworkConnectionSlotResponder(resp *http.Response) (result SwiftVirtualNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3916,7 +3875,6 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSender(req *http.Request) (
 func (client AppsClient) CreateOrUpdateVnetConnectionResponder(resp *http.Response) (result VnetInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4011,7 +3969,6 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySender(req *http.Req
 func (client AppsClient) CreateOrUpdateVnetConnectionGatewayResponder(resp *http.Response) (result VnetGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4109,7 +4066,6 @@ func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlotSender(req *http
 func (client AppsClient) CreateOrUpdateVnetConnectionGatewaySlotResponder(resp *http.Response) (result VnetGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4202,7 +4158,6 @@ func (client AppsClient) CreateOrUpdateVnetConnectionSlotSender(req *http.Reques
 func (client AppsClient) CreateOrUpdateVnetConnectionSlotResponder(resp *http.Response) (result VnetInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4295,7 +4250,6 @@ func (client AppsClient) DeleteSender(req *http.Request) (*http.Response, error)
 func (client AppsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -4380,7 +4334,6 @@ func (client AppsClient) DeleteBackupSender(req *http.Request) (*http.Response, 
 func (client AppsClient) DeleteBackupResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -4463,7 +4416,6 @@ func (client AppsClient) DeleteBackupConfigurationSender(req *http.Request) (*ht
 func (client AppsClient) DeleteBackupConfigurationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -4549,7 +4501,6 @@ func (client AppsClient) DeleteBackupConfigurationSlotSender(req *http.Request) 
 func (client AppsClient) DeleteBackupConfigurationSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -4637,7 +4588,6 @@ func (client AppsClient) DeleteBackupSlotSender(req *http.Request) (*http.Respon
 func (client AppsClient) DeleteBackupSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -4722,7 +4672,6 @@ func (client AppsClient) DeleteContinuousWebJobSender(req *http.Request) (*http.
 func (client AppsClient) DeleteContinuousWebJobResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -4810,7 +4759,6 @@ func (client AppsClient) DeleteContinuousWebJobSlotSender(req *http.Request) (*h
 func (client AppsClient) DeleteContinuousWebJobSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -4895,7 +4843,6 @@ func (client AppsClient) DeleteDeploymentSender(req *http.Request) (*http.Respon
 func (client AppsClient) DeleteDeploymentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -4983,7 +4930,6 @@ func (client AppsClient) DeleteDeploymentSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) DeleteDeploymentSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5068,7 +5014,6 @@ func (client AppsClient) DeleteDomainOwnershipIdentifierSender(req *http.Request
 func (client AppsClient) DeleteDomainOwnershipIdentifierResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5156,7 +5101,6 @@ func (client AppsClient) DeleteDomainOwnershipIdentifierSlotSender(req *http.Req
 func (client AppsClient) DeleteDomainOwnershipIdentifierSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5241,7 +5185,6 @@ func (client AppsClient) DeleteFunctionSender(req *http.Request) (*http.Response
 func (client AppsClient) DeleteFunctionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5328,7 +5271,6 @@ func (client AppsClient) DeleteFunctionSecretSender(req *http.Request) (*http.Re
 func (client AppsClient) DeleteFunctionSecretResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5417,7 +5359,6 @@ func (client AppsClient) DeleteFunctionSecretSlotSender(req *http.Request) (*htt
 func (client AppsClient) DeleteFunctionSecretSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5502,7 +5443,6 @@ func (client AppsClient) DeleteHostNameBindingSender(req *http.Request) (*http.R
 func (client AppsClient) DeleteHostNameBindingResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5590,7 +5530,6 @@ func (client AppsClient) DeleteHostNameBindingSlotSender(req *http.Request) (*ht
 func (client AppsClient) DeleteHostNameBindingSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5677,7 +5616,6 @@ func (client AppsClient) DeleteHostSecretSender(req *http.Request) (*http.Respon
 func (client AppsClient) DeleteHostSecretResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5766,7 +5704,6 @@ func (client AppsClient) DeleteHostSecretSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) DeleteHostSecretSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5853,7 +5790,6 @@ func (client AppsClient) DeleteHybridConnectionSender(req *http.Request) (*http.
 func (client AppsClient) DeleteHybridConnectionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5942,7 +5878,6 @@ func (client AppsClient) DeleteHybridConnectionSlotSender(req *http.Request) (*h
 func (client AppsClient) DeleteHybridConnectionSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6029,7 +5964,6 @@ func (client AppsClient) DeleteInstanceFunctionSlotSender(req *http.Request) (*h
 func (client AppsClient) DeleteInstanceFunctionSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6118,7 +6052,6 @@ func (client AppsClient) DeleteInstanceProcessSender(req *http.Request) (*http.R
 func (client AppsClient) DeleteInstanceProcessResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6210,7 +6143,6 @@ func (client AppsClient) DeleteInstanceProcessSlotSender(req *http.Request) (*ht
 func (client AppsClient) DeleteInstanceProcessSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6295,7 +6227,6 @@ func (client AppsClient) DeletePremierAddOnSender(req *http.Request) (*http.Resp
 func (client AppsClient) DeletePremierAddOnResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6383,7 +6314,6 @@ func (client AppsClient) DeletePremierAddOnSlotSender(req *http.Request) (*http.
 func (client AppsClient) DeletePremierAddOnSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6467,7 +6397,6 @@ func (client AppsClient) DeletePrivateEndpointConnectionSender(req *http.Request
 func (client AppsClient) DeletePrivateEndpointConnectionResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -6554,7 +6483,6 @@ func (client AppsClient) DeleteProcessSender(req *http.Request) (*http.Response,
 func (client AppsClient) DeleteProcessResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6643,7 +6571,6 @@ func (client AppsClient) DeleteProcessSlotSender(req *http.Request) (*http.Respo
 func (client AppsClient) DeleteProcessSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6728,7 +6655,6 @@ func (client AppsClient) DeletePublicCertificateSender(req *http.Request) (*http
 func (client AppsClient) DeletePublicCertificateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6816,7 +6742,6 @@ func (client AppsClient) DeletePublicCertificateSlotSender(req *http.Request) (*
 func (client AppsClient) DeletePublicCertificateSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6901,7 +6826,6 @@ func (client AppsClient) DeleteRelayServiceConnectionSender(req *http.Request) (
 func (client AppsClient) DeleteRelayServiceConnectionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -6989,7 +6913,6 @@ func (client AppsClient) DeleteRelayServiceConnectionSlotSender(req *http.Reques
 func (client AppsClient) DeleteRelayServiceConnectionSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7074,7 +6997,6 @@ func (client AppsClient) DeleteSiteExtensionSender(req *http.Request) (*http.Res
 func (client AppsClient) DeleteSiteExtensionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7162,7 +7084,6 @@ func (client AppsClient) DeleteSiteExtensionSlotSender(req *http.Request) (*http
 func (client AppsClient) DeleteSiteExtensionSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7256,7 +7177,6 @@ func (client AppsClient) DeleteSlotSender(req *http.Request) (*http.Response, er
 func (client AppsClient) DeleteSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7339,7 +7259,6 @@ func (client AppsClient) DeleteSourceControlSender(req *http.Request) (*http.Res
 func (client AppsClient) DeleteSourceControlResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7425,7 +7344,6 @@ func (client AppsClient) DeleteSourceControlSlotSender(req *http.Request) (*http
 func (client AppsClient) DeleteSourceControlSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7509,7 +7427,6 @@ func (client AppsClient) DeleteSwiftVirtualNetworkSender(req *http.Request) (*ht
 func (client AppsClient) DeleteSwiftVirtualNetworkResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7596,7 +7513,6 @@ func (client AppsClient) DeleteSwiftVirtualNetworkSlotSender(req *http.Request) 
 func (client AppsClient) DeleteSwiftVirtualNetworkSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7681,7 +7597,6 @@ func (client AppsClient) DeleteTriggeredWebJobSender(req *http.Request) (*http.R
 func (client AppsClient) DeleteTriggeredWebJobResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7769,7 +7684,6 @@ func (client AppsClient) DeleteTriggeredWebJobSlotSender(req *http.Request) (*ht
 func (client AppsClient) DeleteTriggeredWebJobSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7855,7 +7769,6 @@ func (client AppsClient) DeleteVnetConnectionSender(req *http.Request) (*http.Re
 func (client AppsClient) DeleteVnetConnectionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -7944,7 +7857,6 @@ func (client AppsClient) DeleteVnetConnectionSlotSender(req *http.Request) (*htt
 func (client AppsClient) DeleteVnetConnectionSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -8036,7 +7948,6 @@ func (client AppsClient) DiscoverBackupSender(req *http.Request) (*http.Response
 func (client AppsClient) DiscoverBackupResponder(resp *http.Response) (result RestoreRequest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -8132,7 +8043,6 @@ func (client AppsClient) DiscoverBackupSlotSender(req *http.Request) (*http.Resp
 func (client AppsClient) DiscoverBackupSlotResponder(resp *http.Response) (result RestoreRequest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -8217,7 +8127,6 @@ func (client AppsClient) GenerateNewSitePublishingPasswordSender(req *http.Reque
 func (client AppsClient) GenerateNewSitePublishingPasswordResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -8304,7 +8213,6 @@ func (client AppsClient) GenerateNewSitePublishingPasswordSlotSender(req *http.R
 func (client AppsClient) GenerateNewSitePublishingPasswordSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -8387,7 +8295,6 @@ func (client AppsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) GetResponder(resp *http.Response) (result Site, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -8473,7 +8380,6 @@ func (client AppsClient) GetAppSettingKeyVaultReferenceSender(req *http.Request)
 func (client AppsClient) GetAppSettingKeyVaultReferenceResponder(resp *http.Response) (result KeyVaultReferenceResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -8557,7 +8463,6 @@ func (client AppsClient) GetAppSettingsKeyVaultReferencesSender(req *http.Reques
 func (client AppsClient) GetAppSettingsKeyVaultReferencesResponder(resp *http.Response) (result KeyVaultReferenceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -8641,7 +8546,6 @@ func (client AppsClient) GetAuthSettingsSender(req *http.Request) (*http.Respons
 func (client AppsClient) GetAuthSettingsResponder(resp *http.Response) (result SiteAuthSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -8728,7 +8632,6 @@ func (client AppsClient) GetAuthSettingsSlotSender(req *http.Request) (*http.Res
 func (client AppsClient) GetAuthSettingsSlotResponder(resp *http.Response) (result SiteAuthSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -8812,7 +8715,6 @@ func (client AppsClient) GetBackupConfigurationSender(req *http.Request) (*http.
 func (client AppsClient) GetBackupConfigurationResponder(resp *http.Response) (result BackupRequest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -8899,7 +8801,6 @@ func (client AppsClient) GetBackupConfigurationSlotSender(req *http.Request) (*h
 func (client AppsClient) GetBackupConfigurationSlotResponder(resp *http.Response) (result BackupRequest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -8985,7 +8886,6 @@ func (client AppsClient) GetBackupStatusSender(req *http.Request) (*http.Respons
 func (client AppsClient) GetBackupStatusResponder(resp *http.Response) (result BackupItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -9074,7 +8974,6 @@ func (client AppsClient) GetBackupStatusSlotSender(req *http.Request) (*http.Res
 func (client AppsClient) GetBackupStatusSlotResponder(resp *http.Response) (result BackupItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -9159,7 +9058,6 @@ func (client AppsClient) GetBasicPublishingCredentialsPoliciesSender(req *http.R
 func (client AppsClient) GetBasicPublishingCredentialsPoliciesResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -9244,7 +9142,6 @@ func (client AppsClient) GetConfigurationSender(req *http.Request) (*http.Respon
 func (client AppsClient) GetConfigurationResponder(resp *http.Response) (result SiteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -9332,7 +9229,6 @@ func (client AppsClient) GetConfigurationSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) GetConfigurationSlotResponder(resp *http.Response) (result SiteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -9418,7 +9314,6 @@ func (client AppsClient) GetConfigurationSnapshotSender(req *http.Request) (*htt
 func (client AppsClient) GetConfigurationSnapshotResponder(resp *http.Response) (result SiteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -9508,7 +9403,6 @@ func (client AppsClient) GetConfigurationSnapshotSlotSender(req *http.Request) (
 func (client AppsClient) GetConfigurationSnapshotSlotResponder(resp *http.Response) (result SiteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -9593,7 +9487,6 @@ func (client AppsClient) GetContainerLogsZipResponder(resp *http.Response) (resu
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -9678,7 +9571,6 @@ func (client AppsClient) GetContainerLogsZipSlotResponder(resp *http.Response) (
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -9762,7 +9654,6 @@ func (client AppsClient) GetContinuousWebJobSender(req *http.Request) (*http.Res
 func (client AppsClient) GetContinuousWebJobResponder(resp *http.Response) (result ContinuousWebJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -9851,7 +9742,6 @@ func (client AppsClient) GetContinuousWebJobSlotSender(req *http.Request) (*http
 func (client AppsClient) GetContinuousWebJobSlotResponder(resp *http.Response) (result ContinuousWebJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -9937,7 +9827,6 @@ func (client AppsClient) GetDeploymentSender(req *http.Request) (*http.Response,
 func (client AppsClient) GetDeploymentResponder(resp *http.Response) (result Deployment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10026,7 +9915,6 @@ func (client AppsClient) GetDeploymentSlotSender(req *http.Request) (*http.Respo
 func (client AppsClient) GetDeploymentSlotResponder(resp *http.Response) (result Deployment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10110,7 +9998,6 @@ func (client AppsClient) GetDiagnosticLogsConfigurationSender(req *http.Request)
 func (client AppsClient) GetDiagnosticLogsConfigurationResponder(resp *http.Response) (result SiteLogsConfig, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10197,7 +10084,6 @@ func (client AppsClient) GetDiagnosticLogsConfigurationSlotSender(req *http.Requ
 func (client AppsClient) GetDiagnosticLogsConfigurationSlotResponder(resp *http.Response) (result SiteLogsConfig, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10283,7 +10169,6 @@ func (client AppsClient) GetDomainOwnershipIdentifierSender(req *http.Request) (
 func (client AppsClient) GetDomainOwnershipIdentifierResponder(resp *http.Response) (result Identifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10372,7 +10257,6 @@ func (client AppsClient) GetDomainOwnershipIdentifierSlotSender(req *http.Reques
 func (client AppsClient) GetDomainOwnershipIdentifierSlotResponder(resp *http.Response) (result Identifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10456,7 +10340,6 @@ func (client AppsClient) GetFtpAllowedSender(req *http.Request) (*http.Response,
 func (client AppsClient) GetFtpAllowedResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10542,7 +10425,6 @@ func (client AppsClient) GetFunctionSender(req *http.Request) (*http.Response, e
 func (client AppsClient) GetFunctionResponder(resp *http.Response) (result FunctionEnvelope, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10626,7 +10508,6 @@ func (client AppsClient) GetFunctionsAdminTokenSender(req *http.Request) (*http.
 func (client AppsClient) GetFunctionsAdminTokenResponder(resp *http.Response) (result String, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -10712,7 +10593,6 @@ func (client AppsClient) GetFunctionsAdminTokenSlotSender(req *http.Request) (*h
 func (client AppsClient) GetFunctionsAdminTokenSlotResponder(resp *http.Response) (result String, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -10798,7 +10678,6 @@ func (client AppsClient) GetHostNameBindingSender(req *http.Request) (*http.Resp
 func (client AppsClient) GetHostNameBindingResponder(resp *http.Response) (result HostNameBinding, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10887,7 +10766,6 @@ func (client AppsClient) GetHostNameBindingSlotSender(req *http.Request) (*http.
 func (client AppsClient) GetHostNameBindingSlotResponder(resp *http.Response) (result HostNameBinding, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -10975,7 +10853,6 @@ func (client AppsClient) GetHybridConnectionSender(req *http.Request) (*http.Res
 func (client AppsClient) GetHybridConnectionResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11065,7 +10942,6 @@ func (client AppsClient) GetHybridConnectionSlotSender(req *http.Request) (*http
 func (client AppsClient) GetHybridConnectionSlotResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11153,7 +11029,6 @@ func (client AppsClient) GetInstanceFunctionSlotSender(req *http.Request) (*http
 func (client AppsClient) GetInstanceFunctionSlotResponder(resp *http.Response) (result FunctionEnvelope, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11238,7 +11113,6 @@ func (client AppsClient) GetInstanceInfoSender(req *http.Request) (*http.Respons
 func (client AppsClient) GetInstanceInfoResponder(resp *http.Response) (result SiteInstanceStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11325,7 +11199,6 @@ func (client AppsClient) GetInstanceInfoSlotSender(req *http.Request) (*http.Res
 func (client AppsClient) GetInstanceInfoSlotResponder(resp *http.Response) (result SiteInstanceStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11411,7 +11284,6 @@ func (client AppsClient) GetInstanceMSDeployLogSender(req *http.Request) (*http.
 func (client AppsClient) GetInstanceMSDeployLogResponder(resp *http.Response) (result MSDeployLog, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11499,7 +11371,6 @@ func (client AppsClient) GetInstanceMSDeployLogSlotSender(req *http.Request) (*h
 func (client AppsClient) GetInstanceMSDeployLogSlotResponder(resp *http.Response) (result MSDeployLog, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11585,7 +11456,6 @@ func (client AppsClient) GetInstanceMsDeployStatusSender(req *http.Request) (*ht
 func (client AppsClient) GetInstanceMsDeployStatusResponder(resp *http.Response) (result MSDeployStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11673,7 +11543,6 @@ func (client AppsClient) GetInstanceMsDeployStatusSlotSender(req *http.Request) 
 func (client AppsClient) GetInstanceMsDeployStatusSlotResponder(resp *http.Response) (result MSDeployStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11763,7 +11632,6 @@ func (client AppsClient) GetInstanceProcessSender(req *http.Request) (*http.Resp
 func (client AppsClient) GetInstanceProcessResponder(resp *http.Response) (result ProcessInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -11854,7 +11722,6 @@ func (client AppsClient) GetInstanceProcessDumpResponder(resp *http.Response) (r
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -11946,7 +11813,6 @@ func (client AppsClient) GetInstanceProcessDumpSlotResponder(resp *http.Response
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -12036,7 +11902,6 @@ func (client AppsClient) GetInstanceProcessModuleSender(req *http.Request) (*htt
 func (client AppsClient) GetInstanceProcessModuleResponder(resp *http.Response) (result ProcessModuleInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -12131,7 +11996,6 @@ func (client AppsClient) GetInstanceProcessModuleSlotSender(req *http.Request) (
 func (client AppsClient) GetInstanceProcessModuleSlotResponder(resp *http.Response) (result ProcessModuleInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -12224,7 +12088,6 @@ func (client AppsClient) GetInstanceProcessSlotSender(req *http.Request) (*http.
 func (client AppsClient) GetInstanceProcessSlotResponder(resp *http.Response) (result ProcessInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -12309,7 +12172,6 @@ func (client AppsClient) GetMigrateMySQLStatusSender(req *http.Request) (*http.R
 func (client AppsClient) GetMigrateMySQLStatusResponder(resp *http.Response) (result MigrateMySQLStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -12396,7 +12258,6 @@ func (client AppsClient) GetMigrateMySQLStatusSlotSender(req *http.Request) (*ht
 func (client AppsClient) GetMigrateMySQLStatusSlotResponder(resp *http.Response) (result MigrateMySQLStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -12480,7 +12341,6 @@ func (client AppsClient) GetMSDeployLogSender(req *http.Request) (*http.Response
 func (client AppsClient) GetMSDeployLogResponder(resp *http.Response) (result MSDeployLog, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -12566,7 +12426,6 @@ func (client AppsClient) GetMSDeployLogSlotSender(req *http.Request) (*http.Resp
 func (client AppsClient) GetMSDeployLogSlotResponder(resp *http.Response) (result MSDeployLog, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -12650,7 +12509,6 @@ func (client AppsClient) GetMSDeployStatusSender(req *http.Request) (*http.Respo
 func (client AppsClient) GetMSDeployStatusResponder(resp *http.Response) (result MSDeployStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -12736,7 +12594,6 @@ func (client AppsClient) GetMSDeployStatusSlotSender(req *http.Request) (*http.R
 func (client AppsClient) GetMSDeployStatusSlotResponder(resp *http.Response) (result MSDeployStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -12823,7 +12680,6 @@ func (client AppsClient) GetNetworkTraceOperationSender(req *http.Request) (*htt
 func (client AppsClient) GetNetworkTraceOperationResponder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -12913,7 +12769,6 @@ func (client AppsClient) GetNetworkTraceOperationSlotSender(req *http.Request) (
 func (client AppsClient) GetNetworkTraceOperationSlotResponder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -13003,7 +12858,6 @@ func (client AppsClient) GetNetworkTraceOperationSlotV2Sender(req *http.Request)
 func (client AppsClient) GetNetworkTraceOperationSlotV2Responder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -13090,7 +12944,6 @@ func (client AppsClient) GetNetworkTraceOperationV2Sender(req *http.Request) (*h
 func (client AppsClient) GetNetworkTraceOperationV2Responder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -13177,7 +13030,6 @@ func (client AppsClient) GetNetworkTracesSender(req *http.Request) (*http.Respon
 func (client AppsClient) GetNetworkTracesResponder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -13267,7 +13119,6 @@ func (client AppsClient) GetNetworkTracesSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) GetNetworkTracesSlotResponder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -13357,7 +13208,6 @@ func (client AppsClient) GetNetworkTracesSlotV2Sender(req *http.Request) (*http.
 func (client AppsClient) GetNetworkTracesSlotV2Responder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -13444,7 +13294,6 @@ func (client AppsClient) GetNetworkTracesV2Sender(req *http.Request) (*http.Resp
 func (client AppsClient) GetNetworkTracesV2Responder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -13530,7 +13379,6 @@ func (client AppsClient) GetPremierAddOnSender(req *http.Request) (*http.Respons
 func (client AppsClient) GetPremierAddOnResponder(resp *http.Response) (result PremierAddOn, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -13619,7 +13467,6 @@ func (client AppsClient) GetPremierAddOnSlotSender(req *http.Request) (*http.Res
 func (client AppsClient) GetPremierAddOnSlotResponder(resp *http.Response) (result PremierAddOn, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -13704,7 +13551,6 @@ func (client AppsClient) GetPrivateAccessSender(req *http.Request) (*http.Respon
 func (client AppsClient) GetPrivateAccessResponder(resp *http.Response) (result PrivateAccess, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -13791,7 +13637,6 @@ func (client AppsClient) GetPrivateAccessSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) GetPrivateAccessSlotResponder(resp *http.Response) (result PrivateAccess, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -13876,7 +13721,6 @@ func (client AppsClient) GetPrivateEndpointConnectionSender(req *http.Request) (
 func (client AppsClient) GetPrivateEndpointConnectionResponder(resp *http.Response) (result PrivateEndpointConnectionResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -13960,7 +13804,6 @@ func (client AppsClient) GetPrivateLinkResourcesSender(req *http.Request) (*http
 func (client AppsClient) GetPrivateLinkResourcesResponder(resp *http.Response) (result PrivateLinkResourcesWrapper, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -14046,7 +13889,6 @@ func (client AppsClient) GetProcessSender(req *http.Request) (*http.Response, er
 func (client AppsClient) GetProcessResponder(resp *http.Response) (result ProcessInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -14134,7 +13976,6 @@ func (client AppsClient) GetProcessDumpResponder(resp *http.Response) (result Re
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -14223,7 +14064,6 @@ func (client AppsClient) GetProcessDumpSlotResponder(resp *http.Response) (resul
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -14309,7 +14149,6 @@ func (client AppsClient) GetProcessModuleSender(req *http.Request) (*http.Respon
 func (client AppsClient) GetProcessModuleResponder(resp *http.Response) (result ProcessModuleInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -14401,7 +14240,6 @@ func (client AppsClient) GetProcessModuleSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) GetProcessModuleSlotResponder(resp *http.Response) (result ProcessModuleInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -14490,7 +14328,6 @@ func (client AppsClient) GetProcessSlotSender(req *http.Request) (*http.Response
 func (client AppsClient) GetProcessSlotResponder(resp *http.Response) (result ProcessInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -14576,7 +14413,6 @@ func (client AppsClient) GetPublicCertificateSender(req *http.Request) (*http.Re
 func (client AppsClient) GetPublicCertificateResponder(resp *http.Response) (result PublicCertificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -14666,7 +14502,6 @@ func (client AppsClient) GetPublicCertificateSlotSender(req *http.Request) (*htt
 func (client AppsClient) GetPublicCertificateSlotResponder(resp *http.Response) (result PublicCertificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -14752,7 +14587,6 @@ func (client AppsClient) GetRelayServiceConnectionSender(req *http.Request) (*ht
 func (client AppsClient) GetRelayServiceConnectionResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -14841,7 +14675,6 @@ func (client AppsClient) GetRelayServiceConnectionSlotSender(req *http.Request) 
 func (client AppsClient) GetRelayServiceConnectionSlotResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -14925,7 +14758,6 @@ func (client AppsClient) GetScmAllowedSender(req *http.Request) (*http.Response,
 func (client AppsClient) GetScmAllowedResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15011,7 +14843,6 @@ func (client AppsClient) GetSiteExtensionSender(req *http.Request) (*http.Respon
 func (client AppsClient) GetSiteExtensionResponder(resp *http.Response) (result SiteExtensionInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15099,7 +14930,6 @@ func (client AppsClient) GetSiteExtensionSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) GetSiteExtensionSlotResponder(resp *http.Response) (result SiteExtensionInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15183,7 +15013,6 @@ func (client AppsClient) GetSitePhpErrorLogFlagSender(req *http.Request) (*http.
 func (client AppsClient) GetSitePhpErrorLogFlagResponder(resp *http.Response) (result SitePhpErrorLogFlag, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15269,7 +15098,6 @@ func (client AppsClient) GetSitePhpErrorLogFlagSlotSender(req *http.Request) (*h
 func (client AppsClient) GetSitePhpErrorLogFlagSlotResponder(resp *http.Response) (result SitePhpErrorLogFlag, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15355,7 +15183,6 @@ func (client AppsClient) GetSlotSender(req *http.Request) (*http.Response, error
 func (client AppsClient) GetSlotResponder(resp *http.Response) (result Site, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15439,7 +15266,6 @@ func (client AppsClient) GetSourceControlSender(req *http.Request) (*http.Respon
 func (client AppsClient) GetSourceControlResponder(resp *http.Response) (result SiteSourceControl, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15526,7 +15352,6 @@ func (client AppsClient) GetSourceControlSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) GetSourceControlSlotResponder(resp *http.Response) (result SiteSourceControl, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15610,7 +15435,6 @@ func (client AppsClient) GetSwiftVirtualNetworkConnectionSender(req *http.Reques
 func (client AppsClient) GetSwiftVirtualNetworkConnectionResponder(resp *http.Response) (result SwiftVirtualNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15697,7 +15521,6 @@ func (client AppsClient) GetSwiftVirtualNetworkConnectionSlotSender(req *http.Re
 func (client AppsClient) GetSwiftVirtualNetworkConnectionSlotResponder(resp *http.Response) (result SwiftVirtualNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15783,7 +15606,6 @@ func (client AppsClient) GetTriggeredWebJobSender(req *http.Request) (*http.Resp
 func (client AppsClient) GetTriggeredWebJobResponder(resp *http.Response) (result TriggeredWebJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15872,7 +15694,6 @@ func (client AppsClient) GetTriggeredWebJobHistorySender(req *http.Request) (*ht
 func (client AppsClient) GetTriggeredWebJobHistoryResponder(resp *http.Response) (result TriggeredJobHistory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -15963,7 +15784,6 @@ func (client AppsClient) GetTriggeredWebJobHistorySlotSender(req *http.Request) 
 func (client AppsClient) GetTriggeredWebJobHistorySlotResponder(resp *http.Response) (result TriggeredJobHistory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -16051,7 +15871,6 @@ func (client AppsClient) GetTriggeredWebJobSlotSender(req *http.Request) (*http.
 func (client AppsClient) GetTriggeredWebJobSlotResponder(resp *http.Response) (result TriggeredWebJob, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -16137,7 +15956,6 @@ func (client AppsClient) GetVnetConnectionSender(req *http.Request) (*http.Respo
 func (client AppsClient) GetVnetConnectionResponder(resp *http.Response) (result VnetInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -16225,7 +16043,6 @@ func (client AppsClient) GetVnetConnectionGatewaySender(req *http.Request) (*htt
 func (client AppsClient) GetVnetConnectionGatewayResponder(resp *http.Response) (result VnetGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -16316,7 +16133,6 @@ func (client AppsClient) GetVnetConnectionGatewaySlotSender(req *http.Request) (
 func (client AppsClient) GetVnetConnectionGatewaySlotResponder(resp *http.Response) (result VnetGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -16405,7 +16221,6 @@ func (client AppsClient) GetVnetConnectionSlotSender(req *http.Request) (*http.R
 func (client AppsClient) GetVnetConnectionSlotResponder(resp *http.Response) (result VnetInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -16491,7 +16306,6 @@ func (client AppsClient) GetWebJobSender(req *http.Request) (*http.Response, err
 func (client AppsClient) GetWebJobResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -16580,7 +16394,6 @@ func (client AppsClient) GetWebJobSlotSender(req *http.Request) (*http.Response,
 func (client AppsClient) GetWebJobSlotResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -16665,7 +16478,6 @@ func (client AppsClient) GetWebSiteContainerLogsResponder(resp *http.Response) (
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -16750,7 +16562,6 @@ func (client AppsClient) GetWebSiteContainerLogsSlotResponder(resp *http.Respons
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -16834,7 +16645,6 @@ func (client AppsClient) InstallSiteExtensionSender(req *http.Request) (future A
 func (client AppsClient) InstallSiteExtensionResponder(resp *http.Response) (result SiteExtensionInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusTooManyRequests),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -16922,7 +16732,6 @@ func (client AppsClient) InstallSiteExtensionSlotSender(req *http.Request) (futu
 func (client AppsClient) InstallSiteExtensionSlotResponder(resp *http.Response) (result SiteExtensionInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusTooManyRequests),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17006,7 +16815,6 @@ func (client AppsClient) IsCloneableSender(req *http.Request) (*http.Response, e
 func (client AppsClient) IsCloneableResponder(resp *http.Response) (result SiteCloneability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17092,7 +16900,6 @@ func (client AppsClient) IsCloneableSlotSender(req *http.Request) (*http.Respons
 func (client AppsClient) IsCloneableSlotResponder(resp *http.Response) (result SiteCloneability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17164,7 +16971,6 @@ func (client AppsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) ListResponder(resp *http.Response) (result AppCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17285,7 +17091,6 @@ func (client AppsClient) ListApplicationSettingsSender(req *http.Request) (*http
 func (client AppsClient) ListApplicationSettingsResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17372,7 +17177,6 @@ func (client AppsClient) ListApplicationSettingsSlotSender(req *http.Request) (*
 func (client AppsClient) ListApplicationSettingsSlotResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17456,7 +17260,6 @@ func (client AppsClient) ListAzureStorageAccountsSender(req *http.Request) (*htt
 func (client AppsClient) ListAzureStorageAccountsResponder(resp *http.Response) (result AzureStoragePropertyDictionaryResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17543,7 +17346,6 @@ func (client AppsClient) ListAzureStorageAccountsSlotSender(req *http.Request) (
 func (client AppsClient) ListAzureStorageAccountsSlotResponder(resp *http.Response) (result AzureStoragePropertyDictionaryResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17628,7 +17430,6 @@ func (client AppsClient) ListBackupsSender(req *http.Request) (*http.Response, e
 func (client AppsClient) ListBackupsResponder(resp *http.Response) (result BackupItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17753,7 +17554,6 @@ func (client AppsClient) ListBackupsSlotSender(req *http.Request) (*http.Respons
 func (client AppsClient) ListBackupsSlotResponder(resp *http.Response) (result BackupItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17890,7 +17690,6 @@ func (client AppsClient) ListBackupStatusSecretsSender(req *http.Request) (*http
 func (client AppsClient) ListBackupStatusSecretsResponder(resp *http.Response) (result BackupItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -17992,7 +17791,6 @@ func (client AppsClient) ListBackupStatusSecretsSlotSender(req *http.Request) (*
 func (client AppsClient) ListBackupStatusSecretsSlotResponder(resp *http.Response) (result BackupItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -18080,7 +17878,6 @@ func (client AppsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 func (client AppsClient) ListByResourceGroupResponder(resp *http.Response) (result AppCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -18202,7 +17999,6 @@ func (client AppsClient) ListConfigurationsSender(req *http.Request) (*http.Resp
 func (client AppsClient) ListConfigurationsResponder(resp *http.Response) (result SiteConfigResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -18325,7 +18121,6 @@ func (client AppsClient) ListConfigurationSnapshotInfoSender(req *http.Request) 
 func (client AppsClient) ListConfigurationSnapshotInfoResponder(resp *http.Response) (result SiteConfigurationSnapshotInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -18451,7 +18246,6 @@ func (client AppsClient) ListConfigurationSnapshotInfoSlotSender(req *http.Reque
 func (client AppsClient) ListConfigurationSnapshotInfoSlotResponder(resp *http.Response) (result SiteConfigurationSnapshotInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -18576,7 +18370,6 @@ func (client AppsClient) ListConfigurationsSlotSender(req *http.Request) (*http.
 func (client AppsClient) ListConfigurationsSlotResponder(resp *http.Response) (result SiteConfigResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -18697,7 +18490,6 @@ func (client AppsClient) ListConnectionStringsSender(req *http.Request) (*http.R
 func (client AppsClient) ListConnectionStringsResponder(resp *http.Response) (result ConnectionStringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -18784,7 +18576,6 @@ func (client AppsClient) ListConnectionStringsSlotSender(req *http.Request) (*ht
 func (client AppsClient) ListConnectionStringsSlotResponder(resp *http.Response) (result ConnectionStringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -18869,7 +18660,6 @@ func (client AppsClient) ListContinuousWebJobsSender(req *http.Request) (*http.R
 func (client AppsClient) ListContinuousWebJobsResponder(resp *http.Response) (result ContinuousWebJobCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -18994,7 +18784,6 @@ func (client AppsClient) ListContinuousWebJobsSlotSender(req *http.Request) (*ht
 func (client AppsClient) ListContinuousWebJobsSlotResponder(resp *http.Response) (result ContinuousWebJobCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -19118,7 +18907,6 @@ func (client AppsClient) ListDeploymentLogSender(req *http.Request) (*http.Respo
 func (client AppsClient) ListDeploymentLogResponder(resp *http.Response) (result Deployment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -19208,7 +18996,6 @@ func (client AppsClient) ListDeploymentLogSlotSender(req *http.Request) (*http.R
 func (client AppsClient) ListDeploymentLogSlotResponder(resp *http.Response) (result Deployment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -19293,7 +19080,6 @@ func (client AppsClient) ListDeploymentsSender(req *http.Request) (*http.Respons
 func (client AppsClient) ListDeploymentsResponder(resp *http.Response) (result DeploymentCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -19418,7 +19204,6 @@ func (client AppsClient) ListDeploymentsSlotSender(req *http.Request) (*http.Res
 func (client AppsClient) ListDeploymentsSlotResponder(resp *http.Response) (result DeploymentCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -19540,7 +19325,6 @@ func (client AppsClient) ListDomainOwnershipIdentifiersSender(req *http.Request)
 func (client AppsClient) ListDomainOwnershipIdentifiersResponder(resp *http.Response) (result IdentifierCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -19665,7 +19449,6 @@ func (client AppsClient) ListDomainOwnershipIdentifiersSlotSender(req *http.Requ
 func (client AppsClient) ListDomainOwnershipIdentifiersSlotResponder(resp *http.Response) (result IdentifierCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -19788,7 +19571,6 @@ func (client AppsClient) ListFunctionKeysSender(req *http.Request) (*http.Respon
 func (client AppsClient) ListFunctionKeysResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -19876,7 +19658,6 @@ func (client AppsClient) ListFunctionKeysSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) ListFunctionKeysSlotResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -19961,7 +19742,6 @@ func (client AppsClient) ListFunctionsSender(req *http.Request) (*http.Response,
 func (client AppsClient) ListFunctionsResponder(resp *http.Response) (result FunctionEnvelopeCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20084,7 +19864,6 @@ func (client AppsClient) ListFunctionSecretsSender(req *http.Request) (*http.Res
 func (client AppsClient) ListFunctionSecretsResponder(resp *http.Response) (result FunctionSecrets, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20172,7 +19951,6 @@ func (client AppsClient) ListFunctionSecretsSlotSender(req *http.Request) (*http
 func (client AppsClient) ListFunctionSecretsSlotResponder(resp *http.Response) (result FunctionSecrets, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20256,7 +20034,6 @@ func (client AppsClient) ListHostKeysSender(req *http.Request) (*http.Response, 
 func (client AppsClient) ListHostKeysResponder(resp *http.Response) (result HostKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20342,7 +20119,6 @@ func (client AppsClient) ListHostKeysSlotSender(req *http.Request) (*http.Respon
 func (client AppsClient) ListHostKeysSlotResponder(resp *http.Response) (result HostKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20427,7 +20203,6 @@ func (client AppsClient) ListHostNameBindingsSender(req *http.Request) (*http.Re
 func (client AppsClient) ListHostNameBindingsResponder(resp *http.Response) (result HostNameBindingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20552,7 +20327,6 @@ func (client AppsClient) ListHostNameBindingsSlotSender(req *http.Request) (*htt
 func (client AppsClient) ListHostNameBindingsSlotResponder(resp *http.Response) (result HostNameBindingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20673,7 +20447,6 @@ func (client AppsClient) ListHybridConnectionsSender(req *http.Request) (*http.R
 func (client AppsClient) ListHybridConnectionsResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20759,7 +20532,6 @@ func (client AppsClient) ListHybridConnectionsSlotSender(req *http.Request) (*ht
 func (client AppsClient) ListHybridConnectionsSlotResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20846,7 +20618,6 @@ func (client AppsClient) ListInstanceFunctionsSlotSender(req *http.Request) (*ht
 func (client AppsClient) ListInstanceFunctionsSlotResponder(resp *http.Response) (result FunctionEnvelopeCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -20968,7 +20739,6 @@ func (client AppsClient) ListInstanceIdentifiersSender(req *http.Request) (*http
 func (client AppsClient) ListInstanceIdentifiersResponder(resp *http.Response) (result AppInstanceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -21092,7 +20862,6 @@ func (client AppsClient) ListInstanceIdentifiersSlotSender(req *http.Request) (*
 func (client AppsClient) ListInstanceIdentifiersSlotResponder(resp *http.Response) (result AppInstanceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -21218,7 +20987,6 @@ func (client AppsClient) ListInstanceProcessesSender(req *http.Request) (*http.R
 func (client AppsClient) ListInstanceProcessesResponder(resp *http.Response) (result ProcessInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -21347,7 +21115,6 @@ func (client AppsClient) ListInstanceProcessesSlotSender(req *http.Request) (*ht
 func (client AppsClient) ListInstanceProcessesSlotResponder(resp *http.Response) (result ProcessInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -21475,7 +21242,6 @@ func (client AppsClient) ListInstanceProcessModulesSender(req *http.Request) (*h
 func (client AppsClient) ListInstanceProcessModulesResponder(resp *http.Response) (result ProcessModuleInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -21606,7 +21372,6 @@ func (client AppsClient) ListInstanceProcessModulesSlotSender(req *http.Request)
 func (client AppsClient) ListInstanceProcessModulesSlotResponder(resp *http.Response) (result ProcessModuleInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -21734,7 +21499,6 @@ func (client AppsClient) ListInstanceProcessThreadsSender(req *http.Request) (*h
 func (client AppsClient) ListInstanceProcessThreadsResponder(resp *http.Response) (result ProcessThreadInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -21865,7 +21629,6 @@ func (client AppsClient) ListInstanceProcessThreadsSlotSender(req *http.Request)
 func (client AppsClient) ListInstanceProcessThreadsSlotResponder(resp *http.Response) (result ProcessThreadInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -21986,7 +21749,6 @@ func (client AppsClient) ListMetadataSender(req *http.Request) (*http.Response, 
 func (client AppsClient) ListMetadataResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -22073,7 +21835,6 @@ func (client AppsClient) ListMetadataSlotSender(req *http.Request) (*http.Respon
 func (client AppsClient) ListMetadataSlotResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -22159,7 +21920,6 @@ func (client AppsClient) ListNetworkFeaturesSender(req *http.Request) (*http.Res
 func (client AppsClient) ListNetworkFeaturesResponder(resp *http.Response) (result NetworkFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -22249,7 +22009,6 @@ func (client AppsClient) ListNetworkFeaturesSlotSender(req *http.Request) (*http
 func (client AppsClient) ListNetworkFeaturesSlotResponder(resp *http.Response) (result NetworkFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -22340,7 +22099,6 @@ func (client AppsClient) ListPerfMonCountersSender(req *http.Request) (*http.Res
 func (client AppsClient) ListPerfMonCountersResponder(resp *http.Response) (result PerfMonCounterCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -22470,7 +22228,6 @@ func (client AppsClient) ListPerfMonCountersSlotSender(req *http.Request) (*http
 func (client AppsClient) ListPerfMonCountersSlotResponder(resp *http.Response) (result PerfMonCounterCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -22591,7 +22348,6 @@ func (client AppsClient) ListPremierAddOnsSender(req *http.Request) (*http.Respo
 func (client AppsClient) ListPremierAddOnsResponder(resp *http.Response) (result PremierAddOn, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -22678,7 +22434,6 @@ func (client AppsClient) ListPremierAddOnsSlotSender(req *http.Request) (*http.R
 func (client AppsClient) ListPremierAddOnsSlotResponder(resp *http.Response) (result PremierAddOn, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -22764,7 +22519,6 @@ func (client AppsClient) ListProcessesSender(req *http.Request) (*http.Response,
 func (client AppsClient) ListProcessesResponder(resp *http.Response) (result ProcessInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -22890,7 +22644,6 @@ func (client AppsClient) ListProcessesSlotSender(req *http.Request) (*http.Respo
 func (client AppsClient) ListProcessesSlotResponder(resp *http.Response) (result ProcessInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -23015,7 +22768,6 @@ func (client AppsClient) ListProcessModulesSender(req *http.Request) (*http.Resp
 func (client AppsClient) ListProcessModulesResponder(resp *http.Response) (result ProcessModuleInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -23143,7 +22895,6 @@ func (client AppsClient) ListProcessModulesSlotSender(req *http.Request) (*http.
 func (client AppsClient) ListProcessModulesSlotResponder(resp *http.Response) (result ProcessModuleInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -23268,7 +23019,6 @@ func (client AppsClient) ListProcessThreadsSender(req *http.Request) (*http.Resp
 func (client AppsClient) ListProcessThreadsResponder(resp *http.Response) (result ProcessThreadInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -23396,7 +23146,6 @@ func (client AppsClient) ListProcessThreadsSlotSender(req *http.Request) (*http.
 func (client AppsClient) ListProcessThreadsSlotResponder(resp *http.Response) (result ProcessThreadInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -23518,7 +23267,6 @@ func (client AppsClient) ListPublicCertificatesSender(req *http.Request) (*http.
 func (client AppsClient) ListPublicCertificatesResponder(resp *http.Response) (result PublicCertificateCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -23643,7 +23391,6 @@ func (client AppsClient) ListPublicCertificatesSlotSender(req *http.Request) (*h
 func (client AppsClient) ListPublicCertificatesSlotResponder(resp *http.Response) (result PublicCertificateCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -23764,7 +23511,6 @@ func (client AppsClient) ListPublishingCredentialsSender(req *http.Request) (fut
 func (client AppsClient) ListPublishingCredentialsResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -23851,7 +23597,6 @@ func (client AppsClient) ListPublishingCredentialsSlotSender(req *http.Request) 
 func (client AppsClient) ListPublishingCredentialsSlotResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -23941,7 +23686,6 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsResponder(resp *http
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -24032,7 +23776,6 @@ func (client AppsClient) ListPublishingProfileXMLWithSecretsSlotResponder(resp *
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -24115,7 +23858,6 @@ func (client AppsClient) ListRelayServiceConnectionsSender(req *http.Request) (*
 func (client AppsClient) ListRelayServiceConnectionsResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -24203,7 +23945,6 @@ func (client AppsClient) ListRelayServiceConnectionsSlotSender(req *http.Request
 func (client AppsClient) ListRelayServiceConnectionsSlotResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -24288,7 +24029,6 @@ func (client AppsClient) ListSiteBackupsSender(req *http.Request) (*http.Respons
 func (client AppsClient) ListSiteBackupsResponder(resp *http.Response) (result BackupItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -24413,7 +24153,6 @@ func (client AppsClient) ListSiteBackupsSlotSender(req *http.Request) (*http.Res
 func (client AppsClient) ListSiteBackupsSlotResponder(resp *http.Response) (result BackupItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -24535,7 +24274,6 @@ func (client AppsClient) ListSiteExtensionsSender(req *http.Request) (*http.Resp
 func (client AppsClient) ListSiteExtensionsResponder(resp *http.Response) (result SiteExtensionInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -24659,7 +24397,6 @@ func (client AppsClient) ListSiteExtensionsSlotSender(req *http.Request) (*http.
 func (client AppsClient) ListSiteExtensionsSlotResponder(resp *http.Response) (result SiteExtensionInfoCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -24780,7 +24517,6 @@ func (client AppsClient) ListSitePushSettingsSender(req *http.Request) (*http.Re
 func (client AppsClient) ListSitePushSettingsResponder(resp *http.Response) (result PushSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -24866,7 +24602,6 @@ func (client AppsClient) ListSitePushSettingsSlotSender(req *http.Request) (*htt
 func (client AppsClient) ListSitePushSettingsSlotResponder(resp *http.Response) (result PushSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -24951,7 +24686,6 @@ func (client AppsClient) ListSlotConfigurationNamesSender(req *http.Request) (*h
 func (client AppsClient) ListSlotConfigurationNamesResponder(resp *http.Response) (result SlotConfigNamesResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -25043,7 +24777,6 @@ func (client AppsClient) ListSlotDifferencesFromProductionSender(req *http.Reque
 func (client AppsClient) ListSlotDifferencesFromProductionResponder(resp *http.Response) (result SlotDifferenceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -25173,7 +24906,6 @@ func (client AppsClient) ListSlotDifferencesSlotSender(req *http.Request) (*http
 func (client AppsClient) ListSlotDifferencesSlotResponder(resp *http.Response) (result SlotDifferenceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -25295,7 +25027,6 @@ func (client AppsClient) ListSlotsSender(req *http.Request) (*http.Response, err
 func (client AppsClient) ListSlotsResponder(resp *http.Response) (result AppCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -25417,7 +25148,6 @@ func (client AppsClient) ListSnapshotsSender(req *http.Request) (*http.Response,
 func (client AppsClient) ListSnapshotsResponder(resp *http.Response) (result SnapshotCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -25539,7 +25269,6 @@ func (client AppsClient) ListSnapshotsFromDRSecondarySender(req *http.Request) (
 func (client AppsClient) ListSnapshotsFromDRSecondaryResponder(resp *http.Response) (result SnapshotCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -25663,7 +25392,6 @@ func (client AppsClient) ListSnapshotsFromDRSecondarySlotSender(req *http.Reques
 func (client AppsClient) ListSnapshotsFromDRSecondarySlotResponder(resp *http.Response) (result SnapshotCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -25787,7 +25515,6 @@ func (client AppsClient) ListSnapshotsSlotSender(req *http.Request) (*http.Respo
 func (client AppsClient) ListSnapshotsSlotResponder(resp *http.Response) (result SnapshotCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -25908,7 +25635,6 @@ func (client AppsClient) ListSyncFunctionTriggersSender(req *http.Request) (*htt
 func (client AppsClient) ListSyncFunctionTriggersResponder(resp *http.Response) (result FunctionSecrets, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -25994,7 +25720,6 @@ func (client AppsClient) ListSyncFunctionTriggersSlotSender(req *http.Request) (
 func (client AppsClient) ListSyncFunctionTriggersSlotResponder(resp *http.Response) (result FunctionSecrets, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -26078,7 +25803,6 @@ func (client AppsClient) ListSyncStatusSender(req *http.Request) (*http.Response
 func (client AppsClient) ListSyncStatusResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -26163,7 +25887,6 @@ func (client AppsClient) ListSyncStatusSlotSender(req *http.Request) (*http.Resp
 func (client AppsClient) ListSyncStatusSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -26249,7 +25972,6 @@ func (client AppsClient) ListTriggeredWebJobHistorySender(req *http.Request) (*h
 func (client AppsClient) ListTriggeredWebJobHistoryResponder(resp *http.Response) (result TriggeredJobHistoryCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -26375,7 +26097,6 @@ func (client AppsClient) ListTriggeredWebJobHistorySlotSender(req *http.Request)
 func (client AppsClient) ListTriggeredWebJobHistorySlotResponder(resp *http.Response) (result TriggeredJobHistoryCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -26497,7 +26218,6 @@ func (client AppsClient) ListTriggeredWebJobsSender(req *http.Request) (*http.Re
 func (client AppsClient) ListTriggeredWebJobsResponder(resp *http.Response) (result TriggeredWebJobCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -26622,7 +26342,6 @@ func (client AppsClient) ListTriggeredWebJobsSlotSender(req *http.Request) (*htt
 func (client AppsClient) ListTriggeredWebJobsSlotResponder(resp *http.Response) (result TriggeredWebJobCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -26750,7 +26469,6 @@ func (client AppsClient) ListUsagesSender(req *http.Request) (*http.Response, er
 func (client AppsClient) ListUsagesResponder(resp *http.Response) (result CsmUsageQuotaCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -26881,7 +26599,6 @@ func (client AppsClient) ListUsagesSlotSender(req *http.Request) (*http.Response
 func (client AppsClient) ListUsagesSlotResponder(resp *http.Response) (result CsmUsageQuotaCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -27002,7 +26719,6 @@ func (client AppsClient) ListVnetConnectionsSender(req *http.Request) (*http.Res
 func (client AppsClient) ListVnetConnectionsResponder(resp *http.Response) (result ListVnetInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -27089,7 +26805,6 @@ func (client AppsClient) ListVnetConnectionsSlotSender(req *http.Request) (*http
 func (client AppsClient) ListVnetConnectionsSlotResponder(resp *http.Response) (result ListVnetInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -27174,7 +26889,6 @@ func (client AppsClient) ListWebJobsSender(req *http.Request) (*http.Response, e
 func (client AppsClient) ListWebJobsResponder(resp *http.Response) (result JobCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -27299,7 +27013,6 @@ func (client AppsClient) ListWebJobsSlotSender(req *http.Request) (*http.Respons
 func (client AppsClient) ListWebJobsSlotResponder(resp *http.Response) (result JobCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -27426,7 +27139,6 @@ func (client AppsClient) MigrateMySQLSender(req *http.Request) (future AppsMigra
 func (client AppsClient) MigrateMySQLResponder(resp *http.Response) (result Operation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -27520,7 +27232,6 @@ func (client AppsClient) MigrateStorageSender(req *http.Request) (future AppsMig
 func (client AppsClient) MigrateStorageResponder(resp *http.Response) (result StorageMigrationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -27608,7 +27319,6 @@ func (client AppsClient) PutPrivateAccessVnetSender(req *http.Request) (*http.Re
 func (client AppsClient) PutPrivateAccessVnetResponder(resp *http.Response) (result PrivateAccess, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -27698,7 +27408,6 @@ func (client AppsClient) PutPrivateAccessVnetSlotSender(req *http.Request) (*htt
 func (client AppsClient) PutPrivateAccessVnetSlotResponder(resp *http.Response) (result PrivateAccess, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -27784,7 +27493,6 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotSender(req *http.Reques
 func (client AppsClient) RecoverSiteConfigurationSnapshotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -27872,7 +27580,6 @@ func (client AppsClient) RecoverSiteConfigurationSnapshotSlotSender(req *http.Re
 func (client AppsClient) RecoverSiteConfigurationSnapshotSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -27956,7 +27663,6 @@ func (client AppsClient) ResetProductionSlotConfigSender(req *http.Request) (*ht
 func (client AppsClient) ResetProductionSlotConfigResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28043,7 +27749,6 @@ func (client AppsClient) ResetSlotConfigurationSlotSender(req *http.Request) (*h
 func (client AppsClient) ResetSlotConfigurationSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28136,7 +27841,6 @@ func (client AppsClient) RestartSender(req *http.Request) (*http.Response, error
 func (client AppsClient) RestartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28231,7 +27935,6 @@ func (client AppsClient) RestartSlotSender(req *http.Request) (*http.Response, e
 func (client AppsClient) RestartSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28324,7 +28027,6 @@ func (client AppsClient) RestoreSender(req *http.Request) (future AppsRestoreFut
 func (client AppsClient) RestoreResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28415,7 +28117,6 @@ func (client AppsClient) RestoreFromBackupBlobSender(req *http.Request) (future 
 func (client AppsClient) RestoreFromBackupBlobResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28509,7 +28210,6 @@ func (client AppsClient) RestoreFromBackupBlobSlotSender(req *http.Request) (fut
 func (client AppsClient) RestoreFromBackupBlobSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28595,7 +28295,6 @@ func (client AppsClient) RestoreFromDeletedAppSender(req *http.Request) (future 
 func (client AppsClient) RestoreFromDeletedAppResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28683,7 +28382,6 @@ func (client AppsClient) RestoreFromDeletedAppSlotSender(req *http.Request) (fut
 func (client AppsClient) RestoreFromDeletedAppSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28779,7 +28477,6 @@ func (client AppsClient) RestoreSlotSender(req *http.Request) (future AppsRestor
 func (client AppsClient) RestoreSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28869,7 +28566,6 @@ func (client AppsClient) RestoreSnapshotSender(req *http.Request) (future AppsRe
 func (client AppsClient) RestoreSnapshotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -28961,7 +28657,6 @@ func (client AppsClient) RestoreSnapshotSlotSender(req *http.Request) (future Ap
 func (client AppsClient) RestoreSnapshotSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -29046,7 +28741,6 @@ func (client AppsClient) RunTriggeredWebJobSender(req *http.Request) (*http.Resp
 func (client AppsClient) RunTriggeredWebJobResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -29133,7 +28827,6 @@ func (client AppsClient) RunTriggeredWebJobSlotSender(req *http.Request) (*http.
 func (client AppsClient) RunTriggeredWebJobSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -29216,7 +28909,6 @@ func (client AppsClient) StartSender(req *http.Request) (*http.Response, error) 
 func (client AppsClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -29301,7 +28993,6 @@ func (client AppsClient) StartContinuousWebJobSender(req *http.Request) (*http.R
 func (client AppsClient) StartContinuousWebJobResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -29389,7 +29080,6 @@ func (client AppsClient) StartContinuousWebJobSlotSender(req *http.Request) (*ht
 func (client AppsClient) StartContinuousWebJobSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -29484,7 +29174,6 @@ func (client AppsClient) StartNetworkTraceSender(req *http.Request) (future Apps
 func (client AppsClient) StartNetworkTraceResponder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -29582,7 +29271,6 @@ func (client AppsClient) StartNetworkTraceSlotSender(req *http.Request) (future 
 func (client AppsClient) StartNetworkTraceSlotResponder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -29668,7 +29356,6 @@ func (client AppsClient) StartSlotSender(req *http.Request) (*http.Response, err
 func (client AppsClient) StartSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -29763,7 +29450,6 @@ func (client AppsClient) StartWebSiteNetworkTraceSender(req *http.Request) (*htt
 func (client AppsClient) StartWebSiteNetworkTraceResponder(resp *http.Response) (result String, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -29859,7 +29545,6 @@ func (client AppsClient) StartWebSiteNetworkTraceOperationSender(req *http.Reque
 func (client AppsClient) StartWebSiteNetworkTraceOperationResponder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -29957,7 +29642,6 @@ func (client AppsClient) StartWebSiteNetworkTraceOperationSlotSender(req *http.R
 func (client AppsClient) StartWebSiteNetworkTraceOperationSlotResponder(resp *http.Response) (result ListNetworkTrace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -30055,7 +29739,6 @@ func (client AppsClient) StartWebSiteNetworkTraceSlotSender(req *http.Request) (
 func (client AppsClient) StartWebSiteNetworkTraceSlotResponder(resp *http.Response) (result String, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -30139,7 +29822,6 @@ func (client AppsClient) StopSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30224,7 +29906,6 @@ func (client AppsClient) StopContinuousWebJobSender(req *http.Request) (*http.Re
 func (client AppsClient) StopContinuousWebJobResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30312,7 +29993,6 @@ func (client AppsClient) StopContinuousWebJobSlotSender(req *http.Request) (*htt
 func (client AppsClient) StopContinuousWebJobSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30395,7 +30075,6 @@ func (client AppsClient) StopNetworkTraceSender(req *http.Request) (*http.Respon
 func (client AppsClient) StopNetworkTraceResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30480,7 +30159,6 @@ func (client AppsClient) StopNetworkTraceSlotSender(req *http.Request) (*http.Re
 func (client AppsClient) StopNetworkTraceSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30565,7 +30243,6 @@ func (client AppsClient) StopSlotSender(req *http.Request) (*http.Response, erro
 func (client AppsClient) StopSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30648,7 +30325,6 @@ func (client AppsClient) StopWebSiteNetworkTraceSender(req *http.Request) (*http
 func (client AppsClient) StopWebSiteNetworkTraceResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30733,7 +30409,6 @@ func (client AppsClient) StopWebSiteNetworkTraceSlotSender(req *http.Request) (*
 func (client AppsClient) StopWebSiteNetworkTraceSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30824,7 +30499,6 @@ func (client AppsClient) SwapSlotSlotSender(req *http.Request) (future AppsSwapS
 func (client AppsClient) SwapSlotSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30913,7 +30587,6 @@ func (client AppsClient) SwapSlotWithProductionSender(req *http.Request) (future
 func (client AppsClient) SwapSlotWithProductionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -30996,7 +30669,6 @@ func (client AppsClient) SyncFunctionsSender(req *http.Request) (*http.Response,
 func (client AppsClient) SyncFunctionsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -31081,7 +30753,6 @@ func (client AppsClient) SyncFunctionsSlotSender(req *http.Request) (*http.Respo
 func (client AppsClient) SyncFunctionsSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -31164,7 +30835,6 @@ func (client AppsClient) SyncFunctionTriggersSender(req *http.Request) (*http.Re
 func (client AppsClient) SyncFunctionTriggersResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -31249,7 +30919,6 @@ func (client AppsClient) SyncFunctionTriggersSlotSender(req *http.Request) (*htt
 func (client AppsClient) SyncFunctionTriggersSlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -31332,7 +31001,6 @@ func (client AppsClient) SyncRepositorySender(req *http.Request) (*http.Response
 func (client AppsClient) SyncRepositoryResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -31417,7 +31085,6 @@ func (client AppsClient) SyncRepositorySlotSender(req *http.Request) (*http.Resp
 func (client AppsClient) SyncRepositorySlotResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -31505,7 +31172,6 @@ func (client AppsClient) UpdateSender(req *http.Request) (*http.Response, error)
 func (client AppsClient) UpdateResponder(resp *http.Response) (result Site, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -31592,7 +31258,6 @@ func (client AppsClient) UpdateApplicationSettingsSender(req *http.Request) (*ht
 func (client AppsClient) UpdateApplicationSettingsResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -31682,7 +31347,6 @@ func (client AppsClient) UpdateApplicationSettingsSlotSender(req *http.Request) 
 func (client AppsClient) UpdateApplicationSettingsSlotResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -31769,7 +31433,6 @@ func (client AppsClient) UpdateAuthSettingsSender(req *http.Request) (*http.Resp
 func (client AppsClient) UpdateAuthSettingsResponder(resp *http.Response) (result SiteAuthSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -31858,7 +31521,6 @@ func (client AppsClient) UpdateAuthSettingsSlotSender(req *http.Request) (*http.
 func (client AppsClient) UpdateAuthSettingsSlotResponder(resp *http.Response) (result SiteAuthSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -31945,7 +31607,6 @@ func (client AppsClient) UpdateAzureStorageAccountsSender(req *http.Request) (*h
 func (client AppsClient) UpdateAzureStorageAccountsResponder(resp *http.Response) (result AzureStoragePropertyDictionaryResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32035,7 +31696,6 @@ func (client AppsClient) UpdateAzureStorageAccountsSlotSender(req *http.Request)
 func (client AppsClient) UpdateAzureStorageAccountsSlotResponder(resp *http.Response) (result AzureStoragePropertyDictionaryResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32131,7 +31791,6 @@ func (client AppsClient) UpdateBackupConfigurationSender(req *http.Request) (*ht
 func (client AppsClient) UpdateBackupConfigurationResponder(resp *http.Response) (result BackupRequest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32230,7 +31889,6 @@ func (client AppsClient) UpdateBackupConfigurationSlotSender(req *http.Request) 
 func (client AppsClient) UpdateBackupConfigurationSlotResponder(resp *http.Response) (result BackupRequest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32317,7 +31975,6 @@ func (client AppsClient) UpdateConfigurationSender(req *http.Request) (*http.Res
 func (client AppsClient) UpdateConfigurationResponder(resp *http.Response) (result SiteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32407,7 +32064,6 @@ func (client AppsClient) UpdateConfigurationSlotSender(req *http.Request) (*http
 func (client AppsClient) UpdateConfigurationSlotResponder(resp *http.Response) (result SiteConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32494,7 +32150,6 @@ func (client AppsClient) UpdateConnectionStringsSender(req *http.Request) (*http
 func (client AppsClient) UpdateConnectionStringsResponder(resp *http.Response) (result ConnectionStringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32584,7 +32239,6 @@ func (client AppsClient) UpdateConnectionStringsSlotSender(req *http.Request) (*
 func (client AppsClient) UpdateConnectionStringsSlotResponder(resp *http.Response) (result ConnectionStringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32687,7 +32341,6 @@ func (client AppsClient) UpdateDiagnosticLogsConfigSender(req *http.Request) (*h
 func (client AppsClient) UpdateDiagnosticLogsConfigResponder(resp *http.Response) (result SiteLogsConfig, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32793,7 +32446,6 @@ func (client AppsClient) UpdateDiagnosticLogsConfigSlotSender(req *http.Request)
 func (client AppsClient) UpdateDiagnosticLogsConfigSlotResponder(resp *http.Response) (result SiteLogsConfig, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32883,7 +32535,6 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierSender(req *http.Request
 func (client AppsClient) UpdateDomainOwnershipIdentifierResponder(resp *http.Response) (result Identifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -32976,7 +32627,6 @@ func (client AppsClient) UpdateDomainOwnershipIdentifierSlotSender(req *http.Req
 func (client AppsClient) UpdateDomainOwnershipIdentifierSlotResponder(resp *http.Response) (result Identifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33065,7 +32715,6 @@ func (client AppsClient) UpdateFtpAllowedSender(req *http.Request) (*http.Respon
 func (client AppsClient) UpdateFtpAllowedResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33156,7 +32805,6 @@ func (client AppsClient) UpdateHybridConnectionSender(req *http.Request) (*http.
 func (client AppsClient) UpdateHybridConnectionResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33249,7 +32897,6 @@ func (client AppsClient) UpdateHybridConnectionSlotSender(req *http.Request) (*h
 func (client AppsClient) UpdateHybridConnectionSlotResponder(resp *http.Response) (result HybridConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33336,7 +32983,6 @@ func (client AppsClient) UpdateMetadataSender(req *http.Request) (*http.Response
 func (client AppsClient) UpdateMetadataResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33426,7 +33072,6 @@ func (client AppsClient) UpdateMetadataSlotSender(req *http.Request) (*http.Resp
 func (client AppsClient) UpdateMetadataSlotResponder(resp *http.Response) (result StringDictionary, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33515,7 +33160,6 @@ func (client AppsClient) UpdatePremierAddOnSender(req *http.Request) (*http.Resp
 func (client AppsClient) UpdatePremierAddOnResponder(resp *http.Response) (result PremierAddOn, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33607,7 +33251,6 @@ func (client AppsClient) UpdatePremierAddOnSlotSender(req *http.Request) (*http.
 func (client AppsClient) UpdatePremierAddOnSlotResponder(resp *http.Response) (result PremierAddOn, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33697,7 +33340,6 @@ func (client AppsClient) UpdateRelayServiceConnectionSender(req *http.Request) (
 func (client AppsClient) UpdateRelayServiceConnectionResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33790,7 +33432,6 @@ func (client AppsClient) UpdateRelayServiceConnectionSlotSender(req *http.Reques
 func (client AppsClient) UpdateRelayServiceConnectionSlotResponder(resp *http.Response) (result RelayServiceConnectionEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33879,7 +33520,6 @@ func (client AppsClient) UpdateScmAllowedSender(req *http.Request) (*http.Respon
 func (client AppsClient) UpdateScmAllowedResponder(resp *http.Response) (result CsmPublishingCredentialsPoliciesEntity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -33969,7 +33609,6 @@ func (client AppsClient) UpdateSitePushSettingsSender(req *http.Request) (*http.
 func (client AppsClient) UpdateSitePushSettingsResponder(resp *http.Response) (result PushSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34061,7 +33700,6 @@ func (client AppsClient) UpdateSitePushSettingsSlotSender(req *http.Request) (*h
 func (client AppsClient) UpdateSitePushSettingsSlotResponder(resp *http.Response) (result PushSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34153,7 +33791,6 @@ func (client AppsClient) UpdateSlotSender(req *http.Request) (*http.Response, er
 func (client AppsClient) UpdateSlotResponder(resp *http.Response) (result Site, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34241,7 +33878,6 @@ func (client AppsClient) UpdateSlotConfigurationNamesSender(req *http.Request) (
 func (client AppsClient) UpdateSlotConfigurationNamesResponder(resp *http.Response) (result SlotConfigNamesResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34328,7 +33964,6 @@ func (client AppsClient) UpdateSourceControlSender(req *http.Request) (*http.Res
 func (client AppsClient) UpdateSourceControlResponder(resp *http.Response) (result SiteSourceControl, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34418,7 +34053,6 @@ func (client AppsClient) UpdateSourceControlSlotSender(req *http.Request) (*http
 func (client AppsClient) UpdateSourceControlSlotResponder(resp *http.Response) (result SiteSourceControl, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34508,7 +34142,6 @@ func (client AppsClient) UpdateSwiftVirtualNetworkConnectionSender(req *http.Req
 func (client AppsClient) UpdateSwiftVirtualNetworkConnectionResponder(resp *http.Response) (result SwiftVirtualNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34601,7 +34234,6 @@ func (client AppsClient) UpdateSwiftVirtualNetworkConnectionSlotSender(req *http
 func (client AppsClient) UpdateSwiftVirtualNetworkConnectionSlotResponder(resp *http.Response) (result SwiftVirtualNetwork, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34691,7 +34323,6 @@ func (client AppsClient) UpdateVnetConnectionSender(req *http.Request) (*http.Re
 func (client AppsClient) UpdateVnetConnectionResponder(resp *http.Response) (result VnetInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34783,7 +34414,6 @@ func (client AppsClient) UpdateVnetConnectionGatewaySender(req *http.Request) (*
 func (client AppsClient) UpdateVnetConnectionGatewayResponder(resp *http.Response) (result VnetGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34878,7 +34508,6 @@ func (client AppsClient) UpdateVnetConnectionGatewaySlotSender(req *http.Request
 func (client AppsClient) UpdateVnetConnectionGatewaySlotResponder(resp *http.Response) (result VnetGateway, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -34971,7 +34600,6 @@ func (client AppsClient) UpdateVnetConnectionSlotSender(req *http.Request) (*htt
 func (client AppsClient) UpdateVnetConnectionSlotResponder(resp *http.Response) (result VnetInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -118,7 +118,6 @@ func (client AutoProvisioningSettingsClient) CreateSender(req *http.Request) (*h
 func (client AutoProvisioningSettingsClient) CreateResponder(resp *http.Response) (result AutoProvisioningSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client AutoProvisioningSettingsClient) GetSender(req *http.Request) (*http
 func (client AutoProvisioningSettingsClient) GetResponder(resp *http.Response) (result AutoProvisioningSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -276,7 +274,6 @@ func (client AutoProvisioningSettingsClient) ListSender(req *http.Request) (*htt
 func (client AutoProvisioningSettingsClient) ListResponder(resp *http.Response) (result AutoProvisioningSettingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

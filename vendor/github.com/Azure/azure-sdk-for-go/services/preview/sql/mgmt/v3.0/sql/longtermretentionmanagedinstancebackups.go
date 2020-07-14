@@ -117,7 +117,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) DeleteSender(req *ht
 func (client LongTermRetentionManagedInstanceBackupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -199,7 +198,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) DeleteByResourceGrou
 func (client LongTermRetentionManagedInstanceBackupsClient) DeleteByResourceGroupResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -278,7 +276,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) GetSender(req *http.
 func (client LongTermRetentionManagedInstanceBackupsClient) GetResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionBackup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,7 +358,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) GetByResourceGroupSe
 func (client LongTermRetentionManagedInstanceBackupsClient) GetByResourceGroupResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionBackup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -448,7 +444,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByDatabaseSender
 func (client LongTermRetentionManagedInstanceBackupsClient) ListByDatabaseResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -570,7 +565,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByInstanceSender
 func (client LongTermRetentionManagedInstanceBackupsClient) ListByInstanceResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -690,7 +684,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByLocationSender
 func (client LongTermRetentionManagedInstanceBackupsClient) ListByLocationResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -817,7 +810,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByResourceGroupD
 func (client LongTermRetentionManagedInstanceBackupsClient) ListByResourceGroupDatabaseResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -942,7 +934,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByResourceGroupI
 func (client LongTermRetentionManagedInstanceBackupsClient) ListByResourceGroupInstanceResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1065,7 +1056,6 @@ func (client LongTermRetentionManagedInstanceBackupsClient) ListByResourceGroupL
 func (client LongTermRetentionManagedInstanceBackupsClient) ListByResourceGroupLocationResponder(resp *http.Response) (result ManagedInstanceLongTermRetentionBackupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

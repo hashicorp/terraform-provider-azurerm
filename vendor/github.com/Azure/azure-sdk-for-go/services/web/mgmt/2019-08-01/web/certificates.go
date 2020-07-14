@@ -124,7 +124,6 @@ func (client CertificatesClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client CertificatesClient) CreateOrUpdateResponder(resp *http.Response) (result Certificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client CertificatesClient) DeleteSender(req *http.Request) (*http.Response
 func (client CertificatesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -291,7 +289,6 @@ func (client CertificatesClient) GetSender(req *http.Request) (*http.Response, e
 func (client CertificatesClient) GetResponder(resp *http.Response) (result Certificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -363,7 +360,6 @@ func (client CertificatesClient) ListSender(req *http.Request) (*http.Response, 
 func (client CertificatesClient) ListResponder(resp *http.Response) (result CertificateCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -483,7 +479,6 @@ func (client CertificatesClient) ListByResourceGroupSender(req *http.Request) (*
 func (client CertificatesClient) ListByResourceGroupResponder(resp *http.Response) (result CertificateCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -607,7 +602,6 @@ func (client CertificatesClient) UpdateSender(req *http.Request) (*http.Response
 func (client CertificatesClient) UpdateResponder(resp *http.Response) (result Certificate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

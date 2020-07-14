@@ -116,7 +116,6 @@ func (client DataSetMappingsClient) CreateSender(req *http.Request) (*http.Respo
 func (client DataSetMappingsClient) CreateResponder(resp *http.Response) (result DataSetMappingModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client DataSetMappingsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client DataSetMappingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -275,7 +273,6 @@ func (client DataSetMappingsClient) GetSender(req *http.Request) (*http.Response
 func (client DataSetMappingsClient) GetResponder(resp *http.Response) (result DataSetMappingModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -358,7 +355,6 @@ func (client DataSetMappingsClient) ListByShareSubscriptionSender(req *http.Requ
 func (client DataSetMappingsClient) ListByShareSubscriptionResponder(resp *http.Response) (result DataSetMappingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -118,7 +118,6 @@ func (client KeysClient) ListByAutomationAccountSender(req *http.Request) (*http
 func (client KeysClient) ListByAutomationAccountResponder(resp *http.Response) (result KeyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

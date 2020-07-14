@@ -116,7 +116,6 @@ func (client AppsClient) CheckNameAvailabilitySender(req *http.Request) (*http.R
 func (client AppsClient) CheckNameAvailabilityResponder(resp *http.Response) (result AppAvailabilityInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client AppsClient) CheckSubdomainAvailabilitySender(req *http.Request) (*h
 func (client AppsClient) CheckSubdomainAvailabilityResponder(resp *http.Response) (result AppAvailabilityInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -285,7 +283,6 @@ func (client AppsClient) CreateOrUpdateSender(req *http.Request) (future AppsCre
 func (client AppsClient) CreateOrUpdateResponder(resp *http.Response) (result App, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -361,7 +358,6 @@ func (client AppsClient) DeleteSender(req *http.Request) (future AppsDeleteFutur
 func (client AppsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -436,7 +432,6 @@ func (client AppsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client AppsClient) GetResponder(resp *http.Response) (result App, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -511,7 +506,6 @@ func (client AppsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 func (client AppsClient) ListByResourceGroupResponder(resp *http.Response) (result AppListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -620,7 +614,6 @@ func (client AppsClient) ListBySubscriptionSender(req *http.Request) (*http.Resp
 func (client AppsClient) ListBySubscriptionResponder(resp *http.Response) (result AppListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -729,7 +722,6 @@ func (client AppsClient) ListTemplatesSender(req *http.Request) (*http.Response,
 func (client AppsClient) ListTemplatesResponder(resp *http.Response) (result AppTemplatesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -845,7 +837,6 @@ func (client AppsClient) UpdateSender(req *http.Request) (future AppsUpdateFutur
 func (client AppsClient) UpdateResponder(resp *http.Response) (result App, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

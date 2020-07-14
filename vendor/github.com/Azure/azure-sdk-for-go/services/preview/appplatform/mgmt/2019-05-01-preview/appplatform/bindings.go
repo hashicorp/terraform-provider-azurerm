@@ -117,7 +117,6 @@ func (client BindingsClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client BindingsClient) CreateOrUpdateResponder(resp *http.Response) (result BindingResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client BindingsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client BindingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -278,7 +276,6 @@ func (client BindingsClient) GetSender(req *http.Request) (*http.Response, error
 func (client BindingsClient) GetResponder(resp *http.Response) (result BindingResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -358,7 +355,6 @@ func (client BindingsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client BindingsClient) ListResponder(resp *http.Response) (result BindingResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -479,7 +475,6 @@ func (client BindingsClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client BindingsClient) UpdateResponder(resp *http.Response) (result BindingResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

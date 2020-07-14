@@ -134,7 +134,6 @@ func (client VirtualHubIPConfigurationClient) CreateOrUpdateSender(req *http.Req
 func (client VirtualHubIPConfigurationClient) CreateOrUpdateResponder(resp *http.Response) (result HubIPConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -212,7 +211,6 @@ func (client VirtualHubIPConfigurationClient) DeleteSender(req *http.Request) (f
 func (client VirtualHubIPConfigurationClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -289,7 +287,6 @@ func (client VirtualHubIPConfigurationClient) GetSender(req *http.Request) (*htt
 func (client VirtualHubIPConfigurationClient) GetResponder(resp *http.Response) (result HubIPConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -366,7 +363,6 @@ func (client VirtualHubIPConfigurationClient) ListSender(req *http.Request) (*ht
 func (client VirtualHubIPConfigurationClient) ListResponder(resp *http.Response) (result ListVirtualHubIPConfigurationResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

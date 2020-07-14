@@ -146,7 +146,6 @@ func (client APITagDescriptionClient) CreateOrUpdateSender(req *http.Request) (*
 func (client APITagDescriptionClient) CreateOrUpdateResponder(resp *http.Response) (result TagDescriptionContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -247,7 +246,6 @@ func (client APITagDescriptionClient) DeleteSender(req *http.Request) (*http.Res
 func (client APITagDescriptionClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -344,7 +342,6 @@ func (client APITagDescriptionClient) GetSender(req *http.Request) (*http.Respon
 func (client APITagDescriptionClient) GetResponder(resp *http.Response) (result TagDescriptionContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -442,7 +439,6 @@ func (client APITagDescriptionClient) GetEntityTagSender(req *http.Request) (*ht
 func (client APITagDescriptionClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -555,7 +551,6 @@ func (client APITagDescriptionClient) ListByServiceSender(req *http.Request) (*h
 func (client APITagDescriptionClient) ListByServiceResponder(resp *http.Response) (result TagDescriptionCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

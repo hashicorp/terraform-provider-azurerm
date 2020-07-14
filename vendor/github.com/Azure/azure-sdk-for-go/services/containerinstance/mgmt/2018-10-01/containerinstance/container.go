@@ -115,7 +115,6 @@ func (client ContainerClient) ExecuteCommandSender(req *http.Request) (*http.Res
 func (client ContainerClient) ExecuteCommandResponder(resp *http.Response) (result ContainerExecResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client ContainerClient) ListLogsSender(req *http.Request) (*http.Response,
 func (client ContainerClient) ListLogsResponder(resp *http.Response) (result Logs, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

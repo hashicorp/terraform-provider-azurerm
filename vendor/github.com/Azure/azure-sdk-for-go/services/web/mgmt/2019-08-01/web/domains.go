@@ -109,7 +109,6 @@ func (client DomainsClient) CheckAvailabilitySender(req *http.Request) (*http.Re
 func (client DomainsClient) CheckAvailabilityResponder(resp *http.Response) (result DomainAvailabilityCheckResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -254,7 +253,6 @@ func (client DomainsClient) CreateOrUpdateSender(req *http.Request) (future Doma
 func (client DomainsClient) CreateOrUpdateResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -344,7 +342,6 @@ func (client DomainsClient) CreateOrUpdateOwnershipIdentifierSender(req *http.Re
 func (client DomainsClient) CreateOrUpdateOwnershipIdentifierResponder(resp *http.Response) (result DomainOwnershipIdentifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -433,7 +430,6 @@ func (client DomainsClient) DeleteSender(req *http.Request) (*http.Response, err
 func (client DomainsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -518,7 +514,6 @@ func (client DomainsClient) DeleteOwnershipIdentifierSender(req *http.Request) (
 func (client DomainsClient) DeleteOwnershipIdentifierResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -601,7 +596,6 @@ func (client DomainsClient) GetSender(req *http.Request) (*http.Response, error)
 func (client DomainsClient) GetResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -672,7 +666,6 @@ func (client DomainsClient) GetControlCenterSsoRequestSender(req *http.Request) 
 func (client DomainsClient) GetControlCenterSsoRequestResponder(resp *http.Response) (result DomainControlCenterSsoRequest, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -758,7 +751,6 @@ func (client DomainsClient) GetOwnershipIdentifierSender(req *http.Request) (*ht
 func (client DomainsClient) GetOwnershipIdentifierResponder(resp *http.Response) (result DomainOwnershipIdentifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -830,7 +822,6 @@ func (client DomainsClient) ListSender(req *http.Request) (*http.Response, error
 func (client DomainsClient) ListResponder(resp *http.Response) (result DomainCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -950,7 +941,6 @@ func (client DomainsClient) ListByResourceGroupSender(req *http.Request) (*http.
 func (client DomainsClient) ListByResourceGroupResponder(resp *http.Response) (result DomainCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1072,7 +1062,6 @@ func (client DomainsClient) ListOwnershipIdentifiersSender(req *http.Request) (*
 func (client DomainsClient) ListOwnershipIdentifiersResponder(resp *http.Response) (result DomainOwnershipIdentifierCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1185,7 +1174,6 @@ func (client DomainsClient) ListRecommendationsSender(req *http.Request) (*http.
 func (client DomainsClient) ListRecommendationsResponder(resp *http.Response) (result NameIdentifierCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1306,7 +1294,6 @@ func (client DomainsClient) RenewSender(req *http.Request) (*http.Response, erro
 func (client DomainsClient) RenewResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1394,7 +1381,6 @@ func (client DomainsClient) UpdateSender(req *http.Request) (*http.Response, err
 func (client DomainsClient) UpdateResponder(resp *http.Response) (result Domain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1484,7 +1470,6 @@ func (client DomainsClient) UpdateOwnershipIdentifierSender(req *http.Request) (
 func (client DomainsClient) UpdateOwnershipIdentifierResponder(resp *http.Response) (result DomainOwnershipIdentifier, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

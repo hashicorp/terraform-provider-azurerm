@@ -124,7 +124,6 @@ func (client VirtualMachineSchedulesClient) CreateOrUpdateSender(req *http.Reque
 func (client VirtualMachineSchedulesClient) CreateOrUpdateResponder(resp *http.Response) (result Schedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client VirtualMachineSchedulesClient) DeleteSender(req *http.Request) (*ht
 func (client VirtualMachineSchedulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -283,7 +281,6 @@ func (client VirtualMachineSchedulesClient) ExecuteSender(req *http.Request) (fu
 func (client VirtualMachineSchedulesClient) ExecuteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -366,7 +363,6 @@ func (client VirtualMachineSchedulesClient) GetSender(req *http.Request) (*http.
 func (client VirtualMachineSchedulesClient) GetResponder(resp *http.Response) (result Schedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -461,7 +457,6 @@ func (client VirtualMachineSchedulesClient) ListSender(req *http.Request) (*http
 func (client VirtualMachineSchedulesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -581,7 +576,6 @@ func (client VirtualMachineSchedulesClient) UpdateSender(req *http.Request) (*ht
 func (client VirtualMachineSchedulesClient) UpdateResponder(resp *http.Response) (result Schedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

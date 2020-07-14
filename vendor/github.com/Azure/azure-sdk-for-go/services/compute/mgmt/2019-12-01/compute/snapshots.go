@@ -130,7 +130,6 @@ func (client SnapshotsClient) CreateOrUpdateSender(req *http.Request) (future Sn
 func (client SnapshotsClient) CreateOrUpdateResponder(resp *http.Response) (result Snapshot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client SnapshotsClient) DeleteSender(req *http.Request) (future SnapshotsD
 func (client SnapshotsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -283,7 +281,6 @@ func (client SnapshotsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client SnapshotsClient) GetResponder(resp *http.Response) (result Snapshot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -369,7 +366,6 @@ func (client SnapshotsClient) GrantAccessSender(req *http.Request) (future Snaps
 func (client SnapshotsClient) GrantAccessResponder(resp *http.Response) (result AccessURI, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -441,7 +437,6 @@ func (client SnapshotsClient) ListSender(req *http.Request) (*http.Response, err
 func (client SnapshotsClient) ListResponder(resp *http.Response) (result SnapshotList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -553,7 +548,6 @@ func (client SnapshotsClient) ListByResourceGroupSender(req *http.Request) (*htt
 func (client SnapshotsClient) ListByResourceGroupResponder(resp *http.Response) (result SnapshotList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -667,7 +661,6 @@ func (client SnapshotsClient) RevokeAccessSender(req *http.Request) (future Snap
 func (client SnapshotsClient) RevokeAccessResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -746,7 +739,6 @@ func (client SnapshotsClient) UpdateSender(req *http.Request) (future SnapshotsU
 func (client SnapshotsClient) UpdateResponder(resp *http.Response) (result Snapshot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

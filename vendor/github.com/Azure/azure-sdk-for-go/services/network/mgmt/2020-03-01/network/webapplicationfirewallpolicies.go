@@ -134,7 +134,6 @@ func (client WebApplicationFirewallPoliciesClient) CreateOrUpdateSender(req *htt
 func (client WebApplicationFirewallPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result WebApplicationFirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +215,6 @@ func (client WebApplicationFirewallPoliciesClient) DeleteSender(req *http.Reques
 func (client WebApplicationFirewallPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -297,7 +295,6 @@ func (client WebApplicationFirewallPoliciesClient) GetSender(req *http.Request) 
 func (client WebApplicationFirewallPoliciesClient) GetResponder(resp *http.Response) (result WebApplicationFirewallPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -372,7 +369,6 @@ func (client WebApplicationFirewallPoliciesClient) ListSender(req *http.Request)
 func (client WebApplicationFirewallPoliciesClient) ListResponder(resp *http.Response) (result WebApplicationFirewallPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -481,7 +477,6 @@ func (client WebApplicationFirewallPoliciesClient) ListAllSender(req *http.Reque
 func (client WebApplicationFirewallPoliciesClient) ListAllResponder(resp *http.Response) (result WebApplicationFirewallPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

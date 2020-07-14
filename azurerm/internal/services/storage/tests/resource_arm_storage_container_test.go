@@ -32,6 +32,35 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageContainer_deleteAndRecreate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageContainerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageContainer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageContainer_template(data),
+			},
+			{
+				Config: testAccAzureRMStorageContainer_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageContainerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageContainer_basicAzureADAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_container", "test")
 

@@ -127,7 +127,6 @@ func (client CertificatesClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client CertificatesClient) CreateOrUpdateResponder(resp *http.Response) (result CertificateDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -213,7 +212,6 @@ func (client CertificatesClient) DeleteSender(req *http.Request) (*http.Response
 func (client CertificatesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -299,7 +297,6 @@ func (client CertificatesClient) GenerateVerificationCodeSender(req *http.Reques
 func (client CertificatesClient) GenerateVerificationCodeResponder(resp *http.Response) (result CertificateWithNonceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -383,7 +380,6 @@ func (client CertificatesClient) GetSender(req *http.Request) (*http.Response, e
 func (client CertificatesClient) GetResponder(resp *http.Response) (result CertificateDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -459,7 +455,6 @@ func (client CertificatesClient) ListByIotHubSender(req *http.Request) (*http.Re
 func (client CertificatesClient) ListByIotHubResponder(resp *http.Response) (result CertificateListDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -549,7 +544,6 @@ func (client CertificatesClient) VerifySender(req *http.Request) (*http.Response
 func (client CertificatesClient) VerifyResponder(resp *http.Response) (result CertificateDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
