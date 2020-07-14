@@ -18,6 +18,7 @@ BUG FIXES:
 * `azurerm_machine_learning_workspace` - waiting until the Machine Learning Workspace has been fully deleted [GH-7635]
 * `azurerm_mysql_server` - `ssl_minimal_tls_version_enforced` now correctly set in updates [GH-7307]
 * `azurerm_notification_hub` - validating that the ID is in the correct format when importing the resource [GH-7690]
+* `azurerm_redis_cache` - fixing a bug when provisioning with authentication disabled [GH-7734]
 * `azurerm_virtual_hub` - the field `address_prefix` is now `ForceNew` to match the behaviour of the Azure API [GH-7713]
 * `azurerm_virtual_hub_connection` - using the delete timeout if specified [GH-7731]
 
