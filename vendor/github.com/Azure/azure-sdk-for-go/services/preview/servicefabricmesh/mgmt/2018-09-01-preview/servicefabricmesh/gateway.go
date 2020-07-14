@@ -124,7 +124,6 @@ func (client GatewayClient) CreateSender(req *http.Request) (*http.Response, err
 func (client GatewayClient) CreateResponder(resp *http.Response) (result GatewayResourceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client GatewayClient) DeleteSender(req *http.Request) (*http.Response, err
 func (client GatewayClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -276,7 +274,6 @@ func (client GatewayClient) GetSender(req *http.Request) (*http.Response, error)
 func (client GatewayClient) GetResponder(resp *http.Response) (result GatewayResourceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -352,7 +349,6 @@ func (client GatewayClient) ListByResourceGroupSender(req *http.Request) (*http.
 func (client GatewayClient) ListByResourceGroupResponder(resp *http.Response) (result GatewayResourceDescriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -462,7 +458,6 @@ func (client GatewayClient) ListBySubscriptionSender(req *http.Request) (*http.R
 func (client GatewayClient) ListBySubscriptionResponder(resp *http.Response) (result GatewayResourceDescriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

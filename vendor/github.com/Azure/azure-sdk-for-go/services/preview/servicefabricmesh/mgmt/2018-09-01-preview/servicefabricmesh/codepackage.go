@@ -119,7 +119,6 @@ func (client CodePackageClient) GetContainerLogsSender(req *http.Request) (*http
 func (client CodePackageClient) GetContainerLogsResponder(resp *http.Response) (result ContainerLogs, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -120,7 +120,6 @@ func (client ApplicationClient) CreateSender(req *http.Request) (*http.Response,
 func (client ApplicationClient) CreateResponder(resp *http.Response) (result ApplicationResourceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client ApplicationClient) DeleteSender(req *http.Request) (*http.Response,
 func (client ApplicationClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,7 +270,6 @@ func (client ApplicationClient) GetSender(req *http.Request) (*http.Response, er
 func (client ApplicationClient) GetResponder(resp *http.Response) (result ApplicationResourceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -348,7 +345,6 @@ func (client ApplicationClient) ListByResourceGroupSender(req *http.Request) (*h
 func (client ApplicationClient) ListByResourceGroupResponder(resp *http.Response) (result ApplicationResourceDescriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -458,7 +454,6 @@ func (client ApplicationClient) ListBySubscriptionSender(req *http.Request) (*ht
 func (client ApplicationClient) ListBySubscriptionResponder(resp *http.Response) (result ApplicationResourceDescriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

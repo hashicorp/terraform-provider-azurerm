@@ -120,7 +120,6 @@ func (client SecretClient) CreateSender(req *http.Request) (*http.Response, erro
 func (client SecretClient) CreateResponder(resp *http.Response) (result SecretResourceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client SecretClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client SecretClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -272,7 +270,6 @@ func (client SecretClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client SecretClient) GetResponder(resp *http.Response) (result SecretResourceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -348,7 +345,6 @@ func (client SecretClient) ListByResourceGroupSender(req *http.Request) (*http.R
 func (client SecretClient) ListByResourceGroupResponder(resp *http.Response) (result SecretResourceDescriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -458,7 +454,6 @@ func (client SecretClient) ListBySubscriptionSender(req *http.Request) (*http.Re
 func (client SecretClient) ListBySubscriptionResponder(resp *http.Response) (result SecretResourceDescriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

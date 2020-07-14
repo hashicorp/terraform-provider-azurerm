@@ -114,7 +114,6 @@ func (client ServiceReplicaClient) GetSender(req *http.Request) (*http.Response,
 func (client ServiceReplicaClient) GetResponder(resp *http.Response) (result ServiceReplicaDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,7 +193,6 @@ func (client ServiceReplicaClient) ListSender(req *http.Request) (*http.Response
 func (client ServiceReplicaClient) ListResponder(resp *http.Response) (result ServiceReplicaDescriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
