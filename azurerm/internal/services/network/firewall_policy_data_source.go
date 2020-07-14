@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -29,6 +31,89 @@ func dataSourceArmFirewallPolicy() *schema.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"location": azure.SchemaLocationForDataSource(),
+
+			"base_policy_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"child_policies": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"dns": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"servers": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"proxy_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"network_rule_fqdn_enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"firewalls": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"rule_collection_groups": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"threat_intelligence_mode": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"threat_intelligence_allowlist": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ip_addresses": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"fqdns": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
 
 			"tags": tags.SchemaDataSource(),
 		},
@@ -60,6 +145,31 @@ func dataSourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("location", location.NormalizeNilable(resp.Location))
+
+	if prop := resp.FirewallPolicyPropertiesFormat; prop != nil {
+		basePolicyID := ""
+		if resp.BasePolicy != nil && resp.BasePolicy.ID != nil {
+			basePolicyID = *resp.BasePolicy.ID
+		}
+		d.Set("base_policy_id", basePolicyID)
+		if err := d.Set("child_policies", flattenNetworkSubResourceID(prop.ChildPolicies)); err != nil {
+			return fmt.Errorf(`setting "child_policies": %+v`, err)
+		}
+		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(resp.DNSSettings)); err != nil {
+			return fmt.Errorf(`setting "dns": %+v`, err)
+		}
+		if err := d.Set("firewalls", flattenNetworkSubResourceID(prop.Firewalls)); err != nil {
+			return fmt.Errorf(`setting "firewalls": %+v`, err)
+		}
+		if err := d.Set("rule_collection_groups", flattenNetworkSubResourceID(prop.RuleCollectionGroups)); err != nil {
+			return fmt.Errorf(`setting "rule_collection_groups": %+v`, err)
+		}
+		d.Set("threat_intelligence_mode", string(prop.ThreatIntelMode))
+		if err := d.Set("threat_intelligence_allowlist", flattenFirewallPolicyThreatIntelWhitelist(resp.ThreatIntelWhitelist)); err != nil {
+			return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
+		}
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

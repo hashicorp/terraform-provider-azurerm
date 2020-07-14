@@ -60,7 +60,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 				ValidateFunc: validate.FirewallPolicyID,
 			},
 
-			"dns_setting": {
+			"dns": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -80,7 +80,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
-						"network_rules_fqdn_enabled": {
+						"network_rule_fqdn_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -100,7 +100,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 				}, false),
 			},
 
-			"threat_intelligence_whitelist": {
+			"threat_intelligence_allowlist": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -114,7 +114,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.Any(validation.IsIPv4Range, validation.IsIPv4Address),
 							},
-							AtLeastOneOf: []string{"threat_intelligence_whitelist.0.ip_addresses", "threat_intelligence_whitelist.0.fqdns"},
+							AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
 						},
 						"fqdns": {
 							Type:     schema.TypeSet,
@@ -123,7 +123,7 @@ func resourceArmFirewallPolicy() *schema.Resource {
 								Type:         schema.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							AtLeastOneOf: []string{"threat_intelligence_whitelist.0.ip_addresses", "threat_intelligence_whitelist.0.fqdns"},
+							AtLeastOneOf: []string{"threat_intelligence_allowlist.0.ip_addresses", "threat_intelligence_allowlist.0.fqdns"},
 						},
 					},
 				},
@@ -182,8 +182,8 @@ func resourceArmFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interfac
 	props := network.FirewallPolicy{
 		FirewallPolicyPropertiesFormat: &network.FirewallPolicyPropertiesFormat{
 			ThreatIntelMode:      network.AzureFirewallThreatIntelMode(d.Get("threat_intelligence_mode").(string)),
-			ThreatIntelWhitelist: expandFirewallPolicyThreatIntelWhitelist(d.Get("threat_intelligence_whitelist").([]interface{})),
-			DNSSettings:          expandFirewallPolicyDNSSetting(d.Get("dns_setting").([]interface{})),
+			ThreatIntelWhitelist: expandFirewallPolicyThreatIntelWhitelist(d.Get("threat_intelligence_allowlist").([]interface{})),
+			DNSSettings:          expandFirewallPolicyDNSSetting(d.Get("dns").([]interface{})),
 		},
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -242,16 +242,16 @@ func resourceArmFirewallPolicyRead(d *schema.ResourceData, meta interface{}) err
 
 		d.Set("threat_intelligence_mode", string(prop.ThreatIntelMode))
 
-		if err := d.Set("threat_intelligence_whitelist", flattenFirewallPolicyThreatIntelWhitelist(resp.ThreatIntelWhitelist)); err != nil {
-			return fmt.Errorf(`setting "threat_intelligence_whitelist": %+v`, err)
+		if err := d.Set("threat_intelligence_allowlist", flattenFirewallPolicyThreatIntelWhitelist(resp.ThreatIntelWhitelist)); err != nil {
+			return fmt.Errorf(`setting "threat_intelligence_allowlist": %+v`, err)
 		}
 
-		if err := d.Set("dns_setting", flattenFirewallPolicyDNSSetting(resp.DNSSettings)); err != nil {
-			return fmt.Errorf(`setting "threat_intelligence_whitelist": %+v`, err)
+		if err := d.Set("dns", flattenFirewallPolicyDNSSetting(resp.DNSSettings)); err != nil {
+			return fmt.Errorf(`setting "dns": %+v`, err)
 		}
 
 		if err := d.Set("child_policies", flattenNetworkSubResourceID(prop.ChildPolicies)); err != nil {
-			return fmt.Errorf(`setting "firewalls": %+v`, err)
+			return fmt.Errorf(`setting "child_policies": %+v`, err)
 		}
 
 		if err := d.Set("firewalls", flattenNetworkSubResourceID(prop.Firewalls)); err != nil {
@@ -312,7 +312,7 @@ func expandFirewallPolicyDNSSetting(input []interface{}) *network.DNSSettings {
 	output := &network.DNSSettings{
 		Servers:                     utils.ExpandStringSlice(raw["servers"].(*schema.Set).List()),
 		EnableProxy:                 utils.Bool(raw["proxy_enabled"].(bool)),
-		RequireProxyForNetworkRules: utils.Bool(raw["network_rules_fqdn_enabled"].(bool)),
+		RequireProxyForNetworkRules: utils.Bool(raw["network_rule_fqdn_enabled"].(bool)),
 	}
 
 	return output
@@ -348,9 +348,9 @@ func flattenFirewallPolicyDNSSetting(input *network.DNSSettings) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"servers":                    utils.FlattenStringSlice(input.Servers),
-			"proxy_enabled":              proxyEnabled,
-			"network_rules_fqdn_enabled": networkRulesFqdnEnabled,
+			"servers":                   utils.FlattenStringSlice(input.Servers),
+			"proxy_enabled":             proxyEnabled,
+			"network_rule_fqdn_enabled": networkRulesFqdnEnabled,
 		},
 	}
 }

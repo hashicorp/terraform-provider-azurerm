@@ -181,7 +181,7 @@ func testAccAzureRMFirewallPolicy_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_firewall_policy" "test" {
-  name                = "acctest-fwpolicy-Policy-%d"
+  name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
@@ -194,18 +194,18 @@ func testAccAzureRMFirewallPolicy_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_firewall_policy" "test" {
-  name                     = "acctest-fwpolicy-Policy-%d"
+  name                     = "acctest-networkfw-Policy-%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   threat_intelligence_mode = "Off"
-  threat_intelligence_whitelist {
+  threat_intelligence_allowlist {
     ip_addresses = ["1.1.1.1", "2.2.2.2"]
     fqdns        = ["foo.com", "bar.com"]
   }
-  dns_setting {
+  dns {
     servers                    = ["1.1.1.1", "2.2.2.2"]
     proxy_enabled              = true
-    network_rules_fqdn_enabled = true
+    network_rule_fqdn_enabled = true
   }
   tags = {
     env = "Test"
@@ -233,16 +233,28 @@ func testAccAzureRMFirewallPolicy_inherit(data acceptance.TestData) string {
 %s
 
 resource "azurerm_firewall_policy" "test-parent" {
-  name                = "acctest-fwpolicy-Policy-%d-parent"
+  name                = "acctest-networkfw-Policy-%d-parent"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_firewall_policy" "test" {
-  name                = "acctest-fwpolicy-Policy-%d"
+  name                = "acctest-networkfw-Policy-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   base_policy_id      = azurerm_firewall_policy.test-parent.id
+  threat_intelligence_allowlist {
+    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    fqdns        = ["foo.com", "bar.com"]
+  }
+  dns {
+    servers                    = ["1.1.1.1", "2.2.2.2"]
+    proxy_enabled              = true
+    network_rule_fqdn_enabled = true
+  }
+  tags = {
+    env = "Test"
+  }
 }
 `, template, data.RandomInteger, data.RandomInteger)
 }
@@ -254,7 +266,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-fwpolicy-%d"
+  name     = "acctestRG-networkfw-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
