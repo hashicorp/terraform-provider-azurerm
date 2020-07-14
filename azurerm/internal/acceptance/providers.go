@@ -5,8 +5,7 @@ import (
 	"sync"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread"
+	// "github.com/terraform-providers/terraform-provider-azuread/azuread"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 )
 
@@ -17,12 +16,16 @@ func EnsureProvidersAreInitialised() {
 	os.Setenv("TF_DISABLE_BINARY_TESTING", "true")
 
 	once.Do(func() {
-		azureProvider := provider.TestAzureProvider().(*schema.Provider)
+		azureProvider := provider.TestAzureProvider()
 
 		AzureProvider = azureProvider
-		SupportedProviders = map[string]terraform.ResourceProvider{
+		SupportedProviders = map[string]*schema.Provider{
 			"azurerm": azureProvider,
-			"azuread": azuread.Provider().(*schema.Provider),
+
+			// KEM NOTE: This provider import should be removed.
+			// TODO find where it is used and make sure it works
+			// under binary testing
+			// "azuread": azuread.Provider(),
 		}
 
 		// NOTE: (@tombuildsstuff) - intentionally not calling these as Binary Testing

@@ -1,12 +1,14 @@
 package provider
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -185,13 +187,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		ResourcesMap:   resources,
 	}
 
-	p.ConfigureFunc = providerConfigure(p)
+	p.ConfigureContextFunc = providerConfigure(p)
 
 	return p
 }
 
-func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
-	return func(d *schema.ResourceData) (interface{}, error) {
+func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
+	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)
@@ -200,7 +202,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, fmt.Errorf("The provider only supports 3 auxiliary tenant IDs")
+			return nil, diag.FromErr(fmt.Errorf("The provider only supports 3 auxiliary tenant IDs"))
 		}
 
 		builder := &authentication.Builder{
@@ -227,7 +229,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		config, err := builder.Build()
 		if err != nil {
-			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
+			return nil, diag.FromErr(fmt.Errorf("Error building AzureRM Client: %s", err))
 		}
 
 		terraformVersion := p.TerraformVersion
@@ -248,18 +250,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
 			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
 		}
-		client, err := clients.Build(p.StopContext(), clientBuilder)
+		client, err := clients.Build(ctx, clientBuilder)
 		if err != nil {
-			return nil, err
+			return nil, diag.FromErr(err)
 		}
 
-		client.StopContext = p.StopContext()
-
-		// replaces the context between tests
-		p.MetaReset = func() error {
-			client.StopContext = p.StopContext()
-			return nil
-		}
+		client.StopContext = ctx
 
 		skipCredentialsValidation := d.Get("skip_credentials_validation").(bool)
 		if !skipCredentialsValidation {
@@ -268,9 +264,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			ctx := client.StopContext
 			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
-				return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
+				return nil, diag.FromErr(fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
-					"error: %s", err)
+					"error: %s", err))
 			}
 
 			if !skipProviderRegistration {
@@ -279,7 +275,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 				err := EnsureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
+					return nil, diag.FromErr(fmt.Errorf(resourceProviderRegistrationErrorFmt, err))
 				}
 			}
 		}
