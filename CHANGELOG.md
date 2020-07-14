@@ -7,7 +7,9 @@ UPGRADE NOTES:
 ENHANCEMENTS:
 
 * dependencies: updating to v44.0.0 of `github.com/Azure/azure-sdk-for-go` [GH-7616]
+* dependencies: updating the `machinelearning` API to version `2020-04-01` [GH-7703]
 * `azurerm_kubernetes_cluster` - no longer sending the `kubernetes_dashboard` addon in Azure China since this is not supported in this region [GH-7714]
+* `azurerm_machine_learning_workspace` - adding the field `high_business_impact` [GH-7703]
 * `azurerm_mssql_database` `elastic_pool_id` remove forcenew [GH-7628]
 * `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property [GH-7018]
 * `azurerm_storage_container` - container creation will retry if a container of the same name has not completed it's delete operation [GH-7179]
