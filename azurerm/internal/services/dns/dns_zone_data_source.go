@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/parse"
+
 	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -77,14 +78,12 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	} else {
-		rgClient := meta.(*clients.Client).Resource.GroupsClient
-
-		resp, resourceGroup, err = findZone(client, rgClient, ctx, name)
+		resp, resourceGroup, err = findZone(client, ctx, name)
 		if err != nil {
 			return err
 		}
 
-		if resourceGroup == "" {
+		if resp.ID == nil || *resp.ID == "" {
 			return fmt.Errorf("Error: DNS Zone %q was not found", name)
 		}
 	}
@@ -109,26 +108,30 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func findZone(client *dns.ZonesClient, rgClient *resources.GroupsClient, ctx context.Context, name string) (dns.Zone, string, error) {
-	groups, err := rgClient.List(ctx, "", nil)
+func findZone(client *dns.ZonesClient, ctx context.Context, name string) (dns.Zone, string, error) {
+	zonesIterator, err := client.ListComplete(ctx, nil)
 	if err != nil {
-		return dns.Zone{}, "", fmt.Errorf("Error listing Resource Groups: %+v", err)
+		return dns.Zone{}, "", fmt.Errorf("listing DNS Zones: %+v", err)
 	}
 
-	for _, g := range groups.Values() {
-		resourceGroup := *g.Name
-
-		zones, err := client.ListByResourceGroup(ctx, resourceGroup, nil)
-		if err != nil {
-			return dns.Zone{}, "", fmt.Errorf("Error listing DNS Zones (Resource Group: %s): %+v", resourceGroup, err)
-		}
-
-		for _, z := range zones.Values() {
-			if *z.Name == name {
-				return z, resourceGroup, nil
+	var found *dns.Zone
+	for zonesIterator.NotDone() {
+		zone := zonesIterator.Value()
+		if *zone.Name == name {
+			if found != nil {
+				return dns.Zone{}, "", fmt.Errorf("found multiple DNS zones with name %q, please specify the resource group", name)
 			}
+			found = &zone
+		}
+		if err := zonesIterator.NextWithContext(ctx); err != nil {
+			return dns.Zone{}, "", fmt.Errorf("listing DNS Zones: %+v", err)
 		}
 	}
 
-	return dns.Zone{}, "", nil
+	if found == nil {
+		return dns.Zone{}, "", fmt.Errorf("could not find DNS zone with name: %q", name)
+	}
+
+	id, _ := parse.DnsZoneID(*found.ID)
+	return *found, id.ResourceGroup, nil
 }
