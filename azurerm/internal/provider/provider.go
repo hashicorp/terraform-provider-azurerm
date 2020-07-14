@@ -250,12 +250,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			Features:                    expandFeatures(d.Get("features").([]interface{})),
 			StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
 		}
-		client, err := clients.Build(ctx, clientBuilder)
+		client, err := clients.Build(context.Background(), clientBuilder)
 		if err != nil {
 			return nil, diag.FromErr(err)
 		}
 
-		client.StopContext = ctx
+		client.StopContext = context.Background()
 
 		skipCredentialsValidation := d.Get("skip_credentials_validation").(bool)
 		if !skipCredentialsValidation {
