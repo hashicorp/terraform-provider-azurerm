@@ -153,7 +153,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 			AuthenticationType: datafactory.ODataAuthenticationType(authenticationType),
 			URL:                utils.String(url),
 			UserName:           username,
-			Password:           passwordSecureString,
+			Password:           &passwordSecureString,
 		}
 		odataLinkedService.ODataLinkedServiceTypeProperties = basicAuthProperties
 	}
