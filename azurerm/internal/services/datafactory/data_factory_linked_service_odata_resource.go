@@ -245,6 +245,11 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error setting `annotations`: %+v", err)
 	}
 
+	parameters := flattenDataFactoryParameters(odata.Parameters)
+	if err := d.Set("parameters", parameters); err != nil {
+		return fmt.Errorf("Error setting `parameters`: %+v", err)
+	}
+
 	if connectVia := odata.ConnectVia; connectVia != nil {
 		if connectVia.ReferenceName != nil {
 			d.Set("integration_runtime_name", connectVia.ReferenceName)
