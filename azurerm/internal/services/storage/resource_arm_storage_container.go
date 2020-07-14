@@ -1,10 +1,13 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -128,8 +131,24 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		AccessLevel: accessLevel,
 		MetaData:    metaData,
 	}
-	if _, err := client.Create(ctx, accountName, containerName, input); err != nil {
-		return fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
+	if resp, err := client.Create(ctx, accountName, containerName, input); err != nil {
+		// If we fail due to previous delete still in progress, then we can retry
+		if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
+			stateConf := &resource.StateChangeConf{
+				Pending:        []string{"waitingOnDelete"},
+				Target:         []string{"succeeded"},
+				Refresh:        storageContainerCreateRefreshFunc(ctx, client, accountName, containerName, input),
+				PollInterval:   10 * time.Second,
+				NotFoundChecks: 180,
+				Timeout:        d.Timeout(schema.TimeoutCreate),
+			}
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("failed creating container: %+v", err)
+			}
+		} else {
+			return fmt.Errorf("failed creating container: %+v", err)
+		}
 	}
 
 	d.SetId(id)
@@ -286,4 +305,21 @@ func flattenStorageContainerAccessLevel(input containers.AccessLevel) string {
 	}
 
 	return string(input)
+}
+
+func storageContainerCreateRefreshFunc(ctx context.Context, client *containers.Client, accountName string, containerName string, input containers.CreateInput) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Create(ctx, accountName, containerName, input)
+		if err != nil {
+			if !utils.ResponseWasConflict(resp.Response) {
+				return nil, "", err
+			}
+
+			if utils.ResponseWasConflict(resp.Response) && strings.Contains(err.Error(), "ContainerBeingDeleted") {
+				return nil, "waitingOnDelete", nil
+			}
+		}
+
+		return "succeeded", "succeeded", nil
+	}
 }

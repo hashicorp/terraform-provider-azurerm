@@ -117,7 +117,6 @@ func (client EndpointsClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client EndpointsClient) CreateOrUpdateResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client EndpointsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client EndpointsClient) DeleteResponder(resp *http.Response) (result DeleteOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -277,7 +275,6 @@ func (client EndpointsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client EndpointsClient) GetResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -360,7 +357,6 @@ func (client EndpointsClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client EndpointsClient) UpdateResponder(resp *http.Response) (result Endpoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -117,7 +117,6 @@ func (client ServerBlobAuditingPoliciesClient) CreateOrUpdateSender(req *http.Re
 func (client ServerBlobAuditingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ServerBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -195,7 +194,6 @@ func (client ServerBlobAuditingPoliciesClient) GetSender(req *http.Request) (*ht
 func (client ServerBlobAuditingPoliciesClient) GetResponder(resp *http.Response) (result ServerBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -273,7 +271,6 @@ func (client ServerBlobAuditingPoliciesClient) ListByServerSender(req *http.Requ
 func (client ServerBlobAuditingPoliciesClient) ListByServerResponder(resp *http.Response) (result ServerBlobAuditingPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

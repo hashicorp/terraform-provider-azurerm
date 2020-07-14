@@ -1,4 +1,4 @@
-// Package machinelearningservices implements the Azure ARM Machinelearningservices service API version 2019-11-01.
+// Package machinelearningservices implements the Azure ARM Machinelearningservices service API version 2020-04-01.
 //
 // These APIs allow end users to operate on Azure Machine Learning Workspace resources.
 package machinelearningservices
@@ -95,7 +95,7 @@ func (client BaseClient) ListSkusPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -119,7 +119,6 @@ func (client BaseClient) ListSkusSender(req *http.Request) (*http.Response, erro
 func (client BaseClient) ListSkusResponder(resp *http.Response) (result SkuListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

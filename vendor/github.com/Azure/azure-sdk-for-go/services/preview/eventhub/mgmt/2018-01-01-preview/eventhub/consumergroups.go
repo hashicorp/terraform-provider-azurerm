@@ -133,7 +133,6 @@ func (client ConsumerGroupsClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client ConsumerGroupsClient) CreateOrUpdateResponder(resp *http.Response) (result ConsumerGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -229,7 +228,6 @@ func (client ConsumerGroupsClient) DeleteSender(req *http.Request) (*http.Respon
 func (client ConsumerGroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -324,7 +322,6 @@ func (client ConsumerGroupsClient) GetSender(req *http.Request) (*http.Response,
 func (client ConsumerGroupsClient) GetResponder(resp *http.Response) (result ConsumerGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -437,7 +434,6 @@ func (client ConsumerGroupsClient) ListByEventHubSender(req *http.Request) (*htt
 func (client ConsumerGroupsClient) ListByEventHubResponder(resp *http.Response) (result ConsumerGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

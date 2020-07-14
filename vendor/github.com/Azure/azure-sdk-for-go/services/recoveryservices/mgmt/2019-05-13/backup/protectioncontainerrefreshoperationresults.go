@@ -115,7 +115,6 @@ func (client ProtectionContainerRefreshOperationResultsClient) GetSender(req *ht
 func (client ProtectionContainerRefreshOperationResultsClient) GetResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

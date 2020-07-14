@@ -126,7 +126,6 @@ func (client AssetFiltersClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client AssetFiltersClient) CreateOrUpdateResponder(resp *http.Response) (result AssetFilter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -206,7 +205,6 @@ func (client AssetFiltersClient) DeleteSender(req *http.Request) (*http.Response
 func (client AssetFiltersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -285,7 +283,6 @@ func (client AssetFiltersClient) GetSender(req *http.Request) (*http.Response, e
 func (client AssetFiltersClient) GetResponder(resp *http.Response) (result AssetFilter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -364,7 +361,6 @@ func (client AssetFiltersClient) ListSender(req *http.Request) (*http.Response, 
 func (client AssetFiltersClient) ListResponder(resp *http.Response) (result AssetFilterCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -484,7 +480,6 @@ func (client AssetFiltersClient) UpdateSender(req *http.Request) (*http.Response
 func (client AssetFiltersClient) UpdateResponder(resp *http.Response) (result AssetFilter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

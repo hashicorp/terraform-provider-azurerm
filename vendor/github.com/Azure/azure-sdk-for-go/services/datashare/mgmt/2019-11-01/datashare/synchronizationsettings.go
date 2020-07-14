@@ -117,7 +117,6 @@ func (client SynchronizationSettingsClient) CreateSender(req *http.Request) (*ht
 func (client SynchronizationSettingsClient) CreateResponder(resp *http.Response) (result SynchronizationSettingModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client SynchronizationSettingsClient) DeleteSender(req *http.Request) (fut
 func (client SynchronizationSettingsClient) DeleteResponder(resp *http.Response) (result OperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -277,7 +275,6 @@ func (client SynchronizationSettingsClient) GetSender(req *http.Request) (*http.
 func (client SynchronizationSettingsClient) GetResponder(resp *http.Response) (result SynchronizationSettingModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -360,7 +357,6 @@ func (client SynchronizationSettingsClient) ListByShareSender(req *http.Request)
 func (client SynchronizationSettingsClient) ListByShareResponder(resp *http.Response) (result SynchronizationSettingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

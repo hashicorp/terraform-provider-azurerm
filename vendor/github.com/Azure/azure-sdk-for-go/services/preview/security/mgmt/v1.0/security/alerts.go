@@ -122,7 +122,6 @@ func (client AlertsClient) GetResourceGroupLevelAlertsSender(req *http.Request) 
 func (client AlertsClient) GetResourceGroupLevelAlertsResponder(resp *http.Response) (result Alert, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client AlertsClient) GetSubscriptionLevelAlertSender(req *http.Request) (*
 func (client AlertsClient) GetSubscriptionLevelAlertResponder(resp *http.Response) (result Alert, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -294,7 +292,6 @@ func (client AlertsClient) ListSender(req *http.Request) (*http.Response, error)
 func (client AlertsClient) ListResponder(resp *http.Response) (result AlertList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -429,7 +426,6 @@ func (client AlertsClient) ListByResourceGroupSender(req *http.Request) (*http.R
 func (client AlertsClient) ListByResourceGroupResponder(resp *http.Response) (result AlertList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -566,7 +562,6 @@ func (client AlertsClient) ListResourceGroupLevelAlertsByRegionSender(req *http.
 func (client AlertsClient) ListResourceGroupLevelAlertsByRegionResponder(resp *http.Response) (result AlertList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -696,7 +691,6 @@ func (client AlertsClient) ListSubscriptionLevelAlertsByRegionSender(req *http.R
 func (client AlertsClient) ListSubscriptionLevelAlertsByRegionResponder(resp *http.Response) (result AlertList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -821,7 +815,6 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissSender(req
 func (client AlertsClient) UpdateResourceGroupLevelAlertStateToDismissResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -908,7 +901,6 @@ func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivateSender(
 func (client AlertsClient) UpdateResourceGroupLevelAlertStateToReactivateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -988,7 +980,6 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissSender(req 
 func (client AlertsClient) UpdateSubscriptionLevelAlertStateToDismissResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1068,7 +1059,6 @@ func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivateSender(r
 func (client AlertsClient) UpdateSubscriptionLevelAlertStateToReactivateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

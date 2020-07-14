@@ -213,7 +213,7 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 
 func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualHubClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.ParseVirtualHubConnectionID(d.Id())

@@ -114,7 +114,6 @@ func (client EventChannelsClient) CreateOrUpdateSender(req *http.Request) (*http
 func (client EventChannelsClient) CreateOrUpdateResponder(resp *http.Response) (result EventChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -192,7 +191,6 @@ func (client EventChannelsClient) DeleteSender(req *http.Request) (future EventC
 func (client EventChannelsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -269,7 +267,6 @@ func (client EventChannelsClient) GetSender(req *http.Request) (*http.Response, 
 func (client EventChannelsClient) GetResponder(resp *http.Response) (result EventChannel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -360,7 +357,6 @@ func (client EventChannelsClient) ListByPartnerNamespaceSender(req *http.Request
 func (client EventChannelsClient) ListByPartnerNamespaceResponder(resp *http.Response) (result EventChannelsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

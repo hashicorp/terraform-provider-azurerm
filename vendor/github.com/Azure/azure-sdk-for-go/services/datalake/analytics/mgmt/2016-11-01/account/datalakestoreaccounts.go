@@ -119,7 +119,6 @@ func (client DataLakeStoreAccountsClient) AddSender(req *http.Request) (*http.Re
 func (client DataLakeStoreAccountsClient) AddResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -196,7 +195,6 @@ func (client DataLakeStoreAccountsClient) DeleteSender(req *http.Request) (*http
 func (client DataLakeStoreAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -273,7 +271,6 @@ func (client DataLakeStoreAccountsClient) GetSender(req *http.Request) (*http.Re
 func (client DataLakeStoreAccountsClient) GetResponder(resp *http.Response) (result DataLakeStoreAccountInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -389,7 +386,6 @@ func (client DataLakeStoreAccountsClient) ListByAccountSender(req *http.Request)
 func (client DataLakeStoreAccountsClient) ListByAccountResponder(resp *http.Response) (result DataLakeStoreAccountInformationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

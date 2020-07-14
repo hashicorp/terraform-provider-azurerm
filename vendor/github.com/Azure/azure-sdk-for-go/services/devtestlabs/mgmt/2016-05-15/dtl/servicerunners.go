@@ -114,7 +114,6 @@ func (client ServiceRunnersClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client ServiceRunnersClient) CreateOrUpdateResponder(resp *http.Response) (result ServiceRunner, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -192,7 +191,6 @@ func (client ServiceRunnersClient) DeleteSender(req *http.Request) (*http.Respon
 func (client ServiceRunnersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -269,7 +267,6 @@ func (client ServiceRunnersClient) GetSender(req *http.Request) (*http.Response,
 func (client ServiceRunnersClient) GetResponder(resp *http.Response) (result ServiceRunner, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -358,7 +355,6 @@ func (client ServiceRunnersClient) ListSender(req *http.Request) (*http.Response
 func (client ServiceRunnersClient) ListResponder(resp *http.Response) (result ResponseWithContinuationServiceRunner, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

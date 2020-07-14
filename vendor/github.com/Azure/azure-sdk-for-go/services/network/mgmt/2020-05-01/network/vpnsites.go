@@ -127,7 +127,6 @@ func (client VpnSitesClient) CreateOrUpdateSender(req *http.Request) (future Vpn
 func (client VpnSitesClient) CreateOrUpdateResponder(resp *http.Response) (result VpnSite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client VpnSitesClient) DeleteSender(req *http.Request) (future VpnSitesDel
 func (client VpnSitesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -278,7 +276,6 @@ func (client VpnSitesClient) GetSender(req *http.Request) (*http.Response, error
 func (client VpnSitesClient) GetResponder(resp *http.Response) (result VpnSite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -350,7 +347,6 @@ func (client VpnSitesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client VpnSitesClient) ListResponder(resp *http.Response) (result ListVpnSitesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -462,7 +458,6 @@ func (client VpnSitesClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client VpnSitesClient) ListByResourceGroupResponder(resp *http.Response) (result ListVpnSitesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -578,7 +573,6 @@ func (client VpnSitesClient) UpdateTagsSender(req *http.Request) (*http.Response
 func (client VpnSitesClient) UpdateTagsResponder(resp *http.Response) (result VpnSite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

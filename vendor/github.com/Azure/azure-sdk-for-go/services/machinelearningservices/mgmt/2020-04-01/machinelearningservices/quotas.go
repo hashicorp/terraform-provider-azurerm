@@ -91,7 +91,7 @@ func (client QuotasClient) ListPreparer(ctx context.Context, location string) (*
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -115,7 +115,6 @@ func (client QuotasClient) ListSender(req *http.Request) (*http.Response, error)
 func (client QuotasClient) ListResponder(resp *http.Response) (result ListWorkspaceQuotas, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -209,7 +208,7 @@ func (client QuotasClient) UpdatePreparer(ctx context.Context, location string, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -235,7 +234,6 @@ func (client QuotasClient) UpdateSender(req *http.Request) (*http.Response, erro
 func (client QuotasClient) UpdateResponder(resp *http.Response) (result UpdateWorkspaceQuotasResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

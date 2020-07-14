@@ -127,7 +127,6 @@ func (client RecommendedActionsClient) GetSender(req *http.Request) (*http.Respo
 func (client RecommendedActionsClient) GetResponder(resp *http.Response) (result RecommendationAction, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -220,7 +219,6 @@ func (client RecommendedActionsClient) ListByServerSender(req *http.Request) (*h
 func (client RecommendedActionsClient) ListByServerResponder(resp *http.Response) (result RecommendationActionsResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

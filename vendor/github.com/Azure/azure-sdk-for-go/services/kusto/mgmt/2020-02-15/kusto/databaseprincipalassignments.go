@@ -125,7 +125,6 @@ func (client DatabasePrincipalAssignmentsClient) CheckNameAvailabilitySender(req
 func (client DatabasePrincipalAssignmentsClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,7 +214,6 @@ func (client DatabasePrincipalAssignmentsClient) CreateOrUpdateSender(req *http.
 func (client DatabasePrincipalAssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (result DatabasePrincipalAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -295,7 +293,6 @@ func (client DatabasePrincipalAssignmentsClient) DeleteSender(req *http.Request)
 func (client DatabasePrincipalAssignmentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -374,7 +371,6 @@ func (client DatabasePrincipalAssignmentsClient) GetSender(req *http.Request) (*
 func (client DatabasePrincipalAssignmentsClient) GetResponder(resp *http.Response) (result DatabasePrincipalAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -452,7 +448,6 @@ func (client DatabasePrincipalAssignmentsClient) ListSender(req *http.Request) (
 func (client DatabasePrincipalAssignmentsClient) ListResponder(resp *http.Response) (result DatabasePrincipalAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

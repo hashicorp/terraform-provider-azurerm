@@ -107,7 +107,6 @@ func (client RecommendationMetadataClient) GetSender(req *http.Request) (*http.R
 func (client RecommendationMetadataClient) GetResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -175,7 +174,6 @@ func (client RecommendationMetadataClient) ListSender(req *http.Request) (*http.
 func (client RecommendationMetadataClient) ListResponder(resp *http.Response) (result MetadataEntityListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -13954,6 +13954,29 @@ func (future *ManagedInstancesDeleteFuture) Result(client ManagedInstancesClient
 	return
 }
 
+// ManagedInstancesFailoverFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ManagedInstancesFailoverFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedInstancesFailoverFuture) Result(client ManagedInstancesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesFailoverFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstancesFailoverFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ManagedInstancesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ManagedInstancesUpdateFuture struct {

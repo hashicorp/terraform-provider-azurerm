@@ -112,7 +112,6 @@ func (client SSHPublicKeysClient) CreateSender(req *http.Request) (*http.Respons
 func (client SSHPublicKeysClient) CreateResponder(resp *http.Response) (result SSHPublicKeyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,7 +187,6 @@ func (client SSHPublicKeysClient) DeleteSender(req *http.Request) (*http.Respons
 func (client SSHPublicKeysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -265,7 +263,6 @@ func (client SSHPublicKeysClient) GenerateKeyPairSender(req *http.Request) (*htt
 func (client SSHPublicKeysClient) GenerateKeyPairResponder(resp *http.Response) (result SSHPublicKeyGenerateKeyPairResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -341,7 +338,6 @@ func (client SSHPublicKeysClient) GetSender(req *http.Request) (*http.Response, 
 func (client SSHPublicKeysClient) GetResponder(resp *http.Response) (result SSHPublicKeyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -417,7 +413,6 @@ func (client SSHPublicKeysClient) ListByResourceGroupSender(req *http.Request) (
 func (client SSHPublicKeysClient) ListByResourceGroupResponder(resp *http.Response) (result SSHPublicKeysGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -527,7 +522,6 @@ func (client SSHPublicKeysClient) ListBySubscriptionSender(req *http.Request) (*
 func (client SSHPublicKeysClient) ListBySubscriptionResponder(resp *http.Response) (result SSHPublicKeysGroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -643,7 +637,6 @@ func (client SSHPublicKeysClient) UpdateSender(req *http.Request) (*http.Respons
 func (client SSHPublicKeysClient) UpdateResponder(resp *http.Response) (result SSHPublicKeyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

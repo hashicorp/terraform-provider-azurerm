@@ -127,7 +127,6 @@ func (client ConfigurationsClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client ConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,7 +214,6 @@ func (client ConfigurationsClient) GetSender(req *http.Request) (*http.Response,
 func (client ConfigurationsClient) GetResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,7 +299,6 @@ func (client ConfigurationsClient) ListByServerSender(req *http.Request) (*http.
 func (client ConfigurationsClient) ListByServerResponder(resp *http.Response) (result ConfigurationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

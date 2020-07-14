@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2019-11-01/machinelearningservices"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices"
 
 // AllocationState enumerates the values for allocation state.
 type AllocationState string
@@ -133,6 +133,21 @@ func PossibleComputeTypeBasicComputeSecretsValues() []ComputeTypeBasicComputeSec
 	return []ComputeTypeBasicComputeSecrets{ComputeTypeBasicComputeSecretsComputeTypeAKS, ComputeTypeBasicComputeSecretsComputeTypeComputeSecrets, ComputeTypeBasicComputeSecretsComputeTypeDatabricks, ComputeTypeBasicComputeSecretsComputeTypeVirtualMachine}
 }
 
+// EncryptionStatus enumerates the values for encryption status.
+type EncryptionStatus string
+
+const (
+	// Disabled ...
+	Disabled EncryptionStatus = "Disabled"
+	// Enabled ...
+	Enabled EncryptionStatus = "Enabled"
+)
+
+// PossibleEncryptionStatusValues returns an array of possible values for the EncryptionStatus const type.
+func PossibleEncryptionStatusValues() []EncryptionStatus {
+	return []EncryptionStatus{Disabled, Enabled}
+}
+
 // NodeState enumerates the values for node state.
 type NodeState string
 
@@ -156,29 +171,70 @@ func PossibleNodeStateValues() []NodeState {
 	return []NodeState{Idle, Leaving, Preempted, Preparing, Running, Unusable}
 }
 
+// PrivateEndpointConnectionProvisioningState enumerates the values for private endpoint connection
+// provisioning state.
+type PrivateEndpointConnectionProvisioningState string
+
+const (
+	// Creating ...
+	Creating PrivateEndpointConnectionProvisioningState = "Creating"
+	// Deleting ...
+	Deleting PrivateEndpointConnectionProvisioningState = "Deleting"
+	// Failed ...
+	Failed PrivateEndpointConnectionProvisioningState = "Failed"
+	// Succeeded ...
+	Succeeded PrivateEndpointConnectionProvisioningState = "Succeeded"
+)
+
+// PossiblePrivateEndpointConnectionProvisioningStateValues returns an array of possible values for the PrivateEndpointConnectionProvisioningState const type.
+func PossiblePrivateEndpointConnectionProvisioningStateValues() []PrivateEndpointConnectionProvisioningState {
+	return []PrivateEndpointConnectionProvisioningState{Creating, Deleting, Failed, Succeeded}
+}
+
+// PrivateEndpointServiceConnectionStatus enumerates the values for private endpoint service connection status.
+type PrivateEndpointServiceConnectionStatus string
+
+const (
+	// Approved ...
+	Approved PrivateEndpointServiceConnectionStatus = "Approved"
+	// Disconnected ...
+	Disconnected PrivateEndpointServiceConnectionStatus = "Disconnected"
+	// Pending ...
+	Pending PrivateEndpointServiceConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateEndpointServiceConnectionStatus = "Rejected"
+	// Timeout ...
+	Timeout PrivateEndpointServiceConnectionStatus = "Timeout"
+)
+
+// PossiblePrivateEndpointServiceConnectionStatusValues returns an array of possible values for the PrivateEndpointServiceConnectionStatus const type.
+func PossiblePrivateEndpointServiceConnectionStatusValues() []PrivateEndpointServiceConnectionStatus {
+	return []PrivateEndpointServiceConnectionStatus{Approved, Disconnected, Pending, Rejected, Timeout}
+}
+
 // ProvisioningState enumerates the values for provisioning state.
 type ProvisioningState string
 
 const (
-	// Canceled ...
-	Canceled ProvisioningState = "Canceled"
-	// Creating ...
-	Creating ProvisioningState = "Creating"
-	// Deleting ...
-	Deleting ProvisioningState = "Deleting"
-	// Failed ...
-	Failed ProvisioningState = "Failed"
-	// Succeeded ...
-	Succeeded ProvisioningState = "Succeeded"
-	// Unknown ...
-	Unknown ProvisioningState = "Unknown"
-	// Updating ...
-	Updating ProvisioningState = "Updating"
+	// ProvisioningStateCanceled ...
+	ProvisioningStateCanceled ProvisioningState = "Canceled"
+	// ProvisioningStateCreating ...
+	ProvisioningStateCreating ProvisioningState = "Creating"
+	// ProvisioningStateDeleting ...
+	ProvisioningStateDeleting ProvisioningState = "Deleting"
+	// ProvisioningStateFailed ...
+	ProvisioningStateFailed ProvisioningState = "Failed"
+	// ProvisioningStateSucceeded ...
+	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
+	// ProvisioningStateUnknown ...
+	ProvisioningStateUnknown ProvisioningState = "Unknown"
+	// ProvisioningStateUpdating ...
+	ProvisioningStateUpdating ProvisioningState = "Updating"
 )
 
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Canceled, Creating, Deleting, Failed, Succeeded, Unknown, Updating}
+	return []ProvisioningState{ProvisioningStateCanceled, ProvisioningStateCreating, ProvisioningStateDeleting, ProvisioningStateFailed, ProvisioningStateSucceeded, ProvisioningStateUnknown, ProvisioningStateUpdating}
 }
 
 // QuotaUnit enumerates the values for quota unit.
@@ -232,13 +288,19 @@ func PossibleRemoteLoginPortPublicAccessValues() []RemoteLoginPortPublicAccess {
 type ResourceIdentityType string
 
 const (
+	// None ...
+	None ResourceIdentityType = "None"
 	// SystemAssigned ...
 	SystemAssigned ResourceIdentityType = "SystemAssigned"
+	// SystemAssignedUserAssigned ...
+	SystemAssignedUserAssigned ResourceIdentityType = "SystemAssigned,UserAssigned"
+	// UserAssigned ...
+	UserAssigned ResourceIdentityType = "UserAssigned"
 )
 
 // PossibleResourceIdentityTypeValues returns an array of possible values for the ResourceIdentityType const type.
 func PossibleResourceIdentityTypeValues() []ResourceIdentityType {
-	return []ResourceIdentityType{SystemAssigned}
+	return []ResourceIdentityType{None, SystemAssigned, SystemAssignedUserAssigned, UserAssigned}
 }
 
 // Status enumerates the values for status.
@@ -272,15 +334,15 @@ func PossibleStatusValues() []Status {
 type Status1 string
 
 const (
-	// Disabled ...
-	Disabled Status1 = "Disabled"
-	// Enabled ...
-	Enabled Status1 = "Enabled"
+	// Status1Disabled ...
+	Status1Disabled Status1 = "Disabled"
+	// Status1Enabled ...
+	Status1Enabled Status1 = "Enabled"
 )
 
 // PossibleStatus1Values returns an array of possible values for the Status1 const type.
 func PossibleStatus1Values() []Status1 {
-	return []Status1{Disabled, Enabled}
+	return []Status1{Status1Disabled, Status1Enabled}
 }
 
 // UnderlyingResourceAction enumerates the values for underlying resource action.
@@ -332,7 +394,7 @@ type AKS struct {
 	Properties *AKSProperties `json:"properties,omitempty"`
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
-	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'Unknown', 'Updating', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Description - The description of the Machine Learning compute.
 	Description *string `json:"description,omitempty"`
@@ -507,7 +569,7 @@ type AmlCompute struct {
 	Properties *AmlComputeProperties `json:"properties,omitempty"`
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
-	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'Unknown', 'Updating', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Description - The description of the Machine Learning compute.
 	Description *string `json:"description,omitempty"`
@@ -743,7 +805,7 @@ type BasicCompute interface {
 type Compute struct {
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
-	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'Unknown', 'Updating', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Description - The description of the Machine Learning compute.
 	Description *string `json:"description,omitempty"`
@@ -1207,7 +1269,7 @@ type Databricks struct {
 	Properties *DatabricksProperties `json:"properties,omitempty"`
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
-	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'Unknown', 'Updating', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Description - The description of the Machine Learning compute.
 	Description *string `json:"description,omitempty"`
@@ -1348,7 +1410,7 @@ type DatabricksProperties struct {
 type DataFactory struct {
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
-	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'Unknown', 'Updating', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Description - The description of the Machine Learning compute.
 	Description *string `json:"description,omitempty"`
@@ -1435,7 +1497,7 @@ type DataLakeAnalytics struct {
 	Properties *DataLakeAnalyticsProperties `json:"properties,omitempty"`
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
-	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'Unknown', 'Updating', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Description - The description of the Machine Learning compute.
 	Description *string `json:"description,omitempty"`
@@ -1526,6 +1588,14 @@ type DataLakeAnalyticsProperties struct {
 	DataLakeStoreAccountName *string `json:"dataLakeStoreAccountName,omitempty"`
 }
 
+// EncryptionProperty ...
+type EncryptionProperty struct {
+	// Status - Indicates whether or not the encryption is enabled for the workspace. Possible values include: 'Enabled', 'Disabled'
+	Status EncryptionStatus `json:"status,omitempty"`
+	// KeyVaultProperties - Customer Key vault properties.
+	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
+}
+
 // Error wrapper for error response to follow ARM guidelines.
 type Error struct {
 	// Error - READ-ONLY; The error response.
@@ -1555,7 +1625,7 @@ type HDInsight struct {
 	Properties *HDInsightProperties `json:"properties,omitempty"`
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
-	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'Unknown', 'Updating', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Description - The description of the Machine Learning compute.
 	Description *string `json:"description,omitempty"`
@@ -1656,8 +1726,40 @@ type Identity struct {
 	PrincipalID *string `json:"principalId,omitempty"`
 	// TenantID - READ-ONLY; The tenant ID of resource.
 	TenantID *string `json:"tenantId,omitempty"`
-	// Type - The identity type. Possible values include: 'SystemAssigned'
+	// Type - The identity type. Possible values include: 'SystemAssigned', 'UserAssigned', 'SystemAssignedUserAssigned', 'None'
 	Type ResourceIdentityType `json:"type,omitempty"`
+	// UserAssignedIdentities - The list of user identities associated with resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}'.
+	UserAssignedIdentities map[string]*IdentityUserAssignedIdentitiesValue `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
+	if i.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = i.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
+}
+
+// IdentityUserAssignedIdentitiesValue ...
+type IdentityUserAssignedIdentitiesValue struct {
+	// PrincipalID - READ-ONLY; The principal id of user assigned identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - READ-ONLY; The client id of user assigned identity.
+	ClientID *string `json:"clientId,omitempty"`
+}
+
+// KeyVaultProperties ...
+type KeyVaultProperties struct {
+	// KeyVaultArmID - The ArmId of the keyVault where the customer owned encryption key is present.
+	KeyVaultArmID *string `json:"keyVaultArmId,omitempty"`
+	// KeyIdentifier - Key vault uri to access the encryption key.
+	KeyIdentifier *string `json:"keyIdentifier,omitempty"`
+	// IdentityClientID - For future use - The client id of the identity which will be used to access key vault.
+	IdentityClientID *string `json:"identityClientId,omitempty"`
 }
 
 // ListAmlUserFeatureResult the List Aml user feature operation response.
@@ -1963,6 +2065,7 @@ type ListWorkspaceKeysResult struct {
 	AppInsightsInstrumentationKey *string `json:"appInsightsInstrumentationKey,omitempty"`
 	// ContainerRegistryCredentials - READ-ONLY
 	ContainerRegistryCredentials *RegistryListCredentialsResult `json:"containerRegistryCredentials,omitempty"`
+	NotebookAccessKeys           *NotebookListCredentialsResult `json:"notebookAccessKeys,omitempty"`
 }
 
 // ListWorkspaceQuotas the List WorkspaceQuotasByVMFamily operation response.
@@ -2208,6 +2311,57 @@ type NodeStateCounts struct {
 	PreemptedNodeCount *int32 `json:"preemptedNodeCount,omitempty"`
 }
 
+// NotebookListCredentialsResult ...
+type NotebookListCredentialsResult struct {
+	PrimaryAccessKey   *string `json:"primaryAccessKey,omitempty"`
+	SecondaryAccessKey *string `json:"secondaryAccessKey,omitempty"`
+}
+
+// NotebookPreparationError ...
+type NotebookPreparationError struct {
+	ErrorMessage *string `json:"errorMessage,omitempty"`
+	StatusCode   *int32  `json:"statusCode,omitempty"`
+}
+
+// NotebookResourceInfo ...
+type NotebookResourceInfo struct {
+	autorest.Response `json:"-"`
+	Fqdn              *string `json:"fqdn,omitempty"`
+	// ResourceID - the data plane resourceId that used to initialize notebook component
+	ResourceID *string `json:"resourceId,omitempty"`
+	// NotebookPreparationError - The error that occurs when preparing notebook.
+	NotebookPreparationError *NotebookPreparationError `json:"notebookPreparationError,omitempty"`
+}
+
+// NotebooksPrepareFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type NotebooksPrepareFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *NotebooksPrepareFuture) Result(client NotebooksClient) (nri NotebookResourceInfo, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksPrepareFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.NotebooksPrepareFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if nri.Response.Response, err = future.GetResult(sender); err == nil && nri.Response.Response.StatusCode != http.StatusNoContent {
+		nri, err = client.PrepareResponder(nri.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "machinelearningservices.NotebooksPrepareFuture", "Result", nri.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // Operation azure Machine Learning workspace REST API operation
 type Operation struct {
 	// Name - Operation name: {provider}/{resource}/{operation}
@@ -2390,6 +2544,307 @@ type Password struct {
 	Value *string `json:"value,omitempty"`
 }
 
+// PrivateEndpoint the Private Endpoint resource.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The ARM identifier for Private Endpoint
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection the Private Endpoint Connection resource.
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// PrivateEndpointConnectionProperties - Resource properties.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Specifies the resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Specifies the name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Identity - The identity of the resource.
+	Identity *Identity `json:"identity,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; Specifies the type of the resource.
+	Type *string `json:"type,omitempty"`
+	// Tags - Contains resource tags defined as key/value pairs.
+	Tags map[string]*string `json:"tags"`
+	// Sku - The sku of the workspace.
+	Sku *Sku `json:"sku,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	if pec.Identity != nil {
+		objectMap["identity"] = pec.Identity
+	}
+	if pec.Location != nil {
+		objectMap["location"] = pec.Location
+	}
+	if pec.Tags != nil {
+		objectMap["tags"] = pec.Tags
+	}
+	if pec.Sku != nil {
+		objectMap["sku"] = pec.Sku
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "identity":
+			if v != nil {
+				var identity Identity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				pec.Identity = &identity
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				pec.Location = &location
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				pec.Tags = tags
+			}
+		case "sku":
+			if v != nil {
+				var sku Sku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				pec.Sku = &sku
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The resource of private end point.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - The provisioning state of the private endpoint connection resource. Possible values include: 'Succeeded', 'Creating', 'Deleting', 'Failed'
+	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	// PrivateLinkResourceProperties - Resource properties.
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Specifies the resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Specifies the name of the resource.
+	Name *string `json:"name,omitempty"`
+	// Identity - The identity of the resource.
+	Identity *Identity `json:"identity,omitempty"`
+	// Location - Specifies the location of the resource.
+	Location *string `json:"location,omitempty"`
+	// Type - READ-ONLY; Specifies the type of the resource.
+	Type *string `json:"type,omitempty"`
+	// Tags - Contains resource tags defined as key/value pairs.
+	Tags map[string]*string `json:"tags"`
+	// Sku - The sku of the workspace.
+	Sku *Sku `json:"sku,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	if plr.Identity != nil {
+		objectMap["identity"] = plr.Identity
+	}
+	if plr.Location != nil {
+		objectMap["location"] = plr.Location
+	}
+	if plr.Tags != nil {
+		objectMap["tags"] = plr.Tags
+	}
+	if plr.Sku != nil {
+		objectMap["sku"] = plr.Sku
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "identity":
+			if v != nil {
+				var identity Identity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				plr.Identity = &identity
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				plr.Location = &location
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				plr.Tags = tags
+			}
+		case "sku":
+			if v != nil {
+				var sku Sku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				plr.Sku = &sku
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceListResult a list of private link resources
+type PrivateLinkResourceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkServiceConnectionState a collection of information about the state of the connection between
+// service consumer and provider.
+type PrivateLinkServiceConnectionState struct {
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected', 'Timeout'
+	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The reason for approval/rejection of the connection.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - A message indicating if changes on the service provider require any updates on the consumer.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
+}
+
 // QuotaBaseProperties the properties for Quota update or retrieval.
 type QuotaBaseProperties struct {
 	// ID - Specifies the resource ID.
@@ -2525,6 +2980,71 @@ type ServicePrincipalCredentials struct {
 	ClientID *string `json:"clientId,omitempty"`
 	// ClientSecret - Client secret
 	ClientSecret *string `json:"clientSecret,omitempty"`
+}
+
+// SharedPrivateLinkResource ...
+type SharedPrivateLinkResource struct {
+	// Name - Unique name of the private link.
+	Name *string `json:"name,omitempty"`
+	// SharedPrivateLinkResourceProperty - Resource properties.
+	*SharedPrivateLinkResourceProperty `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SharedPrivateLinkResource.
+func (splr SharedPrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if splr.Name != nil {
+		objectMap["name"] = splr.Name
+	}
+	if splr.SharedPrivateLinkResourceProperty != nil {
+		objectMap["properties"] = splr.SharedPrivateLinkResourceProperty
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SharedPrivateLinkResource struct.
+func (splr *SharedPrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				splr.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var sharedPrivateLinkResourceProperty SharedPrivateLinkResourceProperty
+				err = json.Unmarshal(*v, &sharedPrivateLinkResourceProperty)
+				if err != nil {
+					return err
+				}
+				splr.SharedPrivateLinkResourceProperty = &sharedPrivateLinkResourceProperty
+			}
+		}
+	}
+
+	return nil
+}
+
+// SharedPrivateLinkResourceProperty properties of a shared private link resource.
+type SharedPrivateLinkResourceProperty struct {
+	// PrivateLinkResourceID - The resource id that private link links to.
+	PrivateLinkResourceID *string `json:"privateLinkResourceId,omitempty"`
+	// GroupID - The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequestMessage - Request message.
+	RequestMessage *string `json:"requestMessage,omitempty"`
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected', 'Timeout'
+	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
 }
 
 // Sku sku of the resource
@@ -2690,7 +3210,7 @@ func NewSkuListResultPage(getNextPage func(context.Context, SkuListResult) (SkuL
 
 // SslConfiguration the ssl configuration for scoring
 type SslConfiguration struct {
-	// Status - Enable or disable ssl for scoring. Possible values include: 'Disabled', 'Enabled'
+	// Status - Enable or disable ssl for scoring. Possible values include: 'Status1Disabled', 'Status1Enabled'
 	Status Status1 `json:"status,omitempty"`
 	// Cert - Cert data
 	Cert *string `json:"cert,omitempty"`
@@ -2772,7 +3292,7 @@ type VirtualMachine struct {
 	Properties *VirtualMachineProperties `json:"properties,omitempty"`
 	// ComputeLocation - Location for the underlying compute
 	ComputeLocation *string `json:"computeLocation,omitempty"`
-	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'Unknown', 'Updating', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The provision state of the cluster. Valid values are Unknown, Updating, Provisioning, Succeeded, and Failed. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// Description - The description of the Machine Learning compute.
 	Description *string `json:"description,omitempty"`
@@ -3251,8 +3771,26 @@ type WorkspaceProperties struct {
 	StorageAccount *string `json:"storageAccount,omitempty"`
 	// DiscoveryURL - Url for the discovery service to identify regional endpoints for machine learning experimentation services
 	DiscoveryURL *string `json:"discoveryUrl,omitempty"`
-	// ProvisioningState - READ-ONLY; The current deployment state of workspace resource. The provisioningState is to indicate states for resource provisioning. Possible values include: 'Unknown', 'Updating', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Canceled'
+	// ProvisioningState - READ-ONLY; The current deployment state of workspace resource. The provisioningState is to indicate states for resource provisioning. Possible values include: 'ProvisioningStateUnknown', 'ProvisioningStateUpdating', 'ProvisioningStateCreating', 'ProvisioningStateDeleting', 'ProvisioningStateSucceeded', 'ProvisioningStateFailed', 'ProvisioningStateCanceled'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
+	// Encryption - The encryption settings of Azure ML workspace.
+	Encryption *EncryptionProperty `json:"encryption,omitempty"`
+	// HbiWorkspace - The flag to signal HBI data in the workspace and reduce diagnostic data collected by the service
+	HbiWorkspace *bool `json:"hbiWorkspace,omitempty"`
+	// ServiceProvisionedResourceGroup - READ-ONLY; The name of the managed resource group created by workspace RP in customer subscription if the workspace is CMK workspace
+	ServiceProvisionedResourceGroup *string `json:"serviceProvisionedResourceGroup,omitempty"`
+	// PrivateLinkCount - READ-ONLY; Count of private connections in the workspace
+	PrivateLinkCount *int32 `json:"privateLinkCount,omitempty"`
+	// ImageBuildCompute - The compute name for image build
+	ImageBuildCompute *string `json:"imageBuildCompute,omitempty"`
+	// AllowPublicAccessWhenBehindVnet - The flag to indicate whether to allow public access when behind VNet.
+	AllowPublicAccessWhenBehindVnet *bool `json:"allowPublicAccessWhenBehindVnet,omitempty"`
+	// PrivateEndpointConnections - READ-ONLY; The list of private endpoint connections in the workspace.
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+	// SharedPrivateLinkResources - The list of shared private link resources in this workspace.
+	SharedPrivateLinkResources *[]SharedPrivateLinkResource `json:"sharedPrivateLinkResources,omitempty"`
+	// NotebookInfo - READ-ONLY; The notebook info of Azure ML workspace.
+	NotebookInfo *NotebookResourceInfo `json:"notebookInfo,omitempty"`
 }
 
 // WorkspacePropertiesUpdateParameters the parameters for updating the properties of a machine learning
@@ -3290,6 +3828,29 @@ func (future *WorkspacesCreateOrUpdateFuture) Result(client WorkspacesClient) (w
 			err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesCreateOrUpdateFuture", "Result", w.Response.Response, "Failure responding to request")
 		}
 	}
+	return
+}
+
+// WorkspacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type WorkspacesDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *WorkspacesDeleteFuture) Result(client WorkspacesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "machinelearningservices.WorkspacesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("machinelearningservices.WorkspacesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
 	return
 }
 

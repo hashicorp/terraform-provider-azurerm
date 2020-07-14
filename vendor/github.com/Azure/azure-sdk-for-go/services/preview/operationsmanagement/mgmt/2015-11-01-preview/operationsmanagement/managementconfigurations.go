@@ -131,7 +131,6 @@ func (client ManagementConfigurationsClient) CreateOrUpdateSender(req *http.Requ
 func (client ManagementConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagementConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,7 +214,6 @@ func (client ManagementConfigurationsClient) DeleteSender(req *http.Request) (*h
 func (client ManagementConfigurationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -298,7 +296,6 @@ func (client ManagementConfigurationsClient) GetSender(req *http.Request) (*http
 func (client ManagementConfigurationsClient) GetResponder(resp *http.Response) (result ManagementConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -369,7 +366,6 @@ func (client ManagementConfigurationsClient) ListBySubscriptionSender(req *http.
 func (client ManagementConfigurationsClient) ListBySubscriptionResponder(resp *http.Response) (result ManagementConfigurationPropertiesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
