@@ -402,20 +402,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			"private_link_enabled": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true,
-				ConflictsWith: []string{"private_cluster_enabled"},
-				Deprecated:    "Deprecated in favor of `private_cluster_enabled`", // TODO -- remove this in next major version
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+				// ConflictsWith: []string{"private_cluster_enabled"},
+				Deprecated: "Deprecated in favor of `private_cluster_enabled`", // TODO -- remove this in next major version
 			},
 
 			"private_cluster_enabled": {
-				Type:          schema.TypeBool,
-				Optional:      true,
-				ForceNew:      true,
-				Computed:      true, // TODO -- remove this when deprecation resolves
-				ConflictsWith: []string{"private_link_enabled"},
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Computed: true, // TODO -- remove this when deprecation resolves
+				// ConflictsWith: []string{"private_link_enabled"},
 			},
 
 			"role_based_access_control": {
