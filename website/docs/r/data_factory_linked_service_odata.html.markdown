@@ -67,7 +67,7 @@ The following supported arguments are common across all Azure Data Factory Linke
 
 The following supported arguments are specific to OData Linked Service:
 
-* `authentication_type` - (Required) The type of authentication used to connect to the OData source. Valid options are `Anonymous`, `Basic` and `Windows` (`AadServicePrincipal`, `ManagedServiceIdentity` are not supported at this moment by this provider)
+* `authentication_type` - (Required) The type of authentication used to connect to the OData source. Valid options are `AadServicePrincipal`, `Anonymous`, `Basic` and `Windows` (`ManagedServiceIdentity` are is supported at this moment by this provider)
 
 * `url` - (Required) The URL of the OData service endpoint (e.g. https://services.odata.org/v4/TripPinServiceRW/People).
 
@@ -75,6 +75,19 @@ The following supported arguments are specific to OData Linked Service:
 
 * `password` - (Optional) The password associated with the username, which can be used to authenticate to the OData endpoint.
 
+* `service_principal_id` - (Optional) The Azure Active Directory Service Principal ID.
+
+* `aad_service_principal_credential_type` - (Optional) Specify the credential type to use for service principal authentication. Allowed values are: `ServicePrincipalKey` or `ServicePrincipalCert`.
+
+* `service_principal_key` - (Optional) The service principal key associated to the `service_principal_id` used for the authentication.
+
+* `service_principal_embedded_cert` - (Optional) The base64 encoded certificate used for authentication with Service Principale credential type `ServicePrincipalCert`.
+
+* `service_principal_embedded_cert_password` - (Optional) The certificate's password used for authentication with Service Principale credential type `ServicePrincipalCert`.
+
+* `tenant` - (Optional) The tenant ID in which to authenticate against the Azure Data Factory Linked Service account.
+
+* `aad_resource_id` - (Optional) The AAD resource ID concerning the authorization request.
 
 ## Attributes Reference
 
