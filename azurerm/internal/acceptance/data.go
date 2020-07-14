@@ -69,7 +69,7 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 		ResourceName:    fmt.Sprintf("%s.%s", resourceType, resourceLabel),
 		Environment:     *env,
 		EnvironmentName: EnvironmentName(),
-		MetadataURL:     os.Getenv("ARM_METADATA_URL"),
+		MetadataURL:     os.Getenv("ARM_METADATA_HOST"),
 
 		ResourceType:  resourceType,
 		resourceLabel: resourceLabel,
