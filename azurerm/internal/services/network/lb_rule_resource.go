@@ -292,6 +292,16 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 		return nil
 	}
 
+	// This is a workaround, and can be removed after either issue below is addressed:
+	// - Azure/azure-rest-api-specs#10104 (service side can't tolerate readonly attribute as input)
+	// - Azure/autorest.go#438 (Go SDK doesn't support trim non-root level read-only attributes during marshaling)
+	if loadBalancer.LoadBalancerPropertiesFormat != nil &&
+		loadBalancer.LoadBalancerPropertiesFormat.BackendAddressPools != nil {
+		for _, pool := range *loadBalancer.LoadBalancerPropertiesFormat.BackendAddressPools {
+			pool.BackendIPConfigurations = nil
+		}
+	}
+
 	_, index, exists := FindLoadBalancerRuleByName(loadBalancer, d.Get("name").(string))
 	if !exists {
 		return nil
