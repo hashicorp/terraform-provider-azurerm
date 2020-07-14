@@ -141,7 +141,7 @@ func resourceArmDataFactoryLinkedServiceODataCreateUpdate(d *schema.ResourceData
 		odataLinkedService.ODataLinkedServiceTypeProperties = anonAuthProperties
 	}
 
-	if authenticationType == "Basic" {
+	if authenticationType == "Basic" || authenticationType == "Windows" {
 		// TODO string compare with datafactory.ODataAuthenticationTypeBasic
 		username := d.Get("username").(string)
 		password := d.Get("password").(string)
@@ -232,7 +232,7 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *schema.ResourceData, meta i
 	props := odata.ODataLinkedServiceTypeProperties
 	d.Set("authentication_type", props.AuthenticationType)
 	d.Set("url", props.URL)
-	if props.AuthenticationType == datafactory.ODataAuthenticationTypeBasic {
+	if props.AuthenticationType == datafactory.ODataAuthenticationTypeBasic || props.AuthenticationType == datafactory.ODataAuthenticationTypeWindows {
 		d.Set("username", props.UserName)
 		d.Set("password", props.Password)
 	}
