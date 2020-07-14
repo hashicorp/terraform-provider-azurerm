@@ -130,7 +130,6 @@ func resourceArmPolicyAssignment() *schema.Resource {
 			"metadata": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: policyAssignmentsMetadataDiffSuppressFunc,
 			},
@@ -188,8 +187,6 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 			DisplayName:        utils.String(d.Get("display_name").(string)),
 			Scope:              utils.String(scope),
 			EnforcementMode:    convertEnforcementMode(d.Get("enforcement_mode").(bool)),
-			Metadata:           nil,
-
 		},
 	}
 
@@ -225,10 +222,8 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 		assignment.AssignmentProperties.Metadata = &metaData
 	}
 
-
 	if v, ok := d.GetOk("not_scopes"); ok {
 		assignment.AssignmentProperties.NotScopes = expandAzureRmPolicyNotScopes(v.([]interface{}))
-
 	}
 
 	if _, err := client.Create(ctx, scope, name, assignment); err != nil {
