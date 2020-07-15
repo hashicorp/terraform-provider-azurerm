@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: updating the `machinelearning` API to version `2020-04-01` [GH-7703]
 * Data Source: `azurerm_storage_account` - exposing `allow_blob_public_access` [GH-7739]
 * `azurerm_kubernetes_cluster` - no longer sending the `kubernetes_dashboard` addon in Azure China since this is not supported in this region [GH-7714]
+* `azurerm_local_network_gateway`- `address_space` order can now be changed [GH-7745]
 * `azurerm_machine_learning_workspace` - adding the field `high_business_impact` [GH-7703]
 * `azurerm_mssql_database` `elastic_pool_id` remove forcenew [GH-7628]
 * `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property [GH-7018]
