@@ -154,6 +154,9 @@ The following arguments are supported:
 
 * `action_group` - (Required) List of action group reference resource IDs.
 * `custom_webhook_payload` - (Optional) Custom payload to be sent for all webhook payloads in alerting action.
+
+-> **NOTE** When `custom_webhook_payload` is not specified, there will be no webhook sent. If you wants to send a empty webhook payload, please assign `{}` to it.
+
 * `email_subject` - (Optional) Custom subject override for all email ids in Azure action group.
 
 ---
