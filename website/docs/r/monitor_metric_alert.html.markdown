@@ -71,10 +71,16 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance.
 * `scopes` - (Required) A set of strings of resource IDs at which the metric criteria should be applied.
 * `criteria` - (Optional) One or more (static) `criteria` blocks as defined below.
+
+-> **NOTE** One of either `criteria`, `dynamic_criteria` or `webtest_location_availability_criteria` must be specified.
+
 * `dynamic_criteria` - (Optional) A `dynamic_criteria` block as defined below.
+
+-> **NOTE** One of either `criteria`, `dynamic_criteria` or `webtest_location_availability_criteria` must be specified.
+
 * `webtest_location_availability_criteria` - (Optional) A `webtest_location_availability_criteria` block as defined below.
 
--> **NOTE** One and exactly one of `criteria`, `dynamic_criteria` or `webtest_location_availability_criteria` must to be specified.
+-> **NOTE** One of either `criteria`, `dynamic_criteria` or `webtest_location_availability_criteria` must be specified.
 
 * `action` - (Optional) One or more `action` blocks as defined below.
 * `enabled` - (Optional) Should this Metric Alert be enabled? Defaults to `true`.
@@ -82,8 +88,14 @@ The following arguments are supported:
 * `description` - (Optional) The description of this Metric Alert.
 * `frequency` - (Optional) The evaluation frequency of this Metric Alert, represented in ISO 8601 duration format. Possible values are `PT1M`, `PT5M`, `PT15M`, `PT30M` and `PT1H`. Defaults to `PT1M`.
 * `severity` - (Optional) The severity of this Metric Alert. Possible values are `0`, `1`, `2`, `3` and `4`. Defaults to `3`.
-* `target_resource_type` - (Optional) The resource type (e.g. `Microsoft.Compute/virtualMachines`) of the target resource. Required when using subscription scope, resource group scope or multiple scopes.
-* `target_resource_location` - (Optional) The location of the target resource. Required when using subscription scope, resource group scope or multiple scopes.
+* `target_resource_type` - (Optional) The resource type (e.g. `Microsoft.Compute/virtualMachines`) of the target resource.
+
+-> This is Required when using a Subscription as scope, a Resource Group as scope or Multiple Scopes.
+
+* `target_resource_location` - (Optional) The location of the target resource.
+
+-> This is Required when using a Subscription as scope, a Resource Group as scope or Multiple Scopes.
+
 * `window_size` - (Optional) The period of time that is used to monitor alert activity, represented in ISO 8601 duration format. This value must be greater than `frequency`. Possible values are `PT1M`, `PT5M`, `PT15M`, `PT30M`, `PT1H`, `PT6H`, `PT12H` and `P1D`. Defaults to `PT5M`.
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

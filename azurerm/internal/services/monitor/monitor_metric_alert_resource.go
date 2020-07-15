@@ -402,7 +402,7 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 
 	criteria, err := expandMonitorMetricAlertCriteria(d)
 	if err != nil {
-		return fmt.Errorf(`Expandding criteria: %+v`, err)
+		return fmt.Errorf(`Expanding criteria: %+v`, err)
 	}
 	parameters := insights.MetricAlertResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),
@@ -491,7 +491,10 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 			}
 		case insights.WebtestLocationAvailabilityCriteria:
 			criteriaSchema = "webtest_location_availability_criteria"
+		default:
+			return fmt.Errorf("Unknown criteria type")
 		}
+
 		// lintignore:R001
 		if err := d.Set(criteriaSchema, flattenMonitorMetricAlertCriteria(alert.Criteria)); err != nil {
 			return fmt.Errorf("Error setting `%s`: %+v", criteriaSchema, err)
@@ -639,7 +642,7 @@ func expandMonitorMetricAlertAction(input []interface{}) *[]insights.MetricAlert
 	return &actions
 }
 
-func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) (result []interface{}) {
+func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) []interface{} {
 	switch criteria := input.(type) {
 	case insights.MetricAlertSingleResourceMultipleMetricCriteria:
 		// As service is gonna deprecate data type of `MetricAlertSingleResourceMultipleMetricCriteria`,
