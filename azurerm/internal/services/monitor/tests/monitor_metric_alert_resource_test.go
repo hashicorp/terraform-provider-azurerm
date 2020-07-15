@@ -134,6 +134,25 @@ func TestAccAzureRMMonitorMetricAlert_multiScope(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMonitorMetricAlert_applicationInsightsWebTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorMetricAlert_applicationInsightsWebTest(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Monitor.MetricAlertsClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -330,7 +349,7 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  count	= %[3]d
+  count                = %[3]d
   name                 = "internal-${count.index}"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -338,7 +357,7 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_network_interface" "test" {
-  count = %[3]d
+  count               = %[3]d
   name                = "acctestnic-${count.index}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -350,7 +369,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  count = %[3]d
+  count                           = %[3]d
   name                            = "acctestVM-${count.index}"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
@@ -399,4 +418,70 @@ resource "azurerm_monitor_metric_alert" "test" {
   target_resource_location = "%s"
 }
 `, testAccAzureRMMonitorMetricAlert_multiVMTemplate(data, count), data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMonitorMetricAlert_applicationInsightsWebTestTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestAppInsight-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_application_insights_web_test" "test" {
+  name                    = "acctestAppInsight-webtest-%[1]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  kind                    = "ping"
+  frequency               = 300
+  timeout                 = 60
+  enabled                 = true
+  geo_locations           = ["us-tx-sn1-azr", "us-il-ch1-azr"]
+
+  configuration = <<XML
+<WebTest Name="WebTest1" Id="ABD48585-0831-40CB-9069-682EA6BB3583" Enabled="True" CssProjectStructure="" CssIteration="" Timeout="0" WorkItemIds="" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" Description="" CredentialUserName="" CredentialPassword="" PreAuthenticate="True" Proxy="default" StopOnError="False" RecordedResultFile="" ResultsLocale="">
+  <Items>
+    <Request Method="GET" Guid="a5f10126-e4cd-570d-961c-cea43999a200" Version="1.1" Url="http://microsoft.com" ThinkTime="0" Timeout="300" ParseDependentRequests="True" FollowRedirects="True" RecordResult="True" Cache="False" ResponseTimeGoal="0" Encoding="utf-8" ExpectedHttpStatusCode="200" ExpectedResponseUrl="" ReportingName="" IgnoreHttpStatusCode="False" />
+  </Items>
+</WebTest>
+XML
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMonitorMetricAlert_applicationInsightsWebTest(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorMetricAlert_applicationInsightsWebTestTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_metric_alert" "test" {
+  name                = "acctestMetricAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes = [
+    azurerm_application_insights.test.id,
+    azurerm_application_insights_web_test.test.id,
+  ]
+  application_insights_web_test_location_availability_criteria {
+    web_test_id           = azurerm_application_insights_web_test.test.id
+    component_id          = azurerm_application_insights.test.id
+    failed_location_count = 2
+  }
+  window_size = "PT15M"
+  frequency   = "PT1M"
+}
+`, template, data.RandomInteger)
 }

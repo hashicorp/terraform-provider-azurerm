@@ -72,15 +72,15 @@ The following arguments are supported:
 * `scopes` - (Required) A set of strings of resource IDs at which the metric criteria should be applied.
 * `criteria` - (Optional) One or more (static) `criteria` blocks as defined below.
 
--> **NOTE** One of either `criteria`, `dynamic_criteria` or `webtest_location_availability_criteria` must be specified.
+-> **NOTE** One of either `criteria`, `dynamic_criteria` or `application_insights_web_test_location_availability_criteria` must be specified.
 
 * `dynamic_criteria` - (Optional) A `dynamic_criteria` block as defined below.
 
--> **NOTE** One of either `criteria`, `dynamic_criteria` or `webtest_location_availability_criteria` must be specified.
+-> **NOTE** One of either `criteria`, `dynamic_criteria` or `application_insights_web_test_location_availability_criteria` must be specified.
 
-* `webtest_location_availability_criteria` - (Optional) A `webtest_location_availability_criteria` block as defined below.
+* `application_insights_web_test_location_availability_criteria` - (Optional) A `application_insights_web_test_location_availability_criteria` block as defined below.
 
--> **NOTE** One of either `criteria`, `dynamic_criteria` or `webtest_location_availability_criteria` must be specified.
+-> **NOTE** One of either `criteria`, `dynamic_criteria` or `application_insights_web_test_location_availability_criteria` must be specified.
 
 * `action` - (Optional) One or more `action` blocks as defined below.
 * `enabled` - (Optional) Should this Metric Alert be enabled? Defaults to `true`.
@@ -133,9 +133,9 @@ A `dynamic_criteria` block supports the following:
 
 ---
 
-A `webtest_location_availability_criteria` block supports the following:
+A `application_insights_web_test_location_availability_criteria` block supports the following:
 
-* `webtest_id` - (Required) The ID of the Application Insights Web Test.
+* `web_test_id` - (Required) The ID of the Application Insights Web Test.
 * `component_id` - (Required) The ID of the Application Insights Resource.
 * `failed_location_count` - (Required) The number of failed locations.
 

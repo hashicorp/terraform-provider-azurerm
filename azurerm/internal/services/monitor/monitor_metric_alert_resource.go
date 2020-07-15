@@ -19,6 +19,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -84,7 +85,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Type:         schema.TypeSet,
 				Optional:     true,
 				MinItems:     1,
-				ExactlyOneOf: []string{"dynamic_criteria", "webtest_location_availability_criteria"},
+				ExactlyOneOf: []string{"dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"metric_namespace": {
@@ -163,7 +164,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				MinItems: 1,
 				// Curently, it allows to define only one dynamic criteria in one metric alert.
 				MaxItems:     1,
-				ExactlyOneOf: []string{"criteria", "webtest_location_availability_criteria"},
+				ExactlyOneOf: []string{"criteria", "application_insights_web_test_location_availability_criteria"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"metric_namespace": {
@@ -258,7 +259,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				},
 			},
 
-			"webtest_location_availability_criteria": {
+			"application_insights_web_test_location_availability_criteria": {
 				Type:         schema.TypeList,
 				Optional:     true,
 				MinItems:     1,
@@ -266,15 +267,15 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				ExactlyOneOf: []string{"criteria", "dynamic_criteria"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"webtest_id": {
+						"web_test_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.ApplicationInsightsWebTestID,
 						},
 						"component_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.ApplicationInsightsID,
 						},
 						"failed_location_count": {
 							Type:         schema.TypeInt,
@@ -490,7 +491,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 				criteriaSchema = "criteria"
 			}
 		case insights.WebtestLocationAvailabilityCriteria:
-			criteriaSchema = "webtest_location_availability_criteria"
+			criteriaSchema = "application_insights_web_test_location_availability_criteria"
 		default:
 			return fmt.Errorf("Unknown criteria type")
 		}
@@ -536,8 +537,8 @@ func expandMonitorMetricAlertCriteria(d *schema.ResourceData) (insights.BasicMet
 		return expandMonitorMetricAlertMetricCriteria(d.Get("criteria").(*schema.Set).List()), nil
 	case d.Get("dynamic_criteria").(*schema.Set).Len() != 0:
 		return expandMonitorMetricAlertDynamicMetricCriteria(d.Get("dynamic_criteria").(*schema.Set).List()), nil
-	case d.Get("webtest_location_availability_criteria").(*schema.Set).Len() != 0:
-		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("webtest_location_availability_criteria").([]interface{})), nil
+	case len(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})) != 0:
+		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})), nil
 	default:
 		// Guaranteed by schema `AtLeastOne` constraint
 		return nil, errors.New("unknwon criteria type")
@@ -602,9 +603,10 @@ func expandMonitorMetricAlertWebtestLocAvailCriteria(input []interface{}) insigh
 	}
 	v := input[0].(map[string]interface{})
 	return &insights.WebtestLocationAvailabilityCriteria{
-		WebTestID:           utils.String(v["webtest_id"].(string)),
+		WebTestID:           utils.String(v["web_test_id"].(string)),
 		ComponentID:         utils.String(v["component_id"].(string)),
 		FailedLocationCount: utils.Float(float64(v["failed_location_count"].(int))),
+		OdataType:           insights.OdataTypeMicrosoftAzureMonitorWebtestLocationAvailabilityCriteria,
 	}
 }
 
@@ -783,7 +785,7 @@ func flattenMonitorMetricAlertWebtestLocAvailCriteria(input *insights.WebtestLoc
 
 	return []interface{}{
 		map[string]interface{}{
-			"webtest_id":            webtestID,
+			"web_test_id":           webtestID,
 			"component_id":          componentID,
 			"failed_location_count": failedLocationCount,
 		},
