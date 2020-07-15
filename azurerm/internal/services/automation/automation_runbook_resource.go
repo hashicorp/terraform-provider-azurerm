@@ -323,7 +323,6 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
 				}
 				jsMap[jsId] = *props
-
 			}
 		}
 	}
