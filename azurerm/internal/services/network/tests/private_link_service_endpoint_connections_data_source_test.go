@@ -37,8 +37,8 @@ func testAccDataSourcePrivateLinkServiceEndpointConnections_complete(data accept
 
 data "azurerm_private_link_service_endpoint_connections" "test" {
   service_id          = azurerm_private_link_service.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  depends_on          = [azurerm_private_link_endpoint.test, ]
+  resource_group_name = azurerm_private_link_service.test.name
+  depends_on          = [azurerm_private_link_endpoint.test]
 }
 `, testAccAzureRMPrivateEndpoint_basic(data))
 }

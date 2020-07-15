@@ -132,7 +132,8 @@ func resourceArmSqlActiveDirectoryAdministratorRead(d *schema.ResourceData, meta
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL AD administrator %q - removing from state", d.Id())
-			d.SetId("")
+			d.SetId("")internal/services/network/tests/private_link_service_endpoint_connections_data_source_test.go
+				+
 			return nil
 		}
 
