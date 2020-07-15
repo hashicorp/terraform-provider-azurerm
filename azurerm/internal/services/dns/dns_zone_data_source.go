@@ -77,14 +77,17 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	} else {
-		resp, resourceGroup, err = findZone(client, ctx, name)
+		var zone *dns.Zone
+		zone, resourceGroup, err = findZone(client, ctx, name)
 		if err != nil {
 			return err
 		}
 
-		if resp.ID == nil || *resp.ID == "" {
+		if zone == nil {
 			return fmt.Errorf("Error: DNS Zone %q was not found", name)
 		}
+
+		resp = *zone
 	}
 
 	d.SetId(*resp.ID)
@@ -107,10 +110,10 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func findZone(client *dns.ZonesClient, ctx context.Context, name string) (dns.Zone, string, error) {
+func findZone(client *dns.ZonesClient, ctx context.Context, name string) (*dns.Zone, string, error) {
 	zonesIterator, err := client.ListComplete(ctx, nil)
 	if err != nil {
-		return dns.Zone{}, "", fmt.Errorf("listing DNS Zones: %+v", err)
+		return nil, "", fmt.Errorf("listing DNS Zones: %+v", err)
 	}
 
 	var found *dns.Zone
@@ -118,22 +121,22 @@ func findZone(client *dns.ZonesClient, ctx context.Context, name string) (dns.Zo
 		zone := zonesIterator.Value()
 		if zone.Name != nil && *zone.Name == name {
 			if found != nil {
-				return dns.Zone{}, "", fmt.Errorf("found multiple DNS zones with name %q, please specify the resource group", name)
+				return nil, "", fmt.Errorf("found multiple DNS zones with name %q, please specify the resource group", name)
 			}
 			found = &zone
 		}
 		if err := zonesIterator.NextWithContext(ctx); err != nil {
-			return dns.Zone{}, "", fmt.Errorf("listing DNS Zones: %+v", err)
+			return nil, "", fmt.Errorf("listing DNS Zones: %+v", err)
 		}
 	}
 
 	if found == nil || found.ID == nil {
-		return dns.Zone{}, "", fmt.Errorf("could not find DNS zone with name: %q", name)
+		return nil, "", fmt.Errorf("could not find DNS zone with name: %q", name)
 	}
 
 	id, err := parse.DnsZoneID(*found.ID)
 	if err != nil {
-		return dns.Zone{}, "", fmt.Errorf("DNS zone id not valid: %+v", err)
+		return nil, "", fmt.Errorf("DNS zone id not valid: %+v", err)
 	}
-	return *found, id.ResourceGroup, nil
+	return found, id.ResourceGroup, nil
 }
