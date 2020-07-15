@@ -108,6 +108,24 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 	runbookName := d.Get("runbook_name").(string)
 	scheduleName := d.Get("schedule_name").(string)
 
+	jobScheduleUUID := uuid.NewV4()
+	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
+		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
+	}
+
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Automation Job Schedule %q (Account %q / Resource Group %q): %s", jobScheduleUUID, accountName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_automation_job_schedule", *existing.ID)
+		}
+	}
+
 	//fix issue: https://github.com/terraform-providers/terraform-provider-azurerm/issues/7130
 	//When the runbook has some updates, it'll update all related job schedule id, so the elder job schedule will not exist
 	//We need to delete the job schedule id if exists to recreate the job schedule
@@ -128,24 +146,6 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", accountName, err)
 				}
 			}
-		}
-	}
-
-	jobScheduleUUID := uuid.NewV4()
-	if jobScheduleID, ok := d.GetOk("job_schedule_id"); ok {
-		jobScheduleUUID = uuid.FromStringOrNil(jobScheduleID.(string))
-	}
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, accountName, jobScheduleUUID)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Job Schedule %q (Account %q / Resource Group %q): %s", jobScheduleUUID, accountName, resourceGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_automation_job_schedule", *existing.ID)
 		}
 	}
 
