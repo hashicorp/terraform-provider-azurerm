@@ -1,4 +1,4 @@
-package hardwaresecuritymodule
+package hsm
 
 import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 

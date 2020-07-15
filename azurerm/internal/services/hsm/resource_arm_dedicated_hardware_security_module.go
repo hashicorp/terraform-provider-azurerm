@@ -1,4 +1,4 @@
-package hardwaresecuritymodule
+package hsm
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ import (
 	azValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hardwaresecuritymodule/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hardwaresecuritymodule/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hsm/validate"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -106,7 +106,7 @@ func resourceArmDedicatedHardwareSecurityModule() *schema.Resource {
 }
 
 func resourceArmDedicatedHardwareSecurityModuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HardwareSecurityModules.DedicatedHsmClient
+	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -159,7 +159,7 @@ func resourceArmDedicatedHardwareSecurityModuleCreate(d *schema.ResourceData, me
 }
 
 func resourceArmDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HardwareSecurityModules.DedicatedHsmClient
+	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -202,7 +202,7 @@ func resourceArmDedicatedHardwareSecurityModuleRead(d *schema.ResourceData, meta
 }
 
 func resourceArmDedicatedHardwareSecurityModuleUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HardwareSecurityModules.DedicatedHsmClient
+	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -229,7 +229,7 @@ func resourceArmDedicatedHardwareSecurityModuleUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmDedicatedHardwareSecurityModuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).HardwareSecurityModules.DedicatedHsmClient
+	client := meta.(*clients.Client).HSM.DedicatedHsmClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

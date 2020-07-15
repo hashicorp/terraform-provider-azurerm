@@ -116,11 +116,11 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Dedicated Hardware Security Module should exist. Changing this forces a new Dedicated Hardware Security Module to be created.
 
-* `sku_name` - (Required) The sku name of the dedicated hardware security module. Changing this forces a new Dedicated Hardware Security Module to be created.
-
 * `network_profile` - (Required)  A `network_profile` block as defined below.
 
-* `stamp_id` - (Required) The ID of the stamp. Changing this forces a new Dedicated Hardware Security Module to be created.
+* `sku_name` - (Required) The sku name of the dedicated hardware security module. Changing this forces a new Dedicated Hardware Security Module to be created.
+
+* `stamp_id` - (Required) The ID of the stamp. Possible values are `stamp1` or `stamp2`. Changing this forces a new Dedicated Hardware Security Module to be created.
 
 * `zones` - (Optional) The Dedicated Hardware Security Module zones. Changing this forces a new Dedicated Hardware Security Module to be created.
 
