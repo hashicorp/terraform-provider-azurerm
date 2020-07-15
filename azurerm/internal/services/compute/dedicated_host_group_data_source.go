@@ -2,18 +2,15 @@ package compute
 
 import (
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 	"regexp"
 	"time"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,7 +59,7 @@ func dataSourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroupName, name, compute.InstanceView)
+	resp, err := client.Get(ctx, resourceGroupName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Dedicated Host Group %q (Resource Group %q) was not found", name, resourceGroupName)
