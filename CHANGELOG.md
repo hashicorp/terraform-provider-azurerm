@@ -5,11 +5,17 @@ UPGRADE NOTES:
 * HDInsight 3.6 will be retired (in Azure Public) on 2020-12-30 - HDInsight 4.0 does not support ML Services, RServer or Storm Clusters - as such the `azurerm_hdinsight_ml_services_cluster`, `azurerm_hdinsight_rserver_cluster` and `azurerm_hdinsight_storm_cluster` resources are deprecated and will be removed in the next major version of the Azure Provider. [GH-7706]
 * provider: no longer auto register the Microsoft.StorageCache RP [GH-7768]
 
+FEATURES:
+
+* **New Data source:** `azurerm_route_filter` [GH-6341]
+* **New Resource:** `azurerm_route_filter` [GH-6341]
+
 ENHANCEMENTS:
 
 * dependencies: updating to v44.0.0 of `github.com/Azure/azure-sdk-for-go` [GH-7616]
 * dependencies: updating the `machinelearning` API to version `2020-04-01` [GH-7703]
 * Data Source: `azurerm_storage_account` - exposing `allow_blob_public_access` [GH-7739]
+* `azurerm_express_route_circuit_peering` - support for the `route_filter_id` property [GH-6341]
 * `azurerm_kubernetes_cluster` - no longer sending the `kubernetes_dashboard` addon in Azure China since this is not supported in this region [GH-7714]
 * `azurerm_local_network_gateway`- `address_space` order can now be changed [GH-7745]
 * `azurerm_machine_learning_workspace` - adding the field `high_business_impact` [GH-7703]
