@@ -29,8 +29,8 @@ resource "azurerm_storage_account" "storage" {
 }
 
 resource "azurerm_storage_table" "table" {
-  name                  = "newtable"
-  storage_account_name  = azurerm_storage_account.storage.name
+  name                 = "newtable"
+  storage_account_name = azurerm_storage_account.storage.name
 }
 
 data "azurerm_storage_account_table_sas" "example" {
@@ -47,7 +47,7 @@ data "azurerm_storage_account_table_sas" "example" {
     read   = true
     add    = true
     update = false
-    delete = false    
+    delete = false
   }
 
   start_partition_key = "Coho Winery"
