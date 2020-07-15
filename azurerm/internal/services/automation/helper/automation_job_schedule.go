@@ -104,7 +104,6 @@ func FlattenAutomationJobSchedule(jsMap map[uuid.UUID]automation.JobScheduleProp
 		F: resourceAutomationJobScheduleHash,
 	}
 	for jsId, js := range jsMap {
-
 		var scheduleName, runOn string
 		if js.Schedule.Name != nil {
 			scheduleName = *js.Schedule.Name
