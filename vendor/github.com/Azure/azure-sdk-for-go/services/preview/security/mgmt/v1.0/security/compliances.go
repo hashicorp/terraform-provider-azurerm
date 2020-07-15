@@ -82,7 +82,7 @@ func (client CompliancesClient) Get(ctx context.Context, scope string, complianc
 func (client CompliancesClient) GetPreparer(ctx context.Context, scope string, complianceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"complianceName": autorest.Encode("path", complianceName),
-		"scope":          autorest.Encode("path", scope),
+		"scope":          scope,
 	}
 
 	const APIVersion = "2017-08-01-preview"
@@ -109,7 +109,6 @@ func (client CompliancesClient) GetSender(req *http.Request) (*http.Response, er
 func (client CompliancesClient) GetResponder(resp *http.Response) (result Compliance, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,7 +156,7 @@ func (client CompliancesClient) List(ctx context.Context, scope string) (result 
 // ListPreparer prepares the List request.
 func (client CompliancesClient) ListPreparer(ctx context.Context, scope string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"scope": autorest.Encode("path", scope),
+		"scope": scope,
 	}
 
 	const APIVersion = "2017-08-01-preview"
@@ -184,7 +183,6 @@ func (client CompliancesClient) ListSender(req *http.Request) (*http.Response, e
 func (client CompliancesClient) ListResponder(resp *http.Response) (result ComplianceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

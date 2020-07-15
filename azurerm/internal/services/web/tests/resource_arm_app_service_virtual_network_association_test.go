@@ -6,13 +6,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-// TODO: requires import
 
 func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
@@ -30,6 +28,25 @@ func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceVirtualNetworkSwiftConnection_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service_virtual_network_swift_connection", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMAppServiceVirtualNetworkSwiftConnection_requiresImport),
 		},
 	})
 }
@@ -92,18 +109,15 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionExists(resourceName 
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id := rs.Primary.Attributes["id"]
-		parsedID, err := azure.ParseAzureResourceID(id)
+		id, err := parse.VirtualNetworkSwiftConnectionID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 		}
-		name := parsedID.Path["sites"]
-		resourceGroup := parsedID.ResourceGroup
 
-		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
+		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: App Service Virtual Network Association %q (Resource Group: %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: App Service Virtual Network Association %q (Resource Group: %q) does not exist", id.SiteName, id.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on appServicesClient: %+v", err)
@@ -124,15 +138,12 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDisappears(resourceN
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id := rs.Primary.Attributes["id"]
-		parsedID, err := azure.ParseAzureResourceID(id)
+		id, err := parse.VirtualNetworkSwiftConnectionID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 		}
-		name := parsedID.Path["sites"]
-		resourceGroup := parsedID.ResourceGroup
 
-		resp, err := client.DeleteSwiftVirtualNetwork(ctx, resourceGroup, name)
+		resp, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Bad: Delete on appServicesClient: %+v", err)
@@ -152,15 +163,12 @@ func testCheckAzureRMAppServiceVirtualNetworkSwiftConnectionDestroy(s *terraform
 			continue
 		}
 
-		id := rs.Primary.Attributes["id"]
-		parsedID, err := azure.ParseAzureResourceID(id)
+		id, err := parse.VirtualNetworkSwiftConnectionID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 		}
-		name := parsedID.Path["sites"]
-		resourceGroup := parsedID.ResourceGroup
 
-		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
+		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -268,6 +276,18 @@ func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_update(data acceptanc
 resource "azurerm_app_service_virtual_network_swift_connection" "test" {
   app_service_id = azurerm_app_service.test.id
   subnet_id      = azurerm_subnet.test2.id
+}
+`, template)
+}
+
+func testAccAzureRMAppServiceVirtualNetworkSwiftConnection_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMAppServiceVirtualNetworkSwiftConnection_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_virtual_network_swift_connection" "import" {
+  app_service_id = azurerm_app_service_virtual_network_swift_connection.test.app_service_id
+  subnet_id      = azurerm_app_service_virtual_network_swift_connection.test.subnet_id
 }
 `, template)
 }

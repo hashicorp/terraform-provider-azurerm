@@ -121,7 +121,6 @@ func (client ComponentCurrentBillingFeaturesClient) GetSender(req *http.Request)
 func (client ComponentCurrentBillingFeaturesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentBillingFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client ComponentCurrentBillingFeaturesClient) UpdateSender(req *http.Reque
 func (client ComponentCurrentBillingFeaturesClient) UpdateResponder(resp *http.Response) (result ApplicationInsightsComponentBillingFeatures, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -281,21 +281,21 @@ func resourceArmApiManagementService() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema("management"),
+								Schema: apiManagementResourceHostnameSchema(),
 							},
 						},
 						"portal": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema("portal"),
+								Schema: apiManagementResourceHostnameSchema(),
 							},
 						},
 						"developer_portal": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema("developer_portal"),
+								Schema: apiManagementResourceHostnameSchema(),
 							},
 						},
 						"proxy": {
@@ -309,7 +309,7 @@ func resourceArmApiManagementService() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
-								Schema: apiManagementResourceHostnameSchema("scm"),
+								Schema: apiManagementResourceHostnameSchema(),
 							},
 						},
 					},
@@ -1076,9 +1076,9 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 	}
 
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
-		if p, ok := d.GetOkExists("protocols.0.enable_http2"); ok {
-			customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(p.(bool)))
-		}
+		vpr := vp[0].(map[string]interface{})
+		enableHttp2 := vpr["enable_http2"].(bool)
+		customProperties[apimHttp2Protocol] = utils.String(strconv.FormatBool(enableHttp2))
 	}
 
 	return customProperties
@@ -1134,7 +1134,7 @@ func flattenApiManagementVirtualNetworkConfiguration(input *apimanagement.Virtua
 	return []interface{}{virtualNetworkConfiguration}
 }
 
-func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.Schema {
+func apiManagementResourceHostnameSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"host_name": {
 			Type:         schema.TypeString,
@@ -1146,10 +1146,6 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Type:         schema.TypeString,
 			Optional:     true,
 			ValidateFunc: azure.ValidateKeyVaultChildIdVersionOptional,
-			ConflictsWith: []string{
-				fmt.Sprintf("hostname_configuration.0.%s.0.certificate", schemaName),
-				fmt.Sprintf("hostname_configuration.0.%s.0.certificate_password", schemaName),
-			},
 		},
 
 		"certificate": {
@@ -1157,9 +1153,6 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			ConflictsWith: []string{
-				fmt.Sprintf("hostname_configuration.0.%s.0.key_vault_id", schemaName),
-			},
 		},
 
 		"certificate_password": {
@@ -1167,9 +1160,6 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			ConflictsWith: []string{
-				fmt.Sprintf("hostname_configuration.0.%s.0.key_vault_id", schemaName),
-			},
 		},
 
 		"negotiate_client_certificate": {
@@ -1181,7 +1171,7 @@ func apiManagementResourceHostnameSchema(schemaName string) map[string]*schema.S
 }
 
 func apiManagementResourceHostnameProxySchema() map[string]*schema.Schema {
-	hostnameSchema := apiManagementResourceHostnameSchema("proxy")
+	hostnameSchema := apiManagementResourceHostnameSchema()
 
 	hostnameSchema["default_ssl_binding"] = &schema.Schema{
 		Type:     schema.TypeBool,

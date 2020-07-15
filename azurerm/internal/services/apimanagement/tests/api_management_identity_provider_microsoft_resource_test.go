@@ -27,7 +27,7 @@ func TestAccAzureRMApiManagementIdentityProviderMicrosoft_basic(t *testing.T) {
 					testCheckAzureRMApiManagementIdentityProviderMicrosoftExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
@@ -47,18 +47,17 @@ func TestAccAzureRMApiManagementIdentityProviderMicrosoft_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderMicrosoftExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "00000000-0000-0000-0000-000000000000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_secret", "00000000000000000000000000000000"),
 				),
 			},
+			data.ImportStep("client_secret"),
 			{
 				Config: updateConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementIdentityProviderMicrosoftExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "11111111-1111-1111-1111-111111111111"),
-					resource.TestCheckResourceAttr(data.ResourceName, "client_secret", "11111111111111111111111111111111"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }

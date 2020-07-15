@@ -111,7 +111,6 @@ func (client ExtensionTopicsClient) GetSender(req *http.Request) (*http.Response
 func (client ExtensionTopicsClient) GetResponder(resp *http.Response) (result ExtensionTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

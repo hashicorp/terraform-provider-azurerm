@@ -124,7 +124,6 @@ func (client PricingsClient) CreateOrUpdateResourceGroupPricingSender(req *http.
 func (client PricingsClient) CreateOrUpdateResourceGroupPricingResponder(resp *http.Response) (result Pricing, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client PricingsClient) GetResourceGroupPricingSender(req *http.Request) (*
 func (client PricingsClient) GetResourceGroupPricingResponder(resp *http.Response) (result Pricing, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -292,7 +290,6 @@ func (client PricingsClient) GetSubscriptionPricingSender(req *http.Request) (*h
 func (client PricingsClient) GetSubscriptionPricingResponder(resp *http.Response) (result Pricing, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -370,7 +367,6 @@ func (client PricingsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client PricingsClient) ListResponder(resp *http.Response) (result PricingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -493,7 +489,6 @@ func (client PricingsClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client PricingsClient) ListByResourceGroupResponder(resp *http.Response) (result PricingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -613,7 +608,6 @@ func (client PricingsClient) UpdateSubscriptionPricingSender(req *http.Request) 
 func (client PricingsClient) UpdateSubscriptionPricingResponder(resp *http.Response) (result Pricing, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

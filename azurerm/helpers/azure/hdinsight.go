@@ -2,7 +2,6 @@ package azure
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
@@ -93,10 +92,20 @@ func SchemaHDInsightsGateway() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				// TODO 3.0: remove this attribute
 				"enabled": {
-					Type:     schema.TypeBool,
-					Required: true,
-					ForceNew: true,
+					Type:       schema.TypeBool,
+					Optional:   true,
+					Default:    true,
+					Deprecated: "HDInsight doesn't support disabling gateway anymore",
+					ValidateFunc: func(i interface{}, k string) (warnings []string, errors []error) {
+						enabled := i.(bool)
+
+						if !enabled {
+							errors = append(errors, fmt.Errorf("Only true is supported, because HDInsight doesn't support disabling gateway anymore. Provided value %t", enabled))
+						}
+						return warnings, errors
+					},
 				},
 				// NOTE: these are Required since if these aren't present you get a `500 bad request`
 				"username": {
@@ -107,7 +116,6 @@ func SchemaHDInsightsGateway() *schema.Schema {
 				"password": {
 					Type:      schema.TypeString,
 					Required:  true,
-					ForceNew:  true,
 					Sensitive: true,
 					// Azure returns the key as *****. We'll suppress that here.
 					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -156,11 +164,55 @@ func SchemaHDInsightsExternalMetastore() *schema.Schema {
 	}
 }
 
+func SchemaHDInsightsExternalMetastores() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"hive": SchemaHDInsightsExternalMetastore(),
+
+				"oozie": SchemaHDInsightsExternalMetastore(),
+
+				"ambari": SchemaHDInsightsExternalMetastore(),
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsMonitor() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"log_analytics_workspace_id": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.IsUUID,
+				},
+				"primary_key": {
+					Type:         schema.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					// Azure doesn't return the key
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
+				},
+			},
+		},
+	}
+}
+
 func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} {
 	vs := input[0].(map[string]interface{})
 
 	// NOTE: Admin username must be different from SSH Username
-	enabled := vs["enabled"].(bool)
+	enabled := true
 	username := vs["username"].(string)
 	password := vs["password"].(string)
 
@@ -253,14 +305,20 @@ func ExpandHDInsightsAmbariMetastore(input []interface{}) map[string]interface{}
 	}
 }
 
-func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
-	enabled := false
-	if v, exists := input["restAuthCredential.isEnabled"]; exists && v != nil {
-		e, err := strconv.ParseBool(*v)
-		if err == nil {
-			enabled = e
-		}
+func ExpandHDInsightsMonitor(input []interface{}) hdinsight.ClusterMonitoringRequest {
+	vs := input[0].(map[string]interface{})
+
+	workspace := vs["log_analytics_workspace_id"].(string)
+	key := vs["primary_key"].(string)
+
+	return hdinsight.ClusterMonitoringRequest{
+		WorkspaceID: utils.String(workspace),
+		PrimaryKey:  utils.String(key),
 	}
+}
+
+func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
+	enabled := true
 
 	username := ""
 	if v, exists := input["restAuthCredential.username"]; exists && v != nil {

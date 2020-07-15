@@ -33,7 +33,7 @@ resource "azurerm_cdn_endpoint" "example" {
 
   origin {
     name      = "example"
-    host_name = "www.example.com"
+    host_name = "www.contoso.com"
   }
 }
 ```

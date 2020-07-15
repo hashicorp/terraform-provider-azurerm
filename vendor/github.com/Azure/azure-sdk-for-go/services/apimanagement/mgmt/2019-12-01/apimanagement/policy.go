@@ -130,7 +130,6 @@ func (client PolicyClient) CreateOrUpdateSender(req *http.Request) (*http.Respon
 func (client PolicyClient) CreateOrUpdateResponder(resp *http.Response) (result PolicyContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -218,7 +217,6 @@ func (client PolicyClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client PolicyClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -308,7 +306,6 @@ func (client PolicyClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client PolicyClient) GetResponder(resp *http.Response) (result PolicyContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -393,7 +390,6 @@ func (client PolicyClient) GetEntityTagSender(req *http.Request) (*http.Response
 func (client PolicyClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -476,7 +472,6 @@ func (client PolicyClient) ListByServiceSender(req *http.Request) (*http.Respons
 func (client PolicyClient) ListByServiceResponder(resp *http.Response) (result PolicyCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

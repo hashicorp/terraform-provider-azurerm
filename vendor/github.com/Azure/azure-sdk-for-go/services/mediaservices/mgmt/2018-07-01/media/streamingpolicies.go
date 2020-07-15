@@ -159,7 +159,6 @@ func (client StreamingPoliciesClient) CreateSender(req *http.Request) (*http.Res
 func (client StreamingPoliciesClient) CreateResponder(resp *http.Response) (result StreamingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -237,7 +236,6 @@ func (client StreamingPoliciesClient) DeleteSender(req *http.Request) (*http.Res
 func (client StreamingPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -314,7 +312,6 @@ func (client StreamingPoliciesClient) GetSender(req *http.Request) (*http.Respon
 func (client StreamingPoliciesClient) GetResponder(resp *http.Response) (result StreamingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -404,7 +401,6 @@ func (client StreamingPoliciesClient) ListSender(req *http.Request) (*http.Respo
 func (client StreamingPoliciesClient) ListResponder(resp *http.Response) (result StreamingPolicyCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

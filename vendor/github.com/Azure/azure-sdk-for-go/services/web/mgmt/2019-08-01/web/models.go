@@ -4652,7 +4652,7 @@ type AppServicePlanPatchResourceProperties struct {
 	FreeOfferExpirationTime *date.Time `json:"freeOfferExpirationTime,omitempty"`
 	// ResourceGroup - READ-ONLY; Resource group of the App Service plan.
 	ResourceGroup *string `json:"resourceGroup,omitempty"`
-	// Reserved - If Linux app service plan <code>true</code>, <code>false</code> otherwise.
+	// Reserved - This needs to set to <code>true</code> when creating a Linux App Service Plan, along with <code>kind</code> set to <code>Linux</code>. It should be <code>false</code> otherwise.
 	Reserved *bool `json:"reserved,omitempty"`
 	// IsXenon - Obsolete: If Hyper-V container app service plan <code>true</code>, <code>false</code> otherwise.
 	IsXenon *bool `json:"isXenon,omitempty"`

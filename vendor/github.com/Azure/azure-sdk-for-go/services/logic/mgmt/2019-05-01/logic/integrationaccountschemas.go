@@ -122,7 +122,6 @@ func (client IntegrationAccountSchemasClient) CreateOrUpdateSender(req *http.Req
 func (client IntegrationAccountSchemasClient) CreateOrUpdateResponder(resp *http.Response) (result IntegrationAccountSchema, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client IntegrationAccountSchemasClient) DeleteSender(req *http.Request) (*
 func (client IntegrationAccountSchemasClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -277,7 +275,6 @@ func (client IntegrationAccountSchemasClient) GetSender(req *http.Request) (*htt
 func (client IntegrationAccountSchemasClient) GetResponder(resp *http.Response) (result IntegrationAccountSchema, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -362,7 +359,6 @@ func (client IntegrationAccountSchemasClient) ListSender(req *http.Request) (*ht
 func (client IntegrationAccountSchemasClient) ListResponder(resp *http.Response) (result IntegrationAccountSchemaListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -479,7 +475,6 @@ func (client IntegrationAccountSchemasClient) ListContentCallbackURLSender(req *
 func (client IntegrationAccountSchemasClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

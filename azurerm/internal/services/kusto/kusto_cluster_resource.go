@@ -88,8 +88,40 @@ func resourceArmKustoCluster() *schema.Resource {
 
 						"capacity": {
 							Type:         schema.TypeInt,
-							Required:     true,
+							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.IntBetween(1, 1000),
+						},
+					},
+				},
+			},
+
+			"trusted_external_tenants": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.Any(validation.IsUUID, validation.StringIsEmpty),
+				},
+			},
+
+			"optimized_auto_scale": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"minimum_instances": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 1000),
+						},
+						"maximum_instances": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(0, 1000),
 						},
 					},
 				},
@@ -135,6 +167,18 @@ func resourceArmKustoCluster() *schema.Resource {
 				},
 			},
 
+			"language_extensions": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(kusto.PYTHON),
+						string(kusto.R),
+					}, false),
+				},
+			},
+
 			"uri": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -177,14 +221,33 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	sku, err := expandKustoClusterSku(d)
+	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
 		return err
 	}
 
 	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
+	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
+
+	if optimizedAutoScale != nil && *optimizedAutoScale.IsEnabled {
+		// if Capacity has not been set use min instances
+		if *sku.Capacity == 0 {
+			sku.Capacity = utils.Int32(*optimizedAutoScale.Minimum)
+		}
+
+		// Capacity must be set for the initial creation when using OptimizedAutoScaling but cannot be updated
+		if d.HasChange("sku.0.capacity") && !d.IsNewResource() {
+			return fmt.Errorf("cannot change `sku.capacity` when `optimized_auto_scaling.enabled` is set to `true`")
+		}
+
+		if *optimizedAutoScale.Minimum > *optimizedAutoScale.Maximum {
+			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
+		}
+	}
+
 	clusterProperties := kusto.ClusterProperties{
+		OptimizedAutoscale:    optimizedAutoScale,
 		EnableDiskEncryption:  utils.Bool(d.Get("enable_disk_encryption").(bool)),
 		EnableStreamingIngest: utils.Bool(d.Get("enable_streaming_ingest").(bool)),
 		EnablePurge:           utils.Bool(d.Get("enable_purge").(bool)),
@@ -193,6 +256,11 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	if v, ok := d.GetOk("virtual_network_configuration"); ok {
 		vnet := expandKustoClusterVNET(v.([]interface{}))
 		clusterProperties.VirtualNetworkConfiguration = vnet
+	}
+
+	if v, ok := d.GetOk("trusted_external_tenants"); ok {
+		trustedExternalTenants := azure.ExpandKustoClusterTrustedExternalTenants(v.([]interface{}))
+		clusterProperties.TrustedExternalTenants = trustedExternalTenants
 	}
 
 	t := d.Get("tags").(map[string]interface{})
@@ -231,6 +299,46 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	d.SetId(*resp.ID)
+
+	if v, ok := d.GetOk("language_extensions"); ok {
+		languageExtensions := expandKustoClusterLanguageExtensions(v.([]interface{}))
+
+		currentLanguageExtensions, err := client.ListLanguageExtensions(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error reading current added language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		languageExtensionsToAdd := diffLanguageExtensions(*languageExtensions.Value, *currentLanguageExtensions.Value)
+		if len(languageExtensionsToAdd) > 0 {
+			languageExtensionsListToAdd := kusto.LanguageExtensionsList{
+				Value: &languageExtensionsToAdd,
+			}
+
+			addLanguageExtensionsFuture, err := client.AddLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToAdd)
+			if err != nil {
+				return fmt.Errorf("Error adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			if err = addLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of adding language extensions to Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
+		languageExtensionsToRemove := diffLanguageExtensions(*currentLanguageExtensions.Value, *languageExtensions.Value)
+		if len(languageExtensionsToRemove) > 0 {
+			languageExtensionsListToRemove := kusto.LanguageExtensionsList{
+				Value: &languageExtensionsToRemove,
+			}
+
+			removeLanguageExtensionsFuture, err := client.RemoveLanguageExtensions(ctx, resourceGroup, name, languageExtensionsListToRemove)
+			if err != nil {
+				return fmt.Errorf("Error removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+			if err = removeLanguageExtensionsFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of removing language extensions from Kusto Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+	}
 
 	return resourceArmKustoClusterRead(d, meta)
 }
@@ -273,12 +381,17 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("zones", azure.FlattenZones(clusterResponse.Zones)); err != nil {
 		return fmt.Errorf("Error setting `zones`: %+v", err)
 	}
+	if err := d.Set("optimized_auto_scale", flattenOptimizedAutoScale(clusterResponse.OptimizedAutoscale)); err != nil {
+		return fmt.Errorf("Error setting `optimized_auto_scale`: %+v", err)
+	}
 
 	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
+		d.Set("trusted_external_tenants", azure.FlattenKustoClusterTrustedExternalTenants(clusterProperties.TrustedExternalTenants))
 		d.Set("enable_disk_encryption", clusterProperties.EnableDiskEncryption)
 		d.Set("enable_streaming_ingest", clusterProperties.EnableStreamingIngest)
 		d.Set("enable_purge", clusterProperties.EnablePurge)
 		d.Set("virtual_network_configuration", flatteKustoClusterVNET(clusterProperties.VirtualNetworkConfiguration))
+		d.Set("language_extensions", flattenKustoClusterLanguageExtensions(clusterProperties.LanguageExtensions))
 		d.Set("uri", clusterProperties.URI)
 		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
 	}
@@ -322,10 +435,47 @@ func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string
 	return warnings, errors
 }
 
-func expandKustoClusterSku(d *schema.ResourceData) (*kusto.AzureSku, error) {
-	skuList := d.Get("sku").([]interface{})
+func expandOptimizedAutoScale(input []interface{}) *kusto.OptimizedAutoscale {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
 
-	sku := skuList[0].(map[string]interface{})
+	config := input[0].(map[string]interface{})
+	optimizedAutoScale := &kusto.OptimizedAutoscale{
+		Version:   utils.Int32(1),
+		IsEnabled: utils.Bool(true),
+		Minimum:   utils.Int32(int32(config["minimum_instances"].(int))),
+		Maximum:   utils.Int32(int32(config["maximum_instances"].(int))),
+	}
+
+	return optimizedAutoScale
+}
+
+func flattenOptimizedAutoScale(optimizedAutoScale *kusto.OptimizedAutoscale) []interface{} {
+	if optimizedAutoScale == nil {
+		return []interface{}{}
+	}
+
+	maxInstances := 0
+	if optimizedAutoScale.Maximum != nil {
+		maxInstances = int(*optimizedAutoScale.Maximum)
+	}
+
+	minInstances := 0
+	if optimizedAutoScale.Minimum != nil {
+		minInstances = int(*optimizedAutoScale.Minimum)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"maximum_instances": maxInstances,
+			"minimum_instances": minInstances,
+		},
+	}
+}
+
+func expandKustoClusterSku(input []interface{}) (*kusto.AzureSku, error) {
+	sku := input[0].(map[string]interface{})
 	name := sku["name"].(string)
 
 	skuNamePrefixToTier := map[string]string{
@@ -363,6 +513,24 @@ func expandKustoClusterVNET(input []interface{}) *kusto.VirtualNetworkConfigurat
 		SubnetID:                 &subnetID,
 		EnginePublicIPID:         &enginePublicIPID,
 		DataManagementPublicIPID: &dataManagementPublicIPID,
+	}
+}
+
+func expandKustoClusterLanguageExtensions(input []interface{}) *kusto.LanguageExtensionsList {
+	if len(input) == 0 {
+		return nil
+	}
+
+	extensions := make([]kusto.LanguageExtension, 0)
+	for _, language := range input {
+		v := kusto.LanguageExtension{
+			LanguageExtensionName: kusto.LanguageExtensionName(language.(string)),
+		}
+		extensions = append(extensions, v)
+	}
+
+	return &kusto.LanguageExtensionsList{
+		Value: &extensions,
 	}
 }
 
@@ -409,4 +577,33 @@ func flatteKustoClusterVNET(vnet *kusto.VirtualNetworkConfiguration) []interface
 	}
 
 	return []interface{}{output}
+}
+
+func flattenKustoClusterLanguageExtensions(extensions *kusto.LanguageExtensionsList) []interface{} {
+	if extensions == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+	for _, v := range *extensions.Value {
+		output = append(output, v.LanguageExtensionName)
+	}
+
+	return output
+}
+
+func diffLanguageExtensions(a, b []kusto.LanguageExtension) []kusto.LanguageExtension {
+	target := make(map[string]bool)
+	for _, x := range b {
+		target[string(x.LanguageExtensionName)] = true
+	}
+
+	diff := make([]kusto.LanguageExtension, 0)
+	for _, x := range a {
+		if _, ok := target[string(x.LanguageExtensionName)]; !ok {
+			diff = append(diff, x)
+		}
+	}
+
+	return diff
 }

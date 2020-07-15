@@ -110,7 +110,6 @@ func (client ResourceStorageConfigsClient) GetSender(req *http.Request) (*http.R
 func (client ResourceStorageConfigsClient) GetResponder(resp *http.Response) (result ResourceConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client ResourceStorageConfigsClient) PatchSender(req *http.Request) (*http
 func (client ResourceStorageConfigsClient) PatchResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -267,7 +265,6 @@ func (client ResourceStorageConfigsClient) UpdateSender(req *http.Request) (*htt
 func (client ResourceStorageConfigsClient) UpdateResponder(resp *http.Response) (result ResourceConfigResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -124,7 +124,6 @@ func (client AllowedConnectionsClient) GetSender(req *http.Request) (*http.Respo
 func (client AllowedConnectionsClient) GetResponder(resp *http.Response) (result AllowedConnectionsResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client AllowedConnectionsClient) ListSender(req *http.Request) (*http.Resp
 func (client AllowedConnectionsClient) ListResponder(resp *http.Response) (result AllowedConnectionsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -318,7 +316,6 @@ func (client AllowedConnectionsClient) ListByHomeRegionSender(req *http.Request)
 func (client AllowedConnectionsClient) ListByHomeRegionResponder(resp *http.Response) (result AllowedConnectionsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

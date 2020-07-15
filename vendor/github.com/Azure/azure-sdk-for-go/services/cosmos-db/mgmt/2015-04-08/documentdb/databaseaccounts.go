@@ -117,7 +117,6 @@ func (client DatabaseAccountsClient) CheckNameExistsSender(req *http.Request) (*
 func (client DatabaseAccountsClient) CheckNameExistsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -222,7 +221,6 @@ func (client DatabaseAccountsClient) CreateOrUpdateSender(req *http.Request) (fu
 func (client DatabaseAccountsClient) CreateOrUpdateResponder(resp *http.Response) (result DatabaseAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -321,7 +319,6 @@ func (client DatabaseAccountsClient) CreateUpdateCassandraKeyspaceSender(req *ht
 func (client DatabaseAccountsClient) CreateUpdateCassandraKeyspaceResponder(resp *http.Response) (result CassandraKeyspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -422,7 +419,6 @@ func (client DatabaseAccountsClient) CreateUpdateCassandraTableSender(req *http.
 func (client DatabaseAccountsClient) CreateUpdateCassandraTableResponder(resp *http.Response) (result CassandraTable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -521,7 +517,6 @@ func (client DatabaseAccountsClient) CreateUpdateGremlinDatabaseSender(req *http
 func (client DatabaseAccountsClient) CreateUpdateGremlinDatabaseResponder(resp *http.Response) (result GremlinDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -622,7 +617,6 @@ func (client DatabaseAccountsClient) CreateUpdateGremlinGraphSender(req *http.Re
 func (client DatabaseAccountsClient) CreateUpdateGremlinGraphResponder(resp *http.Response) (result GremlinGraph, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -723,7 +717,6 @@ func (client DatabaseAccountsClient) CreateUpdateMongoDBCollectionSender(req *ht
 func (client DatabaseAccountsClient) CreateUpdateMongoDBCollectionResponder(resp *http.Response) (result MongoDBCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -822,7 +815,6 @@ func (client DatabaseAccountsClient) CreateUpdateMongoDBDatabaseSender(req *http
 func (client DatabaseAccountsClient) CreateUpdateMongoDBDatabaseResponder(resp *http.Response) (result MongoDBDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -923,7 +915,6 @@ func (client DatabaseAccountsClient) CreateUpdateSQLContainerSender(req *http.Re
 func (client DatabaseAccountsClient) CreateUpdateSQLContainerResponder(resp *http.Response) (result SQLContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1022,7 +1013,6 @@ func (client DatabaseAccountsClient) CreateUpdateSQLDatabaseSender(req *http.Req
 func (client DatabaseAccountsClient) CreateUpdateSQLDatabaseResponder(resp *http.Response) (result SQLDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1121,7 +1111,6 @@ func (client DatabaseAccountsClient) CreateUpdateTableSender(req *http.Request) 
 func (client DatabaseAccountsClient) CreateUpdateTableResponder(resp *http.Response) (result Table, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1209,7 +1198,6 @@ func (client DatabaseAccountsClient) DeleteSender(req *http.Request) (future Dat
 func (client DatabaseAccountsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1298,7 +1286,6 @@ func (client DatabaseAccountsClient) DeleteCassandraKeyspaceSender(req *http.Req
 func (client DatabaseAccountsClient) DeleteCassandraKeyspaceResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1389,7 +1376,6 @@ func (client DatabaseAccountsClient) DeleteCassandraTableSender(req *http.Reques
 func (client DatabaseAccountsClient) DeleteCassandraTableResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1478,7 +1464,6 @@ func (client DatabaseAccountsClient) DeleteGremlinDatabaseSender(req *http.Reque
 func (client DatabaseAccountsClient) DeleteGremlinDatabaseResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1569,7 +1554,6 @@ func (client DatabaseAccountsClient) DeleteGremlinGraphSender(req *http.Request)
 func (client DatabaseAccountsClient) DeleteGremlinGraphResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1660,7 +1644,6 @@ func (client DatabaseAccountsClient) DeleteMongoDBCollectionSender(req *http.Req
 func (client DatabaseAccountsClient) DeleteMongoDBCollectionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1749,7 +1732,6 @@ func (client DatabaseAccountsClient) DeleteMongoDBDatabaseSender(req *http.Reque
 func (client DatabaseAccountsClient) DeleteMongoDBDatabaseResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1840,7 +1822,6 @@ func (client DatabaseAccountsClient) DeleteSQLContainerSender(req *http.Request)
 func (client DatabaseAccountsClient) DeleteSQLContainerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1929,7 +1910,6 @@ func (client DatabaseAccountsClient) DeleteSQLDatabaseSender(req *http.Request) 
 func (client DatabaseAccountsClient) DeleteSQLDatabaseResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -2018,7 +1998,6 @@ func (client DatabaseAccountsClient) DeleteTableSender(req *http.Request) (futur
 func (client DatabaseAccountsClient) DeleteTableResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -2112,7 +2091,6 @@ func (client DatabaseAccountsClient) FailoverPriorityChangeSender(req *http.Requ
 func (client DatabaseAccountsClient) FailoverPriorityChangeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -2199,7 +2177,6 @@ func (client DatabaseAccountsClient) GetSender(req *http.Request) (*http.Respons
 func (client DatabaseAccountsClient) GetResponder(resp *http.Response) (result DatabaseAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2290,7 +2267,6 @@ func (client DatabaseAccountsClient) GetCassandraKeyspaceSender(req *http.Reques
 func (client DatabaseAccountsClient) GetCassandraKeyspaceResponder(resp *http.Response) (result CassandraKeyspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2381,7 +2357,6 @@ func (client DatabaseAccountsClient) GetCassandraKeyspaceThroughputSender(req *h
 func (client DatabaseAccountsClient) GetCassandraKeyspaceThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2473,7 +2448,6 @@ func (client DatabaseAccountsClient) GetCassandraTableSender(req *http.Request) 
 func (client DatabaseAccountsClient) GetCassandraTableResponder(resp *http.Response) (result CassandraTable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2566,7 +2540,6 @@ func (client DatabaseAccountsClient) GetCassandraTableThroughputSender(req *http
 func (client DatabaseAccountsClient) GetCassandraTableThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2657,7 +2630,6 @@ func (client DatabaseAccountsClient) GetGremlinDatabaseSender(req *http.Request)
 func (client DatabaseAccountsClient) GetGremlinDatabaseResponder(resp *http.Response) (result GremlinDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2748,7 +2720,6 @@ func (client DatabaseAccountsClient) GetGremlinDatabaseThroughputSender(req *htt
 func (client DatabaseAccountsClient) GetGremlinDatabaseThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2840,7 +2811,6 @@ func (client DatabaseAccountsClient) GetGremlinGraphSender(req *http.Request) (*
 func (client DatabaseAccountsClient) GetGremlinGraphResponder(resp *http.Response) (result GremlinGraph, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2933,7 +2903,6 @@ func (client DatabaseAccountsClient) GetGremlinGraphThroughputSender(req *http.R
 func (client DatabaseAccountsClient) GetGremlinGraphThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3025,7 +2994,6 @@ func (client DatabaseAccountsClient) GetMongoDBCollectionSender(req *http.Reques
 func (client DatabaseAccountsClient) GetMongoDBCollectionResponder(resp *http.Response) (result MongoDBCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3118,7 +3086,6 @@ func (client DatabaseAccountsClient) GetMongoDBCollectionThroughputSender(req *h
 func (client DatabaseAccountsClient) GetMongoDBCollectionThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3209,7 +3176,6 @@ func (client DatabaseAccountsClient) GetMongoDBDatabaseSender(req *http.Request)
 func (client DatabaseAccountsClient) GetMongoDBDatabaseResponder(resp *http.Response) (result MongoDBDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3300,7 +3266,6 @@ func (client DatabaseAccountsClient) GetMongoDBDatabaseThroughputSender(req *htt
 func (client DatabaseAccountsClient) GetMongoDBDatabaseThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3388,7 +3353,6 @@ func (client DatabaseAccountsClient) GetReadOnlyKeysSender(req *http.Request) (*
 func (client DatabaseAccountsClient) GetReadOnlyKeysResponder(resp *http.Response) (result DatabaseAccountListReadOnlyKeysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3480,7 +3444,6 @@ func (client DatabaseAccountsClient) GetSQLContainerSender(req *http.Request) (*
 func (client DatabaseAccountsClient) GetSQLContainerResponder(resp *http.Response) (result SQLContainer, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3573,7 +3536,6 @@ func (client DatabaseAccountsClient) GetSQLContainerThroughputSender(req *http.R
 func (client DatabaseAccountsClient) GetSQLContainerThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3663,7 +3625,6 @@ func (client DatabaseAccountsClient) GetSQLDatabaseSender(req *http.Request) (*h
 func (client DatabaseAccountsClient) GetSQLDatabaseResponder(resp *http.Response) (result SQLDatabase, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3754,7 +3715,6 @@ func (client DatabaseAccountsClient) GetSQLDatabaseThroughputSender(req *http.Re
 func (client DatabaseAccountsClient) GetSQLDatabaseThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3844,7 +3804,6 @@ func (client DatabaseAccountsClient) GetTableSender(req *http.Request) (*http.Re
 func (client DatabaseAccountsClient) GetTableResponder(resp *http.Response) (result Table, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -3935,7 +3894,6 @@ func (client DatabaseAccountsClient) GetTableThroughputSender(req *http.Request)
 func (client DatabaseAccountsClient) GetTableThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4006,7 +3964,6 @@ func (client DatabaseAccountsClient) ListSender(req *http.Request) (*http.Respon
 func (client DatabaseAccountsClient) ListResponder(resp *http.Response) (result DatabaseAccountsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4088,7 +4045,6 @@ func (client DatabaseAccountsClient) ListByResourceGroupSender(req *http.Request
 func (client DatabaseAccountsClient) ListByResourceGroupResponder(resp *http.Response) (result DatabaseAccountsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4176,7 +4132,6 @@ func (client DatabaseAccountsClient) ListCassandraKeyspacesSender(req *http.Requ
 func (client DatabaseAccountsClient) ListCassandraKeyspacesResponder(resp *http.Response) (result CassandraKeyspaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4266,7 +4221,6 @@ func (client DatabaseAccountsClient) ListCassandraTablesSender(req *http.Request
 func (client DatabaseAccountsClient) ListCassandraTablesResponder(resp *http.Response) (result CassandraTableListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4354,7 +4308,6 @@ func (client DatabaseAccountsClient) ListConnectionStringsSender(req *http.Reque
 func (client DatabaseAccountsClient) ListConnectionStringsResponder(resp *http.Response) (result DatabaseAccountListConnectionStringsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4442,7 +4395,6 @@ func (client DatabaseAccountsClient) ListGremlinDatabasesSender(req *http.Reques
 func (client DatabaseAccountsClient) ListGremlinDatabasesResponder(resp *http.Response) (result GremlinDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4532,7 +4484,6 @@ func (client DatabaseAccountsClient) ListGremlinGraphsSender(req *http.Request) 
 func (client DatabaseAccountsClient) ListGremlinGraphsResponder(resp *http.Response) (result GremlinGraphListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4620,7 +4571,6 @@ func (client DatabaseAccountsClient) ListKeysSender(req *http.Request) (*http.Re
 func (client DatabaseAccountsClient) ListKeysResponder(resp *http.Response) (result DatabaseAccountListKeysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4708,7 +4658,6 @@ func (client DatabaseAccountsClient) ListMetricDefinitionsSender(req *http.Reque
 func (client DatabaseAccountsClient) ListMetricDefinitionsResponder(resp *http.Response) (result MetricDefinitionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4800,7 +4749,6 @@ func (client DatabaseAccountsClient) ListMetricsSender(req *http.Request) (*http
 func (client DatabaseAccountsClient) ListMetricsResponder(resp *http.Response) (result MetricListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4890,7 +4838,6 @@ func (client DatabaseAccountsClient) ListMongoDBCollectionsSender(req *http.Requ
 func (client DatabaseAccountsClient) ListMongoDBCollectionsResponder(resp *http.Response) (result MongoDBCollectionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -4978,7 +4925,6 @@ func (client DatabaseAccountsClient) ListMongoDBDatabasesSender(req *http.Reques
 func (client DatabaseAccountsClient) ListMongoDBDatabasesResponder(resp *http.Response) (result MongoDBDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -5066,7 +5012,6 @@ func (client DatabaseAccountsClient) ListReadOnlyKeysSender(req *http.Request) (
 func (client DatabaseAccountsClient) ListReadOnlyKeysResponder(resp *http.Response) (result DatabaseAccountListReadOnlyKeysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -5156,7 +5101,6 @@ func (client DatabaseAccountsClient) ListSQLContainersSender(req *http.Request) 
 func (client DatabaseAccountsClient) ListSQLContainersResponder(resp *http.Response) (result SQLContainerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -5244,7 +5188,6 @@ func (client DatabaseAccountsClient) ListSQLDatabasesSender(req *http.Request) (
 func (client DatabaseAccountsClient) ListSQLDatabasesResponder(resp *http.Response) (result SQLDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -5332,7 +5275,6 @@ func (client DatabaseAccountsClient) ListTablesSender(req *http.Request) (*http.
 func (client DatabaseAccountsClient) ListTablesResponder(resp *http.Response) (result TableListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -5425,7 +5367,6 @@ func (client DatabaseAccountsClient) ListUsagesSender(req *http.Request) (*http.
 func (client DatabaseAccountsClient) ListUsagesResponder(resp *http.Response) (result UsagesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -5518,7 +5459,6 @@ func (client DatabaseAccountsClient) OfflineRegionSender(req *http.Request) (fut
 func (client DatabaseAccountsClient) OfflineRegionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5610,7 +5550,6 @@ func (client DatabaseAccountsClient) OnlineRegionSender(req *http.Request) (futu
 func (client DatabaseAccountsClient) OnlineRegionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5700,7 +5639,6 @@ func (client DatabaseAccountsClient) PatchSender(req *http.Request) (future Data
 func (client DatabaseAccountsClient) PatchResponder(resp *http.Response) (result DatabaseAccount, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -5791,7 +5729,6 @@ func (client DatabaseAccountsClient) RegenerateKeySender(req *http.Request) (fut
 func (client DatabaseAccountsClient) RegenerateKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -5889,7 +5826,6 @@ func (client DatabaseAccountsClient) UpdateCassandraKeyspaceThroughputSender(req
 func (client DatabaseAccountsClient) UpdateCassandraKeyspaceThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -5990,7 +5926,6 @@ func (client DatabaseAccountsClient) UpdateCassandraTableThroughputSender(req *h
 func (client DatabaseAccountsClient) UpdateCassandraTableThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -6089,7 +6024,6 @@ func (client DatabaseAccountsClient) UpdateGremlinDatabaseThroughputSender(req *
 func (client DatabaseAccountsClient) UpdateGremlinDatabaseThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -6189,7 +6123,6 @@ func (client DatabaseAccountsClient) UpdateGremlinGraphThroughputSender(req *htt
 func (client DatabaseAccountsClient) UpdateGremlinGraphThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -6290,7 +6223,6 @@ func (client DatabaseAccountsClient) UpdateMongoDBCollectionThroughputSender(req
 func (client DatabaseAccountsClient) UpdateMongoDBCollectionThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -6389,7 +6321,6 @@ func (client DatabaseAccountsClient) UpdateMongoDBDatabaseThroughputSender(req *
 func (client DatabaseAccountsClient) UpdateMongoDBDatabaseThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -6489,7 +6420,6 @@ func (client DatabaseAccountsClient) UpdateSQLContainerThroughputSender(req *htt
 func (client DatabaseAccountsClient) UpdateSQLContainerThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -6587,7 +6517,6 @@ func (client DatabaseAccountsClient) UpdateSQLDatabaseThroughputSender(req *http
 func (client DatabaseAccountsClient) UpdateSQLDatabaseThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -6685,7 +6614,6 @@ func (client DatabaseAccountsClient) UpdateTableThroughputSender(req *http.Reque
 func (client DatabaseAccountsClient) UpdateTableThroughputResponder(resp *http.Response) (result Throughput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

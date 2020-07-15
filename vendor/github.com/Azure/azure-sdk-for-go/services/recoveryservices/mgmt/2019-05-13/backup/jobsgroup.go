@@ -113,7 +113,6 @@ func (client JobsGroupClient) ExportSender(req *http.Request) (*http.Response, e
 func (client JobsGroupClient) ExportResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

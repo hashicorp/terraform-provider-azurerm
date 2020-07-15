@@ -194,6 +194,9 @@ resource "azurerm_application_insights_web_test" "test" {
 </WebTest>
 XML
 
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -235,6 +238,9 @@ resource "azurerm_application_insights_web_test" "test" {
 </WebTest>
 XML
 
+  lifecycle {
+    ignore_changes = ["tags"]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -251,6 +257,7 @@ resource "azurerm_application_insights_web_test" "import" {
   application_insights_id = azurerm_application_insights_web_test.test.application_insights_id
   kind                    = azurerm_application_insights_web_test.test.kind
   configuration           = azurerm_application_insights_web_test.test.configuration
+  geo_locations           = azurerm_application_insights_web_test.test.geo_locations
 }
 `, template)
 }

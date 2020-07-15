@@ -115,7 +115,6 @@ func (client ClustersClient) AddLanguageExtensionsSender(req *http.Request) (fut
 func (client ClustersClient) AddLanguageExtensionsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -198,7 +197,6 @@ func (client ClustersClient) CheckNameAvailabilitySender(req *http.Request) (*ht
 func (client ClustersClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,7 +299,6 @@ func (client ClustersClient) CreateOrUpdateSender(req *http.Request) (future Clu
 func (client ClustersClient) CreateOrUpdateResponder(resp *http.Response) (result Cluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -377,7 +374,6 @@ func (client ClustersClient) DeleteSender(req *http.Request) (future ClustersDel
 func (client ClustersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -463,7 +459,6 @@ func (client ClustersClient) DetachFollowerDatabasesSender(req *http.Request) (f
 func (client ClustersClient) DetachFollowerDatabasesResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -539,7 +534,6 @@ func (client ClustersClient) DiagnoseVirtualNetworkSender(req *http.Request) (fu
 func (client ClustersClient) DiagnoseVirtualNetworkResponder(resp *http.Response) (result DiagnoseVirtualNetworkResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -615,7 +609,6 @@ func (client ClustersClient) GetSender(req *http.Request) (*http.Response, error
 func (client ClustersClient) GetResponder(resp *http.Response) (result Cluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -686,7 +679,6 @@ func (client ClustersClient) ListSender(req *http.Request) (*http.Response, erro
 func (client ClustersClient) ListResponder(resp *http.Response) (result ClusterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -760,7 +752,6 @@ func (client ClustersClient) ListByResourceGroupSender(req *http.Request) (*http
 func (client ClustersClient) ListByResourceGroupResponder(resp *http.Response) (result ClusterListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -837,7 +828,6 @@ func (client ClustersClient) ListFollowerDatabasesSender(req *http.Request) (*ht
 func (client ClustersClient) ListFollowerDatabasesResponder(resp *http.Response) (result FollowerDatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -913,7 +903,6 @@ func (client ClustersClient) ListLanguageExtensionsSender(req *http.Request) (*h
 func (client ClustersClient) ListLanguageExtensionsResponder(resp *http.Response) (result LanguageExtensionsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -984,7 +973,6 @@ func (client ClustersClient) ListSkusSender(req *http.Request) (*http.Response, 
 func (client ClustersClient) ListSkusResponder(resp *http.Response) (result SkuDescriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1060,7 +1048,6 @@ func (client ClustersClient) ListSkusByResourceSender(req *http.Request) (*http.
 func (client ClustersClient) ListSkusByResourceResponder(resp *http.Response) (result ListResourceSkusResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1139,7 +1126,6 @@ func (client ClustersClient) RemoveLanguageExtensionsSender(req *http.Request) (
 func (client ClustersClient) RemoveLanguageExtensionsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1214,7 +1200,6 @@ func (client ClustersClient) StartSender(req *http.Request) (future ClustersStar
 func (client ClustersClient) StartResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1289,7 +1274,6 @@ func (client ClustersClient) StopSender(req *http.Request) (future ClustersStopF
 func (client ClustersClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1367,7 +1351,6 @@ func (client ClustersClient) UpdateSender(req *http.Request) (future ClustersUpd
 func (client ClustersClient) UpdateResponder(resp *http.Response) (result Cluster, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

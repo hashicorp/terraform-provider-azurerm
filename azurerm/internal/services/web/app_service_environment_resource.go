@@ -93,9 +93,23 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				}, false),
 			},
 
+			"allowed_user_ip_cidrs": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				ConflictsWith: []string{"user_whitelisted_ip_ranges"},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: helpersValidate.CIDR,
+				},
+			},
+
 			"user_whitelisted_ip_ranges": {
-				Type:     schema.TypeSet,
-				Optional: true,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				ConflictsWith: []string{"allowed_user_ip_cidrs"},
+				Deprecated:    "this property has been renamed to `allowed_user_ip_cidrs` better reflect the expected ip range format",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: helpersValidate.CIDR,
@@ -126,6 +140,9 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	t := d.Get("tags").(map[string]interface{})
 	userWhitelistedIPRangesRaw := d.Get("user_whitelisted_ip_ranges").(*schema.Set).List()
+	if v, ok := d.GetOk("allowed_user_ip_cidrs"); ok {
+		userWhitelistedIPRangesRaw = v.(*schema.Set).List()
+	}
 
 	subnetId := d.Get("subnet_id").(string)
 	subnet, err := networkParse.SubnetID(subnetId)
@@ -222,32 +239,34 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	environment := web.AppServiceEnvironmentPatchResource{
+	e := web.AppServiceEnvironmentPatchResource{
 		AppServiceEnvironment: &web.AppServiceEnvironment{},
 	}
 
 	if d.HasChange("internal_load_balancing_mode") {
 		v := d.Get("internal_load_balancing_mode").(string)
-		environment.AppServiceEnvironment.InternalLoadBalancingMode = web.InternalLoadBalancingMode(v)
+		e.AppServiceEnvironment.InternalLoadBalancingMode = web.InternalLoadBalancingMode(v)
 	}
 
 	if d.HasChange("front_end_scale_factor") {
 		v := d.Get("front_end_scale_factor").(int)
-		environment.AppServiceEnvironment.FrontEndScaleFactor = utils.Int32(int32(v))
+		e.AppServiceEnvironment.FrontEndScaleFactor = utils.Int32(int32(v))
 	}
 
 	if d.HasChange("pricing_tier") {
 		v := d.Get("pricing_tier").(string)
 		v = convertFromIsolatedSKU(v)
-		environment.AppServiceEnvironment.MultiSize = utils.String(v)
+		e.AppServiceEnvironment.MultiSize = utils.String(v)
 	}
 
-	if d.HasChange("user_whitelisted_ip_ranges") {
-		v := d.Get("user_whitelisted_ip_ranges").(*schema.Set).List()
-		environment.UserWhitelistedIPRanges = utils.ExpandStringSlice(v)
+	if d.HasChanges("user_whitelisted_ip_ranges", "allowed_user_ip_cidrs") {
+		e.UserWhitelistedIPRanges = utils.ExpandStringSlice(d.Get("user_whitelisted_ip_ranges").(*schema.Set).List())
+		if v, ok := d.GetOk("user_whitelisted_ip_ranges"); ok {
+			e.UserWhitelistedIPRanges = utils.ExpandStringSlice(v.(*schema.Set).List())
+		}
 	}
 
-	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, environment); err != nil {
+	if _, err := client.Update(ctx, id.ResourceGroup, id.Name, e); err != nil {
 		return fmt.Errorf("Error updating App Service Environment %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
@@ -306,6 +325,7 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 		}
 		d.Set("pricing_tier", pricingTier)
 		d.Set("user_whitelisted_ip_ranges", props.UserWhitelistedIPRanges)
+		d.Set("allowed_user_ip_cidrs", props.UserWhitelistedIPRanges)
 	}
 
 	return tags.FlattenAndSet(d, existing.Tags)

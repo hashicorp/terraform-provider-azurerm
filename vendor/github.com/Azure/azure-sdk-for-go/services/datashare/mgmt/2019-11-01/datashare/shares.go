@@ -114,7 +114,6 @@ func (client SharesClient) CreateSender(req *http.Request) (*http.Response, erro
 func (client SharesClient) CreateResponder(resp *http.Response) (result Share, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -192,7 +191,6 @@ func (client SharesClient) DeleteSender(req *http.Request) (future SharesDeleteF
 func (client SharesClient) DeleteResponder(resp *http.Response) (result OperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -270,7 +268,6 @@ func (client SharesClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client SharesClient) GetResponder(resp *http.Response) (result Share, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -351,7 +348,6 @@ func (client SharesClient) ListByAccountSender(req *http.Request) (*http.Respons
 func (client SharesClient) ListByAccountResponder(resp *http.Response) (result ShareList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -475,7 +471,6 @@ func (client SharesClient) ListSynchronizationDetailsSender(req *http.Request) (
 func (client SharesClient) ListSynchronizationDetailsResponder(resp *http.Response) (result SynchronizationDetailsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -595,7 +590,6 @@ func (client SharesClient) ListSynchronizationsSender(req *http.Request) (*http.
 func (client SharesClient) ListSynchronizationsResponder(resp *http.Response) (result ShareSynchronizationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

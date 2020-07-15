@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -134,6 +134,30 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 					string(network.IKEv1),
 					string(network.IKEv2),
 				}, false),
+			},
+
+			"traffic_selector_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"local_address_cidrs": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"remote_address_cidrs": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
 			},
 
 			"ipsec_policy": {
@@ -394,6 +418,11 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		}
 	}
 
+	trafficSelectorPolicies := flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(conn.TrafficSelectorPolicies)
+	if err := d.Set("traffic_selector_policy", trafficSelectorPolicies); err != nil {
+		return fmt.Errorf("Error setting `traffic_selector_policy`: %+v", err)
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -504,6 +533,10 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 		props.ConnectionProtocol = network.VirtualNetworkGatewayConnectionProtocol(connectionProtocol)
 	}
 
+	if v, ok := d.GetOk("traffic_selector_policy"); ok {
+		props.TrafficSelectorPolicies = expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("ipsec_policy"); ok {
 		props.IpsecPolicies = expandArmVirtualNetworkGatewayConnectionIpsecPolicies(v.([]interface{}))
 	}
@@ -587,6 +620,25 @@ func expandArmVirtualNetworkGatewayConnectionIpsecPolicies(schemaIpsecPolicies [
 	return &ipsecPolicies
 }
 
+func expandArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(schemaTrafficSelectorPolicies []interface{}) *[]network.TrafficSelectorPolicy {
+	trafficSelectorPolicies := make([]network.TrafficSelectorPolicy, 0, len(schemaTrafficSelectorPolicies))
+
+	for _, d := range schemaTrafficSelectorPolicies {
+		schemaTrafficSelectorPolicy := d.(map[string]interface{})
+		trafficSelectorPolicy := &network.TrafficSelectorPolicy{}
+		if localAddressRanges, ok := schemaTrafficSelectorPolicy["local_address_cidrs"].([]interface{}); ok {
+			trafficSelectorPolicy.LocalAddressRanges = utils.ExpandStringSlice(localAddressRanges)
+		}
+		if remoteAddressRanges, ok := schemaTrafficSelectorPolicy["remote_address_cidrs"].([]interface{}); ok {
+			trafficSelectorPolicy.RemoteAddressRanges = utils.ExpandStringSlice(remoteAddressRanges)
+		}
+
+		trafficSelectorPolicies = append(trafficSelectorPolicies, *trafficSelectorPolicy)
+	}
+
+	return &trafficSelectorPolicies
+}
+
 func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]network.IpsecPolicy) []interface{} {
 	schemaIpsecPolicies := make([]interface{}, 0)
 
@@ -614,4 +666,19 @@ func flattenArmVirtualNetworkGatewayConnectionIpsecPolicies(ipsecPolicies *[]net
 	}
 
 	return schemaIpsecPolicies
+}
+
+func flattenArmVirtualNetworkGatewayConnectionTrafficSelectorPolicies(trafficSelectorPolicies *[]network.TrafficSelectorPolicy) []interface{} {
+	schemaTrafficSelectorPolicies := make([]interface{}, 0)
+
+	if trafficSelectorPolicies != nil {
+		for _, trafficSelectorPolicy := range *trafficSelectorPolicies {
+			schemaTrafficSelectorPolicies = append(schemaTrafficSelectorPolicies, map[string]interface{}{
+				"local_address_cidrs":  utils.FlattenStringSlice(trafficSelectorPolicy.LocalAddressRanges),
+				"remote_address_cidrs": utils.FlattenStringSlice(trafficSelectorPolicy.RemoteAddressRanges),
+			})
+		}
+	}
+
+	return schemaTrafficSelectorPolicies
 }

@@ -46,7 +46,7 @@ func TestAccAzureRMApplicationSecurityGroup_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMApplicationSecurityGroup_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_app_service_custom_hostname_binding"),
+				ExpectError: acceptance.RequiresImportError("azurerm_application_security_group"),
 			},
 		},
 	})

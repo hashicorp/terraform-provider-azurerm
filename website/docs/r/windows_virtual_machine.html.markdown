@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
 
-* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine? Changing this forces a new resource to be created.
+* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine?
 
 * `availability_set_id` - (Optional) Specifies the ID of the Availability Set in which the Virtual Machine should exist. Changing this forces a new resource to be created.
 

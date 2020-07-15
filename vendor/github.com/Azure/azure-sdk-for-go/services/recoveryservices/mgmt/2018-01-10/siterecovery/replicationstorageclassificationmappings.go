@@ -119,7 +119,6 @@ func (client ReplicationStorageClassificationMappingsClient) CreateSender(req *h
 func (client ReplicationStorageClassificationMappingsClient) CreateResponder(resp *http.Response) (result StorageClassificationMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,7 +198,6 @@ func (client ReplicationStorageClassificationMappingsClient) DeleteSender(req *h
 func (client ReplicationStorageClassificationMappingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -278,7 +276,6 @@ func (client ReplicationStorageClassificationMappingsClient) GetSender(req *http
 func (client ReplicationStorageClassificationMappingsClient) GetResponder(resp *http.Response) (result StorageClassificationMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -352,7 +349,6 @@ func (client ReplicationStorageClassificationMappingsClient) ListSender(req *htt
 func (client ReplicationStorageClassificationMappingsClient) ListResponder(resp *http.Response) (result StorageClassificationMappingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -468,7 +464,6 @@ func (client ReplicationStorageClassificationMappingsClient) ListByReplicationSt
 func (client ReplicationStorageClassificationMappingsClient) ListByReplicationStorageClassificationsResponder(resp *http.Response) (result StorageClassificationMappingCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

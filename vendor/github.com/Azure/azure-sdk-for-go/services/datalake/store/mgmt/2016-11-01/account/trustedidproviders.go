@@ -125,7 +125,6 @@ func (client TrustedIDProvidersClient) CreateOrUpdateSender(req *http.Request) (
 func (client TrustedIDProvidersClient) CreateOrUpdateResponder(resp *http.Response) (result TrustedIDProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client TrustedIDProvidersClient) DeleteSender(req *http.Request) (*http.Re
 func (client TrustedIDProvidersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,7 +278,6 @@ func (client TrustedIDProvidersClient) GetSender(req *http.Request) (*http.Respo
 func (client TrustedIDProvidersClient) GetResponder(resp *http.Response) (result TrustedIDProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -357,7 +354,6 @@ func (client TrustedIDProvidersClient) ListByAccountSender(req *http.Request) (*
 func (client TrustedIDProvidersClient) ListByAccountResponder(resp *http.Response) (result TrustedIDProviderListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -479,7 +475,6 @@ func (client TrustedIDProvidersClient) UpdateSender(req *http.Request) (*http.Re
 func (client TrustedIDProvidersClient) UpdateResponder(resp *http.Response) (result TrustedIDProvider, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

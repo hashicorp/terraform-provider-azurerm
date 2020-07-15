@@ -116,7 +116,6 @@ func (client AssociationsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client AssociationsClient) CreateOrUpdateResponder(resp *http.Response) (result Association, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -191,7 +190,6 @@ func (client AssociationsClient) DeleteSender(req *http.Request) (future Associa
 func (client AssociationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -265,7 +263,6 @@ func (client AssociationsClient) GetSender(req *http.Request) (*http.Response, e
 func (client AssociationsClient) GetResponder(resp *http.Response) (result Association, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -339,7 +336,6 @@ func (client AssociationsClient) ListAllSender(req *http.Request) (*http.Respons
 func (client AssociationsClient) ListAllResponder(resp *http.Response) (result AssociationsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

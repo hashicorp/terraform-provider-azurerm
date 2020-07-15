@@ -29,12 +29,17 @@ func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    migration.EventHubNamespaceAuthorizationRuleUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
 				Upgrade: migration.EventHubNamespaceAuthorizationRuleUpgradeV0ToV1,
 				Version: 0,
+			},
+			{
+				Type:    migration.EventHubNamespaceAuthorizationRuleUpgradeV1Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.EventHubNamespaceAuthorizationRuleUpgradeV1ToV2,
+				Version: 1,
 			},
 		},
 
