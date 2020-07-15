@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -76,10 +75,9 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	var lb network.LoadBalancer
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
+		data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -105,10 +103,9 @@ func TestAccAzureRMLoadBalancerRule_complete(t *testing.T) {
 	var lb network.LoadBalancer
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
+		data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -134,10 +131,9 @@ func TestAccAzureRMLoadBalancerRule_update(t *testing.T) {
 	var lb network.LoadBalancer
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
+		data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -184,10 +180,9 @@ func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
 	var lb network.LoadBalancer
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
+		data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -272,14 +267,13 @@ func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 	lbRule2Name := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRuleID := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
+		data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	lbRule2ID := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, lbRule2Name)
+		data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger, lbRule2Name)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -345,10 +339,9 @@ func TestAccAzureRMLoadBalancerRule_vmssBackendPool(t *testing.T) {
 	var lb network.LoadBalancer
 	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
 
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	lbRule_id := fmt.Sprintf(
 		"/subscriptions/%s/resourceGroups/acctestRG-lb-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
-		subscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
+		data.Client().SubscriptionID, data.RandomInteger, data.RandomInteger, lbRuleName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -604,6 +597,7 @@ resource "azurerm_lb_rule" "test2" {
 }
 
 func testAccAzureRMLoadBalancerRule_vmssBackendPoolRemoveRule(data acceptance.TestData, sku string) string {
+	template := testAccAzureRMLoadBalancerRule_template(data, sku)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -621,7 +615,7 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                = "acctest-lb-subnet-%[2]d"
+  name                 = "acctest-lb-subnet-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/24"]
@@ -679,10 +673,11 @@ resource "azurerm_virtual_machine_scale_set" "hbtest" {
     }
   }
 }
-`, testAccAzureRMLoadBalancerRule_template(data, sku), data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMLoadBalancerRule_vmssBackendPool(data acceptance.TestData, lbRuleName, sku string) string {
+	template := testAccAzureRMLoadBalancerRule_vmssBackendPoolRemoveRule(data, sku)
 	return fmt.Sprintf(`
 %s
 
@@ -695,6 +690,6 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 3389
   backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
-}`, testAccAzureRMLoadBalancerRule_vmssBackendPoolRemoveRule(data, sku), lbRuleName)
-
+}
+`, template, lbRuleName)
 }
