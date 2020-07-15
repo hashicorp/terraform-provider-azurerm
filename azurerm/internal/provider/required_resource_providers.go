@@ -73,7 +73,6 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.ServiceFabric":           {},
 		"Microsoft.Sql":                     {},
 		"Microsoft.Storage":                 {},
-		"Microsoft.StorageCache":            {},
 		"Microsoft.StreamAnalytics":         {},
 		"Microsoft.TimeSeriesInsights":      {},
 		"Microsoft.Web":                     {},
