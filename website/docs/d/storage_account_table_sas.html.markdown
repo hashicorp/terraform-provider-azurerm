@@ -106,7 +106,7 @@ for additional details on the fields above.
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `sas` - The computed Blob Container Shared Access Signature (SAS).
+* `sas` - The computed Table Shared Access Signature (SAS).
 
 ## Timeouts
 
