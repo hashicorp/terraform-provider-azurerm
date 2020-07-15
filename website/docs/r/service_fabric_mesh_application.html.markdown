@@ -63,7 +63,7 @@ A `service` block supports the following:
 
 * `name` - (Required) The name of the service resource.
 
-* `os_type` - (Required) The operating system required by the code in service. Valid values include: 'Linux' or 'Windows'.
+* `os_type` - (Required) The operating system required by the code in service. Valid values are `Linux` or `Windows`.
 
 * `code_package` - (Required) Any number `code_package` block as described below.
 
