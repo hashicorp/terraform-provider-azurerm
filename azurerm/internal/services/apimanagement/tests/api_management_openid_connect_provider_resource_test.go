@@ -25,7 +25,7 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 					testCheckAzureRMApiManagementOpenIDConnectProviderExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
@@ -69,7 +69,7 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_update(t *testing.T) {
 					testCheckAzureRMApiManagementOpenIDConnectProviderExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
