@@ -541,7 +541,7 @@ func expandMonitorMetricAlertCriteria(d *schema.ResourceData) (insights.BasicMet
 		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})), nil
 	default:
 		// Guaranteed by schema `AtLeastOne` constraint
-		return nil, errors.New("unknwon criteria type")
+		return nil, errors.New("unknown criteria type")
 	}
 }
 
