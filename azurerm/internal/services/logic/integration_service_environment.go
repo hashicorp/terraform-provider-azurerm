@@ -131,7 +131,6 @@ func resourceArmIntegrationServiceEnvironment() *schema.Resource {
 }
 
 func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -208,7 +207,6 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 }
 
 func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -240,9 +238,7 @@ func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta i
 	}
 
 	if props := resp.Properties; props != nil {
-
 		if netCfg := props.NetworkConfiguration; netCfg != nil {
-
 			if accessEndpoint := netCfg.AccessEndpoint; accessEndpoint != nil {
 				d.Set("access_endpoint_type", accessEndpoint.Type)
 			}
@@ -271,7 +267,6 @@ func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -298,7 +293,7 @@ func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta
 	// Not optimal behavior for now
 	// It deletes synchronously and resource is not available anymore after return from delete operation
 	// Next, after return - delete operation is still in progress in the background and is still occupying subnets.
-	// As workaround we are checking on all involved subnets presense of serviceAssociationLink and resourceNavigationLink
+	// As workaround we are checking on all involved subnets presence of serviceAssociationLink and resourceNavigationLink
 	// If the operation fails we are lost. We do not have original resource and we cannot resume delete operation.
 	// User has to wait for completion of delete operation in the background.
 	// It would be great to have async call with future struct
@@ -330,7 +325,6 @@ func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta
 func expandSubnetResourceID(input []interface{}) *[]logic.ResourceReference {
 	results := make([]logic.ResourceReference, 0)
 	for _, item := range input {
-
 		results = append(results, logic.ResourceReference{
 			ID: utils.String(item.(string)),
 		})
@@ -339,7 +333,6 @@ func expandSubnetResourceID(input []interface{}) *[]logic.ResourceReference {
 }
 
 func flattenSubnetResourceID(input *[]logic.ResourceReference) []interface{} {
-
 	subnetIDs := make([]interface{}, 0)
 	if input == nil {
 		return subnetIDs
@@ -357,16 +350,13 @@ func flattenSubnetResourceID(input *[]logic.ResourceReference) []interface{} {
 }
 
 func getSubnetIDs(input *logic.IntegrationServiceEnvironment) []interface{} {
-
 	emptySubnetIDs := make([]interface{}, 0)
 	if input == nil {
 		return emptySubnetIDs
 	}
 
 	if props := input.Properties; props != nil {
-
 		if netCfg := props.NetworkConfiguration; netCfg != nil {
-
 			return flattenSubnetResourceID(netCfg.Subnets)
 		}
 	}
@@ -376,7 +366,6 @@ func getSubnetIDs(input *logic.IntegrationServiceEnvironment) []interface{} {
 
 func integrationServiceEnvironmentDeleteStateRefreshFunc(ctx context.Context, client *clients.Client, iseID string, subnetIDs []interface{}) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-
 		linkExists, err := linkExists(ctx, client, iseID, subnetIDs)
 		if err != nil {
 			return stateDeleting, stateDeleting, err
@@ -391,9 +380,7 @@ func integrationServiceEnvironmentDeleteStateRefreshFunc(ctx context.Context, cl
 }
 
 func linkExists(ctx context.Context, client *clients.Client, iseID string, subnetIDs []interface{}) (bool, error) {
-
 	for _, subnetID := range subnetIDs {
-
 		id := *(subnetID.(*string))
 		log.Printf("Checking links on subnetID: %q\n", id)
 
@@ -405,7 +392,6 @@ func linkExists(ctx context.Context, client *clients.Client, iseID string, subne
 		if hasLink {
 			return true, nil
 		} else {
-
 			hasLink, err := resourceNavigationLinkExists(ctx, client.Network.ResourceNavigationLinksClient, id)
 			if err != nil {
 				return false, err
@@ -421,7 +407,6 @@ func linkExists(ctx context.Context, client *clients.Client, iseID string, subne
 }
 
 func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAssociationLinksClient, iseID string, subnetID string) (bool, error) {
-
 	id, err := networkParse.SubnetID(subnetID)
 	if err != nil {
 		return false, err
@@ -449,7 +434,6 @@ func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAs
 }
 
 func resourceNavigationLinkExists(ctx context.Context, client *network.ResourceNavigationLinksClient, subnetID string) (bool, error) {
-
 	id, err := networkParse.SubnetID(subnetID)
 	if err != nil {
 		return false, err
