@@ -51,7 +51,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_complete(t *testing.T) {
 
 	// the API returns the time in the timezone we pass in
 	// it also seems to strip seconds, hijack the RFC3339 format to have 0s there
-	loc, _ := time.LoadLocation("CET")
+	loc, _ := time.LoadLocation("Australia/Perth")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -73,7 +73,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_update(t *testing.T) {
 
 	// the API returns the time in the timezone we pass in
 	// it also seems to strip seconds, hijack the RFC3339 format to have 0s there
-	loc, _ := time.LoadLocation("CET")
+	loc, _ := time.LoadLocation("Australia/Perth")
 	startTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z07:00")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -346,7 +346,7 @@ resource "azurerm_automation_schedule" "test" {
   automation_account_name = azurerm_automation_account.test.name
   frequency               = "OneTime"
   start_time              = "%s"
-  timezone                = "Central Europe Standard Time"
+  timezone                = "Australia/Perth"
   description             = "This is an automation schedule"
 }
 `, testAccAzureRMAutomationSchedule_prerequisites(data), data.RandomInteger, startTime)
@@ -360,7 +360,7 @@ func checkAccAzureRMAutomationSchedule_oneTime_complete(resourceName, startTime 
 		resource.TestCheckResourceAttrSet(resourceName, "automation_account_name"),
 		resource.TestCheckResourceAttr(resourceName, "frequency", "OneTime"),
 		resource.TestCheckResourceAttr(resourceName, "start_time", startTime),
-		resource.TestCheckResourceAttr(resourceName, "timezone", "Central Europe Standard Time"),
+		resource.TestCheckResourceAttr(resourceName, "timezone", "Australia/Perth"),
 		resource.TestCheckResourceAttr(resourceName, "description", "This is an automation schedule"),
 	)
 }
