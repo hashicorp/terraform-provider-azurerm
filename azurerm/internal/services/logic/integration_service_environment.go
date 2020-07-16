@@ -414,9 +414,11 @@ func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAs
 
 	if resp.Value != nil {
 		for _, link := range *resp.Value {
-			if strings.EqualFold(iseID, *link.ServiceAssociationLinkPropertiesFormat.Link) {
-				log.Printf("Has Service Association Link: %q\n", *link.ID)
-				return true, nil
+			if link.ServiceAssociationLinkPropertiesFormat != nil && link.ServiceAssociationLinkPropertiesFormat.Link != nil {
+				if strings.EqualFold(iseID, *link.ServiceAssociationLinkPropertiesFormat.Link) {
+					log.Printf("Has Service Association Link: %q\n", *link.ID)
+					return true, nil
+				}
 			}
 		}
 	}
