@@ -251,7 +251,12 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 		d.Set("primary_peer_address_prefix", props.PrimaryPeerAddressPrefix)
 		d.Set("secondary_peer_address_prefix", props.SecondaryPeerAddressPrefix)
 		d.Set("vlan_id", props.VlanID)
-		d.Set("route_filter_id", props.RouteFilter.ID)
+
+		routeFilterId := ""
+		if props.RouteFilter != nil {
+			routeFilterId = *props.RouteFilter.ID
+		}
+		d.Set("route_filter_id", routeFilterId)
 
 		config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
 		if err := d.Set("microsoft_peering_config", config); err != nil {
