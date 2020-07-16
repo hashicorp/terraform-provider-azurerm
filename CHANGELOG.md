@@ -15,6 +15,7 @@ ENHANCEMENTS:
 * dependencies: updating to v44.0.0 of `github.com/Azure/azure-sdk-for-go` [GH-7616]
 * dependencies: updating the `machinelearning` API to version `2020-04-01` [GH-7703]
 * Data Source: `azurerm_storage_account` - exposing `allow_blob_public_access` [GH-7739]
+* Data Source: `azurerm_dns_zone` - now provides feedback if a `resource_group_name` is needed to resolve ambiguous zone [GH-7680]
 * `azurerm_express_route_circuit_peering` - support for the `route_filter_id` property [GH-6341]
 * `azurerm_kubernetes_cluster` - no longer sending the `kubernetes_dashboard` addon in Azure China since this is not supported in this region [GH-7714]
 * `azurerm_local_network_gateway`- `address_space` order can now be changed [GH-7745]
