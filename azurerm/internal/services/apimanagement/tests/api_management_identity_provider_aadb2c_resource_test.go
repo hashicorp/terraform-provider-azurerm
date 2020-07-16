@@ -45,8 +45,11 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_update(t *testing.T) {
 					testCheckAzureRMApiManagementIdentityProviderAADB2CExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_id", "00000000-0000-0000-0000-000000000000"),
 					resource.TestCheckResourceAttr(data.ResourceName, "client_secret", "00000000000000000000000000000000"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.0", data.Client().TenantID),
+
+					resource.TestCheckResourceAttr(data.ResourceName, "signin_tenant", "00000000-0000-0000-0000-000000000000"),
+					resource.TestCheckResourceAttr(data.ResourceName, "authority", "ExampleAuthority"),
+					resource.TestCheckResourceAttr(data.ResourceName, "signup_policy", "ExampleSignupPolicy"),
+					resource.TestCheckResourceAttr(data.ResourceName, "signin_policy", "ExampleSigninPolicy"),
 				),
 			},
 			{
@@ -79,7 +82,7 @@ func TestAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(t *testing
 					testCheckAzureRMApiManagementIdentityProviderAADB2CExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMApiManagementIdentityProviderAAD_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport),
 		},
 	})
 }
@@ -158,7 +161,11 @@ resource "azurerm_api_management_identity_provider_aadb2c" "test" {
   resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
   client_id           = "00000000-0000-0000-0000-000000000000"
-  client_secret       = "00000000000000000000000000000000"
+		client_secret       = "00000000000000000000000000000000"
+		signin_tenant       = "%s"
+		authority           = "ExampleAuthority"
+		signup_policy       = "ExampleSignupPolicy"
+		signin_policy       = "ExampleSigninPolicy"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)
 }
@@ -186,11 +193,14 @@ resource "azurerm_api_management" "test" {
 resource "azurerm_api_management_identity_provider_aadb2c" "test" {
   resource_group_name = azurerm_resource_group.test.name
   api_management_name = azurerm_api_management.test.name
-  client_id           = "11111111-1111-1111-1111-111111111111"
-  client_secret       = "11111111111111111111111111111111"
-  allowed_tenants     = ["%s", "%s"]
+		client_id           = "22222222-2222-2222-2222-222222222222"
+		client_secret       = "22222222222222222222222222222222"
+		signin_tenant       = "%s"
+		authority           = "ExampleAuthority"
+		signup_policy       = "ExampleSignupPolicy"
+		signin_policy       = "ExampleSigninPolicy"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID, data.Client().TenantID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)
 }
 
 func testAccAzureRMApiManagementIdentityProviderAADB2C_requiresImport(data acceptance.TestData) string {
@@ -202,8 +212,11 @@ resource "azurerm_api_management_identity_provider_aadb2c" "import" {
   resource_group_name = azurerm_api_management_identity_provider_aadb2c.test.resource_group_name
   api_management_name = azurerm_api_management_identity_provider_aadb2c.test.api_management_name
   client_id           = azurerm_api_management_identity_provider_aadb2c.test.client_id
-  client_secret       = azurerm_api_management_identity_provider_aadb2c.test.client_secret
-  allowed_tenants     = azurerm_api_management_identity_provider_aadb2c.test.allowed_tenants
+		client_secret       = azurerm_api_management_identity_provider_aadb2c.test.client_secret
+		signin_tenant       = azurerm_api_management_identity_provider_aadb2c.test.signin_tenant
+		authority           = azurerm_api_management_identity_provider_aadb2c.test.authority
+		signup_policy       = azurerm_api_management_identity_provider_aadb2c.test.signup_policy
+		signin_policy       = azurerm_api_management_identity_provider_aadb2c.test.signin_policy
 }
 `, template)
 }
