@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -98,9 +99,10 @@ func resourceArmAutomationSchedule() *schema.Resource {
 			},
 
 			"timezone": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "UTC",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "UTC",
+				ValidateFunc: validate.AzureTimeZoneString(),
 			},
 
 			"week_days": {
