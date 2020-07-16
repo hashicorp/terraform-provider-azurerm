@@ -90,7 +90,11 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 		resp = *zone
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("failed reading ID for DNS Zone %q (Resource Group %q)", name, resourceGroup)
+	}
 	d.SetId(*resp.ID)
+
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 
