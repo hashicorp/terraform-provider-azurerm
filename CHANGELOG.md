@@ -35,6 +35,7 @@ BUG FIXES:
 * provider: deprecating `metadata_url` to `metadata_host` since this is a hostname [GH-7740]
 * `azurerm_*_virtual_machine` - `allow_extensions_operations` can now be updated [GH-7749]
 * `azurerm_eventhub_namespace` - changing to `zone_redundant` now force a new resource [GH-7612]
+* `azurerm_express_route_circuit` - fix eventual consistency issue in create [GH-7753]
 * `azurerm_express_route_circuit` - fix potential crash [GH-7776]
 * `azurerm_managed_disk` - allow up to `65536` GB for the `disk_size_gb` property [GH-7689]
 * `azurerm_machine_learning_workspace` - waiting until the Machine Learning Workspace has been fully deleted [GH-7635]
