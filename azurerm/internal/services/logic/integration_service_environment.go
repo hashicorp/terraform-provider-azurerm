@@ -13,10 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/validate"
@@ -24,11 +22,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-)
-
-const (
-	stateDeleting string = "Deleting"
-	stateDeleted  string = "Deleted"
 )
 
 func resourceArmIntegrationServiceEnvironment() *schema.Resource {
@@ -96,7 +89,6 @@ func resourceArmIntegrationServiceEnvironment() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validate.ValidateSubnetID,
 				},
-				Set:      set.HashStringIgnoreCase,
 				MinItems: 4,
 				MaxItems: 4,
 			},
@@ -140,11 +132,11 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Integration Service Environment %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("checking for existing Integration Service Environment %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -160,9 +152,8 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 	virtualNetworkSubnetIds := d.Get("virtual_network_subnet_ids").(*schema.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
-	if !((capacity == 0 && skuName == string(logic.IntegrationServiceEnvironmentSkuNameDeveloper)) ||
-		(capacity >= 0 && skuName == string(logic.IntegrationServiceEnvironmentSkuNamePremium))) {
-		return fmt.Errorf("`capacity` can be greater than zero only for `sku_name` with value specified to `Premium`")
+	if skuName != string(logic.IntegrationServiceEnvironmentSkuNamePremium) && capacity > 0 {
+		return fmt.Errorf("`capacity` can only be greater than zero for `sku_name` `Premium`")
 	}
 
 	properties := logic.IntegrationServiceEnvironment{
@@ -306,8 +297,8 @@ func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta
 	}
 
 	stateConf := &resource.StateChangeConf{
-		Pending:                   []string{stateDeleting},
-		Target:                    []string{stateDeleted},
+		Pending:                   []string{string(logic.WorkflowProvisioningStateDeleting)},
+		Target:                    []string{string(logic.WorkflowProvisioningStateDeleted)},
 		MinTimeout:                5 * time.Minute,
 		Refresh:                   integrationServiceEnvironmentDeleteStateRefreshFunc(ctx, meta.(*clients.Client), d.Id(), subnetIDs),
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
@@ -368,14 +359,14 @@ func integrationServiceEnvironmentDeleteStateRefreshFunc(ctx context.Context, cl
 	return func() (interface{}, string, error) {
 		linkExists, err := linkExists(ctx, client, iseID, subnetIDs)
 		if err != nil {
-			return stateDeleting, stateDeleting, err
+			return string(logic.WorkflowProvisioningStateDeleting), string(logic.WorkflowProvisioningStateDeleting), err
 		}
 
 		if linkExists {
-			return stateDeleting, stateDeleting, nil
+			return string(logic.WorkflowProvisioningStateDeleting), string(logic.WorkflowProvisioningStateDeleting), nil
 		}
 
-		return stateDeleted, stateDeleted, nil
+		return string(logic.WorkflowProvisioningStateDeleted), string(logic.WorkflowProvisioningStateDeleted), nil
 	}
 }
 
