@@ -2,14 +2,12 @@ package monitor
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -85,7 +83,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Type:         schema.TypeSet,
 				Optional:     true,
 				MinItems:     1,
-				ExactlyOneOf: []string{"dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
+				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"metric_namespace": {
@@ -164,7 +162,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				MinItems: 1,
 				// Curently, it allows to define only one dynamic criteria in one metric alert.
 				MaxItems:     1,
-				ExactlyOneOf: []string{"criteria", "application_insights_web_test_location_availability_criteria"},
+				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"metric_namespace": {
@@ -264,7 +262,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 				Optional:     true,
 				MinItems:     1,
 				MaxItems:     1,
-				ExactlyOneOf: []string{"criteria", "dynamic_criteria"},
+				ExactlyOneOf: []string{"criteria", "dynamic_criteria", "application_insights_web_test_location_availability_criteria"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"web_test_id": {
@@ -481,7 +479,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 			criteriaSchema = "criteria"
 		case insights.MetricAlertMultipleResourceMultipleMetricCriteria:
 			if c.AllOf == nil || len(*c.AllOf) == 0 {
-				return errors.New("nil or empty contained criteria of MultipleResourceMultipleMetricCriteria")
+				return fmt.Errorf("nil or empty contained criteria of MultipleResourceMultipleMetricCriteria")
 			}
 			// `MinItems` defined in schema guaranteed there is at least one element.
 			switch (*c.AllOf)[0].(type) {
@@ -496,9 +494,10 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Unknown criteria type")
 		}
 
-		// lintignore:R001
-		if err := d.Set(criteriaSchema, flattenMonitorMetricAlertCriteria(alert.Criteria)); err != nil {
-			return fmt.Errorf("Error setting `%s`: %+v", criteriaSchema, err)
+		monitorMetricAlertCriteria := flattenMonitorMetricAlertCriteria(alert.Criteria)
+
+		if err := d.Set(criteriaSchema, monitorMetricAlertCriteria); err != nil {
+			return fmt.Errorf("failed setting `%s`: %+v", criteriaSchema, err)
 		}
 
 		if err := d.Set("action", flattenMonitorMetricAlertAction(alert.Actions)); err != nil {
@@ -541,7 +540,7 @@ func expandMonitorMetricAlertCriteria(d *schema.ResourceData) (insights.BasicMet
 		return expandMonitorMetricAlertWebtestLocAvailCriteria(d.Get("application_insights_web_test_location_availability_criteria").([]interface{})), nil
 	default:
 		// Guaranteed by schema `AtLeastOne` constraint
-		return nil, errors.New("unknown criteria type")
+		return nil, fmt.Errorf("unknown criteria type")
 	}
 }
 
