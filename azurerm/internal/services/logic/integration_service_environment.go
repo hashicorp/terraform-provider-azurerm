@@ -131,7 +131,7 @@ func resourceArmIntegrationServiceEnvironment() *schema.Resource {
 }
 
 func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
+	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -207,7 +207,7 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 }
 
 func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
+	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -267,7 +267,7 @@ func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
+	client := meta.(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

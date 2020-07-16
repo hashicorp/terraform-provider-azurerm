@@ -6,24 +6,24 @@ import (
 )
 
 type Client struct {
-	IntegrationAccountClient             *logic.IntegrationAccountsClient
-	IntegrationServiceEnvironmentsClient *logic.IntegrationServiceEnvironmentsClient
-	WorkflowsClient                      *logic.WorkflowsClient
+	IntegrationAccountClient            *logic.IntegrationAccountsClient
+	IntegrationServiceEnvironmentClient *logic.IntegrationServiceEnvironmentsClient
+	WorkflowClient                      *logic.WorkflowsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	integrationAccountClient := logic.NewIntegrationAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&integrationAccountClient.Client, o.ResourceManagerAuthorizer)
 
-	integrationServiceEnvironmentsClient := logic.NewIntegrationServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&integrationServiceEnvironmentsClient.Client, o.ResourceManagerAuthorizer)
+	integrationServiceEnvironmentClient := logic.NewIntegrationServiceEnvironmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&integrationServiceEnvironmentClient.Client, o.ResourceManagerAuthorizer)
 
-	WorkflowsClient := logic.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&WorkflowsClient.Client, o.ResourceManagerAuthorizer)
+	workflowClient := logic.NewWorkflowsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workflowClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		IntegrationAccountClient:             &integrationAccountClient,
-		IntegrationServiceEnvironmentsClient: &integrationServiceEnvironmentsClient,
-		WorkflowsClient:                      &WorkflowsClient,
+		IntegrationAccountClient:            &integrationAccountClient,
+		IntegrationServiceEnvironmentClient: &integrationServiceEnvironmentClient,
+		WorkflowClient:                      &workflowClient,
 	}
 }
