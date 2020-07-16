@@ -42,3 +42,25 @@ func CosmosThroughput(v interface{}, k string) (warnings []string, errors []erro
 
 	return warnings, errors
 }
+
+func CosmosMaxThroughput(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(int)
+
+	if value < 4000 {
+		errors = append(errors, fmt.Errorf(
+			"%s must be a minimum of 4000", k))
+	}
+
+	if value > 1000000 {
+		errors = append(errors, fmt.Errorf(
+			"%s must be a maximum of 1000000", k))
+
+	}
+
+	if value%1000 != 0 {
+		errors = append(errors, fmt.Errorf(
+			"%q must be set in increments of 1000", k))
+	}
+
+	return warnings, errors
+}
