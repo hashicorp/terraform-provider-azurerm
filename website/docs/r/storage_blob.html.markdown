@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `content_type` - (Optional) The content type of the storage blob. Cannot be defined if `source_uri` is defined. Defaults to `application/octet-stream`.
 
-* `content_md5` - (Optional) Used to trigger blob updates. The only meaningful value is ${filemd5("path/to/file")} if source is defined or "${md5("Sample blob content")}" if source_content is defined. This field cannot be specified if `source_uri` is specified. Changing this forces a new resource to be created.
+* `content_md5` - (Optional) Used to trigger blob updates. This field cannot be specified if `source_uri` is specified or if blob type is Append or Page. The only meaningful value is ${filemd5("path/to/file")} if source is defined or "${md5("Sample blob content")}" if source_content is defined. Changing this forces a new resource to be created.
 
 * `source` - (Optional) An absolute path to a file on the local system. This field cannot be specified for Append blobs and cannot be specified if `source_content` or `source_uri` is specified.
 

@@ -46,6 +46,10 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 			return fmt.Errorf("A source cannot be specified for an Append blob")
 		}
 
+		if sbu.ContentMD5 != "" {
+			return fmt.Errorf("`content_md5` cannot be specified for an Append blob")
+		}
+
 		return sbu.createEmptyAppendBlob(ctx)
 	}
 
@@ -65,6 +69,9 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 	}
 
 	if blobType == "page" {
+		if sbu.ContentMD5 != "" {
+			return fmt.Errorf("`content_md5` cannot be specified for a Page blob")
+		}
 		if sbu.SourceUri != "" {
 			return sbu.copy(ctx)
 		}
@@ -106,6 +113,10 @@ func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
 }
 
 func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
+	if sbu.ContentMD5 != "" {
+		return fmt.Errorf("`content_md5` cannot be specified if no source is specified")
+	}
+
 	input := blobs.PutBlockBlobInput{
 		ContentType: utils.String(sbu.ContentType),
 		MetaData:    sbu.MetaData,
@@ -352,10 +363,9 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 }
 
 func convertHexToBase64Encoding(str string) (string, error) {
-
 	data, err := hex.DecodeString(str)
 	if err != nil {
-		return "", fmt.Errorf("Error decoding content_md5 hex string: %s", err)
+		return "", fmt.Errorf("%s", err)
 	}
 	return base64.StdEncoding.EncodeToString(data), nil
 }
@@ -363,7 +373,7 @@ func convertHexToBase64Encoding(str string) (string, error) {
 func convertBase64ToHexEncoding(str string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
-		return "", fmt.Errorf("Error decoding content_md5 base64 string: %s", err)
+		return "", fmt.Errorf("%s", err)
 	}
 
 	return hex.EncodeToString(data), nil

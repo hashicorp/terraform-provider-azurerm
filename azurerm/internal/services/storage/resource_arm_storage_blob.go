@@ -251,10 +251,6 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
 
 		contentMD5 := d.Get("content_md5").(string)
-		if d.Get("source").(string) == "" && d.Get("source_content").(string) == "" {
-			contentMD5 = ""
-		}
-
 		if contentMD5 != "" {
 			data, err := convertHexToBase64Encoding(contentMD5)
 			if err != nil {
