@@ -136,7 +136,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 
 func testCheckAzureRMIntegrationServiceEnvironmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -150,14 +150,14 @@ func testCheckAzureRMIntegrationServiceEnvironmentExists(resourceName string) re
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Integration Service Environment %q (resource group %q) does not exist", id.Name, id.ResourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on IntegrationServiceEnvironmentsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on IntegrationServiceEnvironmentClient: %+v", err)
 		}
 		return nil
 	}
 }
 
 func testCheckAzureRMIntegrationServiceEnvironmentDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.IntegrationServiceEnvironmentsClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Logic.IntegrationServiceEnvironmentClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -170,7 +170,7 @@ func testCheckAzureRMIntegrationServiceEnvironmentDestroy(s *terraform.State) er
 		}
 		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on IntegrationServiceEnvironmentsClient: %+v", err)
+				return fmt.Errorf("Bad: Get on IntegrationServiceEnvironmentClient: %+v", err)
 			}
 		}
 		return nil
