@@ -1,4 +1,9 @@
 ## 2.20.0 (Unreleased)
+
+UPGRADE NOTES
+
+* **Enhanced Validation for Locations** - the Azure Provider now validates that the value for the `location` argument is a supported Azure Region within the Azure Environment being used (from the Azure Metadata Service) - which allows us to catch configuration errors for this field at `terraform plan` time, rather than during a `terraform apply`. This functionality is now enabled by default, and can be opted-out of by setting the Environment Variable `ARM_PROVIDER_ENHANCED_VALIDATION` to `false`
+
 ## 2.19.0 (July 16, 2020)
 
 UPGRADE NOTES:
