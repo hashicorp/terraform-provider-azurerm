@@ -145,9 +145,11 @@ func policyAssignmentsMetadataDiffSuppressFunc(_, old, new string, _ *schema.Res
 	}
 
 	var newPolicyAssignmentsMetadata map[string]interface{}
-	errNew := json.Unmarshal([]byte(new), &newPolicyAssignmentsMetadata)
-	if errNew != nil {
-		return false
+	if new != "" {
+		errNew := json.Unmarshal([]byte(new), &newPolicyAssignmentsMetadata)
+		if errNew != nil {
+			return false
+		}
 	}
 
 	// Ignore the following keys if they're found in the metadata JSON
