@@ -509,11 +509,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"sku_tier": {
 				Type:     schema.TypeString,
 				Optional: true,
-				// @tombuildsstuff (2020-05-29) - Preview limitations:
-				//  * Currently, cannot convert as existing cluster to enable the Uptime SLA.
-				//  * Currently, there is no way to remove Uptime SLA from an AKS cluster after creation with it enabled.
-				//  * Private clusters aren't currently supported.
-				ForceNew: true,
 				Default:  string(containerservice.Free),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerservice.Free),
