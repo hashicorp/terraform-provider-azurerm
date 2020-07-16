@@ -253,7 +253,7 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 		d.Set("vlan_id", props.VlanID)
 
 		routeFilterId := ""
-		if props.RouteFilter != nil {
+		if props.RouteFilter != nil && props.RouteFilter.ID != nil {
 			routeFilterId = *props.RouteFilter.ID
 		}
 		d.Set("route_filter_id", routeFilterId)
