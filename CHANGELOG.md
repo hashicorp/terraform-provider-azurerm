@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - no longer sending the `kubernetes_dashboard` addon in Azure China since this is not supported in this region [GH-7714]
 * `azurerm_local_network_gateway`- `address_space` order can now be changed [GH-7745]
 * `azurerm_machine_learning_workspace` - adding the field `high_business_impact` [GH-7703]
+* `azurerm_monitor_metric_alert` - support for multiple scopes and associated criteria [GH-7159]
 * `azurerm_mssql_database` `elastic_pool_id` remove forcenew [GH-7628]
 * `azurerm_policy_assignment` - support for `metadata` property [GH-7725]
 * `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property [GH-7018]
