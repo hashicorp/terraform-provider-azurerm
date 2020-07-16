@@ -114,6 +114,14 @@ func resourceArmStorageBlob() *schema.Resource {
 				ConflictsWith: []string{"source", "source_content"},
 			},
 
+			"content_md5": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				Computed:      true,
+				ConflictsWith: []string{"source_uri"},
+			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -169,6 +177,13 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	// Terraform is generating the md5 hash in hex and Azure generates the MD5 hash and then base64 encodes it.
+	// convertHexToBase64Encoding function converts the md5 hash hex to md5 base64 encoded.
+	contentMD5, err := convertHexToBase64Encoding(d.Get("content_md5").(string))
+	if err != nil {
+		return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
+	}
+
 	log.Printf("[DEBUG] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	blobInput := BlobUpload{
@@ -179,6 +194,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 		BlobType:      d.Get("type").(string),
 		ContentType:   d.Get("content_type").(string),
+		ContentMD5:    contentMD5,
 		MetaData:      ExpandMetaData(metaDataRaw),
 		Parallelism:   d.Get("parallelism").(int),
 		Size:          d.Get("size").(int),
@@ -233,9 +249,25 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("content_type") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+
+		contentMD5 := d.Get("content_md5").(string)
+		if d.Get("source").(string) == "" && d.Get("source_content").(string) == "" {
+			contentMD5 = ""
+		}
+
+		if contentMD5 != "" {
+			data, err := convertHexToBase64Encoding(contentMD5)
+			if err != nil {
+				return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
+			}
+			contentMD5 = data
+		}
+
 		input := blobs.SetPropertiesInput{
 			ContentType: utils.String(d.Get("content_type").(string)),
+			ContentMD5:  utils.String(contentMD5),
 		}
+
 		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
 			return fmt.Errorf("Error updating Properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 		}
@@ -301,6 +333,17 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
+
+	// Set the ContentMD5 value to md5 hash in hex
+	if props.ContentMD5 != "" {
+		contentMD5, err := convertBase64ToHexEncoding(props.ContentMD5)
+		if err != nil {
+			return fmt.Errorf("Error in converting hex to base64 encoding for content_md5: %s", err)
+		}
+
+		d.Set("content_md5", contentMD5)
+	}
+
 	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 	d.Set("url", d.Id())
 

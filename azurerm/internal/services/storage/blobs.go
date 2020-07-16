@@ -3,6 +3,8 @@ package storage
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -27,6 +29,7 @@ type BlobUpload struct {
 
 	BlobType      string
 	ContentType   string
+	ContentMD5    string
 	MetaData      map[string]string
 	Parallelism   int
 	Size          int
@@ -139,6 +142,7 @@ func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 
 	input := blobs.PutBlockBlobInput{
 		ContentType: utils.String(sbu.ContentType),
+		ContentMD5:  utils.String(sbu.ContentMD5),
 		MetaData:    sbu.MetaData,
 	}
 	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
@@ -345,4 +349,22 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 
 		uploadCtx.wg.Done()
 	}
+}
+
+func convertHexToBase64Encoding(str string) (string, error) {
+
+	data, err := hex.DecodeString(str)
+	if err != nil {
+		return "", fmt.Errorf("Error decoding content_md5 hex string: %s", err)
+	}
+	return base64.StdEncoding.EncodeToString(data), nil
+}
+
+func convertBase64ToHexEncoding(str string) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(str)
+	if err != nil {
+		return "", fmt.Errorf("Error decoding content_md5 base64 string: %s", err)
+	}
+
+	return hex.EncodeToString(data), nil
 }
