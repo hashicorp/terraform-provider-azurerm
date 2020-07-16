@@ -1,51 +1,51 @@
-## 2.19.0 (Unreleased)
+## 2.19.0 (July 16, 2020)
 
 UPGRADE NOTES:
 
-* HDInsight 3.6 will be retired (in Azure Public) on 2020-12-30 - HDInsight 4.0 does not support ML Services, RServer or Storm Clusters - as such the `azurerm_hdinsight_ml_services_cluster`, `azurerm_hdinsight_rserver_cluster` and `azurerm_hdinsight_storm_cluster` resources are deprecated and will be removed in the next major version of the Azure Provider. [GH-7706]
-* provider: no longer auto register the Microsoft.StorageCache RP [GH-7768]
+* HDInsight 3.6 will be retired (in Azure Public) on 2020-12-30 - HDInsight 4.0 does not support ML Services, RServer or Storm Clusters - as such the `azurerm_hdinsight_ml_services_cluster`, `azurerm_hdinsight_rserver_cluster` and `azurerm_hdinsight_storm_cluster` resources are deprecated and will be removed in the next major version of the Azure Provider. ([#7706](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7706))
+* provider: no longer auto register the Microsoft.StorageCache RP ([#7768](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7768))
 
 FEATURES:
 
-* **New Data source:** `azurerm_route_filter` [GH-6341]
-* **New Resource:** `azurerm_route_filter` [GH-6341]
+* **New Data source:** `azurerm_route_filter` ([#6341](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6341))
+* **New Resource:** `azurerm_route_filter` ([#6341](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6341))
 
 ENHANCEMENTS:
 
-* dependencies: updating to v44.0.0 of `github.com/Azure/azure-sdk-for-go` [GH-7616]
-* dependencies: updating the `machinelearning` API to version `2020-04-01` [GH-7703]
-* Data Source: `azurerm_storage_account` - exposing `allow_blob_public_access` [GH-7739]
-* Data Source: `azurerm_dns_zone` - now provides feedback if a `resource_group_name` is needed to resolve ambiguous zone [GH-7680]
-* `azurerm_automation_schedule` - Updated validation for timezone strings [GH-7754]
-* `azurerm_express_route_circuit_peering` - support for the `route_filter_id` property [GH-6341]
-* `azurerm_kubernetes_cluster` - no longer sending the `kubernetes_dashboard` addon in Azure China since this is not supported in this region [GH-7714]
-* `azurerm_local_network_gateway`- `address_space` order can now be changed [GH-7745]
-* `azurerm_machine_learning_workspace` - adding the field `high_business_impact` [GH-7703]
-* `azurerm_monitor_metric_alert` - support for multiple scopes and associated criteria [GH-7159]
-* `azurerm_mssql_database` `elastic_pool_id` remove forcenew [GH-7628]
-* `azurerm_policy_assignment` - support for `metadata` property [GH-7725]
-* `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property [GH-7018]
-* `azurerm_storage_account` - support for configuring `allow_blob_public_access` [GH-7739]
-* `azurerm_storage_container` - container creation will retry if a container of the same name has not completed it's delete operation [GH-7179]
-* `azurerm_storage_share` - share creation will retry if a share of the same name has not completed it's previous delete operation [GH-7179]
-* `azurerm_virtual_network_gateway_connection` - support for the `traffic_selector_policy` block [GH-6586]
-* `azurerm_orchestrated_virtual_machine_scale_set` - support for the `proximity_placement_group_id` property [GH-7510]
+* dependencies: updating to v44.0.0 of `github.com/Azure/azure-sdk-for-go` ([#7616](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7616))
+* dependencies: updating the `machinelearning` API to version `2020-04-01` ([#7703](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7703))
+* Data Source: `azurerm_storage_account` - exposing `allow_blob_public_access` ([#7739](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7739))
+* Data Source: `azurerm_dns_zone` - now provides feedback if a `resource_group_name` is needed to resolve ambiguous zone ([#7680](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7680))
+* `azurerm_automation_schedule` - Updated validation for timezone strings ([#7754](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7754))
+* `azurerm_express_route_circuit_peering` - support for the `route_filter_id` property ([#6341](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6341))
+* `azurerm_kubernetes_cluster` - no longer sending the `kubernetes_dashboard` addon in Azure China since this is not supported in this region ([#7714](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7714))
+* `azurerm_local_network_gateway`- `address_space` order can now be changed ([#7745](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7745))
+* `azurerm_machine_learning_workspace` - adding the field `high_business_impact` ([#7703](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7703))
+* `azurerm_monitor_metric_alert` - support for multiple scopes and associated criteria ([#7159](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7159))
+* `azurerm_mssql_database` `elastic_pool_id` remove forcenew ([#7628](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7628))
+* `azurerm_policy_assignment` - support for `metadata` property ([#7725](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7725))
+* `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property ([#7018](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7018))
+* `azurerm_storage_account` - support for configuring `allow_blob_public_access` ([#7739](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7739))
+* `azurerm_storage_container` - container creation will retry if a container of the same name has not completed it's delete operation ([#7179](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7179))
+* `azurerm_storage_share` - share creation will retry if a share of the same name has not completed it's previous delete operation ([#7179](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7179))
+* `azurerm_virtual_network_gateway_connection` - support for the `traffic_selector_policy` block ([#6586](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6586))
+* `azurerm_orchestrated_virtual_machine_scale_set` - support for the `proximity_placement_group_id` property ([#7510](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7510))
 
 
 BUG FIXES:
 
-* provider: deprecating `metadata_url` to `metadata_host` since this is a hostname [GH-7740]
-* `azurerm_*_virtual_machine` - `allow_extensions_operations` can now be updated [GH-7749]
-* `azurerm_eventhub_namespace` - changing to `zone_redundant` now force a new resource [GH-7612]
-* `azurerm_express_route_circuit` - fix eventual consistency issue in create [GH-7753]
-* `azurerm_express_route_circuit` - fix potential crash [GH-7776]
-* `azurerm_managed_disk` - allow up to `65536` GB for the `disk_size_gb` property [GH-7689]
-* `azurerm_machine_learning_workspace` - waiting until the Machine Learning Workspace has been fully deleted [GH-7635]
-* `azurerm_mysql_server` - `ssl_minimal_tls_version_enforced` now correctly set in updates [GH-7307]
-* `azurerm_notification_hub` - validating that the ID is in the correct format when importing the resource [GH-7690]
-* `azurerm_redis_cache` - fixing a bug when provisioning with authentication disabled [GH-7734]
-* `azurerm_virtual_hub` - the field `address_prefix` is now `ForceNew` to match the behaviour of the Azure API [GH-7713]
-* `azurerm_virtual_hub_connection` - using the delete timeout if specified [GH-7731]
+* provider: deprecating `metadata_url` to `metadata_host` since this is a hostname ([#7740](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7740))
+* `azurerm_*_virtual_machine` - `allow_extensions_operations` can now be updated ([#7749](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7749))
+* `azurerm_eventhub_namespace` - changing to `zone_redundant` now force a new resource ([#7612](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7612))
+* `azurerm_express_route_circuit` - fix eventual consistency issue in create ([#7753](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7753))
+* `azurerm_express_route_circuit` - fix potential crash ([#7776](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7776))
+* `azurerm_managed_disk` - allow up to `65536` GB for the `disk_size_gb` property ([#7689](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7689))
+* `azurerm_machine_learning_workspace` - waiting until the Machine Learning Workspace has been fully deleted ([#7635](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7635))
+* `azurerm_mysql_server` - `ssl_minimal_tls_version_enforced` now correctly set in updates ([#7307](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7307))
+* `azurerm_notification_hub` - validating that the ID is in the correct format when importing the resource ([#7690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7690))
+* `azurerm_redis_cache` - fixing a bug when provisioning with authentication disabled ([#7734](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7734))
+* `azurerm_virtual_hub` - the field `address_prefix` is now `ForceNew` to match the behaviour of the Azure API ([#7713](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7713))
+* `azurerm_virtual_hub_connection` - using the delete timeout if specified ([#7731](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7731))
 
 ## 2.18.0 (July 10, 2020)
 
