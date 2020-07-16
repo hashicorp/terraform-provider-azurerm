@@ -130,6 +130,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 			"metadata": {
 				Type:             schema.TypeString,
 				Optional:         true,
+				Computed:         true,
 				ValidateFunc:     validation.StringIsJSON,
 				DiffSuppressFunc: policyAssignmentsMetadataDiffSuppressFunc,
 			},
