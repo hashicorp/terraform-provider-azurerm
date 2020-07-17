@@ -183,7 +183,7 @@ func resourceArmDataFactoryLinkedServiceKeyVaultCreateUpdate(d *schema.ResourceD
 
 func resourceArmDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.LinkedServiceClient
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	vaultClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -245,12 +245,15 @@ func resourceArmDataFactoryLinkedServiceKeyVaultRead(d *schema.ResourceData, met
 		}
 	}
 
-	keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, baseUrl)
+	vault, err := vaultClient.FindKeyVault(ctx, baseUrl)
 	if err != nil {
-		return fmt.Errorf("Error looking up Key Vault id from url %q: %+v", baseUrl, err)
+		return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", baseUrl, err)
+	}
+	if vault == nil {
+		return fmt.Errorf("retrieving key vault %q", baseUrl)
 	}
 
-	d.Set("key_vault_id", keyVaultId)
+	d.Set("key_vault_id", vault.ID)
 
 	return nil
 }

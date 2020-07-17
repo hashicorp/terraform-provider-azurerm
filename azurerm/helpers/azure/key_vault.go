@@ -39,55 +39,6 @@ func GetKeyVaultBaseUrlFromID(ctx context.Context, client *keyvault.VaultsClient
 	return *resp.Properties.VaultURI, nil
 }
 
-func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient, keyVaultUrl string) (*string, error) {
-	list, err := client.ListComplete(ctx, utils.Int32(1000))
-	if err != nil {
-		return nil, fmt.Errorf("failed to list Key Vaults %v", err)
-	}
-
-	for list.NotDone() {
-		v := list.Value()
-
-		if v.ID == nil {
-			return nil, fmt.Errorf("v.ID was nil")
-		}
-
-		vid, err := ParseAzureResourceID(*v.ID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse ID for Key Vault URI %q: %s", *v.ID, err)
-		}
-		resourceGroup := vid.ResourceGroup
-		name := vid.Path["vaults"]
-
-		// resp does not appear to contain the vault properties, so lets fetch them
-		get, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if utils.ResponseWasNotFound(get.Response) {
-				if e := list.NextWithContext(ctx); e != nil {
-					return nil, fmt.Errorf("failed to get next vault on KeyVault url %q : %+v", keyVaultUrl, err)
-				}
-				continue
-			}
-			return nil, fmt.Errorf("failed to make Read request on KeyVault %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		if get.ID == nil || get.Properties == nil || get.Properties.VaultURI == nil {
-			return nil, fmt.Errorf("KeyVault %q (Resource Group %q) has nil ID, properties or vault URI", name, resourceGroup)
-		}
-
-		if keyVaultUrl == *get.Properties.VaultURI {
-			return get.ID, nil
-		}
-
-		if e := list.NextWithContext(ctx); e != nil {
-			return nil, fmt.Errorf("failed to get next vault on KeyVault url %q : %+v", keyVaultUrl, err)
-		}
-	}
-
-	// we haven't found it, but Data Sources and Resources need to handle this error separately
-	return nil, nil
-}
-
 func KeyVaultExists(ctx context.Context, client *keyvault.VaultsClient, keyVaultId string) (bool, error) {
 	if keyVaultId == "" {
 		return false, fmt.Errorf("keyVaultId is empty")

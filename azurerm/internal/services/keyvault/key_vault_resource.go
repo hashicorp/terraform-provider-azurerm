@@ -685,6 +685,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
+	vaultClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).KeyVault.VaultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -788,6 +789,10 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error purging Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 		log.Printf("[DEBUG] Purged KeyVault %q.", name)
+
+		if read.Properties != nil && read.Properties.VaultURI != nil {
+			vaultClient.RemoveKeyVaultFromCache(*read.Properties.VaultURI)
+		}
 	}
 
 	return nil

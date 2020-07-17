@@ -122,7 +122,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 }
 
 func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
+	vaultClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).Web.CertificatesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -183,17 +183,15 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 			return err
 		}
 
-		keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
-
-		keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUrl)
+		vault, err := vaultClient.FindKeyVault(ctx, parsedSecretId.KeyVaultBaseUrl)
 		if err != nil {
-			return fmt.Errorf("Error retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
+			return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", parsedSecretId.KeyVaultBaseUrl, err)
 		}
-		if keyVaultId == nil {
-			return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
+		if vault == nil {
+			return fmt.Errorf("retrieving key vault %q", parsedSecretId.KeyVaultBaseUrl)
 		}
 
-		certificate.CertificateProperties.KeyVaultID = keyVaultId
+		certificate.CertificateProperties.KeyVaultID = &vault.ID
 		certificate.CertificateProperties.KeyVaultSecretName = utils.String(parsedSecretId.Name)
 	}
 

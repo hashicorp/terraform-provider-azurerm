@@ -168,7 +168,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 
 func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.AccountsClient
-	vaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
+	vaultsClient := meta.(*clients.Client).KeyVault
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -217,15 +217,18 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties.encryption.keyVaultProperties.keyVaultURI` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
 
-	keyVaultID, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultURI)
+	vault, err := vaultsClient.FindKeyVault(ctx, keyVaultURI)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Key Vault ID from the Base URI %q: %+v", keyVaultURI, err)
+		return fmt.Errorf("retrieving the Key Vault ID from the Key Vault at URL %q: %s", keyVaultURI, err)
+	}
+	if vault == nil {
+		return fmt.Errorf("retrieving key vault %q", keyVaultURI)
 	}
 
 	// now we have the key vault uri we can look up the ID
 
 	d.Set("storage_account_id", d.Id())
-	d.Set("key_vault_id", keyVaultID)
+	d.Set("key_vault_id", vault.ID)
 	d.Set("key_name", keyName)
 	d.Set("key_version", keyVersion)
 
