@@ -97,7 +97,7 @@ func resourceArmKustoClusterCustomerManagedKeyCreateUpdate(d *schema.ResourceDat
 		// whilst this looks superflurious given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
 		if cluster.ClusterProperties.KeyVaultProperties != nil {
-			return tf.ImportAsExistsError("azurerm_storage_account_customer_managed_key", resourceID)
+			return tf.ImportAsExistsError("azurerm_kusto_cluster_customer_managed_key", resourceID)
 		}
 	}
 
