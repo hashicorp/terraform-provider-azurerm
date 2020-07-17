@@ -150,6 +150,22 @@ func resourceArmMsSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"recoverable_databases": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"restorable_dropped_databases": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -281,6 +297,8 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	auditingClient := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
 	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
 	adminClient := meta.(*clients.Client).MSSQL.ServerAzureADAdministratorsClient
+	recoverableDatabasesClient := meta.(*clients.Client).MSSQL.RecoverableDatabasesClient
+	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -347,6 +365,22 @@ func resourceArmMsSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 
 	if err := d.Set("extended_auditing_policy", helper.FlattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp, d)); err != nil {
 		return fmt.Errorf("Error setting `extended_auditing_policy`: %+v", err)
+	}
+
+	recoverableResp, err := recoverableDatabasesClient.ListByServer(ctx, resGroup, name)
+	if err != nil {
+		fmt.Errorf("listing SQL Server %s Recoverable Databases: %v", name, err)
+	}
+	if err := d.Set("recoverable_databases", flattenAzureRmSqlServerRecoverableDatabases(recoverableResp)); err != nil {
+		return fmt.Errorf("setting `recoverable_databases`: %+v", err)
+	}
+
+	restorableResp, err := restorableDroppedDatabasesClient.ListByServer(ctx, resGroup, name)
+	if err != nil {
+		fmt.Errorf("listing SQL Server %s Restorable Dropped Databases: %v", name, err)
+	}
+	if err := d.Set("restorable_dropped_databases", flattenAzureRmSqlServerRestorableDatabases(restorableResp)); err != nil {
+		return fmt.Errorf("setting `restorable_dropped_databases`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -445,4 +479,35 @@ func flatternAzureRmMsSqlServerAdministrator(admin sql.ServerAzureADAdministrato
 			"tenant_id":      tid,
 		},
 	}
+}
+
+func flattenAzureRmSqlServerRecoverableDatabases(resp sql.RecoverableDatabaseListResult) []string {
+	if resp.Value == nil || len(*resp.Value) == 0 {
+		return []string{}
+	}
+
+	res := make([]string, 0)
+	for _, r := range *resp.Value {
+		var id string
+		if r.ID != nil {
+			id = *r.ID
+		}
+		res = append(res, id)
+	}
+	return res
+}
+
+func flattenAzureRmSqlServerRestorableDatabases(resp sql.RestorableDroppedDatabaseListResult) []string {
+	if resp.Value == nil || len(*resp.Value) == 0 {
+		return []string{}
+	}
+	res := make([]string, 0)
+	for _, r := range *resp.Value {
+		var id string
+		if r.ID != nil {
+			id = *r.ID
+		}
+		res = append(res, id)
+	}
+	return res
 }
