@@ -2391,7 +2391,7 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]networ
 
 		// The application gateway needs to be stopped if a gateway ip configuration is added or removed
 		if len(oldVS) != len(newVS) {
-			stopApplicationGateway = true
+			return &results, true
 		}
 
 		for i, configRaw := range newVS {
