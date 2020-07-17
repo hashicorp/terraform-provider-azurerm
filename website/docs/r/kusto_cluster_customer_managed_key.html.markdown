@@ -44,7 +44,7 @@ resource "azurerm_key_vault_access_policy" "client" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
   object_id    = data.azurerm_client_config.current.object_id
 
-  key_permissions = ["get", "list", "create", "recover"]
+  key_permissions = ["get", "list", "create", "delete", "recover"]
 }
 
 resource "azurerm_key_vault_key" "example" {
