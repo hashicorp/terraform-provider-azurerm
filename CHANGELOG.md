@@ -11,6 +11,7 @@ ENHANCEMENTS:
 BUG FIXES
 
 * Data Source: `azurerm_private_dns_zone` - fix a crash when the zone does not exist [GH-7783]
+* `azurerm_application_gateway` - Fix crash with `gateway_ip_configuration` [GH-7789]
 
 ## 2.19.0 (July 16, 2020)
 
