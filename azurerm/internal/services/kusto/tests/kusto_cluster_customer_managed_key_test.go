@@ -86,7 +86,7 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMKustoClusterExistsWithCustomEncryptionKeyUsed(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMKustoClusterExistsWithDefaultValues(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -113,17 +113,7 @@ func testCheckAzureRMKustoClusterExistsWithCustomEncryptionKeyUsed(resourceName 
 
 		if props := resp.ClusterProperties; props != nil {
 			if encryption := props.KeyVaultProperties; encryption != nil {
-				if vaultURI := encryption.KeyVaultURI; vaultURI == nil {
-					return fmt.Errorf("Kusto Cluster KeyVault URI is not set")
-				}
-				if keyName := encryption.KeyName; keyName == nil {
-					return fmt.Errorf("Kusto Cluster KeyVault key name is not set")
-				}
-				if keyVersion := encryption.KeyVersion; keyVersion == nil {
-					return fmt.Errorf("Kusto Cluster KeyVault key version is not set")
-				}
-			} else {
-				return fmt.Errorf("Kusto Cluster encryption properties not found: %s", resourceName)
+				return fmt.Errorf("Kusto Cluster encryption properties still found: %s", resourceName)
 			}
 		}
 
