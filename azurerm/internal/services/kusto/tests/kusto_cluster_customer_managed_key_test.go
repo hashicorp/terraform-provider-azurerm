@@ -24,7 +24,10 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMKustoClusterCustomerManagedKey_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterCustomerManagedKeyExists(data.ResourceName),
+					testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_version"),
 				),
 			},
 			data.ImportStep(),
@@ -52,7 +55,10 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_requiresImport(t *testing.T) {
 			{
 				Config: testAccAzureRMKustoClusterCustomerManagedKey_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterCustomerManagedKeyExists(data.ResourceName),
+					testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_version"),
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMKustoClusterCustomerManagedKey_requiresImport),
@@ -71,19 +77,57 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 			{
 				Config: testAccAzureRMKustoClusterCustomerManagedKey_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterCustomerManagedKeyExists(data.ResourceName),
+					testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_vault_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_name"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "key_version"),
 				),
 			},
 			data.ImportStep(),
 			{
 				Config: testAccAzureRMKustoClusterCustomerManagedKey_updated(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKustoClusterCustomerManagedKeyExists(data.ResourceName),
+					testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 		},
 	})
+}
+
+func testCheckAzureRMKustoClusterWithCustomerManagedKeyExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		id, err := parse.KustoClusterID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Kusto Cluster %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on kustoClustersClient: %+v", err)
+		}
+
+		if props := resp.ClusterProperties; props != nil {
+			if encryption := props.KeyVaultProperties; encryption == nil {
+				return fmt.Errorf("Kusto Cluster encryption properties not found: %s", resourceName)
+			}
+		}
+
+		return nil
+	}
 }
 
 func testCheckAzureRMKustoClusterExistsWithoutCustomerManagedKey(resourceName string) resource.TestCheckFunc {
@@ -115,22 +159,6 @@ func testCheckAzureRMKustoClusterExistsWithoutCustomerManagedKey(resourceName st
 			if encryption := props.KeyVaultProperties; encryption != nil {
 				return fmt.Errorf("Kusto Cluster encryption properties still found: %s", resourceName)
 			}
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMKustoClusterCustomerManagedKeyExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		if kustoClusterId := rs.Primary.Attributes["cluster_id"]; kustoClusterId == "" {
-			return fmt.Errorf("Unable to read Kusto cluster id: %s", resourceName)
 		}
 
 		return nil
