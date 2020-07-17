@@ -34,7 +34,7 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// Then ensure the encryption settings on the Kusto cluster
 					// have been reverted to their default state
-					testCheckAzureRMKustoClusterExistsWithCustomEncryptionKeyUsed("azurerm_kusto_cluster.test"),
+					testCheckAzureRMKustoClusterExistsWithoutCustomerManagedKey("azurerm_kusto_cluster.test"),
 				),
 			},
 		},
@@ -86,7 +86,7 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMKustoClusterExistsWithDefaultValues(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMKustoClusterExistsWithoutCustomerManagedKey(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
