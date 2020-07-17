@@ -372,6 +372,11 @@ func integrationServiceEnvironmentDeleteStateRefreshFunc(ctx context.Context, cl
 
 func linkExists(ctx context.Context, client *clients.Client, iseID string, subnetIDs []interface{}) (bool, error) {
 	for _, subnetID := range subnetIDs {
+
+		if subnetID == nil {
+			continue
+		}
+
 		id := *(subnetID.(*string))
 		log.Printf("Checking links on subnetID: %q\n", id)
 
