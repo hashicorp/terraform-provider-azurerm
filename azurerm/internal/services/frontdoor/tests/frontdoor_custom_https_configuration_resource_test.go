@@ -76,7 +76,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "test" {
   custom_https_provisioning_enabled = true
 
   custom_https_configuration {
-    certificate_source                         = "FrontDoor"
+    certificate_source = "FrontDoor"
   }
 }
 `, template)
@@ -88,10 +88,10 @@ func testAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttpsDisabled(data ac
 %s
 
 resource "azurerm_frontdoor_custom_https_configuration" "test" {
- front_door_name                   = azurerm_frontdoor.test.name
- frontend_endpoint_name            = azurerm_frontdoor.test.frontend_endpoint[0].name
- resource_group_name               = azurerm_resource_group.test.name
- custom_https_provisioning_enabled = false
+  front_door_name                   = azurerm_frontdoor.test.name
+  frontend_endpoint_name            = azurerm_frontdoor.test.frontend_endpoint[0].name
+  resource_group_name               = azurerm_resource_group.test.name
+  custom_https_provisioning_enabled = false
 }
 `, template)
 }
@@ -153,8 +153,8 @@ resource "azurerm_frontdoor" "test" {
   }
 
   frontend_endpoint {
-    name                              = local.endpoint_name
-    host_name                         = "acctest-FD-%d.azurefd.net"
+    name      = local.endpoint_name
+    host_name = "acctest-FD-%d.azurefd.net"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

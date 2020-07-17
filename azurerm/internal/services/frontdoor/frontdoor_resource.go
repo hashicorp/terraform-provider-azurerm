@@ -574,7 +574,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
 			err := resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, *resp.ID, customHttpsProvisioningEnabled, name, frontendEndpointName, resourceGroup, properties.CustomHTTPSProvisioningState, properties.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 			if err != nil {
-				return fmt.Errorf("Unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+				return fmt.Errorf("unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 			}
 		}
 	}
@@ -1230,7 +1230,7 @@ func flattenArmFrontDoorFrontendEndpoint(ctx context.Context, input *frontdoor.F
 
 		output["id"] = resp.ID
 
-		if properties := resp.FrontendEndpointProperties; properties != nil {
+		if props := resp.FrontendEndpointProperties; properties != nil {
 			if hostName := properties.HostName; hostName != nil {
 				output["host_name"] = *hostName
 			}

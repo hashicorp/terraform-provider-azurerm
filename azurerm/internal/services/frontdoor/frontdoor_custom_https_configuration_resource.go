@@ -29,7 +29,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Hour),
 			Update: schema.DefaultTimeout(6 * time.Hour),
 			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},
@@ -91,22 +91,26 @@ func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.Resource
 	// This is because azure doesn't have an 'id' for a custom https configuration
 	// In order to compensate for this and allow importing of this resource we are artificially
 	// creating an identity for a custom https configuration object
-	resourceId := fmt.Sprintf("%s/customHttpsConfiguration/%s", *resp.ID, frontendEndpointName)
+	if id := resp.ID; id != nil && *id != "" {
+		resourceId := fmt.Sprintf("%s/customHttpsConfiguration/%s", *id, frontendEndpointName)
+	} else {
+		return fmt.Errorf("unable to retrieve Front Door Endpoint %q (Resource Group %q) ID", frontendEndpointName, resourceGroup)
+	}
 
 	customHttpsProvisioningEnabled := d.Get("custom_https_provisioning_enabled").(bool)
 	customHttpsConfigurationNew := d.Get("custom_https_configuration").([]interface{})
 	err = resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, *resp.ID, customHttpsProvisioningEnabled, frontDoorName, frontendEndpointName, resourceGroup, resp.CustomHTTPSProvisioningState, resp.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
 	if err != nil {
-		return fmt.Errorf("Unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+		return fmt.Errorf("unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, frontDoorName, frontendEndpointName)
+	resp, err := client.Get(ctx, resourceGroup, frontDoorName, frontendEndpointName)
 	if err != nil {
 		return fmt.Errorf("retreving Front Door Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Front Door Endpoint %q (Resource Group %q) ID", frontendEndpointName, resourceGroup)
+		return fmt.Errorf("cannot read Front Door Endpoint %q (Resource Group %q) ID", frontendEndpointName, resourceGroup)
 	}
 
 	if d.IsNewResource() {
@@ -121,7 +125,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	err, resourceGroup, frontDoorName, frontendEndpointName := frontDoorCustomHttpsConfigurationReadParams(d)
+	err, resourceGroup, frontDoorName, frontendEndpointName := frontDoorCustomHttpsConfigurationReadProps(d)
 	if err != nil {
 		return err
 	}
@@ -152,7 +156,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 			return fmt.Errorf("setting `custom_https_provisioning_enabled`: %+v", err)
 		}
 	} else {
-		return fmt.Errorf("flattening `frontend_endpoint/custom_https_configuration`: Unable to read Frontend Endpoint Name")
+		return fmt.Errorf("flattening `frontend_endpoint` `custom_https_configuration`: Unable to read Frontend Endpoint Name")
 	}
 
 	return nil
@@ -185,7 +189,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationDelete(d *schema.ResourceData, 
 	return nil
 }
 
-func frontDoorCustomHttpsConfigurationReadParams(d *schema.ResourceData) (err error, resourceGroup string, frontDoorName string, frontendEndpointName string) {
+func frontDoorCustomHttpsConfigurationReadProps(d *schema.ResourceData) (err error, resourceGroup string, frontDoorName string, frontendEndpointName string) {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err, "", "", ""
@@ -230,13 +234,13 @@ func resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx cont
 			if provisioningState == frontdoor.CustomHTTPSProvisioningStateDisabled || customHTTPSConfigurationUpdate != *customHTTPSConfigurationCurrent {
 				// Enable Custom Domain HTTPS for the Frontend Endpoint
 				if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, true, frontDoorName, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
-					return fmt.Errorf("Unable to enable/update Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+					return fmt.Errorf("unable to enable/update Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 				}
 			}
 		} else if !customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled {
 			// Disable Custom Domain HTTPS for the Frontend Endpoint
 			if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(ctx, false, frontDoorName, frontendEndpointName, resourceGroup, frontdoor.CustomHTTPSConfiguration{}, meta); err != nil {
-				return fmt.Errorf("Unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+				return fmt.Errorf("unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 			}
 		}
 	}
