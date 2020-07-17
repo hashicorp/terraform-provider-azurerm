@@ -31,7 +31,7 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_basic(t *testing.T) {
 				// Delete the encryption settings resource and verify it is gone
 				Config: testAccAzureRMKustoClusterCustomerManagedKey_template(data),
 				Check: resource.ComposeTestCheckFunc(
-					// Then ensure the encryption settings on the storage account
+					// Then ensure the encryption settings on the Kusto cluster
 					// have been reverted to their default state
 					testCheckAzureRMKustoClusterExistsWithDefaultSettings("azurerm_kusto_cluster.test"),
 				),
@@ -125,8 +125,8 @@ func testCheckAzureRMKustoClusterCustomerManagedKeyExists(resourceName string) r
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		if kustoClusterId := rs.Primary.Attributes["storage_account_id"]; kustoClusterId == "" {
-			return fmt.Errorf("Unable to read kustoClusterId: %s", resourceName)
+		if kustoClusterId := rs.Primary.Attributes["cluster_id"]; kustoClusterId == "" {
+			return fmt.Errorf("Unable to read Kusto cluster id: %s", resourceName)
 		}
 
 		return nil
