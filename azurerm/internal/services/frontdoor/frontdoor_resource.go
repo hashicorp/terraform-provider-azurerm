@@ -1230,24 +1230,24 @@ func flattenArmFrontDoorFrontendEndpoint(ctx context.Context, input *frontdoor.F
 
 		output["id"] = resp.ID
 
-		if props := resp.FrontendEndpointProperties; properties != nil {
-			if hostName := properties.HostName; hostName != nil {
+		if props := resp.FrontendEndpointProperties; props != nil {
+			if hostName := props.HostName; hostName != nil {
 				output["host_name"] = *hostName
 			}
 
-			if sessionAffinityEnabled := properties.SessionAffinityEnabledState; sessionAffinityEnabled != "" {
+			if sessionAffinityEnabled := props.SessionAffinityEnabledState; sessionAffinityEnabled != "" {
 				output["session_affinity_enabled"] = sessionAffinityEnabled == frontdoor.SessionAffinityEnabledStateEnabled
 			}
 
-			if sessionAffinityTtlSeconds := properties.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
+			if sessionAffinityTtlSeconds := props.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
 				output["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
 			}
 
-			if waf := properties.WebApplicationFirewallPolicyLink; waf != nil {
+			if waf := props.WebApplicationFirewallPolicyLink; waf != nil {
 				output["web_application_firewall_policy_link_id"] = *waf.ID
 			}
 
-			if properties.CustomHTTPSConfiguration != nil {
+			if props.CustomHTTPSConfiguration != nil {
 				if err := azure.FlattenArmFrontDoorCustomHttpsConfiguration(&resp, output, *name); err != nil {
 					return nil, fmt.Errorf("setting `custom_https_configuration`: %+v", err)
 				}
