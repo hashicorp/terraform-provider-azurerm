@@ -2,11 +2,12 @@ package tests
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -33,7 +34,7 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// Then ensure the encryption settings on the Kusto cluster
 					// have been reverted to their default state
-					testCheckAzureRMKustoClusterExistsWithDefaultSettings("azurerm_kusto_cluster.test"),
+					testCheckAzureRMKustoClusterExistsWithCustomEncryptionKeyUsed("azurerm_kusto_cluster.test"),
 				),
 			},
 		},
@@ -85,32 +86,45 @@ func TestAccAzureRMKustoClusterCustomerManagedKey_updateKey(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMKustoClusterExistsWithDefaultSettings(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMKustoClusterExistsWithCustomEncryptionKeyUsed(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		kustoCluster := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		// Ensure resource group exists in API
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-		conn := acceptance.AzureProvider.Meta().(*clients.Client).Kusto.ClustersClient
-
-		resp, err := conn.Get(ctx, resourceGroup, kustoCluster)
+		id, err := parse.KustoClusterID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on Kusto ClustersClient: %+v", err)
+			return err
 		}
 
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Kusto Cluster %q (resource group: %q) does not exist", kustoCluster, resourceGroup)
+		resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Kusto Cluster %q (resource group: %q) does not exist", id.Name, id.ResourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on kustoClustersClient: %+v", err)
 		}
 
 		if props := resp.ClusterProperties; props != nil {
-			return fmt.Errorf("Kusto Cluster encryption properties not found: %s", resourceName)
+			if encryption := props.KeyVaultProperties; encryption != nil {
+				if vaultURI := encryption.KeyVaultURI; vaultURI == nil {
+					return fmt.Errorf("Kusto Cluster KeyVault URI is not set")
+				}
+				if keyName := encryption.KeyName; keyName == nil {
+					return fmt.Errorf("Kusto Cluster KeyVault key name is not set")
+				}
+				if keyVersion := encryption.KeyVersion; keyVersion == nil {
+					return fmt.Errorf("Kusto Cluster KeyVault key version is not set")
+				}
+			} else {
+				return fmt.Errorf("Kusto Cluster encryption properties not found: %s", resourceName)
+			}
 		}
 
 		return nil
