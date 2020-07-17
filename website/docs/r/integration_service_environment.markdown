@@ -3,12 +3,12 @@ subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_integration_service_environment"
 description: |-
-  Manages a private and isolated Logic Apps instance within Azure virtual network.
+  Manages private and isolated Logic App instances within an Azure virtual network.
 ---
 
 # azurerm_integration_service_environment
 
-Manages a private and isolated Logic Apps instance within Azure virtual network.
+Manages private and isolated Logic App instances within an Azure virtual network.
 
 ## Example Usage
 

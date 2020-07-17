@@ -34,7 +34,7 @@ func IntegrationAccountID(i interface{}, k string) (warnings []string, errors []
 // 1-80	Alphanumerics, hyphens, periods, and underscores.
 func IntegrationServiceEnvironmentName() schema.SchemaValidateFunc {
 	return validation.StringMatch(
-		regexp.MustCompile(`^[\w-.]{1,80}$`), `Integration Service Environment name can contain only letters, numbers, '_','-' or '.' up to 80 characters in length.`,
+		regexp.MustCompile(`^[\w-.]{1,80}$`), `Integration Service Environment names must be between 1 and 80 characters in length, contain only letters, numbers, underscores, hyphens and periods.`,
 	)
 }
 
@@ -46,7 +46,7 @@ func ValidateSubnetID(i interface{}, k string) (warnings []string, errors []erro
 	}
 
 	if _, err := networkParse.SubnetID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a subnet id: %v", k, err))
+		errors = append(errors, fmt.Errorf("can not parse %q as a subnet id: %v", k, err))
 	}
 
 	return warnings, errors

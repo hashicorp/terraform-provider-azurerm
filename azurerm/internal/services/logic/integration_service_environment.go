@@ -156,7 +156,7 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("`capacity` can only be greater than zero for `sku_name` `Premium`")
 	}
 
-	properties := logic.IntegrationServiceEnvironment{
+	integrationServiceEnvironment := logic.IntegrationServiceEnvironment{
 		Name:     &name,
 		Location: &location,
 		Properties: &logic.IntegrationServiceEnvironmentProperties{
@@ -174,7 +174,7 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 		Tags: tags.Expand(t),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, integrationServiceEnvironment)
 	if err != nil {
 		return fmt.Errorf("creating/updating Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -183,16 +183,16 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("waiting for completion of Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("read request on Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("retrieving Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if read.ID == nil {
+	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("cannot read Integration Service Environment %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(*resp.ID)
 
 	return resourceArmIntegrationServiceEnvironmentRead(d, meta)
 }
@@ -293,7 +293,7 @@ func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("issuing delete request for Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Integration Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	stateConf := &resource.StateChangeConf{
@@ -341,9 +341,9 @@ func flattenSubnetResourceID(input *[]logic.ResourceReference) []interface{} {
 }
 
 func getSubnetIDs(input *logic.IntegrationServiceEnvironment) []interface{} {
-	emptySubnetIDs := make([]interface{}, 0)
+	results := make([]interface{}, 0)
 	if input == nil {
-		return emptySubnetIDs
+		return results
 	}
 
 	if props := input.Properties; props != nil {
@@ -352,7 +352,7 @@ func getSubnetIDs(input *logic.IntegrationServiceEnvironment) []interface{} {
 		}
 	}
 
-	return emptySubnetIDs
+	return results
 }
 
 func integrationServiceEnvironmentDeleteStateRefreshFunc(ctx context.Context, client *clients.Client, iseID string, subnetIDs []interface{}) resource.StateRefreshFunc {
@@ -375,7 +375,7 @@ func linkExists(ctx context.Context, client *clients.Client, iseID string, subne
 		id := *(subnetID.(*string))
 		log.Printf("Checking links on subnetID: %q\n", id)
 
-		hasLink, err := serviceAssociationLinkExists(ctx, client.Network.ServiceAssociationLinksClient, iseID, id)
+		hasLink, err := serviceAssociationLinkExists(ctx, client.Network.ServiceAssociationLinkClient, iseID, id)
 		if err != nil {
 			return false, err
 		}
@@ -383,7 +383,7 @@ func linkExists(ctx context.Context, client *clients.Client, iseID string, subne
 		if hasLink {
 			return true, nil
 		} else {
-			hasLink, err := resourceNavigationLinkExists(ctx, client.Network.ResourceNavigationLinksClient, id)
+			hasLink, err := resourceNavigationLinkExists(ctx, client.Network.ResourceNavigationLinkClient, id)
 			if err != nil {
 				return false, err
 			}
@@ -409,7 +409,7 @@ func serviceAssociationLinkExists(ctx context.Context, client *network.ServiceAs
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
 		}
-		return false, fmt.Errorf("listing Service Association Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.Name, id.ResourceGroup, err)
+		return false, fmt.Errorf("retrieving Service Association Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.Name, id.ResourceGroup, err)
 	}
 
 	if resp.Value != nil {
@@ -438,7 +438,7 @@ func resourceNavigationLinkExists(ctx context.Context, client *network.ResourceN
 		if utils.ResponseWasNotFound(resp.Response) {
 			return false, nil
 		}
-		return false, fmt.Errorf("listing Resource Navigation Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.Name, id.ResourceGroup, err)
+		return false, fmt.Errorf("retrieving Resource Navigation Links from Virtual Network %q, subnet %q (Resource Group %q): %+v", id.VirtualNetworkName, id.Name, id.ResourceGroup, err)
 	}
 
 	if resp.Value != nil {
