@@ -179,12 +179,12 @@ func testCheckAzureRMStorageDataLakeGen2PathDestroy(s *terraform.State) error {
 			return err
 		}
 
-		props, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
+		_, err = client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
 		if err != nil {
 			return nil
 		}
 
-		return fmt.Errorf("Path still exists: %+v", props)
+		return fmt.Errorf("Path still exists: %q", path)
 	}
 
 	return nil

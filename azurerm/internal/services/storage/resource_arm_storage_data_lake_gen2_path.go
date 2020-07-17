@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -160,6 +159,17 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 	fileSystemName := d.Get("filesystem_name").(string)
 	path := d.Get("path").(string)
 
+	id := client.GetResourceID(storageID.Name, fileSystemName, path)
+	resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
+	if err != nil {
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Error checking for existence of existing Path %q in  File System %q (Account %q): %+v", path, fileSystemName, storageID.Name, err)
+		}
+	}
+	if !utils.ResponseWasNotFound(resp.Response) {
+		return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_path", id)
+	}
+
 	resourceString := d.Get("resource").(string)
 	var resource paths.PathResource
 	switch resourceString {
@@ -183,21 +193,6 @@ func resourceArmStorageDataLakeGen2PathCreate(d *schema.ResourceData, meta inter
 	if v, ok := d.GetOk("group"); ok {
 		sv := v.(string)
 		group = &sv
-	}
-
-	id := client.GetResourceID(storageID.Name, fileSystemName, path)
-
-	if features.ShouldResourcesBeImported() {
-		resp, err := client.GetProperties(ctx, storageID.Name, fileSystemName, path, paths.GetPropertiesActionGetStatus)
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for existence of existing Path %q in  File System %q (Account %q): %+v", path, fileSystemName, storageID.Name, err)
-			}
-		}
-
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_storage_data_lake_gen2_path", id)
-		}
 	}
 
 	log.Printf("[INFO] Creating Path %q in File System %q in Storage Account %q.", path, fileSystemName, storageID.Name)
@@ -390,9 +385,13 @@ func expandArmDataLakeGen2PathAceList(input []interface{}) (*accesscontrol.ACL, 
 
 		tagType := accesscontrol.TagType(v["type"].(string))
 
-		id, err := expandArmDataLakeGen2PathUUIDPtr(v, "id")
-		if err != nil {
-			return nil, err
+		var id *uuid.UUID
+		if raw, ok := v["id"]; ok && raw != "" {
+			idTemp, err := uuid.Parse(raw.(string))
+			if err != nil {
+				return nil, err
+			}
+			id = &idTemp
 		}
 
 		permissions := v["permissions"].(string)
