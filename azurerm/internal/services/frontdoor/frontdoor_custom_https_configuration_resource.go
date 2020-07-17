@@ -29,7 +29,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),
-			Read:   schema.DefaultTimeout(5 * time.Hour),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(6 * time.Hour),
 			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},
