@@ -69,7 +69,7 @@ func resourceArmAppService() *schema.Resource {
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  false,
 			},
 
 			"https_only": {
@@ -81,6 +81,7 @@ func resourceArmAppService() *schema.Resource {
 			"client_cert_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"enabled": {
@@ -267,15 +268,9 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	if v, ok := d.GetOkExists("client_affinity_enabled"); ok {
-		enabled := v.(bool)
-		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
-	}
+	siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(d.Get("client_affinity_enabled").(bool))
 
-	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
-		certEnabled := v.(bool)
-		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
-	}
+	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
 
 	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
 	if err != nil {
@@ -362,10 +357,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		},
 	}
 
-	if v, ok := d.GetOkExists("client_cert_enabled"); ok {
-		certEnabled := v.(bool)
-		siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(certEnabled)
-	}
+	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
 
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, siteEnvelope)
 	if err != nil {
@@ -452,7 +444,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	// and DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS app settings to the app service.
 	// If the app settings are updated, also update the logging configuration if it exists, otherwise
 	// updating the former will clobber the log settings
-	_, hasLogs := d.GetOkExists("logs")
+	hasLogs := len(d.Get("logs").([]interface{})) > 0
 	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
 		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
 		logsResource := web.SiteLogsConfig{

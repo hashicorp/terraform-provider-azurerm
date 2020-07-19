@@ -106,7 +106,6 @@ func (client TopicTypesClient) GetSender(req *http.Request) (*http.Response, err
 func (client TopicTypesClient) GetResponder(resp *http.Response) (result TopicTypeInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -173,7 +172,6 @@ func (client TopicTypesClient) ListSender(req *http.Request) (*http.Response, er
 func (client TopicTypesClient) ListResponder(resp *http.Response) (result TopicTypesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -246,7 +244,6 @@ func (client TopicTypesClient) ListEventTypesSender(req *http.Request) (*http.Re
 func (client TopicTypesClient) ListEventTypesResponder(resp *http.Response) (result EventTypesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

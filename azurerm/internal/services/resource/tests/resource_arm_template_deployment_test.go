@@ -167,7 +167,7 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMTemplateDeployment_withError(data),
-				ExpectError: regexp.MustCompile("Error validating Template for Deployment"),
+				ExpectError: regexp.MustCompile("Error waiting for deployment"),
 			},
 		},
 	})

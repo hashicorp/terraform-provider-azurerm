@@ -121,7 +121,6 @@ func (client LocationBasedRecommendedActionSessionsResultClient) ListSender(req 
 func (client LocationBasedRecommendedActionSessionsResultClient) ListResponder(resp *http.Response) (result RecommendationActionsResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

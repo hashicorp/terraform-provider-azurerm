@@ -110,7 +110,6 @@ func (client ConsumerInvitationsClient) GetSender(req *http.Request) (*http.Resp
 func (client ConsumerInvitationsClient) GetResponder(resp *http.Response) (result ConsumerInvitation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -183,7 +182,6 @@ func (client ConsumerInvitationsClient) ListInvitationsSender(req *http.Request)
 func (client ConsumerInvitationsClient) ListInvitationsResponder(resp *http.Response) (result ConsumerInvitationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -303,7 +301,6 @@ func (client ConsumerInvitationsClient) RejectInvitationSender(req *http.Request
 func (client ConsumerInvitationsClient) RejectInvitationResponder(resp *http.Response) (result ConsumerInvitation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

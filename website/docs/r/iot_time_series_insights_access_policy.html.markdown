@@ -6,7 +6,7 @@ description: |-
   Manages an Azure IoT Time Series Insights Access Policy.
 ---
 
-# azurerm_time_series_insights_access_policy
+# azurerm_iot_time_series_insights_access_policy
 
 Manages an Azure IoT Time Series Insights Access Policy.
 

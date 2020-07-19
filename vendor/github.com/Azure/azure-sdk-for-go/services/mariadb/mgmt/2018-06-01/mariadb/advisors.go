@@ -124,7 +124,6 @@ func (client AdvisorsClient) GetSender(req *http.Request) (*http.Response, error
 func (client AdvisorsClient) GetResponder(resp *http.Response) (result Advisor, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client AdvisorsClient) ListByServerSender(req *http.Request) (*http.Respon
 func (client AdvisorsClient) ListByServerResponder(resp *http.Response) (result AdvisorsResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

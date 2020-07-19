@@ -128,7 +128,6 @@ func (client VirtualNetworkLinksClient) CreateOrUpdateSender(req *http.Request) 
 func (client VirtualNetworkLinksClient) CreateOrUpdateResponder(resp *http.Response) (result VirtualNetworkLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,7 +213,6 @@ func (client VirtualNetworkLinksClient) DeleteSender(req *http.Request) (future 
 func (client VirtualNetworkLinksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -291,7 +289,6 @@ func (client VirtualNetworkLinksClient) GetSender(req *http.Request) (*http.Resp
 func (client VirtualNetworkLinksClient) GetResponder(resp *http.Response) (result VirtualNetworkLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -373,7 +370,6 @@ func (client VirtualNetworkLinksClient) ListSender(req *http.Request) (*http.Res
 func (client VirtualNetworkLinksClient) ListResponder(resp *http.Response) (result VirtualNetworkLinkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -498,7 +494,6 @@ func (client VirtualNetworkLinksClient) UpdateSender(req *http.Request) (future 
 func (client VirtualNetworkLinksClient) UpdateResponder(resp *http.Response) (result VirtualNetworkLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

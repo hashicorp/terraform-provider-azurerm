@@ -122,7 +122,6 @@ func (client ObjectDataTypesClient) ListFieldsByModuleAndTypeSender(req *http.Re
 func (client ObjectDataTypesClient) ListFieldsByModuleAndTypeResponder(resp *http.Response) (result TypeFieldListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client ObjectDataTypesClient) ListFieldsByTypeSender(req *http.Request) (*
 func (client ObjectDataTypesClient) ListFieldsByTypeResponder(resp *http.Response) (result TypeFieldListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

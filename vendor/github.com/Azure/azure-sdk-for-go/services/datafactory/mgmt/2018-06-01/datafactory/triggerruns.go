@@ -129,7 +129,6 @@ func (client TriggerRunsClient) QueryByFactorySender(req *http.Request) (*http.R
 func (client TriggerRunsClient) QueryByFactoryResponder(resp *http.Response) (result TriggerRunsQueryResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -225,7 +224,6 @@ func (client TriggerRunsClient) RerunSender(req *http.Request) (*http.Response, 
 func (client TriggerRunsClient) RerunResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

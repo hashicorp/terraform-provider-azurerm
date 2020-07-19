@@ -125,7 +125,6 @@ func (client FlowLogsClient) CreateOrUpdateSender(req *http.Request) (future Flo
 func (client FlowLogsClient) CreateOrUpdateResponder(resp *http.Response) (result FlowLog, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client FlowLogsClient) DeleteSender(req *http.Request) (future FlowLogsDel
 func (client FlowLogsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,7 +278,6 @@ func (client FlowLogsClient) GetSender(req *http.Request) (*http.Response, error
 func (client FlowLogsClient) GetResponder(resp *http.Response) (result FlowLog, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -357,7 +354,6 @@ func (client FlowLogsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client FlowLogsClient) ListResponder(resp *http.Response) (result FlowLogListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

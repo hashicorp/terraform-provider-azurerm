@@ -112,7 +112,6 @@ func (client SystemTopicsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client SystemTopicsClient) CreateOrUpdateResponder(resp *http.Response) (result SystemTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,7 +187,6 @@ func (client SystemTopicsClient) DeleteSender(req *http.Request) (future SystemT
 func (client SystemTopicsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -263,7 +261,6 @@ func (client SystemTopicsClient) GetSender(req *http.Request) (*http.Response, e
 func (client SystemTopicsClient) GetResponder(resp *http.Response) (result SystemTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -352,7 +349,6 @@ func (client SystemTopicsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client SystemTopicsClient) ListByResourceGroupResponder(resp *http.Response) (result SystemTopicsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -476,7 +472,6 @@ func (client SystemTopicsClient) ListBySubscriptionSender(req *http.Request) (*h
 func (client SystemTopicsClient) ListBySubscriptionResponder(resp *http.Response) (result SystemTopicsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -592,7 +587,6 @@ func (client SystemTopicsClient) UpdateSender(req *http.Request) (future SystemT
 func (client SystemTopicsClient) UpdateResponder(resp *http.Response) (result SystemTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

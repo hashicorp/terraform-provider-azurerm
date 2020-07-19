@@ -113,7 +113,6 @@ func (client VpnLinkConnectionsClient) ListByVpnConnectionSender(req *http.Reque
 func (client VpnLinkConnectionsClient) ListByVpnConnectionResponder(resp *http.Response) (result ListVpnSiteLinkConnectionsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

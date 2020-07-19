@@ -118,7 +118,6 @@ func (client SecureScoreControlsClient) ListSender(req *http.Request) (*http.Res
 func (client SecureScoreControlsClient) ListResponder(resp *http.Response) (result SecureScoreControlList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -241,7 +240,6 @@ func (client SecureScoreControlsClient) ListBySecureScoreSender(req *http.Reques
 func (client SecureScoreControlsClient) ListBySecureScoreResponder(resp *http.Response) (result SecureScoreControlList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

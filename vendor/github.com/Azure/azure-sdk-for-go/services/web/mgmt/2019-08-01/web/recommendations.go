@@ -119,7 +119,6 @@ func (client RecommendationsClient) DisableAllForHostingEnvironmentSender(req *h
 func (client RecommendationsClient) DisableAllForHostingEnvironmentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -202,7 +201,6 @@ func (client RecommendationsClient) DisableAllForWebAppSender(req *http.Request)
 func (client RecommendationsClient) DisableAllForWebAppResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -288,7 +286,6 @@ func (client RecommendationsClient) DisableRecommendationForHostingEnvironmentSe
 func (client RecommendationsClient) DisableRecommendationForHostingEnvironmentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -373,7 +370,6 @@ func (client RecommendationsClient) DisableRecommendationForSiteSender(req *http
 func (client RecommendationsClient) DisableRecommendationForSiteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -447,7 +443,6 @@ func (client RecommendationsClient) DisableRecommendationForSubscriptionSender(r
 func (client RecommendationsClient) DisableRecommendationForSubscriptionResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -541,7 +536,6 @@ func (client RecommendationsClient) GetRuleDetailsByHostingEnvironmentSender(req
 func (client RecommendationsClient) GetRuleDetailsByHostingEnvironmentResponder(resp *http.Response) (result RecommendationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -636,7 +630,6 @@ func (client RecommendationsClient) GetRuleDetailsByWebAppSender(req *http.Reque
 func (client RecommendationsClient) GetRuleDetailsByWebAppResponder(resp *http.Response) (result RecommendationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -720,7 +713,6 @@ func (client RecommendationsClient) ListSender(req *http.Request) (*http.Respons
 func (client RecommendationsClient) ListResponder(resp *http.Response) (result RecommendationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -854,7 +846,6 @@ func (client RecommendationsClient) ListHistoryForHostingEnvironmentSender(req *
 func (client RecommendationsClient) ListHistoryForHostingEnvironmentResponder(resp *http.Response) (result RecommendationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -987,7 +978,6 @@ func (client RecommendationsClient) ListHistoryForWebAppSender(req *http.Request
 func (client RecommendationsClient) ListHistoryForWebAppResponder(resp *http.Response) (result RecommendationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1119,7 +1109,6 @@ func (client RecommendationsClient) ListRecommendedRulesForHostingEnvironmentSen
 func (client RecommendationsClient) ListRecommendedRulesForHostingEnvironmentResponder(resp *http.Response) (result RecommendationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1251,7 +1240,6 @@ func (client RecommendationsClient) ListRecommendedRulesForWebAppSender(req *htt
 func (client RecommendationsClient) ListRecommendedRulesForWebAppResponder(resp *http.Response) (result RecommendationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1359,7 +1347,6 @@ func (client RecommendationsClient) ResetAllFiltersSender(req *http.Request) (*h
 func (client RecommendationsClient) ResetAllFiltersResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1443,7 +1430,6 @@ func (client RecommendationsClient) ResetAllFiltersForHostingEnvironmentSender(r
 func (client RecommendationsClient) ResetAllFiltersForHostingEnvironmentResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1526,7 +1512,6 @@ func (client RecommendationsClient) ResetAllFiltersForWebAppSender(req *http.Req
 func (client RecommendationsClient) ResetAllFiltersForWebAppResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

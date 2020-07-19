@@ -126,7 +126,6 @@ func (client IntegrationAccountBatchConfigurationsClient) CreateOrUpdateSender(r
 func (client IntegrationAccountBatchConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result BatchConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client IntegrationAccountBatchConfigurationsClient) DeleteSender(req *http
 func (client IntegrationAccountBatchConfigurationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -281,7 +279,6 @@ func (client IntegrationAccountBatchConfigurationsClient) GetSender(req *http.Re
 func (client IntegrationAccountBatchConfigurationsClient) GetResponder(resp *http.Response) (result BatchConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -357,7 +354,6 @@ func (client IntegrationAccountBatchConfigurationsClient) ListSender(req *http.R
 func (client IntegrationAccountBatchConfigurationsClient) ListResponder(resp *http.Response) (result BatchConfigurationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

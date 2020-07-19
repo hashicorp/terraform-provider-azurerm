@@ -85,9 +85,9 @@ func resourceArmBlueprintAssignment() *schema.Resource {
 				Optional: true,
 				Default:  string(blueprint.None),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(blueprint.None),
-					string(blueprint.AllResourcesReadOnly),
-					string(blueprint.AllResourcesDoNotDelete),
+					string(blueprint.AssignmentLockModeNone),
+					string(blueprint.AssignmentLockModeAllResourcesReadOnly),
+					string(blueprint.AssignmentLockModeAllResourcesDoNotDelete),
 				}, false),
 				// The first character of value returned by the service is always in lower case.
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -311,7 +311,9 @@ func resourceArmBlueprintAssignmentDelete(d *schema.ResourceData, meta interface
 	name := assignmentID.Name
 	targetScope := assignmentID.Scope
 
-	resp, err := client.Delete(ctx, targetScope, name)
+	// We use none here to align the previous behaviour of the blueprint resource
+	// TODO: we could add a features flag for the blueprint to empower terraform when deleting the blueprint to delete all the generated resources as well
+	resp, err := client.Delete(ctx, targetScope, name, blueprint.None)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil

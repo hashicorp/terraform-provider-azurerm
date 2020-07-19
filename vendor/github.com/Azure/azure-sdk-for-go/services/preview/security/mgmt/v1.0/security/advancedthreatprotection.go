@@ -81,7 +81,7 @@ func (client AdvancedThreatProtectionClient) Create(ctx context.Context, resourc
 // CreatePreparer prepares the Create request.
 func (client AdvancedThreatProtectionClient) CreatePreparer(ctx context.Context, resourceID string, advancedThreatProtectionSetting AdvancedThreatProtectionSetting) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceId":  autorest.Encode("path", resourceID),
+		"resourceId":  resourceID,
 		"settingName": autorest.Encode("path", "current"),
 	}
 
@@ -111,7 +111,6 @@ func (client AdvancedThreatProtectionClient) CreateSender(req *http.Request) (*h
 func (client AdvancedThreatProtectionClient) CreateResponder(resp *http.Response) (result AdvancedThreatProtectionSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -157,7 +156,7 @@ func (client AdvancedThreatProtectionClient) Get(ctx context.Context, resourceID
 // GetPreparer prepares the Get request.
 func (client AdvancedThreatProtectionClient) GetPreparer(ctx context.Context, resourceID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"resourceId":  autorest.Encode("path", resourceID),
+		"resourceId":  resourceID,
 		"settingName": autorest.Encode("path", "current"),
 	}
 
@@ -185,7 +184,6 @@ func (client AdvancedThreatProtectionClient) GetSender(req *http.Request) (*http
 func (client AdvancedThreatProtectionClient) GetResponder(resp *http.Response) (result AdvancedThreatProtectionSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

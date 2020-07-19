@@ -176,7 +176,7 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 
 resource "azurerm_postgresql_active_directory_administrator" "test" {
@@ -233,7 +233,7 @@ resource "azurerm_postgresql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
-  ssl_enforcement              = "Enabled"
+  ssl_enforcement_enabled      = true
 }
 
 resource "azurerm_postgresql_active_directory_administrator" "test" {

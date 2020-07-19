@@ -296,9 +296,8 @@ resource "azurerm_stream_analytics_stream_input_eventhub" "import" {
   dynamic "serialization" {
     for_each = azurerm_stream_analytics_stream_input_eventhub.test.serialization
     content {
-      encoding        = lookup(serialization.value, "encoding", null)
-      field_delimiter = lookup(serialization.value, "field_delimiter", null)
-      type            = serialization.value.type
+      encoding = lookup(serialization.value, "encoding", null)
+      type     = serialization.value.type
     }
   }
 }
