@@ -47,5 +47,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_storage_share_directory":              resourceArmStorageShareDirectory(),
 		"azurerm_storage_table":                        resourceArmStorageTable(),
 		"azurerm_storage_table_entity":                 resourceArmStorageTableEntity(),
+		"azurerm_storage_sync":                         resourceArmStorageSync(),
 	}
 }

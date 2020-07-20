@@ -3,17 +3,17 @@ package storage
 import (
 	"fmt"
 	"log"
-	"regexp"
-	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2019-06-01/storagesync"
+	"github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -44,12 +44,21 @@ func resourceArmStorageSync() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateArmStorageSyncName,
+				ValidateFunc: validate.StorageSyncName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
+
+			"incoming_traffic_policy": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(storagesync.AllowAllTraffic),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storagesync.AllowAllTraffic),
+					string(storagesync.AllowVirtualNetworksOnly)}, false),
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -57,43 +66,46 @@ func resourceArmStorageSync() *schema.Resource {
 }
 
 func resourceArmStorageSyncCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StoragesyncClient
+	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for present of existing Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
-			}
-		}
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_storage_sync", *existing.ID)
+	existing, err := client.Get(ctx, resourceGroupName, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for present of existing Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
 		}
 	}
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_storage_sync", *existing.ID)
+	}
 
 	parameters := storagesync.ServiceCreateParameters{
-		Location: utils.String(location),
-		Tags:     tags.Expand(t),
+		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		ServiceCreateParametersProperties: &storagesync.ServiceCreateParametersProperties{
+			IncomingTrafficPolicy: storagesync.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string)),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Create(ctx, resourceGroupName, name, parameters); err != nil {
-		return fmt.Errorf("Error creating Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+	future, err := client.Create(ctx, resourceGroupName, name, parameters)
+	if err != nil {
+		return fmt.Errorf("creating Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for creation of Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
+		return fmt.Errorf("retrieving Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resourceGroupName, err)
 	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Storage Sync(Storage Sync Name %q / Resource Group %q) ID", name, resourceGroupName)
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("storage Sync(Storage Sync Name %q / Resource Group %q) ID is empty or nil", name, resourceGroupName)
 	}
 	d.SetId(*resp.ID)
 
@@ -101,7 +113,7 @@ func resourceArmStorageSyncCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StoragesyncClient
+	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -117,20 +129,20 @@ func resourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) error 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("reading Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
-	var location string
-	if resp.Location != nil {
-		location = *resp.Location
+	d.Set("location", location.NormalizeNilable(resp.Location))
+	if props := resp.ServiceProperties; props != nil {
+		d.Set("incoming_traffic_policy", props.IncomingTrafficPolicy)
+
 	}
-	d.Set("location", azure.NormalizeLocation(location))
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmStorageSyncUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StoragesyncClient
+	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -145,16 +157,26 @@ func resourceArmStorageSyncUpdate(d *schema.ResourceData, meta interface{}) erro
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	_, err = client.Update(ctx, id.ResourceGroup, id.Name, &update)
+	if d.HasChange("incoming_traffic_policy") {
+		update.ServiceUpdateProperties = &storagesync.ServiceUpdateProperties{
+			IncomingTrafficPolicy: storagesync.IncomingTrafficPolicy(d.Get("incoming_traffic_policy").(string)),
+		}
+	}
+
+	future, err := client.Update(ctx, id.ResourceGroup, id.Name, &update)
 	if err != nil {
-		return fmt.Errorf("Error updating Storage Sync %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("updating Storage Sync %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for update of Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return resourceArmStorageSyncRead(d, meta)
 }
 
 func resourceArmStorageSyncDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StoragesyncClient
+	client := meta.(*clients.Client).Storage.SyncServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -163,19 +185,14 @@ func resourceArmStorageSyncDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
-		return fmt.Errorf("Error deleting Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting for deletion of Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
-}
-
-func ValidateArmStorageSyncName(v interface{}, _ string) (warnings []string, errors []error) {
-	input := v.(string)
-
-	if !regexp.MustCompile("^[0-9a-zA-Z-_.]*[0-9a-zA-Z-_]$").MatchString(strings.TrimSpace(input)) {
-		errors = append(errors, fmt.Errorf("name (%q) can only consist of letters, numbers, spaces, and any of the following characters: '.-_' and that does not end with characters: '. '", input))
-	}
-
-	return warnings, errors
 }
