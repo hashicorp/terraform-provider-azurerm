@@ -93,7 +93,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
-			"autoscale_settings": common.DatabaseAutoscaleSettingsSchema(),
+			"autoscale_settings": common.MongoCollectionAutoscaleSettingsSchema(),
 
 			"index": {
 				Type:     schema.TypeSet,

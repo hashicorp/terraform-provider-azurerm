@@ -30,3 +30,10 @@ func ContainerAutoscaleSettingsSchema() *schema.Schema {
 
 	return autoscaleSettingsDatabaseSchema
 }
+
+func MongoCollectionAutoscaleSettingsSchema() *schema.Schema {
+	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
+	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"shard_key"}
+
+	return autoscaleSettingsDatabaseSchema
+}
