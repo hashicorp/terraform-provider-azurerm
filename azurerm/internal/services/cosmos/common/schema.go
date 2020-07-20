@@ -23,3 +23,10 @@ func DatabaseAutoscaleSettingsSchema() *schema.Schema {
 		},
 	}
 }
+
+func ContainerAutoscaleSettingsSchema() *schema.Schema {
+	autoscaleSettingsDatabaseSchema := DatabaseAutoscaleSettingsSchema()
+	autoscaleSettingsDatabaseSchema.RequiredWith = []string{"partition_key_path"}
+
+	return autoscaleSettingsDatabaseSchema
+}
