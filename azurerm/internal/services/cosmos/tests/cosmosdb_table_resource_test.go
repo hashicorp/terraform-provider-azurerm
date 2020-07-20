@@ -187,7 +187,6 @@ resource "azurerm_cosmosdb_table" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
-  partition_key_path  = "/definition/id"
   autoscale_settings {
     max_throughput = %[3]d
   }
