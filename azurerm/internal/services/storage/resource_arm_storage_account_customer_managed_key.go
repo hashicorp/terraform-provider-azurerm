@@ -60,9 +60,8 @@ func resourceArmStorageAccountCustomerManagedKey() *schema.Resource {
 			},
 
 			"key_version": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 		},
 	}
