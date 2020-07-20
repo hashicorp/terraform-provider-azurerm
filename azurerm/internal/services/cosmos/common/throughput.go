@@ -2,10 +2,11 @@ package common
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
 )
 
 func GetThroughputFromResult(throughputResponse documentdb.ThroughputSettingsGetResults) *int32 {

@@ -191,7 +191,7 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   account_name        = azurerm_cosmosdb_account.test.name
   autoscale_settings {
     max_throughput = %[3]d
-  } 
+  }
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, documentdb.GlobalDocumentDB, documentdb.Strong), data.RandomInteger, maxThroughput)
 }

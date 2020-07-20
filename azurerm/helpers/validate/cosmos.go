@@ -54,7 +54,6 @@ func CosmosMaxThroughput(v interface{}, k string) (warnings []string, errors []e
 	if value > 1000000 {
 		errors = append(errors, fmt.Errorf(
 			"%s must be a maximum of 1000000", k))
-
 	}
 
 	if value%1000 != 0 {
