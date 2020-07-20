@@ -855,7 +855,7 @@ resource "azurerm_cosmosdb_account" "test" {
   offer_type          = "Standard"
   kind                = "%s"
 
-  enable_free_tier    = true
+  enable_free_tier = true
 
   consistency_policy {
     consistency_level = "%s"
