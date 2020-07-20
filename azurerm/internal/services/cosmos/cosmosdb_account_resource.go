@@ -107,6 +107,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+				ForceNew: true,
 			},
 
 			"enable_automatic_failover": {
@@ -547,13 +548,11 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
 	d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(resp.IPRules))
 	d.Set("endpoint", resp.DocumentEndpoint)
+	
+	d.Set("enable_free_tier", resp.EnableFreeTier)
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
-	}
-
-	if v := resp.EnableFreeTier; v != nil {
-		d.Set("enable_free_tier", resp.EnableFreeTier)
 	}
 
 	if v := resp.EnableAutomaticFailover; v != nil {

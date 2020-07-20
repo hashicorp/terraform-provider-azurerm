@@ -380,6 +380,26 @@ func TestAccAzureRMCosmosDBAccount_geoLocationsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_freeTier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_freeTier(data, "GlobalDocumentDB", documentdb.Eventual),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_free_tier", "true"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDBAccount_vNetFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
@@ -786,8 +806,6 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
-  
-  enable_free_tier    = false
 
   enable_multiple_write_locations = false
   enable_automatic_failover       = false
@@ -817,6 +835,38 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, testAccAzureRMCosmosDBAccount_vNetFiltersPreReqs(data), data.RandomInteger)
+}
+
+func testAccAzureRMCosmosDBAccount_freeTier(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  enable_free_tier    = true
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
 func checkAccAzureRMCosmosDBAccount_basic(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel, locationCount int) resource.TestCheckFunc {
