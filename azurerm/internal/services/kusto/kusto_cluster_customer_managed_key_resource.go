@@ -247,7 +247,7 @@ func resourceArmKustoClusterCustomerManagedKeyDelete(d *schema.ResourceData, met
 	// Since this isn't a real object, just modifying an existing object
 	// "Delete" doesn't really make sense it should really be a "Revert to Default"
 	// So instead of the Delete func actually deleting the Kusto Cluster I am
-	// making it reset the Kusto Cluster to it's default state
+	// making it reset the Kusto cluster to its default state
 	props := kusto.ClusterUpdate{
 		ClusterProperties: &kusto.ClusterProperties{
 			KeyVaultProperties: &kusto.KeyVaultProperties{},
