@@ -181,7 +181,7 @@ The `virtual_machine` block supports the following:
 
 * `delete_os_disk_on_deletion` - (Optional) Should the `azurerm_linux_virtual_machine` and `azurerm_windows_virtual_machine` resources delete the OS Disk attached to the Virtual Machine when the Virtual Machine is destroyed? Defaults to `true`.
 
-~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has it's own flags for managing this within the resource.
+~> **Note:** This does not affect the older `azurerm_virtual_machine` resource, which has its own flags for managing this within the resource.
 
 ---
 

@@ -45,8 +45,8 @@ ENHANCEMENTS:
 * `azurerm_policy_assignment` - support for `metadata` property ([#7725](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7725))
 * `azurerm_policy_set_definition` - support for the `policy_definition_reference_id` property ([#7018](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7018))
 * `azurerm_storage_account` - support for configuring `allow_blob_public_access` ([#7739](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7739))
-* `azurerm_storage_container` - container creation will retry if a container of the same name has not completed it's delete operation ([#7179](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7179))
-* `azurerm_storage_share` - share creation will retry if a share of the same name has not completed it's previous delete operation ([#7179](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7179))
+* `azurerm_storage_container` - container creation will retry if a container of the same name has not completed its delete operation ([#7179](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7179))
+* `azurerm_storage_share` - share creation will retry if a share of the same name has not completed its previous delete operation ([#7179](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7179))
 * `azurerm_virtual_network_gateway_connection` - support for the `traffic_selector_policy` block ([#6586](https://github.com/terraform-providers/terraform-provider-azurerm/issues/6586))
 * `azurerm_orchestrated_virtual_machine_scale_set` - support for the `proximity_placement_group_id` property ([#7510](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7510))
 

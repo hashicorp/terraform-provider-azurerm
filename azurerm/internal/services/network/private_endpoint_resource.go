@@ -604,7 +604,7 @@ func flattenArmPrivateDnsZoneConfigs(input *[]network.PrivateDNSZoneConfig, zone
 
 		if name := v.Name; name != nil {
 			result["name"] = *name
-			// I have to consturct this because the SDK does not expose it in it's PrivateDNSZoneConfig struct
+			// I have to consturct this because the SDK does not expose it in its PrivateDNSZoneConfig struct
 			result["id"] = fmt.Sprintf("%s/privateDnsZoneConfigs/%s", zoneGroupId, *name)
 		}
 
