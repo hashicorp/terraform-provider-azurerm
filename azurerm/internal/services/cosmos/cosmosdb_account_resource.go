@@ -327,6 +327,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableFreeTier := d.Get("enable_free_tier").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -357,6 +358,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			Capabilities:                  expandAzureRmCosmosDBAccountCapabilities(d),
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
+			EnableFreeTier:                utils.Bool(enableFreeTier),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -405,6 +407,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
+	enableFreeTier := d.Get("enable_free_tier").(bool)
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -445,6 +448,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			Locations:                     &oldLocations,
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  resp.EnableMultipleWriteLocations,
+			EnableFreeTier:                utils.Bool(enableFreeTier),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -544,6 +548,10 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	if v := resp.EnableAutomaticFailover; v != nil {
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
+	}
+
+	if v := resp.EnableFreeTier; v != nil {
+		d.Set("enable_free_tier", resp.EnableFreeTier)
 	}
 
 	if v := resp.EnableMultipleWriteLocations; v != nil {

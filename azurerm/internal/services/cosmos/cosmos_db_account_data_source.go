@@ -218,6 +218,7 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("endpoint", props.DocumentEndpoint)
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
 		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
+		d.Set("enable_free_tier", resp.EnableFreeTier)
 
 		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
 			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)
