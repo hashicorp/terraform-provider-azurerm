@@ -40,6 +40,16 @@ resource "azurerm_synapse_workspace" "example" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.example.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
+
+  aad_admin {
+    login     = "AzureAD Admin"
+    object_id = "00000000-0000-0000-0000-000000000000"
+    tenant_id = "00000000-0000-0000-0000-000000000000"
+  }
+
+  tags = {
+    Env = "production"
+  }
 }
 ```
 
@@ -61,7 +71,19 @@ The following arguments are supported:
 
 * `managed_virtual_network_enabled` - (Optional) Is Virtual Network enabled for all computes in this workspace. Changing this forces a new resource to be created.
 
+* `aad_admin` - (Optional) An `aad_admin` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
+
+---
+
+An `aad_admin` block supports the following:
+
+* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace.
+
+* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace.
+
+* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
 
 ## Attributes Reference
 

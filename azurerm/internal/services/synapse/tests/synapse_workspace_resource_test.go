@@ -50,7 +50,7 @@ func TestAccAzureRMSynapseWorkspace_requiresImport(t *testing.T) {
 
 func TestAccAzureRMSynapseWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_synapse_workspace", "test")
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMSynapseWorkspaceDestroy,
@@ -87,6 +87,12 @@ func TestAccAzureRMSynapseWorkspace_update(t *testing.T) {
 				),
 			},
 			data.ImportStep("sql_administrator_login_password"),
+			{
+				Config: testAccAzureRMSynapseWorkspace_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSynapseWorkspaceExists(data.ResourceName),
+				),
+			},
 		},
 	})
 }
@@ -155,6 +161,7 @@ func testAccAzureRMSynapseWorkspace_requiresImport(data acceptance.TestData) str
 	config := testAccAzureRMSynapseWorkspace_basic(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_synapse_workspace" "import" {
   name                                 = azurerm_synapse_workspace.test.name
   resource_group_name                  = azurerm_synapse_workspace.test.resource_group_name
@@ -170,6 +177,7 @@ func testAccAzureRMSynapseWorkspace_complete(data acceptance.TestData) string {
 	template := testAccAzureRMSynapseWorkspace_template(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_synapse_workspace" "test" {
   name                                 = "acctestsw%d"
   resource_group_name                  = azurerm_resource_group.test.name
@@ -191,6 +199,9 @@ func testAccAzureRMSynapseWorkspace_withUpdateFields(data acceptance.TestData) s
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {
+}
+
 resource "azurerm_synapse_workspace" "test" {
   name                                 = "acctestsw%d"
   resource_group_name                  = azurerm_resource_group.test.name
@@ -198,6 +209,12 @@ resource "azurerm_synapse_workspace" "test" {
   storage_data_lake_gen2_filesystem_id = azurerm_storage_data_lake_gen2_filesystem.test.id
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR4!"
+
+  aad_admin {
+    login     = "AzureAD Admin"
+    object_id = data.azurerm_client_config.current.object_id
+    tenant_id = data.azurerm_client_config.current.tenant_id
+  }
 
   tags = {
     ENV = "Test"

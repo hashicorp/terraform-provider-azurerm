@@ -6,14 +6,19 @@ import (
 )
 
 type Client struct {
-	WorkspaceClient *synapse.WorkspacesClient
+	WorkspaceClient          *synapse.WorkspacesClient
+	WorkspaceAadAdminsClient *synapse.WorkspaceAadAdminsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
 	workspaceClient := synapse.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceClient.Client, o.ResourceManagerAuthorizer)
 
+	workspaceAadAdminsClient := synapse.NewWorkspaceAadAdminsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		WorkspaceClient: &workspaceClient,
+		WorkspaceClient:          &workspaceClient,
+		WorkspaceAadAdminsClient: &workspaceAadAdminsClient,
 	}
 }
