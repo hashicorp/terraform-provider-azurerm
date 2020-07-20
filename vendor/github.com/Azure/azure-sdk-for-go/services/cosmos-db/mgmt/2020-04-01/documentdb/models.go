@@ -1312,6 +1312,8 @@ type DatabaseAccountCreateUpdateProperties struct {
 	IPRules *[]IPAddressOrRange `json:"ipRules,omitempty"`
 	// IsVirtualNetworkFilterEnabled - Flag to indicate whether to enable/disable Virtual Network ACL rules.
 	IsVirtualNetworkFilterEnabled *bool `json:"isVirtualNetworkFilterEnabled,omitempty"`
+	// EnableFreeTier - Enables Free Tier pricing option for the Cosmos DB account.
+	EnableFreeTier *bool `json:"enableFreeTier,omitempty"`
 	// EnableAutomaticFailover - Enables automatic failover of the write region in the rare event that the region is unavailable due to an outage. Automatic failover will result in a new write region for the account and is chosen based on the failover priorities configured for the account.
 	EnableAutomaticFailover *bool `json:"enableAutomaticFailover,omitempty"`
 	// Capabilities - List of Cosmos DB capabilities for the account
@@ -1349,6 +1351,8 @@ type DatabaseAccountGetProperties struct {
 	IPRules *[]IPAddressOrRange `json:"ipRules,omitempty"`
 	// IsVirtualNetworkFilterEnabled - Flag to indicate whether to enable/disable Virtual Network ACL rules.
 	IsVirtualNetworkFilterEnabled *bool `json:"isVirtualNetworkFilterEnabled,omitempty"`
+	// EnableFreeTier - Enables Free Tier pricing option for the Cosmos DB account.
+	EnableFreeTier *bool `json:"enableFreeTier,omitempty"`
 	// EnableAutomaticFailover - Enables automatic failover of the write region in the rare event that the region is unavailable due to an outage. Automatic failover will result in a new write region for the account and is chosen based on the failover priorities configured for the account.
 	EnableAutomaticFailover *bool `json:"enableAutomaticFailover,omitempty"`
 	// ConsistencyPolicy - The consistency policy for the Cosmos DB database account.
@@ -1791,6 +1795,8 @@ type DatabaseAccountUpdateProperties struct {
 	IPRules *[]IPAddressOrRange `json:"ipRules,omitempty"`
 	// IsVirtualNetworkFilterEnabled - Flag to indicate whether to enable/disable Virtual Network ACL rules.
 	IsVirtualNetworkFilterEnabled *bool `json:"isVirtualNetworkFilterEnabled,omitempty"`
+	// EnableFreeTier - Enables Free Tier pricing option for the Cosmos DB account.
+	EnableFreeTier *bool `json:"enableFreeTier,omitempty"`
 	// EnableAutomaticFailover - Enables automatic failover of the write region in the rare event that the region is unavailable due to an outage. Automatic failover will result in a new write region for the account and is chosen based on the failover priorities configured for the account.
 	EnableAutomaticFailover *bool `json:"enableAutomaticFailover,omitempty"`
 	// Capabilities - List of Cosmos DB capabilities for the account
