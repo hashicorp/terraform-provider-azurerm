@@ -149,7 +149,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			"allow_blob_public_access": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default:  false,
 			},
 
 			"network_rules": {

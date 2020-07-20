@@ -243,6 +243,14 @@ func TestAccAzureRMStorageAccount_allowBlobPublicAccess(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
 		Steps: []resource.TestStep{
 			{
+				Config: testAccAzureRMStorageAccount_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_blob_public_access", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
 				Config: testAccAzureRMStorageAccount_allowBlobPublicAccess(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
