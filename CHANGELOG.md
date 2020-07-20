@@ -3,6 +3,7 @@
 UPGRADE NOTES
 
 * **Enhanced Validation for Locations** - the Azure Provider now validates that the value for the `location` argument is a supported Azure Region within the Azure Environment being used (from the Azure Metadata Service) - which allows us to catch configuration errors for this field at `terraform plan` time, rather than during a `terraform apply`. This functionality is now enabled by default, and can be opted-out of by setting the Environment Variable `ARM_PROVIDER_ENHANCED_VALIDATION` to `false`
+* `azurerm_storage_account` - will now default `allow_blob_public_access` to false to align with the portal and be secure by default [GH-7784]
 
 DEPENDENCIES:
 
@@ -18,6 +19,7 @@ BUG FIXES
 * Data Source: `azurerm_private_dns_zone` - fix a crash when the zone does not exist [GH-7783]
 * `azurerm_application_gateway` - fix crash with `gateway_ip_configuration` [GH-7789]
 * `azurerm_cosmos_account` - the `geo_location.prefix` property has been deprecated as service no longer accepts it as an input since Apr 25, 2019 [GH-7597]
+* `azurerm_storage_account` - will now default `allow_blob_public_access` to false to align with the portal and be secure by default [GH-7784]
 
 ## 2.19.0 (July 16, 2020)
 
