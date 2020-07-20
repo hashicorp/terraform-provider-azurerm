@@ -8,9 +8,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datashare/mgmt/2019-11-01/datashare"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	dataLakeParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datashare/validate"
@@ -51,32 +51,11 @@ func resourceArmDataShareDataSetDataLakeGen1() *schema.Resource {
 				ValidateFunc: validate.DataShareID,
 			},
 
-			"data_lake_store": {
-				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: azure.ValidateDataLakeAccountName(),
-						},
-
-						"resource_group_name": azure.SchemaResourceGroupName(),
-
-						"subscription_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							Sensitive:    true,
-							ValidateFunc: validation.IsUUID,
-						},
-					},
-				},
+			"data_lake_store_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DatalakeStoreID,
 			},
 
 			"folder_path": {
@@ -122,15 +101,20 @@ func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta 
 		return tf.ImportAsExistsError("azurerm_data_share_dataset_data_lake_gen1", *existingId)
 	}
 
+	dataLakeStoreId, err := dataLakeParse.DataLakeStoreID(d.Get("data_lake_store_id").(string))
+	if err != nil {
+		return err
+	}
+
 	var dataSet datashare.BasicDataSet
 
 	if fileName, ok := d.GetOk("file_name"); ok {
 		dataSet = datashare.ADLSGen1FileDataSet{
 			Kind: datashare.KindAdlsGen1File,
 			ADLSGen1FileProperties: &datashare.ADLSGen1FileProperties{
-				AccountName:    utils.String(d.Get("data_lake_store.0.name").(string)),
-				ResourceGroup:  utils.String(d.Get("data_lake_store.0.resource_group_name").(string)),
-				SubscriptionID: utils.String(d.Get("data_lake_store.0.subscription_id").(string)),
+				AccountName:    utils.String(dataLakeStoreId.Name),
+				ResourceGroup:  utils.String(dataLakeStoreId.ResourceGroup),
+				SubscriptionID: utils.String(dataLakeStoreId.Subscription),
 				FolderPath:     utils.String(d.Get("folder_path").(string)),
 				FileName:       utils.String(fileName.(string)),
 			},
@@ -139,9 +123,9 @@ func resourceArmDataShareDataSetDataLakeGen1Create(d *schema.ResourceData, meta 
 		dataSet = datashare.ADLSGen1FolderDataSet{
 			Kind: datashare.KindAdlsGen1Folder,
 			ADLSGen1FolderProperties: &datashare.ADLSGen1FolderProperties{
-				AccountName:    utils.String(d.Get("data_lake_store.0.name").(string)),
-				ResourceGroup:  utils.String(d.Get("data_lake_store.0.resource_group_name").(string)),
-				SubscriptionID: utils.String(d.Get("data_lake_store.0.subscription_id").(string)),
+				AccountName:    utils.String(dataLakeStoreId.Name),
+				ResourceGroup:  utils.String(dataLakeStoreId.ResourceGroup),
+				SubscriptionID: utils.String(dataLakeStoreId.Subscription),
 				FolderPath:     utils.String(d.Get("folder_path").(string)),
 			},
 		}
@@ -198,8 +182,8 @@ func resourceArmDataShareDataSetDataLakeGen1Read(d *schema.ResourceData, meta in
 	switch resp := resp.Value.(type) {
 	case datashare.ADLSGen1FileDataSet:
 		if props := resp.ADLSGen1FileProperties; props != nil {
-			if err := d.Set("data_lake_store", flattenAzureRmDataShareDataSetDataLakeStore(props.AccountName, props.ResourceGroup, props.SubscriptionID)); err != nil {
-				return fmt.Errorf("setting `data_lake_store`: %+v", err)
+			if props.SubscriptionID != nil && props.ResourceGroup != nil && props.AccountName != nil {
+				d.Set("data_lake_store_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataLakeStore/accounts/%s", *props.SubscriptionID, *props.ResourceGroup, *props.AccountName))
 			}
 			d.Set("folder_path", props.FolderPath)
 			d.Set("file_name", props.FileName)
@@ -208,8 +192,8 @@ func resourceArmDataShareDataSetDataLakeGen1Read(d *schema.ResourceData, meta in
 
 	case datashare.ADLSGen1FolderDataSet:
 		if props := resp.ADLSGen1FolderProperties; props != nil {
-			if err := d.Set("data_lake_store", flattenAzureRmDataShareDataSetDataLakeStore(props.AccountName, props.ResourceGroup, props.SubscriptionID)); err != nil {
-				return fmt.Errorf("setting `data_lake_store`: %+v", err)
+			if props.SubscriptionID != nil && props.ResourceGroup != nil && props.AccountName != nil {
+				d.Set("data_lake_store_id", fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DataLakeStore/accounts/%s", *props.SubscriptionID, *props.ResourceGroup, *props.AccountName))
 			}
 			d.Set("folder_path", props.FolderPath)
 			d.Set("display_name", props.DataSetID)
@@ -236,27 +220,4 @@ func resourceArmDataShareDataSetDataLakeGen1Delete(d *schema.ResourceData, meta 
 		return fmt.Errorf("deleting DataShare DataSet %q (Resource Group %q / accountName %q / shareName %q): %+v", id.Name, id.ResourceGroup, id.AccountName, id.ShareName, err)
 	}
 	return nil
-}
-
-func flattenAzureRmDataShareDataSetDataLakeStore(strName, strRG, strSubs *string) []interface{} {
-	var name, rg, subs string
-	if strName != nil {
-		name = *strName
-	}
-
-	if strRG != nil {
-		rg = *strRG
-	}
-
-	if strSubs != nil {
-		subs = *strSubs
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"name":                name,
-			"resource_group_name": rg,
-			"subscription_id":     subs,
-		},
-	}
 }

@@ -61,15 +61,11 @@ resource "azurerm_role_assignment" "example" {
 }
 
 resource "azurerm_data_share_dataset_data_lake_gen1" "example" {
-  name          = "example-dlg1ds"
-  data_share_id = azurerm_data_share.example.id
-  data_lake_store {
-    name                = azurerm_data_lake_store.example.name
-    resource_group_name = azurerm_data_lake_store.example.resource_group_name
-    subscription_id     = "00000000-0000-0000-0000-000000000000"
-  }
-  file_name   = "myfile.txt"
-  folder_path = "example"
+  name               = "example-dlg1ds"
+  data_share_id      = azurerm_data_share.example.id
+  data_lake_store_id = azurerm_data_lake_store.example.id
+  file_name          = "myfile.txt"
+  folder_path        = "example"
   depends_on = [
     azurerm_role_assignment.example,
   ]
@@ -84,21 +80,11 @@ The following arguments are supported:
 
 * `data_share_id` - (Required) The resource ID of the Data Share where this Data Share Data Lake Gen1 Dataset should be created. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
 
-* `data_lake_store` - (Required) A `data_lake_store` block as defined below.
+* `data_lake_store_id` - (Required) The resource ID of the Data Lake Store to be shared with the receiver.
 
 * `folder_path` - (Required) The folder path of the data lake store to be shared with the receiver. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
 
 * `file_name` - (Optional) The file name of the data lake store to be shared with the receiver. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
-
----
-
-A `data_lake_store` block supports the following:
-
-* `name` - (Required)  The name of the data lake store to be shared with the receiver. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
-
-* `resource_group_name` - (Required)  The resource group name of the data lake store to be shared with the receiver. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
-
-* `subscription_id` - (Required) The subscription id of the data lake store to be shared with the receiver. Changing this forces a new Data Share Data Lake Gen1 Dataset to be created.
 
 ## Attributes Reference
 

@@ -2,7 +2,6 @@ package tests
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -132,20 +131,16 @@ func testAccAzureRMDataShareDataSetDataLakeGen1File_basic(data acceptance.TestDa
 %s
 
 resource "azurerm_data_share_dataset_data_lake_gen1" "test" {
-  name          = "acctest-DSDL1-%d"
-  data_share_id = azurerm_data_share.test.id
-  data_lake_store {
-    name                = azurerm_data_lake_store.test.name
-    resource_group_name = azurerm_data_lake_store.test.resource_group_name
-    subscription_id     = "%s"
-  }
-  file_name   = "application_gateway_test.cer"
-  folder_path = "test"
+  name               = "acctest-DSDL1-%d"
+  data_share_id      = azurerm_data_share.test.id
+  data_lake_store_id = azurerm_data_lake_store.test.id
+  file_name          = "application_gateway_test.cer"
+  folder_path        = "test"
   depends_on = [
     azurerm_role_assignment.test,
   ]
 }
-`, config, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
+`, config, data.RandomInteger)
 }
 
 func testAccAzureRMDataShareDataSetDataLakeGen1Folder_basic(data acceptance.TestData) string {
@@ -154,19 +149,15 @@ func testAccAzureRMDataShareDataSetDataLakeGen1Folder_basic(data acceptance.Test
 %s
 
 resource "azurerm_data_share_dataset_data_lake_gen1" "test" {
-  name          = "acctest-DSDL1-%d"
-  data_share_id = azurerm_data_share.test.id
-  data_lake_store {
-    name                = azurerm_data_lake_store.test.name
-    resource_group_name = azurerm_data_lake_store.test.resource_group_name
-    subscription_id     = "%s"
-  }
-  folder_path = "test"
+  name               = "acctest-DSDL1-%d"
+  data_share_id      = azurerm_data_share.test.id
+  data_lake_store_id = azurerm_data_lake_store.test.id
+  folder_path        = "test"
   depends_on = [
     azurerm_role_assignment.test,
   ]
 }
-`, config, data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
+`, config, data.RandomInteger)
 }
 
 func testAccAzureRMDataShareDataSetDataLakeGen1_requiresImport(data acceptance.TestData) string {
@@ -174,14 +165,10 @@ func testAccAzureRMDataShareDataSetDataLakeGen1_requiresImport(data acceptance.T
 	return fmt.Sprintf(`
 %s
 resource "azurerm_data_share_dataset_data_lake_gen1" "import" {
-  name          = azurerm_data_share_dataset_data_lake_gen1.test.name
-  data_share_id = azurerm_data_share.test.id
-  data_lake_store {
-    name                = azurerm_data_share_dataset_data_lake_gen1.test.data_lake_store.0.name
-    resource_group_name = azurerm_data_share_dataset_data_lake_gen1.test.data_lake_store.0.resource_group_name
-    subscription_id     = azurerm_data_share_dataset_data_lake_gen1.test.data_lake_store.0.subscription_id
-  }
-  folder_path = azurerm_data_share_dataset_data_lake_gen1.test.folder_path
+  name               = azurerm_data_share_dataset_data_lake_gen1.test.name
+  data_share_id      = azurerm_data_share.test.id
+  data_lake_store_id = azurerm_data_share_dataset_data_lake_gen1.test.data_lake_store_id
+  folder_path        = azurerm_data_share_dataset_data_lake_gen1.test.folder_path
 }
 `, config)
 }
