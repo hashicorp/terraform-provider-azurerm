@@ -13,6 +13,7 @@ resource "azurerm_cosmosdb_account" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
+  enable_free_tier    = false
 
   consistency_policy {
     consistency_level       = "BoundedStaleness"

@@ -103,6 +103,12 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				),
 			},
 
+			"enable_free_tier": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"enable_automatic_failover": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -325,9 +331,9 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
+	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
-	enableFreeTier := d.Get("enable_free_tier").(bool)
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
@@ -405,9 +411,9 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
 	isVirtualNetworkFilterEnabled := d.Get("is_virtual_network_filter_enabled").(bool)
+	enableFreeTier := d.Get("enable_free_tier").(bool)
 	enableAutomaticFailover := d.Get("enable_automatic_failover").(bool)
 	enableMultipleWriteLocations := d.Get("enable_multiple_write_locations").(bool)
-	enableFreeTier := d.Get("enable_free_tier").(bool)
 
 	newLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -546,12 +552,12 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
 	}
 
-	if v := resp.EnableAutomaticFailover; v != nil {
-		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
-	}
-
 	if v := resp.EnableFreeTier; v != nil {
 		d.Set("enable_free_tier", resp.EnableFreeTier)
+	}
+
+	if v := resp.EnableAutomaticFailover; v != nil {
+		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
 	}
 
 	if v := resp.EnableMultipleWriteLocations; v != nil {

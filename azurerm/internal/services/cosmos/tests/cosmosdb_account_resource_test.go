@@ -786,6 +786,8 @@ resource "azurerm_cosmosdb_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
+  
+  enable_free_tier    = false
 
   enable_multiple_write_locations = false
   enable_automatic_failover       = false

@@ -51,6 +51,11 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"enable_free_tier": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"enable_automatic_failover": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -217,8 +222,8 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(props.IPRules))
 		d.Set("endpoint", props.DocumentEndpoint)
 		d.Set("is_virtual_network_filter_enabled", resp.IsVirtualNetworkFilterEnabled)
-		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
 		d.Set("enable_free_tier", resp.EnableFreeTier)
+		d.Set("enable_automatic_failover", resp.EnableAutomaticFailover)
 
 		if err = d.Set("consistency_policy", flattenAzureRmCosmosDBAccountConsistencyPolicy(resp.ConsistencyPolicy)); err != nil {
 			return fmt.Errorf("Error setting `consistency_policy`: %+v", err)

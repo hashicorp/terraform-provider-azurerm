@@ -30,6 +30,8 @@ resource "azurerm_cosmosdb_account" "db" {
   offer_type          = "Standard"
   kind                = "GlobalDocumentDB"
 
+  enable_free_tier    = false
+
   enable_automatic_failover = true
 
   consistency_policy {
@@ -72,6 +74,8 @@ The following arguments are supported:
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location.
 
 * `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
+
+* `enable_free_tier` - (Optional) Enable Free Tier pricing option for this Cosmos DB account.
 
 * `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
 
