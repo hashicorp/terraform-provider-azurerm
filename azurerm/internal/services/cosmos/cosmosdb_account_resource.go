@@ -548,7 +548,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
 	d.Set("ip_range_filter", common.CosmosDBIpRulesToIpRangeFilter(resp.IPRules))
 	d.Set("endpoint", resp.DocumentEndpoint)
-	
+
 	d.Set("enable_free_tier", resp.EnableFreeTier)
 
 	if v := resp.IsVirtualNetworkFilterEnabled; v != nil {
