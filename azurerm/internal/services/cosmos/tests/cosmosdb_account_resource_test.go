@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -137,18 +137,23 @@ func testAccAzureRMCosmosDBAccount_updateConsistency(t *testing.T, kind document
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Eventual),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Strong, 8, 880),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 7, 770),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.BoundedStaleness),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 77, 700),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.BoundedStaleness, 7, 770),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.BoundedStaleness, 77, 700),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 			},
 			data.ImportStep(),
 			{
@@ -489,12 +494,12 @@ resource "azurerm_cosmosdb_account" "import" {
   offer_type          = azurerm_cosmosdb_account.test.offer_type
 
   consistency_policy {
-    consistency_level = azurerm_cosmosdb_account.consistency_policy[0].consistency_level
+    consistency_level = azurerm_cosmosdb_account.test.consistency_policy[0].consistency_level
   }
 
   geo_location {
-    location          = azurerm_cosmosdb_account.geo_location[0].location
-    failover_priority = azurerm_cosmosdb_account.geo_location[0].location
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
   }
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", consistency))
@@ -604,7 +609,6 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id"
     location          = "%[5]s"
     failover_priority = 1
   }
@@ -629,8 +633,9 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                = "%[3]s"
 
   consistency_policy {
-    consistency_level    = "%[4]s"
-    max_staleness_prefix = 170000
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 360
+    max_staleness_prefix    = 170000
   }
 
   is_virtual_network_filter_enabled = true
@@ -647,13 +652,11 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id-updated"
     location          = "%[5]s"
     failover_priority = 1
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id-added"
     location          = "%[6]s"
     failover_priority = 2
   }
