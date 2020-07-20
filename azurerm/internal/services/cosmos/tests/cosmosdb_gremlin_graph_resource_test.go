@@ -354,7 +354,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "test" {
   resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
   account_name        = azurerm_cosmosdb_account.test.name
   database_name       = azurerm_cosmosdb_gremlin_database.test.name
-  partition_key_path  = "/definition/id"
+  partition_key_path  = "/test"
 
   autoscale_settings {
     max_throughput = %[3]d
