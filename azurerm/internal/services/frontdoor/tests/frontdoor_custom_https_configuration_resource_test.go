@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -33,7 +34,6 @@ func TestAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_https_provisioning_enabled", "false"),
 				),
 			},
-			data.ImportStep(),
 		},
 	})
 }
@@ -48,9 +48,20 @@ func testCheckAzureRMFrontDoorCustomHttpsConfigurationExists(resourceName string
 			return fmt.Errorf("Front Door Custom Https Configuration not found: %s", resourceName)
 		}
 
-		frontDoorName := rs.Primary.Attributes["front_door_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		frontendEndpointName := rs.Primary.Attributes["frontend_endpoint_name"]
+		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["frontend_endpoint_id"])
+		if err != nil {
+			return fmt.Errorf("Bad: cannot parse frontend_endpoint_id for %q", resourceName)
+		}
+		frontDoorName := id.Path["frontdoors"]
+		// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
+		if frontDoorName == "" {
+			frontDoorName = id.Path["Frontdoors"]
+		}
+		frontendEndpointName := id.Path["frontendendpoints"]
+		if frontendEndpointName == "" {
+			frontDoorName = id.Path["FrontendEndpoints"]
+		}
 
 		resp, err := client.Get(ctx, resourceGroup, frontDoorName, frontendEndpointName)
 		if err != nil {
@@ -70,8 +81,7 @@ func testAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttpsEnabled(data acc
 %s
 
 resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  front_door_name                   = azurerm_frontdoor.test.name
-  frontend_endpoint_name            = azurerm_frontdoor.test.frontend_endpoint[0].name
+  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoint[0].id
   resource_group_name               = azurerm_resource_group.test.name
   custom_https_provisioning_enabled = true
 
@@ -88,8 +98,7 @@ func testAccAzureRMFrontDoorCustomHttpsConfiguration_CustomHttpsDisabled(data ac
 %s
 
 resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  front_door_name                   = azurerm_frontdoor.test.name
-  frontend_endpoint_name            = azurerm_frontdoor.test.frontend_endpoint[0].name
+  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoint[0].id
   resource_group_name               = azurerm_resource_group.test.name
   custom_https_provisioning_enabled = false
 }

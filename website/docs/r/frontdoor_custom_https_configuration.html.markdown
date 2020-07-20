@@ -75,15 +75,13 @@ resource "azurerm_frontdoor" "example" {
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_0" {
-  front_door_name                   = azurerm_frontdoor.example.name
-  frontend_endpoint_name            = azurerm_frontdoor.example.frontend_endpoint[0].name
+  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoint[0].id
   resource_group_name               = azurerm_resource_group.example.name
   custom_https_provisioning_enabled = false
 }
 
 resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1" {
-  front_door_name                   = azurerm_frontdoor.example.name
-  frontend_endpoint_name            = azurerm_frontdoor.example.frontend_endpoint[1].name
+  frontend_endpoint_id              = azurerm_frontdoor.example.frontend_endpoint[1].id
   resource_group_name               = azurerm_resource_group.example.name
   custom_https_provisioning_enabled = true
 
@@ -100,8 +98,7 @@ resource "azurerm_frontdoor_custom_https_configuration" "example_custom_https_1"
 
 The `custom_https_configuration` block is also valid inside an `azurerm_frontdoor_custom_https_configuration`, which supports the following arguments: 
 
-* `front_door_name` - (Required) Name of the Front Door Service this configuration refers to.
-* `frontend_endpoint_name` - (Required) Name of the Front Door Fontend endpoint this configuration refers to.
+* `frontend_endpoint_id` - (Required) Id of the Front Door Frontend endpoint this configuration refers to.
 * `resource_group_name` - (Required) Specifies the name of the Resource Group in which the Front Door exists
 * `custom_https_provisioning_enabled` - (Required) Should the HTTPS protocol be enabled for this custom domain associated with the Front Door?
 * `custom_https_configuration` - (Optional) A `custom_https_configuration` block as defined above.

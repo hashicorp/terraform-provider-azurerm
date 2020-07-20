@@ -42,18 +42,6 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"front_door_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.FrontDoorName,
-			},
-
-			"frontend_endpoint_name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.FrontDoorBackendPoolRoutingRuleName,
-			},
-
 			"custom_https_provisioning_enabled": {
 				Type:     schema.TypeBool,
 				Required: true,
@@ -73,7 +61,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
 			if err := validate.FrontdoorCustomHttpsSettings(d); err != nil {
-				return fmt.Errorf("creating Front Door Custom Https Configuration for endpoint %q (Frontdoor %q) (Resource Group %q): %+v", d.Get("frontend_endpoint_name").(string), d.Get("front_door_name").(string), d.Get("resource_group_name").(string), err)
+				return fmt.Errorf("creating Front Door Custom Https Configuration for endpoint %q (Resource Group %q): %+v", d.Get("frontend_endpoint_id").(string), d.Get("resource_group_name").(string), err)
 			}
 
 			return nil
@@ -86,9 +74,10 @@ func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.Resource
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceGroup := d.Get("resource_group_name").(string)
-	frontDoorName := d.Get("front_door_name").(string)
-	frontendEndpointName := d.Get("frontend_endpoint_name").(string)
+	err, resourceGroup, frontDoorName, frontendEndpointName := frontDoorFrontendEndpointReadProps(d)
+	if err != nil {
+		return err
+	}
 
 	resp, err := client.Get(ctx, resourceGroup, frontDoorName, frontendEndpointName)
 	if err != nil {
@@ -149,9 +138,6 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 	}
 
 	d.Set("frontend_endpoint_id", resp.ID)
-	d.Set("front_door_name", frontDoorName)
-	d.Set("frontend_endpoint_name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
 
 	if resp.Name != nil {
 		output := make(map[string]interface{})
@@ -198,11 +184,23 @@ func resourceArmFrontDoorCustomHttpsConfigurationDelete(d *schema.ResourceData, 
 	return nil
 }
 
+func frontDoorFrontendEndpointReadProps(d *schema.ResourceData) (err error, resourceGroup string, frontDoorName string, frontendEndpointName string) {
+	id, err := azure.ParseAzureResourceID(d.Get("frontend_endpoint_id").(string))
+	if err != nil {
+		return err, "", "", ""
+	}
+	return frontDoorReadPropsFromId(id)
+}
+
 func frontDoorCustomHttpsConfigurationReadProps(d *schema.ResourceData) (err error, resourceGroup string, frontDoorName string, frontendEndpointName string) {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err, "", "", ""
 	}
+	return frontDoorReadPropsFromId(id)
+}
+
+func frontDoorReadPropsFromId(id *azure.ResourceID) (err error, resourceGroup string, frontDoorName string, frontendEndpointName string) {
 	resourceGroup = id.ResourceGroup
 	frontDoorName = id.Path["frontdoors"]
 	// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
