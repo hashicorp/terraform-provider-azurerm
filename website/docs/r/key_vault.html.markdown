@@ -111,6 +111,10 @@ The following arguments are supported:
 
 ~> **Note:** Terraform will check when creating a Key Vault for a previous soft-deleted Key Vault and recover it if one exists. You can configure this behaviour using the `features` block within the `provider` block.  
 
+* `soft_delete_retention_days` - (Optional) The key Vault retention days when enable soft delete.
+
+!> **Note:** Once Soft Delete has been Enabled it's not possible to update it.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
