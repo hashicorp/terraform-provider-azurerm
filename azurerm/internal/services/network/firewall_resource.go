@@ -90,7 +90,7 @@ func resourceArmFirewall() *schema.Resource {
 				}, false),
 			},
 
-			"zones": azure.SchemaMultipleZones(),
+			"zones": azure.SchemaZones(),
 
 			"tags": tags.Schema(),
 		},
