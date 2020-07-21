@@ -753,7 +753,7 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Required:     true,
-					ValidateFunc: validation.IntBetween(0, 1023),
+					ValidateFunc: validation.IntBetween(0, 32767),
 				},
 
 				"lun": {
