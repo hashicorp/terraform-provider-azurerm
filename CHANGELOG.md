@@ -14,6 +14,10 @@ FEATURES:
 
 * **New Resource:** `azurerm_kusto_cluster_customer_managed_key` [GH-7520]
 
+ENHANCEMENTS:
+
+* `azurerm_cosmos_db_account` - add support for `enable_free_tier` [GH-7814]
+
 BUG FIXES
 
 * Data Source: `azurerm_private_dns_zone` - fix a crash when the zone does not exist [GH-7783]
