@@ -356,17 +356,6 @@ func resourceArmStorageDataLakeGen2PathDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func expandArmDataLakeGen2PathUUIDPtr(v map[string]interface{}, propertyName string) (*uuid.UUID, error) {
-	if raw, ok := v[propertyName]; ok && raw != "" {
-		id, err := uuid.Parse(raw.(string))
-		if err != nil {
-			return nil, err
-		}
-		return &id, nil
-	}
-	return nil, nil
-}
-
 func expandArmDataLakeGen2PathAceList(input []interface{}) (*accesscontrol.ACL, error) {
 	if len(input) == 0 {
 		return nil, nil
