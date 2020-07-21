@@ -52,32 +52,6 @@ func TestAccAzureRMVirtualHub_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualHub_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHub_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMVirtualHub_updated(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMVirtualHub_routes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub", "test")
 
@@ -195,24 +169,10 @@ resource "azurerm_virtual_hub" "import" {
   name                = azurerm_virtual_hub.test.name
   location            = azurerm_virtual_hub.test.location
   resource_group_name = azurerm_virtual_hub.test.resource_group_name
-  address_prefix      = "10.0.1.0/24"
+  virtual_wan_id      = azurerm_virtual_hub.test.virtual_wan_id
+  address_prefix      = azurerm_virtual_hub.test.address_prefix
 }
 `, template)
-}
-
-func testAccAzureRMVirtualHub_updated(data acceptance.TestData) string {
-	template := testAccAzureRMVirtualHub_template(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_virtual_hub" "test" {
-  name                = "acctestVHUB-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  virtual_wan_id      = azurerm_virtual_wan.test.id
-  address_prefix      = "10.0.2.0/24"
-}
-`, template, data.RandomInteger)
 }
 
 func testAccAzureRMVirtualHub_route(data acceptance.TestData) string {

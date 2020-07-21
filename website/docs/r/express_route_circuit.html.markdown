@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `bandwidth_in_mbps` - (Required) The bandwidth in Mbps of the circuit being created.
 
-~> **NOTE:** Once you increase your bandwidth, you will not be able to decrease it to it's previous value.
+~> **NOTE:** Once you increase your bandwidth, you will not be able to decrease it to its previous value.
 
 * `sku` - (Required) A `sku` block for the ExpressRoute circuit as documented below.
 

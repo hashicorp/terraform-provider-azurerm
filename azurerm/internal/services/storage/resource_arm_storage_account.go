@@ -21,6 +21,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -145,6 +146,12 @@ func resourceArmStorageAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"allow_blob_public_access": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"network_rules": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -172,8 +179,11 @@ func resourceArmStorageAccount() *schema.Resource {
 							Type:     schema.TypeSet,
 							Optional: true,
 							Computed: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
-							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.StorageAccountIPRule,
+							},
+							Set: schema.HashString,
 						},
 
 						"virtual_network_subnet_ids": {
@@ -611,6 +621,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	t := d.Get("tags").(map[string]interface{})
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
+	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -627,6 +638,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
+			AllowBlobPublicAccess:  &allowBlobPublicAccess,
 		},
 	}
 
@@ -860,6 +872,20 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("allow_blob_public_access") {
+		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
+
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				AllowBlobPublicAccess: &allowBlobPublicAccess,
+			},
+		}
+
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
+		}
+	}
+
 	if d.HasChange("identity") {
 		opts := storage.AccountUpdateParameters{
 			Identity: expandAzureRmStorageAccountIdentity(d),
@@ -1014,6 +1040,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
+		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {

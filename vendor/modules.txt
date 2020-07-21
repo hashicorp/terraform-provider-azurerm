@@ -6,7 +6,7 @@ cloud.google.com/go/internal/optional
 cloud.google.com/go/internal/trace
 cloud.google.com/go/internal/version
 cloud.google.com/go/storage
-# github.com/Azure/azure-sdk-for-go v44.0.0+incompatible
+# github.com/Azure/azure-sdk-for-go v44.1.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
 github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
@@ -21,7 +21,7 @@ github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute
 github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance
 github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice
-github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb
+github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb
 github.com/Azure/azure-sdk-for-go/services/costmanagement/mgmt/2019-10-01/costmanagement
 github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks
 github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory
@@ -41,7 +41,7 @@ github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault
 github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault
 github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic
-github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2019-11-01/machinelearningservices
+github.com/Azure/azure-sdk-for-go/services/machinelearningservices/mgmt/2020-04-01/machinelearningservices
 github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps
 github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb
 github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
@@ -358,7 +358,7 @@ github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/slices
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate
 github.com/terraform-providers/terraform-provider-azuread/version
-# github.com/tombuildsstuff/giovanni v0.11.0
+# github.com/tombuildsstuff/giovanni v0.10.0
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/accounts
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers

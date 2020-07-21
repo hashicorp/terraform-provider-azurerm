@@ -652,7 +652,7 @@ The `azurerm_virtual_machine` resource will be deprecated in favour of two new r
 
 Splitting the Virtual Machine resource in two allows us to both provide finer-grain validation for this resource and update the schema.
 
-The existing `azurerm_virtual_machine` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+The existing `azurerm_virtual_machine` Resource will continue to be available in its current form, however it will eventually be deprecated and we recommend using the new resources going forward.
 
 ### Resource: `azurerm_virtual_machine_extension`
 
@@ -664,7 +664,7 @@ The `azurerm_virtual_machine_scale_set` resource will be deprecated in favour of
 
 Splitting the Virtual Machine Scale Set resource in two allows us to both provide finer-grain validation for this resource and update the schema.
 
-The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in its current form, however it will eventually be deprecated and we recommend using the new resources going forward.
 
 ### Resource: `azurerm_virtual_network_peering`
 

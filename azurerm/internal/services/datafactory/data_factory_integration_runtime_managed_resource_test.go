@@ -94,7 +94,7 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(t *tes
 					resource.TestCheckResourceAttrSet(data.ResourceName, "custom_setup_script.0.sas_token"),
 				),
 			},
-			data.ImportStep("catalog_info.0.administrator_password"),
+			data.ImportStep("catalog_info.0.administrator_password", "custom_setup_script.0.sas_token"),
 		},
 	})
 }

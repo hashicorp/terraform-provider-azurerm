@@ -15,7 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by it's nature)
+// NOTE: this file is not a recommended way of developing Terraform resources; this exists to work around the fact that this API is dynamic (by its nature)
 func flattenLogicAppActionRunAfter(input map[string]interface{}) []interface{} {
 	if len(input) == 0 {
 		return nil

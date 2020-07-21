@@ -32,13 +32,15 @@ func TestAccDataSourcePrivateLinkServiceEndpointConnections_complete(t *testing.
 }
 
 func testAccDataSourcePrivateLinkServiceEndpointConnections_complete(data acceptance.TestData) string {
+	// azurerm_private_link_service_endpoint_connections depends on azurerm_private_endpoint, we deliberately introduce
+	// this dependency here via reference, rather than using `depends_on` since `depends_on` on data source will make
+	// it never converge.
 	return fmt.Sprintf(`
 %s
 
 data "azurerm_private_link_service_endpoint_connections" "test" {
-  service_id          = azurerm_private_link_service.test.id
+  service_id          = azurerm_private_endpoint.test.private_service_connection.0.private_connection_resource_id
   resource_group_name = azurerm_resource_group.test.name
-  depends_on          = [azurerm_private_link_endpoint.test, ]
 }
 `, testAccAzureRMPrivateEndpoint_basic(data))
 }

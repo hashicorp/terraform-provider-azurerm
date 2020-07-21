@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -137,18 +137,23 @@ func testAccAzureRMCosmosDBAccount_updateConsistency(t *testing.T, kind document
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.Eventual),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Strong, 8, 880),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Strong, 1),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 7, 770),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_basic(data, kind, documentdb.BoundedStaleness),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.Eventual, 77, 700),
-				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.BoundedStaleness, 7, 770),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMCosmosDBAccount_consistency(data, kind, documentdb.BoundedStaleness, 77, 700),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(data, documentdb.BoundedStaleness, 1),
 			},
 			data.ImportStep(),
 			{
@@ -375,6 +380,26 @@ func TestAccAzureRMCosmosDBAccount_geoLocationsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_freeTier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_freeTier(data, "GlobalDocumentDB", documentdb.Eventual),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(data, documentdb.Eventual, 1),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_free_tier", "true"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDBAccount_vNetFilters(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
 
@@ -489,12 +514,12 @@ resource "azurerm_cosmosdb_account" "import" {
   offer_type          = azurerm_cosmosdb_account.test.offer_type
 
   consistency_policy {
-    consistency_level = azurerm_cosmosdb_account.consistency_policy[0].consistency_level
+    consistency_level = azurerm_cosmosdb_account.test.consistency_policy[0].consistency_level
   }
 
   geo_location {
-    location          = azurerm_cosmosdb_account.geo_location[0].location
-    failover_priority = azurerm_cosmosdb_account.geo_location[0].location
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
   }
 }
 `, testAccAzureRMCosmosDBAccount_basic(data, "GlobalDocumentDB", consistency))
@@ -604,7 +629,6 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id"
     location          = "%[5]s"
     failover_priority = 1
   }
@@ -629,8 +653,9 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                = "%[3]s"
 
   consistency_policy {
-    consistency_level    = "%[4]s"
-    max_staleness_prefix = 170000
+    consistency_level       = "%[4]s"
+    max_interval_in_seconds = 360
+    max_staleness_prefix    = 170000
   }
 
   is_virtual_network_filter_enabled = true
@@ -647,13 +672,11 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id-updated"
     location          = "%[5]s"
     failover_priority = 1
   }
 
   geo_location {
-    prefix            = "acctest-%[2]d-custom-id-added"
     location          = "%[6]s"
     failover_priority = 2
   }
@@ -812,6 +835,38 @@ resource "azurerm_cosmosdb_account" "test" {
   }
 }
 `, testAccAzureRMCosmosDBAccount_vNetFiltersPreReqs(data), data.RandomInteger)
+}
+
+func testAccAzureRMCosmosDBAccount_freeTier(data acceptance.TestData, kind documentdb.DatabaseAccountKind, consistency documentdb.DefaultConsistencyLevel) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%d"
+  location = "%s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "%s"
+
+  enable_free_tier = true
+
+  consistency_policy {
+    consistency_level = "%s"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, string(kind), string(consistency))
 }
 
 func checkAccAzureRMCosmosDBAccount_basic(data acceptance.TestData, consistency documentdb.DefaultConsistencyLevel, locationCount int) resource.TestCheckFunc {

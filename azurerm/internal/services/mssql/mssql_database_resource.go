@@ -97,7 +97,6 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 			"elastic_pool_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.MsSqlElasticPoolID,
 			},
 
@@ -314,6 +313,14 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Location is empty from making Read request on MsSql Server %q", serverId.Name)
 	}
 
+	// when disassociating mssql db from elastic pool, the sku_name must be specific
+	if d.HasChange("elastic_pool_id") {
+		if old, new := d.GetChange("elastic_pool_id"); old.(string) != "" && new.(string) == "" {
+			if v, ok := d.GetOk("sku_name"); !ok || (ok && v.(string) == "ElasticPool") {
+				return fmt.Errorf("`sku_name` must be assigned and not be `ElasticPool` when disassociating MsSql Database %q from MsSql Elastic Pool", name)
+			}
+		}
+	}
 	params := sql.Database{
 		Name:     &name,
 		Location: &location,

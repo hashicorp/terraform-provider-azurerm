@@ -9,10 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -56,6 +58,15 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 				ForceNew: true,
 				// The range of this value varies in different locations
 				ValidateFunc: validation.IntBetween(0, 5),
+			},
+
+			"proximity_placement_group_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ProximityPlacementGroupID,
+				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"single_placement_group": {
@@ -111,6 +122,12 @@ func resourceArmOrchestratedVirtualMachineScaleSetCreateUpdate(d *schema.Resourc
 		Zones: azure.ExpandZones(d.Get("zones").([]interface{})),
 	}
 
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		props.VirtualMachineScaleSetProperties.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, props)
 	if err != nil {
 		return fmt.Errorf("creating Orchestrated Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -161,6 +178,11 @@ func resourceArmOrchestratedVirtualMachineScaleSetRead(d *schema.ResourceData, m
 	if props := resp.VirtualMachineScaleSetProperties; props != nil {
 		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 		d.Set("single_placement_group", props.SinglePlacementGroup)
+		proximityPlacementGroupID := ""
+		if props.ProximityPlacementGroup != nil && props.ProximityPlacementGroup.ID != nil {
+			proximityPlacementGroupID = *props.ProximityPlacementGroup.ID
+		}
+		d.Set("proximity_placement_group_id", proximityPlacementGroupID)
 		d.Set("unique_id", props.UniqueID)
 	}
 
