@@ -26,35 +26,36 @@ import (
 	"net/http"
 )
 
-// QueueClient is the the Azure Storage Management API.
-type QueueClient struct {
+// FileSharesClient is the the Azure Storage Management API.
+type FileSharesClient struct {
 	BaseClient
 }
 
-// NewQueueClient creates an instance of the QueueClient client.
-func NewQueueClient(subscriptionID string) QueueClient {
-	return NewQueueClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewFileSharesClient creates an instance of the FileSharesClient client.
+func NewFileSharesClient(subscriptionID string) FileSharesClient {
+	return NewFileSharesClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewQueueClientWithBaseURI creates an instance of the QueueClient client using a custom endpoint.  Use this when
-// interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewQueueClientWithBaseURI(baseURI string, subscriptionID string) QueueClient {
-	return QueueClient{NewWithBaseURI(baseURI, subscriptionID)}
+// NewFileSharesClientWithBaseURI creates an instance of the FileSharesClient client using a custom endpoint.  Use this
+// when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
+func NewFileSharesClientWithBaseURI(baseURI string, subscriptionID string) FileSharesClient {
+	return FileSharesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// Create creates a new queue with the specified queue name, under the specified account.
+// Create creates a new share under the specified account as described by request body. The share resource includes
+// metadata and properties for that share. It does not include a list of the files contained by the share.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// queueName - a queue name must be unique within a storage account and must be between 3 and 63 characters.The
-// name must comprise of lowercase alphanumeric and dash(-) characters only, it should begin and end with an
-// alphanumeric character and it cannot have two consecutive dash(-) characters.
-// queue - queue properties and metadata to be created with
-func (client QueueClient) Create(ctx context.Context, resourceGroupName string, accountName string, queueName string, queue Queue) (result Queue, err error) {
+// shareName - the name of the file share within the specified storage account. File share names must be
+// between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only. Every dash (-)
+// character must be immediately preceded and followed by a letter or number.
+// fileShare - properties of the file share to create.
+func (client FileSharesClient) Create(ctx context.Context, resourceGroupName string, accountName string, shareName string, fileShare FileShare) (result FileShare, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.Create")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileSharesClient.Create")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -71,45 +72,52 @@ func (client QueueClient) Create(ctx context.Context, resourceGroupName string, 
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: shareName,
+			Constraints: []validation.Constraint{{Target: "shareName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "shareName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: fileShare,
+			Constraints: []validation.Constraint{{Target: "fileShare.FileShareProperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "fileShare.FileShareProperties.ShareQuota", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "fileShare.FileShareProperties.ShareQuota", Name: validation.InclusiveMaximum, Rule: int64(5120), Chain: nil},
+						{Target: "fileShare.FileShareProperties.ShareQuota", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+					}},
+				}}}},
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: queueName,
-			Constraints: []validation.Constraint{{Target: "queueName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "queueName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "Create", err.Error())
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.FileSharesClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, queueName, queue)
+	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, shareName, fileShare)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Create", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Create", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.CreateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Create", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Create", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.CreateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Create", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Create", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // CreatePreparer prepares the Create request.
-func (client QueueClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, queueName string, queue Queue) (*http.Request, error) {
+func (client FileSharesClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, fileShare FileShare) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"queueName":         autorest.Encode("path", queueName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"shareName":         autorest.Encode("path", shareName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -118,42 +126,42 @@ func (client QueueClient) CreatePreparer(ctx context.Context, resourceGroupName 
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues/{queueName}", pathParameters),
-		autorest.WithJSON(queue),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/default/shares/{shareName}", pathParameters),
+		autorest.WithJSON(fileShare),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) CreateSender(req *http.Request) (*http.Response, error) {
+func (client FileSharesClient) CreateSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // CreateResponder handles the response to the Create request. The method always
 // closes the http.Response Body.
-func (client QueueClient) CreateResponder(resp *http.Response) (result Queue, err error) {
+func (client FileSharesClient) CreateResponder(resp *http.Response) (result FileShare, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
-// Delete deletes the queue with the specified queue name, under the specified account if it exists.
+// Delete deletes specified share under its account.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// queueName - a queue name must be unique within a storage account and must be between 3 and 63 characters.The
-// name must comprise of lowercase alphanumeric and dash(-) characters only, it should begin and end with an
-// alphanumeric character and it cannot have two consecutive dash(-) characters.
-func (client QueueClient) Delete(ctx context.Context, resourceGroupName string, accountName string, queueName string) (result autorest.Response, err error) {
+// shareName - the name of the file share within the specified storage account. File share names must be
+// between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only. Every dash (-)
+// character must be immediately preceded and followed by a letter or number.
+func (client FileSharesClient) Delete(ctx context.Context, resourceGroupName string, accountName string, shareName string) (result autorest.Response, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.Delete")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileSharesClient.Delete")
 		defer func() {
 			sc := -1
 			if result.Response != nil {
@@ -170,45 +178,45 @@ func (client QueueClient) Delete(ctx context.Context, resourceGroupName string, 
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: shareName,
+			Constraints: []validation.Constraint{{Target: "shareName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "shareName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: queueName,
-			Constraints: []validation.Constraint{{Target: "queueName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "queueName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "Delete", err.Error())
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.FileSharesClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, queueName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, accountName, shareName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Delete", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Delete", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.DeleteSender(req)
 	if err != nil {
 		result.Response = resp
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Delete", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.DeleteResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Delete", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Delete", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // DeletePreparer prepares the Delete request.
-func (client QueueClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, queueName string) (*http.Request, error) {
+func (client FileSharesClient) DeletePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"queueName":         autorest.Encode("path", queueName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"shareName":         autorest.Encode("path", shareName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -216,20 +224,20 @@ func (client QueueClient) DeletePreparer(ctx context.Context, resourceGroupName 
 	preparer := autorest.CreatePreparer(
 		autorest.AsDelete(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues/{queueName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/default/shares/{shareName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) DeleteSender(req *http.Request) (*http.Response, error) {
+func (client FileSharesClient) DeleteSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client QueueClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client FileSharesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
@@ -238,18 +246,18 @@ func (client QueueClient) DeleteResponder(resp *http.Response) (result autorest.
 	return
 }
 
-// Get gets the queue with the specified queue name, under the specified account if it exists.
+// Get gets properties of a specified share.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// queueName - a queue name must be unique within a storage account and must be between 3 and 63 characters.The
-// name must comprise of lowercase alphanumeric and dash(-) characters only, it should begin and end with an
-// alphanumeric character and it cannot have two consecutive dash(-) characters.
-func (client QueueClient) Get(ctx context.Context, resourceGroupName string, accountName string, queueName string) (result Queue, err error) {
+// shareName - the name of the file share within the specified storage account. File share names must be
+// between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only. Every dash (-)
+// character must be immediately preceded and followed by a letter or number.
+func (client FileSharesClient) Get(ctx context.Context, resourceGroupName string, accountName string, shareName string) (result FileShare, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.Get")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileSharesClient.Get")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -266,45 +274,45 @@ func (client QueueClient) Get(ctx context.Context, resourceGroupName string, acc
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: shareName,
+			Constraints: []validation.Constraint{{Target: "shareName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "shareName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: queueName,
-			Constraints: []validation.Constraint{{Target: "queueName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "queueName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "Get", err.Error())
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.FileSharesClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, queueName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, accountName, shareName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Get", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Get", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Get", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Get", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Get", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Get", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // GetPreparer prepares the Get request.
-func (client QueueClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, queueName string) (*http.Request, error) {
+func (client FileSharesClient) GetPreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"queueName":         autorest.Encode("path", queueName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"shareName":         autorest.Encode("path", shareName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -312,20 +320,20 @@ func (client QueueClient) GetPreparer(ctx context.Context, resourceGroupName str
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues/{queueName}", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/default/shares/{shareName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) GetSender(req *http.Request) (*http.Response, error) {
+func (client FileSharesClient) GetSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
-func (client QueueClient) GetResponder(resp *http.Response) (result Queue, err error) {
+func (client FileSharesClient) GetResponder(resp *http.Response) (result FileShare, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -335,22 +343,22 @@ func (client QueueClient) GetResponder(resp *http.Response) (result Queue, err e
 	return
 }
 
-// List gets a list of all the queues under the specified storage account
+// List lists all shares.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// maxpagesize - optional, a maximum number of queues that should be included in a list queue response
-// filter - optional, When specified, only the queues with a name starting with the given filter will be
-// listed.
-func (client QueueClient) List(ctx context.Context, resourceGroupName string, accountName string, maxpagesize string, filter string) (result ListQueueResourcePage, err error) {
+// skipToken - optional. Continuation token for the list operation.
+// maxpagesize - optional. Specified maximum number of shares that can be included in the list.
+// filter - optional. When specified, only share names starting with the filter will be listed.
+func (client FileSharesClient) List(ctx context.Context, resourceGroupName string, accountName string, skipToken string, maxpagesize string, filter string) (result FileShareItemsPage, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileSharesClient.List")
 		defer func() {
 			sc := -1
-			if result.lqr.Response.Response != nil {
-				sc = result.lqr.Response.Response.StatusCode
+			if result.fsi.Response.Response != nil {
+				sc = result.fsi.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -365,42 +373,45 @@ func (client QueueClient) List(ctx context.Context, resourceGroupName string, ac
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
 			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "List", err.Error())
+		return result, validation.NewError("storage.FileSharesClient", "List", err.Error())
 	}
 
 	result.fn = client.listNextResults
-	req, err := client.ListPreparer(ctx, resourceGroupName, accountName, maxpagesize, filter)
+	req, err := client.ListPreparer(ctx, resourceGroupName, accountName, skipToken, maxpagesize, filter)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "List", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "List", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListSender(req)
 	if err != nil {
-		result.lqr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "List", resp, "Failure sending request")
+		result.fsi.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "List", resp, "Failure sending request")
 		return
 	}
 
-	result.lqr, err = client.ListResponder(resp)
+	result.fsi, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "List", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "List", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListPreparer prepares the List request.
-func (client QueueClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string, maxpagesize string, filter string) (*http.Request, error) {
+func (client FileSharesClient) ListPreparer(ctx context.Context, resourceGroupName string, accountName string, skipToken string, maxpagesize string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(skipToken) > 0 {
+		queryParameters["$skipToken"] = autorest.Encode("query", skipToken)
 	}
 	if len(maxpagesize) > 0 {
 		queryParameters["$maxpagesize"] = autorest.Encode("query", maxpagesize)
@@ -412,20 +423,20 @@ func (client QueueClient) ListPreparer(ctx context.Context, resourceGroupName st
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/default/shares", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) ListSender(req *http.Request) (*http.Response, error) {
+func (client FileSharesClient) ListSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListResponder handles the response to the List request. The method always
 // closes the http.Response Body.
-func (client QueueClient) ListResponder(resp *http.Response) (result ListQueueResource, err error) {
+func (client FileSharesClient) ListResponder(resp *http.Response) (result FileShareItems, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -436,10 +447,10 @@ func (client QueueClient) ListResponder(resp *http.Response) (result ListQueueRe
 }
 
 // listNextResults retrieves the next set of results, if any.
-func (client QueueClient) listNextResults(ctx context.Context, lastResults ListQueueResource) (result ListQueueResource, err error) {
-	req, err := lastResults.listQueueResourcePreparer(ctx)
+func (client FileSharesClient) listNextResults(ctx context.Context, lastResults FileShareItems) (result FileShareItems, err error) {
+	req, err := lastResults.fileShareItemsPreparer(ctx)
 	if err != nil {
-		return result, autorest.NewErrorWithError(err, "storage.QueueClient", "listNextResults", nil, "Failure preparing next results request")
+		return result, autorest.NewErrorWithError(err, "storage.FileSharesClient", "listNextResults", nil, "Failure preparing next results request")
 	}
 	if req == nil {
 		return
@@ -447,19 +458,19 @@ func (client QueueClient) listNextResults(ctx context.Context, lastResults ListQ
 	resp, err := client.ListSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "storage.QueueClient", "listNextResults", resp, "Failure sending next results request")
+		return result, autorest.NewErrorWithError(err, "storage.FileSharesClient", "listNextResults", resp, "Failure sending next results request")
 	}
 	result, err = client.ListResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "listNextResults", resp, "Failure responding to next results request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "listNextResults", resp, "Failure responding to next results request")
 	}
 	return
 }
 
 // ListComplete enumerates all values, automatically crossing page boundaries as required.
-func (client QueueClient) ListComplete(ctx context.Context, resourceGroupName string, accountName string, maxpagesize string, filter string) (result ListQueueResourceIterator, err error) {
+func (client FileSharesClient) ListComplete(ctx context.Context, resourceGroupName string, accountName string, skipToken string, maxpagesize string, filter string) (result FileShareItemsIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.List")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileSharesClient.List")
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
@@ -468,23 +479,24 @@ func (client QueueClient) ListComplete(ctx context.Context, resourceGroupName st
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	result.page, err = client.List(ctx, resourceGroupName, accountName, maxpagesize, filter)
+	result.page, err = client.List(ctx, resourceGroupName, accountName, skipToken, maxpagesize, filter)
 	return
 }
 
-// Update creates a new queue with the specified queue name, under the specified account.
+// Update updates share properties as specified in request body. Properties not mentioned in the request will not be
+// changed. Update fails if the specified share does not already exist.
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription. The name is case
 // insensitive.
 // accountName - the name of the storage account within the specified resource group. Storage account names
 // must be between 3 and 24 characters in length and use numbers and lower-case letters only.
-// queueName - a queue name must be unique within a storage account and must be between 3 and 63 characters.The
-// name must comprise of lowercase alphanumeric and dash(-) characters only, it should begin and end with an
-// alphanumeric character and it cannot have two consecutive dash(-) characters.
-// queue - queue properties and metadata to be created with
-func (client QueueClient) Update(ctx context.Context, resourceGroupName string, accountName string, queueName string, queue Queue) (result Queue, err error) {
+// shareName - the name of the file share within the specified storage account. File share names must be
+// between 3 and 63 characters in length and use numbers, lower-case letters and dash (-) only. Every dash (-)
+// character must be immediately preceded and followed by a letter or number.
+// fileShare - properties to update for the file share.
+func (client FileSharesClient) Update(ctx context.Context, resourceGroupName string, accountName string, shareName string, fileShare FileShare) (result FileShare, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueueClient.Update")
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileSharesClient.Update")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -501,45 +513,45 @@ func (client QueueClient) Update(ctx context.Context, resourceGroupName string, 
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 24, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
+		{TargetValue: shareName,
+			Constraints: []validation.Constraint{{Target: "shareName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "shareName", Name: validation.MinLength, Rule: 3, Chain: nil}}},
 		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}},
-		{TargetValue: queueName,
-			Constraints: []validation.Constraint{{Target: "queueName", Name: validation.MaxLength, Rule: 63, Chain: nil},
-				{Target: "queueName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("storage.QueueClient", "Update", err.Error())
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("storage.FileSharesClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, queueName, queue)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, shareName, fileShare)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Update", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Update", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.UpdateSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Update", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Update", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.UpdateResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "storage.QueueClient", "Update", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "storage.FileSharesClient", "Update", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // UpdatePreparer prepares the Update request.
-func (client QueueClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, queueName string, queue Queue) (*http.Request, error) {
+func (client FileSharesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, shareName string, fileShare FileShare) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"queueName":         autorest.Encode("path", queueName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"shareName":         autorest.Encode("path", shareName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -548,21 +560,21 @@ func (client QueueClient) UpdatePreparer(ctx context.Context, resourceGroupName 
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/queueServices/default/queues/{queueName}", pathParameters),
-		autorest.WithJSON(queue),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{accountName}/fileServices/default/shares/{shareName}", pathParameters),
+		autorest.WithJSON(fileShare),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
-func (client QueueClient) UpdateSender(req *http.Request) (*http.Response, error) {
+func (client FileSharesClient) UpdateSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // UpdateResponder handles the response to the Update request. The method always
 // closes the http.Response Body.
-func (client QueueClient) UpdateResponder(resp *http.Response) (result Queue, err error) {
+func (client FileSharesClient) UpdateResponder(resp *http.Response) (result FileShare, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
