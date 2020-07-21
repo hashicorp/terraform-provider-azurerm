@@ -149,8 +149,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "development"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_endpoint_ip_addresses.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "connector_outbound_ip_addresses.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "workflow_endpoint_ip_addresses.#"),
@@ -402,9 +401,6 @@ resource "azurerm_integration_service_environment" "test" {
     azurerm_subnet.isesubnet3.id,
     azurerm_subnet.isesubnet4.id
   ]
-  tags = {
-    environment = "development"
-  }
 }
   `, template, data.RandomInteger)
 }
