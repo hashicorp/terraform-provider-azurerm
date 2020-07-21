@@ -129,7 +129,6 @@ func (client SQLPoolTransparentDataEncryptionsClient) CreateOrUpdateSender(req *
 func (client SQLPoolTransparentDataEncryptionsClient) CreateOrUpdateResponder(resp *http.Response) (result TransparentDataEncryption, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -218,7 +217,6 @@ func (client SQLPoolTransparentDataEncryptionsClient) GetSender(req *http.Reques
 func (client SQLPoolTransparentDataEncryptionsClient) GetResponder(resp *http.Response) (result TransparentDataEncryption, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

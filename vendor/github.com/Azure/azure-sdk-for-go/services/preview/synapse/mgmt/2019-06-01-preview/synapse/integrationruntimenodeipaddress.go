@@ -125,7 +125,6 @@ func (client IntegrationRuntimeNodeIPAddressClient) GetSender(req *http.Request)
 func (client IntegrationRuntimeNodeIPAddressClient) GetResponder(resp *http.Response) (result IntegrationRuntimeNodeIPAddress, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

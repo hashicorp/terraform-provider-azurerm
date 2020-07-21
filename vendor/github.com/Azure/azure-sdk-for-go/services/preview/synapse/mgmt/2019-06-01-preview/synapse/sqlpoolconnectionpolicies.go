@@ -124,7 +124,6 @@ func (client SQLPoolConnectionPoliciesClient) GetSender(req *http.Request) (*htt
 func (client SQLPoolConnectionPoliciesClient) GetResponder(resp *http.Response) (result SQLPoolConnectionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

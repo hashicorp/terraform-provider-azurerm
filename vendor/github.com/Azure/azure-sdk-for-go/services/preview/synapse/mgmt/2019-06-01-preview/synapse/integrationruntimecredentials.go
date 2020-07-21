@@ -126,7 +126,6 @@ func (client IntegrationRuntimeCredentialsClient) SyncSender(req *http.Request) 
 func (client IntegrationRuntimeCredentialsClient) SyncResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

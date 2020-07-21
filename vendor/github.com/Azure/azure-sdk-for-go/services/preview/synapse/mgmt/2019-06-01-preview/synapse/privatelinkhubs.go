@@ -123,7 +123,6 @@ func (client PrivateLinkHubsClient) CreateOrUpdateSender(req *http.Request) (*ht
 func (client PrivateLinkHubsClient) CreateOrUpdateResponder(resp *http.Response) (result PrivateLinkHub, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -209,7 +208,6 @@ func (client PrivateLinkHubsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client PrivateLinkHubsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -294,7 +292,6 @@ func (client PrivateLinkHubsClient) GetSender(req *http.Request) (*http.Response
 func (client PrivateLinkHubsClient) GetResponder(resp *http.Response) (result PrivateLinkHub, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -372,7 +369,6 @@ func (client PrivateLinkHubsClient) ListSender(req *http.Request) (*http.Respons
 func (client PrivateLinkHubsClient) ListResponder(resp *http.Response) (result PrivateLinkHubInfoListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -494,7 +490,6 @@ func (client PrivateLinkHubsClient) ListByResourceGroupSender(req *http.Request)
 func (client PrivateLinkHubsClient) ListByResourceGroupResponder(resp *http.Response) (result PrivateLinkHubInfoListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -620,7 +615,6 @@ func (client PrivateLinkHubsClient) UpdateSender(req *http.Request) (*http.Respo
 func (client PrivateLinkHubsClient) UpdateResponder(resp *http.Response) (result PrivateLinkHub, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

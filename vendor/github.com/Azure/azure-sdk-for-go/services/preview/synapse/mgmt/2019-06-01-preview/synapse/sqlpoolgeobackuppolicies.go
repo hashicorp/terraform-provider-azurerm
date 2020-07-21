@@ -124,7 +124,6 @@ func (client SQLPoolGeoBackupPoliciesClient) GetSender(req *http.Request) (*http
 func (client SQLPoolGeoBackupPoliciesClient) GetResponder(resp *http.Response) (result GeoBackupPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -123,7 +123,6 @@ func (client IntegrationRuntimeMonitoringDataClient) GetSender(req *http.Request
 func (client IntegrationRuntimeMonitoringDataClient) GetResponder(resp *http.Response) (result IntegrationRuntimeMonitoringData, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

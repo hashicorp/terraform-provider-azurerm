@@ -125,7 +125,6 @@ func (client SQLPoolDataWarehouseUserActivitiesClient) GetSender(req *http.Reque
 func (client SQLPoolDataWarehouseUserActivitiesClient) GetResponder(resp *http.Response) (result DataWarehouseUserActivities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

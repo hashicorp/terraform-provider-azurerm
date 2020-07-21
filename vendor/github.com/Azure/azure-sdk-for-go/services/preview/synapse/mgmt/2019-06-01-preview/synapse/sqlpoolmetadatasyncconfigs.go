@@ -126,7 +126,6 @@ func (client SQLPoolMetadataSyncConfigsClient) CreateSender(req *http.Request) (
 func (client SQLPoolMetadataSyncConfigsClient) CreateResponder(resp *http.Response) (result MetadataSyncConfig, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,7 +213,6 @@ func (client SQLPoolMetadataSyncConfigsClient) GetSender(req *http.Request) (*ht
 func (client SQLPoolMetadataSyncConfigsClient) GetResponder(resp *http.Response) (result MetadataSyncConfig, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

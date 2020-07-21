@@ -125,7 +125,6 @@ func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdateSen
 func (client WorkspaceManagedIdentitySQLControlSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedIdentitySQLControlSettingsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client WorkspaceManagedIdentitySQLControlSettingsClient) GetSender(req *ht
 func (client WorkspaceManagedIdentitySQLControlSettingsClient) GetResponder(resp *http.Response) (result ManagedIdentitySQLControlSettingsModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

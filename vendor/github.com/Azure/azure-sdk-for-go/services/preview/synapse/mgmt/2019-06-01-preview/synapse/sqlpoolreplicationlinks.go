@@ -124,7 +124,6 @@ func (client SQLPoolReplicationLinksClient) ListSender(req *http.Request) (*http
 func (client SQLPoolReplicationLinksClient) ListResponder(resp *http.Response) (result ReplicationLinkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

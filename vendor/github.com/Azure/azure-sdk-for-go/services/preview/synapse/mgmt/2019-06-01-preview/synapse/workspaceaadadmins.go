@@ -124,7 +124,6 @@ func (client WorkspaceAadAdminsClient) CreateOrUpdateSender(req *http.Request) (
 func (client WorkspaceAadAdminsClient) CreateOrUpdateResponder(resp *http.Response) (result WorkspaceAadAdminInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -210,7 +209,6 @@ func (client WorkspaceAadAdminsClient) DeleteSender(req *http.Request) (future W
 func (client WorkspaceAadAdminsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -295,7 +293,6 @@ func (client WorkspaceAadAdminsClient) GetSender(req *http.Request) (*http.Respo
 func (client WorkspaceAadAdminsClient) GetResponder(resp *http.Response) (result WorkspaceAadAdminInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

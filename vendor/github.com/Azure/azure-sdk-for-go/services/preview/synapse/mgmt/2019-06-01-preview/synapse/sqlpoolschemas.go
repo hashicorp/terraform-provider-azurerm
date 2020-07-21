@@ -127,7 +127,6 @@ func (client SQLPoolSchemasClient) ListSender(req *http.Request) (*http.Response
 func (client SQLPoolSchemasClient) ListResponder(resp *http.Response) (result SQLPoolSchemaListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -125,7 +125,6 @@ func (client IPFirewallRulesClient) CreateOrUpdateSender(req *http.Request) (fut
 func (client IPFirewallRulesClient) CreateOrUpdateResponder(resp *http.Response) (result IPFirewallRuleInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -213,7 +212,6 @@ func (client IPFirewallRulesClient) DeleteSender(req *http.Request) (future IPFi
 func (client IPFirewallRulesClient) DeleteResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -301,7 +299,6 @@ func (client IPFirewallRulesClient) GetSender(req *http.Request) (*http.Response
 func (client IPFirewallRulesClient) GetResponder(resp *http.Response) (result IPFirewallRuleInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,7 +385,6 @@ func (client IPFirewallRulesClient) ListByWorkspaceSender(req *http.Request) (*h
 func (client IPFirewallRulesClient) ListByWorkspaceResponder(resp *http.Response) (result IPFirewallRuleInfoListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -514,7 +510,6 @@ func (client IPFirewallRulesClient) ReplaceAllSender(req *http.Request) (future 
 func (client IPFirewallRulesClient) ReplaceAllResponder(resp *http.Response) (result ReplaceAllFirewallRulesOperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

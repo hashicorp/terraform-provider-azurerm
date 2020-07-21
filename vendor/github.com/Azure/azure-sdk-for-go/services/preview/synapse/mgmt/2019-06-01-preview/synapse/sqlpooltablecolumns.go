@@ -132,7 +132,6 @@ func (client SQLPoolTableColumnsClient) ListByTableNameSender(req *http.Request)
 func (client SQLPoolTableColumnsClient) ListByTableNameResponder(resp *http.Response) (result SQLPoolColumnListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

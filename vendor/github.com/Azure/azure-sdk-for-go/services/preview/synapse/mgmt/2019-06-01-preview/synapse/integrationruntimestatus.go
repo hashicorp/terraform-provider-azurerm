@@ -123,7 +123,6 @@ func (client IntegrationRuntimeStatusClient) GetSender(req *http.Request) (*http
 func (client IntegrationRuntimeStatusClient) GetResponder(resp *http.Response) (result IntegrationRuntimeStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

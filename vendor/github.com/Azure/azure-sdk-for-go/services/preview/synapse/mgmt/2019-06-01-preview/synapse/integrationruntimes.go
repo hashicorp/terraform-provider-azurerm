@@ -134,7 +134,6 @@ func (client IntegrationRuntimesClient) CreateSender(req *http.Request) (*http.R
 func (client IntegrationRuntimesClient) CreateResponder(resp *http.Response) (result IntegrationRuntimeResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -222,7 +221,6 @@ func (client IntegrationRuntimesClient) DeleteSender(req *http.Request) (*http.R
 func (client IntegrationRuntimesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -315,7 +313,6 @@ func (client IntegrationRuntimesClient) GetSender(req *http.Request) (*http.Resp
 func (client IntegrationRuntimesClient) GetResponder(resp *http.Response) (result IntegrationRuntimeResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotModified),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -402,7 +399,6 @@ func (client IntegrationRuntimesClient) ListByWorkspaceSender(req *http.Request)
 func (client IntegrationRuntimesClient) ListByWorkspaceResponder(resp *http.Response) (result IntegrationRuntimeListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -527,7 +523,6 @@ func (client IntegrationRuntimesClient) StartSender(req *http.Request) (*http.Re
 func (client IntegrationRuntimesClient) StartResponder(resp *http.Response) (result IntegrationRuntimeStatusResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -615,7 +610,6 @@ func (client IntegrationRuntimesClient) StopSender(req *http.Request) (*http.Res
 func (client IntegrationRuntimesClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -705,7 +699,6 @@ func (client IntegrationRuntimesClient) UpdateSender(req *http.Request) (*http.R
 func (client IntegrationRuntimesClient) UpdateResponder(resp *http.Response) (result IntegrationRuntimeResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -793,7 +786,6 @@ func (client IntegrationRuntimesClient) UpgradeSender(req *http.Request) (*http.
 func (client IntegrationRuntimesClient) UpgradeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

@@ -125,7 +125,6 @@ func (client SQLPoolOperationResultsClient) GetLocationHeaderResultSender(req *h
 func (client SQLPoolOperationResultsClient) GetLocationHeaderResultResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())

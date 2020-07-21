@@ -123,7 +123,6 @@ func (client SQLPoolUsagesClient) ListSender(req *http.Request) (*http.Response,
 func (client SQLPoolUsagesClient) ListResponder(resp *http.Response) (result SQLPoolUsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

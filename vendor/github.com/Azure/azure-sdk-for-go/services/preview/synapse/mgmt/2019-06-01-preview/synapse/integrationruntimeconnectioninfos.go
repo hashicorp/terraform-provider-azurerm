@@ -124,7 +124,6 @@ func (client IntegrationRuntimeConnectionInfosClient) GetSender(req *http.Reques
 func (client IntegrationRuntimeConnectionInfosClient) GetResponder(resp *http.Response) (result IntegrationRuntimeConnectionInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

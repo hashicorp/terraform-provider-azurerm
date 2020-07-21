@@ -128,7 +128,6 @@ func (client SQLPoolBlobAuditingPoliciesClient) CreateOrUpdateSender(req *http.R
 func (client SQLPoolBlobAuditingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result SQLPoolBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -217,7 +216,6 @@ func (client SQLPoolBlobAuditingPoliciesClient) GetSender(req *http.Request) (*h
 func (client SQLPoolBlobAuditingPoliciesClient) GetResponder(resp *http.Response) (result SQLPoolBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

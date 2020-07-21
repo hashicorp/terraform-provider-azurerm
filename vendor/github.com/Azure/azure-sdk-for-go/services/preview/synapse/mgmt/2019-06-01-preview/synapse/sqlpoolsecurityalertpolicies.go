@@ -127,7 +127,6 @@ func (client SQLPoolSecurityAlertPoliciesClient) CreateOrUpdateSender(req *http.
 func (client SQLPoolSecurityAlertPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result SQLPoolSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +215,6 @@ func (client SQLPoolSecurityAlertPoliciesClient) GetSender(req *http.Request) (*
 func (client SQLPoolSecurityAlertPoliciesClient) GetResponder(resp *http.Response) (result SQLPoolSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -124,7 +124,6 @@ func (client SQLPoolOperationsClient) ListSender(req *http.Request) (*http.Respo
 func (client SQLPoolOperationsClient) ListResponder(resp *http.Response) (result SQLPoolBlobAuditingPolicySQLPoolOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -128,7 +128,6 @@ func (client SQLPoolRestorePointsClient) CreateSender(req *http.Request) (future
 func (client SQLPoolRestorePointsClient) CreateResponder(resp *http.Response) (result RestorePoint, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -217,7 +216,6 @@ func (client SQLPoolRestorePointsClient) ListSender(req *http.Request) (*http.Re
 func (client SQLPoolRestorePointsClient) ListResponder(resp *http.Response) (result RestorePointListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

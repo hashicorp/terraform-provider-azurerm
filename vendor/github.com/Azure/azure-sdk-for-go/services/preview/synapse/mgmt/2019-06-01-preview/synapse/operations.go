@@ -115,7 +115,6 @@ func (client OperationsClient) CheckNameAvailabilitySender(req *http.Request) (*
 func (client OperationsClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client OperationsClient) GetAzureAsyncHeaderResultSender(req *http.Request
 func (client OperationsClient) GetAzureAsyncHeaderResultResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound, http.StatusInternalServerError),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -291,7 +289,6 @@ func (client OperationsClient) GetLocationHeaderResultSender(req *http.Request) 
 func (client OperationsClient) GetLocationHeaderResultResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -351,7 +348,6 @@ func (client OperationsClient) ListSender(req *http.Request) (*http.Response, er
 func (client OperationsClient) ListResponder(resp *http.Response) (result ListAvailableRpOperation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())

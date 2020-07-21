@@ -129,7 +129,6 @@ func (client SQLPoolTablesClient) ListBySchemaSender(req *http.Request) (*http.R
 func (client SQLPoolTablesClient) ListBySchemaResponder(resp *http.Response) (result SQLPoolTableListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
