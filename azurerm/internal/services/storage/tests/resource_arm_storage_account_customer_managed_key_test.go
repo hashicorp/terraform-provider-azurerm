@@ -122,8 +122,8 @@ func testCheckAzureRMStorageAccountExistsWithDefaultSettings(resourceName string
 					}
 				}
 
-				if encryption.KeySource != storage.MicrosoftStorage {
-					return fmt.Errorf("%s keySource not set to default(storage.MicrosoftStorage): %s", resourceName, encryption.KeySource)
+				if encryption.KeySource != storage.KeySourceMicrosoftStorage {
+					return fmt.Errorf("%s keySource not set to default(storage.KeySourceMicrosoftStorage): %s", resourceName, encryption.KeySource)
 				}
 			} else {
 				return fmt.Errorf("storage account encryption properties not found: %s", resourceName)
