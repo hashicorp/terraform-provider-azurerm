@@ -61,14 +61,16 @@ func dataSourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) erro
 		}
 		return fmt.Errorf("reading Storage Sync(Storage Sync Name %q / Resource Group %q): %+v", name, resGroup, err)
 	}
-	d.SetId(*resp.ID)
+
+	if id := resp.ID; id != nil {
+		d.SetId(*resp.ID)
+	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ServiceProperties; props != nil {
 		d.Set("incoming_traffic_policy", props.IncomingTrafficPolicy)
-
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

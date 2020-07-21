@@ -98,6 +98,7 @@ github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/service
 github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2018-10-01/signalr
 github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage
 github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2019-11-01/storagecache
+github.com/Azure/azure-sdk-for-go/services/storagesync/mgmt/2020-03-01/storagesync
 github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web

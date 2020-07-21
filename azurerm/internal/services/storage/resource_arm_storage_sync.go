@@ -136,7 +136,6 @@ func resourceArmStorageSyncRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	if props := resp.ServiceProperties; props != nil {
 		d.Set("incoming_traffic_policy", props.IncomingTrafficPolicy)
-
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }

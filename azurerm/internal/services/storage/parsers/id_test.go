@@ -100,12 +100,12 @@ func TestParseStorageSyncID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing Stores Value",
+			Name:     "Missing Storage Sync Value",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StorageSync/storageSyncServices/",
 			Expected: nil,
 		},
 		{
-			Name:  "App Configuration ID",
+			Name:  "Storage Sync ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.StorageSync/storageSyncServices/Sync1",
 			Expected: &StorageSyncId{
 				Name:          "Sync1",
