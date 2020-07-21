@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/go-getter/helper/url"

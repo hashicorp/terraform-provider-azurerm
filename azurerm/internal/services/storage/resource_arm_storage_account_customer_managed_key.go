@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-06-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -61,7 +61,7 @@ func resourceArmStorageAccountCustomerManagedKey() *schema.Resource {
 
 			"key_version": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 		},
 	}
@@ -97,7 +97,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 		// whilst this looks superflurious given encryption is enabled by default, due to the way
 		// the Azure API works this technically can be nil
 		if storageAccount.AccountProperties.Encryption != nil {
-			if storageAccount.AccountProperties.Encryption.KeySource == storage.MicrosoftKeyvault {
+			if storageAccount.AccountProperties.Encryption.KeySource == storage.KeySourceMicrosoftKeyvault {
 				return tf.ImportAsExistsError("azurerm_storage_account_customer_managed_key", resourceID)
 			}
 		}
@@ -135,6 +135,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 
 	keyName := d.Get("key_name").(string)
 	keyVersion := d.Get("key_version").(string)
+
 	props := storage.AccountUpdateParameters{
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			Encryption: &storage.Encryption{
@@ -146,7 +147,7 @@ func resourceArmStorageAccountCustomerManagedKeyCreateUpdate(d *schema.ResourceD
 						Enabled: utils.Bool(true),
 					},
 				},
-				KeySource: storage.MicrosoftKeyvault,
+				KeySource: storage.KeySourceMicrosoftKeyvault,
 				KeyVaultProperties: &storage.KeyVaultProperties{
 					KeyName:     utils.String(keyName),
 					KeyVersion:  utils.String(keyVersion),
@@ -188,7 +189,7 @@ func resourceArmStorageAccountCustomerManagedKeyRead(d *schema.ResourceData, met
 	if storageAccount.AccountProperties == nil {
 		return fmt.Errorf("Error retrieving Storage Account %q (Resource Group %q): `properties` was nil", storageAccountID.Name, storageAccountID.ResourceGroup)
 	}
-	if storageAccount.AccountProperties.Encryption == nil || storageAccount.AccountProperties.Encryption.KeySource != storage.MicrosoftKeyvault {
+	if storageAccount.AccountProperties.Encryption == nil || storageAccount.AccountProperties.Encryption.KeySource != storage.KeySourceMicrosoftKeyvault {
 		log.Printf("[DEBUG] Customer Managed Key was not defined for Storage Account %q (Resource Group %q) - removing from state!", storageAccountID.Name, storageAccountID.ResourceGroup)
 		d.SetId("")
 		return nil
@@ -268,7 +269,7 @@ func resourceArmStorageAccountCustomerManagedKeyDelete(d *schema.ResourceData, m
 						Enabled: utils.Bool(true),
 					},
 				},
-				KeySource: storage.MicrosoftStorage,
+				KeySource: storage.KeySourceMicrosoftStorage,
 			},
 		},
 	}
