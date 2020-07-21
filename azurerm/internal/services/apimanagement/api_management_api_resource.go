@@ -163,6 +163,12 @@ func resourceArmApiManagementApi() *schema.Resource {
 				},
 			},
 
+			"subscription_required": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"soap_pass_through": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -292,6 +298,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	description := d.Get("description").(string)
 	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
+	subscriptionRequired := d.Get("subscription_required").(bool)
 
 	protocolsRaw := d.Get("protocols").(*schema.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
@@ -310,6 +317,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 			ServiceURL:                    utils.String(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
 			APIVersion:                    utils.String(version),
+			SubscriptionRequired:          &subscriptionRequired,
 		},
 	}
 
@@ -384,6 +392,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("service_url", props.ServiceURL)
 		d.Set("revision", props.APIRevision)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
+		d.Set("subscription_required", props.SubscriptionRequired)
 		d.Set("version", props.APIVersion)
 		d.Set("version_set_id", props.APIVersionSetID)
 

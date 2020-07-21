@@ -127,7 +127,6 @@ func (client ConnectionClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client ConnectionClient) CreateOrUpdateResponder(resp *http.Response) (result Connection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -213,7 +212,6 @@ func (client ConnectionClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client ConnectionClient) DeleteResponder(resp *http.Response) (result Connection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -299,7 +297,6 @@ func (client ConnectionClient) GetSender(req *http.Request) (*http.Response, err
 func (client ConnectionClient) GetResponder(resp *http.Response) (result Connection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -384,7 +381,6 @@ func (client ConnectionClient) ListByAutomationAccountSender(req *http.Request) 
 func (client ConnectionClient) ListByAutomationAccountResponder(resp *http.Response) (result ConnectionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -510,7 +506,6 @@ func (client ConnectionClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client ConnectionClient) UpdateResponder(resp *http.Response) (result Connection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

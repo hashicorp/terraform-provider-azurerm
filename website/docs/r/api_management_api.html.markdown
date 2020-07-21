@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of the API.
 
-* `path` - (Required) The Path for this API Management API, which is a relative URL which uniquely identifies this API and all of it's resource paths within the API Management Service.
+* `path` - (Required) The Path for this API Management API, which is a relative URL which uniquely identifies this API and all of its resource paths within the API Management Service.
 
 * `protocols` - (Required) A list of protocols the operations in this API can be invoked. Possible values are `http` and `https`.
 
@@ -73,6 +73,8 @@ The following arguments are supported:
 * `soap_pass_through` - (Optional) Should this API expose a SOAP frontend, rather than a HTTP frontend? Defaults to `false`.
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
+
+* `subscription_required` - (Optional) Should this API require a subscription key?
 
 * `version` - (Optional) The Version number of this API, if this API is versioned.
 

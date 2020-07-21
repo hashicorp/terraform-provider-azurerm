@@ -20,6 +20,7 @@ class pullRequest(displayName: String, environment: String) {
                 var packageName = "\"%SERVICES%\""
 
                 ConfigureGoEnv()
+                DownloadTerraformBinary()
                 RunAcceptanceTestsForPullRequest(providerName, packageName)
             }
 
@@ -35,6 +36,7 @@ class pullRequest(displayName: String, environment: String) {
                 TerraformAcceptanceTestParameters(defaultParallelism, "TestAcc", "12")
                 TerraformAcceptanceTestsFlag()
                 TerraformShouldPanicForSchemaErrors()
+                TerraformCoreBinaryTesting()
                 ReadOnlySettings()
 
                 text("SERVICES", "portal")

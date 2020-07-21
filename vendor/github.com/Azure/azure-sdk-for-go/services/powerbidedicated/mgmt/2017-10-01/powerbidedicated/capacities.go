@@ -122,7 +122,6 @@ func (client CapacitiesClient) CheckNameAvailabilitySender(req *http.Request) (*
 func (client CapacitiesClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckCapacityNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,7 +214,6 @@ func (client CapacitiesClient) CreateSender(req *http.Request) (future Capacitie
 func (client CapacitiesClient) CreateResponder(resp *http.Response) (result DedicatedCapacity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -305,7 +303,6 @@ func (client CapacitiesClient) DeleteSender(req *http.Request) (future Capacitie
 func (client CapacitiesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -394,7 +391,6 @@ func (client CapacitiesClient) GetDetailsSender(req *http.Request) (*http.Respon
 func (client CapacitiesClient) GetDetailsResponder(resp *http.Response) (result DedicatedCapacity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -465,7 +461,6 @@ func (client CapacitiesClient) ListSender(req *http.Request) (*http.Response, er
 func (client CapacitiesClient) ListResponder(resp *http.Response) (result DedicatedCapacities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -548,7 +543,6 @@ func (client CapacitiesClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client CapacitiesClient) ListByResourceGroupResponder(resp *http.Response) (result DedicatedCapacities, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -619,7 +613,6 @@ func (client CapacitiesClient) ListSkusSender(req *http.Request) (*http.Response
 func (client CapacitiesClient) ListSkusResponder(resp *http.Response) (result SkuEnumerationForNewResourceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -709,7 +702,6 @@ func (client CapacitiesClient) ListSkusForCapacitySender(req *http.Request) (*ht
 func (client CapacitiesClient) ListSkusForCapacityResponder(resp *http.Response) (result SkuEnumerationForExistingResourceResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -799,7 +791,6 @@ func (client CapacitiesClient) ResumeSender(req *http.Request) (future Capacitie
 func (client CapacitiesClient) ResumeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -888,7 +879,6 @@ func (client CapacitiesClient) SuspendSender(req *http.Request) (future Capaciti
 func (client CapacitiesClient) SuspendResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -980,7 +970,6 @@ func (client CapacitiesClient) UpdateSender(req *http.Request) (future Capacitie
 func (client CapacitiesClient) UpdateResponder(resp *http.Response) (result DedicatedCapacity, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

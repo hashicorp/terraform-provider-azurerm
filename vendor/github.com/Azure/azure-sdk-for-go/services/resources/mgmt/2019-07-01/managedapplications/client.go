@@ -115,7 +115,6 @@ func (client BaseClient) ListOperationsSender(req *http.Request) (*http.Response
 func (client BaseClient) ListOperationsResponder(resp *http.Response) (result OperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

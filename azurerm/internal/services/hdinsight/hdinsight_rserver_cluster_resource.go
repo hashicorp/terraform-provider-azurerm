@@ -22,7 +22,7 @@ import (
 var hdInsightRServerClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         2,
+	MaxInstanceCount:         utils.Int(2),
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
@@ -31,14 +31,13 @@ var hdInsightRServerClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightRServerClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	MaxInstanceCount:        16,
 	CanSpecifyDisks:         false,
 }
 
 var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         3,
+	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
@@ -47,13 +46,18 @@ var hdInsightRServerClusterZookeeperNodeDefinition = azure.HDInsightNodeDefiniti
 var hdInsightRServerClusterEdgeNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         1,
-	MaxInstanceCount:         1,
+	MaxInstanceCount:         utils.Int(1),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(1)),
 }
 
 func resourceArmHDInsightRServerCluster() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `HDInsight 3.6 will be retired on 2020-12-31 - R Server is not supported in HDInsight 4.0 and so this resource will be removed in the next major version of the AzureRM Terraform Provider.
+		
+More information on the HDInsight 3.6 deprecation can be found at:
+
+https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
 		Create: resourceArmHDInsightRServerClusterCreate,
 		Read:   resourceArmHDInsightRServerClusterRead,
 		Update: hdinsightClusterUpdate("RServer", resourceArmHDInsightRServerClusterRead),

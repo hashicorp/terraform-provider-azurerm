@@ -130,7 +130,6 @@ func (client ServerAzureADAdministratorsClient) CreateOrUpdateSender(req *http.R
 func (client ServerAzureADAdministratorsClient) CreateOrUpdateResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client ServerAzureADAdministratorsClient) DeleteSender(req *http.Request) 
 func (client ServerAzureADAdministratorsClient) DeleteResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -286,7 +284,6 @@ func (client ServerAzureADAdministratorsClient) GetSender(req *http.Request) (*h
 func (client ServerAzureADAdministratorsClient) GetResponder(resp *http.Response) (result ServerAzureADAdministrator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -363,7 +360,6 @@ func (client ServerAzureADAdministratorsClient) ListByServerSender(req *http.Req
 func (client ServerAzureADAdministratorsClient) ListByServerResponder(resp *http.Response) (result ServerAdministratorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

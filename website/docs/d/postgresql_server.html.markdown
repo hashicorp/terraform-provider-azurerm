@@ -39,6 +39,8 @@ output "postgresql_server_id" {
 
 * `administrator_login` - The administrator username of the PostgreSQL Server.
 
+* `sku_name` - The SKU name of the PostgreSQL Server.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 ## Timeouts

@@ -137,7 +137,6 @@ func (client LoggerClient) CreateOrUpdateSender(req *http.Request) (*http.Respon
 func (client LoggerClient) CreateOrUpdateResponder(resp *http.Response) (result LoggerContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -233,7 +232,6 @@ func (client LoggerClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client LoggerClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -321,7 +319,6 @@ func (client LoggerClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client LoggerClient) GetResponder(resp *http.Response) (result LoggerContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -410,7 +407,6 @@ func (client LoggerClient) GetEntityTagSender(req *http.Request) (*http.Response
 func (client LoggerClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -516,7 +512,6 @@ func (client LoggerClient) ListByServiceSender(req *http.Request) (*http.Respons
 func (client LoggerClient) ListByServiceResponder(resp *http.Response) (result LoggerCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -648,7 +643,6 @@ func (client LoggerClient) UpdateSender(req *http.Request) (*http.Response, erro
 func (client LoggerClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

@@ -129,7 +129,6 @@ func (client CredentialClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client CredentialClient) CreateOrUpdateResponder(resp *http.Response) (result Credential, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,7 +214,6 @@ func (client CredentialClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client CredentialClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -300,7 +298,6 @@ func (client CredentialClient) GetSender(req *http.Request) (*http.Response, err
 func (client CredentialClient) GetResponder(resp *http.Response) (result Credential, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -385,7 +382,6 @@ func (client CredentialClient) ListByAutomationAccountSender(req *http.Request) 
 func (client CredentialClient) ListByAutomationAccountResponder(resp *http.Response) (result CredentialListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -511,7 +507,6 @@ func (client CredentialClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client CredentialClient) UpdateResponder(resp *http.Response) (result Credential, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

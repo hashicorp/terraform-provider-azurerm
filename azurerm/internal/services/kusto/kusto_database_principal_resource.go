@@ -23,6 +23,8 @@ func resourceArmKustoDatabasePrincipal() *schema.Resource {
 		Read:   resourceArmKustoDatabasePrincipalRead,
 		Delete: resourceArmKustoDatabasePrincipalDelete,
 
+		DeprecationMessage: "This resource has been superseded by `azurerm_kusto_database_principal_assignment` to reflects changes in the API/SDK and will be removed in version 3.0 of the provider.",
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},

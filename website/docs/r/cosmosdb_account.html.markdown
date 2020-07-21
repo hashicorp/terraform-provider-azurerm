@@ -73,6 +73,8 @@ The following arguments are supported:
 
 * `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IP's for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
 
+* `enable_free_tier` - (Optional) Enable Free Tier pricing option for this Cosmos DB account. Defaults to `false`. Changing this forces a new resource to be created.
+
 * `enable_automatic_failover` - (Optional) Enable automatic fail over for this Cosmos DB account.
 
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Possible values are `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableTable`, `MongoDBv3.4`, and `mongoEnableDocLevelTTL`.
@@ -106,6 +108,7 @@ The following arguments are supported:
 `virtual_network_rule` Configures the virtual network subnets allowed to access this Cosmos DB account and supports the following:
 
 * `id` - (Required) The ID of the virtual network subnet.
+* `ignore_missing_vnet_service_endpoint` - (Optional) If set to true, the specified subnet will be added as a virtual network rule even if its CosmosDB service endpoint is not active. Defaults to `false`.
 
 ## Attributes Reference
 

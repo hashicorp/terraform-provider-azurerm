@@ -21,7 +21,7 @@ import (
 var hdInsightInteractiveQueryClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
-	MaxInstanceCount:         2,
+	MaxInstanceCount:         utils.Int(2),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
@@ -29,14 +29,13 @@ var hdInsightInteractiveQueryClusterHeadNodeDefinition = azure.HDInsightNodeDefi
 var hdInsightInteractiveQueryClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	MaxInstanceCount:        9,
 	CanSpecifyDisks:         false,
 }
 
 var hdInsightInteractiveQueryClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         3,
+	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
@@ -88,6 +87,8 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 
 			"gateway": azure.SchemaHDInsightsGateway(),
 
+			"metastores": azure.SchemaHDInsightsExternalMetastores(),
+
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
 			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
@@ -118,12 +119,15 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"monitor": azure.SchemaHDInsightsMonitor(),
 		},
 	}
 }
 
 func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -139,13 +143,19 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 	componentVersions := expandHDInsightInteractiveQueryComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
-	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+
+	metastoresRaw := d.Get("metastores").([]interface{})
+	metastores := expandHDInsightsMetastore(metastoresRaw)
+	for k, v := range metastores {
+		configurations[k] = v
+	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
 	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
-		return fmt.Errorf("Error expanding `storage_account`: %s", err)
+		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
 
 	interactiveQueryRoles := hdInsightRoleDefinition{
@@ -156,14 +166,14 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 	rolesRaw := d.Get("roles").([]interface{})
 	roles, err := expandHDInsightRoles(rolesRaw, interactiveQueryRoles)
 	if err != nil {
-		return fmt.Errorf("Error expanding `roles`: %+v", err)
+		return fmt.Errorf("failure expanding `roles`: %+v", err)
 	}
 
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing HDInsight InteractiveQuery Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("failure checking for presence of existing HDInsight InteractiveQuery Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -182,7 +192,7 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("INTERACTIVEHIVE"),
 				ComponentVersion: componentVersions,
-				Configurations:   gateway,
+				Configurations:   configurations,
 			},
 			StorageProfile: &hdinsight.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -196,23 +206,31 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("Error creating HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure creating HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failed waiting for creation of HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error reading ID for HDInsight Interactive Query Cluster %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("failure reading ID for HDInsight Interactive Query Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
+
+	// We can only enable monitoring after creation
+	if v, ok := d.GetOk("monitor"); ok {
+		monitorRaw := v.([]interface{})
+		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+			return err
+		}
+	}
 
 	return resourceArmHDInsightInteractiveQueryClusterRead(d, meta)
 }
@@ -220,6 +238,7 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -239,12 +258,18 @@ func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, met
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
+	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
+	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Configuration for HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving Configuration for HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	gateway, exists := configurations.Configurations["gateway"]
+	if !exists {
+		return fmt.Errorf("failure retrieving gateway for HDInsight Interactive Query Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -261,12 +286,14 @@ func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, met
 
 		if def := props.ClusterDefinition; def != nil {
 			if err := d.Set("component_version", flattenHDInsightInteractiveQueryComponentVersion(def.ComponentVersion)); err != nil {
-				return fmt.Errorf("Error flattening `component_version`: %+v", err)
+				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
-				return fmt.Errorf("Error flattening `gateway`: %+v", err)
+			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
+				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
+
+			flattenHDInsightsMetastores(d, configurations.Configurations)
 		}
 
 		interactiveQueryRoles := hdInsightRoleDefinition{
@@ -276,13 +303,20 @@ func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, met
 		}
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, interactiveQueryRoles)
 		if err := d.Set("roles", flattenedRoles); err != nil {
-			return fmt.Errorf("Error flattening `roles`: %+v", err)
+			return fmt.Errorf("failure flattening `roles`: %+v", err)
 		}
 
 		httpEndpoint := azure.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
+
+		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("failed reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		d.Set("monitor", flattenHDInsightMonitoring(monitor))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

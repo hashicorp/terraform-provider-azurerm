@@ -123,7 +123,6 @@ func (client ClusterPrincipalAssignmentsClient) CheckNameAvailabilitySender(req 
 func (client ClusterPrincipalAssignmentsClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client ClusterPrincipalAssignmentsClient) CreateOrUpdateSender(req *http.R
 func (client ClusterPrincipalAssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (result ClusterPrincipalAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -289,7 +287,6 @@ func (client ClusterPrincipalAssignmentsClient) DeleteSender(req *http.Request) 
 func (client ClusterPrincipalAssignmentsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -366,7 +363,6 @@ func (client ClusterPrincipalAssignmentsClient) GetSender(req *http.Request) (*h
 func (client ClusterPrincipalAssignmentsClient) GetResponder(resp *http.Response) (result ClusterPrincipalAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -442,7 +438,6 @@ func (client ClusterPrincipalAssignmentsClient) ListSender(req *http.Request) (*
 func (client ClusterPrincipalAssignmentsClient) ListResponder(resp *http.Response) (result ClusterPrincipalAssignmentListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

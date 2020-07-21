@@ -27,6 +27,7 @@ func TestAccAzureRMMonitorAutoScaleSetting_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "profile.#", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.name", "metricRules"),
 					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.rule.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "profile.0.rule.0.metric_trigger.0.time_aggregation", "Last"),
 					resource.TestCheckResourceAttr(data.ResourceName, "notification.#", "0"),
 					resource.TestCheckNoResourceAttr(data.ResourceName, "tags.$type"),
 				),
@@ -363,7 +364,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
-        time_aggregation   = "Average"
+        time_aggregation   = "Last"
         operator           = "GreaterThan"
         threshold          = 75
       }

@@ -126,7 +126,6 @@ func (client NotificationRecipientUserClient) CheckEntityExistsSender(req *http.
 func (client NotificationRecipientUserClient) CheckEntityExistsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -216,7 +215,6 @@ func (client NotificationRecipientUserClient) CreateOrUpdateSender(req *http.Req
 func (client NotificationRecipientUserClient) CreateOrUpdateResponder(resp *http.Response) (result RecipientUserContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -307,7 +305,6 @@ func (client NotificationRecipientUserClient) DeleteSender(req *http.Request) (*
 func (client NotificationRecipientUserClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -392,7 +389,6 @@ func (client NotificationRecipientUserClient) ListByNotificationSender(req *http
 func (client NotificationRecipientUserClient) ListByNotificationResponder(resp *http.Response) (result RecipientUserCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

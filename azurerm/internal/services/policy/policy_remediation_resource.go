@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -77,8 +76,6 @@ func resourceArmPolicyRemediation() *schema.Resource {
 				Optional: true,
 				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
-				// TODO: use the validation function in azurerm_policy_definition when implemented
-				ValidateFunc: validate.PolicyDefinitionID,
 			},
 		},
 	}
@@ -92,14 +89,14 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	scope, err := parse.PolicyScopeID(d.Get("scope").(string))
 	if err != nil {
-		return fmt.Errorf("unable to create Policy Remediation %q: %+v", name, err)
+		return fmt.Errorf("creating/updating Policy Remediation %q: %+v", name, err)
 	}
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := RemediationGetAtScope(ctx, client, name, scope)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("unable to check for present of existing Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
+				return fmt.Errorf("checking for present of existing Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -107,17 +104,13 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	filters := d.Get("location_filters").([]interface{})
-	policyAssignmentID := d.Get("policy_assignment_id").(string)
-	policyDefinitionReferenceID := d.Get("policy_definition_reference_id").(string)
-
 	parameters := policyinsights.Remediation{
 		RemediationProperties: &policyinsights.RemediationProperties{
 			Filters: &policyinsights.RemediationFilters{
-				Locations: utils.ExpandStringSlice(filters),
+				Locations: utils.ExpandStringSlice(d.Get("location_filters").([]interface{})),
 			},
-			PolicyAssignmentID:          utils.String(policyAssignmentID),
-			PolicyDefinitionReferenceID: utils.String(policyDefinitionReferenceID),
+			PolicyAssignmentID:          utils.String(d.Get("policy_assignment_id").(string)),
+			PolicyDefinitionReferenceID: utils.String(d.Get("policy_definition_reference_id").(string)),
 		},
 	}
 
@@ -129,20 +122,21 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 	case parse.ScopeAtResource:
 		_, err = client.CreateOrUpdateAtResource(ctx, scope.ScopeId(), name, parameters)
 	case parse.ScopeAtManagementGroup:
-		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.ManagementGroupId, name, parameters)
+		_, err = client.CreateOrUpdateAtManagementGroup(ctx, scope.ManagementGroupName, name, parameters)
 	default:
-		return fmt.Errorf("unable to create Policy Remediation %q: invalid scope type", name)
+		return fmt.Errorf("creating/updating Policy Remediation %q: invalid scope type", name)
 	}
 	if err != nil {
-		return fmt.Errorf("unable to create Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
+		return fmt.Errorf("creating/updating Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
 	}
 
 	resp, err := RemediationGetAtScope(ctx, client, name, scope)
 	if err != nil {
-		return fmt.Errorf("unable to retrieve Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
+		return fmt.Errorf("retrieving Policy Remediation %q (Scope %q): %+v", name, scope.ScopeId(), err)
 	}
-	if resp.ID == nil {
-		return fmt.Errorf("cannot read Policy Remediation %q (Scope %q) ID", name, scope.ScopeId())
+
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("empty or nil ID returned for Policy Remediation %q (Scope %q)", name, scope.ScopeId())
 	}
 	d.SetId(*resp.ID)
 
@@ -156,7 +150,7 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 
 	id, err := parse.PolicyRemediationID(d.Id())
 	if err != nil {
-		return fmt.Errorf("unable to read Policy Remediation: %+v", err)
+		return fmt.Errorf("reading Policy Remediation: %+v", err)
 	}
 
 	resp, err := RemediationGetAtScope(ctx, client, id.Name, id.PolicyScopeId)
@@ -166,7 +160,7 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("unable to read Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
+		return fmt.Errorf("reading Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
 	}
 
 	d.Set("name", id.Name)
@@ -178,7 +172,7 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 			locations = utils.FlattenStringSlice(filters.Locations)
 		}
 		if err := d.Set("location_filters", locations); err != nil {
-			return fmt.Errorf("unable to set `location_filters`: %+v", err)
+			return fmt.Errorf("setting `location_filters`: %+v", err)
 		}
 
 		d.Set("policy_assignment_id", props.PolicyAssignmentID)
@@ -206,12 +200,12 @@ func resourceArmPolicyRemediationDelete(d *schema.ResourceData, meta interface{}
 	case parse.ScopeAtResource:
 		_, err = client.DeleteAtResource(ctx, scope.ScopeId(), id.Name)
 	case parse.ScopeAtManagementGroup:
-		_, err = client.DeleteAtManagementGroup(ctx, scope.ManagementGroupId, id.Name)
+		_, err = client.DeleteAtManagementGroup(ctx, scope.ManagementGroupName, id.Name)
 	default:
-		return fmt.Errorf("unable to delete Policy Remediation %q: invalid scope type", id.Name)
+		return fmt.Errorf("deleting Policy Remediation %q: invalid scope type", id.Name)
 	}
 	if err != nil {
-		return fmt.Errorf("unable to delete Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
+		return fmt.Errorf("deleting Policy Remediation %q (Scope %q): %+v", id.Name, id.ScopeId(), err)
 	}
 
 	return nil
@@ -227,8 +221,8 @@ func RemediationGetAtScope(ctx context.Context, client *policyinsights.Remediati
 	case parse.ScopeAtResource:
 		return client.GetAtResource(ctx, scopeId.ScopeId(), name)
 	case parse.ScopeAtManagementGroup:
-		return client.GetAtManagementGroup(ctx, scopeId.ManagementGroupId, name)
+		return client.GetAtManagementGroup(ctx, scopeId.ManagementGroupName, name)
 	default:
-		return policyinsights.Remediation{}, fmt.Errorf("unable to read Policy Remediation %q: invalid scope type", name)
+		return policyinsights.Remediation{}, fmt.Errorf("reading Policy Remediation %q: invalid scope type", name)
 	}
 }

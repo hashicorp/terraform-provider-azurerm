@@ -661,9 +661,15 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	dashboard, ok := appSettings["AzureWebJobsDashboard"]
 	d.Set("enable_builtin_logging", ok && dashboard != "")
 
-	delete(appSettings, "AzureWebJobsDashboard")
-	delete(appSettings, "AzureWebJobsStorage")
-	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
+	if _, ok = d.GetOk("app_settings.AzureWebJobsDashboard"); !ok {
+		delete(appSettings, "AzureWebJobsDashboard")
+	}
+	if _, ok = d.GetOk("app_settings.AzureWebJobsStorage"); !ok {
+		delete(appSettings, "AzureWebJobsStorage")
+	}
+	if _, ok = d.GetOk("app_settings.FUNCTIONS_EXTENSION_VERSION"); !ok {
+		delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
+	}
 
 	// Let the user have a final say whether he wants to keep these 2 or not on
 	// Linux consumption plans. They shouldn't be there according to a bug

@@ -42,8 +42,8 @@ func NewSecureScoresClientWithBaseURI(baseURI string, subscriptionID string, asc
 	return SecureScoresClient{NewWithBaseURI(baseURI, subscriptionID, ascLocation)}
 }
 
-// Get get secure score for a specific initiative within your current scope. For the ASC Default initiative, use
-// 'ascScore'.
+// Get get secure score for a specific Security Center initiative within your current scope. For the ASC Default
+// initiative, use 'ascScore'.
 // Parameters:
 // secureScoreName - the initiative name. For the ASC Default initiative, use 'ascScore' as in the sample
 // request below.
@@ -116,7 +116,6 @@ func (client SecureScoresClient) GetSender(req *http.Request) (*http.Response, e
 func (client SecureScoresClient) GetResponder(resp *http.Response) (result SecureScoreItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,7 +193,6 @@ func (client SecureScoresClient) ListSender(req *http.Request) (*http.Response, 
 func (client SecureScoresClient) ListResponder(resp *http.Response) (result SecureScoresList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

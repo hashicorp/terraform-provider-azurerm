@@ -210,6 +210,32 @@ func TestAccAzureRMLocalNetworkGateway_bgpSettingsComplete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLocalNetworkGateway_updateAddressSpace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_local_network_gateway", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLocalNetworkGatewayDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_multipleAddressSpace(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMLocalNetworkGatewayConfig_multipleAddressSpaceUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLocalNetworkGatewayExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 // testCheckAzureRMLocalNetworkGatewayExists returns the resource.TestCheckFunc
 // which checks whether or not the expected local network gateway exists both
 // in the schema, and on Azure.
@@ -424,6 +450,48 @@ resource "azurerm_local_network_gateway" "test" {
     bgp_peering_address = "10.104.1.1"
     peer_weight         = 15
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMLocalNetworkGatewayConfig_multipleAddressSpace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "%s"
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctestlng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.0.0/24", "127.0.1.0/24"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMLocalNetworkGatewayConfig_multipleAddressSpaceUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctest-%d"
+  location = "%s"
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctestlng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  gateway_address     = "127.0.0.1"
+  address_space       = ["127.0.1.0/24", "127.0.0.0/24"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

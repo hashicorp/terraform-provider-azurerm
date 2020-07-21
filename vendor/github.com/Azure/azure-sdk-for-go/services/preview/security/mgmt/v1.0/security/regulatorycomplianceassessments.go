@@ -120,7 +120,6 @@ func (client RegulatoryComplianceAssessmentsClient) GetSender(req *http.Request)
 func (client RegulatoryComplianceAssessmentsClient) GetResponder(resp *http.Response) (result RegulatoryComplianceAssessment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client RegulatoryComplianceAssessmentsClient) ListSender(req *http.Request
 func (client RegulatoryComplianceAssessmentsClient) ListResponder(resp *http.Response) (result RegulatoryComplianceAssessmentList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -112,7 +112,6 @@ func (client WorkflowsClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client WorkflowsClient) CreateOrUpdateResponder(resp *http.Response) (result Workflow, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,7 +187,6 @@ func (client WorkflowsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client WorkflowsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -263,7 +261,6 @@ func (client WorkflowsClient) DisableSender(req *http.Request) (*http.Response, 
 func (client WorkflowsClient) DisableResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -338,7 +335,6 @@ func (client WorkflowsClient) EnableSender(req *http.Request) (*http.Response, e
 func (client WorkflowsClient) EnableResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -416,7 +412,6 @@ func (client WorkflowsClient) GenerateUpgradedDefinitionSender(req *http.Request
 func (client WorkflowsClient) GenerateUpgradedDefinitionResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -492,7 +487,6 @@ func (client WorkflowsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client WorkflowsClient) GetResponder(resp *http.Response) (result Workflow, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -576,7 +570,6 @@ func (client WorkflowsClient) ListByResourceGroupSender(req *http.Request) (*htt
 func (client WorkflowsClient) ListByResourceGroupResponder(resp *http.Response) (result WorkflowListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -695,7 +688,6 @@ func (client WorkflowsClient) ListBySubscriptionSender(req *http.Request) (*http
 func (client WorkflowsClient) ListBySubscriptionResponder(resp *http.Response) (result WorkflowListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -811,7 +803,6 @@ func (client WorkflowsClient) ListCallbackURLSender(req *http.Request) (*http.Re
 func (client WorkflowsClient) ListCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -887,7 +878,6 @@ func (client WorkflowsClient) ListSwaggerSender(req *http.Request) (*http.Respon
 func (client WorkflowsClient) ListSwaggerResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -966,7 +956,6 @@ func (client WorkflowsClient) MoveSender(req *http.Request) (future WorkflowsMov
 func (client WorkflowsClient) MoveResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1044,7 +1033,6 @@ func (client WorkflowsClient) RegenerateAccessKeySender(req *http.Request) (*htt
 func (client WorkflowsClient) RegenerateAccessKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1119,7 +1107,6 @@ func (client WorkflowsClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client WorkflowsClient) UpdateResponder(resp *http.Response) (result Workflow, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1200,7 +1187,6 @@ func (client WorkflowsClient) ValidateByLocationSender(req *http.Request) (*http
 func (client WorkflowsClient) ValidateByLocationResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1278,7 +1264,6 @@ func (client WorkflowsClient) ValidateByResourceGroupSender(req *http.Request) (
 func (client WorkflowsClient) ValidateByResourceGroupResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Should this Sentinel MS Security Incident Alert Rule be enabled? Defaults to `true`.
 
-* `text_whitelist` - (Optional) Only create incidents from alerts when alert name contain text in this list. No filter will happen if this field is absent.
+* `display_name_filter` - (Optional) Only create incidents when the alert display name contain text from this list, leave empty to apply no filter.
 
 ## Attributes Reference
 

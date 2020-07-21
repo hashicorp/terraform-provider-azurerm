@@ -128,7 +128,6 @@ func (client ShareSubscriptionsClient) CancelSynchronizationSender(req *http.Req
 func (client ShareSubscriptionsClient) CancelSynchronizationResponder(resp *http.Response) (result ShareSubscriptionSynchronization, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -218,7 +217,6 @@ func (client ShareSubscriptionsClient) CreateSender(req *http.Request) (*http.Re
 func (client ShareSubscriptionsClient) CreateResponder(resp *http.Response) (result ShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -296,7 +294,6 @@ func (client ShareSubscriptionsClient) DeleteSender(req *http.Request) (future S
 func (client ShareSubscriptionsClient) DeleteResponder(resp *http.Response) (result OperationResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -374,7 +371,6 @@ func (client ShareSubscriptionsClient) GetSender(req *http.Request) (*http.Respo
 func (client ShareSubscriptionsClient) GetResponder(resp *http.Response) (result ShareSubscription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -455,7 +451,6 @@ func (client ShareSubscriptionsClient) ListByAccountSender(req *http.Request) (*
 func (client ShareSubscriptionsClient) ListByAccountResponder(resp *http.Response) (result ShareSubscriptionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -575,7 +570,6 @@ func (client ShareSubscriptionsClient) ListSourceShareSynchronizationSettingsSen
 func (client ShareSubscriptionsClient) ListSourceShareSynchronizationSettingsResponder(resp *http.Response) (result SourceShareSynchronizationSettingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -710,7 +704,6 @@ func (client ShareSubscriptionsClient) ListSynchronizationDetailsSender(req *htt
 func (client ShareSubscriptionsClient) ListSynchronizationDetailsResponder(resp *http.Response) (result SynchronizationDetailsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -830,7 +823,6 @@ func (client ShareSubscriptionsClient) ListSynchronizationsSender(req *http.Requ
 func (client ShareSubscriptionsClient) ListSynchronizationsResponder(resp *http.Response) (result ShareSubscriptionSynchronizationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -948,7 +940,6 @@ func (client ShareSubscriptionsClient) SynchronizeMethodSender(req *http.Request
 func (client ShareSubscriptionsClient) SynchronizeMethodResponder(resp *http.Response) (result ShareSubscriptionSynchronization, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
