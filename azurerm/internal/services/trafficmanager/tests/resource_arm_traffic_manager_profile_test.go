@@ -83,9 +83,9 @@ func TestAccAzureRMTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *test
 	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck: func() {acceptance.PreCheck(t)},
-		Providers: acceptance.SupportedProviders,
-		CheckDestroy:  testCheckAzureRMTrafficManagerProfileDestroy,
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMTrafficManagerProfileDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMTrafficManagerProfile_completeWithEndpoint(data),
