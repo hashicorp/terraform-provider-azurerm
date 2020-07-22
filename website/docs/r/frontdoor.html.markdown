@@ -246,6 +246,8 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 
+-> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within the `azurerm_frontdoor` resource or by using a separate [`azurerm_frontdoor_custom_https_configuration` resource](frontdoor_custom_https_configuration.html). Defining custom https configurations using a separate resource allows for parallel creation/update.
+
 ---
 
 ## Attributes Reference
