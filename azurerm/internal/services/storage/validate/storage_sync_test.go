@@ -13,6 +13,8 @@ func TestStorageSyncName(t *testing.T) {
 		{"ui.", true},
 		{"76jhu#", true},
 		{"df_ *-", true},
+		{"dfAd1 ", true},
+		{" dfAd1", false},
 	}
 
 	for _, test := range testCases {
