@@ -128,7 +128,6 @@ func (client ServerCommunicationLinksClient) CreateOrUpdateSender(req *http.Requ
 func (client ServerCommunicationLinksClient) CreateOrUpdateResponder(resp *http.Response) (result ServerCommunicationLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client ServerCommunicationLinksClient) DeleteSender(req *http.Request) (*h
 func (client ServerCommunicationLinksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -285,7 +283,6 @@ func (client ServerCommunicationLinksClient) GetSender(req *http.Request) (*http
 func (client ServerCommunicationLinksClient) GetResponder(resp *http.Response) (result ServerCommunicationLink, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -362,7 +359,6 @@ func (client ServerCommunicationLinksClient) ListByServerSender(req *http.Reques
 func (client ServerCommunicationLinksClient) ListByServerResponder(resp *http.Response) (result ServerCommunicationLinkListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

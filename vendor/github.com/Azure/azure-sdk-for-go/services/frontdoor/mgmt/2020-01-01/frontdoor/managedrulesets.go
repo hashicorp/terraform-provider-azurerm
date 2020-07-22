@@ -105,7 +105,6 @@ func (client ManagedRuleSetsClient) ListSender(req *http.Request) (*http.Respons
 func (client ManagedRuleSetsClient) ListResponder(resp *http.Response) (result ManagedRuleSetDefinitionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

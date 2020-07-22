@@ -115,7 +115,6 @@ func (client PeerExpressRouteCircuitConnectionsClient) GetSender(req *http.Reque
 func (client PeerExpressRouteCircuitConnectionsClient) GetResponder(resp *http.Response) (result PeerExpressRouteCircuitConnection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,7 +193,6 @@ func (client PeerExpressRouteCircuitConnectionsClient) ListSender(req *http.Requ
 func (client PeerExpressRouteCircuitConnectionsClient) ListResponder(resp *http.Response) (result PeerExpressRouteCircuitConnectionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

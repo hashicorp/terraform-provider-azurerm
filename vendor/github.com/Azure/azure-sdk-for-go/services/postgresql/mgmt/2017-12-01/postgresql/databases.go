@@ -127,7 +127,6 @@ func (client DatabasesClient) CreateOrUpdateSender(req *http.Request) (future Da
 func (client DatabasesClient) CreateOrUpdateResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,7 +214,6 @@ func (client DatabasesClient) DeleteSender(req *http.Request) (future DatabasesD
 func (client DatabasesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -302,7 +300,6 @@ func (client DatabasesClient) GetSender(req *http.Request) (*http.Response, erro
 func (client DatabasesClient) GetResponder(resp *http.Response) (result Database, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,7 +385,6 @@ func (client DatabasesClient) ListByServerSender(req *http.Request) (*http.Respo
 func (client DatabasesClient) ListByServerResponder(resp *http.Response) (result DatabaseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

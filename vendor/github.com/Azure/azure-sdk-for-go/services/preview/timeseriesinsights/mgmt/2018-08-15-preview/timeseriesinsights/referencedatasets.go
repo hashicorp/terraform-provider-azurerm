@@ -128,7 +128,6 @@ func (client ReferenceDataSetsClient) CreateOrUpdateSender(req *http.Request) (*
 func (client ReferenceDataSetsClient) CreateOrUpdateResponder(resp *http.Response) (result ReferenceDataSetResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -209,7 +208,6 @@ func (client ReferenceDataSetsClient) DeleteSender(req *http.Request) (*http.Res
 func (client ReferenceDataSetsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -288,7 +286,6 @@ func (client ReferenceDataSetsClient) GetSender(req *http.Request) (*http.Respon
 func (client ReferenceDataSetsClient) GetResponder(resp *http.Response) (result ReferenceDataSetResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -366,7 +363,6 @@ func (client ReferenceDataSetsClient) ListByEnvironmentSender(req *http.Request)
 func (client ReferenceDataSetsClient) ListByEnvironmentResponder(resp *http.Response) (result ReferenceDataSetListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -451,7 +447,6 @@ func (client ReferenceDataSetsClient) UpdateSender(req *http.Request) (*http.Res
 func (client ReferenceDataSetsClient) UpdateResponder(resp *http.Response) (result ReferenceDataSetResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

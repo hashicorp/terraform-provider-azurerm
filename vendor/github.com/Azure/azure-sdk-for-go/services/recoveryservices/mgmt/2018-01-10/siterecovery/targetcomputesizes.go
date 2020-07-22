@@ -115,7 +115,6 @@ func (client TargetComputeSizesClient) ListByReplicationProtectedItemsSender(req
 func (client TargetComputeSizesClient) ListByReplicationProtectedItemsResponder(resp *http.Response) (result TargetComputeSizeCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

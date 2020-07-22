@@ -169,7 +169,6 @@ func resourceArmMariaDbServer() *schema.Resource {
 			"ssl_enforcement_enabled": {
 				Type:         schema.TypeBool,
 				Optional:     true, // required in 3.0
-				Computed:     true, // remove computed in 3.0
 				ExactlyOneOf: []string{"ssl_enforcement", "ssl_enforcement_enabled"},
 			},
 
@@ -296,10 +295,7 @@ func resourceArmMariaDbServerCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	ssl := mariadb.SslEnforcementEnumEnabled
-	if v, ok := d.GetOk("ssl_enforcement"); ok && strings.EqualFold(v.(string), string(mariadb.SslEnforcementEnumDisabled)) {
-		ssl = mariadb.SslEnforcementEnumDisabled
-	}
-	if v, ok := d.GetOkExists("ssl_enforcement_enabled"); ok && !v.(bool) {
+	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
 		ssl = mariadb.SslEnforcementEnumDisabled
 	}
 
@@ -421,9 +417,6 @@ func resourceArmMariaDbServerUpdate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	ssl := mariadb.SslEnforcementEnumEnabled
-	if v := d.Get("ssl_enforcement"); strings.EqualFold(v.(string), string(mariadb.SslEnforcementEnumDisabled)) {
-		ssl = mariadb.SslEnforcementEnumDisabled
-	}
 	if v := d.Get("ssl_enforcement_enabled").(bool); !v {
 		ssl = mariadb.SslEnforcementEnumDisabled
 	}

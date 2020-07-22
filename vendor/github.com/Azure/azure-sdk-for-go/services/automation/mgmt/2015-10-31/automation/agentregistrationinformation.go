@@ -119,7 +119,6 @@ func (client AgentRegistrationInformationClient) GetSender(req *http.Request) (*
 func (client AgentRegistrationInformationClient) GetResponder(resp *http.Response) (result AgentRegistration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -206,7 +205,6 @@ func (client AgentRegistrationInformationClient) RegenerateKeySender(req *http.R
 func (client AgentRegistrationInformationClient) RegenerateKeyResponder(resp *http.Response) (result AgentRegistration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -65,14 +65,7 @@ func (client AgentPoolsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 		{TargetValue: resourceName,
 			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
 				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}},
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties.Count", Name: validation.Null, Rule: true,
-					Chain: []validation.Constraint{{Target: "parameters.ManagedClusterAgentPoolProfileProperties.Count", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
-						{Target: "parameters.ManagedClusterAgentPoolProfileProperties.Count", Name: validation.InclusiveMinimum, Rule: int64(0), Chain: nil},
-					}},
-				}}}}}); err != nil {
+				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("containerservice.AgentPoolsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -132,7 +125,6 @@ func (client AgentPoolsClient) CreateOrUpdateSender(req *http.Request) (future A
 func (client AgentPoolsClient) CreateOrUpdateResponder(resp *http.Response) (result AgentPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -220,7 +212,6 @@ func (client AgentPoolsClient) DeleteSender(req *http.Request) (future AgentPool
 func (client AgentPoolsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -307,7 +298,6 @@ func (client AgentPoolsClient) GetSender(req *http.Request) (*http.Response, err
 func (client AgentPoolsClient) GetResponder(resp *http.Response) (result AgentPool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -393,7 +383,6 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersionsSender(req *http.Req
 func (client AgentPoolsClient) GetAvailableAgentPoolVersionsResponder(resp *http.Response) (result AgentPoolAvailableVersions, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -482,7 +471,6 @@ func (client AgentPoolsClient) GetUpgradeProfileSender(req *http.Request) (*http
 func (client AgentPoolsClient) GetUpgradeProfileResponder(resp *http.Response) (result AgentPoolUpgradeProfile, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -570,7 +558,6 @@ func (client AgentPoolsClient) ListSender(req *http.Request) (*http.Response, er
 func (client AgentPoolsClient) ListResponder(resp *http.Response) (result AgentPoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

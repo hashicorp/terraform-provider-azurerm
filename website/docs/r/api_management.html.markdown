@@ -289,6 +289,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `portal_url` - The URL for the Publisher Portal associated with this API Management service.
 
+* `developer_portal_url` - The URL for the Developer Portal associated with this API Management service.
+
 * `public_ip_addresses` - The Public IP addresses of the API Management Service.
 
 * `scm_url` - The URL for the SCM (Source Code Management) Endpoint associated with this API Management service.

@@ -122,7 +122,7 @@ The following arguments are supported:
 
 ~> **NOTE:** One of either `admin_password` or `admin_ssh_key` must be specified.
 
-* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine? Changing this forces a new resource to be created.
+* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine?
 
 * `availability_set_id` - (Optional) Specifies the ID of the Availability Set in which the Virtual Machine should exist. Changing this forces a new resource to be created.
 
@@ -315,5 +315,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Linux Virtual Machines can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_linux_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachines/machine1
+terraform import azurerm_linux_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1
 ```

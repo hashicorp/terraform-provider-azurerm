@@ -75,6 +75,38 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsDisabled(t *testi
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherAllowExtensionOperationsDefault(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "true"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherAllowExtensionOperationsDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "false"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 

@@ -121,7 +121,6 @@ func (client HybridRunbookWorkerGroupClient) DeleteSender(req *http.Request) (*h
 func (client HybridRunbookWorkerGroupClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -206,7 +205,6 @@ func (client HybridRunbookWorkerGroupClient) GetSender(req *http.Request) (*http
 func (client HybridRunbookWorkerGroupClient) GetResponder(resp *http.Response) (result HybridRunbookWorkerGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -295,7 +293,6 @@ func (client HybridRunbookWorkerGroupClient) ListByAutomationAccountSender(req *
 func (client HybridRunbookWorkerGroupClient) ListByAutomationAccountResponder(resp *http.Response) (result HybridRunbookWorkerGroupsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -421,7 +418,6 @@ func (client HybridRunbookWorkerGroupClient) UpdateSender(req *http.Request) (*h
 func (client HybridRunbookWorkerGroupClient) UpdateResponder(resp *http.Response) (result HybridRunbookWorkerGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

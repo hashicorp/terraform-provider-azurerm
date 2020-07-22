@@ -117,7 +117,6 @@ func (client WorkflowRunActionRequestHistoriesClient) GetSender(req *http.Reques
 func (client WorkflowRunActionRequestHistoriesClient) GetResponder(resp *http.Response) (result RequestHistory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client WorkflowRunActionRequestHistoriesClient) ListSender(req *http.Reque
 func (client WorkflowRunActionRequestHistoriesClient) ListResponder(resp *http.Response) (result RequestHistoryListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

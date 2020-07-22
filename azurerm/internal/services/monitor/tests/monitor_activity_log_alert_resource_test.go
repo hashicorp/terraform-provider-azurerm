@@ -105,9 +105,6 @@ func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_type", "Microsoft.Storage/storageAccounts"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_group"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.caller", "user@example.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.level", "Error"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.status", "Failed"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "2"),
 				),
 			},
@@ -154,9 +151,6 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.resource_type", "Microsoft.Storage/storageAccounts"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_group"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "criteria.0.resource_id"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.caller", "user@example.com"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.level", "Error"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.status", "Failed"),
 					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "2"),
 				),
 			},
@@ -306,15 +300,14 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   ]
 
   criteria {
-    operation_name    = "Microsoft.Storage/storageAccounts/write"
-    category          = "Recommendation"
-    resource_provider = "Microsoft.Storage"
-    resource_type     = "Microsoft.Storage/storageAccounts"
-    resource_group    = azurerm_resource_group.test.name
-    resource_id       = azurerm_storage_account.test.id
-    caller            = "user@example.com"
-    level             = "Error"
-    status            = "Failed"
+    operation_name          = "Microsoft.Storage/storageAccounts/write"
+    category                = "Recommendation"
+    resource_provider       = "Microsoft.Storage"
+    resource_type           = "Microsoft.Storage/storageAccounts"
+    resource_group          = azurerm_resource_group.test.name
+    resource_id             = azurerm_storage_account.test.id
+    recommendation_category = "OperationalExcellence"
+    recommendation_impact   = "High"
   }
 
   action {

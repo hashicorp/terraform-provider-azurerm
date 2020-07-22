@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
+	"github.com/Azure/azure-sdk-for-go/services/preview/eventhub/mgmt/2018-01-01-preview/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -29,12 +29,17 @@ func resourceArmEventHubNamespaceAuthorizationRule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: []schema.StateUpgrader{
 			{
 				Type:    migration.EventHubNamespaceAuthorizationRuleUpgradeV0Schema().CoreConfigSchema().ImpliedType(),
 				Upgrade: migration.EventHubNamespaceAuthorizationRuleUpgradeV0ToV1,
 				Version: 0,
+			},
+			{
+				Type:    migration.EventHubNamespaceAuthorizationRuleUpgradeV1Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.EventHubNamespaceAuthorizationRuleUpgradeV1ToV2,
+				Version: 1,
 			},
 		},
 

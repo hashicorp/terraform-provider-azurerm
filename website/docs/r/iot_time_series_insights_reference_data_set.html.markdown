@@ -6,7 +6,7 @@ description: |-
   Manages an Azure IoT Time Series Insights Reference Data Set.
 ---
 
-# azurerm_time_series_insights_standard_environment
+# azurerm_iot_time_series_insights_reference_data_set
 
 Manages an Azure IoT Time Series Insights Reference Data Set.
 

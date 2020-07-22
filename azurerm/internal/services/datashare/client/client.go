@@ -7,6 +7,7 @@ import (
 
 type Client struct {
 	AccountClient         *datashare.AccountsClient
+	DataSetClient         *datashare.DataSetsClient
 	SharesClient          *datashare.SharesClient
 	SynchronizationClient *datashare.SynchronizationSettingsClient
 }
@@ -14,6 +15,9 @@ type Client struct {
 func NewClient(o *common.ClientOptions) *Client {
 	accountClient := datashare.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
+
+	dataSetClient := datashare.NewDataSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&dataSetClient.Client, o.ResourceManagerAuthorizer)
 
 	sharesClient := datashare.NewSharesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sharesClient.Client, o.ResourceManagerAuthorizer)
@@ -23,6 +27,7 @@ func NewClient(o *common.ClientOptions) *Client {
 
 	return &Client{
 		AccountClient:         &accountClient,
+		DataSetClient:         &dataSetClient,
 		SharesClient:          &sharesClient,
 		SynchronizationClient: &synchronizationSettingsClient,
 	}

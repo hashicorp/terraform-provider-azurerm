@@ -72,6 +72,7 @@ The following arguments are supported:
 * `shared_key` - (Optional) The shared key. Can be a maximum of 25 characters.
 * `peer_asn` - (Optional) The Either a 16-bit or a 32-bit ASN. Can either be public or private..
 * `microsoft_peering_config` - (Optional) A `microsoft_peering_config` block as defined below. Required when `peering_type` is set to `MicrosoftPeering`.
+* `route_filter_id` - (Optional) The ID of the Route Filter. Only available when `peering_type` is set to `MicrosoftPeering`.
 
 ---
 

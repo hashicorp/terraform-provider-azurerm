@@ -138,6 +138,24 @@ func TestAccAzureRMPolicyAssignment_not_scopes(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicyAssignment_enforcement_mode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_assignment", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicyAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyAssignment_enforcement_mode(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyAssignmentExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMPolicyAssignmentExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.AssignmentsClient
@@ -223,6 +241,13 @@ resource "azurerm_policy_assignment" "test" {
   name                 = "acctestpa-%[1]d"
   scope                = azurerm_resource_group.test.id
   policy_definition_id = azurerm_policy_definition.test.id
+
+  metadata = <<METADATA
+  {
+    "category": "General"
+  }
+METADATA
+
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -503,6 +528,76 @@ resource "azurerm_policy_assignment" "test" {
   policy_definition_id = azurerm_policy_definition.test.id
   description          = "Policy Assignment created via an Acceptance Test"
   not_scopes           = [azurerm_resource_group.test.id]
+  display_name         = "Acceptance Test Run %d"
+
+  parameters = <<PARAMETERS
+{
+  "allowedLocations": {
+    "value": [ "%s" ]
+  }
+}
+PARAMETERS
+
+}
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAzureRMPolicyAssignment_enforcement_mode(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "current" {
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_policy_assignment" "test" {
+  name                 = "acctestpa-%d"
+  scope                = data.azurerm_subscription.current.id
+  policy_definition_id = azurerm_policy_definition.test.id
+  description          = "Policy Assignment created via an Acceptance Test"
+  enforcement_mode     = false
   display_name         = "Acceptance Test Run %d"
 
   parameters = <<PARAMETERS

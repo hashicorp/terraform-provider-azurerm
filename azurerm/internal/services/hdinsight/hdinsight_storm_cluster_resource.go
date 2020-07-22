@@ -21,7 +21,7 @@ import (
 var hdInsightStormClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         4,
-	MaxInstanceCount:         4,
+	MaxInstanceCount:         utils.Int(4),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
@@ -29,21 +29,24 @@ var hdInsightStormClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 var hdInsightStormClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
-	// can't find a hard limit - appears to be limited by the subscription; setting something sensible for now
-	MaxInstanceCount: 9999,
-	CanSpecifyDisks:  false,
+	CanSpecifyDisks:         false,
 }
 
 var hdInsightStormClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
-	MaxInstanceCount:         3,
+	MaxInstanceCount:         utils.Int(3),
 	CanSpecifyDisks:          false,
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
 func resourceArmHDInsightStormCluster() *schema.Resource {
 	return &schema.Resource{
+		DeprecationMessage: `HDInsight 3.6 will be retired on 2020-12-31 - Storm is not supported in HDInsight 4.0 and so this resource will be removed in the next major version of the AzureRM Terraform Provider.
+		
+More information on the HDInsight 3.6 deprecation can be found at:
+
+https://docs.microsoft.com/en-us/azure/hdinsight/hdinsight-component-versioning#available-versions`,
 		Create: resourceArmHDInsightStormClusterCreate,
 		Read:   resourceArmHDInsightStormClusterRead,
 		Update: hdinsightClusterUpdate("Storm", resourceArmHDInsightStormClusterRead),
@@ -89,6 +92,8 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 
 			"gateway": azure.SchemaHDInsightsGateway(),
 
+			"metastores": azure.SchemaHDInsightsExternalMetastores(),
+
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
 			"roles": {
@@ -117,12 +122,15 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"monitor": azure.SchemaHDInsightsMonitor(),
 		},
 	}
 }
 
 func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).HDInsight.ClustersClient
+	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -138,12 +146,18 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 	componentVersions := expandHDInsightStormComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
-	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+
+	metastoresRaw := d.Get("metastores").([]interface{})
+	metastores := expandHDInsightsMetastore(metastoresRaw)
+	for k, v := range metastores {
+		configurations[k] = v
+	}
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
 	if err != nil {
-		return fmt.Errorf("Error expanding `storage_account`: %s", err)
+		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
 
 	stormRoles := hdInsightRoleDefinition{
@@ -154,14 +168,14 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 	rolesRaw := d.Get("roles").([]interface{})
 	roles, err := expandHDInsightRoles(rolesRaw, stormRoles)
 	if err != nil {
-		return fmt.Errorf("Error expanding `roles`: %+v", err)
+		return fmt.Errorf("failure expanding `roles`: %+v", err)
 	}
 
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("failure checking for presence of existing HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 
@@ -180,7 +194,7 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 			ClusterDefinition: &hdinsight.ClusterDefinition{
 				Kind:             utils.String("Storm"),
 				ComponentVersion: componentVersions,
-				Configurations:   gateway,
+				Configurations:   configurations,
 			},
 			StorageProfile: &hdinsight.StorageProfile{
 				Storageaccounts: storageAccounts,
@@ -194,23 +208,31 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
-		return fmt.Errorf("Error creating HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure creating HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failed waiting for creation of HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Error reading ID for HDInsight Storm Cluster %q (Resource Group %q)", name, resourceGroup)
+		return fmt.Errorf("failure reading ID for HDInsight Storm Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
+
+	// We can only enable monitoring after creation
+	if v, ok := d.GetOk("monitor"); ok {
+		monitorRaw := v.([]interface{})
+		if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+			return err
+		}
+	}
 
 	return resourceArmHDInsightStormClusterRead(d, meta)
 }
@@ -218,6 +240,7 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*clients.Client).HDInsight.ClustersClient
 	configurationsClient := meta.(*clients.Client).HDInsight.ConfigurationsClient
+	extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -237,12 +260,18 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	configuration, err := configurationsClient.Get(ctx, resourceGroup, name, "gateway")
+	// Each call to configurationsClient methods is HTTP request. Getting all settings in one operation
+	configurations, err := configurationsClient.List(ctx, resourceGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Configuration for HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("failure retrieving Configuration for HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	gateway, exists := configurations.Configurations["gateway"]
+	if !exists {
+		return fmt.Errorf("failure retrieving gateway for HDInsight Storm Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -259,12 +288,14 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 
 		if def := props.ClusterDefinition; def != nil {
 			if err := d.Set("component_version", flattenHDInsightStormComponentVersion(def.ComponentVersion)); err != nil {
-				return fmt.Errorf("Error flattening `component_version`: %+v", err)
+				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
-				return fmt.Errorf("Error flattening `gateway`: %+v", err)
+			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
+				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
+
+			flattenHDInsightsMetastores(d, configurations.Configurations)
 		}
 
 		stormRoles := hdInsightRoleDefinition{
@@ -274,13 +305,20 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 		}
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, stormRoles)
 		if err := d.Set("roles", flattenedRoles); err != nil {
-			return fmt.Errorf("Error flattening `roles`: %+v", err)
+			return fmt.Errorf("failure flattening `roles`: %+v", err)
 		}
 
 		httpEndpoint := azure.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
+
+		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("failed reading monitor configuration for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		d.Set("monitor", flattenHDInsightMonitoring(monitor))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

@@ -70,8 +70,7 @@ func resourceArmHealthcareService() *schema.Resource {
 
 			"access_policy_object_ids": {
 				Type:     schema.TypeSet,
-				Required: true,
-				MinItems: 1,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.IsUUID,

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2020-04-01/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -52,7 +52,7 @@ func TestAccAzureRMCosmosDbMongoDatabase_complete(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.MongoDbClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -81,7 +81,7 @@ func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.MongoDbClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API

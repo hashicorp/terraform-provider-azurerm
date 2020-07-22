@@ -132,7 +132,6 @@ func (client ModuleClient) CreateOrUpdateSender(req *http.Request) (*http.Respon
 func (client ModuleClient) CreateOrUpdateResponder(resp *http.Response) (result Module, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -218,7 +217,6 @@ func (client ModuleClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client ModuleClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -303,7 +301,6 @@ func (client ModuleClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client ModuleClient) GetResponder(resp *http.Response) (result Module, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -388,7 +385,6 @@ func (client ModuleClient) ListByAutomationAccountSender(req *http.Request) (*ht
 func (client ModuleClient) ListByAutomationAccountResponder(resp *http.Response) (result ModuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -514,7 +510,6 @@ func (client ModuleClient) UpdateSender(req *http.Request) (*http.Response, erro
 func (client ModuleClient) UpdateResponder(resp *http.Response) (result Module, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

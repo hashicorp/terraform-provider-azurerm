@@ -129,7 +129,6 @@ func resourceArmApiManagementIdentityProviderFacebookRead(d *schema.ResourceData
 
 	if props := resp.IdentityProviderContractProperties; props != nil {
 		d.Set("app_id", props.ClientID)
-		d.Set("app_secret", props.ClientSecret)
 	}
 
 	return nil

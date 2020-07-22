@@ -122,7 +122,6 @@ func (client StatisticsClient) ListByAutomationAccountSender(req *http.Request) 
 func (client StatisticsClient) ListByAutomationAccountResponder(resp *http.Response) (result StatisticsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

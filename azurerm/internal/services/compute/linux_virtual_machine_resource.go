@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -100,7 +100,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"allow_extension_operations": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 				Default:  true,
 			},
 
@@ -814,6 +813,23 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		update.VirtualMachineProperties.HardwareProfile = &compute.HardwareProfile{
 			VMSize: compute.VirtualMachineSizeTypes(vmSize),
 		}
+	}
+
+	if d.HasChange("allow_extension_operations") {
+		provisionVMAgent := d.Get("provision_vm_agent").(bool)
+		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+
+		if !provisionVMAgent && allowExtensionOperations {
+			return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+		}
+
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
 	}
 
 	if d.HasChange("tags") {

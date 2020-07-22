@@ -129,7 +129,6 @@ func resourceArmApiManagementIdentityProviderMicrosoftRead(d *schema.ResourceDat
 
 	if props := resp.IdentityProviderContractProperties; props != nil {
 		d.Set("client_id", props.ClientID)
-		d.Set("client_secret", props.ClientSecret)
 	}
 
 	return nil

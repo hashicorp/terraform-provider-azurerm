@@ -157,21 +157,6 @@ func PossibleAutomaticTuningServerReasonValues() []AutomaticTuningServerReason {
 	return []AutomaticTuningServerReason{AutomaticTuningServerReasonAutoConfigured, AutomaticTuningServerReasonDefault, AutomaticTuningServerReasonDisabled}
 }
 
-// BackupLongTermRetentionPolicyState enumerates the values for backup long term retention policy state.
-type BackupLongTermRetentionPolicyState string
-
-const (
-	// BackupLongTermRetentionPolicyStateDisabled ...
-	BackupLongTermRetentionPolicyStateDisabled BackupLongTermRetentionPolicyState = "Disabled"
-	// BackupLongTermRetentionPolicyStateEnabled ...
-	BackupLongTermRetentionPolicyStateEnabled BackupLongTermRetentionPolicyState = "Enabled"
-)
-
-// PossibleBackupLongTermRetentionPolicyStateValues returns an array of possible values for the BackupLongTermRetentionPolicyState const type.
-func PossibleBackupLongTermRetentionPolicyStateValues() []BackupLongTermRetentionPolicyState {
-	return []BackupLongTermRetentionPolicyState{BackupLongTermRetentionPolicyStateDisabled, BackupLongTermRetentionPolicyStateEnabled}
-}
-
 // BlobAuditingPolicyState enumerates the values for blob auditing policy state.
 type BlobAuditingPolicyState string
 
@@ -1549,261 +1534,6 @@ func (atsp AutomaticTuningServerProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// BackupLongTermRetentionPoliciesCreateOrUpdateFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
-type BackupLongTermRetentionPoliciesCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *BackupLongTermRetentionPoliciesCreateOrUpdateFuture) Result(client BackupLongTermRetentionPoliciesClient) (bltrp BackupLongTermRetentionPolicy, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sql.BackupLongTermRetentionPoliciesCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if bltrp.Response.Response, err = future.GetResult(sender); err == nil && bltrp.Response.Response.StatusCode != http.StatusNoContent {
-		bltrp, err = client.CreateOrUpdateResponder(bltrp.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionPoliciesCreateOrUpdateFuture", "Result", bltrp.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// BackupLongTermRetentionPolicy a backup long term retention policy
-type BackupLongTermRetentionPolicy struct {
-	autorest.Response `json:"-"`
-	// Location - READ-ONLY; The geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
-	// BackupLongTermRetentionPolicyProperties - The properties of the backup long term retention policy
-	*BackupLongTermRetentionPolicyProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for BackupLongTermRetentionPolicy.
-func (bltrp BackupLongTermRetentionPolicy) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if bltrp.BackupLongTermRetentionPolicyProperties != nil {
-		objectMap["properties"] = bltrp.BackupLongTermRetentionPolicyProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for BackupLongTermRetentionPolicy struct.
-func (bltrp *BackupLongTermRetentionPolicy) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				bltrp.Location = &location
-			}
-		case "properties":
-			if v != nil {
-				var backupLongTermRetentionPolicyProperties BackupLongTermRetentionPolicyProperties
-				err = json.Unmarshal(*v, &backupLongTermRetentionPolicyProperties)
-				if err != nil {
-					return err
-				}
-				bltrp.BackupLongTermRetentionPolicyProperties = &backupLongTermRetentionPolicyProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				bltrp.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				bltrp.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				bltrp.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// BackupLongTermRetentionPolicyListResult represents the response to a list long-term retention policies
-// request.
-type BackupLongTermRetentionPolicyListResult struct {
-	autorest.Response `json:"-"`
-	// Value - The list of long-term retention policies in the database.
-	Value *[]BackupLongTermRetentionPolicy `json:"value,omitempty"`
-}
-
-// BackupLongTermRetentionPolicyProperties the properties of a backup long term retention policy
-type BackupLongTermRetentionPolicyProperties struct {
-	// State - The status of the backup long term retention policy. Possible values include: 'BackupLongTermRetentionPolicyStateDisabled', 'BackupLongTermRetentionPolicyStateEnabled'
-	State BackupLongTermRetentionPolicyState `json:"state,omitempty"`
-	// RecoveryServicesBackupPolicyResourceID - The azure recovery services backup protection policy resource id
-	RecoveryServicesBackupPolicyResourceID *string `json:"recoveryServicesBackupPolicyResourceId,omitempty"`
-}
-
-// BackupLongTermRetentionVault a backup long term retention vault
-type BackupLongTermRetentionVault struct {
-	autorest.Response `json:"-"`
-	// Location - READ-ONLY; The geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
-	// BackupLongTermRetentionVaultProperties - The properties of the backup long term retention vault
-	*BackupLongTermRetentionVaultProperties `json:"properties,omitempty"`
-	// ID - READ-ONLY; Resource ID.
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; Resource name.
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; Resource type.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for BackupLongTermRetentionVault.
-func (bltrv BackupLongTermRetentionVault) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if bltrv.BackupLongTermRetentionVaultProperties != nil {
-		objectMap["properties"] = bltrv.BackupLongTermRetentionVaultProperties
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for BackupLongTermRetentionVault struct.
-func (bltrv *BackupLongTermRetentionVault) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				bltrv.Location = &location
-			}
-		case "properties":
-			if v != nil {
-				var backupLongTermRetentionVaultProperties BackupLongTermRetentionVaultProperties
-				err = json.Unmarshal(*v, &backupLongTermRetentionVaultProperties)
-				if err != nil {
-					return err
-				}
-				bltrv.BackupLongTermRetentionVaultProperties = &backupLongTermRetentionVaultProperties
-			}
-		case "id":
-			if v != nil {
-				var ID string
-				err = json.Unmarshal(*v, &ID)
-				if err != nil {
-					return err
-				}
-				bltrv.ID = &ID
-			}
-		case "name":
-			if v != nil {
-				var name string
-				err = json.Unmarshal(*v, &name)
-				if err != nil {
-					return err
-				}
-				bltrv.Name = &name
-			}
-		case "type":
-			if v != nil {
-				var typeVar string
-				err = json.Unmarshal(*v, &typeVar)
-				if err != nil {
-					return err
-				}
-				bltrv.Type = &typeVar
-			}
-		}
-	}
-
-	return nil
-}
-
-// BackupLongTermRetentionVaultListResult represents the response to a list vaults request.
-type BackupLongTermRetentionVaultListResult struct {
-	autorest.Response `json:"-"`
-	// Value - The list of vaults in the server.
-	Value *[]BackupLongTermRetentionVault `json:"value,omitempty"`
-}
-
-// BackupLongTermRetentionVaultProperties the properties of a backup long term retention vault.
-type BackupLongTermRetentionVaultProperties struct {
-	// RecoveryServicesVaultResourceID - The azure recovery services vault resource id
-	RecoveryServicesVaultResourceID *string `json:"recoveryServicesVaultResourceId,omitempty"`
-}
-
-// BackupLongTermRetentionVaultsCreateOrUpdateFuture an abstraction for monitoring and retrieving the
-// results of a long-running operation.
-type BackupLongTermRetentionVaultsCreateOrUpdateFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *BackupLongTermRetentionVaultsCreateOrUpdateFuture) Result(client BackupLongTermRetentionVaultsClient) (bltrv BackupLongTermRetentionVault, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionVaultsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("sql.BackupLongTermRetentionVaultsCreateOrUpdateFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if bltrv.Response.Response, err = future.GetResult(sender); err == nil && bltrv.Response.Response.StatusCode != http.StatusNoContent {
-		bltrv, err = client.CreateOrUpdateResponder(bltrv.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "sql.BackupLongTermRetentionVaultsCreateOrUpdateFuture", "Result", bltrv.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
 // CheckNameAvailabilityRequest a request to check whether the specified name for a resource is available.
 type CheckNameAvailabilityRequest struct {
 	// Name - The name whose availability is to be checked.
@@ -2284,7 +2014,12 @@ type DatabaseBlobAuditingPolicyProperties struct {
 	State BlobAuditingPolicyState `json:"state,omitempty"`
 	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
-	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account.
+	// If state is Enabled and storageEndpoint is specified, not specifying the storageAccountAccessKey will use SQL server system-assigned managed identity to access the storage.
+	// Prerequisites for using managed identity authentication:
+	// 1. Assign SQL Server a system-assigned managed identity in Azure Active Directory (AAD).
+	// 2. Grant SQL Server identity access to the storage account by adding 'Storage Blob Data Contributor' RBAC role to the server identity.
+	// For more information, see [Auditing to storage using Managed Identity authentication](https://go.microsoft.com/fwlink/?linkid=2114355)
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
 	// RetentionDays - Specifies the number of days to keep in the audit logs in the storage account.
 	RetentionDays *int32 `json:"retentionDays,omitempty"`
@@ -4774,6 +4509,154 @@ func (edbap *ExtendedDatabaseBlobAuditingPolicy) UnmarshalJSON(body []byte) erro
 	return nil
 }
 
+// ExtendedDatabaseBlobAuditingPolicyListResult a list of database extended auditing settings.
+type ExtendedDatabaseBlobAuditingPolicyListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ExtendedDatabaseBlobAuditingPolicy `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ExtendedDatabaseBlobAuditingPolicyListResultIterator provides access to a complete listing of
+// ExtendedDatabaseBlobAuditingPolicy values.
+type ExtendedDatabaseBlobAuditingPolicyListResultIterator struct {
+	i    int
+	page ExtendedDatabaseBlobAuditingPolicyListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ExtendedDatabaseBlobAuditingPolicyListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedDatabaseBlobAuditingPolicyListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ExtendedDatabaseBlobAuditingPolicyListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ExtendedDatabaseBlobAuditingPolicyListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ExtendedDatabaseBlobAuditingPolicyListResultIterator) Response() ExtendedDatabaseBlobAuditingPolicyListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ExtendedDatabaseBlobAuditingPolicyListResultIterator) Value() ExtendedDatabaseBlobAuditingPolicy {
+	if !iter.page.NotDone() {
+		return ExtendedDatabaseBlobAuditingPolicy{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ExtendedDatabaseBlobAuditingPolicyListResultIterator type.
+func NewExtendedDatabaseBlobAuditingPolicyListResultIterator(page ExtendedDatabaseBlobAuditingPolicyListResultPage) ExtendedDatabaseBlobAuditingPolicyListResultIterator {
+	return ExtendedDatabaseBlobAuditingPolicyListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (edbaplr ExtendedDatabaseBlobAuditingPolicyListResult) IsEmpty() bool {
+	return edbaplr.Value == nil || len(*edbaplr.Value) == 0
+}
+
+// extendedDatabaseBlobAuditingPolicyListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (edbaplr ExtendedDatabaseBlobAuditingPolicyListResult) extendedDatabaseBlobAuditingPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if edbaplr.NextLink == nil || len(to.String(edbaplr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(edbaplr.NextLink)))
+}
+
+// ExtendedDatabaseBlobAuditingPolicyListResultPage contains a page of ExtendedDatabaseBlobAuditingPolicy
+// values.
+type ExtendedDatabaseBlobAuditingPolicyListResultPage struct {
+	fn      func(context.Context, ExtendedDatabaseBlobAuditingPolicyListResult) (ExtendedDatabaseBlobAuditingPolicyListResult, error)
+	edbaplr ExtendedDatabaseBlobAuditingPolicyListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ExtendedDatabaseBlobAuditingPolicyListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedDatabaseBlobAuditingPolicyListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.edbaplr)
+	if err != nil {
+		return err
+	}
+	page.edbaplr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ExtendedDatabaseBlobAuditingPolicyListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ExtendedDatabaseBlobAuditingPolicyListResultPage) NotDone() bool {
+	return !page.edbaplr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ExtendedDatabaseBlobAuditingPolicyListResultPage) Response() ExtendedDatabaseBlobAuditingPolicyListResult {
+	return page.edbaplr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ExtendedDatabaseBlobAuditingPolicyListResultPage) Values() []ExtendedDatabaseBlobAuditingPolicy {
+	if page.edbaplr.IsEmpty() {
+		return nil
+	}
+	return *page.edbaplr.Value
+}
+
+// Creates a new instance of the ExtendedDatabaseBlobAuditingPolicyListResultPage type.
+func NewExtendedDatabaseBlobAuditingPolicyListResultPage(getNextPage func(context.Context, ExtendedDatabaseBlobAuditingPolicyListResult) (ExtendedDatabaseBlobAuditingPolicyListResult, error)) ExtendedDatabaseBlobAuditingPolicyListResultPage {
+	return ExtendedDatabaseBlobAuditingPolicyListResultPage{fn: getNextPage}
+}
+
 // ExtendedDatabaseBlobAuditingPolicyProperties properties of an extended database blob auditing policy.
 type ExtendedDatabaseBlobAuditingPolicyProperties struct {
 	// PredicateExpression - Specifies condition of where clause when creating an audit.
@@ -4782,7 +4665,12 @@ type ExtendedDatabaseBlobAuditingPolicyProperties struct {
 	State BlobAuditingPolicyState `json:"state,omitempty"`
 	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
-	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account.
+	// If state is Enabled and storageEndpoint is specified, not specifying the storageAccountAccessKey will use SQL server system-assigned managed identity to access the storage.
+	// Prerequisites for using managed identity authentication:
+	// 1. Assign SQL Server a system-assigned managed identity in Azure Active Directory (AAD).
+	// 2. Grant SQL Server identity access to the storage account by adding 'Storage Blob Data Contributor' RBAC role to the server identity.
+	// For more information, see [Auditing to storage using Managed Identity authentication](https://go.microsoft.com/fwlink/?linkid=2114355)
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
 	// RetentionDays - Specifies the number of days to keep in the audit logs in the storage account.
 	RetentionDays *int32 `json:"retentionDays,omitempty"`
@@ -4967,6 +4855,154 @@ func (esbap *ExtendedServerBlobAuditingPolicy) UnmarshalJSON(body []byte) error 
 	return nil
 }
 
+// ExtendedServerBlobAuditingPolicyListResult a list of server extended auditing settings.
+type ExtendedServerBlobAuditingPolicyListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ExtendedServerBlobAuditingPolicy `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ExtendedServerBlobAuditingPolicyListResultIterator provides access to a complete listing of
+// ExtendedServerBlobAuditingPolicy values.
+type ExtendedServerBlobAuditingPolicyListResultIterator struct {
+	i    int
+	page ExtendedServerBlobAuditingPolicyListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ExtendedServerBlobAuditingPolicyListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedServerBlobAuditingPolicyListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ExtendedServerBlobAuditingPolicyListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ExtendedServerBlobAuditingPolicyListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ExtendedServerBlobAuditingPolicyListResultIterator) Response() ExtendedServerBlobAuditingPolicyListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ExtendedServerBlobAuditingPolicyListResultIterator) Value() ExtendedServerBlobAuditingPolicy {
+	if !iter.page.NotDone() {
+		return ExtendedServerBlobAuditingPolicy{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ExtendedServerBlobAuditingPolicyListResultIterator type.
+func NewExtendedServerBlobAuditingPolicyListResultIterator(page ExtendedServerBlobAuditingPolicyListResultPage) ExtendedServerBlobAuditingPolicyListResultIterator {
+	return ExtendedServerBlobAuditingPolicyListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (esbaplr ExtendedServerBlobAuditingPolicyListResult) IsEmpty() bool {
+	return esbaplr.Value == nil || len(*esbaplr.Value) == 0
+}
+
+// extendedServerBlobAuditingPolicyListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (esbaplr ExtendedServerBlobAuditingPolicyListResult) extendedServerBlobAuditingPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if esbaplr.NextLink == nil || len(to.String(esbaplr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(esbaplr.NextLink)))
+}
+
+// ExtendedServerBlobAuditingPolicyListResultPage contains a page of ExtendedServerBlobAuditingPolicy
+// values.
+type ExtendedServerBlobAuditingPolicyListResultPage struct {
+	fn      func(context.Context, ExtendedServerBlobAuditingPolicyListResult) (ExtendedServerBlobAuditingPolicyListResult, error)
+	esbaplr ExtendedServerBlobAuditingPolicyListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ExtendedServerBlobAuditingPolicyListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ExtendedServerBlobAuditingPolicyListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.esbaplr)
+	if err != nil {
+		return err
+	}
+	page.esbaplr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ExtendedServerBlobAuditingPolicyListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ExtendedServerBlobAuditingPolicyListResultPage) NotDone() bool {
+	return !page.esbaplr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ExtendedServerBlobAuditingPolicyListResultPage) Response() ExtendedServerBlobAuditingPolicyListResult {
+	return page.esbaplr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ExtendedServerBlobAuditingPolicyListResultPage) Values() []ExtendedServerBlobAuditingPolicy {
+	if page.esbaplr.IsEmpty() {
+		return nil
+	}
+	return *page.esbaplr.Value
+}
+
+// Creates a new instance of the ExtendedServerBlobAuditingPolicyListResultPage type.
+func NewExtendedServerBlobAuditingPolicyListResultPage(getNextPage func(context.Context, ExtendedServerBlobAuditingPolicyListResult) (ExtendedServerBlobAuditingPolicyListResult, error)) ExtendedServerBlobAuditingPolicyListResultPage {
+	return ExtendedServerBlobAuditingPolicyListResultPage{fn: getNextPage}
+}
+
 // ExtendedServerBlobAuditingPolicyProperties properties of an extended server blob auditing policy.
 type ExtendedServerBlobAuditingPolicyProperties struct {
 	// PredicateExpression - Specifies condition of where clause when creating an audit.
@@ -4975,7 +5011,12 @@ type ExtendedServerBlobAuditingPolicyProperties struct {
 	State BlobAuditingPolicyState `json:"state,omitempty"`
 	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
-	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account.
+	// If state is Enabled and storageEndpoint is specified, not specifying the storageAccountAccessKey will use SQL server system-assigned managed identity to access the storage.
+	// Prerequisites for using managed identity authentication:
+	// 1. Assign SQL Server a system-assigned managed identity in Azure Active Directory (AAD).
+	// 2. Grant SQL Server identity access to the storage account by adding 'Storage Blob Data Contributor' RBAC role to the server identity.
+	// For more information, see [Auditing to storage using Managed Identity authentication](https://go.microsoft.com/fwlink/?linkid=2114355)
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
 	// RetentionDays - Specifies the number of days to keep in the audit logs in the storage account.
 	RetentionDays *int32 `json:"retentionDays,omitempty"`
@@ -9288,6 +9329,8 @@ type ManagedInstanceProperties struct {
 	TimezoneID *string `json:"timezoneId,omitempty"`
 	// InstancePoolID - The Id of the instance pool this managed server belongs to.
 	InstancePoolID *string `json:"instancePoolId,omitempty"`
+	// MaintenanceConfigurationID - Specifies maintenance configuration id to apply to this managed instance.
+	MaintenanceConfigurationID *string `json:"maintenanceConfigurationId,omitempty"`
 	// MinimalTLSVersion - Minimal TLS version. Allowed values: 'None', '1.0', '1.1', '1.2'
 	MinimalTLSVersion *string `json:"minimalTlsVersion,omitempty"`
 }
@@ -11506,7 +11549,12 @@ type ServerBlobAuditingPolicyProperties struct {
 	State BlobAuditingPolicyState `json:"state,omitempty"`
 	// StorageEndpoint - Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled is required.
 	StorageEndpoint *string `json:"storageEndpoint,omitempty"`
-	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+	// StorageAccountAccessKey - Specifies the identifier key of the auditing storage account.
+	// If state is Enabled and storageEndpoint is specified, not specifying the storageAccountAccessKey will use SQL server system-assigned managed identity to access the storage.
+	// Prerequisites for using managed identity authentication:
+	// 1. Assign SQL Server a system-assigned managed identity in Azure Active Directory (AAD).
+	// 2. Grant SQL Server identity access to the storage account by adding 'Storage Blob Data Contributor' RBAC role to the server identity.
+	// For more information, see [Auditing to storage using Managed Identity authentication](https://go.microsoft.com/fwlink/?linkid=2114355)
 	StorageAccountAccessKey *string `json:"storageAccountAccessKey,omitempty"`
 	// RetentionDays - Specifies the number of days to keep in the audit logs in the storage account.
 	RetentionDays *int32 `json:"retentionDays,omitempty"`

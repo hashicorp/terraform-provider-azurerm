@@ -68,6 +68,8 @@ The following arguments are supported:
 
 ~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
 
+~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
+
 `ip_rule` supports the following:
 
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`

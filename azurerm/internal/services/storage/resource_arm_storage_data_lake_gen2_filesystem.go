@@ -165,6 +165,7 @@ func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta interface{}) error {
+	accountsClient := meta.(*clients.Client).Storage.AccountsClient
 	client := meta.(*clients.Client).Storage.FileSystemsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -172,6 +173,23 @@ func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta i
 	id, err := filesystems.ParseResourceID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	storageID, err := parsers.ParseAccountID(d.Get("storage_account_id").(string))
+	if err != nil {
+		return err
+	}
+
+	// confirm the storage account exists, otherwise Data Plane API requests will fail
+	storageAccount, err := accountsClient.GetProperties(ctx, storageID.ResourceGroup, storageID.Name, "")
+	if err != nil {
+		if utils.ResponseWasNotFound(storageAccount.Response) {
+			log.Printf("[INFO] Storage Account %q does not exist removing from state...", id.AccountName)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error checking for existence of Storage Account %q for File System %q (Resource Group %q): %+v", storageID.Name, id.DirectoryName, storageID.ResourceGroup, err)
 	}
 
 	// TODO: what about when this has been removed?

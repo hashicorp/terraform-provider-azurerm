@@ -113,7 +113,6 @@ func (client ApplyUpdatesClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client ApplyUpdatesClient) CreateOrUpdateResponder(resp *http.Response) (result ApplyUpdate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client ApplyUpdatesClient) CreateOrUpdateParentSender(req *http.Request) (
 func (client ApplyUpdatesClient) CreateOrUpdateParentResponder(resp *http.Response) (result ApplyUpdate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -279,7 +277,6 @@ func (client ApplyUpdatesClient) GetSender(req *http.Request) (*http.Response, e
 func (client ApplyUpdatesClient) GetResponder(resp *http.Response) (result ApplyUpdate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -365,7 +362,6 @@ func (client ApplyUpdatesClient) GetParentSender(req *http.Request) (*http.Respo
 func (client ApplyUpdatesClient) GetParentResponder(resp *http.Response) (result ApplyUpdate, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

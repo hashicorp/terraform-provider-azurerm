@@ -125,7 +125,6 @@ func (client DataSourcesClient) CreateOrUpdateSender(req *http.Request) (*http.R
 func (client DataSourcesClient) CreateOrUpdateResponder(resp *http.Response) (result DataSource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client DataSourcesClient) DeleteSender(req *http.Request) (*http.Response,
 func (client DataSourcesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -296,7 +294,6 @@ func (client DataSourcesClient) GetSender(req *http.Request) (*http.Response, er
 func (client DataSourcesClient) GetResponder(resp *http.Response) (result DataSource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -387,7 +384,6 @@ func (client DataSourcesClient) ListByWorkspaceSender(req *http.Request) (*http.
 func (client DataSourcesClient) ListByWorkspaceResponder(resp *http.Response) (result DataSourceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

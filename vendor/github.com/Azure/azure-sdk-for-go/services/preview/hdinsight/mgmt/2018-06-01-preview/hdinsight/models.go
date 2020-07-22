@@ -153,6 +153,36 @@ func PossibleOSTypeValues() []OSType {
 	return []OSType{Linux, Windows}
 }
 
+// OutboundOnlyPublicNetworkAccessType enumerates the values for outbound only public network access type.
+type OutboundOnlyPublicNetworkAccessType string
+
+const (
+	// PublicLoadBalancer ...
+	PublicLoadBalancer OutboundOnlyPublicNetworkAccessType = "PublicLoadBalancer"
+	// UDR ...
+	UDR OutboundOnlyPublicNetworkAccessType = "UDR"
+)
+
+// PossibleOutboundOnlyPublicNetworkAccessTypeValues returns an array of possible values for the OutboundOnlyPublicNetworkAccessType const type.
+func PossibleOutboundOnlyPublicNetworkAccessTypeValues() []OutboundOnlyPublicNetworkAccessType {
+	return []OutboundOnlyPublicNetworkAccessType{PublicLoadBalancer, UDR}
+}
+
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// InboundAndOutbound ...
+	InboundAndOutbound PublicNetworkAccess = "InboundAndOutbound"
+	// OutboundOnly ...
+	OutboundOnly PublicNetworkAccess = "OutboundOnly"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{InboundAndOutbound, OutboundOnly}
+}
+
 // ResourceIdentityType enumerates the values for resource identity type.
 type ResourceIdentityType string
 
@@ -704,6 +734,8 @@ type ClusterCreateProperties struct {
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
+	// NetworkSettings - The network settings.
+	NetworkSettings *NetworkSettings `json:"networkSettings,omitempty"`
 }
 
 // ClusterDefinition the cluster definition.
@@ -778,6 +810,8 @@ type ClusterGetProperties struct {
 	DiskEncryptionProperties *DiskEncryptionProperties `json:"diskEncryptionProperties,omitempty"`
 	// MinSupportedTLSVersion - The minimal supported tls version.
 	MinSupportedTLSVersion *string `json:"minSupportedTlsVersion,omitempty"`
+	// NetworkSettings - The network settings.
+	NetworkSettings *NetworkSettings `json:"networkSettings,omitempty"`
 }
 
 // ClusterIdentity identity for the cluster.
@@ -1373,6 +1407,12 @@ type HardwareProfile struct {
 	VMSize *string `json:"vmSize,omitempty"`
 }
 
+// HostInfo the cluster host information.
+type HostInfo struct {
+	// Name - The host name
+	Name *string `json:"name,omitempty"`
+}
+
 // KafkaRestProperties the kafka rest proxy configuration which contains AAD security group information.
 type KafkaRestProperties struct {
 	// ClientGroupInfo - The information of AAD security group.
@@ -1389,12 +1429,26 @@ type LinuxOperatingSystemProfile struct {
 	SSHProfile *SSHProfile `json:"sshProfile,omitempty"`
 }
 
+// ListHostInfo ...
+type ListHostInfo struct {
+	autorest.Response `json:"-"`
+	Value             *[]HostInfo `json:"value,omitempty"`
+}
+
 // LocalizedName the details about the localizable name of a type of usage.
 type LocalizedName struct {
 	// Value - The name of the used resource.
 	Value *string `json:"value,omitempty"`
 	// LocalizedValue - The localized name of the used resource.
 	LocalizedValue *string `json:"localizedValue,omitempty"`
+}
+
+// NetworkSettings the network settings.
+type NetworkSettings struct {
+	// PublicNetworkAccess - Specifies whether public network access is enabled for inbound and outbound, or outbound only. Possible values include: 'InboundAndOutbound', 'OutboundOnly'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
+	// OutboundOnlyPublicNetworkAccessType - The mechanism through which the cluster will have outbound access to the public network. Possible values include: 'PublicLoadBalancer', 'UDR'
+	OutboundOnlyPublicNetworkAccessType OutboundOnlyPublicNetworkAccessType `json:"outboundOnlyPublicNetworkAccessType,omitempty"`
 }
 
 // Operation the HDInsight REST API operation.
@@ -2181,6 +2235,29 @@ func (vs VersionSpec) MarshalJSON() ([]byte, error) {
 		objectMap["componentVersions"] = vs.ComponentVersions
 	}
 	return json.Marshal(objectMap)
+}
+
+// VirtualMachinesRestartHostsFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type VirtualMachinesRestartHostsFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *VirtualMachinesRestartHostsFuture) Result(client VirtualMachinesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.VirtualMachinesRestartHostsFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("hdinsight.VirtualMachinesRestartHostsFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // VirtualNetworkProfile the virtual network properties.

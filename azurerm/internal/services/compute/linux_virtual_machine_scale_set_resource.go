@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -184,7 +184,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.ProximityPlacementGroupID,
-				// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:
+				// the Compute API is broken and returns the Resource Group name in UPPERCASE :shrug:, github issue: https://github.com/Azure/azure-rest-api-specs/issues/10016
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 

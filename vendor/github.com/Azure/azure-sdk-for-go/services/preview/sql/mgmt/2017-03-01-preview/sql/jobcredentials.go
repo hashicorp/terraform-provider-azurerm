@@ -129,7 +129,6 @@ func (client JobCredentialsClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client JobCredentialsClient) CreateOrUpdateResponder(resp *http.Response) (result JobCredential, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -210,7 +209,6 @@ func (client JobCredentialsClient) DeleteSender(req *http.Request) (*http.Respon
 func (client JobCredentialsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -290,7 +288,6 @@ func (client JobCredentialsClient) GetSender(req *http.Request) (*http.Response,
 func (client JobCredentialsClient) GetResponder(resp *http.Response) (result JobCredential, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -370,7 +367,6 @@ func (client JobCredentialsClient) ListByAgentSender(req *http.Request) (*http.R
 func (client JobCredentialsClient) ListByAgentResponder(resp *http.Response) (result JobCredentialListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

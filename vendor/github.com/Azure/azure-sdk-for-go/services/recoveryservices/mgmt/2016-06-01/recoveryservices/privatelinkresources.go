@@ -111,7 +111,6 @@ func (client PrivateLinkResourcesClient) GetSender(req *http.Request) (*http.Res
 func (client PrivateLinkResourcesClient) GetResponder(resp *http.Response) (result PrivateLinkResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,7 +187,6 @@ func (client PrivateLinkResourcesClient) ListSender(req *http.Request) (*http.Re
 func (client PrivateLinkResourcesClient) ListResponder(resp *http.Response) (result PrivateLinkResources, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

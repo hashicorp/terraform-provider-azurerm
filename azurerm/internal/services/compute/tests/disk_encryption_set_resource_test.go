@@ -2,10 +2,8 @@ package tests
 
 import (
 	"fmt"
-	"log"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
@@ -147,38 +145,6 @@ func testCheckAzureRMDiskEncryptionSetDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-// nolint unparam
-func enableSoftDeleteAndPurgeProtectionForKeyVault(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).KeyVault.VaultsClient
-		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		// TODO: use keyvault's custom ID parse function when implemented
-		vaultName := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		vaultPatch := keyvault.VaultPatchParameters{
-			Properties: &keyvault.VaultPatchProperties{
-				EnableSoftDelete:      utils.Bool(true),
-				EnablePurgeProtection: utils.Bool(true),
-			},
-		}
-		log.Printf("[DEBUG] Enabling Soft Delete & Purge Protection on Key Vault %q (Resource Group %q)..", vaultName, resourceGroup)
-		_, err := client.Update(ctx, resourceGroup, vaultName, vaultPatch)
-		if err != nil {
-			return fmt.Errorf("Bad: error updating KeyVault %q (Resource Group %q): %+v", vaultName, resourceGroup, err)
-		}
-		log.Printf("[DEBUG] Enabled Soft Delete & Purge Protection on Key Vault %q (Resource Group %q)..", vaultName, resourceGroup)
-
-		return nil
-	}
 }
 
 func testAccAzureRMDiskEncryptionSet_dependencies(data acceptance.TestData) string {

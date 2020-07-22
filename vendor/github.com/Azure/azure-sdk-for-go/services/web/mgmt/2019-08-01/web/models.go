@@ -861,13 +861,15 @@ const (
 	ManagedServiceIdentityTypeNone ManagedServiceIdentityType = "None"
 	// ManagedServiceIdentityTypeSystemAssigned ...
 	ManagedServiceIdentityTypeSystemAssigned ManagedServiceIdentityType = "SystemAssigned"
+	// ManagedServiceIdentityTypeSystemAssignedUserAssigned ...
+	ManagedServiceIdentityTypeSystemAssignedUserAssigned ManagedServiceIdentityType = "SystemAssigned, UserAssigned"
 	// ManagedServiceIdentityTypeUserAssigned ...
 	ManagedServiceIdentityTypeUserAssigned ManagedServiceIdentityType = "UserAssigned"
 )
 
 // PossibleManagedServiceIdentityTypeValues returns an array of possible values for the ManagedServiceIdentityType const type.
 func PossibleManagedServiceIdentityTypeValues() []ManagedServiceIdentityType {
-	return []ManagedServiceIdentityType{ManagedServiceIdentityTypeNone, ManagedServiceIdentityTypeSystemAssigned, ManagedServiceIdentityTypeUserAssigned}
+	return []ManagedServiceIdentityType{ManagedServiceIdentityTypeNone, ManagedServiceIdentityTypeSystemAssigned, ManagedServiceIdentityTypeSystemAssignedUserAssigned, ManagedServiceIdentityTypeUserAssigned}
 }
 
 // MSDeployLogEntryType enumerates the values for ms deploy log entry type.
@@ -1681,7 +1683,7 @@ type APIKVReference struct {
 	VaultName     *string       `json:"vaultName,omitempty"`
 	SecretName    *string       `json:"secretName,omitempty"`
 	SecretVersion *string       `json:"secretVersion,omitempty"`
-	// IdentityType - Possible values include: 'ManagedServiceIdentityTypeNone', 'ManagedServiceIdentityTypeSystemAssigned', 'ManagedServiceIdentityTypeUserAssigned'
+	// IdentityType - Possible values include: 'ManagedServiceIdentityTypeSystemAssigned', 'ManagedServiceIdentityTypeUserAssigned', 'ManagedServiceIdentityTypeSystemAssignedUserAssigned', 'ManagedServiceIdentityTypeNone'
 	IdentityType ManagedServiceIdentityType `json:"identityType,omitempty"`
 	Details      *string                    `json:"details,omitempty"`
 	// Source - Possible values include: 'KeyVault'
@@ -4650,7 +4652,7 @@ type AppServicePlanPatchResourceProperties struct {
 	FreeOfferExpirationTime *date.Time `json:"freeOfferExpirationTime,omitempty"`
 	// ResourceGroup - READ-ONLY; Resource group of the App Service plan.
 	ResourceGroup *string `json:"resourceGroup,omitempty"`
-	// Reserved - If Linux app service plan <code>true</code>, <code>false</code> otherwise.
+	// Reserved - This needs to set to <code>true</code> when creating a Linux App Service Plan, along with <code>kind</code> set to <code>Linux</code>. It should be <code>false</code> otherwise.
 	Reserved *bool `json:"reserved,omitempty"`
 	// IsXenon - Obsolete: If Hyper-V container app service plan <code>true</code>, <code>false</code> otherwise.
 	IsXenon *bool `json:"isXenon,omitempty"`
@@ -7343,6 +7345,196 @@ type CsmOperationDisplay struct {
 	Resource    *string `json:"resource,omitempty"`
 	Operation   *string `json:"operation,omitempty"`
 	Description *string `json:"description,omitempty"`
+}
+
+// CsmPublishingCredentialsPoliciesCollection publishing Credentials Policies collection.
+type CsmPublishingCredentialsPoliciesCollection struct {
+	autorest.Response `json:"-"`
+	// CsmPublishingCredentialsPoliciesCollectionProperties - CsmPublishingCredentialsPoliciesCollection resource specific properties
+	*CsmPublishingCredentialsPoliciesCollectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CsmPublishingCredentialsPoliciesCollection.
+func (cpcpc CsmPublishingCredentialsPoliciesCollection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cpcpc.CsmPublishingCredentialsPoliciesCollectionProperties != nil {
+		objectMap["properties"] = cpcpc.CsmPublishingCredentialsPoliciesCollectionProperties
+	}
+	if cpcpc.Kind != nil {
+		objectMap["kind"] = cpcpc.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CsmPublishingCredentialsPoliciesCollection struct.
+func (cpcpc *CsmPublishingCredentialsPoliciesCollection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var csmPublishingCredentialsPoliciesCollectionProperties CsmPublishingCredentialsPoliciesCollectionProperties
+				err = json.Unmarshal(*v, &csmPublishingCredentialsPoliciesCollectionProperties)
+				if err != nil {
+					return err
+				}
+				cpcpc.CsmPublishingCredentialsPoliciesCollectionProperties = &csmPublishingCredentialsPoliciesCollectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				cpcpc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cpcpc.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				cpcpc.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cpcpc.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// CsmPublishingCredentialsPoliciesCollectionProperties csmPublishingCredentialsPoliciesCollection resource
+// specific properties
+type CsmPublishingCredentialsPoliciesCollectionProperties struct {
+	// Ftp - Whether FTP is allowed.
+	Ftp *CsmPublishingCredentialsPoliciesEntity `json:"ftp,omitempty"`
+	// Scm - Whether Scm Basic Auth is allowed.
+	Scm *CsmPublishingCredentialsPoliciesEntity `json:"scm,omitempty"`
+}
+
+// CsmPublishingCredentialsPoliciesEntity publishing Credentials Policies parameters.
+type CsmPublishingCredentialsPoliciesEntity struct {
+	autorest.Response `json:"-"`
+	// CsmPublishingCredentialsPoliciesEntityProperties - CsmPublishingCredentialsPoliciesEntity resource specific properties
+	*CsmPublishingCredentialsPoliciesEntityProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource Name.
+	Name *string `json:"name,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CsmPublishingCredentialsPoliciesEntity.
+func (cpcpe CsmPublishingCredentialsPoliciesEntity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cpcpe.CsmPublishingCredentialsPoliciesEntityProperties != nil {
+		objectMap["properties"] = cpcpe.CsmPublishingCredentialsPoliciesEntityProperties
+	}
+	if cpcpe.Kind != nil {
+		objectMap["kind"] = cpcpe.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for CsmPublishingCredentialsPoliciesEntity struct.
+func (cpcpe *CsmPublishingCredentialsPoliciesEntity) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var csmPublishingCredentialsPoliciesEntityProperties CsmPublishingCredentialsPoliciesEntityProperties
+				err = json.Unmarshal(*v, &csmPublishingCredentialsPoliciesEntityProperties)
+				if err != nil {
+					return err
+				}
+				cpcpe.CsmPublishingCredentialsPoliciesEntityProperties = &csmPublishingCredentialsPoliciesEntityProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				cpcpe.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				cpcpe.Name = &name
+			}
+		case "kind":
+			if v != nil {
+				var kind string
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				cpcpe.Kind = &kind
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				cpcpe.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// CsmPublishingCredentialsPoliciesEntityProperties csmPublishingCredentialsPoliciesEntity resource
+// specific properties
+type CsmPublishingCredentialsPoliciesEntityProperties struct {
+	// Allow - <code>true</code> to allow access to a publishing method; otherwise, <code>false</code>.
+	Allow *bool `json:"allow,omitempty"`
 }
 
 // CsmPublishingProfileOptions publishing options for requested profile.
@@ -12738,7 +12930,7 @@ type LogSpecification struct {
 
 // ManagedServiceIdentity managed service identity.
 type ManagedServiceIdentity struct {
-	// Type - Type of managed service identity. Possible values include: 'ManagedServiceIdentityTypeNone', 'ManagedServiceIdentityTypeSystemAssigned', 'ManagedServiceIdentityTypeUserAssigned'
+	// Type - Type of managed service identity. Possible values include: 'ManagedServiceIdentityTypeSystemAssigned', 'ManagedServiceIdentityTypeUserAssigned', 'ManagedServiceIdentityTypeSystemAssignedUserAssigned', 'ManagedServiceIdentityTypeNone'
 	Type ManagedServiceIdentityType `json:"type,omitempty"`
 	// TenantID - READ-ONLY; Tenant of managed service identity.
 	TenantID *string `json:"tenantId,omitempty"`

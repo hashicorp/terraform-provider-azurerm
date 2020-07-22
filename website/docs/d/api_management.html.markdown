@@ -51,6 +51,8 @@ output "api_management_id" {
 
 * `portal_url` - The URL of the Publisher Portal.
 
+* `developer_portal_url` - The URL for the Developer Portal associated with this API Management service.
+
 * `public_ip_addresses` - The Public IP addresses of the API Management Service.
 
 * `publisher_name` - The name of the Publisher/Company of the API Management Service.
