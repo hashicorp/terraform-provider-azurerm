@@ -73,8 +73,8 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 							},
 						},
 						"custom_webhook_payload": {
-							Type:         schema.TypeString,
-							Optional:     true,
+							Type:     schema.TypeString,
+							Optional: true,
 							// TODO remove `Computed: true` in 3.0. This is a breaking change where the Default used to be "{}"
 							// We'll keep Computed: true for users who expect the same functionality but will remove it in 3.0
 							Computed:     true,
