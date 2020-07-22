@@ -5,6 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/helper"
+
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -106,6 +109,17 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+
+			"status": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(servicebus.Active),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servicebus.Active),
+					string(servicebus.Disabled),
+					string(servicebus.ReceiveDisabled),
+				}, false),
+			},
 		},
 	}
 }
@@ -145,6 +159,7 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 			EnableBatchedOperations:          &enableBatchedOps,
 			MaxDeliveryCount:                 &maxDeliveryCount,
 			RequiresSession:                  &requiresSession,
+			Status:                           helper.ExpandEntityStatus(d.Get("status")),
 		},
 	}
 
@@ -222,6 +237,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
+		d.Set("status", helper.FlattenEntityStatus(props.Status))
 
 		if count := props.MaxDeliveryCount; count != nil {
 			d.Set("max_delivery_count", int(*count))
