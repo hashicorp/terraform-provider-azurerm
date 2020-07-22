@@ -103,7 +103,7 @@ func (client BlobServicesClient) GetServicePropertiesPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -193,7 +193,7 @@ func (client BlobServicesClient) ListPreparer(ctx context.Context, resourceGroup
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -262,6 +262,19 @@ func (client BlobServicesClient) SetServiceProperties(ctx context.Context, resou
 							{Target: "parameters.BlobServicePropertiesProperties.DeleteRetentionPolicy.Days", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
 						}},
 					}},
+					{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy.Enabled", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy.Days", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy.Days", Name: validation.InclusiveMaximum, Rule: int64(365), Chain: nil},
+									{Target: "parameters.BlobServicePropertiesProperties.RestorePolicy.Days", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+								}},
+						}},
+					{Target: "parameters.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy.Days", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy.Days", Name: validation.InclusiveMaximum, Rule: int64(365), Chain: nil},
+								{Target: "parameters.BlobServicePropertiesProperties.ContainerDeleteRetentionPolicy.Days", Name: validation.InclusiveMinimum, Rule: int64(1), Chain: nil},
+							}},
+						}},
 				}}}}}); err != nil {
 		return result, validation.NewError("storage.BlobServicesClient", "SetServiceProperties", err.Error())
 	}
@@ -296,11 +309,12 @@ func (client BlobServicesClient) SetServicePropertiesPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-04-01"
+	const APIVersion = "2019-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
+	parameters.Sku = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
