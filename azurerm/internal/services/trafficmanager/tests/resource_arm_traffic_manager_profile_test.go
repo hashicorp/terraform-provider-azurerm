@@ -80,7 +80,7 @@ func TestAccAzureRMTrafficManagerProfile_update(t *testing.T) {
 }
 
 func TestAccAzureRMTrafficManagerProfile_updateEnsureDoNotEraseEndpoints(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_traffic_manageer_profile", "test")
+	data := acceptance.BuildTestData(t, "azurerm_traffic_manager_profile", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck: func() {acceptance.PreCheck(t)},
@@ -368,7 +368,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctest-tmp-rename-%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
@@ -402,13 +402,13 @@ func testAccAzureRMTrafficManagerProfile_endpointResource(data acceptance.TestDa
 	return fmt.Sprintf(`
 resource "azurerm_traffic_manager_endpoint" "test" {
   name                = "acctestend-external%d"
-  type                = "externalEndpoints"
-  target              = "terraform.io"
-  weight              = 3
-  profile_name        = %s.name
   resource_group_name = azurerm_resource_group.test.name
+  profile_name        = azurerm_traffic_manager_profile.test.name
+  target              = "terraform.io"
+  type                = "externalEndpoints"
+  weight              = 100
 }
-`, data.RandomInteger, data.ResourceName)
+`, data.RandomInteger)
 }
 
 func testAccAzureRMTrafficManagerProfile_completeWithEndpoint(data acceptance.TestData) string {
@@ -420,7 +420,7 @@ func testAccAzureRMTrafficManagerProfile_completeWithEndpoint(data acceptance.Te
 resource "azurerm_traffic_manager_profile" "test" {
   name                   = "acctest-TMP-%d"
   resource_group_name    = azurerm_resource_group.test.name
-  traffic_routing_method = "Performance"
+  traffic_routing_method = "Weighted"
 
   dns_config {
     relative_name = "acctest-tmp-%d"
@@ -468,7 +468,7 @@ resource "azurerm_traffic_manager_profile" "test" {
   traffic_routing_method = "Priority"
 
   dns_config {
-    relative_name = "acctest-tmp-rename-%d"
+    relative_name = "acctest-tmp-%d"
     ttl           = 30
   }
 
