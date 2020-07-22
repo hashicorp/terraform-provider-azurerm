@@ -12,6 +12,7 @@ DEPENDENCIES:
 
 FEATURES: 
 
+* **New Resource:** `azurerm_data_share_dataset_data_lake_gen1` - add `dataset_data_lake_gen1` suppport for `azurerm_data_share` [GH-7511]
 * **New Resource:** `azurerm_frontdoor_custom_https_configuration` - move the front door `custom_https_configuration` to its own resource to allow for parallel creation/update of custom https certificates. [GH-7498]
 * **New Resource:** `azurerm_kusto_cluster_customer_managed_key` [GH-7520]
 
