@@ -25,6 +25,7 @@ BUG FIXES
 * Data Source: `azurerm_private_dns_zone` - fix a crash when the zone does not exist [GH-7783]
 * `azurerm_application_gateway` - fix crash with `gateway_ip_configuration` [GH-7789]
 * `azurerm_cosmos_account` - the `geo_location.prefix` property has been deprecated as service no longer accepts it as an input since Apr 25, 2019 [GH-7597]
+* `azurerm_monitor_autoscale_setting` - Fix crash in `notification` [GH-7835]
 * `azurerm_storage_account` - will now default `allow_blob_public_access` to false to align with the portal and be secure by default [GH-7784]
 
 ## 2.19.0 (July 16, 2020)
