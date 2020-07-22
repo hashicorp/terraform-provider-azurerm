@@ -10,10 +10,6 @@ description: |-
 
 Manages a Firewall Rule for a MySQL Server.
 
-The feature "Allow access to Azure services" can be enabled by creating a firewall rule with a start and end IP address of 0.0.0.0
-This is different to a rule that would enable "any any" communication to the mysql instance, which would be a start ip of 0.0.0.0 and an end of 255.255.255.0
-An example of how this feature can be enabled is described below.
-
 ## Example Usage (Single IP Address)
 
 ```hcl
