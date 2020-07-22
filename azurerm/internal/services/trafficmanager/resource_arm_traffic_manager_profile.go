@@ -23,7 +23,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmTrafficManagerProfileCreate,
 		Read:   resourceArmTrafficManagerProfileRead,
-		Update: resourceArmTrafficManagerProfileCreate,
+		Update: resourceArmTrafficManagerProfileUpdate,
 		Delete: resourceArmTrafficManagerProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
