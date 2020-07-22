@@ -311,11 +311,17 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error making Read request on Azure KeyVault Secret %s: %+v", id.Name, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("empty or nil ID returned for Azure KeyVault Secret %q", id.Name)
+	}
+
 	// the version may have changed, so parse the updated id
 	respID, err := azure.ParseKeyVaultChildID(*resp.ID)
 	if err != nil {
 		return err
 	}
+	// the version may have changed, we are comparing diff with the latest version. So set the id
+	d.SetId(*resp.ID)
 
 	d.Set("name", respID.Name)
 	d.Set("value", resp.Value)

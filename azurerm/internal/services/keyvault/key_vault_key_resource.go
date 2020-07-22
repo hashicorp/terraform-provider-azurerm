@@ -362,8 +362,20 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	d.Set("name", id.Name)
+	if resp.Key == nil || resp.Key.Kid == nil || *resp.Key.Kid == "" {
+		return fmt.Errorf("empty or nil ID returned for Azure KeyVault Secret %q", id.Name)
+	}
+	// the version may have changed, so parse the updated id
+	respID, err := azure.ParseKeyVaultChildID(*resp.Key.Kid)
+	if err != nil {
+		return err
+	}
+	// the version may have changed, we are comparing diff with the latest version. So set the id
+	d.SetId(*resp.Key.Kid)
 
+	d.Set("name", respID.Name)
+	// Computed
+	d.Set("version", respID.Version)
 	if key := resp.Key; key != nil {
 		d.Set("key_type", string(key.Kty))
 
@@ -396,9 +408,6 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
 		}
 	}
-
-	// Computed
-	d.Set("version", id.Version)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
