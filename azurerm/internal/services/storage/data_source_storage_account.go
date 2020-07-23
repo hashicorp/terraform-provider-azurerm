@@ -73,7 +73,7 @@ func dataSourceArmStorageAccount() *schema.Resource {
 			},
 
 			"min_tls_version": {
-				Type:     schema.TypeString,
+				Type: schema.TypeString,
 			},
 
 			"allow_blob_public_access": {
