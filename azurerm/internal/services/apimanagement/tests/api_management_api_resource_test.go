@@ -603,7 +603,6 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
-  version             = "v1"
   oauth2_authorization {
     authorization_server_name = azurerm_api_management_authorization_server.test.name
     scope                     = "acctest"
@@ -635,7 +634,6 @@ resource "azurerm_api_management_api" "test" {
   path                = "api1"
   protocols           = ["https"]
   revision            = "1"
-  version             = "v1"
   openid_authentication {
     openid_provider_name = azurerm_api_management_openid_connect_provider.test.name
     bearer_token_sending_methods = [
