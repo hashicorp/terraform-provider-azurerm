@@ -884,24 +884,27 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		}
 
 		// changing rbacEnabled must still force cluster recreation
-		if *props.EnableRBAC == rbacEnabled && !*props.AadProfile.Managed {
+		if *props.EnableRBAC == rbacEnabled {
 			props.AadProfile = azureADProfile
 			props.EnableRBAC = utils.Bool(rbacEnabled)
 
-			log.Printf("[DEBUG] Updating the RBAC AAD profile")
-			future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.Name, *props.AadProfile)
-			if err != nil {
-				return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-			}
+			// Reset AAD profile is only possible if not managed
+			if props.AadProfile.Managed == nil || !*props.AadProfile.Managed {
+				log.Printf("[DEBUG] Updating the RBAC AAD profile")
+				future, err := clusterClient.ResetAADProfile(ctx, id.ResourceGroup, id.Name, *props.AadProfile)
+				if err != nil {
+					return fmt.Errorf("updating Managed Kubernetes Cluster AAD Profile in cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				}
 
-			if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
-				return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.Name, id.ResourceGroup, err)
+				if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+					return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.Name, id.ResourceGroup, err)
+				}
 			}
 		} else {
 			updateCluster = true
 		}
 
-		if *props.AadProfile.Managed {
+		if props.AadProfile != nil && props.AadProfile.Managed != nil && *props.AadProfile.Managed {
 			existing.ManagedClusterProperties.AadProfile = azureADProfile
 			updateCluster = true
 		}
