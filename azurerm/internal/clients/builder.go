@@ -59,7 +59,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	// client declarations:
-	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env)
+	account, err := NewResourceManagerAccount(ctx, *builder.AuthConfig, *env, builder.SkipProviderRegistration)
 	if err != nil {
 		return nil, fmt.Errorf("Error building account: %+v", err)
 	}

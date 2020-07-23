@@ -31,11 +31,11 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"azurerm_management_lock":     resourceArmManagementLock(),
-		"azurerm_resource_group":      resourceArmResourceGroup(),
-		"azurerm_template_deployment": resourceArmTemplateDeployment(),
-
+		"azurerm_management_lock":                    resourceArmManagementLock(),
+		"azurerm_resource_group":                     resourceArmResourceGroup(),
+		"azurerm_resource_provider_registration":     resourceArmResourceProviderRegistration(),
 		"azurerm_resource_group_template_deployment": resourceGroupTemplateDeploymentResource(),
 		"azurerm_subscription_template_deployment":   subscriptionTemplateDeploymentResource(),
+		"azurerm_template_deployment":                resourceArmTemplateDeployment(),
 	}
 }
