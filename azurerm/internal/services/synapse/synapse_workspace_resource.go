@@ -362,7 +362,7 @@ func expandArmWorkspaceDataLakeStorageAccountDetails(storageDataLakeGen2Filesyst
 }
 
 func expandArmWorkspaceAadAdmin(input []interface{}) *synapse.WorkspaceAadAdminInfo {
-	if input == nil || input[0] == nil {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})
