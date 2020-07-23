@@ -34,7 +34,7 @@ func TestAccAzureRMStorageBlobMigrateState(t *testing.T) {
 		return
 	}
 
-	client.StopContext = acceptance.AzureProvider.StopContext()
+	client.StopContext = context.Background()
 
 	suffix := client.Account.Environment.StorageEndpointSuffix
 

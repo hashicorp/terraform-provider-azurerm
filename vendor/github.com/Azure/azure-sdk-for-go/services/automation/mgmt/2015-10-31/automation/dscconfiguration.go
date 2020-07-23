@@ -133,7 +133,6 @@ func (client DscConfigurationClient) CreateOrUpdateSender(req *http.Request) (*h
 func (client DscConfigurationClient) CreateOrUpdateResponder(resp *http.Response) (result DscConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -219,7 +218,6 @@ func (client DscConfigurationClient) DeleteSender(req *http.Request) (*http.Resp
 func (client DscConfigurationClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -304,7 +302,6 @@ func (client DscConfigurationClient) GetSender(req *http.Request) (*http.Respons
 func (client DscConfigurationClient) GetResponder(resp *http.Response) (result DscConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -391,7 +388,6 @@ func (client DscConfigurationClient) GetContentResponder(resp *http.Response) (r
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -490,7 +486,6 @@ func (client DscConfigurationClient) ListByAutomationAccountSender(req *http.Req
 func (client DscConfigurationClient) ListByAutomationAccountResponder(resp *http.Response) (result DscConfigurationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -619,7 +614,6 @@ func (client DscConfigurationClient) UpdateSender(req *http.Request) (*http.Resp
 func (client DscConfigurationClient) UpdateResponder(resp *http.Response) (result DscConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

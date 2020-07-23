@@ -123,7 +123,6 @@ func (client FactoriesClient) ConfigureFactoryRepoSender(req *http.Request) (*ht
 func (client FactoriesClient) ConfigureFactoryRepoResponder(resp *http.Response) (result Factory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -231,7 +230,6 @@ func (client FactoriesClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client FactoriesClient) CreateOrUpdateResponder(resp *http.Response) (result Factory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -319,7 +317,6 @@ func (client FactoriesClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client FactoriesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -412,7 +409,6 @@ func (client FactoriesClient) GetSender(req *http.Request) (*http.Response, erro
 func (client FactoriesClient) GetResponder(resp *http.Response) (result Factory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotModified),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -503,7 +499,6 @@ func (client FactoriesClient) GetDataPlaneAccessSender(req *http.Request) (*http
 func (client FactoriesClient) GetDataPlaneAccessResponder(resp *http.Response) (result AccessPolicyResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -597,7 +592,6 @@ func (client FactoriesClient) GetGitHubAccessTokenSender(req *http.Request) (*ht
 func (client FactoriesClient) GetGitHubAccessTokenResponder(resp *http.Response) (result GitHubAccessTokenResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -669,7 +663,6 @@ func (client FactoriesClient) ListSender(req *http.Request) (*http.Response, err
 func (client FactoriesClient) ListResponder(resp *http.Response) (result FactoryListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -789,7 +782,6 @@ func (client FactoriesClient) ListByResourceGroupSender(req *http.Request) (*htt
 func (client FactoriesClient) ListByResourceGroupResponder(resp *http.Response) (result FactoryListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -917,7 +909,6 @@ func (client FactoriesClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client FactoriesClient) UpdateResponder(resp *http.Response) (result Factory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

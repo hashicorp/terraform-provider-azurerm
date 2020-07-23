@@ -116,7 +116,6 @@ func (client InvitationsClient) CreateSender(req *http.Request) (*http.Response,
 func (client InvitationsClient) CreateResponder(resp *http.Response) (result Invitation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client InvitationsClient) DeleteSender(req *http.Request) (*http.Response,
 func (client InvitationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -275,7 +273,6 @@ func (client InvitationsClient) GetSender(req *http.Request) (*http.Response, er
 func (client InvitationsClient) GetResponder(resp *http.Response) (result Invitation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -358,7 +355,6 @@ func (client InvitationsClient) ListByShareSender(req *http.Request) (*http.Resp
 func (client InvitationsClient) ListByShareResponder(resp *http.Response) (result InvitationList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

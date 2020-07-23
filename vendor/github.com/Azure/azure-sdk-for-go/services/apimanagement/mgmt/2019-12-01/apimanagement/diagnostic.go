@@ -170,7 +170,6 @@ func (client DiagnosticClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client DiagnosticClient) CreateOrUpdateResponder(resp *http.Response) (result DiagnosticContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -263,7 +262,6 @@ func (client DiagnosticClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client DiagnosticClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -352,7 +350,6 @@ func (client DiagnosticClient) GetSender(req *http.Request) (*http.Response, err
 func (client DiagnosticClient) GetResponder(resp *http.Response) (result DiagnosticContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -442,7 +439,6 @@ func (client DiagnosticClient) GetEntityTagSender(req *http.Request) (*http.Resp
 func (client DiagnosticClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -546,7 +542,6 @@ func (client DiagnosticClient) ListByServiceSender(req *http.Request) (*http.Res
 func (client DiagnosticClient) ListByServiceResponder(resp *http.Response) (result DiagnosticCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -679,7 +674,6 @@ func (client DiagnosticClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client DiagnosticClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

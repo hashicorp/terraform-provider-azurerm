@@ -92,9 +92,25 @@ func FrontdoorSettings(d *schema.ResourceDiff) error {
 		return fmt.Errorf(`%+v`, err)
 	}
 
-	// Verify frontend endpoints custom https configuration is valid if defined
-	if err := verifyCustomHttpsConfiguration(configFrontendEndpoints); err != nil {
-		return fmt.Errorf(`%+v`, err)
+	return nil
+}
+
+func FrontdoorCustomHttpsSettings(d *schema.ResourceDiff) error {
+	frontendId := d.Get("frontend_endpoint_id").(string)
+	frontendEndpointCustomHttpsConfig := d.Get("custom_https_configuration").([]interface{})
+	customHttpsEnabled := d.Get("custom_https_provisioning_enabled").(bool)
+
+	if len(frontendEndpointCustomHttpsConfig) > 0 {
+		if !customHttpsEnabled {
+			return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid because "custom_https_provisioning_enabled" is set to "false". please remove the "custom_https_configuration" block from the configuration file`, frontendId)
+		}
+
+		// Verify frontend endpoints custom https configuration is valid if defined
+		if err := verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig, frontendId); err != nil {
+			return fmt.Errorf(`%+v`, err)
+		}
+	} else if customHttpsEnabled {
+		return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid because "custom_https_provisioning_enabled" is set to "true". please add a "custom_https_configuration" block to the configuration file`, frontendId)
 	}
 
 	return nil
@@ -188,29 +204,16 @@ func verifyLoadBalancingAndHealthProbeSettings(backendPools []interface{}, loadB
 	return nil
 }
 
-func verifyCustomHttpsConfiguration(configFrontendEndpoints []interface{}) error {
-	for _, configFrontendEndpoint := range configFrontendEndpoints {
-		if configFrontend := configFrontendEndpoint.(map[string]interface{}); len(configFrontend) > 0 {
-			FrontendName := configFrontend["name"]
-			customHttpsEnabled := configFrontend["custom_https_provisioning_enabled"].(bool)
-
-			if chc := configFrontend["custom_https_configuration"].([]interface{}); len(chc) > 0 {
-				if !customHttpsEnabled {
-					return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid because "custom_https_provisioning_enabled" is set to "false". please remove the "custom_https_configuration" block from the configuration file`, FrontendName)
-				}
-
-				customHttpsConfiguration := chc[0].(map[string]interface{})
-				certificateSource := customHttpsConfiguration["certificate_source"]
-				if certificateSource == string(frontdoor.CertificateSourceAzureKeyVault) {
-					if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
-						return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must have values in the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
-					}
-				} else if azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
-					return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must be removed from the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
-				}
-			} else if customHttpsEnabled {
-				return fmt.Errorf(`"frontend_endpoint":%q configuration is invalid because "custom_https_provisioning_enabled" is set to "true" and the "custom_https_configuration" block is undefined. please add the "custom_https_configuration" block to the configuration file`, FrontendName)
+func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interface{}, frontendId string) error {
+	if len(frontendEndpointCustomHttpsConfig) > 0 {
+		customHttpsConfiguration := frontendEndpointCustomHttpsConfig[0].(map[string]interface{})
+		certificateSource := customHttpsConfiguration["certificate_source"]
+		if certificateSource == string(frontdoor.CertificateSourceAzureKeyVault) {
+			if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
+				return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must have values in the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, frontendId)
 			}
+		} else if azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
+			return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must be removed from the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, frontendId)
 		}
 	}
 

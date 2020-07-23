@@ -120,7 +120,6 @@ func (client QueryKeysClient) CreateSender(req *http.Request) (*http.Response, e
 func (client QueryKeysClient) CreateResponder(resp *http.Response) (result QueryKey, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client QueryKeysClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client QueryKeysClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -290,7 +288,6 @@ func (client QueryKeysClient) ListBySearchServiceSender(req *http.Request) (*htt
 func (client QueryKeysClient) ListBySearchServiceResponder(resp *http.Response) (result ListQueryKeysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -374,7 +371,6 @@ func (client QueryKeysClient) ListBySearchServiceGetSender(req *http.Request) (*
 func (client QueryKeysClient) ListBySearchServiceGetResponder(resp *http.Response) (result ListQueryKeysResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

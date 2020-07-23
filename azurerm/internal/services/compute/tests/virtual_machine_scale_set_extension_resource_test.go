@@ -62,10 +62,7 @@ func TestAccAzureRMVirtualMachineScaleSetExtension_requiresImport(t *testing.T) 
 					testCheckAzureRMVirtualMachineScaleSetExtensionExists(data.ResourceName),
 				),
 			},
-			{
-				Config:      testAccAzureRMVirtualMachineScaleSetExtension_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_virtual_machine_scale_set_extension"),
-			},
+			data.RequiresImportErrorStep(testAccAzureRMVirtualMachineScaleSetExtension_requiresImport),
 		},
 	})
 }

@@ -119,7 +119,6 @@ func (client ServiceSkusClient) ListAvailableServiceSkusSender(req *http.Request
 func (client ServiceSkusClient) ListAvailableServiceSkusResponder(resp *http.Response) (result ResourceSkuResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -118,7 +118,6 @@ func (client ManagedServerSecurityAlertPoliciesClient) CreateOrUpdateSender(req 
 func (client ManagedServerSecurityAlertPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedServerSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client ManagedServerSecurityAlertPoliciesClient) GetSender(req *http.Reque
 func (client ManagedServerSecurityAlertPoliciesClient) GetResponder(resp *http.Response) (result ManagedServerSecurityAlertPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -274,7 +272,6 @@ func (client ManagedServerSecurityAlertPoliciesClient) ListByInstanceSender(req 
 func (client ManagedServerSecurityAlertPoliciesClient) ListByInstanceResponder(resp *http.Response) (result ManagedServerSecurityAlertPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

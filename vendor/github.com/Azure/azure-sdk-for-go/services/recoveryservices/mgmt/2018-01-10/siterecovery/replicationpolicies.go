@@ -113,7 +113,6 @@ func (client ReplicationPoliciesClient) CreateSender(req *http.Request) (future 
 func (client ReplicationPoliciesClient) CreateResponder(resp *http.Response) (result Policy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client ReplicationPoliciesClient) DeleteSender(req *http.Request) (future 
 func (client ReplicationPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -264,7 +262,6 @@ func (client ReplicationPoliciesClient) GetSender(req *http.Request) (*http.Resp
 func (client ReplicationPoliciesClient) GetResponder(resp *http.Response) (result Policy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -338,7 +335,6 @@ func (client ReplicationPoliciesClient) ListSender(req *http.Request) (*http.Res
 func (client ReplicationPoliciesClient) ListResponder(resp *http.Response) (result PolicyCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -454,7 +450,6 @@ func (client ReplicationPoliciesClient) UpdateSender(req *http.Request) (future 
 func (client ReplicationPoliciesClient) UpdateResponder(resp *http.Response) (result Policy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

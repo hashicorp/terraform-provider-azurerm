@@ -341,6 +341,54 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					},
 				},
 
+				"scm_use_main_ip_restriction": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"scm_ip_restriction": {
+					Type:       schema.TypeList,
+					Optional:   true,
+					Computed:   true,
+					ConfigMode: schema.SchemaConfigModeAttr,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"ip_address": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								ValidateFunc: validate.CIDR,
+							},
+							"virtual_network_subnet_id": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"name": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								Computed:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"priority": {
+								Type:         schema.TypeInt,
+								Optional:     true,
+								Default:      65000,
+								ValidateFunc: validation.IntBetween(1, 2147483647),
+							},
+							"action": {
+								Type:     schema.TypeString,
+								Optional: true,
+								Default:  "Allow",
+								ValidateFunc: validation.StringInSlice([]string{
+									"Allow",
+									"Deny",
+								}, true),
+							},
+						},
+					},
+				},
+
 				"java_version": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -694,6 +742,40 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 				},
 
 				"ip_restriction": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"ip_address": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"virtual_network_subnet_id": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"name": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"priority": {
+								Type:     schema.TypeInt,
+								Computed: true,
+							},
+							"action": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+						},
+					},
+				},
+
+				"scm_use_main_ip_restriction": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"scm_ip_restriction": {
 					Type:     schema.TypeList,
 					Computed: true,
 					Elem: &schema.Resource{
@@ -1504,6 +1586,59 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
 
+	if v, ok := config["scm_use_main_ip_restriction"]; ok {
+		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
+	}
+
+	if v, ok := config["scm_ip_restriction"]; ok {
+		scmIPSecurityRestrictions := v.([]interface{})
+		scmRestrictions := make([]web.IPSecurityRestriction, 0)
+		for i, scmIPSecurityRestriction := range scmIPSecurityRestrictions {
+			scmRestriction := scmIPSecurityRestriction.(map[string]interface{})
+
+			ipAddress := scmRestriction["ip_address"].(string)
+			vNetSubnetID := scmRestriction["virtual_network_subnet_id"].(string)
+			name := scmRestriction["name"].(string)
+			priority := scmRestriction["priority"].(int)
+			action := scmRestriction["action"].(string)
+			if vNetSubnetID != "" && ipAddress != "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can be set for `site_config.0.scm_ip_restriction.%d`", i))
+			}
+
+			if vNetSubnetID == "" && ipAddress == "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set for `site_config.0.scm_ip_restriction.%d`", i))
+			}
+
+			scmIPSecurityRestriction := web.IPSecurityRestriction{}
+			if ipAddress == "Any" {
+				continue
+			}
+
+			if ipAddress != "" {
+				scmIPSecurityRestriction.IPAddress = &ipAddress
+			}
+
+			if vNetSubnetID != "" {
+				scmIPSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+			}
+
+			if name != "" {
+				scmIPSecurityRestriction.Name = &name
+			}
+
+			if priority != 0 {
+				scmIPSecurityRestriction.Priority = utils.Int32(int32(priority))
+			}
+
+			if action != "" {
+				scmIPSecurityRestriction.Action = &action
+			}
+
+			scmRestrictions = append(scmRestrictions, scmIPSecurityRestriction)
+		}
+		siteConfig.ScmIPSecurityRestrictions = &scmRestrictions
+	}
+
 	if v, ok := config["local_mysql_enabled"]; ok {
 		siteConfig.LocalMySQLEnabled = utils.Bool(v.(bool))
 	}
@@ -1642,6 +1777,40 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		}
 	}
 	result["ip_restriction"] = restrictions
+
+	if input.ScmIPSecurityRestrictionsUseMain != nil {
+		result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
+	}
+
+	scmRestrictions := make([]interface{}, 0)
+	if vs := input.ScmIPSecurityRestrictions; vs != nil {
+		for _, v := range *vs {
+			block := make(map[string]interface{})
+
+			if ip := v.IPAddress; ip != nil {
+				if *ip == "Any" {
+					continue
+				} else {
+					block["ip_address"] = *ip
+				}
+			}
+			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
+				block["virtual_network_subnet_id"] = *vNetSubnetID
+			}
+			if name := v.Name; name != nil {
+				block["name"] = *name
+			}
+			if priority := v.Priority; priority != nil {
+				block["priority"] = *priority
+			}
+
+			if action := v.Action; action != nil {
+				block["action"] = *action
+			}
+			scmRestrictions = append(scmRestrictions, block)
+		}
+	}
+	result["scm_ip_restriction"] = scmRestrictions
 
 	result["managed_pipeline_mode"] = string(input.ManagedPipelineMode)
 

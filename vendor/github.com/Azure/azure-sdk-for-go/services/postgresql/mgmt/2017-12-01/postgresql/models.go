@@ -85,9 +85,9 @@ func PossibleIdentityTypeValues() []IdentityType {
 type InfrastructureEncryption string
 
 const (
-	// InfrastructureEncryptionDisabled ...
+	// InfrastructureEncryptionDisabled Additional (2nd) layer of encryption for data at rest
 	InfrastructureEncryptionDisabled InfrastructureEncryption = "Disabled"
-	// InfrastructureEncryptionEnabled ...
+	// InfrastructureEncryptionEnabled Default value for single layer of encryption for data at rest.
 	InfrastructureEncryptionEnabled InfrastructureEncryption = "Enabled"
 )
 

@@ -117,7 +117,6 @@ func (client IotDpsResourceClient) CheckProvisioningServiceNameAvailabilitySende
 func (client IotDpsResourceClient) CheckProvisioningServiceNameAvailabilityResponder(resp *http.Response) (result NameAvailabilityInfo, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client IotDpsResourceClient) CreateOrUpdateSender(req *http.Request) (futu
 func (client IotDpsResourceClient) CreateOrUpdateResponder(resp *http.Response) (result ProvisioningServiceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -281,7 +279,6 @@ func (client IotDpsResourceClient) DeleteSender(req *http.Request) (future IotDp
 func (client IotDpsResourceClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent, http.StatusNotFound),
 		autorest.ByClosing())
 	result.Response = resp
@@ -356,7 +353,6 @@ func (client IotDpsResourceClient) GetSender(req *http.Request) (*http.Response,
 func (client IotDpsResourceClient) GetResponder(resp *http.Response) (result ProvisioningServiceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -438,7 +434,6 @@ func (client IotDpsResourceClient) GetOperationResultSender(req *http.Request) (
 func (client IotDpsResourceClient) GetOperationResultResponder(resp *http.Response) (result AsyncOperationResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -513,7 +508,6 @@ func (client IotDpsResourceClient) ListByResourceGroupSender(req *http.Request) 
 func (client IotDpsResourceClient) ListByResourceGroupResponder(resp *http.Response) (result ProvisioningServiceDescriptionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -622,7 +616,6 @@ func (client IotDpsResourceClient) ListBySubscriptionSender(req *http.Request) (
 func (client IotDpsResourceClient) ListBySubscriptionResponder(resp *http.Response) (result ProvisioningServiceDescriptionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -736,7 +729,6 @@ func (client IotDpsResourceClient) ListKeysSender(req *http.Request) (*http.Resp
 func (client IotDpsResourceClient) ListKeysResponder(resp *http.Response) (result SharedAccessSignatureAuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -851,7 +843,6 @@ func (client IotDpsResourceClient) ListKeysForKeyNameSender(req *http.Request) (
 func (client IotDpsResourceClient) ListKeysForKeyNameResponder(resp *http.Response) (result SharedAccessSignatureAuthorizationRuleAccessRightsDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -928,7 +919,6 @@ func (client IotDpsResourceClient) ListValidSkusSender(req *http.Request) (*http
 func (client IotDpsResourceClient) ListValidSkusResponder(resp *http.Response) (result IotDpsSkuDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1044,7 +1034,6 @@ func (client IotDpsResourceClient) UpdateSender(req *http.Request) (future IotDp
 func (client IotDpsResourceClient) UpdateResponder(resp *http.Response) (result ProvisioningServiceDescription, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
@@ -186,6 +186,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"orchestrator_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"max_pods": {
 							Type:     schema.TypeInt,
 							Computed: true,
@@ -201,13 +206,13 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 
 						"node_taints": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 
 						"enable_node_public_ip": {
 							Type:     schema.TypeBool,
-							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -231,17 +236,20 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"disk_encryption_set_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"private_link_enabled": {
 				Type:          schema.TypeBool,
 				Computed:      true,
-				Optional:      true,
 				ConflictsWith: []string{"private_cluster_enabled"},
 				Deprecated:    "Deprecated in favor of `private_cluster_enabled`", // TODO -- remove this in next major version
 			},
 
 			"private_cluster_enabled": {
 				Type:          schema.TypeBool,
-				Optional:      true,
 				Computed:      true, // TODO -- remove this when deprecation resolves
 				ConflictsWith: []string{"private_link_enabled"},
 			},
@@ -481,8 +489,21 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"admin_group_object_ids": {
+										Type:     schema.TypeList,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
 									"client_app_id": {
 										Type:     schema.TypeString,
+										Computed: true,
+									},
+
+									"managed": {
+										Type:     schema.TypeBool,
 										Computed: true,
 									},
 
@@ -553,6 +574,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	if props := resp.ManagedClusterProperties; props != nil {
 		d.Set("dns_prefix", props.DNSPrefix)
 		d.Set("fqdn", props.Fqdn)
+		d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 		d.Set("private_fqdn", props.PrivateFQDN)
 		d.Set("kubernetes_version", props.KubernetesVersion)
 		d.Set("node_resource_group", props.NodeResourceGroup)
@@ -647,21 +669,35 @@ func flattenKubernetesClusterDataSourceRoleBasedAccessControl(input *containerse
 
 	results := make([]interface{}, 0)
 	if profile := input.AadProfile; profile != nil {
-		output := make(map[string]interface{})
+		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
 
+		clientAppId := ""
 		if profile.ClientAppID != nil {
-			output["client_app_id"] = *profile.ClientAppID
+			clientAppId = *profile.ClientAppID
 		}
 
+		managed := false
+		if profile.Managed != nil {
+			managed = *profile.Managed
+		}
+
+		serverAppId := ""
 		if profile.ServerAppID != nil {
-			output["server_app_id"] = *profile.ServerAppID
+			serverAppId = *profile.ServerAppID
 		}
 
+		tenantId := ""
 		if profile.TenantID != nil {
-			output["tenant_id"] = *profile.TenantID
+			tenantId = *profile.TenantID
 		}
 
-		results = append(results, output)
+		results = append(results, map[string]interface{}{
+			"admin_group_object_ids": adminGroupObjectIds,
+			"client_app_id":          clientAppId,
+			"managed":                managed,
+			"server_app_id":          serverAppId,
+			"tenant_id":              tenantId,
+		})
 	}
 
 	return []interface{}{
@@ -862,6 +898,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.OsType != "" {
 			agentPoolProfile["os_type"] = string(profile.OsType)
+		}
+
+		if profile.OrchestratorVersion != nil && *profile.OrchestratorVersion != "" {
+			agentPoolProfile["orchestrator_version"] = *profile.OrchestratorVersion
 		}
 
 		if profile.MaxPods != nil {

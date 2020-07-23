@@ -153,7 +153,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_application_insights_web_tests", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_application_insights_web_test", *existing.ID)
 		}
 	}
 

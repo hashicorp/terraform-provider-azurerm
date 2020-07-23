@@ -112,7 +112,6 @@ func (client VaultsClient) CreateOrUpdateSender(req *http.Request) (*http.Respon
 func (client VaultsClient) CreateOrUpdateResponder(resp *http.Response) (result Vault, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,7 +187,6 @@ func (client VaultsClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client VaultsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -263,7 +261,6 @@ func (client VaultsClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client VaultsClient) GetResponder(resp *http.Response) (result Vault, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -338,7 +335,6 @@ func (client VaultsClient) ListByResourceGroupSender(req *http.Request) (*http.R
 func (client VaultsClient) ListByResourceGroupResponder(resp *http.Response) (result VaultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -447,7 +443,6 @@ func (client VaultsClient) ListBySubscriptionIDSender(req *http.Request) (*http.
 func (client VaultsClient) ListBySubscriptionIDResponder(resp *http.Response) (result VaultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -563,7 +558,6 @@ func (client VaultsClient) UpdateSender(req *http.Request) (*http.Response, erro
 func (client VaultsClient) UpdateResponder(resp *http.Response) (result Vault, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -646,86 +646,78 @@ func redisStateRefreshFunc(ctx context.Context, client *redis.Client, resourceGr
 func expandRedisConfiguration(d *schema.ResourceData) (map[string]*string, error) {
 	output := make(map[string]*string)
 
-	if v, ok := d.GetOk("redis_configuration.0.maxclients"); ok {
-		clients := strconv.Itoa(v.(int))
-		output["maxclients"] = utils.String(clients)
+	input := d.Get("redis_configuration").([]interface{})
+	if len(input) == 0 || input[0] == nil {
+		return output, nil
+	}
+	raw := input[0].(map[string]interface{})
+
+	if v := raw["maxclients"].(int); v > 0 {
+		output["maxclients"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.maxmemory_delta"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["maxmemory-delta"] = utils.String(delta)
+	if v := raw["maxmemory_delta"].(int); v > 0 {
+		output["maxmemory-delta"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.maxmemory_reserved"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["maxmemory-reserved"] = utils.String(delta)
+	if v := raw["maxmemory_reserved"].(int); v > 0 {
+		output["maxmemory-reserved"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.maxmemory_policy"); ok {
-		output["maxmemory-policy"] = utils.String(v.(string))
+	if v := raw["maxmemory_policy"].(string); v != "" {
+		output["maxmemory-policy"] = utils.String(v)
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.maxfragmentationmemory_reserved"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["maxfragmentationmemory-reserved"] = utils.String(delta)
+	if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
+		output["maxfragmentationmemory-reserved"] = utils.String(strconv.Itoa(v))
 	}
 
 	// RDB Backup
-	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_enabled"); ok {
-		if v.(bool) {
-			if connStr, connOk := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); !connOk || connStr.(string) == "" {
-				return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
-			}
+	if v := raw["rdb_backup_enabled"].(bool); v {
+		if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
+			return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
 		}
-		delta := strconv.FormatBool(v.(bool))
-		output["rdb-backup-enabled"] = utils.String(delta)
+		output["rdb-backup-enabled"] = utils.String(strconv.FormatBool(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_frequency"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["rdb-backup-frequency"] = utils.String(delta)
+	if v := raw["rdb_backup_frequency"].(int); v > 0 {
+		output["rdb-backup-frequency"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.rdb_backup_max_snapshot_count"); ok {
-		delta := strconv.Itoa(v.(int))
-		output["rdb-backup-max-snapshot-count"] = utils.String(delta)
+	if v := raw["rdb_backup_max_snapshot_count"].(int); v > 0 {
+		output["rdb-backup-max-snapshot-count"] = utils.String(strconv.Itoa(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.rdb_storage_connection_string"); ok {
-		output["rdb-storage-connection-string"] = utils.String(v.(string))
+	if v := raw["rdb_storage_connection_string"].(string); v != "" {
+		output["rdb-storage-connection-string"] = utils.String(v)
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.notify_keyspace_events"); ok {
-		output["notify-keyspace-events"] = utils.String(v.(string))
+	if v := raw["notify_keyspace_events"].(string); v != "" {
+		output["notify-keyspace-events"] = utils.String(v)
 	}
 
 	// AOF Backup
-	if v, ok := d.GetOk("redis_configuration.0.aof_backup_enabled"); ok {
-		delta := strconv.FormatBool(v.(bool))
-		output["aof-backup-enabled"] = utils.String(delta)
+	if v := raw["aof_backup_enabled"].(bool); v {
+		output["aof-backup-enabled"] = utils.String(strconv.FormatBool(v))
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_0"); ok {
-		output["aof-storage-connection-string-0"] = utils.String(v.(string))
+	if v := raw["aof_storage_connection_string_0"].(string); v != "" {
+		output["aof-storage-connection-string-0"] = utils.String(v)
 	}
 
-	if v, ok := d.GetOk("redis_configuration.0.aof_storage_connection_string_1"); ok {
-		output["aof-storage-connection-string-1"] = utils.String(v.(string))
+	if v := raw["aof_storage_connection_string_1"].(string); v != "" {
+		output["aof-storage-connection-string-1"] = utils.String(v)
 	}
 
-	if v, ok := d.GetOkExists("redis_configuration.0.enable_authentication"); ok {
-		authEnabled := v.(bool)
-		_, isPrivate := d.GetOk("subnet_id")
-
-		// Redis authentication can only be disabled if it is launched inside a VNET.
-		if !isPrivate {
-			if !authEnabled {
-				return nil, fmt.Errorf("Cannot set `enable_authentication` to `false` when `subnet_id` is not set")
-			}
-		} else {
-			value := isAuthNotRequiredAsString(authEnabled)
-			output["authnotrequired"] = utils.String(value)
+	authEnabled := raw["enable_authentication"].(bool)
+	// Redis authentication can only be disabled if it is launched inside a VNET.
+	if _, isPrivate := d.GetOk("subnet_id"); !isPrivate {
+		if !authEnabled {
+			return nil, fmt.Errorf("Cannot set `enable_authentication` to `false` when `subnet_id` is not set")
 		}
+	} else {
+		value := isAuthNotRequiredAsString(authEnabled)
+		output["authnotrequired"] = utils.String(value)
 	}
 	return output, nil
 }

@@ -122,7 +122,6 @@ func (client PreconfiguredEndpointsClient) ListSender(req *http.Request) (*http.
 func (client PreconfiguredEndpointsClient) ListResponder(resp *http.Response) (result PreconfiguredEndpointList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

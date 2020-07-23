@@ -121,7 +121,6 @@ func (client ProtectedItemOperationStatusesClient) GetSender(req *http.Request) 
 func (client ProtectedItemOperationStatusesClient) GetResponder(resp *http.Response) (result OperationStatus, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -111,7 +111,6 @@ func (client DomainTopicsClient) CreateOrUpdateSender(req *http.Request) (future
 func (client DomainTopicsClient) CreateOrUpdateResponder(resp *http.Response) (result DomainTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client DomainTopicsClient) DeleteSender(req *http.Request) (future DomainT
 func (client DomainTopicsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -266,7 +264,6 @@ func (client DomainTopicsClient) GetSender(req *http.Request) (*http.Response, e
 func (client DomainTopicsClient) GetResponder(resp *http.Response) (result DomainTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -357,7 +354,6 @@ func (client DomainTopicsClient) ListByDomainSender(req *http.Request) (*http.Re
 func (client DomainTopicsClient) ListByDomainResponder(resp *http.Response) (result DomainTopicsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

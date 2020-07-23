@@ -1,6 +1,7 @@
 package acceptance
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"regexp"
@@ -46,7 +47,8 @@ func EnvironmentName() string {
 
 func Environment() (*azure.Environment, error) {
 	envName := EnvironmentName()
-	return authentication.DetermineEnvironment(envName)
+	metadataURL := os.Getenv("ARM_METADATA_URL")
+	return authentication.AzureEnvironmentByNameFromEndpoint(context.TODO(), metadataURL, envName)
 }
 
 func GetAuthConfig(t *testing.T) *authentication.Config {
@@ -63,6 +65,7 @@ func GetAuthConfig(t *testing.T) *authentication.Config {
 		TenantID:       os.Getenv("ARM_TENANT_ID"),
 		ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
 		Environment:    environment,
+		MetadataURL:    os.Getenv("ARM_METADATA_URL"),
 
 		// we intentionally only support Client Secret auth for tests (since those variables are used all over)
 		SupportsClientSecretAuth: true,

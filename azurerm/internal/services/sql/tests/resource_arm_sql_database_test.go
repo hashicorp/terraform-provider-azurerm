@@ -92,7 +92,7 @@ func TestAccAzureRMSqlDatabase_elasticPool(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "elastic_pool_name", fmt.Sprintf("acctestep%d", data.RandomInteger)),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("create_mode"),
 		},
 	})
 }
@@ -654,7 +654,7 @@ resource "azurerm_sql_database" "test" {
   location                         = azurerm_resource_group.test.location
   edition                          = "DataWarehouse"
   collation                        = "SQL_Latin1_General_CP1_CI_AS"
-  requested_service_objective_name = "DW400"
+  requested_service_objective_name = "DW400c"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

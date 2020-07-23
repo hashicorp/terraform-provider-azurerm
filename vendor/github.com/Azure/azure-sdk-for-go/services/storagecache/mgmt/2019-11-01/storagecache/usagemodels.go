@@ -106,7 +106,6 @@ func (client UsageModelsClient) ListSender(req *http.Request) (*http.Response, e
 func (client UsageModelsClient) ListResponder(resp *http.Response) (result UsageModelsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

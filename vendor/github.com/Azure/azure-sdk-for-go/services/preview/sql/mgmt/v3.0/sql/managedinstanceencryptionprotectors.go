@@ -119,7 +119,6 @@ func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdateSender(req
 func (client ManagedInstanceEncryptionProtectorsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagedInstanceEncryptionProtector, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client ManagedInstanceEncryptionProtectorsClient) GetSender(req *http.Requ
 func (client ManagedInstanceEncryptionProtectorsClient) GetResponder(resp *http.Response) (result ManagedInstanceEncryptionProtector, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -275,7 +273,6 @@ func (client ManagedInstanceEncryptionProtectorsClient) ListByInstanceSender(req
 func (client ManagedInstanceEncryptionProtectorsClient) ListByInstanceResponder(resp *http.Response) (result ManagedInstanceEncryptionProtectorListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -390,7 +387,6 @@ func (client ManagedInstanceEncryptionProtectorsClient) RevalidateSender(req *ht
 func (client ManagedInstanceEncryptionProtectorsClient) RevalidateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp

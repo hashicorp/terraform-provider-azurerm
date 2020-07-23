@@ -325,7 +325,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 	// and DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS app settings to the app service.
 	// If the app settings are updated, also update the logging configuration if it exists, otherwise
 	// updating the former will clobber the log settings
-	_, hasLogs := d.GetOkExists("logs")
+	hasLogs := len(d.Get("logs").([]interface{})) > 0
 	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
 		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
 		logsResource := web.SiteLogsConfig{

@@ -109,7 +109,6 @@ func (client DeletedApplicationsClient) HardDeleteSender(req *http.Request) (*ht
 func (client DeletedApplicationsClient) HardDeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -190,7 +189,6 @@ func (client DeletedApplicationsClient) ListSender(req *http.Request) (*http.Res
 func (client DeletedApplicationsClient) ListResponder(resp *http.Response) (result ApplicationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -280,7 +278,6 @@ func (client DeletedApplicationsClient) ListNextSender(req *http.Request) (*http
 func (client DeletedApplicationsClient) ListNextResponder(resp *http.Response) (result ApplicationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -354,7 +351,6 @@ func (client DeletedApplicationsClient) RestoreSender(req *http.Request) (*http.
 func (client DeletedApplicationsClient) RestoreResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

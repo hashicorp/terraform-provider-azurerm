@@ -131,7 +131,6 @@ func (client BotsClient) CreateSender(req *http.Request) (*http.Response, error)
 func (client BotsClient) CreateResponder(resp *http.Response) (result Bot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -219,7 +218,6 @@ func (client BotsClient) DeleteSender(req *http.Request) (*http.Response, error)
 func (client BotsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -306,7 +304,6 @@ func (client BotsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client BotsClient) GetResponder(resp *http.Response) (result Bot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -377,7 +374,6 @@ func (client BotsClient) GetCheckNameAvailabilitySender(req *http.Request) (*htt
 func (client BotsClient) GetCheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResponseBody, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -449,7 +445,6 @@ func (client BotsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client BotsClient) ListResponder(resp *http.Response) (result BotResponseList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -569,7 +564,6 @@ func (client BotsClient) ListByResourceGroupSender(req *http.Request) (*http.Res
 func (client BotsClient) ListByResourceGroupResponder(resp *http.Response) (result BotResponseList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -697,7 +691,6 @@ func (client BotsClient) UpdateSender(req *http.Request) (*http.Response, error)
 func (client BotsClient) UpdateResponder(resp *http.Response) (result Bot, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
