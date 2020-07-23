@@ -9,6 +9,10 @@ IMPROVEMENTS:
 * `azurerm_monitor_scheduled_query_rules_alert` - `action.0.custom_webhook_payload` is now sent as empty to allow for Azure's default to take effect[GH-7838]
 * `azurerm_search_service` - support for `public_network_access_enabled` [GH-7867]
 
+BUG FIXES:
+* `azurerm_iothub_dps` - the only valid sku for the API is now `S1` [GH-7847]
+
+
 ## 2.20.0 (July 23, 2020)
 
 UPGRADE NOTES
@@ -33,7 +37,7 @@ ENHANCEMENTS:
 
 * `azurerm_cosmos_db_account` - add support for `enable_free_tier` ([#7814](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7814))
 
-BUG FIXES
+BUG FIXES:
 
 * Data Source: `azurerm_private_dns_zone` - fix a crash when the zone does not exist ([#7783](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7783))
 * `azurerm_application_gateway` - fix crash with `gateway_ip_configuration` ([#7789](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7789))
