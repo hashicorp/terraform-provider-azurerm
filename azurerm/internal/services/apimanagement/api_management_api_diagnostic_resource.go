@@ -45,6 +45,7 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"applicationinsights",
+					"azuremonitor",
 				}, false),
 			},
 
