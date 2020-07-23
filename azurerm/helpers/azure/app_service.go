@@ -575,7 +575,7 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"file_system_level": {
 								Type:          schema.TypeString,
-								Required:      true,
+								Optional:      true,
 								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
 								ValidateFunc: validation.StringInSlice([]string{
 									string(web.Error),
