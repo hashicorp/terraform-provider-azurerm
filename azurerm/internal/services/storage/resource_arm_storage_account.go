@@ -142,7 +142,6 @@ func resourceArmStorageAccount() *schema.Resource {
 			"min_tls_version": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				Default:  string(storage.TLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.TLS10),
