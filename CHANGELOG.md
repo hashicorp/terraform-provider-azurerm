@@ -10,6 +10,8 @@ IMPROVEMENTS:
 * `azurerm_search_service` - support for `public_network_access_enabled` [GH-7867]
 
 BUG FIXES:
+
+* `azurerm_api_management_named_value` - the `value` has been marked as sensitive to hide secret values [GH-7819]
 * `azurerm_iothub_dps` - the only valid sku for the API is now `S1` [GH-7847]
 
 
