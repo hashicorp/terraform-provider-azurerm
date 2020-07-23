@@ -174,13 +174,13 @@ func resourceArmSiteRecoveryReplicatedVM() *schema.Resource {
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Computed:   true,
 				Optional:   true,
-				Elem:       netwrokInterfaceResource(),
+				Elem:       networkInterfaceResource(),
 			},
 		},
 	}
 }
 
-func netwrokInterfaceResource() *schema.Resource {
+func networkInterfaceResource() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"source_network_interface_id": {
@@ -466,7 +466,7 @@ func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta inte
 				}
 				nicsOutput = append(nicsOutput, nicOutput)
 			}
-			d.Set("network_interface", schema.NewSet(schema.HashResource(netwrokInterfaceResource()), nicsOutput))
+			d.Set("network_interface", schema.NewSet(schema.HashResource(networkInterfaceResource()), nicsOutput))
 		}
 	}
 
