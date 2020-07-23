@@ -1,7 +1,7 @@
 package client
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
+	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2020-03-13/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
