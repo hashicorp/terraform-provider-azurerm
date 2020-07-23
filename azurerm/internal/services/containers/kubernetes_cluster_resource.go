@@ -884,7 +884,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		}
 
 		// changing rbacEnabled must still force cluster recreation
-		if *props.EnableRBAC == rbacEnabled {
+		if *props.EnableRBAC == rbacEnabled && !*props.AadProfile.Managed {
 			props.AadProfile = azureADProfile
 			props.EnableRBAC = utils.Bool(rbacEnabled)
 
@@ -898,6 +898,11 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 				return fmt.Errorf("waiting for update of RBAC AAD profile of Managed Cluster %q (Resource Group %q):, %+v", id.Name, id.ResourceGroup, err)
 			}
 		} else {
+			updateCluster = true
+		}
+
+		if *props.AadProfile.Managed {
+			existing.ManagedClusterProperties.AadProfile = azureADProfile
 			updateCluster = true
 		}
 	}
