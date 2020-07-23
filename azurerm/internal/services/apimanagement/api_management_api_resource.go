@@ -590,7 +590,11 @@ func flattenApiManagementOAuth2Authorization(input *apimanagement.OAuth2Authenti
 
 	result := make(map[string]interface{})
 
-	result["authorization_server_name"] = *input.AuthorizationServerID
+	authServerId := ""
+	if input.AuthorizationServerID != nil {
+		authServerId = *input.AuthorizationServerID
+	}
+	result["authorization_server_name"] = authServerId
 	if input.Scope != nil {
 		result["scope"] = *input.Scope
 	}
