@@ -78,6 +78,7 @@ import (
 	storage "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
 	streamAnalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/client"
 	subscription "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/client"
+	synapse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/client"
 	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
 	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
 )
@@ -161,6 +162,7 @@ type Client struct {
 	StreamAnalytics       *streamAnalytics.Client
 	Subscription          *subscription.Client
 	Sql                   *sql.Client
+	Synapse               *synapse.Client
 	TrafficManager        *trafficManager.Client
 	Web                   *web.Client
 }
@@ -245,6 +247,7 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	client.Storage = storage.NewClient(o)
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
+	client.Synapse = synapse.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
 	client.Web = web.NewClient(o)
 
