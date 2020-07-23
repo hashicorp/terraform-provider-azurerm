@@ -66,13 +66,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(devices.B1),
-								string(devices.B2),
-								string(devices.B3),
-								string(devices.F1),
 								string(devices.S1),
-								string(devices.S2),
-								string(devices.S3),
 							}, false),
 						},
 
