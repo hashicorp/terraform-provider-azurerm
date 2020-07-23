@@ -609,7 +609,12 @@ func flattenApiManagementOpenidAuthentication(input *apimanagement.OpenIDAuthent
 
 	result := make(map[string]interface{})
 
-	result["openid_provider_name"] = *input.OpenidProviderID
+	openIdProviderId := ""
+	if input.OpenidProviderID != nil {
+		openIdProviderId = *input.OpenidProviderID
+	}
+	result["openid_provider_name"] = openIdProviderId
+
 
 	bearerTokenSendingMethods := make([]interface{}, 0)
 	if s := input.BearerTokenSendingMethods; s != nil {
