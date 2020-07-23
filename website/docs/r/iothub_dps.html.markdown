@@ -50,7 +50,7 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the sku. Possible value is `S1`.
+* `name` - (Required) The name of the sku. Currently can only be set to `S1`.
 
 * `capacity` - (Required) The number of provisioned IoT Device Provisioning Service units.
 
