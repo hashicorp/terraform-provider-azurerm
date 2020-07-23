@@ -7,6 +7,7 @@ import (
 
 type Client struct {
 	ApiClient                  *apimanagement.APIClient
+	ApiDiagnosticClient        *apimanagement.APIDiagnosticClient
 	ApiPoliciesClient          *apimanagement.APIPolicyClient
 	ApiOperationsClient        *apimanagement.APIOperationClient
 	ApiOperationPoliciesClient *apimanagement.APIOperationPolicyClient
