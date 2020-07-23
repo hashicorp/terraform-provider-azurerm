@@ -1,7 +1,7 @@
-// Package search implements the Azure ARM Search service API version 2015-08-19.
+// Package synapse implements the Azure ARM Synapse service API version 2019-06-01-preview.
 //
-// Client that can be used to manage Azure Cognitive Search services and API keys.
-package search
+// Azure Synapse Analytics Management Client
+package synapse
 
 // Copyright (c) Microsoft and contributors.  All rights reserved.
 //
@@ -25,11 +25,11 @@ import (
 )
 
 const (
-	// DefaultBaseURI is the default URI used for the service Search
+	// DefaultBaseURI is the default URI used for the service Synapse
 	DefaultBaseURI = "https://management.azure.com"
 )
 
-// BaseClient is the base client for Search.
+// BaseClient is the base client for Synapse.
 type BaseClient struct {
 	autorest.Client
 	BaseURI        string

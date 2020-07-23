@@ -90,7 +90,7 @@ func (client AdminKeysClient) GetPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -175,7 +175,7 @@ func (client AdminKeysClient) RegeneratePreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

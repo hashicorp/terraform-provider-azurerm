@@ -1,25 +1,45 @@
-## 2.20.0 (Unreleased)
+## 2.21.0 (Unreleased)
+
+DEPENDENCIES:
+
+* updating `search` to `2020-03-13` [GH-7867]
+
+IMPROVEMENTS:
+
+* `azurerm_monitor_scheduled_query_rules_alert` - `action.0.custom_webhook_payload` is now sent as empty to allow for Azure's default to take effect[GH-7838]
+* `azurerm_search_service` - support for `public_network_access_enabled` [GH-7867]
+
+## 2.20.0 (July 23, 2020)
 
 UPGRADE NOTES
 
 * **Enhanced Validation for Locations** - the Azure Provider now validates that the value for the `location` argument is a supported Azure Region within the Azure Environment being used (from the Azure Metadata Service) - which allows us to catch configuration errors for this field at `terraform plan` time, rather than during a `terraform apply`. This functionality is now enabled by default, and can be opted-out of by setting the Environment Variable `ARM_PROVIDER_ENHANCED_VALIDATION` to `false`
-* `azurerm_storage_account` - will now default `allow_blob_public_access` to false to align with the portal and be secure by default [GH-7784]
+* `azurerm_storage_account` - will now default `allow_blob_public_access` to false to align with the portal and be secure by default ([#7784](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7784))
 
 DEPENDENCIES:
 
-* updating `github.com/Azure/azure-sdk-for-go` to v44.1.0 [GH-7774]
-* updating `cosmos` to `2020-04-01` [GH-7597]
+* updating `github.com/Azure/azure-sdk-for-go` to v44.1.0 ([#7774](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7774))
+* updating `cosmos` to `2020-04-01` ([#7597](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7597))
 
 FEATURES: 
 
-* **New Resource:** `azurerm_kusto_cluster_customer_managed_key` [GH-7520]
+* **New Data Source:** `azurerm_synapse_workspace` ([#7517](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7517))
+* **New Resource:** `azurerm_data_share_dataset_data_lake_gen1` - add `dataset_data_lake_gen1` suppport for `azurerm_data_share` ([#7511](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7511))
+* **New Resource:** `azurerm_frontdoor_custom_https_configuration` - move the front door `custom_https_configuration` to its own resource to allow for parallel creation/update of custom https certificates. ([#7498](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7498))
+* **New Resource:** `azurerm_kusto_cluster_customer_managed_key` ([#7520](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7520))
+* **New Resource:** `azurerm_synapse_workspace` ([#7517](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7517))
+
+ENHANCEMENTS:
+
+* `azurerm_cosmos_db_account` - add support for `enable_free_tier` ([#7814](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7814))
 
 BUG FIXES
 
-* Data Source: `azurerm_private_dns_zone` - fix a crash when the zone does not exist [GH-7783]
-* `azurerm_application_gateway` - fix crash with `gateway_ip_configuration` [GH-7789]
-* `azurerm_cosmos_account` - the `geo_location.prefix` property has been deprecated as service no longer accepts it as an input since Apr 25, 2019 [GH-7597]
-* `azurerm_storage_account` - will now default `allow_blob_public_access` to false to align with the portal and be secure by default [GH-7784]
+* Data Source: `azurerm_private_dns_zone` - fix a crash when the zone does not exist ([#7783](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7783))
+* `azurerm_application_gateway` - fix crash with `gateway_ip_configuration` ([#7789](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7789))
+* `azurerm_cosmos_account` - the `geo_location.prefix` property has been deprecated as service no longer accepts it as an input since Apr 25, 2019 ([#7597](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7597))
+* `azurerm_monitor_autoscale_setting` - Fix crash in `notification` ([#7835](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7835))
+* `azurerm_storage_account` - will now default `allow_blob_public_access` to false to align with the portal and be secure by default ([#7784](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7784))
 
 ## 2.19.0 (July 16, 2020)
 

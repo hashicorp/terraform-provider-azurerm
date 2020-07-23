@@ -94,7 +94,7 @@ func (client ServicesClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -193,7 +193,7 @@ func (client ServicesClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -284,7 +284,7 @@ func (client ServicesClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -366,7 +366,7 @@ func (client ServicesClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -407,17 +407,18 @@ func (client ServicesClient) GetResponder(resp *http.Response) (result Service, 
 // value from the Azure Resource Manager API or the portal.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
-func (client ServicesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, clientRequestID *uuid.UUID) (result ServiceListResult, err error) {
+func (client ServicesClient) ListByResourceGroup(ctx context.Context, resourceGroupName string, clientRequestID *uuid.UUID) (result ServiceListResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.slr.Response.Response != nil {
+				sc = result.slr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	result.fn = client.listByResourceGroupNextResults
 	req, err := client.ListByResourceGroupPreparer(ctx, resourceGroupName, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.ServicesClient", "ListByResourceGroup", nil, "Failure preparing request")
@@ -426,12 +427,12 @@ func (client ServicesClient) ListByResourceGroup(ctx context.Context, resourceGr
 
 	resp, err := client.ListByResourceGroupSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.slr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "search.ServicesClient", "ListByResourceGroup", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListByResourceGroupResponder(resp)
+	result.slr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.ServicesClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
@@ -446,7 +447,7 @@ func (client ServicesClient) ListByResourceGroupPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -481,21 +482,59 @@ func (client ServicesClient) ListByResourceGroupResponder(resp *http.Response) (
 	return
 }
 
-// ListBySubscription gets a list of all Search services in the given subscription.
-// Parameters:
-// clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
-// included in response information as a way to track the request.
-func (client ServicesClient) ListBySubscription(ctx context.Context, clientRequestID *uuid.UUID) (result ServiceListResult, err error) {
+// listByResourceGroupNextResults retrieves the next set of results, if any.
+func (client ServicesClient) listByResourceGroupNextResults(ctx context.Context, lastResults ServiceListResult) (result ServiceListResult, err error) {
+	req, err := lastResults.serviceListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "search.ServicesClient", "listByResourceGroupNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByResourceGroupSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "search.ServicesClient", "listByResourceGroupNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByResourceGroupResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "search.ServicesClient", "listByResourceGroupNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ServicesClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, clientRequestID *uuid.UUID) (result ServiceListResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.ListBySubscription")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.ListByResourceGroup")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName, clientRequestID)
+	return
+}
+
+// ListBySubscription gets a list of all Search services in the given subscription.
+// Parameters:
+// clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
+// included in response information as a way to track the request.
+func (client ServicesClient) ListBySubscription(ctx context.Context, clientRequestID *uuid.UUID) (result ServiceListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.ListBySubscription")
+		defer func() {
+			sc := -1
+			if result.slr.Response.Response != nil {
+				sc = result.slr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listBySubscriptionNextResults
 	req, err := client.ListBySubscriptionPreparer(ctx, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.ServicesClient", "ListBySubscription", nil, "Failure preparing request")
@@ -504,12 +543,12 @@ func (client ServicesClient) ListBySubscription(ctx context.Context, clientReque
 
 	resp, err := client.ListBySubscriptionSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.slr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "search.ServicesClient", "ListBySubscription", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListBySubscriptionResponder(resp)
+	result.slr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.ServicesClient", "ListBySubscription", resp, "Failure responding to request")
 	}
@@ -523,7 +562,7 @@ func (client ServicesClient) ListBySubscriptionPreparer(ctx context.Context, cli
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -555,6 +594,43 @@ func (client ServicesClient) ListBySubscriptionResponder(resp *http.Response) (r
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listBySubscriptionNextResults retrieves the next set of results, if any.
+func (client ServicesClient) listBySubscriptionNextResults(ctx context.Context, lastResults ServiceListResult) (result ServiceListResult, err error) {
+	req, err := lastResults.serviceListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "search.ServicesClient", "listBySubscriptionNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListBySubscriptionSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "search.ServicesClient", "listBySubscriptionNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListBySubscriptionResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "search.ServicesClient", "listBySubscriptionNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListBySubscriptionComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ServicesClient) ListBySubscriptionComplete(ctx context.Context, clientRequestID *uuid.UUID) (result ServiceListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServicesClient.ListBySubscription")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListBySubscription(ctx, clientRequestID)
 	return
 }
 
@@ -606,7 +682,7 @@ func (client ServicesClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

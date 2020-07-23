@@ -192,6 +192,7 @@ func testAccAzureRMAPIManagementSubscription_requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_api_management_subscription" "import" {
+  subscription_id     = azurerm_api_management_subscription.test.subscription_id
   resource_group_name = azurerm_api_management_subscription.test.resource_group_name
   api_management_name = azurerm_api_management_subscription.test.api_management_name
   user_id             = azurerm_api_management_subscription.test.user_id
