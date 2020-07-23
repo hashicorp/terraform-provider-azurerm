@@ -354,22 +354,14 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	subscriptionKeyParameterNames := expandApiManagementApiSubscriptionKeyParamNames(subscriptionKeyParameterNamesRaw)
 
 	authenticationSettings := &apimanagement.AuthenticationSettingsContract{}
-	if vs, hasOAuth2Authorization := d.GetOk("oauth2_authorization"); hasOAuth2Authorization {
-		oAuth2AuthorizationVs := vs.([]interface{})
-		oAuth2AuthorizationV := oAuth2AuthorizationVs[0].(map[string]interface{})
-		authenticationSettings.OAuth2 = &apimanagement.OAuth2AuthenticationSettingsContract{
-			AuthorizationServerID: utils.String(oAuth2AuthorizationV["authorization_server_name"].(string)),
-			Scope:                 utils.String(oAuth2AuthorizationV["scope"].(string)),
-		}
-	}
-	if vs, hasOpenIDAuthorization := d.GetOk("openid_authentication"); hasOpenIDAuthorization {
-		openIDAuthorizationVs := vs.([]interface{})
-		openIDAuthorizationV := openIDAuthorizationVs[0].(map[string]interface{})
-		authenticationSettings.Openid = &apimanagement.OpenIDAuthenticationSettingsContract{
-			OpenidProviderID:          utils.String(openIDAuthorizationV["openid_provider_name"].(string)),
-			BearerTokenSendingMethods: expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(openIDAuthorizationV["bearer_token_sending_methods"].([]interface{})),
-		}
-	}
+
+	oAuth2AuthorizationSettingsRaw := d.Get("oauth2_authorization").([]interface{})
+	oAuth2AuthorizationSettings := expandApiManagementOAuth2AuthenticationSettingsContract(oAuth2AuthorizationSettingsRaw)
+	authenticationSettings.OAuth2 = oAuth2AuthorizationSettings
+
+	openIDAuthorizationSettingsRaw := d.Get("openid_authentication").([]interface{})
+	openIDAuthorizationSettings := expandApiManagementOpenIDAuthenticationSettingsContract(openIDAuthorizationSettingsRaw)
+	authenticationSettings.Openid = openIDAuthorizationSettings
 
 	params := apimanagement.APICreateOrUpdateParameter{
 		APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
@@ -474,7 +466,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("setting `oauth2_authorization`: %+v", err)
 		}
 
-		if err := d.Set("openid_authentication", flattenApiManagementOpenidAuthentication(props.AuthenticationSettings.Openid)); err != nil {
+		if err := d.Set("openid_authentication", flattenApiManagementOpenIDAuthentication(props.AuthenticationSettings.Openid)); err != nil {
 			return fmt.Errorf("setting `openid_authentication`: %+v", err)
 		}
 	}
@@ -569,18 +561,16 @@ func flattenApiManagementApiSubscriptionKeyParamNames(paramNames *apimanagement.
 	return []interface{}{result}
 }
 
-func expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(input interface{}) *[]apimanagement.BearerTokenSendingMethods {
-	if input == nil {
+func expandApiManagementOAuth2AuthenticationSettingsContract(input []interface{}) *apimanagement.OAuth2AuthenticationSettingsContract {
+	if len(input) == 0 {
 		return nil
 	}
-	results := make([]apimanagement.BearerTokenSendingMethods, 0)
 
-	vs := input.(*schema.Set).List()
-	for _, v := range vs {
-		results = append(results, apimanagement.BearerTokenSendingMethods(v.(string)))
+	oAuth2AuthorizationV := input[0].(map[string]interface{})
+	return &apimanagement.OAuth2AuthenticationSettingsContract{
+		AuthorizationServerID: utils.String(oAuth2AuthorizationV["authorization_server_name"].(string)),
+		Scope:                 utils.String(oAuth2AuthorizationV["scope"].(string)),
 	}
-
-	return &results
 }
 
 func flattenApiManagementOAuth2Authorization(input *apimanagement.OAuth2AuthenticationSettingsContract) []interface{} {
@@ -602,7 +592,33 @@ func flattenApiManagementOAuth2Authorization(input *apimanagement.OAuth2Authenti
 	return []interface{}{result}
 }
 
-func flattenApiManagementOpenidAuthentication(input *apimanagement.OpenIDAuthenticationSettingsContract) []interface{} {
+func expandApiManagementOpenIDAuthenticationSettingsContract(input []interface{}) *apimanagement.OpenIDAuthenticationSettingsContract {
+	if len(input) == 0 {
+		return nil
+	}
+
+	openIDAuthorizationV := input[0].(map[string]interface{})
+	return &apimanagement.OpenIDAuthenticationSettingsContract{
+		OpenidProviderID:          utils.String(openIDAuthorizationV["openid_provider_name"].(string)),
+		BearerTokenSendingMethods: expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(openIDAuthorizationV["bearer_token_sending_methods"].([]interface{})),
+	}
+}
+
+func expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(input interface{}) *[]apimanagement.BearerTokenSendingMethods {
+	if input == nil {
+		return nil
+	}
+	results := make([]apimanagement.BearerTokenSendingMethods, 0)
+
+	vs := input.(*schema.Set).List()
+	for _, v := range vs {
+		results = append(results, apimanagement.BearerTokenSendingMethods(v.(string)))
+	}
+
+	return &results
+}
+
+func flattenApiManagementOpenIDAuthentication(input *apimanagement.OpenIDAuthenticationSettingsContract) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -614,7 +630,6 @@ func flattenApiManagementOpenidAuthentication(input *apimanagement.OpenIDAuthent
 		openIdProviderId = *input.OpenidProviderID
 	}
 	result["openid_provider_name"] = openIdProviderId
-
 
 	bearerTokenSendingMethods := make([]interface{}, 0)
 	if s := input.BearerTokenSendingMethods; s != nil {
