@@ -1,4 +1,9 @@
 ## 2.21.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_monitor_scheduled_query_rules_alert` - `action.0.custom_webhook_payload` is now sent as empty to allow for Azure's default to take effect[GH-7838]
+
 ## 2.20.0 (July 23, 2020)
 
 UPGRADE NOTES
