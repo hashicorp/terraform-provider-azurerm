@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/helper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -158,7 +157,7 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 			EnableBatchedOperations:          &enableBatchedOps,
 			MaxDeliveryCount:                 &maxDeliveryCount,
 			RequiresSession:                  &requiresSession,
-			Status:                           helper.ExpandEntityStatus(d.Get("status")),
+			Status:                           servicebus.EntityStatus(d.Get("status").(string)),
 		},
 	}
 
@@ -236,7 +235,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
-		d.Set("status", helper.FlattenEntityStatus(props.Status))
+		d.Set("status", utils.String(string(props.Status)))
 
 		if count := props.MaxDeliveryCount; count != nil {
 			d.Set("max_delivery_count", int(*count))
