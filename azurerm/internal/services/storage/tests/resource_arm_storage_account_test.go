@@ -251,7 +251,7 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_setMinTLSVersion(data, "TLS1_0"),
+				Config: testAccAzureRMStorageAccount_minTLSVersion10(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_0"),
@@ -259,7 +259,7 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_setMinTLSVersion(data, "TLS1_1"),
+				Config: testAccAzureRMStorageAccount_minTLSVersion11(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_1"),
@@ -267,7 +267,7 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_setMinTLSVersion(data, "TLS1_2"),
+				Config: testAccAzureRMStorageAccount_minTLSVersion12(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_2"),
@@ -1020,7 +1020,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_setMinTLSVersion(data acceptance.TestData, tlsVersion string) string {
+func testAccAzureRMStorageAccount_minTLSVersion10(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 provider "azurerm" {
@@ -1039,14 +1039,72 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  min_tls_vresion          = "%s"
+  min_tls_vresion          = "TLS1_0"
 
   tags = {
     environment = "production"
   }
 }
 
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_minTLSVersion11(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  min_tls_vresion          = "TLS1_1"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMStorageAccount_minTLSVersion12(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  min_tls_vresion          = "TLS1_2"
+
+  tags = {
+    environment = "production"
+  }
+}
+
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func testAccAzureRMStorageAccount_allowBlobPublicAccess(data acceptance.TestData) string {

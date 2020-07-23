@@ -143,7 +143,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				Default:  storage.TLS12,
+				Default:  string(storage.TLS12),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.TLS10),
 					string(storage.TLS11),
