@@ -92,7 +92,7 @@ func (client QueryKeysClient) CreatePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,7 +178,7 @@ func (client QueryKeysClient) DeletePreparer(ctx context.Context, resourceGroupN
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -220,17 +220,18 @@ func (client QueryKeysClient) DeleteResponder(resp *http.Response) (result autor
 // group.
 // clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
 // included in response information as a way to track the request.
-func (client QueryKeysClient) ListBySearchService(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result ListQueryKeysResult, err error) {
+func (client QueryKeysClient) ListBySearchService(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result ListQueryKeysResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/QueryKeysClient.ListBySearchService")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.lqkr.Response.Response != nil {
+				sc = result.lqkr.Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	result.fn = client.listBySearchServiceNextResults
 	req, err := client.ListBySearchServicePreparer(ctx, resourceGroupName, searchServiceName, clientRequestID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.QueryKeysClient", "ListBySearchService", nil, "Failure preparing request")
@@ -239,12 +240,12 @@ func (client QueryKeysClient) ListBySearchService(ctx context.Context, resourceG
 
 	resp, err := client.ListBySearchServiceSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
+		result.lqkr.Response = autorest.Response{Response: resp}
 		err = autorest.NewErrorWithError(err, "search.QueryKeysClient", "ListBySearchService", resp, "Failure sending request")
 		return
 	}
 
-	result, err = client.ListBySearchServiceResponder(resp)
+	result.lqkr, err = client.ListBySearchServiceResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "search.QueryKeysClient", "ListBySearchService", resp, "Failure responding to request")
 	}
@@ -260,7 +261,7 @@ func (client QueryKeysClient) ListBySearchServicePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2015-08-19"
+	const APIVersion = "2020-03-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -295,85 +296,39 @@ func (client QueryKeysClient) ListBySearchServiceResponder(resp *http.Response) 
 	return
 }
 
-// ListBySearchServiceGet returns the list of query API keys for the given Azure Cognitive Search service.
-// Parameters:
-// resourceGroupName - the name of the resource group within the current subscription. You can obtain this
-// value from the Azure Resource Manager API or the portal.
-// searchServiceName - the name of the Azure Cognitive Search service associated with the specified resource
-// group.
-// clientRequestID - a client-generated GUID value that identifies this request. If specified, this will be
-// included in response information as a way to track the request.
-func (client QueryKeysClient) ListBySearchServiceGet(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result ListQueryKeysResult, err error) {
+// listBySearchServiceNextResults retrieves the next set of results, if any.
+func (client QueryKeysClient) listBySearchServiceNextResults(ctx context.Context, lastResults ListQueryKeysResult) (result ListQueryKeysResult, err error) {
+	req, err := lastResults.listQueryKeysResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "search.QueryKeysClient", "listBySearchServiceNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListBySearchServiceSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "search.QueryKeysClient", "listBySearchServiceNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListBySearchServiceResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "search.QueryKeysClient", "listBySearchServiceNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListBySearchServiceComplete enumerates all values, automatically crossing page boundaries as required.
+func (client QueryKeysClient) ListBySearchServiceComplete(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (result ListQueryKeysResultIterator, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/QueryKeysClient.ListBySearchServiceGet")
+		ctx = tracing.StartSpan(ctx, fqdn+"/QueryKeysClient.ListBySearchService")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.ListBySearchServiceGetPreparer(ctx, resourceGroupName, searchServiceName, clientRequestID)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "search.QueryKeysClient", "ListBySearchServiceGet", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListBySearchServiceGetSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "search.QueryKeysClient", "ListBySearchServiceGet", resp, "Failure sending request")
-		return
-	}
-
-	result, err = client.ListBySearchServiceGetResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "search.QueryKeysClient", "ListBySearchServiceGet", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListBySearchServiceGetPreparer prepares the ListBySearchServiceGet request.
-func (client QueryKeysClient) ListBySearchServiceGetPreparer(ctx context.Context, resourceGroupName string, searchServiceName string, clientRequestID *uuid.UUID) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"searchServiceName": autorest.Encode("path", searchServiceName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2015-08-19"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Search/searchServices/{searchServiceName}/listQueryKeys", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	if clientRequestID != nil {
-		preparer = autorest.DecoratePreparer(preparer,
-			autorest.WithHeader("x-ms-client-request-id", autorest.String(clientRequestID)))
-	}
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListBySearchServiceGetSender sends the ListBySearchServiceGet request. The method will close the
-// http.Response Body if it receives an error.
-func (client QueryKeysClient) ListBySearchServiceGetSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListBySearchServiceGetResponder handles the response to the ListBySearchServiceGet request. The method always
-// closes the http.Response Body.
-func (client QueryKeysClient) ListBySearchServiceGetResponder(resp *http.Response) (result ListQueryKeysResult, err error) {
-	err = autorest.Respond(
-		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.page, err = client.ListBySearchService(ctx, resourceGroupName, searchServiceName, clientRequestID)
 	return
 }

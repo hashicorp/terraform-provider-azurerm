@@ -1,4 +1,4 @@
-// Package search implements the Azure ARM Search service API version 2015-08-19.
+// Package search implements the Azure ARM Search service API version 2020-03-13.
 //
 // Client that can be used to manage Azure Cognitive Search services and API keys.
 package search
