@@ -109,6 +109,46 @@ func TestAccAzureRMAutomationRunbook_PSWorkflowWithoutUri(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationRunbook_withJobSchedule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationRunbook_PSWorkflow(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("publish_content_link"),
+			{
+				Config: testAccAzureRMAutomationRunbook_withJobSchedule(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("publish_content_link"),
+			{
+				Config: testAccAzureRMAutomationRunbook_withJobScheduleUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("publish_content_link"),
+			{
+				Config: testAccAzureRMAutomationRunbook_withoutJobSchedule(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("publish_content_link"),
+		},
+	})
+}
+
 func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 	conn := acceptance.AzureProvider.Meta().(*clients.Client).Automation.RunbookClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -354,4 +394,157 @@ resource "azurerm_automation_runbook" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMAutomationRunbook_withJobSchedule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_schedule" "test" {
+  name                    = "acctestAS-%[1]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  frequency               = "OneTime"
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  content = <<CONTENT
+# Some test content
+# for Terraform acceptance test
+CONTENT
+
+  job_schedule {
+    schedule_name = azurerm_automation_schedule.test.name
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMAutomationRunbook_withJobScheduleUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_schedule" "test" {
+  name                    = "acctestAS-%[1]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  frequency               = "OneTime"
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  content = <<CONTENT
+param(
+    [string]$Output = "World",
+  )
+  "Hello, " + $Output + "!"
+CONTENT
+
+  job_schedule {
+    schedule_name = azurerm_automation_schedule.test.name
+    parameters = {
+      output     = "Earth"
+      case       = "MATTERS"
+      keepcount  = 20
+      webhookuri = "http://www.example.com/hook"
+      url        = "https://www.Example.com"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMAutomationRunbook_withoutJobSchedule(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_schedule" "test" {
+  name                    = "acctestAS-%[1]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  frequency               = "OneTime"
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  content = <<CONTENT
+param(
+    [string]$Output = "World",
+  )
+  "Hello, " + $Output + "!"
+CONTENT
+
+  job_schedule = []
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
