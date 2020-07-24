@@ -203,7 +203,7 @@ func resourceArmDiskEncryptionSetRead(d *schema.ResourceData, meta interface{}) 
 func resourceArmDiskEncryptionSetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.DiskEncryptionSetsClient
 	vaultClient := meta.(*clients.Client).KeyVault.VaultsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := parse.DiskEncryptionSetID(d.Id())
