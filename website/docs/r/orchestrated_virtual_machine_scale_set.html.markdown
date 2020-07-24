@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
-* `single_placement_group` - (Optional) Should the Orchestrated Virtual Machine Scale Set use single placement group?
+* `single_placement_group` - (Optional) Should the Orchestrated Virtual Machine Scale Set use single placement group? Defaults to `false`.
 
 * `zones` - (Optional) A list of Availability Zones in which the Virtual Machines in this Scale Set should be created in. Changing this forces a new resource to be created.
 
