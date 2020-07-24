@@ -200,7 +200,7 @@ func resourceArmSynapseBigDataPoolCreateUpdate(d *schema.ResourceData, meta inte
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if *autoScale.Enabled == false {
+	if !*autoScale.Enabled {
 		bigDataPoolInfo.NodeCount = utils.Int32(int32(d.Get("node_count").(int)))
 	}
 
@@ -300,7 +300,7 @@ func expandArmBigDataPoolAutoPauseProperties(input []interface{}) *synapse.AutoP
 }
 
 func expandArmBigDataPoolAutoScaleProperties(input []interface{}) *synapse.AutoScaleProperties {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return &synapse.AutoScaleProperties{
 			Enabled: utils.Bool(false),
 		}
