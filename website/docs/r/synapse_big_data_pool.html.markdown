@@ -47,7 +47,19 @@ resource "azurerm_synapse_big_data_pool" "test" {
   synapse_workspace_id = azurerm_synapse_workspace.example.id
   node_size_family     = "MemoryOptimized"
   node_size            = "Small"
-  node_count           = 3
+
+  auto_scale {
+    max_node_count = 50
+    min_node_count = 3
+  }
+
+  auto_pause {
+    delay_in_minutes = 15
+  }
+
+  tags = {
+    ENV = "Production"
+  }
 }
 ```
 
