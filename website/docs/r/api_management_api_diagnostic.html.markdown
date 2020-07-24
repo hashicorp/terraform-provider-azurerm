@@ -64,7 +64,6 @@ resource "azurerm_api_management_logger" "example" {
 }
 
 resource "azurerm_api_management_api_diagnostic" "example" {
-  resource_group_name      = "example"
   resource_group_name      = azurerm_resource_group.example.name
   api_management_name      = azurerm_api_management.example.name
   api_name                 = azurerm_api_management_api.example.name
