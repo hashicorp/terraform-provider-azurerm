@@ -90,7 +90,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 				Type:       schema.TypeString,
 				Optional:   true,
 				Computed:   true,
-				Deprecated: "This field has been updated to readonly field since Apr 25, 2019. So remove this unnecessary field.",
+				Deprecated: "This field has been updated to readonly field since Apr 25, 2019 so no longer has any affect and will be removed in version 3.0 of the provider.",
 			},
 
 			"azure_function_endpoint": {
