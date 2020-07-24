@@ -6,16 +6,15 @@ DEPENDENCIES:
 
 IMPROVEMENTS:
 
+* `azurerm_function_app_slot` - support for the `site_config.auto_swap_slot_name` property [GH-7859]
 * `azurerm_monitor_scheduled_query_rules_alert` - `action.0.custom_webhook_payload` is now sent as empty to allow for Azure's default to take effect[GH-7838]
-* `azurerm_search_service` - support for `public_network_access_enabled` [GH-7867]
+* `azurerm_search_service` - support for the `public_network_access_enabled` property [GH-7867]
 * `azurerm_servicebus_subscription` - support for the `status` property [GH-7852]
-
 
 BUG FIXES:
 
 * `azurerm_api_management_named_value` - the `value` has been marked as sensitive to hide secret values [GH-7819]
-* `azurerm_iothub_dps` - the only valid sku for the API is now `S1` [GH-7847]
-
+* `azurerm_iothub_dps` - the only valid value for the `sku` property for the API is now `S1` [GH-7847]
 
 ## 2.20.0 (July 23, 2020)
 
@@ -39,14 +38,14 @@ FEATURES:
 
 ENHANCEMENTS:
 
-* `azurerm_cosmos_db_account` - add support for `enable_free_tier` ([#7814](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7814))
+* `azurerm_cosmos_db_account` - add support for the `enable_free_tier` property ([#7814](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7814))
 
 BUG FIXES:
 
 * Data Source: `azurerm_private_dns_zone` - fix a crash when the zone does not exist ([#7783](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7783))
 * `azurerm_application_gateway` - fix crash with `gateway_ip_configuration` ([#7789](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7789))
 * `azurerm_cosmos_account` - the `geo_location.prefix` property has been deprecated as service no longer accepts it as an input since Apr 25, 2019 ([#7597](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7597))
-* `azurerm_monitor_autoscale_setting` - Fix crash in `notification` ([#7835](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7835))
+* `azurerm_monitor_autoscale_setting` - fix crash in `notification` ([#7835](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7835))
 * `azurerm_storage_account` - will now default `allow_blob_public_access` to false to align with the portal and be secure by default ([#7784](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7784))
 
 ## 2.19.0 (July 16, 2020)
