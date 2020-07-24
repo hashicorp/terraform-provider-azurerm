@@ -198,7 +198,7 @@ The following attributes are exported:
 
 * `id` - The ID of the EventGrid Event Subscription.
 
-* `topic_name` - (Optional) Specifies the name of the topic to associate with the event subscription.
+* `topic_name` - (Optional/ **Deprecated) Specifies the name of the topic to associate with the event subscription.
 
 ## Timeouts
 
