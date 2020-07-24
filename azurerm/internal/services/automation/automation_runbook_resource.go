@@ -259,7 +259,11 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 
 	response, err := client.GetContent(ctx, resGroup, accName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		if utils.ResponseWasNotFound(response.Response) {
+			d.Set("content", "")
+		} else {
+			return fmt.Errorf("retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		}
 	}
 
 	if v := response.Value; v != nil {
