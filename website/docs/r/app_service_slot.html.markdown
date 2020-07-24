@@ -232,7 +232,7 @@ The following arguments are supported:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
-* `auto_swap_slot_name` - (Optional) The name of the swap to automatically swap to during deployment
+* `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
 ---
 
