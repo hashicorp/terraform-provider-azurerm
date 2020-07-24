@@ -115,7 +115,6 @@ func (client ReplicationProtectableItemsClient) GetSender(req *http.Request) (*h
 func (client ReplicationProtectableItemsClient) GetResponder(resp *http.Response) (result ProtectableItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client ReplicationProtectableItemsClient) ListByReplicationProtectionConta
 func (client ReplicationProtectableItemsClient) ListByReplicationProtectionContainersResponder(resp *http.Response) (result ProtectableItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

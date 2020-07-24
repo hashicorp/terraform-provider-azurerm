@@ -112,7 +112,6 @@ func (client ConfigurationsClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client ConfigurationsClient) CreateOrUpdateResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -188,7 +187,6 @@ func (client ConfigurationsClient) DeleteSender(req *http.Request) (*http.Respon
 func (client ConfigurationsClient) DeleteResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -264,7 +262,6 @@ func (client ConfigurationsClient) GetSender(req *http.Request) (*http.Response,
 func (client ConfigurationsClient) GetResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -335,7 +332,6 @@ func (client ConfigurationsClient) ListSender(req *http.Request) (*http.Response
 func (client ConfigurationsClient) ListResponder(resp *http.Response) (result ListMaintenanceConfigurationsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -414,7 +410,6 @@ func (client ConfigurationsClient) UpdateMethodSender(req *http.Request) (*http.
 func (client ConfigurationsClient) UpdateMethodResponder(resp *http.Response) (result Configuration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

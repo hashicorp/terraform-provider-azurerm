@@ -15,10 +15,6 @@ Manages a policy set definition.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_policy_set_definition" "example" {
   name         = "testPolicySet"
   policy_type  = "Custom"
@@ -37,18 +33,12 @@ resource "azurerm_policy_set_definition" "example" {
     }
 PARAMETERS
 
-  policy_definitions = <<POLICY_DEFINITIONS
-    [
-        {
-            "parameters": {
-                "listOfAllowedLocations": {
-                    "value": "[parameters('allowedLocations')]"
-                }
-            },
-            "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
-        }
-    ]
-POLICY_DEFINITIONS
+  policy_definition_reference {
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
+    parameters = {
+      listOfAllowedLocations = "[parameters('allowedLocations')]"
+    }
+  }
 }
 ```
 
@@ -62,17 +52,31 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of the policy set definition.
 
-* `policy_definitions` - (Required) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions.
+* `policy_definitions` - (Optional / **Deprecated in favor of `policy_definition_reference`**) The policy definitions for the policy set definition. This is a json object representing the bundled policy definitions.
+
+* `policy_definition_reference` - (Optional) One or more `policy_definition_reference` blocks as defined below.
 
 * `description` - (Optional) The description of the policy set definition.
 
-* `management_group_id` - (Optional) The ID of the Management Group where this policy should be defined. Changing this forces a new resource to be created.
+* `management_group_name` - (Optional) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
 
-~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `.group_id` and not `.id`.
+* `management_group_id` - (Optional / **Deprecated in favour of `management_group_name`**) The name of the Management Group where this policy set definition should be defined. Changing this forces a new resource to be created.
+
+~> **Note:** if you are using `azurerm_management_group` to assign a value to `management_group_id`, be sure to use `name` or `group_id` attribute, but not `id`.
 
 * `metadata` - (Optional) The metadata for the policy set definition. This is a json object representing additional metadata that should be stored with the policy definition.
 
 * `parameters` - (Optional) Parameters for the policy set definition. This field is a json object that allows you to parameterize your policy definition.
+
+---
+
+A `policy_definition_reference` block supports the following:
+
+* `policy_definition_id` - (Required) The ID of the policy definition or policy set definition that will be included in this policy set definition.
+
+* `parameters` - (Required) A mapping of the parameter values for the referenced policy rule. The keys are the parameter names.
+
+* `reference_id` - (Optional) A unique ID within this policy set definition for this policy definition reference.
 
 ## Attributes Reference
 

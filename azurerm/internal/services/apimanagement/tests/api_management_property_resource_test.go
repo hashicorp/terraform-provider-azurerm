@@ -58,13 +58,12 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAPIManagementPropertyExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "display_name", fmt.Sprintf("TestProperty2%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "value", "Test Value2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "secret", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.0", "tag3"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.1", "tag4"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("value"),
 		},
 	})
 }

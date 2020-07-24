@@ -127,7 +127,6 @@ func (client TopicsClient) CreateOrUpdateSender(req *http.Request) (*http.Respon
 func (client TopicsClient) CreateOrUpdateResponder(resp *http.Response) (result SBTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -228,7 +227,6 @@ func (client TopicsClient) CreateOrUpdateAuthorizationRuleSender(req *http.Reque
 func (client TopicsClient) CreateOrUpdateAuthorizationRuleResponder(resp *http.Response) (result SBAuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -318,7 +316,6 @@ func (client TopicsClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client TopicsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -412,7 +409,6 @@ func (client TopicsClient) DeleteAuthorizationRuleSender(req *http.Request) (*ht
 func (client TopicsClient) DeleteAuthorizationRuleResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -501,7 +497,6 @@ func (client TopicsClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client TopicsClient) GetResponder(resp *http.Response) (result SBTopic, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -596,7 +591,6 @@ func (client TopicsClient) GetAuthorizationRuleSender(req *http.Request) (*http.
 func (client TopicsClient) GetAuthorizationRuleResponder(resp *http.Response) (result SBAuthorizationRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -687,7 +681,6 @@ func (client TopicsClient) ListAuthorizationRulesSender(req *http.Request) (*htt
 func (client TopicsClient) ListAuthorizationRulesResponder(resp *http.Response) (result SBAuthorizationRuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -831,7 +824,6 @@ func (client TopicsClient) ListByNamespaceSender(req *http.Request) (*http.Respo
 func (client TopicsClient) ListByNamespaceResponder(resp *http.Response) (result SBTopicListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -963,7 +955,6 @@ func (client TopicsClient) ListKeysSender(req *http.Request) (*http.Response, er
 func (client TopicsClient) ListKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1061,7 +1052,6 @@ func (client TopicsClient) RegenerateKeysSender(req *http.Request) (*http.Respon
 func (client TopicsClient) RegenerateKeysResponder(resp *http.Response) (result AccessKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -43,9 +43,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the Virtual Hub should exist. Changing this forces a new resource to be created.
 
-* `address_prefix` - (Required) The Address Prefix which should be used for this Virtual Hub.
+* `address_prefix` - (Required) The Address Prefix which should be used for this Virtual Hub. Changing this forces a new resource to be created.
 
-* `virtual_wan_id` - (Required) The ID of a Virtual WAN within which the Virtual Hub should be created.
+* `virtual_wan_id` - (Required) The ID of a Virtual WAN within which the Virtual Hub should be created. Changing this forces a new resource to be created.
 
 ---
 

@@ -97,10 +97,25 @@ func resourceArmSentinelAlertRuleMsSecurityIncident() *schema.Resource {
 				Default:  true,
 			},
 
+			"display_name_filter": {
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				MinItems:      1,
+				ConflictsWith: []string{"text_whitelist"},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+
 			"text_whitelist": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				MinItems: 1,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Computed:      true, // remove in 3.0
+				MinItems:      1,
+				ConflictsWith: []string{"display_name_filter"},
+				Deprecated:    "this property has been renamed to display_name_filter to better match the SDK & API",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
@@ -146,8 +161,10 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentCreateUpdate(d *schema.Resour
 		},
 	}
 
-	if whitelist, ok := d.GetOk("text_whitelist"); ok {
-		param.DisplayNamesFilter = utils.ExpandStringSlice(whitelist.(*schema.Set).List())
+	if dnf, ok := d.GetOk("display_name_filter"); ok {
+		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*schema.Set).List())
+	} else if dnf, ok := d.GetOk("text_whitelist"); ok {
+		param.DisplayNamesFilter = utils.ExpandStringSlice(dnf.(*schema.Set).List())
 	}
 
 	// Service avoid concurrent update of this resource via checking the "etag" to guarantee it is the same value as last Read.
@@ -222,6 +239,9 @@ func resourceArmSentinelAlertRuleMsSecurityIncidentRead(d *schema.ResourceData, 
 
 		if err := d.Set("text_whitelist", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
 			return fmt.Errorf(`setting "text_whitelist": %+v`, err)
+		}
+		if err := d.Set("display_name_filter", utils.FlattenStringSlice(prop.DisplayNamesFilter)); err != nil {
+			return fmt.Errorf(`setting "display_name_filter": %+v`, err)
 		}
 		if err := d.Set("severity_filter", flattenAlertRuleMsSecurityIncidentSeverityFilter(prop.SeveritiesFilter)); err != nil {
 			return fmt.Errorf(`setting "severity_filter": %+v`, err)

@@ -116,7 +116,6 @@ func (client ProtectableContainersClient) ListSender(req *http.Request) (*http.R
 func (client ProtectableContainersClient) ListResponder(resp *http.Response) (result ProtectableContainerResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

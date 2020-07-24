@@ -14,7 +14,7 @@ Use this data source to access information about Service Tags.
 
 ```hcl
 data "azurerm_network_service_tags" "example" {
-  location        = "West Europe"
+  location        = "westcentralus"
   service         = "AzureKeyVault"
   location_filter = "northeurope"
 }

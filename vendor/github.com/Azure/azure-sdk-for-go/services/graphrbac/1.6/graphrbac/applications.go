@@ -119,7 +119,6 @@ func (client ApplicationsClient) AddOwnerSender(req *http.Request) (*http.Respon
 func (client ApplicationsClient) AddOwnerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -199,7 +198,6 @@ func (client ApplicationsClient) CreateSender(req *http.Request) (*http.Response
 func (client ApplicationsClient) CreateResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -273,7 +271,6 @@ func (client ApplicationsClient) DeleteSender(req *http.Request) (*http.Response
 func (client ApplicationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -346,7 +343,6 @@ func (client ApplicationsClient) GetSender(req *http.Request) (*http.Response, e
 func (client ApplicationsClient) GetResponder(resp *http.Response) (result Application, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -420,7 +416,6 @@ func (client ApplicationsClient) GetServicePrincipalsIDByAppIDSender(req *http.R
 func (client ApplicationsClient) GetServicePrincipalsIDByAppIDResponder(resp *http.Response) (result ServicePrincipalObjectResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -502,7 +497,6 @@ func (client ApplicationsClient) ListSender(req *http.Request) (*http.Response, 
 func (client ApplicationsClient) ListResponder(resp *http.Response) (result ApplicationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -592,7 +586,6 @@ func (client ApplicationsClient) ListKeyCredentialsSender(req *http.Request) (*h
 func (client ApplicationsClient) ListKeyCredentialsResponder(resp *http.Response) (result KeyCredentialListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -666,7 +659,6 @@ func (client ApplicationsClient) ListNextSender(req *http.Request) (*http.Respon
 func (client ApplicationsClient) ListNextResponder(resp *http.Response) (result ApplicationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -741,7 +733,6 @@ func (client ApplicationsClient) ListOwnersSender(req *http.Request) (*http.Resp
 func (client ApplicationsClient) ListOwnersResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -852,7 +843,6 @@ func (client ApplicationsClient) ListPasswordCredentialsSender(req *http.Request
 func (client ApplicationsClient) ListPasswordCredentialsResponder(resp *http.Response) (result PasswordCredentialListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -929,7 +919,6 @@ func (client ApplicationsClient) PatchSender(req *http.Request) (*http.Response,
 func (client ApplicationsClient) PatchResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1004,7 +993,6 @@ func (client ApplicationsClient) RemoveOwnerSender(req *http.Request) (*http.Res
 func (client ApplicationsClient) RemoveOwnerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1080,7 +1068,6 @@ func (client ApplicationsClient) UpdateKeyCredentialsSender(req *http.Request) (
 func (client ApplicationsClient) UpdateKeyCredentialsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1156,7 +1143,6 @@ func (client ApplicationsClient) UpdatePasswordCredentialsSender(req *http.Reque
 func (client ApplicationsClient) UpdatePasswordCredentialsResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

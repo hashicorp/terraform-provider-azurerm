@@ -124,7 +124,6 @@ func (client QueryTextsClient) GetSender(req *http.Request) (*http.Response, err
 func (client QueryTextsClient) GetResponder(resp *http.Response) (result QueryText, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -215,7 +214,6 @@ func (client QueryTextsClient) ListByServerSender(req *http.Request) (*http.Resp
 func (client QueryTextsClient) ListByServerResponder(resp *http.Response) (result QueryTextsResultList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

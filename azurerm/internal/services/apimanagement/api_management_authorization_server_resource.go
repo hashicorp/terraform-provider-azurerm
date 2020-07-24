@@ -310,7 +310,6 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 		d.Set("authorization_endpoint", props.AuthorizationEndpoint)
 		d.Set("client_id", props.ClientID)
 		d.Set("client_registration_endpoint", props.ClientRegistrationEndpoint)
-		d.Set("client_secret", props.ClientSecret)
 		d.Set("default_scope", props.DefaultScope)
 		d.Set("description", props.Description)
 		d.Set("display_name", props.DisplayName)

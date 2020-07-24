@@ -107,7 +107,6 @@ func (client LocationsClient) GetCapabilitiesSender(req *http.Request) (*http.Re
 func (client LocationsClient) GetCapabilitiesResponder(resp *http.Response) (result CapabilitiesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -181,7 +180,6 @@ func (client LocationsClient) ListBillingSpecsSender(req *http.Request) (*http.R
 func (client LocationsClient) ListBillingSpecsResponder(resp *http.Response) (result BillingResponseListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -255,7 +253,6 @@ func (client LocationsClient) ListUsagesSender(req *http.Request) (*http.Respons
 func (client LocationsClient) ListUsagesResponder(resp *http.Response) (result UsagesListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

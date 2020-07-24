@@ -121,7 +121,6 @@ func (client EventHubsClient) ListByNamespaceSender(req *http.Request) (*http.Re
 func (client EventHubsClient) ListByNamespaceResponder(resp *http.Response) (result EventHubListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

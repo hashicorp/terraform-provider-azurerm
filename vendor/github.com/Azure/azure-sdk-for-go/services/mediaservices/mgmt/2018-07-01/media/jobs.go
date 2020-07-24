@@ -114,7 +114,6 @@ func (client JobsClient) CancelJobSender(req *http.Request) (*http.Response, err
 func (client JobsClient) CancelJobResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -205,7 +204,6 @@ func (client JobsClient) CreateSender(req *http.Request) (*http.Response, error)
 func (client JobsClient) CreateResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -285,7 +283,6 @@ func (client JobsClient) DeleteSender(req *http.Request) (*http.Response, error)
 func (client JobsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -364,7 +361,6 @@ func (client JobsClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client JobsClient) GetResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -451,7 +447,6 @@ func (client JobsClient) ListSender(req *http.Request) (*http.Response, error) {
 func (client JobsClient) ListResponder(resp *http.Response) (result JobCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -572,7 +567,6 @@ func (client JobsClient) UpdateSender(req *http.Request) (*http.Response, error)
 func (client JobsClient) UpdateResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

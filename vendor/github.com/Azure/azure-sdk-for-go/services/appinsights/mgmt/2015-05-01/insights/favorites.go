@@ -129,7 +129,6 @@ func (client FavoritesClient) AddSender(req *http.Request) (*http.Response, erro
 func (client FavoritesClient) AddResponder(resp *http.Response) (result ApplicationInsightsComponentFavorite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -217,7 +216,6 @@ func (client FavoritesClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client FavoritesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -304,7 +302,6 @@ func (client FavoritesClient) GetSender(req *http.Request) (*http.Response, erro
 func (client FavoritesClient) GetResponder(resp *http.Response) (result ApplicationInsightsComponentFavorite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -410,7 +407,6 @@ func (client FavoritesClient) ListSender(req *http.Request) (*http.Response, err
 func (client FavoritesClient) ListResponder(resp *http.Response) (result ListApplicationInsightsComponentFavorite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -504,7 +500,6 @@ func (client FavoritesClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client FavoritesClient) UpdateResponder(resp *http.Response) (result ApplicationInsightsComponentFavorite, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -130,7 +130,6 @@ func (client JitRequestsClient) CreateOrUpdateSender(req *http.Request) (future 
 func (client JitRequestsClient) CreateOrUpdateResponder(resp *http.Response) (result JitRequestDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -214,7 +213,6 @@ func (client JitRequestsClient) DeleteSender(req *http.Request) (*http.Response,
 func (client JitRequestsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -297,7 +295,6 @@ func (client JitRequestsClient) GetSender(req *http.Request) (*http.Response, er
 func (client JitRequestsClient) GetResponder(resp *http.Response) (result JitRequestDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -379,7 +376,6 @@ func (client JitRequestsClient) ListByResourceGroupSender(req *http.Request) (*h
 func (client JitRequestsClient) ListByResourceGroupResponder(resp *http.Response) (result JitRequestDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -450,7 +446,6 @@ func (client JitRequestsClient) ListBySubscriptionSender(req *http.Request) (*ht
 func (client JitRequestsClient) ListBySubscriptionResponder(resp *http.Response) (result JitRequestDefinitionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -537,7 +532,6 @@ func (client JitRequestsClient) UpdateSender(req *http.Request) (*http.Response,
 func (client JitRequestsClient) UpdateResponder(resp *http.Response) (result JitRequestDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

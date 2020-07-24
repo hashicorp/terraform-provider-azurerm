@@ -71,6 +71,35 @@ func TestAccAzureRMStorageShare_disappears(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShare_deleteAndRecreate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShare_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageShare_template(data),
+			},
+			{
+				Config: testAccAzureRMStorageShare_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMStorageShare_metaData(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_share", "test")
 

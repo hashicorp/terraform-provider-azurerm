@@ -114,7 +114,6 @@ func (client ProtectionContainersClient) GetSender(req *http.Request) (*http.Res
 func (client ProtectionContainersClient) GetResponder(resp *http.Response) (result ProtectionContainerResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -198,7 +197,6 @@ func (client ProtectionContainersClient) InquireSender(req *http.Request) (*http
 func (client ProtectionContainersClient) InquireResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -281,7 +279,6 @@ func (client ProtectionContainersClient) RefreshSender(req *http.Request) (*http
 func (client ProtectionContainersClient) RefreshResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -365,7 +362,6 @@ func (client ProtectionContainersClient) RegisterSender(req *http.Request) (*htt
 func (client ProtectionContainersClient) RegisterResponder(resp *http.Response) (result ProtectionContainerResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -447,7 +443,6 @@ func (client ProtectionContainersClient) UnregisterSender(req *http.Request) (*h
 func (client ProtectionContainersClient) UnregisterResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

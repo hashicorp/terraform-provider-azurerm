@@ -124,7 +124,6 @@ func (client NetworkStatusClient) ListByLocationSender(req *http.Request) (*http
 func (client NetworkStatusClient) ListByLocationResponder(resp *http.Response) (result NetworkStatusContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -209,7 +208,6 @@ func (client NetworkStatusClient) ListByServiceSender(req *http.Request) (*http.
 func (client NetworkStatusClient) ListByServiceResponder(resp *http.Response) (result ListNetworkStatusContractByLocation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())

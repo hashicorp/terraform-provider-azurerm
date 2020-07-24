@@ -120,7 +120,6 @@ func (client BlueprintsClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client BlueprintsClient) CreateOrUpdateResponder(resp *http.Response) (result Model, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client BlueprintsClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client BlueprintsClient) DeleteResponder(resp *http.Response) (result Model, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -274,7 +272,6 @@ func (client BlueprintsClient) GetSender(req *http.Request) (*http.Response, err
 func (client BlueprintsClient) GetResponder(resp *http.Response) (result Model, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -350,7 +347,6 @@ func (client BlueprintsClient) ListSender(req *http.Request) (*http.Response, er
 func (client BlueprintsClient) ListResponder(resp *http.Response) (result List, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -119,7 +119,6 @@ func (client ServerConnectionPoliciesClient) CreateOrUpdateSender(req *http.Requ
 func (client ServerConnectionPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result ServerConnectionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client ServerConnectionPoliciesClient) GetSender(req *http.Request) (*http
 func (client ServerConnectionPoliciesClient) GetResponder(resp *http.Response) (result ServerConnectionPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

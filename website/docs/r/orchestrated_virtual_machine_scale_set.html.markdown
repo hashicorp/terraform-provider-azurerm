@@ -47,6 +47,8 @@ The following arguments are supported:
 
 ~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - a list can be found [here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
 
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Virtual Machine should be assigned to. Changing this forces a new resource to be created.
+
 * `single_placement_group` - (Optional / **Deprecated**) Should the Orchestrated Virtual Machine Scale Set use single placement group?
 
 ~> **NOTE:** Due to a limitation of the Azure API at this time, you can only assign `single_placement_group` to `false`.

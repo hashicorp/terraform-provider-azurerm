@@ -204,6 +204,8 @@ func testAccAzureRMAzureRMVPNServerConfiguration_azureAD(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_subscription" "current" {}
+
 resource "azurerm_vpn_server_configuration" "test" {
   name                     = "acctestVPNSC-%d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -211,9 +213,9 @@ resource "azurerm_vpn_server_configuration" "test" {
   vpn_authentication_types = ["AAD"]
 
   azure_active_directory_authentication {
-    audience = "https://www.example.com/"
-    issuer   = "https://login.windows.net/"
-    tenant   = "example.onmicrosoft.com"
+    audience = "00000000-abcd-abcd-abcd-999999999999"
+    issuer   = "https://sts.windows.net/${data.azurerm_subscription.current.tenant_id}/"
+    tenant   = "https://login.microsoftonline.com/${data.azurerm_subscription.current.tenant_id}"
   }
 }
 `, template, data.RandomInteger)

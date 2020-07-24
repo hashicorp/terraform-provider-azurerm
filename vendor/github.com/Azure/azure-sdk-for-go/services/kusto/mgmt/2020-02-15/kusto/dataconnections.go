@@ -124,7 +124,6 @@ func (client DataConnectionsClient) CheckNameAvailabilitySender(req *http.Reques
 func (client DataConnectionsClient) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client DataConnectionsClient) CreateOrUpdateSender(req *http.Request) (fut
 func (client DataConnectionsClient) CreateOrUpdateResponder(resp *http.Response) (result DataConnectionModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -288,7 +286,6 @@ func (client DataConnectionsClient) DataConnectionValidationMethodSender(req *ht
 func (client DataConnectionsClient) DataConnectionValidationMethodResponder(resp *http.Response) (result DataConnectionValidationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -368,7 +365,6 @@ func (client DataConnectionsClient) DeleteSender(req *http.Request) (future Data
 func (client DataConnectionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -447,7 +443,6 @@ func (client DataConnectionsClient) GetSender(req *http.Request) (*http.Response
 func (client DataConnectionsClient) GetResponder(resp *http.Response) (result DataConnectionModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -525,7 +520,6 @@ func (client DataConnectionsClient) ListByDatabaseSender(req *http.Request) (*ht
 func (client DataConnectionsClient) ListByDatabaseResponder(resp *http.Response) (result DataConnectionListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -608,7 +602,6 @@ func (client DataConnectionsClient) UpdateSender(req *http.Request) (future Data
 func (client DataConnectionsClient) UpdateResponder(resp *http.Response) (result DataConnectionModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

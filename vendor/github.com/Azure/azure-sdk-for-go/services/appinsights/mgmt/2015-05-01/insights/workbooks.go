@@ -131,7 +131,6 @@ func (client WorkbooksClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client WorkbooksClient) CreateOrUpdateResponder(resp *http.Response) (result Workbook, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -217,7 +216,6 @@ func (client WorkbooksClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client WorkbooksClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -302,7 +300,6 @@ func (client WorkbooksClient) GetSender(req *http.Request) (*http.Response, erro
 func (client WorkbooksClient) GetResponder(resp *http.Response) (result Workbook, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -397,7 +394,6 @@ func (client WorkbooksClient) ListByResourceGroupSender(req *http.Request) (*htt
 func (client WorkbooksClient) ListByResourceGroupResponder(resp *http.Response) (result WorkbooksListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -486,7 +482,6 @@ func (client WorkbooksClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client WorkbooksClient) UpdateResponder(resp *http.Response) (result Workbook, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

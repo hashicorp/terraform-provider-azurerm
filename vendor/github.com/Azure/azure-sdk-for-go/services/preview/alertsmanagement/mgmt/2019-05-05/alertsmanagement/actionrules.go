@@ -119,7 +119,6 @@ func (client ActionRulesClient) CreateUpdateSender(req *http.Request) (*http.Res
 func (client ActionRulesClient) CreateUpdateResponder(resp *http.Response) (result ActionRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client ActionRulesClient) DeleteSender(req *http.Request) (*http.Response,
 func (client ActionRulesClient) DeleteResponder(resp *http.Response) (result Bool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -283,7 +281,6 @@ func (client ActionRulesClient) GetByNameSender(req *http.Request) (*http.Respon
 func (client ActionRulesClient) GetByNameResponder(resp *http.Response) (result ActionRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -406,7 +403,6 @@ func (client ActionRulesClient) ListByResourceGroupSender(req *http.Request) (*h
 func (client ActionRulesClient) ListByResourceGroupResponder(resp *http.Response) (result ActionRulesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -563,7 +559,6 @@ func (client ActionRulesClient) ListBySubscriptionSender(req *http.Request) (*ht
 func (client ActionRulesClient) ListBySubscriptionResponder(resp *http.Response) (result ActionRulesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -685,7 +680,6 @@ func (client ActionRulesClient) UpdateSender(req *http.Request) (*http.Response,
 func (client ActionRulesClient) UpdateResponder(resp *http.Response) (result ActionRule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

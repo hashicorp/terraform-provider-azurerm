@@ -90,6 +90,25 @@ func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationRunbook_PSWorkflowWithoutUri(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAutomationRunbookDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationRunbook_PSWorkflowWithoutUri(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationRunbookExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("publish_content_link"),
+		},
+	})
+}
+
 func TestAccAzureRMAutomationRunbook_withJobSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automation_runbook", "test")
 
@@ -337,6 +356,42 @@ resource "azurerm_automation_runbook" "test" {
 # for Terraform acceptance test
 CONTENT
 
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func testAccAzureRMAutomationRunbook_PSWorkflowWithoutUri(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_runbook" "test" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  publish_content_link {
+    uri = ""
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

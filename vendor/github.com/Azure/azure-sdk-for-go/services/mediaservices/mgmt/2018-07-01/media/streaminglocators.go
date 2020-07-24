@@ -125,7 +125,6 @@ func (client StreamingLocatorsClient) CreateSender(req *http.Request) (*http.Res
 func (client StreamingLocatorsClient) CreateResponder(resp *http.Response) (result StreamingLocator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client StreamingLocatorsClient) DeleteSender(req *http.Request) (*http.Res
 func (client StreamingLocatorsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,7 +278,6 @@ func (client StreamingLocatorsClient) GetSender(req *http.Request) (*http.Respon
 func (client StreamingLocatorsClient) GetResponder(resp *http.Response) (result StreamingLocator, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -370,7 +367,6 @@ func (client StreamingLocatorsClient) ListSender(req *http.Request) (*http.Respo
 func (client StreamingLocatorsClient) ListResponder(resp *http.Response) (result StreamingLocatorCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -485,7 +481,6 @@ func (client StreamingLocatorsClient) ListContentKeysSender(req *http.Request) (
 func (client StreamingLocatorsClient) ListContentKeysResponder(resp *http.Response) (result ListContentKeysResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -563,7 +558,6 @@ func (client StreamingLocatorsClient) ListPathsSender(req *http.Request) (*http.
 func (client StreamingLocatorsClient) ListPathsResponder(resp *http.Response) (result ListPathsResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

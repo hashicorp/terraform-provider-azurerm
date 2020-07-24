@@ -142,7 +142,6 @@ func (client CacheClient) CreateOrUpdateSender(req *http.Request) (*http.Respons
 func (client CacheClient) CreateOrUpdateResponder(resp *http.Response) (result CacheContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -236,7 +235,6 @@ func (client CacheClient) DeleteSender(req *http.Request) (*http.Response, error
 func (client CacheClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -326,7 +324,6 @@ func (client CacheClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client CacheClient) GetResponder(resp *http.Response) (result CacheContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -417,7 +414,6 @@ func (client CacheClient) GetEntityTagSender(req *http.Request) (*http.Response,
 func (client CacheClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -515,7 +511,6 @@ func (client CacheClient) ListByServiceSender(req *http.Request) (*http.Response
 func (client CacheClient) ListByServiceResponder(resp *http.Response) (result CacheCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -649,7 +644,6 @@ func (client CacheClient) UpdateSender(req *http.Request) (*http.Response, error
 func (client CacheClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

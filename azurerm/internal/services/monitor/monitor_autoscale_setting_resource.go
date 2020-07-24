@@ -151,6 +151,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 														string(insights.TimeAggregationTypeMaximum),
 														string(insights.TimeAggregationTypeMinimum),
 														string(insights.TimeAggregationTypeTotal),
+														string(insights.TimeAggregationTypeLast),
 													}, true),
 													DiffSuppressFunc: suppress.CaseDifference,
 												},
@@ -645,18 +646,19 @@ func expandAzureRmMonitorAutoScaleSettingNotifications(input []interface{}) *[]i
 	for _, v := range input {
 		notificationRaw := v.(map[string]interface{})
 
-		emailsRaw := notificationRaw["email"].([]interface{})
-		emailRaw := emailsRaw[0].(map[string]interface{})
-		email := expandAzureRmMonitorAutoScaleSettingNotificationEmail(emailRaw)
-
 		configsRaw := notificationRaw["webhook"].([]interface{})
 		webhooks := expandAzureRmMonitorAutoScaleSettingNotificationWebhook(configsRaw)
 
 		notification := insights.AutoscaleNotification{
-			Email:     email,
 			Operation: utils.String("scale"),
 			Webhooks:  webhooks,
 		}
+
+		emailsRaw := notificationRaw["email"].([]interface{})
+		if len(emailsRaw) > 0 && emailsRaw[0] != nil {
+			notification.Email = expandAzureRmMonitorAutoScaleSettingNotificationEmail(emailsRaw[0].(map[string]interface{}))
+		}
+
 		notifications = append(notifications, notification)
 	}
 
@@ -684,6 +686,9 @@ func expandAzureRmMonitorAutoScaleSettingNotificationWebhook(input []interface{}
 	webhooks := make([]insights.WebhookNotification, 0)
 
 	for _, v := range input {
+		if v == nil {
+			continue
+		}
 		webhookRaw := v.(map[string]interface{})
 
 		webhook := insights.WebhookNotification{

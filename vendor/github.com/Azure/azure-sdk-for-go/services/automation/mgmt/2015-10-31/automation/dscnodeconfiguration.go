@@ -133,7 +133,6 @@ func (client DscNodeConfigurationClient) CreateOrUpdateSender(req *http.Request)
 func (client DscNodeConfigurationClient) CreateOrUpdateResponder(resp *http.Response) (result DscNodeConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -219,7 +218,6 @@ func (client DscNodeConfigurationClient) DeleteSender(req *http.Request) (*http.
 func (client DscNodeConfigurationClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -304,7 +302,6 @@ func (client DscNodeConfigurationClient) GetSender(req *http.Request) (*http.Res
 func (client DscNodeConfigurationClient) GetResponder(resp *http.Response) (result DscNodeConfiguration, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -393,7 +390,6 @@ func (client DscNodeConfigurationClient) ListByAutomationAccountSender(req *http
 func (client DscNodeConfigurationClient) ListByAutomationAccountResponder(resp *http.Response) (result DscNodeConfigurationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

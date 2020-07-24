@@ -115,8 +115,13 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 		parameters.NamedValueCreateContractProperties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
-		return fmt.Errorf("creating or updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, "")
+	if err != nil {
+		return fmt.Errorf(" creating or updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on creating/updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
@@ -162,7 +167,9 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 	if properties := resp.NamedValueContractProperties; properties != nil {
 		d.Set("display_name", properties.DisplayName)
 		d.Set("secret", properties.Secret)
-		d.Set("value", properties.Value)
+		if !*properties.Secret {
+			d.Set("value", properties.Value)
+		}
 		d.Set("tags", properties.Tags)
 	}
 

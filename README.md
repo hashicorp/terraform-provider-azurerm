@@ -14,7 +14,7 @@ Version 2.0 of the AzureRM Provider requires Terraform 0.12.x and later.
 provider "azurerm" {
   # We recommend pinning to the specific version of the Azure Provider you're using
   # since new versions are released frequently
-  version = "=2.0.0"
+  version = "=2.20.0"
 
   features {}
 
@@ -48,7 +48,7 @@ Further [usage documentation is available on the Terraform website](https://www.
 ## Developer Requirements
 
 * [Terraform](https://www.terraform.io/downloads.html) version 0.12.x +
-* [Go](https://golang.org/doc/install) version 1.13.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) version 1.14.x (to build the provider plugin)
 
 If you're on Windows you'll also need:
 * [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
@@ -106,6 +106,7 @@ The following Environment Variables must be set in your shell prior to running a
 - `ARM_SUBSCRIPTION_ID`
 - `ARM_TENANT_ID`
 - `ARM_ENVIRONMENT`
+- `ARM_METADATA_HOST`
 - `ARM_TEST_LOCATION`
 - `ARM_TEST_LOCATION_ALT`
 - `ARM_TEST_LOCATION_ALT2`

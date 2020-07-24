@@ -222,7 +222,7 @@ The `redirect_configuration` block supports the following:
 
 * `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`
 
-* `redirect_type` - (Optional) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`. Defaults to `Found`
+* `redirect_type` - (Required) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`.
 
 * `custom_fragment` - (Optional) The destination fragment in the portion of URL after '#'. Set this to add a fragment to the redirect URL.
 
@@ -245,6 +245,8 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 * `azure_key_vault_certificate_secret_version` - (Required) The version of the Key Vault secret representing the full certificate PFX.
 
 ~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
+
+-> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within the `azurerm_frontdoor` resource or by using a separate [`azurerm_frontdoor_custom_https_configuration` resource](frontdoor_custom_https_configuration.html). Defining custom https configurations using a separate resource allows for parallel creation/update.
 
 ---
 
@@ -304,7 +306,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 6 hours) Used when creating the FrontDoor.
 * `update` - (Defaults to 6 hours) Used when updating the FrontDoor.
-* `read` - (Defaults to 6 hours) Used when retrieving the FrontDoor.
+* `read` - (Defaults to 5 minutes) Used when retrieving the FrontDoor.
 * `delete` - (Defaults to 6 hours) Used when deleting the FrontDoor.
 
 ## Import

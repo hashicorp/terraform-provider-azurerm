@@ -120,7 +120,6 @@ func (client DatabaseBlobAuditingPoliciesClient) CreateOrUpdateSender(req *http.
 func (client DatabaseBlobAuditingPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result DatabaseBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client DatabaseBlobAuditingPoliciesClient) GetSender(req *http.Request) (*
 func (client DatabaseBlobAuditingPoliciesClient) GetResponder(resp *http.Response) (result DatabaseBlobAuditingPolicy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -280,7 +278,6 @@ func (client DatabaseBlobAuditingPoliciesClient) ListByDatabaseSender(req *http.
 func (client DatabaseBlobAuditingPoliciesClient) ListByDatabaseResponder(resp *http.Response) (result DatabaseBlobAuditingPolicyListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

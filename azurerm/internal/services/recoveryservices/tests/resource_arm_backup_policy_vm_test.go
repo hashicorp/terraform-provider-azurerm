@@ -266,18 +266,6 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) 
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Weekly"),
-					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
-					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.weekdays.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.count", "42"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.weekdays.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.count", "7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weekdays.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weeks.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.count", "77"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weekdays.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weeks.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.months.#", "1"),
 				),
 			},
 			data.ImportStep(),
@@ -524,7 +512,7 @@ resource "azurerm_backup_policy_vm" "test" {
   backup {
     frequency = "Weekly"
     time      = "23:00"
-    weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
+    weekdays  = ["Sunday", "Wednesday", "Friday"]
   }
 
   retention_weekly {

@@ -126,7 +126,6 @@ func (client VariableClient) CreateOrUpdateSender(req *http.Request) (*http.Resp
 func (client VariableClient) CreateOrUpdateResponder(resp *http.Response) (result Variable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -212,7 +211,6 @@ func (client VariableClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client VariableClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -297,7 +295,6 @@ func (client VariableClient) GetSender(req *http.Request) (*http.Response, error
 func (client VariableClient) GetResponder(resp *http.Response) (result Variable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -382,7 +379,6 @@ func (client VariableClient) ListByAutomationAccountSender(req *http.Request) (*
 func (client VariableClient) ListByAutomationAccountResponder(resp *http.Response) (result VariableListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -508,7 +504,6 @@ func (client VariableClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client VariableClient) UpdateResponder(resp *http.Response) (result Variable, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

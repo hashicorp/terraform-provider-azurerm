@@ -146,7 +146,6 @@ func (client RulesClient) CreateOrUpdateSender(req *http.Request) (*http.Respons
 func (client RulesClient) CreateOrUpdateResponder(resp *http.Response) (result Rule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -246,7 +245,6 @@ func (client RulesClient) DeleteSender(req *http.Request) (*http.Response, error
 func (client RulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -345,7 +343,6 @@ func (client RulesClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client RulesClient) GetResponder(resp *http.Response) (result Rule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -461,7 +458,6 @@ func (client RulesClient) ListBySubscriptionsSender(req *http.Request) (*http.Re
 func (client RulesClient) ListBySubscriptionsResponder(resp *http.Response) (result RuleListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

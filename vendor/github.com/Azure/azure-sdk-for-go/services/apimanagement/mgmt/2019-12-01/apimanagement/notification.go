@@ -125,7 +125,6 @@ func (client NotificationClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client NotificationClient) CreateOrUpdateResponder(resp *http.Response) (result NotificationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client NotificationClient) GetSender(req *http.Request) (*http.Response, e
 func (client NotificationClient) GetResponder(resp *http.Response) (result NotificationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -310,7 +308,6 @@ func (client NotificationClient) ListByServiceSender(req *http.Request) (*http.R
 func (client NotificationClient) ListByServiceResponder(resp *http.Response) (result NotificationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -129,7 +129,6 @@ func (client BaseClient) CheckNameAvailabilitySender(req *http.Request) (*http.R
 func (client BaseClient) CheckNameAvailabilityResponder(resp *http.Response) (result ResourceNameAvailability, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -196,7 +195,6 @@ func (client BaseClient) GetPublishingUserSender(req *http.Request) (*http.Respo
 func (client BaseClient) GetPublishingUserResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -269,7 +267,6 @@ func (client BaseClient) GetSourceControlSender(req *http.Request) (*http.Respon
 func (client BaseClient) GetSourceControlResponder(resp *http.Response) (result SourceControl, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -340,7 +337,6 @@ func (client BaseClient) GetSubscriptionDeploymentLocationsSender(req *http.Requ
 func (client BaseClient) GetSubscriptionDeploymentLocationsResponder(resp *http.Response) (result DeploymentLocations, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -421,7 +417,6 @@ func (client BaseClient) ListBillingMetersSender(req *http.Request) (*http.Respo
 func (client BaseClient) ListBillingMetersResponder(resp *http.Response) (result BillingMeterCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -550,7 +545,6 @@ func (client BaseClient) ListGeoRegionsSender(req *http.Request) (*http.Response
 func (client BaseClient) ListGeoRegionsResponder(resp *http.Response) (result GeoRegionCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -659,7 +653,6 @@ func (client BaseClient) ListPremierAddOnOffersSender(req *http.Request) (*http.
 func (client BaseClient) ListPremierAddOnOffersResponder(resp *http.Response) (result PremierAddOnOfferCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -772,7 +765,6 @@ func (client BaseClient) ListSiteIdentifiersAssignedToHostNameSender(req *http.R
 func (client BaseClient) ListSiteIdentifiersAssignedToHostNameResponder(resp *http.Response) (result IdentifierCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -880,7 +872,6 @@ func (client BaseClient) ListSkusSender(req *http.Request) (*http.Response, erro
 func (client BaseClient) ListSkusResponder(resp *http.Response) (result SkuInfos, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -948,7 +939,6 @@ func (client BaseClient) ListSourceControlsSender(req *http.Request) (*http.Resp
 func (client BaseClient) ListSourceControlsResponder(resp *http.Response) (result SourceControlCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1076,7 +1066,6 @@ func (client BaseClient) MoveSender(req *http.Request) (*http.Response, error) {
 func (client BaseClient) MoveResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1153,7 +1142,6 @@ func (client BaseClient) UpdatePublishingUserSender(req *http.Request) (*http.Re
 func (client BaseClient) UpdatePublishingUserResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1229,7 +1217,6 @@ func (client BaseClient) UpdateSourceControlSender(req *http.Request) (*http.Res
 func (client BaseClient) UpdateSourceControlResponder(resp *http.Response) (result SourceControl, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1321,7 +1308,6 @@ func (client BaseClient) ValidateSender(req *http.Request) (*http.Response, erro
 func (client BaseClient) ValidateResponder(resp *http.Response) (result ValidateResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1412,7 +1398,6 @@ func (client BaseClient) ValidateMoveSender(req *http.Request) (*http.Response, 
 func (client BaseClient) ValidateMoveResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1487,7 +1472,6 @@ func (client BaseClient) VerifyHostingEnvironmentVnetSender(req *http.Request) (
 func (client BaseClient) VerifyHostingEnvironmentVnetResponder(resp *http.Response) (result VnetValidationFailureDetails, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
