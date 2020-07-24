@@ -13,6 +13,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_automation_runbook` - allow `publish_content_link` resource to not exist [GH-7824]
 * `azurerm_api_management_named_value` - the `value` has been marked as sensitive to hide secret values [GH-7819]
 * `azurerm_iothub_dps` - the only valid value for the `sku` property for the API is now `S1` [GH-7847]
 * `azurerm_eventgrid_event_subscription` - deprecate the `topic_name` as it is now readonly in the API [GH-7871]
