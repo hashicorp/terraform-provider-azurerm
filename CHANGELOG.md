@@ -6,6 +6,7 @@ DEPENDENCIES:
 
 IMPROVEMENTS:
 
+* `azurerm_app_service_slot` - support for the `application_logs.file_system` [GH-7311]
 * `azurerm_function_app_slot` - support for the `site_config.auto_swap_slot_name` property [GH-7859]
 * `azurerm_monitor_scheduled_query_rules_alert` - `action.0.custom_webhook_payload` is now sent as empty to allow for Azure's default to take effect[GH-7838]
 * `azurerm_search_service` - support for the `public_network_access_enabled` property [GH-7867]
