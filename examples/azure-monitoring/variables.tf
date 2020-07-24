@@ -14,9 +14,3 @@ variable "cache" {
     }
 
 	}
-
-variable "action_group" {
-  description = "The azure action group"
-  type        = string
-  default = "/subscriptions/269e5205-71e4-43fc-b2cf-a2f76843e431/resourceGroups/<resource_group_name>/providers/microsoft.insights/actionGroups/<action_group_name>"
-}

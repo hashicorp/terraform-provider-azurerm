@@ -6,6 +6,23 @@ provider "azurerm" {
   features {}
 }
 
+resource "azurerm_monitor_action_group" "main" {
+  name                = "example-actiongroup"
+  resource_group_name = azurerm_resource_group.main.name
+  short_name          = "exampleact"
+
+  email_receiver {
+    name                    = "ishantdevops"
+    email_address           = "devops@example.com"
+    use_common_alert_schema = true
+  }
+
+  webhook_receiver {
+    name        = "callmyapi"
+    service_uri = "http://example.com/alert"
+  }
+}
+
 
 ### Cache Hits Alert
 resource "azurerm_monitor_metric_alert" "cache_hit_alert" {
@@ -25,7 +42,7 @@ resource "azurerm_monitor_metric_alert" "cache_hit_alert" {
   }
 
   action {
-    action_group_id = var.action_group
+    action_group_id = azurerm_monitor_action_group.main.id
   }
 }
 
@@ -48,7 +65,7 @@ resource "azurerm_monitor_metric_alert" "cache_miss_alert" {
   }
 
   action {
-    action_group_id = var.action_group
+    action_group_id = azurerm_monitor_action_group.main.id
   }
 }
 
@@ -70,7 +87,7 @@ resource "azurerm_monitor_metric_alert" "cache_connected_clients" {
   }
 
   action {
-    action_group_id = var.action_group
+    action_group_id = azurerm_monitor_action_group.main.id
   }
 }
 
@@ -93,6 +110,6 @@ resource "azurerm_monitor_metric_alert" "cache_cpu" {
   }
 
   action {
-    action_group_id = var.action_group
+    action_group_id = azurerm_monitor_action_group.main.id
   }
 }
