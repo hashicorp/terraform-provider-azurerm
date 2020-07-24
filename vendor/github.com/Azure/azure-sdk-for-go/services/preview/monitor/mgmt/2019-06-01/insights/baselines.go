@@ -145,7 +145,6 @@ func (client BaselinesClient) ListSender(req *http.Request) (*http.Response, err
 func (client BaselinesClient) ListResponder(resp *http.Response) (result MetricBaselinesResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

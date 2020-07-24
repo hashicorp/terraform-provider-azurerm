@@ -117,7 +117,6 @@ func (client ElasticPoolOperationsClient) CancelSender(req *http.Request) (*http
 func (client ElasticPoolOperationsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -195,7 +194,6 @@ func (client ElasticPoolOperationsClient) ListByElasticPoolSender(req *http.Requ
 func (client ElasticPoolOperationsClient) ListByElasticPoolResponder(resp *http.Response) (result ElasticPoolOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

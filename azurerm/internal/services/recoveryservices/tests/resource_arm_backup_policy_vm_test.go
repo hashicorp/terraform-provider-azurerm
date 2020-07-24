@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,11 +34,6 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 }
 
 func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -272,18 +266,6 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) 
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(data),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMBackupProtectionPolicyVmExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.frequency", "Weekly"),
-					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.time", "23:00"),
-					resource.TestCheckResourceAttr(data.ResourceName, "backup.0.weekdays.#", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.count", "42"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_weekly.0.weekdays.#", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.count", "7"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weekdays.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_monthly.0.weeks.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.count", "77"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weekdays.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.weeks.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "retention_yearly.0.months.#", "1"),
 				),
 			},
 			data.ImportStep(),
@@ -363,8 +345,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_recovery_services_vault" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
   soft_delete_enabled = false
@@ -530,7 +512,7 @@ resource "azurerm_backup_policy_vm" "test" {
   backup {
     frequency = "Weekly"
     time      = "23:00"
-    weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
+    weekdays  = ["Sunday", "Wednesday", "Friday"]
   }
 
   retention_weekly {

@@ -104,7 +104,6 @@ func (client ProviderClient) GetAvailableStacksSender(req *http.Request) (*http.
 func (client ProviderClient) GetAvailableStacksResponder(resp *http.Response) (result ApplicationStackCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +215,6 @@ func (client ProviderClient) GetAvailableStacksOnPremSender(req *http.Request) (
 func (client ProviderClient) GetAvailableStacksOnPremResponder(resp *http.Response) (result ApplicationStackCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -322,7 +320,6 @@ func (client ProviderClient) ListOperationsSender(req *http.Request) (*http.Resp
 func (client ProviderClient) ListOperationsResponder(resp *http.Response) (result CsmOperationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

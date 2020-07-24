@@ -65,13 +65,17 @@ The following attributes are exported:
 
 * `id` - The EventHub Namespace Authorization Rule ID.
 
-* `primary_key` - The Primary Key for the Authorization Rule.
+* `primary_connection_string_alias` - The alias of the Primary Connection String for the Authorization Rule, which is generated when disaster recovery is enabled.
+
+* `secondary_connection_string_alias` - The alias of the Secondary Connection String for the Authorization Rule, which is generated when disaster recovery is enabled.
 
 * `primary_connection_string` - The Primary Connection String for the Authorization Rule.
 
-* `secondary_key` - The Secondary Key for the Authorization Rule.
+* `primary_key` - The Primary Key for the Authorization Rule.
 
 * `secondary_connection_string` - The Secondary Connection String for the Authorization Rule.
+
+* `secondary_key` - The Secondary Key for the Authorization Rule.
 
 ## Timeouts
 
@@ -89,5 +93,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 EventHub Namespace Authorization Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_eventhub_namespace_authorization_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/authorizationRules/rule1
+$ terraform import azurerm_eventhub_namespace_authorization_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/authorizationRules/rule1
 ```

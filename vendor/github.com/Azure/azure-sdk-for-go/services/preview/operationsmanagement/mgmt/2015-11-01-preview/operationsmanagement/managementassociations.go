@@ -131,7 +131,6 @@ func (client ManagementAssociationsClient) CreateOrUpdateSender(req *http.Reques
 func (client ManagementAssociationsClient) CreateOrUpdateResponder(resp *http.Response) (result ManagementAssociation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -218,7 +217,6 @@ func (client ManagementAssociationsClient) DeleteSender(req *http.Request) (*htt
 func (client ManagementAssociationsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -304,7 +302,6 @@ func (client ManagementAssociationsClient) GetSender(req *http.Request) (*http.R
 func (client ManagementAssociationsClient) GetResponder(resp *http.Response) (result ManagementAssociation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -375,7 +372,6 @@ func (client ManagementAssociationsClient) ListBySubscriptionSender(req *http.Re
 func (client ManagementAssociationsClient) ListBySubscriptionResponder(resp *http.Response) (result ManagementAssociationPropertiesList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

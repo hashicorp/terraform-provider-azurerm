@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
@@ -32,11 +31,6 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_function_javascript_udf", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -167,12 +161,18 @@ func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(data acce
 %s
 
 resource "azurerm_stream_analytics_function_javascript_udf" "import" {
-  name                      = "${azurerm_stream_analytics_function_javascript_udf.test.name}"
-  stream_analytics_job_name = "${azurerm_stream_analytics_function_javascript_udf.test.stream_analytics_job_name}"
-  resource_group_name       = "${azurerm_stream_analytics_function_javascript_udf.test.resource_group_name}"
-  script                    = "${azurerm_stream_analytics_function_javascript_udf.test.script}"
-  inputs                    = "${azurerm_stream_analytics_function_javascript_udf.test.inputs}"
-  output                    = "${azurerm_stream_analytics_function_javascript_udf.test.output}"
+  name                      = azurerm_stream_analytics_function_javascript_udf.test.name
+  stream_analytics_job_name = azurerm_stream_analytics_function_javascript_udf.test.stream_analytics_job_name
+  resource_group_name       = azurerm_stream_analytics_function_javascript_udf.test.resource_group_name
+  script                    = azurerm_stream_analytics_function_javascript_udf.test.script
+
+  input {
+    type = azurerm_stream_analytics_function_javascript_udf.test.input.0.type
+  }
+
+  output {
+    type = azurerm_stream_analytics_function_javascript_udf.test.output.0.type
+  }
 }
 `, template)
 }

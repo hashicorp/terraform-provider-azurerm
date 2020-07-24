@@ -10,7 +10,7 @@ description: |-
 
 Manages a Private Link Service.
 
--> **NOTE** Private Link is currently in Public Preview.
+-> **NOTE** Private Link is now in [GA](https://docs.microsoft.com/en-gb/azure/private-link/).
 
 ## Example Usage
 

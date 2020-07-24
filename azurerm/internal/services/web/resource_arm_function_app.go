@@ -16,6 +16,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -47,7 +49,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAppServiceName,
+				ValidateFunc: webValidate.AppServiceName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -76,11 +78,35 @@ func resourceArmFunctionApp() *schema.Resource {
 				Default:  "~1",
 			},
 
+			// TODO remove this in 3.0
 			"storage_connection_string": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				Sensitive: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				Sensitive:     true,
+				Deprecated:    "Deprecated in favor of `storage_account_name` and `storage_account_access_key`",
+				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
+			},
+
+			"storage_account_name": {
+				Type: schema.TypeString,
+				// Required: true, // Uncomment this in 3.0
+				Optional:      true,
+				Computed:      true, // Remove this in 3.0
+				ForceNew:      true,
+				ValidateFunc:  storage.ValidateArmStorageAccountName,
+				ConflictsWith: []string{"storage_connection_string"},
+			},
+
+			"storage_account_access_key": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true, // Remove this in 3.0
+				// Required: true, // Uncomment this in 3.0
+				Sensitive:     true,
+				ValidateFunc:  validation.NoZeroValues,
+				ConflictsWith: []string{"storage_connection_string"},
 			},
 
 			"app_settings": {
@@ -251,6 +277,11 @@ func resourceArmFunctionApp() *schema.Resource {
 								string(web.FtpsOnly),
 							}, false),
 						},
+						"pre_warmed_instance_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 10),
+						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
@@ -281,6 +312,7 @@ func resourceArmFunctionApp() *schema.Resource {
 
 func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -335,7 +367,10 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return err
+	}
 
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
@@ -392,7 +427,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		SiteAuthSettingsProperties: &authSettings}
 
 	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
-		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+s", name, resourceGroup, err)
+		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+v", name, resourceGroup, err)
 	}
 
 	return resourceArmFunctionAppUpdate(d, meta)
@@ -400,6 +435,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Web.AppServicesClient
+	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -412,7 +448,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)
-		if osType == "Linux" {
+		if osType == "linux" {
 			kind = "functionapp,linux"
 		}
 	}
@@ -424,11 +460,15 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	t := d.Get("tags").(map[string]interface{})
 
 	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
-
 	if err != nil {
 		return err
 	}
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return err
+	}
+
 	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
@@ -465,7 +505,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error waiting for update of Function App %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	appSettings := expandFunctionAppAppSettings(d, appServiceTier)
+	appSettings, err := expandFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return err
+	}
 	settings := web.StringDictionary{
 		Properties: appSettings,
 	}
@@ -593,17 +636,48 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
-	d.Set("storage_connection_string", appSettings["AzureWebJobsStorage"])
+	connectionString := appSettings["AzureWebJobsStorage"]
+	d.Set("storage_connection_string", connectionString)
+
+	// This teases out the necessary attributes from the storage connection string
+	connectionStringParts := strings.Split(connectionString, ";")
+	for _, part := range connectionStringParts {
+		if strings.HasPrefix(part, "AccountName") {
+			accountNameParts := strings.Split(part, "AccountName=")
+			if len(accountNameParts) > 1 {
+				d.Set("storage_account_name", accountNameParts[1])
+			}
+		}
+		if strings.HasPrefix(part, "AccountKey") {
+			accountKeyParts := strings.Split(part, "AccountKey=")
+			if len(accountKeyParts) > 1 {
+				d.Set("storage_account_access_key", accountKeyParts[1])
+			}
+		}
+	}
+
 	d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
 
 	dashboard, ok := appSettings["AzureWebJobsDashboard"]
 	d.Set("enable_builtin_logging", ok && dashboard != "")
 
-	delete(appSettings, "AzureWebJobsDashboard")
-	delete(appSettings, "AzureWebJobsStorage")
-	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
-	delete(appSettings, "WEBSITE_CONTENTSHARE")
-	delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+	if _, ok = d.GetOk("app_settings.AzureWebJobsDashboard"); !ok {
+		delete(appSettings, "AzureWebJobsDashboard")
+	}
+	if _, ok = d.GetOk("app_settings.AzureWebJobsStorage"); !ok {
+		delete(appSettings, "AzureWebJobsStorage")
+	}
+	if _, ok = d.GetOk("app_settings.FUNCTIONS_EXTENSION_VERSION"); !ok {
+		delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
+	}
+
+	// Let the user have a final say whether he wants to keep these 2 or not on
+	// Linux consumption plans. They shouldn't be there according to a bug
+	// report (see // https://github.com/Azure/azure-functions-python-worker/issues/598)
+	if !strings.EqualFold(d.Get("os_type").(string), "linux") {
+		delete(appSettings, "WEBSITE_CONTENTSHARE")
+		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+	}
 
 	if err = d.Set("app_settings", appSettings); err != nil {
 		return err
@@ -664,16 +738,44 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) []web.NameValuePair {
+func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) ([]web.NameValuePair, error) {
 	// TODO: This is a workaround since there are no public Functions API
 	// You may track the API request here: https://github.com/Azure/azure-rest-api-specs/issues/3750
 	dashboardPropName := "AzureWebJobsDashboard"
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
+
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
 	contentFileConnStringPropName := "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
 
-	storageConnection := d.Get("storage_connection_string").(string)
+	// TODO 3.0 - remove this logic for determining which storage account connection string to use
+	storageConnection := ""
+	if v, ok := d.GetOk("storage_connection_string"); ok {
+		storageConnection = v.(string)
+	}
+
+	storageAccount := ""
+	if v, ok := d.GetOk("storage_account_name"); ok {
+		storageAccount = v.(string)
+	}
+
+	connectionString := ""
+	if v, ok := d.GetOk("storage_account_access_key"); ok {
+		connectionString = v.(string)
+	}
+
+	if storageConnection == "" && storageAccount == "" && connectionString == "" {
+		return nil, fmt.Errorf("one of `storage_connection_string` or `storage_account_name` and `storage_account_access_key` must be specified")
+	}
+
+	if (storageAccount == "" && connectionString != "") || (storageAccount != "" && connectionString == "") {
+		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
+	}
+
+	if connectionString != "" && storageAccount != "" {
+		storageConnection = fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", storageAccount, connectionString, endpointSuffix)
+	}
+
 	functionVersion := d.Get("version").(string)
 	contentShare := strings.ToLower(d.Get("name").(string)) + "-content"
 
@@ -694,12 +796,14 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 		{Name: &contentFileConnStringPropName, Value: &storageConnection},
 	}
 
-	// On consumption and premium plans include WEBSITE_CONTENT components
-	if strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium") {
-		return append(basicSettings, consumptionSettings...)
+	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
+	// (see https://github.com/Azure/azure-functions-python-worker/issues/598)
+	if (strings.EqualFold(appServiceTier, "dynamic") || strings.EqualFold(appServiceTier, "elasticpremium")) &&
+		!strings.EqualFold(d.Get("os_type").(string), "linux") {
+		return append(basicSettings, consumptionSettings...), nil
 	}
 
-	return basicSettings
+	return basicSettings, nil
 }
 
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
@@ -724,15 +828,18 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
-func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier string) map[string]*string {
+func expandFunctionAppAppSettings(d *schema.ResourceData, appServiceTier, endpointSuffix string) (map[string]*string, error) {
 	output := expandAppServiceAppSettings(d)
 
-	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
+	basicAppSettings, err := getBasicFunctionAppAppSettings(d, appServiceTier, endpointSuffix)
+	if err != nil {
+		return nil, err
+	}
 	for _, p := range basicAppSettings {
 		output[*p.Name] = p.Value
 	}
 
-	return output
+	return output, nil
 }
 
 func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error) {
@@ -788,6 +895,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.FtpsState = web.FtpsState(v.(string))
 	}
 
+	if v, ok := config["pre_warmed_instance_count"]; ok {
+		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
+	}
+
 	return siteConfig, nil
 }
 
@@ -818,6 +929,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.HTTP20Enabled != nil {
 		result["http2_enabled"] = *input.HTTP20Enabled
+	}
+
+	if input.PreWarmedInstanceCount != nil {
+		result["pre_warmed_instance_count"] = *input.PreWarmedInstanceCount
 	}
 
 	result["ip_restriction"] = flattenFunctionAppIpRestriction(input.IPSecurityRestrictions)
@@ -852,11 +967,14 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.
 }
 
 func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
-	ipSecurityRestrictions := input.([]interface{})
 	restrictions := make([]web.IPSecurityRestriction, 0)
 
-	for i, ipSecurityRestriction := range ipSecurityRestrictions {
-		restriction := ipSecurityRestriction.(map[string]interface{})
+	for i, r := range input.([]interface{}) {
+		if r == nil {
+			continue
+		}
+
+		restriction := r.(map[string]interface{})
 
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := restriction["subnet_id"].(string)

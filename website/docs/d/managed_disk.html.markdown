@@ -19,7 +19,7 @@ data "azurerm_managed_disk" "existing" {
 }
 
 output "id" {
-  value = azurerm_managed_disk.existing.id
+  value = data.azurerm_managed_disk.existing.id
 }
 ```
 
@@ -38,6 +38,8 @@ output "id" {
 * `disk_mbps_read_write` - The bandwidth allowed for this disk.
 
 * `disk_size_gb` - The size of the Managed Disk in gigabytes.
+
+* `image_reference_id` - The ID of the source image used for creating this Managed Disk.
 
 * `os_type` - The operating system used for this Managed Disk.
 

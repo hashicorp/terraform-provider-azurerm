@@ -353,6 +353,23 @@ func PossibleListKeyExpandValues() []ListKeyExpand {
 	return []ListKeyExpand{Kerb}
 }
 
+// MinimumTLSVersion enumerates the values for minimum tls version.
+type MinimumTLSVersion string
+
+const (
+	// TLS10 ...
+	TLS10 MinimumTLSVersion = "TLS1_0"
+	// TLS11 ...
+	TLS11 MinimumTLSVersion = "TLS1_1"
+	// TLS12 ...
+	TLS12 MinimumTLSVersion = "TLS1_2"
+)
+
+// PossibleMinimumTLSVersionValues returns an array of possible values for the MinimumTLSVersion const type.
+func PossibleMinimumTLSVersionValues() []MinimumTLSVersion {
+	return []MinimumTLSVersion{TLS10, TLS11, TLS12}
+}
+
 // Permissions enumerates the values for permissions.
 type Permissions string
 
@@ -1043,6 +1060,10 @@ type AccountProperties struct {
 	FailoverInProgress *bool `json:"failoverInProgress,omitempty"`
 	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'Disabled', 'Enabled'
 	LargeFileSharesState LargeFileSharesState `json:"largeFileSharesState,omitempty"`
+	// AllowBlobPublicAccess - Allow or disallow public access to all blobs or containers in the storage account. The default interpretation is true for this property.
+	AllowBlobPublicAccess *bool `json:"allowBlobPublicAccess,omitempty"`
+	// MinimumTLSVersion - Set the minimum TLS version to be permitted on requests to storage. The default interpretation is TLS 1.0 for this property. Possible values include: 'TLS10', 'TLS11', 'TLS12'
+	MinimumTLSVersion MinimumTLSVersion `json:"minimumTlsVersion,omitempty"`
 }
 
 // AccountPropertiesCreateParameters the parameters used to create the storage account.
@@ -1063,6 +1084,10 @@ type AccountPropertiesCreateParameters struct {
 	IsHnsEnabled *bool `json:"isHnsEnabled,omitempty"`
 	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'Disabled', 'Enabled'
 	LargeFileSharesState LargeFileSharesState `json:"largeFileSharesState,omitempty"`
+	// AllowBlobPublicAccess - Allow or disallow public access to all blobs or containers in the storage account. The default interpretation is true for this property.
+	AllowBlobPublicAccess *bool `json:"allowBlobPublicAccess,omitempty"`
+	// MinimumTLSVersion - Set the minimum TLS version to be permitted on requests to storage. The default interpretation is TLS 1.0 for this property. Possible values include: 'TLS10', 'TLS11', 'TLS12'
+	MinimumTLSVersion MinimumTLSVersion `json:"minimumTlsVersion,omitempty"`
 }
 
 // AccountPropertiesUpdateParameters the parameters used when updating a storage account.
@@ -1081,6 +1106,10 @@ type AccountPropertiesUpdateParameters struct {
 	NetworkRuleSet *NetworkRuleSet `json:"networkAcls,omitempty"`
 	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'Disabled', 'Enabled'
 	LargeFileSharesState LargeFileSharesState `json:"largeFileSharesState,omitempty"`
+	// AllowBlobPublicAccess - Allow or disallow public access to all blobs or containers in the storage account. The default interpretation is true for this property.
+	AllowBlobPublicAccess *bool `json:"allowBlobPublicAccess,omitempty"`
+	// MinimumTLSVersion - Set the minimum TLS version to be permitted on requests to storage. The default interpretation is TLS 1.0 for this property. Possible values include: 'TLS10', 'TLS11', 'TLS12'
+	MinimumTLSVersion MinimumTLSVersion `json:"minimumTlsVersion,omitempty"`
 }
 
 // AccountRegenerateKeyParameters the parameters used to regenerate the storage account key.

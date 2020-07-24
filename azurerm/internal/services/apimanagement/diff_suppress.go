@@ -37,6 +37,10 @@ func normalizeXmlWithDotNetInterpolationsString(input string) string {
 	value = strings.ReplaceAll(value, "  ", "")
 	value = strings.ReplaceAll(value, " ", "")
 	value = strings.ReplaceAll(value, "&quot;", "\"")
+	value = strings.ReplaceAll(value, "&gt;", ">")
+	value = strings.ReplaceAll(value, "&lt;", "<")
+	value = strings.ReplaceAll(value, "&amp;", "&")
+	value = strings.ReplaceAll(value, "&apos;", "'")
 
 	return value
 }

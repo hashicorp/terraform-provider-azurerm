@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsOutputEventHub_avro(t *testing.T) {
@@ -123,11 +122,6 @@ func TestAccAzureRMStreamAnalyticsOutputEventHub_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsOutputEventHub_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_eventhub", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -338,6 +332,12 @@ resource "azurerm_stream_analytics_output_eventhub" "import" {
   servicebus_namespace      = azurerm_stream_analytics_output_eventhub.test.servicebus_namespace
   shared_access_policy_key  = azurerm_stream_analytics_output_eventhub.test.shared_access_policy_key
   shared_access_policy_name = azurerm_stream_analytics_output_eventhub.test.shared_access_policy_name
+
+  serialization {
+    type     = azurerm_stream_analytics_output_eventhub.test.serialization.0.type
+    encoding = azurerm_stream_analytics_output_eventhub.test.serialization.0.encoding
+    format   = azurerm_stream_analytics_output_eventhub.test.serialization.0.format
+  }
 }
 `, template)
 }

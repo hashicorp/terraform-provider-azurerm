@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_sevicebus_namespace"
+  name                = "tfex-sevicebus-namespace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
@@ -52,7 +52,7 @@ resource "azurerm_servicebus_subscription_rule" "example" {
   topic_name          = azurerm_servicebus_topic.example.name
   subscription_name   = azurerm_servicebus_subscription.example.name
   filter_type         = "SqlFilter"
-  sql_filter          = "color = 'red'"
+  sql_filter          = "colour = 'red'"
 }
 ```
 
@@ -65,7 +65,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_sevicebus_namespace"
+  name                = "tfex-sevicebus-namespace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"

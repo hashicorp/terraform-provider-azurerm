@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_avro(t *testing.T) {
@@ -95,11 +94,6 @@ func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsOutputServiceBusQueue_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_output_servicebus_queue", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -289,10 +283,9 @@ resource "azurerm_stream_analytics_output_servicebus_queue" "import" {
   dynamic "serialization" {
     for_each = azurerm_stream_analytics_output_servicebus_queue.test.serialization
     content {
-      encoding        = lookup(serialization.value, "encoding", null)
-      field_delimiter = lookup(serialization.value, "field_delimiter", null)
-      format          = lookup(serialization.value, "format", null)
-      type            = serialization.value.type
+      encoding = lookup(serialization.value, "encoding", null)
+      format   = lookup(serialization.value, "format", null)
+      type     = serialization.value.type
     }
   }
 }

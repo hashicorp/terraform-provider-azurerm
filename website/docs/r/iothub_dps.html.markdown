@@ -50,7 +50,7 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The name of the sku. Possible values are `B1`, `B2`, `B3`, `F1`, `S1`, `S2`, and `S3`.
+* `name` - (Required) The name of the sku. Currently can only be set to `S1`.
 
 * `capacity` - (Required) The number of provisioned IoT Device Provisioning Service units.
 
@@ -62,7 +62,7 @@ A `linked_hub` block supports the following:
 
 * `location` - (Required) The location of the IoT hub. Changing this forces a new resource.
 
-* `apply_application_policy` - (Optional) Determines whether to apply application policies to the IoT Hub. Defaults to false.
+* `apply_allocation_policy` - (Optional) Determines whether to apply allocation policies to the IoT Hub. Defaults to false.
 
 * `allocation_weight` - (Optional) The weight applied to the IoT Hub. Defaults to 0.
 

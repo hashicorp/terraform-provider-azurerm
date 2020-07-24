@@ -138,7 +138,6 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisSender(req *http.Request) (*h
 func (client DiagnosticsClient) ExecuteSiteAnalysisResponder(resp *http.Response) (result DiagnosticAnalysis, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -243,7 +242,6 @@ func (client DiagnosticsClient) ExecuteSiteAnalysisSlotSender(req *http.Request)
 func (client DiagnosticsClient) ExecuteSiteAnalysisSlotResponder(resp *http.Response) (result DiagnosticAnalysis, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -346,7 +344,6 @@ func (client DiagnosticsClient) ExecuteSiteDetectorSender(req *http.Request) (*h
 func (client DiagnosticsClient) ExecuteSiteDetectorResponder(resp *http.Response) (result DiagnosticDetectorResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -451,7 +448,6 @@ func (client DiagnosticsClient) ExecuteSiteDetectorSlotSender(req *http.Request)
 func (client DiagnosticsClient) ExecuteSiteDetectorSlotResponder(resp *http.Response) (result DiagnosticDetectorResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -552,7 +548,6 @@ func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponseSender(req 
 func (client DiagnosticsClient) GetHostingEnvironmentDetectorResponseResponder(resp *http.Response) (result DetectorResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -640,7 +635,6 @@ func (client DiagnosticsClient) GetSiteAnalysisSender(req *http.Request) (*http.
 func (client DiagnosticsClient) GetSiteAnalysisResponder(resp *http.Response) (result AnalysisDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -730,7 +724,6 @@ func (client DiagnosticsClient) GetSiteAnalysisSlotSender(req *http.Request) (*h
 func (client DiagnosticsClient) GetSiteAnalysisSlotResponder(resp *http.Response) (result AnalysisDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -818,7 +811,6 @@ func (client DiagnosticsClient) GetSiteDetectorSender(req *http.Request) (*http.
 func (client DiagnosticsClient) GetSiteDetectorResponder(resp *http.Response) (result DetectorDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -919,7 +911,6 @@ func (client DiagnosticsClient) GetSiteDetectorResponseSender(req *http.Request)
 func (client DiagnosticsClient) GetSiteDetectorResponseResponder(resp *http.Response) (result DetectorResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1022,7 +1013,6 @@ func (client DiagnosticsClient) GetSiteDetectorResponseSlotSender(req *http.Requ
 func (client DiagnosticsClient) GetSiteDetectorResponseSlotResponder(resp *http.Response) (result DetectorResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1112,7 +1102,6 @@ func (client DiagnosticsClient) GetSiteDetectorSlotSender(req *http.Request) (*h
 func (client DiagnosticsClient) GetSiteDetectorSlotResponder(resp *http.Response) (result DetectorDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1198,7 +1187,6 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategorySender(req *http.Reques
 func (client DiagnosticsClient) GetSiteDiagnosticCategoryResponder(resp *http.Response) (result DiagnosticCategory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1286,7 +1274,6 @@ func (client DiagnosticsClient) GetSiteDiagnosticCategorySlotSender(req *http.Re
 func (client DiagnosticsClient) GetSiteDiagnosticCategorySlotResponder(resp *http.Response) (result DiagnosticCategory, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1371,7 +1358,6 @@ func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesSender(re
 func (client DiagnosticsClient) ListHostingEnvironmentDetectorResponsesResponder(resp *http.Response) (result DetectorResponseCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1495,7 +1481,6 @@ func (client DiagnosticsClient) ListSiteAnalysesSender(req *http.Request) (*http
 func (client DiagnosticsClient) ListSiteAnalysesResponder(resp *http.Response) (result DiagnosticAnalysisCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1621,7 +1606,6 @@ func (client DiagnosticsClient) ListSiteAnalysesSlotSender(req *http.Request) (*
 func (client DiagnosticsClient) ListSiteAnalysesSlotResponder(resp *http.Response) (result DiagnosticAnalysisCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1743,7 +1727,6 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesSender(req *http.Reques
 func (client DiagnosticsClient) ListSiteDetectorResponsesResponder(resp *http.Response) (result DetectorResponseCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1867,7 +1850,6 @@ func (client DiagnosticsClient) ListSiteDetectorResponsesSlotSender(req *http.Re
 func (client DiagnosticsClient) ListSiteDetectorResponsesSlotResponder(resp *http.Response) (result DetectorResponseCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1991,7 +1973,6 @@ func (client DiagnosticsClient) ListSiteDetectorsSender(req *http.Request) (*htt
 func (client DiagnosticsClient) ListSiteDetectorsResponder(resp *http.Response) (result DiagnosticDetectorCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2117,7 +2098,6 @@ func (client DiagnosticsClient) ListSiteDetectorsSlotSender(req *http.Request) (
 func (client DiagnosticsClient) ListSiteDetectorsSlotResponder(resp *http.Response) (result DiagnosticDetectorCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2239,7 +2219,6 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSender(req *http.Req
 func (client DiagnosticsClient) ListSiteDiagnosticCategoriesResponder(resp *http.Response) (result DiagnosticCategoryCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2363,7 +2342,6 @@ func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSlotSender(req *http
 func (client DiagnosticsClient) ListSiteDiagnosticCategoriesSlotResponder(resp *http.Response) (result DiagnosticCategoryCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

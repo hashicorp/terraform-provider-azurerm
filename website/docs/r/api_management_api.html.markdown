@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `display_name` - (Required) The display name of the API.
 
-* `path` - (Required) The Path for this API Management API, which is a relative URL which uniquely identifies this API and all of it's resource paths within the API Management Service.
+* `path` - (Required) The Path for this API Management API, which is a relative URL which uniquely identifies this API and all of its resource paths within the API Management Service.
 
 * `protocols` - (Required) A list of protocols the operations in this API can be invoked. Possible values are `http` and `https`.
 
@@ -74,6 +74,8 @@ The following arguments are supported:
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
+* `subscription_required` - (Optional) Should this API require a subscription key?
+
 * `version` - (Optional) The Version number of this API, if this API is versioned.
 
 * `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
@@ -84,7 +86,7 @@ The following arguments are supported:
 
 A `import` block supports the following:
 
-* `content_format` - (Required) The format of the content from which the API Definition should be imported. Possible values are: `swagger-json`, `swagger-link-json`, `wadl-link-json`, `wadl-xml`, `wsdl` and `wsdl-link`.
+* `content_format` - (Required) The format of the content from which the API Definition should be imported. Possible values are: `openapi`, `openapi+json`, `openapi+json-link`, `openapi-link`, `swagger-json`, `swagger-link-json`, `wadl-link-json`, `wadl-xml`, `wsdl` and `wsdl-link`.
 
 * `content_value` - (Required) The Content from which the API Definition should be imported. When a `content_format` of `*-link-*` is specified this must be a URL, otherwise this must be defined inline.
 

@@ -272,7 +272,7 @@ The following arguments are supported:
 * `key_properties` - (Required) A `key_properties` block as defined below.
 * `lifetime_action` - (Optional) A `lifetime_action` block as defined below.
 * `secret_properties` - (Required) A `secret_properties` block as defined below.
-* `x509_certificate_properties` - (Optional) A `x509_certificate_properties` block as defined below.
+* `x509_certificate_properties` - (Optional) A `x509_certificate_properties` block as defined below. Required when `certificate` block is not specified.
 
 `issuer_parameters` supports the following:
 
@@ -327,6 +327,18 @@ The following attributes are exported:
 * `version` - The current version of the Key Vault Certificate.
 * `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
 * `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
+* `certificate_attribute` - A `certificate_attribute` block as defined below.
+
+---
+
+A `certificate_attribute` block exports the following:
+
+* `created` - The create time of the Key Vault Certificate.
+* `enabled` - whether the Key Vault Certificate is enabled.
+* `expires` - The expires time of the Key Vault Certificate.
+* `not_before` - The not before valid time of the Key Vault Certificate.
+* `recovery_level` - The deletion recovery level of the Key Vault Certificate.
+* `updated` - The recent update time of the Key Vault Certificate.
 
 ## Timeouts
 

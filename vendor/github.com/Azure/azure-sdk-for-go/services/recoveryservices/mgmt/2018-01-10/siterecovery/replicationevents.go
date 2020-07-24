@@ -110,7 +110,6 @@ func (client ReplicationEventsClient) GetSender(req *http.Request) (*http.Respon
 func (client ReplicationEventsClient) GetResponder(resp *http.Response) (result Event, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -189,7 +188,6 @@ func (client ReplicationEventsClient) ListSender(req *http.Request) (*http.Respo
 func (client ReplicationEventsClient) ListResponder(resp *http.Response) (result EventCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

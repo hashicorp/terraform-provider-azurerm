@@ -21,18 +21,18 @@ resource "azurerm_resource_group" "example" {
 
 data "azurerm_storage_account" "example" {
   name                = "examplestoracc"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 data "azurerm_key_vault" "example" {
   name                = "example-vault"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_monitor_diagnostic_setting" "example" {
   name               = "example"
-  target_resource_id = "${data.azurerm_key_vault.example.id}"
-  storage_account_id = "${data.azurerm_storage_account.example.id}"
+  target_resource_id = data.azurerm_key_vault.example.id
+  storage_account_id = data.azurerm_storage_account.example.id
 
   log {
     category = "AuditEvent"
@@ -97,9 +97,9 @@ A `log` block supports the following:
 
 * `category` - (Required) The name of a Diagnostic Log Category for this Resource.
 
--> **NOTE:** The Log Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) to identify which categories are available for a given Resource.
+-> **NOTE:** The Log Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) or [list of service specific schemas](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/resource-logs-schema#service-specific-schemas) to identify which categories are available for a given Resource.
 
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Log enabled? Defaults to `true`.
 
@@ -111,7 +111,7 @@ A `metric` block supports the following:
 
 -> **NOTE:** The Metric Categories available vary depending on the Resource being used. You may wish to use [the `azurerm_monitor_diagnostic_categories` Data Source](../d/monitor_diagnostic_categories.html) to identify which categories are available for a given Resource.
 
-* `retention_policy` - (Required) A `retention_policy` block as defined below.
+* `retention_policy` - (Optional) A `retention_policy` block as defined below.
 
 * `enabled` - (Optional) Is this Diagnostic Metric enabled? Defaults to `true`.
 

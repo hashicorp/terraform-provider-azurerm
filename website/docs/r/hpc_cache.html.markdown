@@ -12,6 +12,8 @@ Manages a HPC Cache.
 
 ~> **Note**: During the first several months of the GA release, a request must be made to the Azure HPC Cache team to add your subscription to the access list before it can be used to create a cache instance. Fill out [this form](https://aka.ms/onboard-hpc-cache) to request access.
 
+~> **NOTE:**: By request of the service team the provider no longer automatically registering the `Microsoft.StorageCache` Resource Provider for this resource. To register it you can run `az provider register --namespace 'Microsoft.StorageCache'`.
+
 ## Example Usage
 
 ```hcl
@@ -65,6 +67,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The `id` of the HPC Cache.
+
+* `mount_addresses` - A list of IP Addresses where the HPC Cache can be mounted.
 
 ## Timeouts
 

@@ -14,7 +14,7 @@ Use this data source to access information about an existing Management Group.
 
 ```hcl
 data "azurerm_management_group" "example" {
-  group_id = "00000000-0000-0000-0000-000000000000"
+  name = "00000000-0000-0000-0000-000000000000"
 }
 
 output "display_name" {
@@ -26,7 +26,15 @@ output "display_name" {
 
 The following arguments are supported:
 
-* `group_id` - Specifies the UUID of this Management Group.
+* `name` - Specifies the name or UUID of this Management Group.
+
+* `group_id` - Specifies the name or UUID of this Management Group.
+
+~> **NOTE:** The field `group_id` has been deprecated in favour of `name`.
+
+* `display_name` - Specifies the display name of this Management Group.
+
+~> **NOTE** Whilst multiple management groups may share the same display name, when filtering Terraform expects a single management group to be found with this name.  
 
 ## Attributes Reference
 
@@ -34,11 +42,9 @@ The following attributes are exported:
 
 * `id` - The ID of the Management Group.
 
-* `display_name` - A friendly name for the Management Group.
-
 * `parent_management_group_id` - The ID of any Parent Management Group.
 
-* `subscription_ids` - A list of Subscription ID's which are assigned to the Management Group.
+* `subscription_ids` - A list of Subscription IDs which are assigned to the Management Group.
 
 ## Timeouts
 

@@ -128,7 +128,6 @@ func (client WorkspacesClient) CreateOrUpdateSender(req *http.Request) (future W
 func (client WorkspacesClient) CreateOrUpdateResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client WorkspacesClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client WorkspacesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -289,7 +287,6 @@ func (client WorkspacesClient) DisableIntelligencePackSender(req *http.Request) 
 func (client WorkspacesClient) DisableIntelligencePackResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -374,7 +371,6 @@ func (client WorkspacesClient) EnableIntelligencePackSender(req *http.Request) (
 func (client WorkspacesClient) EnableIntelligencePackResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -449,7 +445,6 @@ func (client WorkspacesClient) GetSender(req *http.Request) (*http.Response, err
 func (client WorkspacesClient) GetResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -533,7 +528,6 @@ func (client WorkspacesClient) GetSharedKeysSender(req *http.Request) (*http.Res
 func (client WorkspacesClient) GetSharedKeysResponder(resp *http.Response) (result SharedKeys, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -604,7 +598,6 @@ func (client WorkspacesClient) ListSender(req *http.Request) (*http.Response, er
 func (client WorkspacesClient) ListResponder(resp *http.Response) (result WorkspaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -686,7 +679,6 @@ func (client WorkspacesClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client WorkspacesClient) ListByResourceGroupResponder(resp *http.Response) (result WorkspaceListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -771,7 +763,6 @@ func (client WorkspacesClient) ListIntelligencePacksSender(req *http.Request) (*
 func (client WorkspacesClient) ListIntelligencePacksResponder(resp *http.Response) (result ListIntelligencePack, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result.Value),
 		autorest.ByClosing())
@@ -855,7 +846,6 @@ func (client WorkspacesClient) ListManagementGroupsSender(req *http.Request) (*h
 func (client WorkspacesClient) ListManagementGroupsResponder(resp *http.Response) (result WorkspaceListManagementGroupsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -939,7 +929,6 @@ func (client WorkspacesClient) ListUsagesSender(req *http.Request) (*http.Respon
 func (client WorkspacesClient) ListUsagesResponder(resp *http.Response) (result WorkspaceListUsagesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1026,7 +1015,6 @@ func (client WorkspacesClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client WorkspacesClient) UpdateResponder(resp *http.Response) (result Workspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

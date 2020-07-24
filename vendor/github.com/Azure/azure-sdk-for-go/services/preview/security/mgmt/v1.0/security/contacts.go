@@ -120,7 +120,6 @@ func (client ContactsClient) CreateSender(req *http.Request) (*http.Response, er
 func (client ContactsClient) CreateResponder(resp *http.Response) (result Contact, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client ContactsClient) DeleteSender(req *http.Request) (*http.Response, er
 func (client ContactsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -279,7 +277,6 @@ func (client ContactsClient) GetSender(req *http.Request) (*http.Response, error
 func (client ContactsClient) GetResponder(resp *http.Response) (result Contact, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -357,7 +354,6 @@ func (client ContactsClient) ListSender(req *http.Request) (*http.Response, erro
 func (client ContactsClient) ListResponder(resp *http.Response) (result ContactList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -477,7 +473,6 @@ func (client ContactsClient) UpdateSender(req *http.Request) (*http.Response, er
 func (client ContactsClient) UpdateResponder(resp *http.Response) (result Contact, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsStreamInputBlob_avro(t *testing.T) {
@@ -95,11 +94,6 @@ func TestAccAzureRMStreamAnalyticsStreamInputBlob_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsStreamInputBlob_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_blob", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -258,7 +252,6 @@ resource "azurerm_storage_account" "updated" {
 
 resource "azurerm_storage_container" "updated" {
   name                  = "example2"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
@@ -299,9 +292,8 @@ resource "azurerm_stream_analytics_stream_input_blob" "import" {
   dynamic "serialization" {
     for_each = azurerm_stream_analytics_stream_input_blob.test.serialization
     content {
-      encoding        = lookup(serialization.value, "encoding", null)
-      field_delimiter = lookup(serialization.value, "field_delimiter", null)
-      type            = serialization.value.type
+      encoding = lookup(serialization.value, "encoding", null)
+      type     = serialization.value.type
     }
   }
 }
@@ -329,7 +321,6 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "example"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }

@@ -43,9 +43,13 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the Shared Image Gallery exists.
 
+* `specialized` - Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run).
+
 * `identifier` - An `identifier` block as defined below.
 
 * `os_type` - The type of Operating System present in this Shared Image.
+
+* `hyper_v_generation` - The generation of HyperV that the Virtual Machine used to create the Shared Image is based on.
 
 * `privacy_statement_uri` - The URI containing the Privacy Statement for this Shared Image.
 

@@ -82,7 +82,44 @@ resource "azurerm_function_app" "example" {
   storage_connection_string = azurerm_storage_account.example.primary_connection_string
 }
 ```
+## Example Usage (Linux)
 
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "azure-functions-cptest-rg"
+  location = "westus2"
+}
+
+resource "azurerm_storage_account" "example" {
+  name                     = "functionsapptestsa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "example" {
+  name                = "azure-functions-test-service-plan"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  kind                = "FunctionApp"
+  reserved            = true
+
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+}
+
+resource "azurerm_function_app" "example" {
+  name                      = "test-azure-functions"
+  location                  = azurerm_resource_group.example.location
+  resource_group_name       = azurerm_resource_group.example.name
+  app_service_plan_id       = azurerm_app_service_plan.example.id
+  storage_connection_string = azurerm_storage_account.example.primary_connection_string
+  os_type                   = "linux"
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -95,9 +132,13 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App.
 
-* `storage_connection_string` - (Required) The connection string of the backend storage account which will be used by this Function App (such as the dashboard, logs).
+* `storage_connection_string`- (Required) The connection string to the backend storage account which will be used by this Function App (such as the dashboard, logs). Typically set to the `primary_connection_string` of a storage account resource.
 
-* `app_settings` - (Optional) A key-value pair of App Settings.
+* `storage_account_name` - (Required) The backend storage account name which will be used by this Function App (such as the dashboard, logs).
+
+* `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
+
+* `app_settings` - (Optional) A map of key-value pairs for [App Settings](https://docs.microsoft.com/en-us/azure/azure-functions/functions-app-settings) and custom values.
 
 ~> **Note:** When integrating a `CI/CD pipeline` and expecting to run from a deployed package in `Azure` you must seed your `app settings` as part of terraform code for function app to be successfully deployed. `Important Default key pairs`: (`"WEBSITE_RUN_FROM_PACKAGE" = ""`, `"FUNCTIONS_WORKER_RUNTIME" = "node"` (or python, etc), `"WEBSITE_NODE_DEFAULT_VERSION" = "10.14.1"`, `"APPINSIGHTS_INSTRUMENTATIONKEY" = ""`).
 
@@ -111,7 +152,7 @@ The following arguments are supported:
 
 * `os_type` - (Optional) A string indicating the Operating System type for this function app. 
 
-~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). 
+~> **NOTE:** This value will be `linux` for Linux Derivatives or an empty string for Windows (default). When set to `linux` you must also set `azurerm_app_service_plan` arguments as `kind = "FunctionApp"` and `reserved = true`
 
 * `client_affinity_enabled` - (Optional) Should the Function App send session affinity cookies, which route client requests in the same session to the same instance?
 
@@ -157,9 +198,13 @@ The following arguments are supported:
 
 * `ftps_state` - (Optional) State of FTP / FTPS service for this function app. Possible values include: `AllAllowed`, `FtpsOnly` and `Disabled`.
 
+* `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on the Premium plan.
+
 * `cors` - (Optional) A `cors` block as defined below.
 
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
+-> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
 ---
 

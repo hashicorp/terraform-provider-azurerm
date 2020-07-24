@@ -240,9 +240,8 @@ The following arguments are supported:
 
 * `routing_weight` - (Optional) The routing weight. Defaults to `10`.
 
-* `shared_key` - (Optional) The shared IPSec key. A key must be provided if a
-    Site-to-Site or VNet-to-VNet connection is created whereas ExpressRoute
-    connections do not need a shared key.
+* `shared_key` - (Optional) The shared IPSec key. A key could be provided if a
+    Site-to-Site, VNet-to-VNet or ExpressRoute connection is created.
 
 * `connection_protocol` - (Optional) The IKE protocol version to use. Possible
     values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`.
@@ -261,6 +260,10 @@ The following arguments are supported:
 * `ipsec_policy` (Optional) A `ipsec_policy` block which is documented below.
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
+
+* `traffic_selector_policy` A `traffic_selector_policy` which allows to specify traffic selector policy proposal to be used in a virtual network gateway connection.
+    Only one block can be defined for a connection.
+    For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

@@ -28,6 +28,8 @@ The following arguments are supported:
 
 * `name` - The name of the Image Version.
 
+~> **Note:** You may specify `latest` to obtain the latest version or `recent` to obtain the most recently updated version.
+
 * `image_name` - The name of the Shared Image in which this Version exists.
 
 * `gallery_name` - The name of the Shared Image in which the Shared Image exists.
@@ -47,6 +49,8 @@ The following attributes are exported:
 * `managed_image_id` - The ID of the Managed Image which was the source of this Shared Image Version.
 
 * `target_region` - One or more `target_region` blocks as documented below.
+
+* `os_disk_snapshot_id` - The ID of the OS disk snapshot which was the source of this Shared Image Version.
 
 * `tags` - A mapping of tags assigned to the Shared Image.
 

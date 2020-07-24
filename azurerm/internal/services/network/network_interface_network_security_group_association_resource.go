@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -100,7 +100,7 @@ func resourceArmNetworkInterfaceSecurityGroupAssociationCreate(d *schema.Resourc
 	resourceId := fmt.Sprintf("%s|%s", networkInterfaceId, networkSecurityGroupId)
 	if features.ShouldResourcesBeImported() {
 		if props.NetworkSecurityGroup != nil {
-			return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceGroup)
+			return tf.ImportAsExistsError("azurerm_network_interface_security_group_association", resourceId)
 		}
 	}
 

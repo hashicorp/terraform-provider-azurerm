@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -34,11 +33,6 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSearchService_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_search_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -69,11 +63,12 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 				Config: testAccAzureRMSearchService_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSearchServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "replica_count", "2"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "secondary_key"),
 					resource.TestCheckResourceAttr(data.ResourceName, "query_keys.#", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -95,6 +90,7 @@ func TestAccAzureRMSearchService_update(t *testing.T) {
 					testCheckAzureRMSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "staging"),
+					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "true"),
 				),
 			},
 			{
@@ -103,6 +99,7 @@ func TestAccAzureRMSearchService_update(t *testing.T) {
 					testCheckAzureRMSearchServiceExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.environment", "Production"),
+					resource.TestCheckResourceAttr(data.ResourceName, "public_network_access_enabled", "false"),
 				),
 			},
 		},
@@ -225,6 +222,8 @@ resource "azurerm_search_service" "test" {
   sku                 = "standard"
   replica_count       = 2
   partition_count     = 3
+
+  public_network_access_enabled = false
 
   tags = {
     environment = "Production"

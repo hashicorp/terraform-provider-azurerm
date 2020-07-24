@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -33,10 +32,6 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageDataLakeGen2FileSystem_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -81,6 +76,34 @@ func TestAccAzureRMStorageDataLakeGen2FileSystem_properties(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageDataLakeGen2FileSystem_handlesStorageAccountDeletion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_data_lake_gen2_filesystem", "test")
+	config := testAccAzureRMStorageDataLakeGen2FileSystem_basic(data)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMStorageDataLakeGen2FileSystemDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageDataLakeGen2FileSystemExists(data.ResourceName),
+					testAzureRMStorageDataLakeGen2StorageAccountDelete(data.ResourceName),
+				),
+				ExpectNonEmptyPlan: true,
+			},
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageDataLakeGen2FileSystemExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.FileSystemsClient
@@ -104,6 +127,29 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) re
 			}
 
 			return fmt.Errorf("Bad: Get on FileSystemsClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testAzureRMStorageDataLakeGen2StorageAccountDelete(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Storage.AccountsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		if err != nil {
+			return err
+		}
+
+		if _, err := client.Delete(ctx, storageID.ResourceGroup, storageID.Name); err != nil {
+			return fmt.Errorf("Unable to delete azurerm_storage_account: %+v", storageID.Name)
 		}
 
 		return nil
@@ -194,6 +240,7 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  is_hns_enabled           = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

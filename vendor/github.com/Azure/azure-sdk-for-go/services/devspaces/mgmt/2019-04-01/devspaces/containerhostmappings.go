@@ -121,7 +121,6 @@ func (client ContainerHostMappingsClient) GetContainerHostMappingSender(req *htt
 func (client ContainerHostMappingsClient) GetContainerHostMappingResponder(resp *http.Response) (result ContainerHostMapping, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -133,17 +133,33 @@ func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSet(t *testing.T) {
 		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data),
+				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data),
 				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
+					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccLinuxVirtualMachine_diskOSDiskEncryptionSetUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
 			{
-				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data),
+				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetUnencrypted(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
 			},
+			data.ImportStep(),
 			{
-				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSet(data),
+				Config: testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data),
 				Check: resource.ComposeTestCheckFunc(
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
@@ -449,12 +465,11 @@ resource "azurerm_linux_virtual_machine" "test" {
 }
 
 func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetDependencies(data acceptance.TestData) string {
-	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
-	// TODO: switch back to default location
-	// once that's done this can also use the same template as everything else too
-	location := "westus2"
-
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 # note: whilst these aren't used in all tests, it saves us redefining these everywhere
 locals {
   first_public_key  = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"
@@ -474,7 +489,10 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
+  soft_delete_enabled         = true
+  purge_protection_enabled    = true
   enabled_for_disk_encryption = true
+
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
@@ -539,7 +557,7 @@ resource "azurerm_network_interface" "test" {
     private_ip_address_allocation = "Dynamic"
   }
 }
-`, data.RandomInteger, location, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data acceptance.TestData) string {
@@ -579,7 +597,47 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
 `, template, data.RandomInteger)
 }
 
-func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSet(data acceptance.TestData) string {
+func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetUnencrypted(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  depends_on = [
+    "azurerm_role_assignment.disk-encryption-read-keyvault",
+    "azurerm_key_vault_access_policy.disk-encryption",
+  ]
+}
+`, template, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetEncrypted(data acceptance.TestData) string {
 	template := testLinuxVirtualMachine_diskOSDiskDiskEncryptionSetResource(data)
 	return fmt.Sprintf(`
 %s
@@ -601,8 +659,8 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   os_disk {
     caching                = "ReadWrite"
-    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
     storage_account_type   = "Standard_LRS"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
   }
 
   source_image_reference {

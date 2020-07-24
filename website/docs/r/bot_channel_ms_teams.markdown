@@ -6,7 +6,7 @@ description: |-
   Manages an MS Teams integration for a Bot Channel
 ---
 
-# azurerm_bot_connection
+# azurerm_bot_channel_ms_teams
 
 Manages a MS Teams integration for a Bot Channel
 
@@ -25,17 +25,15 @@ resource "azurerm_resource_group" "example" {
 resource "azurerm_bot_channels_registration" "example" {
   name                = "example"
   location            = "global"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "F0"
   microsoft_app_id    = "${data.azurerm_client_config.current.client_id}"
 }
 
 resource "azurerm_bot_channel_ms_teams" "example" {
-  bot_name            = "${azurerm_bot_channels_registration.example.name}"
-  location            = "${azurerm_bot_channels_registration.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  calling_web_hook    = "https://example2.com/"
-  enable_calling      = false
+  bot_name            = azurerm_bot_channels_registration.example.name
+  location            = azurerm_bot_channels_registration.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 ```
 

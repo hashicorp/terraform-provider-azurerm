@@ -127,6 +127,10 @@ func TestAzureRMApiManagementApiPath_validation(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
+			Value:    ".well-known",
+			ErrCount: 0,
+		},
+		{
 			Value:    s.Repeat("x", 401),
 			ErrCount: 1,
 		},
@@ -181,6 +185,68 @@ func TestAzureRMApiManagementApiName_validation(t *testing.T) {
 
 		if len(errors) != tc.ErrCount {
 			t.Fatalf("Expected the Api Management Api Name to trigger a validation error for '%s'", tc.Value)
+		}
+	}
+}
+
+func TestApiManagementChildName(t *testing.T) {
+	cases := []struct {
+		name  string
+		input string
+		valid bool
+	}{
+		{
+			name:  "Empty",
+			input: "",
+			valid: false,
+		},
+		{
+			name:  "1",
+			input: "1",
+			valid: true,
+		},
+		{
+			name:  "v-",
+			input: "v-",
+			valid: false,
+		},
+		{
+			name:  "v-1",
+			input: "v-1",
+			valid: true,
+		},
+		{
+			name:  "V1",
+			input: "V1",
+			valid: true,
+		},
+		{
+			name:  "v_1",
+			input: "v_1",
+			valid: false,
+		},
+		{
+			name:  "v.1",
+			input: "v.1",
+			valid: false,
+		},
+		{
+			name:  "v1-",
+			input: "v1-",
+			valid: false,
+		},
+		{
+			name:  "-v1",
+			input: "-v1",
+			valid: false,
+		},
+	}
+
+	for _, tt := range cases {
+		_, err := ApiManagementChildName(tt.input, "azurerm_api_management_api_version_set")
+		valid := err == nil
+		if valid != tt.valid {
+			t.Errorf("Expected valid status %t but got %t for input %s", tt.valid, valid, tt.input)
 		}
 	}
 }

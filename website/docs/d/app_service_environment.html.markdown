@@ -41,3 +41,9 @@ output "app_service_environment_id" {
 * `pricing_tier` - The Pricing Tier (Isolated SKU) of the App Service Environment.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the App Service Environment.

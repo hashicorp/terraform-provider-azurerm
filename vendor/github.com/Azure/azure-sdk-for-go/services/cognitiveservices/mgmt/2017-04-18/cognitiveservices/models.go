@@ -29,6 +29,23 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
 
+// IdentityType enumerates the values for identity type.
+type IdentityType string
+
+const (
+	// None ...
+	None IdentityType = "None"
+	// SystemAssigned ...
+	SystemAssigned IdentityType = "SystemAssigned"
+	// UserAssigned ...
+	UserAssigned IdentityType = "UserAssigned"
+)
+
+// PossibleIdentityTypeValues returns an array of possible values for the IdentityType const type.
+func PossibleIdentityTypeValues() []IdentityType {
+	return []IdentityType{None, SystemAssigned, UserAssigned}
+}
+
 // KeyName enumerates the values for key name.
 type KeyName string
 
@@ -44,6 +61,21 @@ func PossibleKeyNameValues() []KeyName {
 	return []KeyName{Key1, Key2}
 }
 
+// KeySource enumerates the values for key source.
+type KeySource string
+
+const (
+	// MicrosoftCognitiveServices ...
+	MicrosoftCognitiveServices KeySource = "Microsoft.CognitiveServices"
+	// MicrosoftKeyVault ...
+	MicrosoftKeyVault KeySource = "Microsoft.KeyVault"
+)
+
+// PossibleKeySourceValues returns an array of possible values for the KeySource const type.
+func PossibleKeySourceValues() []KeySource {
+	return []KeySource{MicrosoftCognitiveServices, MicrosoftKeyVault}
+}
+
 // NetworkRuleAction enumerates the values for network rule action.
 type NetworkRuleAction string
 
@@ -57,6 +89,25 @@ const (
 // PossibleNetworkRuleActionValues returns an array of possible values for the NetworkRuleAction const type.
 func PossibleNetworkRuleActionValues() []NetworkRuleAction {
 	return []NetworkRuleAction{Allow, Deny}
+}
+
+// PrivateEndpointServiceConnectionStatus enumerates the values for private endpoint service connection status.
+type PrivateEndpointServiceConnectionStatus string
+
+const (
+	// Approved ...
+	Approved PrivateEndpointServiceConnectionStatus = "Approved"
+	// Disconnected ...
+	Disconnected PrivateEndpointServiceConnectionStatus = "Disconnected"
+	// Pending ...
+	Pending PrivateEndpointServiceConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateEndpointServiceConnectionStatus = "Rejected"
+)
+
+// PossiblePrivateEndpointServiceConnectionStatusValues returns an array of possible values for the PrivateEndpointServiceConnectionStatus const type.
+func PossiblePrivateEndpointServiceConnectionStatusValues() []PrivateEndpointServiceConnectionStatus {
+	return []PrivateEndpointServiceConnectionStatus{Approved, Disconnected, Pending, Rejected}
 }
 
 // ProvisioningState enumerates the values for provisioning state.
@@ -80,6 +131,21 @@ const (
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
 	return []ProvisioningState{Creating, Deleting, Failed, Moving, ResolvingDNS, Succeeded}
+}
+
+// PublicNetworkAccess enumerates the values for public network access.
+type PublicNetworkAccess string
+
+const (
+	// Disabled ...
+	Disabled PublicNetworkAccess = "Disabled"
+	// Enabled ...
+	Enabled PublicNetworkAccess = "Enabled"
+)
+
+// PossiblePublicNetworkAccessValues returns an array of possible values for the PublicNetworkAccess const type.
+func PossiblePublicNetworkAccessValues() []PublicNetworkAccess {
+	return []PublicNetworkAccess{Disabled, Enabled}
 }
 
 // QuotaUsageStatus enumerates the values for quota usage status.
@@ -195,6 +261,8 @@ type Account struct {
 	Tags map[string]*string `json:"tags"`
 	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
+	// Identity - The identity of Cognitive Services account.
+	Identity *Identity `json:"identity,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Account.
@@ -214,6 +282,9 @@ func (a Account) MarshalJSON() ([]byte, error) {
 	}
 	if a.Tags != nil {
 		objectMap["tags"] = a.Tags
+	}
+	if a.Identity != nil {
+		objectMap["identity"] = a.Identity
 	}
 	return json.Marshal(objectMap)
 }
@@ -400,12 +471,34 @@ type AccountProperties struct {
 	Endpoint *string `json:"endpoint,omitempty"`
 	// InternalID - READ-ONLY; The internal identifier.
 	InternalID *string `json:"internalId,omitempty"`
+	// Capabilities - READ-ONLY; Gets the capabilities of the cognitive services account. Each item indicates the capability of a specific feature. The values are read-only and for reference only.
+	Capabilities *[]SkuCapability `json:"capabilities,omitempty"`
 	// CustomSubDomainName - Optional subdomain name used for token-based authentication.
 	CustomSubDomainName *string `json:"customSubDomainName,omitempty"`
 	// NetworkAcls - A collection of rules governing the accessibility from specific network locations.
 	NetworkAcls *NetworkRuleSet `json:"networkAcls,omitempty"`
+	// Encryption - The encryption properties for this resource.
+	Encryption *Encryption `json:"encryption,omitempty"`
+	// UserOwnedStorage - The storage accounts for this resource.
+	UserOwnedStorage *[]UserOwnedStorage `json:"userOwnedStorage,omitempty"`
+	// PrivateEndpointConnections - The private endpoint connection associated with the Cognitive Services account.
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+	// PublicNetworkAccess - Whether or not public endpoint access is allowed for this account. Value is optional but if passed in, must be 'Enabled' or 'Disabled'. Possible values include: 'Enabled', 'Disabled'
+	PublicNetworkAccess PublicNetworkAccess `json:"publicNetworkAccess,omitempty"`
 	// APIProperties - The api properties for special APIs.
 	APIProperties *AccountAPIProperties `json:"apiProperties,omitempty"`
+}
+
+// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
+type AzureEntityResource struct {
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // CheckDomainAvailabilityParameter check Domain availability parameter.
@@ -462,6 +555,14 @@ type CheckSkuAvailabilityResultList struct {
 	Value *[]CheckSkuAvailabilityResult `json:"value,omitempty"`
 }
 
+// Encryption properties to configure Encryption
+type Encryption struct {
+	// KeyVaultProperties - Properties of KeyVault
+	KeyVaultProperties *KeyVaultProperties `json:"keyVaultProperties,omitempty"`
+	// KeySource - Enumerates the possible value of keySource for Encryption. Possible values include: 'MicrosoftCognitiveServices', 'MicrosoftKeyVault'
+	KeySource KeySource `json:"keySource,omitempty"`
+}
+
 // Error cognitive Services error object.
 type Error struct {
 	// Error - The error body.
@@ -476,10 +577,44 @@ type ErrorBody struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// Identity managed service identity.
+type Identity struct {
+	// Type - Type of managed service identity. Possible values include: 'None', 'SystemAssigned', 'UserAssigned'
+	Type IdentityType `json:"type,omitempty"`
+	// TenantID - READ-ONLY; Tenant of managed service identity.
+	TenantID *string `json:"tenantId,omitempty"`
+	// PrincipalID - READ-ONLY; Principal Id of managed service identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// UserAssignedIdentities - The list of user assigned identities associated with the resource. The user identity dictionary key references will be ARM resource ids in the form: '/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{identityName}
+	UserAssignedIdentities map[string]*UserAssignedIdentity `json:"userAssignedIdentities"`
+}
+
+// MarshalJSON is the custom marshaler for Identity.
+func (i Identity) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if i.Type != "" {
+		objectMap["type"] = i.Type
+	}
+	if i.UserAssignedIdentities != nil {
+		objectMap["userAssignedIdentities"] = i.UserAssignedIdentities
+	}
+	return json.Marshal(objectMap)
+}
+
 // IPRule a rule governing the accessibility from a specific ip address or ip range.
 type IPRule struct {
 	// Value - An IPv4 address range in CIDR notation, such as '124.56.78.91' (simple IP address) or '124.56.78.0/24' (all addresses that start with 124.56.78).
 	Value *string `json:"value,omitempty"`
+}
+
+// KeyVaultProperties properties to configure keyVault Properties
+type KeyVaultProperties struct {
+	// KeyName - Name of the Key from KeyVault
+	KeyName *string `json:"keyName,omitempty"`
+	// KeyVersion - Version of the Key from KeyVault
+	KeyVersion *string `json:"keyVersion,omitempty"`
+	// KeyVaultURI - Uri of KeyVault
+	KeyVaultURI *string `json:"keyVaultUri,omitempty"`
 }
 
 // MetricName a metric name.
@@ -670,10 +805,102 @@ func NewOperationEntityListResultPage(getNextPage func(context.Context, Operatio
 	return OperationEntityListResultPage{fn: getNextPage}
 }
 
+// PrivateEndpoint the Private Endpoint resource.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The ARM identifier for Private Endpoint
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection the Private Endpoint Connection resource.
+type PrivateEndpointConnection struct {
+	autorest.Response `json:"-"`
+	// Properties - Resource properties.
+	Properties *PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The resource of private end point.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between service consumer and provider.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// GroupIds - The private link resource group ids.
+	GroupIds *[]string `json:"groupIds,omitempty"`
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	// Properties - Resource properties.
+	Properties *PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// PrivateLinkResourceListResult a list of private link resources
+type PrivateLinkResourceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// DisplayName - READ-ONLY; The private link resource display name.
+	DisplayName *string `json:"displayName,omitempty"`
+	// RequiredMembers - READ-ONLY; The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The private link resource Private link DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkServiceConnectionState a collection of information about the state of the connection between
+// service consumer and provider.
+type PrivateLinkServiceConnectionState struct {
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected', 'Disconnected'
+	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The reason for approval/rejection of the connection.
+	Description *string `json:"description,omitempty"`
+	// ActionRequired - A message indicating if changes on the service provider require any updates on the consumer.
+	ActionRequired *string `json:"actionRequired,omitempty"`
+}
+
+// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
+// required location and tags
+type ProxyResource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
 // RegenerateKeyParameters regenerate key parameters.
 type RegenerateKeyParameters struct {
 	// KeyName - key name to generate (Key1|Key2). Possible values include: 'Key1', 'Key2'
 	KeyName KeyName `json:"keyName,omitempty"`
+}
+
+// Resource ...
+type Resource struct {
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
 }
 
 // ResourceAndSku cognitive Services resource type and SKU.
@@ -874,6 +1101,40 @@ type Sku struct {
 	Tier SkuTier `json:"tier,omitempty"`
 }
 
+// SkuCapability skuCapability indicates the capability of a certain feature.
+type SkuCapability struct {
+	// Name - The name of the SkuCapability.
+	Name *string `json:"name,omitempty"`
+	// Value - The value of the SkuCapability.
+	Value *string `json:"value,omitempty"`
+}
+
+// TrackedResource the resource model definition for a ARM tracked top level resource
+type TrackedResource struct {
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+	// Location - The geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	return json.Marshal(objectMap)
+}
+
 // Usage the usage data for a usage request.
 type Usage struct {
 	// Unit - The unit of the metric. Possible values include: 'Count', 'Bytes', 'Seconds', 'Percent', 'CountPerSecond', 'BytesPerSecond', 'Milliseconds'
@@ -897,6 +1158,20 @@ type UsagesResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; The list of usages for Cognitive Service account.
 	Value *[]Usage `json:"value,omitempty"`
+}
+
+// UserAssignedIdentity user-assigned managed identity.
+type UserAssignedIdentity struct {
+	// PrincipalID - Azure Active Directory principal ID associated with this Identity.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// ClientID - Client App Id associated with this identity.
+	ClientID *string `json:"clientId,omitempty"`
+}
+
+// UserOwnedStorage the user owned storage for Cognitive Services account.
+type UserOwnedStorage struct {
+	// ResourceID - Full resource id of a Microsoft.Storage resource.
+	ResourceID *string `json:"resourceId,omitempty"`
 }
 
 // VirtualNetworkRule a rule governing the accessibility from a specific virtual network.
