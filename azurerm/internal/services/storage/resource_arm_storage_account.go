@@ -741,9 +741,9 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("static_website"); ok {
-		// static website only supported on Storage V2
-		if accountKind != string(storage.StorageV2) {
-			return fmt.Errorf("`static_website` is only supported for Storage V2.")
+		// static website only supported on StorageV2 and BlockBlobStorage
+		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
+			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
 		}
 		storageClient := meta.(*clients.Client).Storage
 
@@ -948,9 +948,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("static_website") {
-		// static website only supported on Storage V2
-		if accountKind != string(storage.StorageV2) {
-			return fmt.Errorf("`static_website` is only supported for Storage V2.")
+		// static website only supported on StorageV2 and BlockBlobStorage
+		if accountKind != string(storage.StorageV2) && accountKind != string(storage.BlockBlobStorage) {
+			return fmt.Errorf("`static_website` is only supported for StorageV2 and BlockBlobStorage.")
 		}
 		storageClient := meta.(*clients.Client).Storage
 
@@ -1159,8 +1159,8 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	var staticWebsite []interface{}
 
-	// static website only supported on Storage V2
-	if resp.Kind == storage.StorageV2 {
+	// static website only supported on StorageV2 and BlockBlobStorage
+	if resp.Kind == storage.StorageV2 || resp.Kind == storage.BlockBlobStorage {
 		storageClient := meta.(*clients.Client).Storage
 
 		account, err := storageClient.FindAccount(ctx, name)
