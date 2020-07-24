@@ -1,0 +1,357 @@
+package synapse
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/2019-06-01-preview/synapse"
+	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+func resourceArmSynapseSqlPool() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceArmSynapseSqlPoolCreate,
+		Read:   resourceArmSynapseSqlPoolRead,
+		Update: resourceArmSynapseSqlPoolUpdate,
+		Delete: resourceArmSynapseSqlPoolDelete,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				if _, err := parse.SynapseSqlPoolID(d.Id()); err != nil {
+					return []*schema.ResourceData{d}, err
+				}
+
+				d.Set("create_mode", "Default")
+				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
+					d.Set("create_mode", v)
+				}
+
+				return []*schema.ResourceData{d}, nil
+			},
+		},
+
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.SynapseSqlPoolName,
+			},
+
+			"synapse_workspace_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.SynapseWorkspaceID,
+			},
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "DW1000c",
+				ValidateFunc: validation.StringInSlice([]string{
+					"DW100c",
+					"DW200c",
+					"DW300c",
+					"DW400c",
+					"DW500c",
+					"DW1000c",
+					"DW1500c",
+					"DW2000c",
+					"DW2500c",
+					"DW3000c",
+					"DW5000c",
+					"DW6000c",
+					"DW7500c",
+					"DW10000c",
+					"DW15000c",
+					"DW30000c",
+				}, false),
+			},
+
+			"create_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "Default",
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Default",
+					"Recovery",
+					"PointInTimeRestore",
+				}, false),
+			},
+
+			"collation": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
+			"source_database_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"restore_point_in_time": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IsRFC3339Time,
+			},
+
+			"data_encrypted": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"tags": tags.Schema(),
+		},
+	}
+}
+
+func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Synapse.SqlPoolClient
+	sqlPoolTransparentDataEncryptionClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
+	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	name := d.Get("name").(string)
+	workspaceId, _ := parse.SynapseWorkspaceID(d.Get("synapse_workspace_id").(string))
+
+	existing, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for present of existing Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+		}
+	}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_synapse_sql_pool", *existing.ID)
+	}
+
+	workspace, err := workspaceClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name)
+	if err != nil {
+		return fmt.Errorf("reading Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
+	}
+
+	mode := d.Get("create_mode").(string)
+	sqlPoolInfo := synapse.SQLPool{
+		Location: workspace.Location,
+		SQLPoolResourceProperties: &synapse.SQLPoolResourceProperties{
+			CreateMode: utils.String(mode),
+		},
+		Sku: &synapse.Sku{
+			Name: utils.String(d.Get("sku_name").(string)),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	switch mode {
+	case "Default":
+		sqlPoolInfo.SQLPoolResourceProperties.Collation = utils.String(d.Get("collation").(string))
+	case "Recovery":
+		sourceDatabaseId := d.Get("source_database_id").(string)
+		if sourceDatabaseId == "" {
+			return fmt.Errorf("`source_database_id` must be set when `create_mode` is `Recovery`")
+		}
+		sqlPoolInfo.SQLPoolResourceProperties.RecoverableDatabaseID = utils.String(sourceDatabaseId)
+	case "PointInTimeRestore":
+		sourceDatabaseId := d.Get("source_database_id").(string)
+		restorePointInTimeStr := d.Get("restore_point_in_time").(string)
+		if sourceDatabaseId == "" || restorePointInTimeStr == "" {
+			return fmt.Errorf("`source_database_id` and `restore_point_in_time` must be set when `create_mode` is `PointInTimeRestore`")
+		}
+		restorePointInTime, _ := time.Parse(time.RFC3339, restorePointInTimeStr)
+		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
+		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(d.Get("source_database_id").(string))
+	}
+
+	future, err := client.Create(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, sqlPoolInfo)
+	if err != nil {
+		return fmt.Errorf("creating Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on creating future for Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+	}
+
+	if d.Get("data_encrypted").(bool) {
+		parameter := synapse.TransparentDataEncryption{
+			TransparentDataEncryptionProperties: &synapse.TransparentDataEncryptionProperties{
+				Status: synapse.TransparentDataEncryptionStatusEnabled,
+			},
+		}
+		if _, err := sqlPoolTransparentDataEncryptionClient.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, parameter); err != nil {
+			return fmt.Errorf("setting `data_encrypted`: %+v", err)
+		}
+	}
+
+	resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
+	if err != nil {
+		return fmt.Errorf("retrieving Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+	}
+
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("empty or nil ID returned for Synapse SqlPool %q (Resource Group %q / workspaceName %q) ID", name, workspaceId.ResourceGroup, workspaceId.Name)
+	}
+
+	d.SetId(*resp.ID)
+	return resourceArmSynapseSqlPoolRead(d, meta)
+}
+
+func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Synapse.SqlPoolClient
+	sqlPoolTransparentDataEncryptionClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.SynapseSqlPoolID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if d.HasChange("data_encrypted") {
+		status := synapse.TransparentDataEncryptionStatusDisabled
+		if d.Get("data_encrypted").(bool) {
+			status = synapse.TransparentDataEncryptionStatusEnabled
+		}
+
+		parameter := synapse.TransparentDataEncryption{
+			TransparentDataEncryptionProperties: &synapse.TransparentDataEncryptionProperties{
+				Status: status,
+			},
+		}
+		if _, err := sqlPoolTransparentDataEncryptionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameter); err != nil {
+			return fmt.Errorf("updating `data_encrypted`: %+v", err)
+		}
+	}
+
+	if d.HasChanges("sku_name", "tags") {
+		sqlPoolInfo := synapse.SQLPoolPatchInfo{
+			Sku: &synapse.Sku{
+				Name: utils.String(d.Get("sku_name").(string)),
+			},
+			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		}
+
+		if _, err := client.Update(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, sqlPoolInfo); err != nil {
+			return fmt.Errorf("updating Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		}
+
+		// wait for sku scale completion
+		if d.HasChange("sku_name") {
+			stateConf := &resource.StateChangeConf{
+				Pending: []string{
+					"Scaling",
+				},
+				Target: []string{
+					"Online",
+				},
+				Refresh:                   synapseSqlPoolScaleStateRefreshFunc(ctx, client, id.ResourceGroup, id.WorkspaceName, id.Name),
+				MinTimeout:                5 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Timeout:                   d.Timeout(schema.TimeoutUpdate),
+			}
+
+			if _, err := stateConf.WaitForState(); err != nil {
+				return fmt.Errorf("waiting for scaling of Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+			}
+		}
+	}
+
+	return resourceArmSynapseSqlPoolRead(d, meta)
+}
+
+func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Synapse.SqlPoolClient
+	sqlPoolTransparentDataEncryptionClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.SynapseSqlPoolID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] synapse %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+	}
+
+	transparentDataEncryption, err := sqlPoolTransparentDataEncryptionClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	if err != nil {
+		return fmt.Errorf("retrieving Transparent Data Encryption settings of Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+	}
+
+	d.Set("name", id.Name)
+	d.Set("synapse_workspace_id", id.WorkspaceId)
+	if resp.Sku != nil {
+		d.Set("sku_name", resp.Sku.Name)
+	}
+	if props := resp.SQLPoolResourceProperties; props != nil {
+		d.Set("collation", props.Collation)
+		d.Set("restore_point_in_time", props.RestorePointInTime.Format(time.RFC3339))
+	}
+	if props := transparentDataEncryption.TransparentDataEncryptionProperties; props != nil {
+		d.Set("data_encrypted", props.Status == synapse.TransparentDataEncryptionStatusEnabled)
+	}
+	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceArmSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Synapse.SqlPoolClient
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.SynapseSqlPoolID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	if err != nil {
+		return fmt.Errorf("deleting Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on deleting future for Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+	}
+	return nil
+}
+
+func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQLPoolsClient, resourceGroup, workspaceName, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, resourceGroup, workspaceName, name)
+		if err != nil {
+			return resp, "failed", err
+		}
+		if resp.SQLPoolResourceProperties == nil || resp.SQLPoolResourceProperties.Status == nil {
+			return resp, "failed", nil
+		}
+		return resp, *resp.SQLPoolResourceProperties.Status, nil
+	}
+}
