@@ -15,11 +15,10 @@ func SynapseBigDataPoolName(i interface{}, k string) (warnings []string, errors 
 	// The name attribute rules are :
 	// 1. must contain only letters or numbers.
 	// 2. must start with a letter.
-	// 3. Name must end with a letter or a number.
-	// 4. must be between 1 and 15 characters long
+	// 3. must be between 1 and 15 characters long
 
 	if !regexp.MustCompile(`^[a-zA-Z][a-zA-Z\d]{0,14}$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%s can contain only letters or numbers, must start with a letter, end with a letter or a number, and be between 1 and 15 characters long", k))
+		errors = append(errors, fmt.Errorf("%s can contain only letters or numbers, must start with a letter, and be between 1 and 15 characters long", k))
 		return
 	}
 

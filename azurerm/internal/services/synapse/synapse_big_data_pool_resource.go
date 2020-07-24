@@ -236,17 +236,17 @@ func resourceArmSynapseBigDataPoolRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Synapse BigDataPool %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", id.WorkspaceId)
+	d.Set("synapse_workspace_id", id.Workspace.String())
 	if props := resp.BigDataPoolResourceProperties; props != nil {
 		if err := d.Set("auto_pause", flattenArmBigDataPoolAutoPauseProperties(props.AutoPause)); err != nil {
 			return fmt.Errorf("setting `auto_pause`: %+v", err)
@@ -259,7 +259,7 @@ func resourceArmSynapseBigDataPoolRead(d *schema.ResourceData, meta interface{})
 		}
 		d.Set("node_count", props.NodeCount)
 		d.Set("node_size", props.NodeSize)
-		d.Set("node_size_family", props.NodeSizeFamily)
+		d.Set("node_size_family", string(props.NodeSizeFamily))
 		d.Set("spark_version", props.SparkVersion)
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -275,13 +275,13 @@ func resourceArmSynapseBigDataPoolDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	future, err := client.Delete(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("deleting Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("waiting for deleting Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 	return nil
 }

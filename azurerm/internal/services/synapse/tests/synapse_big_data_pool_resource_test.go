@@ -112,7 +112,7 @@ func testCheckAzureRMSynapseBigDataPoolExists(resourceName string) resource.Test
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Synapse BigDataPool %q does not exist", id.Name)
 			}
@@ -134,12 +134,13 @@ func testCheckAzureRMSynapseBigDataPoolDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+		resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on Synapse.BigDataPoolClient: %+v", err)
 			}
 		}
-		return nil
+		return fmt.Errorf("expected no bigDataPool but found %+v", resp)
 	}
 	return nil
 }

@@ -109,9 +109,9 @@ An `auto_scale` block exports the following:
 
 An `library_requirement` block exports the following:
 
-* `content` - (Required) The library requirements.
+* `content` - (Required) The content of library requirements.
 
-* `filename` - (Required) The filename of the library requirements file.
+* `filename` - (Required) The name of the library requirements file.
 
 ## Attributes Reference
 

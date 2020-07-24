@@ -7,10 +7,8 @@ import (
 )
 
 type SynapseBigDataPoolId struct {
-	ResourceGroup string
-	WorkspaceName string
-	WorkspaceId   string
-	Name          string
+	Workspace *SynapseWorkspaceId
+	Name      string
 }
 
 func SynapseBigDataPoolID(input string) (*SynapseBigDataPoolId, error) {
@@ -20,9 +18,12 @@ func SynapseBigDataPoolID(input string) (*SynapseBigDataPoolId, error) {
 	}
 
 	synapseBigDataPool := SynapseBigDataPoolId{
-		ResourceGroup: id.ResourceGroup,
+		Workspace: &SynapseWorkspaceId{
+			SubscriptionID: id.SubscriptionID,
+			ResourceGroup:  id.ResourceGroup,
+		},
 	}
-	if synapseBigDataPool.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
+	if synapseBigDataPool.Workspace.Name, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
 	if synapseBigDataPool.Name, err = id.PopSegment("bigDataPools"); err != nil {
@@ -32,6 +33,5 @@ func SynapseBigDataPoolID(input string) (*SynapseBigDataPoolId, error) {
 		return nil, err
 	}
 
-	synapseBigDataPool.WorkspaceId = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Synapse/workspaces/%s", id.SubscriptionID, id.ResourceGroup, synapseBigDataPool.WorkspaceName)
 	return &synapseBigDataPool, nil
 }
