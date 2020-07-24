@@ -3,6 +3,7 @@ package policy
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"log"
 	"time"
 
@@ -77,6 +78,16 @@ func resourceArmPolicyRemediation() *schema.Resource {
 				// TODO: remove this suppression when github issue https://github.com/Azure/azure-rest-api-specs/issues/8353 is addressed
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
+			"resource_discovery_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(policyinsights.ExistingNonCompliant),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(policyinsights.ExistingNonCompliant),
+					string(policyinsights.ReEvaluateCompliance),
+				}, false),
+			},
 		},
 	}
 }
@@ -111,6 +122,7 @@ func resourceArmPolicyRemediationCreateUpdate(d *schema.ResourceData, meta inter
 			},
 			PolicyAssignmentID:          utils.String(d.Get("policy_assignment_id").(string)),
 			PolicyDefinitionReferenceID: utils.String(d.Get("policy_definition_reference_id").(string)),
+			ResourceDiscoveryMode:       policyinsights.ResourceDiscoveryMode(d.Get("resource_discovery_mode").(string)),
 		},
 	}
 
@@ -177,6 +189,7 @@ func resourceArmPolicyRemediationRead(d *schema.ResourceData, meta interface{}) 
 
 		d.Set("policy_assignment_id", props.PolicyAssignmentID)
 		d.Set("policy_definition_reference_id", props.PolicyDefinitionReferenceID)
+		d.Set("resource_discovery_mode", string(props.ResourceDiscoveryMode))
 	}
 
 	return nil

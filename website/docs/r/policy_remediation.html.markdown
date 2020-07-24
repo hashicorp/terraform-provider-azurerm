@@ -95,6 +95,8 @@ The following arguments are supported:
 
 * `location_filters` - (Optional) A list of the resource locations that will be remediated.
 
+* `resource_discovery_mode` - (Optional) The way that resources to remediate are discovered. Possible values are `ExistingNonCompliant`, `ReEvaluateCompliance`. Defaults to `ExistingNonCompliant`.
+
 ## Attributes Reference
 
 The following attributes are exported:
