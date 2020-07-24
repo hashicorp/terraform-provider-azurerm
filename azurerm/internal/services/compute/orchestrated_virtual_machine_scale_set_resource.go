@@ -70,10 +70,10 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"single_placement_group": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				ForceNew:   true,
-				Default:    false,
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
 			},
 
 			// the VMO mode can only be deployed into one zone for now, and its zone will also be assigned to all its VM instances
