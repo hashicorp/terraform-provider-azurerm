@@ -74,7 +74,6 @@ func resourceArmOrchestratedVirtualMachineScaleSet() *schema.Resource {
 				Optional:   true,
 				ForceNew:   true,
 				Default:    false,
-				Deprecated: "Due to an upgrade of the compute API this preview property has now been deprecated and required to be false in the 2019-12-01 api versions for orchestrated VMSS - as it will always be false for the current and future API versions this property now defaults to false and will removed in version 3.0 of the provider.",
 			},
 
 			// the VMO mode can only be deployed into one zone for now, and its zone will also be assigned to all its VM instances
