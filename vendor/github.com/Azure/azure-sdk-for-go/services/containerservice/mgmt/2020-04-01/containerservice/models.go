@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
 
 // AgentPoolMode enumerates the values for agent pool mode.
 type AgentPoolMode string
@@ -340,8 +340,6 @@ func PossibleScaleSetEvictionPolicyValues() []ScaleSetEvictionPolicy {
 type ScaleSetPriority string
 
 const (
-	// Low ...
-	Low ScaleSetPriority = "Low"
 	// Regular ...
 	Regular ScaleSetPriority = "Regular"
 	// Spot ...
@@ -350,7 +348,7 @@ const (
 
 // PossibleScaleSetPriorityValues returns an array of possible values for the ScaleSetPriority const type.
 func PossibleScaleSetPriorityValues() []ScaleSetPriority {
-	return []ScaleSetPriority{Low, Regular, Spot}
+	return []ScaleSetPriority{Regular, Spot}
 }
 
 // StorageProfileTypes enumerates the values for storage profile types.
@@ -1198,6 +1196,8 @@ type AgentPoolUpgradeProfileProperties struct {
 	OsType OSType `json:"osType,omitempty"`
 	// Upgrades - List of orchestrator types and versions available for upgrade.
 	Upgrades *[]AgentPoolUpgradeProfilePropertiesUpgradesItem `json:"upgrades,omitempty"`
+	// LatestNodeImageVersion - LatestNodeImageVersion is the latest AKS supported node image version.
+	LatestNodeImageVersion *string `json:"latestNodeImageVersion,omitempty"`
 }
 
 // AgentPoolUpgradeProfilePropertiesUpgradesItem ...
@@ -1206,6 +1206,12 @@ type AgentPoolUpgradeProfilePropertiesUpgradesItem struct {
 	KubernetesVersion *string `json:"kubernetesVersion,omitempty"`
 	// IsPreview - Whether Kubernetes version is currently in preview.
 	IsPreview *bool `json:"isPreview,omitempty"`
+}
+
+// AgentPoolUpgradeSettings settings for upgrading an agentpool
+type AgentPoolUpgradeSettings struct {
+	// MaxSurge - Count or percentage of additional nodes to be added during upgrade. If empty uses AKS default
+	MaxSurge *string `json:"maxSurge,omitempty"`
 }
 
 // CloudError an error response from the Container service.
@@ -1876,15 +1882,19 @@ type ManagedClusterAgentPoolProfile struct {
 	Mode AgentPoolMode `json:"mode,omitempty"`
 	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
+	// NodeImageVersion - Version of node image
+	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
+	// UpgradeSettings - Settings for upgrading the agentpool
+	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Low', 'Regular'
+	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Regular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot or low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
+	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
 	// SpotMaxPrice - SpotMaxPrice to be used to specify the maximum price you are willing to pay in US Dollars. Possible values are any decimal value greater than zero or -1 which indicates default price to be up-to on-demand.
 	SpotMaxPrice *float64 `json:"spotMaxPrice,omitempty"`
@@ -1937,6 +1947,12 @@ func (mcapp ManagedClusterAgentPoolProfile) MarshalJSON() ([]byte, error) {
 	}
 	if mcapp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcapp.OrchestratorVersion
+	}
+	if mcapp.NodeImageVersion != nil {
+		objectMap["nodeImageVersion"] = mcapp.NodeImageVersion
+	}
+	if mcapp.UpgradeSettings != nil {
+		objectMap["upgradeSettings"] = mcapp.UpgradeSettings
 	}
 	if mcapp.AvailabilityZones != nil {
 		objectMap["availabilityZones"] = mcapp.AvailabilityZones
@@ -1991,15 +2007,19 @@ type ManagedClusterAgentPoolProfileProperties struct {
 	Mode AgentPoolMode `json:"mode,omitempty"`
 	// OrchestratorVersion - Version of orchestrator specified when creating the managed cluster.
 	OrchestratorVersion *string `json:"orchestratorVersion,omitempty"`
+	// NodeImageVersion - Version of node image
+	NodeImageVersion *string `json:"nodeImageVersion,omitempty"`
+	// UpgradeSettings - Settings for upgrading the agentpool
+	UpgradeSettings *AgentPoolUpgradeSettings `json:"upgradeSettings,omitempty"`
 	// ProvisioningState - READ-ONLY; The current deployment or provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// AvailabilityZones - Availability zones for nodes. Must use VirtualMachineScaleSets AgentPoolType.
 	AvailabilityZones *[]string `json:"availabilityZones,omitempty"`
 	// EnableNodePublicIP - Enable public IP for nodes
 	EnableNodePublicIP *bool `json:"enableNodePublicIP,omitempty"`
-	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Low', 'Regular'
+	// ScaleSetPriority - ScaleSetPriority to be used to specify virtual machine scale set priority. Default to regular. Possible values include: 'Spot', 'Regular'
 	ScaleSetPriority ScaleSetPriority `json:"scaleSetPriority,omitempty"`
-	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot or low priority virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
+	// ScaleSetEvictionPolicy - ScaleSetEvictionPolicy to be used to specify eviction policy for Spot virtual machine scale set. Default to Delete. Possible values include: 'Delete', 'Deallocate'
 	ScaleSetEvictionPolicy ScaleSetEvictionPolicy `json:"scaleSetEvictionPolicy,omitempty"`
 	// SpotMaxPrice - SpotMaxPrice to be used to specify the maximum price you are willing to pay in US Dollars. Possible values are any decimal value greater than zero or -1 which indicates default price to be up-to on-demand.
 	SpotMaxPrice *float64 `json:"spotMaxPrice,omitempty"`
@@ -2049,6 +2069,12 @@ func (mcappp ManagedClusterAgentPoolProfileProperties) MarshalJSON() ([]byte, er
 	}
 	if mcappp.OrchestratorVersion != nil {
 		objectMap["orchestratorVersion"] = mcappp.OrchestratorVersion
+	}
+	if mcappp.NodeImageVersion != nil {
+		objectMap["nodeImageVersion"] = mcappp.NodeImageVersion
+	}
+	if mcappp.UpgradeSettings != nil {
+		objectMap["upgradeSettings"] = mcappp.UpgradeSettings
 	}
 	if mcappp.AvailabilityZones != nil {
 		objectMap["availabilityZones"] = mcappp.AvailabilityZones
