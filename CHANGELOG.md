@@ -4,6 +4,9 @@ DEPENDENCIES:
 
 * updating `search` to `2020-03-13` [GH-7867]
 
+FEATURES:
+* **New Data Source:** `azurerm_data_share_dataset_data_lake_gen1` [GH-7840]
+
 IMPROVEMENTS:
 
 * `azurerm_app_service_slot` - support for the `application_logs.file_system` [GH-7311]
