@@ -139,6 +139,7 @@ func testCheckAzureRMSynapseBigDataPoolDestroy(s *terraform.State) error {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on Synapse.BigDataPoolClient: %+v", err)
 			}
+			return nil
 		}
 		return fmt.Errorf("expected no bigDataPool but found %+v", resp)
 	}
@@ -221,7 +222,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-SW-%d"
+  name     = "acctestRG-synapse-%d"
   location = "%s"
 }
 
