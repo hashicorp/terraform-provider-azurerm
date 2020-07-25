@@ -111,6 +111,10 @@ func resourceArmMsSqlDatabase() *schema.Resource {
 				}, false),
 			},
 
+			"long_term_retention_policy": helper.LongTermRetentionPolicySchema(),
+
+			"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
+
 			"max_size_gb": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -292,6 +296,8 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
 	serverClient := meta.(*clients.Client).MSSQL.ServersClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
+	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
+	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -436,6 +442,34 @@ func resourceArmMsSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
+	longTermRetentionProps := d.Get("long_term_retention_policy").([]interface{})
+	longTermRetentionPolicy := sql.BackupLongTermRetentionPolicy{
+		LongTermRetentionPolicyProperties: helper.ExpandLongTermRetentionPolicy(longTermRetentionProps),
+	}
+
+	longTermRetentionfuture, err := longTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, longTermRetentionPolicy)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+	}
+
+	if err = longTermRetentionfuture.WaitForCompletionRef(ctx, longTermRetentionClient.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Long Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+	}
+
+	backupShortTermPolicyProps := d.Get("retention_days").([]interface{})
+	backupShortTermPolicy := sql.BackupShortTermRetentionPolicy{
+		BackupShortTermRetentionPolicyProperties: helper.ExpandShortTermRetentionPolicy(backupShortTermPolicyProps),
+	}
+
+	shortTermRetentionFuture, err := shortTermRetentionClient.CreateOrUpdate(ctx, serverId.ResourceGroup, serverId.Name, name, backupShortTermPolicy)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+	}
+
+	if err = shortTermRetentionFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Create/Update for Sql Server %q (Database %q) Short Term Retention Policies (Resource Group %q): %+v", serverId.Name, name, serverId.ResourceGroup, err)
+	}
+
 	return resourceArmMsSqlDatabaseRead(d, meta)
 }
 
@@ -443,6 +477,8 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
 	threatClient := meta.(*clients.Client).MSSQL.DatabaseThreatDetectionPoliciesClient
 	auditingClient := meta.(*clients.Client).MSSQL.DatabaseExtendedBlobAuditingPoliciesClient
+	longTermRetentionClient := meta.(*clients.Client).MSSQL.BackupLongTermRetentionPoliciesClient
+	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -504,6 +540,26 @@ func resourceArmMsSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	flattenBlobAuditing := helper.FlattenAzureRmMsSqlDBBlobAuditingPolicies(&auditingResp, d)
 	if err := d.Set("extended_auditing_policy", flattenBlobAuditing); err != nil {
 		return fmt.Errorf("failure in setting `extended_auditing_policy`: %+v", err)
+	}
+
+	longTermPolicy, err := longTermRetentionClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Long Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+	}
+
+	flattenlongTermPolicy := helper.FlattenLongTermRetentionPolicy(&longTermPolicy, d)
+	if err := d.Set("long_term_retention_policy", flattenlongTermPolicy); err != nil {
+		return fmt.Errorf("failure in setting `long_term_retention_policy`: %+v", err)
+	}
+
+	shortTermPolicy, err := shortTermRetentionClient.Get(ctx, id.ResourceGroup, id.MsSqlServer, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Short Term Policies for Database %q (Sql Server %q ;Resource Group %q): %+v", id.Name, id.MsSqlServer, id.ResourceGroup, err)
+	}
+
+	flattenShortTermPolicy := helper.FlattenShortTermRetentionPolicy(&shortTermPolicy, d)
+	if err := d.Set("short_term_retention_policy", flattenShortTermPolicy); err != nil {
+		return fmt.Errorf("failure in setting `short_term_retention_policy`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
