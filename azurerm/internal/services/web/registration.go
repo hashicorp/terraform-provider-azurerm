@@ -27,6 +27,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_app_service_certificate":       dataSourceAppServiceCertificate(),
 		"azurerm_app_service_plan":              dataSourceAppServicePlan(),
 		"azurerm_function_app":                  dataSourceArmFunctionApp(),
+		"azurerm_function_app_host_keys":        dataSourceArmFunctionAppHostKeys(),
 	}
 }
 
