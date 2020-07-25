@@ -142,6 +142,7 @@ func testCheckAzureRMAttestationDestroy(s *terraform.State) error {
 	return nil
 }
 
+// hard coded location because attestation resources are only available in the 'eastus2,centralus,uksouth' regions.
 func testAccAzureRMAttestation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -152,7 +153,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctest-attestation-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, "uksouth")
 }
 
 func testAccAzureRMAttestation_basic(data acceptance.TestData) string {
@@ -161,9 +162,9 @@ func testAccAzureRMAttestation_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_attestation" "test" {
-  name = "acctest-aap-%d"
+  name                = "ap%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  location            = azurerm_resource_group.test.location
 }
 `, template, data.RandomInteger)
 }
@@ -174,12 +175,12 @@ func testAccAzureRMAttestation_requiresImport(data acceptance.TestData) string {
 %s
 
 resource "azurerm_attestation" "import" {
-  name = azurerm_attestation.test.name
+  name                = azurerm_attestation.test.name
   resource_group_name = azurerm_attestation.test.resource_group_name
-  location = azurerm_attestation.test.location
-  attest_uri = azurerm_attestation.test.attest_uri
-  trust_model = azurerm_attestation.test.trust_model
-  type = azurerm_attestation.test.type
+  location            = azurerm_attestation.test.location
+  attest_uri          = azurerm_attestation.test.attest_uri
+  trust_model         = azurerm_attestation.test.trust_model
+  type                = azurerm_attestation.test.type
 }
 `, config)
 }
@@ -190,29 +191,30 @@ func testAccAzureRMAttestation_complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_attestation" "test" {
-  name = "acctest-aap-%d"
+  name                = "ap%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  attestation_policy = ""
+  location            = azurerm_resource_group.test.location
+  attestation_policy  = ""
+
   policy_signing_certificate {
     key {
-      alg = ""
-      kid = ""
-      kty = ""
-      use = ""
-      crv = ""
-      d = ""
-      dp = ""
-      dq = ""
-      e = ""
-      k = ""
-      n = ""
-      p = ""
-      q = ""
-      qi = ""
-      x = ""
+      alg  = ""
+      kid  = ""
+      kty  = ""
+      use  = ""
+      crv  = ""
+      d    = ""
+      dp   = ""
+      dq   = ""
+      e    = ""
+      k    = ""
+      n    = ""
+      p    = ""
+      q    = ""
+      qi   = ""
+      x    = ""
       x5cs = []
-      y = ""
+      y    = ""
     }
   }
 

@@ -33,7 +33,7 @@ func testAccDataSourceAttestation_basic(data acceptance.TestData) string {
 %s
 
 data "azurerm_attestation" "test" {
-  name = azurerm_attestation.test.name
+  name                = azurerm_attestation.test.name
   resource_group_name = azurerm_attestation.test.resource_group_name
 }
 `, config)

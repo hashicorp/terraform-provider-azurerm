@@ -53,7 +53,7 @@ func TestAttestationProviderID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := AttestationProviderID(v.Input)
+		actual, err := AttestationId(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
