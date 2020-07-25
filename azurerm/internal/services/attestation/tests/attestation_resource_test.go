@@ -165,8 +165,9 @@ resource "azurerm_attestation" "test" {
   name                = "ap%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  attestation_policy  = "acctest-attestation-policy-%d"
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMAttestation_requiresImport(data acceptance.TestData) string {
@@ -194,7 +195,7 @@ resource "azurerm_attestation" "test" {
   name                = "ap%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  attestation_policy  = ""
+  attestation_policy  = "acctest-attestation-policy-%d"
 
   policy_signing_certificate {
     key {
@@ -222,5 +223,5 @@ resource "azurerm_attestation" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger)
 }

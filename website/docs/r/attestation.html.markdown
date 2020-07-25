@@ -19,9 +19,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_attestation" "example" {
-  name = "example-attestationprovider"
+  name                = "example-attestationprovider"
   resource_group_name = azurerm_resource_group.example.name
-  location = azurerm_resource_group.example.location
+  location            = azurerm_resource_group.example.location
 }
 ```
 

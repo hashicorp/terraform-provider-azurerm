@@ -14,7 +14,7 @@ Use this data source to access information about an existing Attestation Provide
 
 ```hcl
 data "azurerm_attestation" "example" {
-  name = "example-attestationprovider"
+  name                = "example-attestationprovider"
   resource_group_name = "example-resource-group"
 }
 

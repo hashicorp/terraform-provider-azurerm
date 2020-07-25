@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/attestation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -39,9 +40,10 @@ func resourceArmAttestation() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.AttestationName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -215,7 +217,7 @@ func resourceArmAttestationCreate(d *schema.ResourceData, meta interface{}) erro
 		return tf.ImportAsExistsError("azurerm_attestation", *existing.ID)
 	}
 
-	creationParams := attestation.ServiceCreationParams{
+	props := attestation.ServiceCreationParams{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &attestation.ServiceCreationSpecificParams{
 			AttestationPolicy:         utils.String(d.Get("attestation_policy").(string)),
@@ -223,7 +225,7 @@ func resourceArmAttestationCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
-	if _, err := client.Create(ctx, resourceGroup, name, creationParams); err != nil {
+	if _, err := client.Create(ctx, resourceGroup, name, props); err != nil {
 		return fmt.Errorf("creating Attestation %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
