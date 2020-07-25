@@ -367,6 +367,46 @@ func TestAccAzureRMSqlDatabase_withBlobAuditingPolices(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMsSqlDatabase_withLongTermRetentionPolicy(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
+			{
+				Config: testAccAzureRMMsSqlDatabase_withLongTermRetentionPolicyUpdated(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("extended_auditing_policy.0.storage_account_access_key"),
+			{
+				Config: testAccAzureRMMsSqlDatabase_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlDatabaseExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMMsSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).MSSQL.DatabasesClient
@@ -802,6 +842,73 @@ resource "azurerm_mssql_database" "test" {
     storage_account_access_key              = azurerm_storage_account.test2.primary_access_key
     storage_account_access_key_is_secondary = false
     retention_in_days                       = 3
+  }
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_withLongTermRetentionPolicy(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_sql_server.test.id
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    monthly_retention = "P1M"
+    yearly_retention  = "P1Y"
+    week_of_year      = 1
+  }
+}
+`, template, data.RandomIntOfLength(15), data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlDatabase_withLongTermRetentionPolicyUpdated(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlDatabase_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctest%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctest2%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[3]d"
+  server_id = azurerm_sql_server.test.id
+  long_term_retention_policy {
+    weekly_retention  = "P1W"
+    yearly_retention  = "P1Y"
+    week_of_year      = 2
   }
 }
 `, template, data.RandomIntOfLength(15), data.RandomInteger)
