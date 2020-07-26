@@ -48,6 +48,14 @@ func resourceArmApiManagementIdentityProviderAADB2C() *schema.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+			"allowed_tenants": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.IsUUID,
+				},
+			},
 			"signin_tenant": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -91,6 +99,8 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *schema.Resour
 	serviceName := d.Get("api_management_name").(string)
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
+	allowedTenants := d.Get("allowed_tenants").([]interface{})
+
 	signinTenant := d.Get("signin_tenant").(string)
 	authority := d.Get("authority").(string)
 	signupPolicy := d.Get("signup_policy").(string)
@@ -116,6 +126,7 @@ func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *schema.Resour
 		IdentityProviderCreateContractProperties: &apimanagement.IdentityProviderCreateContractProperties{
 			ClientID:                 utils.String(clientID),
 			ClientSecret:             utils.String(clientSecret),
+			AllowedTenants:           utils.ExpandStringSlice(allowedTenants),
 			Type:                     apimanagement.AadB2C,
 			SigninTenant:             utils.String(signinTenant),
 			Authority:                utils.String(authority),
@@ -172,6 +183,7 @@ func resourceArmApiManagementIdentityProviderAADB2CRead(d *schema.ResourceData, 
 	if props := resp.IdentityProviderContractProperties; props != nil {
 		d.Set("client_id", props.ClientID)
 		d.Set("client_secret", props.ClientSecret)
+		d.Set("allowed_tenants", props.AllowedTenants)
 		d.Set("signin_tenant", props.SigninTenant)
 		d.Set("authority", props.Authority)
 		d.Set("signup_policy", props.SignupPolicyName)

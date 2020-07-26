@@ -32,10 +32,10 @@ resource "azurerm_api_management_identity_provider_aadb2c" "example" {
   api_management_name = azurerm_api_management.example.name
   client_id           = "00000000-0000-0000-0000-000000000000"
   client_secret       = "00000000000000000000000000000000"
-  signin_tenant = "00000000-0000-0000-0000-000000000000"
-  authority = "ExampleAuthority"
-  signin_policy = "ExampleSigninPolicy"
-  signup_policy = "ExampleSignupPolicy"
+  signin_tenant       = "00000000-0000-0000-0000-000000000000"
+  authority           = "ExampleAuthority"
+  signin_policy       = "ExampleSigninPolicy"
+  signup_policy       = "ExampleSignupPolicy"
 }
 ```
 
@@ -50,6 +50,8 @@ The following arguments are supported:
 * `client_id` - (Required) Client Id of the Application in the AADB2C Identity Provider.
 
 * `client_secret` - (Required) Client secret of the Application in the AADB2C Identity Provider.
+
+* `allowed_tenants` - (Required) List of allowed AAD Tenants.
 
 * `authority` - (Required) TODO.
 
