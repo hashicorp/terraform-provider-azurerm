@@ -50,16 +50,16 @@ The following arguments are supported:
 * `client_id` - (Required) Client Id of the Application in the AADB2C Identity Provider.
 
 * `client_secret` - (Required) Client secret of the Application in the AADB2C Identity Provider.
+ 
+* `signin_tenant` - (Required) The TenantId to use instead of Common when logging into Active Directory.
 
 * `allowed_tenants` - (Required) List of allowed AAD Tenants.
 
-* `authority` - (Required) TODO.
+* `authority` - (Required) OpenID Connect discovery endpoint hostname.
 
-* `signin_policy` - (Required) TODO.
+* `signin_policy` - (Required) Signup Policy Name.
 
-* `signin_tenant` - (Required) TODO.
-
-* `signup_policy` - (Required) TODO.
+* `signup_policy` - (Required) Signin Policy Name.
 
 ---
 
