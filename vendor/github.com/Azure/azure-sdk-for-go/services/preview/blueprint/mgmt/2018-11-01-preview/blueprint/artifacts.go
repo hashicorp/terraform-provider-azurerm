@@ -115,7 +115,6 @@ func (client ArtifactsClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client ArtifactsClient) CreateOrUpdateResponder(resp *http.Response) (result ArtifactModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -194,7 +193,6 @@ func (client ArtifactsClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client ArtifactsClient) DeleteResponder(resp *http.Response) (result ArtifactModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -273,7 +271,6 @@ func (client ArtifactsClient) GetSender(req *http.Request) (*http.Response, erro
 func (client ArtifactsClient) GetResponder(resp *http.Response) (result ArtifactModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -351,7 +348,6 @@ func (client ArtifactsClient) ListSender(req *http.Request) (*http.Response, err
 func (client ArtifactsClient) ListResponder(resp *http.Response) (result ArtifactList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -123,7 +123,6 @@ func (client ExternalSecuritySolutionsClient) GetSender(req *http.Request) (*htt
 func (client ExternalSecuritySolutionsClient) GetResponder(resp *http.Response) (result ExternalSecuritySolutionModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client ExternalSecuritySolutionsClient) ListSender(req *http.Request) (*ht
 func (client ExternalSecuritySolutionsClient) ListResponder(resp *http.Response) (result ExternalSecuritySolutionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -317,7 +315,6 @@ func (client ExternalSecuritySolutionsClient) ListByHomeRegionSender(req *http.R
 func (client ExternalSecuritySolutionsClient) ListByHomeRegionResponder(resp *http.Response) (result ExternalSecuritySolutionList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

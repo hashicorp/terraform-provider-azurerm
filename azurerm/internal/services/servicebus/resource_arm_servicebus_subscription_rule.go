@@ -83,8 +83,9 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 			},
 
 			"sql_filter": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.SqlFilter,
 			},
 
 			"correlation_filter": {

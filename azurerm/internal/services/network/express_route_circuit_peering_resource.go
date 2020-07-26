@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -123,6 +123,12 @@ func resourceArmExpressRouteCircuitPeering() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"route_filter_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 		},
 	}
 }
@@ -160,6 +166,7 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 	vlanId := d.Get("vlan_id").(int)
 	azureASN := d.Get("azure_asn").(int)
 	peerASN := d.Get("peer_asn").(int)
+	route_filter_id := d.Get("route_filter_id").(string)
 
 	parameters := network.ExpressRouteCircuitPeering{
 		ExpressRouteCircuitPeeringPropertiesFormat: &network.ExpressRouteCircuitPeeringPropertiesFormat{
@@ -181,6 +188,14 @@ func resourceArmExpressRouteCircuitPeeringCreateUpdate(d *schema.ResourceData, m
 
 		peeringConfig := expandExpressRouteCircuitPeeringMicrosoftConfig(peerings)
 		parameters.ExpressRouteCircuitPeeringPropertiesFormat.MicrosoftPeeringConfig = peeringConfig
+
+		if route_filter_id != "" {
+			parameters.ExpressRouteCircuitPeeringPropertiesFormat.RouteFilter = &network.SubResource{
+				ID: utils.String(route_filter_id),
+			}
+		}
+	} else if route_filter_id != "" {
+		return fmt.Errorf("`route_filter_id` may only be specified when `peering_type` is set to `MicrosoftPeering`")
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, circuitName, peeringType, parameters)
@@ -236,6 +251,12 @@ func resourceArmExpressRouteCircuitPeeringRead(d *schema.ResourceData, meta inte
 		d.Set("primary_peer_address_prefix", props.PrimaryPeerAddressPrefix)
 		d.Set("secondary_peer_address_prefix", props.SecondaryPeerAddressPrefix)
 		d.Set("vlan_id", props.VlanID)
+
+		routeFilterId := ""
+		if props.RouteFilter != nil && props.RouteFilter.ID != nil {
+			routeFilterId = *props.RouteFilter.ID
+		}
+		d.Set("route_filter_id", routeFilterId)
 
 		config := flattenExpressRouteCircuitPeeringMicrosoftConfig(props.MicrosoftPeeringConfig)
 		if err := d.Set("microsoft_peering_config", config); err != nil {

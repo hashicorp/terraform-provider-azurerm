@@ -124,7 +124,6 @@ func (client AccountFiltersClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client AccountFiltersClient) CreateOrUpdateResponder(resp *http.Response) (result AccountFilter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client AccountFiltersClient) DeleteSender(req *http.Request) (*http.Respon
 func (client AccountFiltersClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -279,7 +277,6 @@ func (client AccountFiltersClient) GetSender(req *http.Request) (*http.Response,
 func (client AccountFiltersClient) GetResponder(resp *http.Response) (result AccountFilter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -356,7 +353,6 @@ func (client AccountFiltersClient) ListSender(req *http.Request) (*http.Response
 func (client AccountFiltersClient) ListResponder(resp *http.Response) (result AccountFilterCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -474,7 +470,6 @@ func (client AccountFiltersClient) UpdateSender(req *http.Request) (*http.Respon
 func (client AccountFiltersClient) UpdateResponder(resp *http.Response) (result AccountFilter, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

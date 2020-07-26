@@ -128,7 +128,6 @@ func (client CustomDomainsClient) CreateSender(req *http.Request) (future Custom
 func (client CustomDomainsClient) CreateResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -216,7 +215,6 @@ func (client CustomDomainsClient) DeleteSender(req *http.Request) (future Custom
 func (client CustomDomainsClient) DeleteResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -304,7 +302,6 @@ func (client CustomDomainsClient) DisableCustomHTTPSSender(req *http.Request) (*
 func (client CustomDomainsClient) DisableCustomHTTPSResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -400,7 +397,6 @@ func (client CustomDomainsClient) EnableCustomHTTPSSender(req *http.Request) (*h
 func (client CustomDomainsClient) EnableCustomHTTPSResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -488,7 +484,6 @@ func (client CustomDomainsClient) GetSender(req *http.Request) (*http.Response, 
 func (client CustomDomainsClient) GetResponder(resp *http.Response) (result CustomDomain, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -575,7 +570,6 @@ func (client CustomDomainsClient) ListByEndpointSender(req *http.Request) (*http
 func (client CustomDomainsClient) ListByEndpointResponder(resp *http.Response) (result CustomDomainListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

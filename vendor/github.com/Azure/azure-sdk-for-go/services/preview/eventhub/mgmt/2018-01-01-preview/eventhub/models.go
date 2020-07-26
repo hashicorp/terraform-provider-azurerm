@@ -1077,6 +1077,35 @@ func (cqcp ClusterQuotaConfigurationProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
+// ClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ClustersCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ClustersCreateOrUpdateFuture) Result(client ClustersClient) (c Cluster, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "eventhub.ClustersCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
+		c, err = client.CreateOrUpdateResponder(c.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "eventhub.ClustersCreateOrUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
 // ClustersDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type ClustersDeleteFuture struct {
@@ -1108,58 +1137,30 @@ type ClusterSku struct {
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 
-// ClustersPatchFuture an abstraction for monitoring and retrieving the results of a long-running
+// ClustersUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
-type ClustersPatchFuture struct {
+type ClustersUpdateFuture struct {
 	azure.Future
 }
 
 // Result returns the result of the asynchronous operation.
 // If the operation has not completed it will return an error.
-func (future *ClustersPatchFuture) Result(client ClustersClient) (c Cluster, err error) {
+func (future *ClustersUpdateFuture) Result(client ClustersClient) (c Cluster, err error) {
 	var done bool
 	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersPatchFuture", "Result", future.Response(), "Polling failure")
+		err = autorest.NewErrorWithError(err, "eventhub.ClustersUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersPatchFuture")
+		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersUpdateFuture")
 		return
 	}
 	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
 	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.PatchResponder(c.Response.Response)
+		c, err = client.UpdateResponder(c.Response.Response)
 		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventhub.ClustersPatchFuture", "Result", c.Response.Response, "Failure responding to request")
-		}
-	}
-	return
-}
-
-// ClustersPutFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type ClustersPutFuture struct {
-	azure.Future
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future *ClustersPutFuture) Result(client ClustersClient) (c Cluster, err error) {
-	var done bool
-	done, err = future.DoneWithContext(context.Background(), client)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "eventhub.ClustersPutFuture", "Result", future.Response(), "Polling failure")
-		return
-	}
-	if !done {
-		err = azure.NewAsyncOpIncompleteError("eventhub.ClustersPutFuture")
-		return
-	}
-	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if c.Response.Response, err = future.GetResult(sender); err == nil && c.Response.Response.StatusCode != http.StatusNoContent {
-		c, err = client.PutResponder(c.Response.Response)
-		if err != nil {
-			err = autorest.NewErrorWithError(err, "eventhub.ClustersPutFuture", "Result", c.Response.Response, "Failure responding to request")
+			err = autorest.NewErrorWithError(err, "eventhub.ClustersUpdateFuture", "Result", c.Response.Response, "Failure responding to request")
 		}
 	}
 	return

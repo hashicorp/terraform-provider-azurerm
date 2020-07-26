@@ -80,7 +80,7 @@ func resourceArmEventHubClusterCreateUpdate(d *schema.ResourceData, meta interfa
 		Sku:      expandEventHubClusterSkuName(d.Get("sku_name").(string)),
 	}
 
-	future, err := client.Put(ctx, resourceGroup, name, cluster)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, cluster)
 	if err != nil {
 		return fmt.Errorf("creating EventHub Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}

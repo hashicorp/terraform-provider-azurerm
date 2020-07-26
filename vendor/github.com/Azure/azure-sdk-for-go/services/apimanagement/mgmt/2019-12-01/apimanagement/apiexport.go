@@ -130,7 +130,6 @@ func (client APIExportClient) GetSender(req *http.Request) (*http.Response, erro
 func (client APIExportClient) GetResponder(resp *http.Response) (result APIExportResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

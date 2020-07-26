@@ -44,6 +44,8 @@ output "eventhub_namespace_id" {
 
 * `zone_redundant` - Is this EventHub Namespace deployed across Availability Zones?
 
+* `dedicated_cluster_id` - The ID of the EventHub Dedicated Cluster where this Namespace exists.
+
 * `tags` - A mapping of tags to assign to the EventHub Namespace.
 
 The following attributes are exported only if there is an authorization rule named

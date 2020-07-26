@@ -123,7 +123,6 @@ func (client SecretsClient) CreateOrUpdateSender(req *http.Request) (*http.Respo
 func (client SecretsClient) CreateOrUpdateResponder(resp *http.Response) (result Secret, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client SecretsClient) DeleteSender(req *http.Request) (*http.Response, err
 func (client SecretsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -286,7 +284,6 @@ func (client SecretsClient) GetSender(req *http.Request) (*http.Response, error)
 func (client SecretsClient) GetResponder(resp *http.Response) (result Secret, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -381,7 +378,6 @@ func (client SecretsClient) ListSender(req *http.Request) (*http.Response, error
 func (client SecretsClient) ListResponder(resp *http.Response) (result ResponseWithContinuationSecret, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

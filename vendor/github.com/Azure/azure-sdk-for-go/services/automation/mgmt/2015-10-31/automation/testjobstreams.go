@@ -122,7 +122,6 @@ func (client TestJobStreamsClient) GetSender(req *http.Request) (*http.Response,
 func (client TestJobStreamsClient) GetResponder(resp *http.Response) (result JobStream, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -213,7 +212,6 @@ func (client TestJobStreamsClient) ListByTestJobSender(req *http.Request) (*http
 func (client TestJobStreamsClient) ListByTestJobResponder(resp *http.Response) (result JobStreamListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

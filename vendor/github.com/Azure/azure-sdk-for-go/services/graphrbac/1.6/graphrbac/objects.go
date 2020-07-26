@@ -116,7 +116,6 @@ func (client ObjectsClient) GetObjectsByObjectIdsSender(req *http.Request) (*htt
 func (client ObjectsClient) GetObjectsByObjectIdsResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -206,7 +205,6 @@ func (client ObjectsClient) GetObjectsByObjectIdsNextSender(req *http.Request) (
 func (client ObjectsClient) GetObjectsByObjectIdsNextResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

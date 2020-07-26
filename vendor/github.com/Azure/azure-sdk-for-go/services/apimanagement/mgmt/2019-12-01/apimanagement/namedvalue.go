@@ -143,7 +143,6 @@ func (client NamedValueClient) CreateOrUpdateSender(req *http.Request) (future N
 func (client NamedValueClient) CreateOrUpdateResponder(resp *http.Response) (result NamedValueContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -235,7 +234,6 @@ func (client NamedValueClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client NamedValueClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -323,7 +321,6 @@ func (client NamedValueClient) GetSender(req *http.Request) (*http.Response, err
 func (client NamedValueClient) GetResponder(resp *http.Response) (result NamedValueContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -412,7 +409,6 @@ func (client NamedValueClient) GetEntityTagSender(req *http.Request) (*http.Resp
 func (client NamedValueClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -517,7 +513,6 @@ func (client NamedValueClient) ListByServiceSender(req *http.Request) (*http.Res
 func (client NamedValueClient) ListByServiceResponder(resp *http.Response) (result NamedValueCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -643,7 +638,6 @@ func (client NamedValueClient) ListValueSender(req *http.Request) (*http.Respons
 func (client NamedValueClient) ListValueResponder(resp *http.Response) (result PropertyValueContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -738,7 +732,6 @@ func (client NamedValueClient) UpdateSender(req *http.Request) (future NamedValu
 func (client NamedValueClient) UpdateResponder(resp *http.Response) (result NamedValueContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

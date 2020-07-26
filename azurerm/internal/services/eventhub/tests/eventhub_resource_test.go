@@ -40,11 +40,11 @@ func TestAccAzureRMEventHubPartitionCount_validation(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
-			Value:    32,
+			Value:    1024,
 			ErrCount: 0,
 		},
 		{
-			Value:    33,
+			Value:    1025,
 			ErrCount: 1,
 		},
 	}
@@ -85,10 +85,10 @@ func TestAccAzureRMEventHubMessageRetentionCount_validation(t *testing.T) {
 			Value:    6,
 			ErrCount: 0,
 		}, {
-			Value:    7,
+			Value:    90,
 			ErrCount: 0,
 		}, {
-			Value:    8,
+			Value:    91,
 			ErrCount: 1,
 		},
 	}

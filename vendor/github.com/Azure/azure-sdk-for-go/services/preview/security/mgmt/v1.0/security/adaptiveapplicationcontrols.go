@@ -116,7 +116,6 @@ func (client AdaptiveApplicationControlsClient) DeleteSender(req *http.Request) 
 func (client AdaptiveApplicationControlsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -196,7 +195,6 @@ func (client AdaptiveApplicationControlsClient) GetSender(req *http.Request) (*h
 func (client AdaptiveApplicationControlsClient) GetResponder(resp *http.Response) (result AppWhitelistingGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -282,7 +280,6 @@ func (client AdaptiveApplicationControlsClient) ListSender(req *http.Request) (*
 func (client AdaptiveApplicationControlsClient) ListResponder(resp *http.Response) (result AppWhitelistingGroups, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -366,7 +363,6 @@ func (client AdaptiveApplicationControlsClient) PutSender(req *http.Request) (*h
 func (client AdaptiveApplicationControlsClient) PutResponder(resp *http.Response) (result AppWhitelistingGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -59,5 +59,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 CosmosDB Tables can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cosmosdb_table.table1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/apis/table/tables/table1
+terraform import azurerm_cosmosdb_table.table1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.DocumentDB/databaseAccounts/account1/tables/table1
 ```

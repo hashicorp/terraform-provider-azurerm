@@ -126,7 +126,6 @@ func (client AccessPoliciesClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client AccessPoliciesClient) CreateOrUpdateResponder(resp *http.Response) (result AccessPolicyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -207,7 +206,6 @@ func (client AccessPoliciesClient) DeleteSender(req *http.Request) (*http.Respon
 func (client AccessPoliciesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -286,7 +284,6 @@ func (client AccessPoliciesClient) GetSender(req *http.Request) (*http.Response,
 func (client AccessPoliciesClient) GetResponder(resp *http.Response) (result AccessPolicyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -363,7 +360,6 @@ func (client AccessPoliciesClient) ListByEnvironmentSender(req *http.Request) (*
 func (client AccessPoliciesClient) ListByEnvironmentResponder(resp *http.Response) (result AccessPolicyListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -447,7 +443,6 @@ func (client AccessPoliciesClient) UpdateSender(req *http.Request) (*http.Respon
 func (client AccessPoliciesClient) UpdateResponder(resp *http.Response) (result AccessPolicyResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
