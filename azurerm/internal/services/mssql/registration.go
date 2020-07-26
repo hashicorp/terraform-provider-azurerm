@@ -35,7 +35,5 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_mssql_server_security_alert_policy":                    resourceArmMssqlServerSecurityAlertPolicy(),
 		"azurerm_mssql_server_vulnerability_assessment":                 resourceArmMssqlServerVulnerabilityAssessment(),
 		"azurerm_mssql_virtual_machine":                                 resourceArmMsSqlVirtualMachine(),
-		"azurerm_mssql_database_short_term_retention_policy":            resourceArmMsSqlDatabaseShortTermRetentionPolicy(),
-		"azurerm_mssql_database_long_term_retention_policy":             resourceArmMsSqlDatabaseLongTermRetentionPolicy(),
 	}
 }
