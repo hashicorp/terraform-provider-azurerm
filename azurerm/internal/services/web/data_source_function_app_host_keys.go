@@ -82,5 +82,4 @@ func dataSourceArmFunctionAppHostKeysRead(d *schema.ResourceData, meta interface
 	}
 
 	return nil
-
 }
