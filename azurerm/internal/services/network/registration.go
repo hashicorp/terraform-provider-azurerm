@@ -38,6 +38,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_public_ip":                                 dataSourceArmPublicIP(),
 		"azurerm_public_ips":                                dataSourceArmPublicIPs(),
 		"azurerm_public_ip_prefix":                          dataSourceArmPublicIpPrefix(),
+		"azurerm_route_filter":                              dataSourceArmRouteFilter(),
 		"azurerm_route_table":                               dataSourceArmRouteTable(),
 		"azurerm_network_service_tags":                      dataSourceNetworkServiceTags(),
 		"azurerm_subnet":                                    dataSourceArmSubnet(),
@@ -45,6 +46,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 		"azurerm_virtual_network_gateway":                   dataSourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_gateway_connection":        dataSourceArmVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network":                           dataSourceArmVirtualNetwork(),
+		"azurerm_web_application_firewall_policy":           dataArmWebApplicationFirewallPolicy(),
 	}
 }
 
@@ -86,11 +88,13 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_private_endpoint":                                                       resourceArmPrivateEndpoint(),
 		"azurerm_private_link_service":                                                   resourceArmPrivateLinkService(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
+		"azurerm_nat_gateway_public_ip_association":                                      resourceArmNATGatewayPublicIpAssociation(),
 		"azurerm_public_ip_prefix":                                                       resourceArmPublicIpPrefix(),
 		"azurerm_network_security_group":                                                 resourceArmNetworkSecurityGroup(),
 		"azurerm_network_security_rule":                                                  resourceArmNetworkSecurityRule(),
 		"azurerm_network_watcher_flow_log":                                               resourceArmNetworkWatcherFlowLog(),
 		"azurerm_network_watcher":                                                        resourceArmNetworkWatcher(),
+		"azurerm_route_filter":                                                           resourceArmRouteFilter(),
 		"azurerm_route_table":                                                            resourceArmRouteTable(),
 		"azurerm_route":                                                                  resourceArmRoute(),
 		"azurerm_subnet_network_security_group_association":                              resourceArmSubnetNetworkSecurityGroupAssociation(),

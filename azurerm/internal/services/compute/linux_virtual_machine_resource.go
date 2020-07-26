@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -51,7 +51,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: ValidateLinuxName,
+				ValidateFunc: ValidateVmName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -100,7 +100,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"allow_extension_operations": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 				Default:  true,
 			},
 
@@ -114,7 +113,7 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				// TODO: raise a GH issue for the broken API
 				// availability_set_id:                 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/ACCTESTAVSET-200122113424880096" => "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG-200122113424880096/providers/Microsoft.Compute/availabilitySets/acctestavset-200122113424880096" (forces new resource)
 				ConflictsWith: []string{
-					// TODO: "virtual_machine_scale_set_id"
+					"virtual_machine_scale_set_id",
 					"zone",
 				},
 			},
@@ -128,9 +127,8 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				// Computed since we reuse the VM name if one's not specified
 				Computed: true,
 				ForceNew: true,
-				// note: whilst the portal says 1-15 characters it seems to mirror the rules for the vm name
-				// (e.g. 1-15 for Windows, 1-63 for Linux)
-				ValidateFunc: ValidateLinuxName,
+
+				ValidateFunc: ValidateLinuxComputerNameFull,
 			},
 
 			"custom_data": base64.OptionalSchema(true),
@@ -217,15 +215,28 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 
 			"source_image_reference": sourceImageReferenceSchema(true),
 
+			"virtual_machine_scale_set_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ConflictsWith: []string{
+					"availability_set_id",
+				},
+				ValidateFunc: computeValidate.VirtualMachineScaleSetID,
+			},
+
 			"tags": tags.Schema(),
 
 			"zone": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				// this has to be computed because when you are trying to assign this VM to a VMSS in VMO mode with zones,
+				// the VMO mode VMSS will assign a zone for each of its instance.
+				// and if the VMSS in not zonal, this value should be left empty
+				Computed: true,
 				ConflictsWith: []string{
 					"availability_set_id",
-					// TODO: "virtual_machine_scale_set_id"
 				},
 			},
 
@@ -295,6 +306,10 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("computer_name"); ok && len(v.(string)) > 0 {
 		computerName = v.(string)
 	} else {
+		_, errs := ValidateLinuxComputerNameFull(d.Get("name"), "computer_name")
+		if len(errs) > 0 {
+			return fmt.Errorf("unable to assume default computer name %s Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
+		}
 		computerName = name
 	}
 	disablePasswordAuthentication := d.Get("disable_password_authentication").(bool)
@@ -368,11 +383,6 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 			// Optional
 			AdditionalCapabilities: additionalCapabilities,
 			DiagnosticsProfile:     bootDiagnostics,
-
-			// @tombuildsstuff: passing in a VMSS ID returns:
-			// > Code="InvalidParameter" Message="The value of parameter virtualMachineScaleSet is invalid." Target="virtualMachineScaleSet"
-			// presuming this isn't finished yet; note: this'll conflict with availability set id
-			VirtualMachineScaleSet: nil,
 		},
 		Tags: tags.Expand(t),
 	}
@@ -419,6 +429,12 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		params.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
+	if v, ok := d.GetOk("virtual_machine_scale_set_id"); ok {
+		params.VirtualMachineScaleSet = &compute.SubResource{
 			ID: utils.String(v.(string)),
 		}
 	}
@@ -543,6 +559,12 @@ func resourceLinuxVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 		dedicatedHostId = *props.Host.ID
 	}
 	d.Set("dedicated_host_id", dedicatedHostId)
+
+	virtualMachineScaleSetId := ""
+	if props.VirtualMachineScaleSet != nil && props.VirtualMachineScaleSet.ID != nil {
+		virtualMachineScaleSetId = *props.VirtualMachineScaleSet.ID
+	}
+	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId)
 
 	if profile := props.OsProfile; profile != nil {
 		d.Set("admin_username", profile.AdminUsername)
@@ -793,6 +815,23 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	if d.HasChange("allow_extension_operations") {
+		provisionVMAgent := d.Get("provision_vm_agent").(bool)
+		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+
+		if !provisionVMAgent && allowExtensionOperations {
+			return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+		}
+
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
 	if d.HasChange("tags") {
 		shouldUpdate = true
 
@@ -884,7 +923,7 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 			}
 
 			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting to update encryption settings of of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
+				return fmt.Errorf("Error waiting to update encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q): %+v", diskName, id.Name, id.ResourceGroup, err)
 			}
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Linux Virtual Machine %q (Resource Group %q) to %q.", diskName, id.Name, id.ResourceGroup, diskEncryptionSetId)

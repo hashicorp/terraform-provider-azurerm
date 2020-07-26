@@ -123,7 +123,6 @@ func (client AlertRulesClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client AlertRulesClient) CreateOrUpdateResponder(resp *http.Response) (result AlertRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,7 +198,6 @@ func (client AlertRulesClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client AlertRulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -274,7 +272,6 @@ func (client AlertRulesClient) GetSender(req *http.Request) (*http.Response, err
 func (client AlertRulesClient) GetResponder(resp *http.Response) (result AlertRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -348,7 +345,6 @@ func (client AlertRulesClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client AlertRulesClient) ListByResourceGroupResponder(resp *http.Response) (result AlertRuleResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -419,7 +415,6 @@ func (client AlertRulesClient) ListBySubscriptionSender(req *http.Request) (*htt
 func (client AlertRulesClient) ListBySubscriptionResponder(resp *http.Response) (result AlertRuleResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -498,7 +493,6 @@ func (client AlertRulesClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client AlertRulesClient) UpdateResponder(resp *http.Response) (result AlertRuleResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

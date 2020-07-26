@@ -119,7 +119,6 @@ func (client EnginesClient) GetSender(req *http.Request) (*http.Response, error)
 func (client EnginesClient) GetResponder(resp *http.Response) (result EngineBaseResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client EnginesClient) ListSender(req *http.Request) (*http.Response, error
 func (client EnginesClient) ListResponder(resp *http.Response) (result EngineBaseResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

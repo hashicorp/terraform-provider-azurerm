@@ -114,7 +114,6 @@ func (client IntegrationServiceEnvironmentManagedAPIOperationsClient) ListSender
 func (client IntegrationServiceEnvironmentManagedAPIOperationsClient) ListResponder(resp *http.Response) (result APIOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

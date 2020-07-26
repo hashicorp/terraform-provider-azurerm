@@ -66,7 +66,9 @@ The following arguments are supported:
 
 * `ip_configuration` - (Required) A `ip_configuration` block as documented below.
 
-* `zones` - (Optional) Specifies the availability zones in which the Azure Firewall should be created.
+* `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert` and `Deny`. Defaults to `Alert`
+
+* `zones` - (Optional) Specifies the availability zones in which the Azure Firewall should be created. Changing this forces a new resource to be created.
 
 -> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 

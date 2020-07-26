@@ -198,6 +198,8 @@ The following arguments are supported:
 
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
 
+-> **NOTE** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
+
 * `java_container` - (Optional) The Java Container to use. If specified `java_version` and `java_container_version` must also be specified. Possible values are `JETTY` and `TOMCAT`.
 
 * `java_container_version` - (Optional) The version of the Java Container to use. If specified `java_version` and `java_container` must also be specified.
@@ -230,7 +232,7 @@ The following arguments are supported:
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
 
-* `auto_swap_slot_name` - (Optional) The name of the swap to automatically swap to during deployment
+* `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
 ---
 
@@ -348,6 +350,8 @@ A `logs` block supports the following:
 ---
 
 An `application_logs` block supports the following:
+
+* `file_system_level` - (Optional) The file system log level. Possible values are `Off`, `Error`, `Warning`, `Information`, and `Verbose`.
 
 * `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
 

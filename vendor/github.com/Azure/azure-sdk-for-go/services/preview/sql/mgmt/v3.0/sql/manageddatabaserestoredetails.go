@@ -116,7 +116,6 @@ func (client ManagedDatabaseRestoreDetailsClient) GetSender(req *http.Request) (
 func (client ManagedDatabaseRestoreDetailsClient) GetResponder(resp *http.Response) (result ManagedDatabaseRestoreDetailsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -126,7 +126,6 @@ func (client SignInSettingsClient) CreateOrUpdateSender(req *http.Request) (*htt
 func (client SignInSettingsClient) CreateOrUpdateResponder(resp *http.Response) (result PortalSigninSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -210,7 +209,6 @@ func (client SignInSettingsClient) GetSender(req *http.Request) (*http.Response,
 func (client SignInSettingsClient) GetResponder(resp *http.Response) (result PortalSigninSettings, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -294,7 +292,6 @@ func (client SignInSettingsClient) GetEntityTagSender(req *http.Request) (*http.
 func (client SignInSettingsClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -383,7 +380,6 @@ func (client SignInSettingsClient) UpdateSender(req *http.Request) (*http.Respon
 func (client SignInSettingsClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

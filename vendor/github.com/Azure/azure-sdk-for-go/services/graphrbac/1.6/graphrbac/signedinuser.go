@@ -105,7 +105,6 @@ func (client SignedInUserClient) GetSender(req *http.Request) (*http.Response, e
 func (client SignedInUserClient) GetResponder(resp *http.Response) (result User, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -182,7 +181,6 @@ func (client SignedInUserClient) ListOwnedObjectsSender(req *http.Request) (*htt
 func (client SignedInUserClient) ListOwnedObjectsResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -272,7 +270,6 @@ func (client SignedInUserClient) ListOwnedObjectsNextSender(req *http.Request) (
 func (client SignedInUserClient) ListOwnedObjectsNextResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

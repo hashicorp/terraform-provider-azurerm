@@ -107,7 +107,6 @@ func (client LocationsClient) GetCapabilitySender(req *http.Request) (*http.Resp
 func (client LocationsClient) GetCapabilityResponder(resp *http.Response) (result CapabilityInformation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

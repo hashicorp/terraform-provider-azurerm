@@ -118,7 +118,6 @@ func (client UsagesClient) ListByAutomationAccountSender(req *http.Request) (*ht
 func (client UsagesClient) ListByAutomationAccountResponder(resp *http.Response) (result UsageListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

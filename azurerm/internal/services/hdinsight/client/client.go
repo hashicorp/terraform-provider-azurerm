@@ -9,6 +9,7 @@ type Client struct {
 	ApplicationsClient   *hdinsight.ApplicationsClient
 	ClustersClient       *hdinsight.ClustersClient
 	ConfigurationsClient *hdinsight.ConfigurationsClient
+	ExtensionsClient     *hdinsight.ExtensionsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -21,9 +22,13 @@ func NewClient(o *common.ClientOptions) *Client {
 	ConfigurationsClient := hdinsight.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
+	ExtensionsClient := hdinsight.NewExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ExtensionsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		ApplicationsClient:   &ApplicationsClient,
 		ClustersClient:       &ClustersClient,
 		ConfigurationsClient: &ConfigurationsClient,
+		ExtensionsClient:     &ExtensionsClient,
 	}
 }

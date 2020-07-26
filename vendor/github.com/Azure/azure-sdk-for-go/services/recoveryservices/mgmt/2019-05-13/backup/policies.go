@@ -115,7 +115,6 @@ func (client PoliciesClient) ListSender(req *http.Request) (*http.Response, erro
 func (client PoliciesClient) ListResponder(resp *http.Response) (result ProtectionPolicyResourceList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

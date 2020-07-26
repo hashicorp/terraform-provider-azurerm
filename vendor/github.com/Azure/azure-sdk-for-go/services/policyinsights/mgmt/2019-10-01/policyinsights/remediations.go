@@ -110,7 +110,6 @@ func (client RemediationsClient) CancelAtManagementGroupSender(req *http.Request
 func (client RemediationsClient) CancelAtManagementGroupResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -185,7 +184,6 @@ func (client RemediationsClient) CancelAtResourceSender(req *http.Request) (*htt
 func (client RemediationsClient) CancelAtResourceResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -262,7 +260,6 @@ func (client RemediationsClient) CancelAtResourceGroupSender(req *http.Request) 
 func (client RemediationsClient) CancelAtResourceGroupResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -337,7 +334,6 @@ func (client RemediationsClient) CancelAtSubscriptionSender(req *http.Request) (
 func (client RemediationsClient) CancelAtSubscriptionResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -419,7 +415,6 @@ func (client RemediationsClient) CreateOrUpdateAtManagementGroupSender(req *http
 func (client RemediationsClient) CreateOrUpdateAtManagementGroupResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -500,7 +495,6 @@ func (client RemediationsClient) CreateOrUpdateAtResourceSender(req *http.Reques
 func (client RemediationsClient) CreateOrUpdateAtResourceResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -583,7 +577,6 @@ func (client RemediationsClient) CreateOrUpdateAtResourceGroupSender(req *http.R
 func (client RemediationsClient) CreateOrUpdateAtResourceGroupResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -664,7 +657,6 @@ func (client RemediationsClient) CreateOrUpdateAtSubscriptionSender(req *http.Re
 func (client RemediationsClient) CreateOrUpdateAtSubscriptionResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -740,7 +732,6 @@ func (client RemediationsClient) DeleteAtManagementGroupSender(req *http.Request
 func (client RemediationsClient) DeleteAtManagementGroupResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -815,7 +806,6 @@ func (client RemediationsClient) DeleteAtResourceSender(req *http.Request) (*htt
 func (client RemediationsClient) DeleteAtResourceResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -892,7 +882,6 @@ func (client RemediationsClient) DeleteAtResourceGroupSender(req *http.Request) 
 func (client RemediationsClient) DeleteAtResourceGroupResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -967,7 +956,6 @@ func (client RemediationsClient) DeleteAtSubscriptionSender(req *http.Request) (
 func (client RemediationsClient) DeleteAtSubscriptionResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1043,7 +1031,6 @@ func (client RemediationsClient) GetAtManagementGroupSender(req *http.Request) (
 func (client RemediationsClient) GetAtManagementGroupResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1118,7 +1105,6 @@ func (client RemediationsClient) GetAtResourceSender(req *http.Request) (*http.R
 func (client RemediationsClient) GetAtResourceResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1195,7 +1181,6 @@ func (client RemediationsClient) GetAtResourceGroupSender(req *http.Request) (*h
 func (client RemediationsClient) GetAtResourceGroupResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1270,7 +1255,6 @@ func (client RemediationsClient) GetAtSubscriptionSender(req *http.Request) (*ht
 func (client RemediationsClient) GetAtSubscriptionResponder(resp *http.Response) (result Remediation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1358,7 +1342,6 @@ func (client RemediationsClient) ListDeploymentsAtManagementGroupSender(req *htt
 func (client RemediationsClient) ListDeploymentsAtManagementGroupResponder(resp *http.Response) (result RemediationDeploymentsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1482,7 +1465,6 @@ func (client RemediationsClient) ListDeploymentsAtResourceSender(req *http.Reque
 func (client RemediationsClient) ListDeploymentsAtResourceResponder(resp *http.Response) (result RemediationDeploymentsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1608,7 +1590,6 @@ func (client RemediationsClient) ListDeploymentsAtResourceGroupSender(req *http.
 func (client RemediationsClient) ListDeploymentsAtResourceGroupResponder(resp *http.Response) (result RemediationDeploymentsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1732,7 +1713,6 @@ func (client RemediationsClient) ListDeploymentsAtSubscriptionSender(req *http.R
 func (client RemediationsClient) ListDeploymentsAtSubscriptionResponder(resp *http.Response) (result RemediationDeploymentsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1859,7 +1839,6 @@ func (client RemediationsClient) ListForManagementGroupSender(req *http.Request)
 func (client RemediationsClient) ListForManagementGroupResponder(resp *http.Response) (result RemediationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1985,7 +1964,6 @@ func (client RemediationsClient) ListForResourceSender(req *http.Request) (*http
 func (client RemediationsClient) ListForResourceResponder(resp *http.Response) (result RemediationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2113,7 +2091,6 @@ func (client RemediationsClient) ListForResourceGroupSender(req *http.Request) (
 func (client RemediationsClient) ListForResourceGroupResponder(resp *http.Response) (result RemediationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -2239,7 +2216,6 @@ func (client RemediationsClient) ListForSubscriptionSender(req *http.Request) (*
 func (client RemediationsClient) ListForSubscriptionResponder(resp *http.Response) (result RemediationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

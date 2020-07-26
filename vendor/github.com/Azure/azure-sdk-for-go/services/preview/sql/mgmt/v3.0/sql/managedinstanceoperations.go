@@ -115,7 +115,6 @@ func (client ManagedInstanceOperationsClient) CancelSender(req *http.Request) (*
 func (client ManagedInstanceOperationsClient) CancelResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -192,7 +191,6 @@ func (client ManagedInstanceOperationsClient) GetSender(req *http.Request) (*htt
 func (client ManagedInstanceOperationsClient) GetResponder(resp *http.Response) (result ManagedInstanceOperation, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -270,7 +268,6 @@ func (client ManagedInstanceOperationsClient) ListByManagedInstanceSender(req *h
 func (client ManagedInstanceOperationsClient) ListByManagedInstanceResponder(resp *http.Response) (result ManagedInstanceOperationListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

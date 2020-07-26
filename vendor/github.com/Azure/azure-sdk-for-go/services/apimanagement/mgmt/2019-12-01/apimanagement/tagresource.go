@@ -149,7 +149,6 @@ func (client TagResourceClient) ListByServiceSender(req *http.Request) (*http.Re
 func (client TagResourceClient) ListByServiceResponder(resp *http.Response) (result TagResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

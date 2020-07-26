@@ -127,7 +127,6 @@ func (client JobClient) CreateSender(req *http.Request) (*http.Response, error) 
 func (client JobClient) CreateResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -213,7 +212,6 @@ func (client JobClient) GetSender(req *http.Request) (*http.Response, error) {
 func (client JobClient) GetResponder(resp *http.Response) (result Job, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -300,7 +298,6 @@ func (client JobClient) GetOutputResponder(resp *http.Response) (result ReadClos
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -385,7 +382,6 @@ func (client JobClient) GetRunbookContentResponder(resp *http.Response) (result 
 	result.Value = &resp.Body
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK))
 	result.Response = autorest.Response{Response: resp}
 	return
@@ -472,7 +468,6 @@ func (client JobClient) ListByAutomationAccountSender(req *http.Request) (*http.
 func (client JobClient) ListByAutomationAccountResponder(resp *http.Response) (result JobListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -595,7 +590,6 @@ func (client JobClient) ResumeSender(req *http.Request) (*http.Response, error) 
 func (client JobClient) ResumeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -680,7 +674,6 @@ func (client JobClient) StopSender(req *http.Request) (*http.Response, error) {
 func (client JobClient) StopResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -765,7 +758,6 @@ func (client JobClient) SuspendSender(req *http.Request) (*http.Response, error)
 func (client JobClient) SuspendResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

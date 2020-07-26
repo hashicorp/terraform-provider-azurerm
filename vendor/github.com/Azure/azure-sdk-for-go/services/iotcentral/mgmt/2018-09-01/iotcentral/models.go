@@ -328,6 +328,8 @@ func NewAppListResultPage(getNextPage func(context.Context, AppListResult) (AppL
 type AppPatch struct {
 	// Tags - Instance tags
 	Tags map[string]*string `json:"tags"`
+	// Sku - A valid instance SKU.
+	Sku *AppSkuInfo `json:"sku,omitempty"`
 	// AppProperties - The common properties of an IoT Central application.
 	*AppProperties `json:"properties,omitempty"`
 }
@@ -337,6 +339,9 @@ func (ap AppPatch) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ap.Tags != nil {
 		objectMap["tags"] = ap.Tags
+	}
+	if ap.Sku != nil {
+		objectMap["sku"] = ap.Sku
 	}
 	if ap.AppProperties != nil {
 		objectMap["properties"] = ap.AppProperties
@@ -361,6 +366,15 @@ func (ap *AppPatch) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				ap.Tags = tags
+			}
+		case "sku":
+			if v != nil {
+				var sku AppSkuInfo
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				ap.Sku = &sku
 			}
 		case "properties":
 			if v != nil {

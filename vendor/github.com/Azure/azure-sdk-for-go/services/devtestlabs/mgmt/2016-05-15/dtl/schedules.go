@@ -121,7 +121,6 @@ func (client SchedulesClient) CreateOrUpdateSender(req *http.Request) (*http.Res
 func (client SchedulesClient) CreateOrUpdateResponder(resp *http.Response) (result Schedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,7 +198,6 @@ func (client SchedulesClient) DeleteSender(req *http.Request) (*http.Response, e
 func (client SchedulesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -276,7 +274,6 @@ func (client SchedulesClient) ExecuteSender(req *http.Request) (future Schedules
 func (client SchedulesClient) ExecuteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -357,7 +354,6 @@ func (client SchedulesClient) GetSender(req *http.Request) (*http.Response, erro
 func (client SchedulesClient) GetResponder(resp *http.Response) (result Schedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -450,7 +446,6 @@ func (client SchedulesClient) ListSender(req *http.Request) (*http.Response, err
 func (client SchedulesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -566,7 +561,6 @@ func (client SchedulesClient) ListApplicableSender(req *http.Request) (*http.Res
 func (client SchedulesClient) ListApplicableResponder(resp *http.Response) (result ResponseWithContinuationSchedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -684,7 +678,6 @@ func (client SchedulesClient) UpdateSender(req *http.Request) (*http.Response, e
 func (client SchedulesClient) UpdateResponder(resp *http.Response) (result Schedule, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -19,6 +19,7 @@ import (
 func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema.UpdateFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		client := meta.(*clients.Client).HDInsight.ClustersClient
+		extensionsClient := meta.(*clients.Client).HDInsight.ExtensionsClient
 		ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
@@ -103,6 +104,40 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				if _, err := stateConf.WaitForState(); err != nil {
 					return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 				}
+			}
+		}
+
+		if d.HasChange("monitor") {
+			log.Printf("[DEBUG] Change Azure Monitor for the HDInsight %q Cluster", clusterKind)
+			if v, ok := d.GetOk("monitor"); ok {
+				monitorRaw := v.([]interface{})
+				if err := enableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name, monitorRaw); err != nil {
+					return err
+				}
+			} else if err := disableHDInsightMonitoring(ctx, extensionsClient, resourceGroup, name); err != nil {
+				return err
+			}
+		}
+		if d.HasChange("gateway") {
+			log.Printf("[DEBUG] Updating the HDInsight %q Cluster gateway", clusterKind)
+			vs := d.Get("gateway").([]interface{})[0].(map[string]interface{})
+
+			enabled := true
+			username := vs["username"].(string)
+			password := vs["password"].(string)
+
+			future, err := client.UpdateGatewaySettings(ctx, resourceGroup, name, hdinsight.UpdateGatewaySettingsParameters{
+				IsCredentialEnabled: &enabled,
+				UserName:            utils.String(username),
+				Password:            utils.String(password),
+			})
+
+			if err != nil {
+				return err
+			}
+
+			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) Gateway to be updated: %s", name, resourceGroup, err)
 			}
 		}
 
@@ -268,6 +303,101 @@ func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deletion of edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
+}
+
+func expandHDInsightsMetastore(input []interface{}) map[string]interface{} {
+	if len(input) == 0 || input[0] == nil {
+		return map[string]interface{}{}
+	}
+
+	v := input[0].(map[string]interface{})
+	config := map[string]interface{}{}
+
+	if hiveRaw, ok := v["hive"]; ok {
+		for k, val := range azure.ExpandHDInsightsHiveMetastore(hiveRaw.([]interface{})) {
+			config[k] = val
+		}
+	}
+
+	if oozieRaw, ok := v["oozie"]; ok {
+		for k, val := range azure.ExpandHDInsightsOozieMetastore(oozieRaw.([]interface{})) {
+			config[k] = val
+		}
+	}
+
+	if ambariRaw, ok := v["ambari"]; ok {
+		for k, val := range azure.ExpandHDInsightsAmbariMetastore(ambariRaw.([]interface{})) {
+			config[k] = val
+		}
+	}
+
+	return config
+}
+
+func flattenHDInsightsMetastores(d *schema.ResourceData, configurations map[string]map[string]*string) {
+	result := map[string]interface{}{}
+
+	hiveEnv, envExists := configurations["hive-env"]
+	hiveSite, siteExists := configurations["hive-site"]
+	if envExists && siteExists {
+		result["hive"] = azure.FlattenHDInsightsHiveMetastore(hiveEnv, hiveSite)
+	}
+
+	oozieEnv, envExists := configurations["oozie-env"]
+	oozieSite, siteExists := configurations["oozie-site"]
+	if envExists && siteExists {
+		result["oozie"] = azure.FlattenHDInsightsOozieMetastore(oozieEnv, oozieSite)
+	}
+
+	ambari, ambariExists := configurations["ambari-conf"]
+	if ambariExists {
+		result["ambari"] = azure.FlattenHDInsightsAmbariMetastore(ambari)
+	}
+
+	if len(result) > 0 {
+		d.Set("metastores", []interface{}{
+			result,
+		})
+	}
+}
+
+func flattenHDInsightMonitoring(monitor hdinsight.ClusterMonitoringResponse) []interface{} {
+	if *monitor.ClusterMonitoringEnabled {
+		return []interface{}{
+			map[string]string{
+				"log_analytics_workspace_id": *monitor.WorkspaceID,
+				"primary_key":                "*****",
+			}}
+	}
+
+	return nil
+}
+
+func enableHDInsightMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string, input []interface{}) error {
+	monitor := azure.ExpandHDInsightsMonitor(input)
+	future, err := client.EnableMonitoring(ctx, resourceGroup, name, monitor)
+	if err != nil {
+		return err
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for enabling monitor for  HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
+}
+
+func disableHDInsightMonitoring(ctx context.Context, client *hdinsight.ExtensionsClient, resourceGroup, name string) error {
+	future, err := client.DisableMonitoring(ctx, resourceGroup, name)
+	if err != nil {
+		return err
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for disabling monitor for  HDInsight Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

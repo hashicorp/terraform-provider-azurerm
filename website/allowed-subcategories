@@ -1,4 +1,5 @@
 API Management
+Advisor
 Analysis Services
 App Configuration
 App Service (Web Apps)
@@ -7,6 +8,7 @@ Authorization
 Automation
 Base
 Batch
+Blueprints
 Bot
 CDN
 Cognitive Services
@@ -19,6 +21,7 @@ DNS
 Data Explorer
 Data Factory
 Data Lake
+Data Share
 Database
 Database Migration
 Databricks
@@ -51,8 +54,11 @@ Recovery Services
 Redis
 Search
 Security Center
+Sentinel
 Service Fabric
 Spring Cloud
 Storage
 Stream Analytics
+Synapse
 Template
+Time Series Insights

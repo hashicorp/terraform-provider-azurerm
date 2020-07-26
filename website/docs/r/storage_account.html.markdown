@@ -86,16 +86,22 @@ The following arguments are supported:
 
 * `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Changing this forces a new resource to be created. Defaults to `StorageV2`.
 
-* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
+-> **NOTE:** Changing the `account_kind` value from `Storage` to `StorageV2` will not trigger a force new on the storage account, it will only upgrade the existing storage account from `Storage` to `StorageV2` keeping the existing storage account in place.
 
-* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS` and `ZRS`.
+* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `BlockBlobStorage` and `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
+
+* `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`.
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
 * `enable_https_traffic_only` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/storage-require-secure-transfer/)
     for more information. Defaults to `true`.
 
-* `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
+* `allow_blob_public_access` - Allow or disallow public access to all blobs or containers in the storage account. Defaults to `false`.
+
+* `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created. 
+
+-> **NOTE:** When this is set to `true` the `account_tier` argument must be set to `Standard`
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
@@ -130,7 +136,7 @@ A `cors_rule` block supports the following:
 * `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
 
 * `allowed_methods` - (Required) A list of http headers that are allowed to be executed by the origin. Valid options are
-`DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` or `PUT`.
+`DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS`, `PUT` or `PATCH`.
 
 * `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS.
 
@@ -142,7 +148,7 @@ A `cors_rule` block supports the following:
 
 A `custom_domain` block supports the following:
 
-* `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
+* `name` - (Required) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
 ---
@@ -209,7 +215,9 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 ~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
 
-~> **NOTE:** Network Rules can be defined either directly on the `azurerm_storage_account` resource, or using the `azurerm_storage_account_network_rules` resource - but the two cannot be used together. If both are used against the same Storage Account, spurious changes will occur.
+~> **NOTE:** Network Rules can be defined either directly on the `azurerm_storage_account` resource, or using the `azurerm_storage_account_network_rules` resource - but the two cannot be used together. If both are used against the same Storage Account, spurious changes will occur. When managing Network Rules using this resource, to change from a `default_action` of `Deny` to `Allow` requires defining, rather than removing, the block.
+
+~> **Note:** The prefix of `ip_rules` must be between 0 and 30 and only supports public IP addresses.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 

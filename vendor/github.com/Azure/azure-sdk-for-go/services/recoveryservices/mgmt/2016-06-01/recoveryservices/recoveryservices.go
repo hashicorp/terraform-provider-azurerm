@@ -46,7 +46,7 @@ func NewClientWithBaseURI(baseURI string, subscriptionID string) Client {
 // resourceGroupName - the name of the resource group where the recovery services vault is present.
 // location - location of the resource
 // input - contains information about Resource type and Resource name
-func (client Client) CheckNameAvailability(ctx context.Context, resourceGroupName string, location string, input CheckNameAvailabilityParameters) (result CheckNameAvailabilityResultResource, err error) {
+func (client Client) CheckNameAvailability(ctx context.Context, resourceGroupName string, location string, input CheckNameAvailabilityParameters) (result CheckNameAvailabilityResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/Client.CheckNameAvailability")
 		defer func() {
@@ -109,10 +109,9 @@ func (client Client) CheckNameAvailabilitySender(req *http.Request) (*http.Respo
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
 // closes the http.Response Body.
-func (client Client) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResultResource, err error) {
+func (client Client) CheckNameAvailabilityResponder(resp *http.Response) (result CheckNameAvailabilityResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
