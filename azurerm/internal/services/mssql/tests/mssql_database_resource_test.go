@@ -618,7 +618,6 @@ resource "azurerm_mssql_database" "test" {
 `, template, data.RandomInteger)
 }
 
-
 func testAccAzureRMMsSqlDatabase_elasticPool(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlDatabase_template(data)
 	return fmt.Sprintf(`
@@ -1038,14 +1037,13 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[3]d"
   server_id = azurerm_sql_server.test.id
   long_term_retention_policy {
-    weekly_retention  = "P1W"
-    yearly_retention  = "P1Y"
-    week_of_year      = 2
+    weekly_retention = "P1W"
+    yearly_retention = "P1Y"
+    week_of_year     = 2
   }
 }
 `, template, data.RandomIntOfLength(15), data.RandomInteger)
 }
-
 
 func testAccAzureRMMsSqlDatabase_withShortTermRetentionPolicy(data acceptance.TestData) string {
 	template := testAccAzureRMMsSqlDatabase_template(data)
@@ -1072,7 +1070,7 @@ resource "azurerm_mssql_database" "test" {
   name      = "acctest-db-%[3]d"
   server_id = azurerm_sql_server.test.id
   short_term_retention_policy {
-	retention_days = 8
+    retention_days = 8
   }
 }
 `, template, data.RandomIntOfLength(15), data.RandomInteger)
