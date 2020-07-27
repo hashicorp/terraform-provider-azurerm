@@ -53,9 +53,9 @@ resource "azurerm_synapse_firewall_rule" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the firewall rule.
+* `name` - (Required) The Name of the firewall rule. Changing this forces a new resource to be created.
 
-* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace on which to create the Firewall Rule.
+* `synapse_workspace_id` - (Required) The ID of the Synapse Workspace on which to create the Firewall Rule. Changing this forces a new resource to be created.
 
 * `start_ip_address` - (Required) The starting IP address to allow through the firewall for this rule.
 
@@ -80,8 +80,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Synapse Firewall Rules can be imported using the `resource id`, e.g.
+Synapse Firewall Rule can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_synapse_firewall_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.Synapse/workspaces/workspace1/firewallRules/rule1
+terraform import azurerm_synapse_firewall_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourcegroup1/providers/Microsoft.Synapse/workspaces/workspace1/firewallRules/rule1
 ```

@@ -107,13 +107,14 @@ func testCheckAzureRMSynapseFirewallRuleDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name); err != nil {
+		resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on Synapse.FirewallRulesClient: %+v", err)
 			}
 			return nil
 		}
-		return fmt.Errorf("bad: Get on Synapse.FirewallRulesClient: %+v", err)
+		return fmt.Errorf("expected no Firewall Rule but found %+v", resp)
 	}
 	return nil
 }
