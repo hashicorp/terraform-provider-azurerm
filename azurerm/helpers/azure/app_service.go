@@ -475,7 +475,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				"scm_type": {
 					Type:     schema.TypeString,
 					Optional: true,
-					Default:  string(web.ScmTypeNone),
+					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ScmTypeBitbucketGit),
 						string(web.ScmTypeBitbucketHg),

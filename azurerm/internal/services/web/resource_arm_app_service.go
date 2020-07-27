@@ -138,6 +138,8 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
+			"source_control": appServiceSiteSourceControlSchema(),
+
 			"tags": tags.Schema(),
 
 			"site_credential": {
@@ -171,22 +173,6 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"source_control": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"repo_url": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"branch": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -200,13 +186,13 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Service %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -248,7 +234,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
-		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	siteEnvelope := web.Site{
@@ -272,22 +258,37 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
 
-	createFuture, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
+	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
 	if err != nil {
-		return fmt.Errorf("Error creating App Service %q (Resource Group %q): %s", name, resGroup, err)
+		return fmt.Errorf("Error creating App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	err = createFuture.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
-		return fmt.Errorf("Error waiting for App Service %q (Resource Group %q) to be created: %s", name, resGroup, err)
+		return fmt.Errorf("Error waiting for App Service %q (Resource Group %q) to be created: %s", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving App Service %q (Resource Group %q): %s", name, resGroup, err)
+	if _, ok := d.GetOk("source_control"); ok {
+		if siteConfig.ScmType != "" {
+			return fmt.Errorf("cannot set source_control parameters when scm_type is set to %q", siteConfig.ScmType)
+		}
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		// TODO - Do we need to lock the app for updates?
+		_, err := client.CreateOrUpdateSourceControl(ctx, resourceGroup, name, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
 	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read App Service %q (resource group %q) ID", name, resGroup)
+
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+	}
+
+	if read.ID == nil || *read.ID == "" {
+		return fmt.Errorf("Cannot read App Service %q (resource group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -299,8 +300,8 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		ID:                         read.ID,
 		SiteAuthSettingsProperties: &authSettings}
 
-	if _, err := client.UpdateAuthSettings(ctx, resGroup, name, auth); err != nil {
-		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+v", name, resGroup, err)
+	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
+		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	logsConfig := azure.ExpandAppServiceLogs(d.Get("logs"))
@@ -309,15 +310,15 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		ID:                       read.ID,
 		SiteLogsConfigProperties: &logsConfig}
 
-	if _, err := client.UpdateDiagnosticLogsConfig(ctx, resGroup, name, logs); err != nil {
-		return fmt.Errorf("Error updating diagnostic logs config for App Service %q (Resource Group %q): %+v", name, resGroup, err)
+	if _, err := client.UpdateDiagnosticLogsConfig(ctx, resourceGroup, name, logs); err != nil {
+		return fmt.Errorf("Error updating diagnostic logs config for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	backupRaw := d.Get("backup").([]interface{})
 	if backup := azure.ExpandAppServiceBackup(backupRaw); backup != nil {
-		_, err = client.UpdateBackupConfiguration(ctx, resGroup, name, *backup)
+		_, err = client.UpdateBackupConfiguration(ctx, resourceGroup, name, *backup)
 		if err != nil {
-			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resGroup, err)
+			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -499,6 +500,17 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Error updating Managed Service Identity for App Service %q: %+v", id.Name, err)
+		}
+	}
+
+	if d.HasChange("source_control") {
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		// TODO - Do we need to lock the app for updates?
+		_, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -686,27 +698,6 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	return nil
-}
-
-func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if input == nil {
-		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
-		return results
-	}
-
-	if input.RepoURL != nil {
-		result["repo_url"] = *input.RepoURL
-	}
-	if input.Branch != nil && *input.Branch != "" {
-		result["branch"] = *input.Branch
-	} else {
-		result["branch"] = "master"
-	}
-
-	return append(results, result)
 }
 
 func expandAppServiceAppSettings(d *schema.ResourceData) map[string]*string {
