@@ -583,6 +583,7 @@ type HDInsightNodeDefinition struct {
 	MaxNumberOfDisksPerNode  *int
 	FixedMinInstanceCount    *int32
 	FixedTargetInstanceCount *int32
+	CanAutoScale             bool
 }
 
 func ValidateSchemaHDInsightNodeDefinitionVMSize() schema.SchemaValidateFunc {
@@ -742,6 +743,37 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			Required:     true,
 			ValidateFunc: countValidation,
 		}
+
+		if definition.CanAutoScale {
+			result["autoscale"] = &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"capacity": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"min_instance_count": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: countValidation,
+									},
+									"max_instance_count": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: countValidation,
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+		}
 	}
 
 	if definition.CanSpecifyDisks {
@@ -822,6 +854,14 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 
 		targetInstanceCount := v["target_instance_count"].(int)
 		role.TargetInstanceCount = utils.Int32(int32(targetInstanceCount))
+
+		if definition.CanAutoScale {
+			autoscaleRaw := v["autoscale"].([]interface{})
+			autoscale := ExpandHDInsightNodeAutoScaleDefinition(autoscaleRaw)
+			if autoscale != nil {
+				role.AutoscaleConfiguration = autoscale
+			}
+		}
 	} else {
 		role.MinInstanceCount = definition.FixedMinInstanceCount
 		role.TargetInstanceCount = definition.FixedTargetInstanceCount
@@ -839,6 +879,38 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	}
 
 	return &role, nil
+}
+
+func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *hdinsight.Autoscale {
+	if input == nil || len(input) == 0 {
+		return nil
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	capacityRaw := vs["capacity"].([]interface{})
+
+	capacity := ExpandHDInsightAutoscaleCapacityDefinition(capacityRaw)
+	if capacity != nil {
+		return &hdinsight.Autoscale{
+			Capacity: capacity,
+		}
+	}
+
+	return nil
+}
+
+func ExpandHDInsightAutoscaleCapacityDefinition(input []interface{}) *hdinsight.AutoscaleCapacity {
+	if input == nil || len(input) == 0 {
+		return nil
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	return &hdinsight.AutoscaleCapacity{
+		MinInstanceCount: utils.Int32(int32(vs["min_instance_count"].(int))),
+		MaxInstanceCount: utils.Int32(int32(vs["max_instance_count"].(int))),
+	}
 }
 
 func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{}, definition HDInsightNodeDefinition) []interface{} {
@@ -900,6 +972,13 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 		if input.TargetInstanceCount != nil {
 			output["target_instance_count"] = int(*input.TargetInstanceCount)
 		}
+
+		if definition.CanAutoScale {
+			autoscale := FlattenHDInsightNodeAutoscaleDefinition(input.AutoscaleConfiguration)
+			if autoscale != nil {
+				output["autoscale"] = autoscale
+			}
+		}
 	}
 
 	if definition.CanSpecifyDisks {
@@ -950,4 +1029,30 @@ func FindHDInsightConnectivityEndpoint(name string, input *[]hdinsight.Connectiv
 	}
 
 	return ""
+}
+
+func FlattenHDInsightNodeAutoscaleDefinition(input *hdinsight.Autoscale) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	result := map[string]interface{}{}
+
+	if input.Capacity != nil {
+		result["capacity"] = FlattenHDInsightAutoscaleCapacityDefinition(input.Capacity)
+	}
+
+	if len(result) > 0 {
+		return []interface{}{result}
+	}
+	return nil
+}
+
+func FlattenHDInsightAutoscaleCapacityDefinition(input *hdinsight.AutoscaleCapacity) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"min_instance_count": input.MinInstanceCount,
+			"max_instance_count": input.MaxInstanceCount,
+		},
+	}
 }
