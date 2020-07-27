@@ -121,7 +121,6 @@ func (client AccountClient) CreateOrUpdateSender(req *http.Request) (*http.Respo
 func (client AccountClient) CreateOrUpdateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client AccountClient) DeleteSender(req *http.Request) (*http.Response, err
 func (client AccountClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -288,7 +286,6 @@ func (client AccountClient) GetSender(req *http.Request) (*http.Response, error)
 func (client AccountClient) GetResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -360,7 +357,6 @@ func (client AccountClient) ListSender(req *http.Request) (*http.Response, error
 func (client AccountClient) ListResponder(resp *http.Response) (result AccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -480,7 +476,6 @@ func (client AccountClient) ListByResourceGroupSender(req *http.Request) (*http.
 func (client AccountClient) ListByResourceGroupResponder(resp *http.Response) (result AccountListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -604,7 +599,6 @@ func (client AccountClient) UpdateSender(req *http.Request) (*http.Response, err
 func (client AccountClient) UpdateResponder(resp *http.Response) (result Account, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

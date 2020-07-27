@@ -124,7 +124,6 @@ func (client EventSourcesClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client EventSourcesClient) CreateOrUpdateResponder(resp *http.Response) (result EventSourceResourceModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -205,7 +204,6 @@ func (client EventSourcesClient) DeleteSender(req *http.Request) (*http.Response
 func (client EventSourcesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -284,7 +282,6 @@ func (client EventSourcesClient) GetSender(req *http.Request) (*http.Response, e
 func (client EventSourcesClient) GetResponder(resp *http.Response) (result EventSourceResourceModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -362,7 +359,6 @@ func (client EventSourcesClient) ListByEnvironmentSender(req *http.Request) (*ht
 func (client EventSourcesClient) ListByEnvironmentResponder(resp *http.Response) (result EventSourceListResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -446,7 +442,6 @@ func (client EventSourcesClient) UpdateSender(req *http.Request) (*http.Response
 func (client EventSourcesClient) UpdateResponder(resp *http.Response) (result EventSourceResourceModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

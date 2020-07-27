@@ -168,23 +168,25 @@ func (ac *ApnsCredential) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ApnsCredentialProperties description of a NotificationHub ApnsCredential.
+// ApnsCredentialProperties description of a NotificationHub ApnsCredential. Note that there is no explicit
+// switch between Certificate and Token Authentication Modes. The mode is determined based on the
+// properties passed in.
 type ApnsCredentialProperties struct {
-	// ApnsCertificate - The APNS certificate.
+	// ApnsCertificate - The APNS certificate. Specify if using Certificate Authentication Mode.
 	ApnsCertificate *string `json:"apnsCertificate,omitempty"`
-	// CertificateKey - The certificate key.
+	// CertificateKey - The APNS certificate password if it exists.
 	CertificateKey *string `json:"certificateKey,omitempty"`
-	// Endpoint - The endpoint of this credential.
+	// Endpoint - The APNS endpoint of this credential. If using Certificate Authentication Mode and Sandbox specify 'gateway.sandbox.push.apple.com'. If using Certificate Authentication Mode and Production specify 'gateway.push.apple.com'. If using Token Authentication Mode and Sandbox specify 'https://api.development.push.apple.com:443/3/device'. If using Token Authentication Mode and Production specify 'https://api.push.apple.com:443/3/device'.
 	Endpoint *string `json:"endpoint,omitempty"`
-	// Thumbprint - The APNS certificate Thumbprint
+	// Thumbprint - The APNS certificate thumbprint. Specify if using Certificate Authentication Mode.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// KeyID - A 10-character key identifier (kid) key, obtained from your developer account
+	// KeyID - A 10-character key identifier (kid) key, obtained from your developer account. Specify if using Token Authentication Mode.
 	KeyID *string `json:"keyId,omitempty"`
-	// AppName - The name of the application
+	// AppName - The name of the application or BundleId. Specify if using Token Authentication Mode.
 	AppName *string `json:"appName,omitempty"`
-	// AppID - The issuer (iss) registered claim key, whose value is your 10-character Team ID, obtained from your developer account
+	// AppID - The issuer (iss) registered claim key. The value is a 10-character TeamId, obtained from your developer account. Specify if using Token Authentication Mode.
 	AppID *string `json:"appId,omitempty"`
-	// Token - Provider Authentication Token, obtained through your developer account
+	// Token - Provider Authentication Token, obtained through your developer account. Specify if using Token Authentication Mode.
 	Token *string `json:"token,omitempty"`
 }
 
@@ -603,7 +605,7 @@ func (gc *GcmCredential) UnmarshalJSON(body []byte) error {
 
 // GcmCredentialProperties description of a NotificationHub GcmCredential.
 type GcmCredentialProperties struct {
-	// GcmEndpoint - The GCM endpoint.
+	// GcmEndpoint - The FCM legacy endpoint. Default value is 'https://fcm.googleapis.com/fcm/send'
 	GcmEndpoint *string `json:"gcmEndpoint,omitempty"`
 	// GoogleAPIKey - The Google API key.
 	GoogleAPIKey *string `json:"googleApiKey,omitempty"`

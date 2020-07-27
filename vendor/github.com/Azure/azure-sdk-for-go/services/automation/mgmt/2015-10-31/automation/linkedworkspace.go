@@ -118,7 +118,6 @@ func (client LinkedWorkspaceClient) GetSender(req *http.Request) (*http.Response
 func (client LinkedWorkspaceClient) GetResponder(resp *http.Response) (result LinkedWorkspace, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

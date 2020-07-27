@@ -125,7 +125,6 @@ func (client FrontDoorsClient) CreateOrUpdateSender(req *http.Request) (future F
 func (client FrontDoorsClient) CreateOrUpdateResponder(resp *http.Response) (result FrontDoor, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -213,7 +212,6 @@ func (client FrontDoorsClient) DeleteSender(req *http.Request) (future FrontDoor
 func (client FrontDoorsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -300,7 +298,6 @@ func (client FrontDoorsClient) GetSender(req *http.Request) (*http.Response, err
 func (client FrontDoorsClient) GetResponder(resp *http.Response) (result FrontDoor, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -372,7 +369,6 @@ func (client FrontDoorsClient) ListSender(req *http.Request) (*http.Response, er
 func (client FrontDoorsClient) ListResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -492,7 +488,6 @@ func (client FrontDoorsClient) ListByResourceGroupSender(req *http.Request) (*ht
 func (client FrontDoorsClient) ListByResourceGroupResponder(resp *http.Response) (result ListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -623,7 +618,6 @@ func (client FrontDoorsClient) ValidateCustomDomainSender(req *http.Request) (*h
 func (client FrontDoorsClient) ValidateCustomDomainResponder(resp *http.Response) (result ValidateCustomDomainOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

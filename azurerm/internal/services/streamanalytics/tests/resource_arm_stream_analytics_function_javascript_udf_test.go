@@ -161,12 +161,18 @@ func testAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(data acce
 %s
 
 resource "azurerm_stream_analytics_function_javascript_udf" "import" {
-  name                      = "${azurerm_stream_analytics_function_javascript_udf.test.name}"
-  stream_analytics_job_name = "${azurerm_stream_analytics_function_javascript_udf.test.stream_analytics_job_name}"
-  resource_group_name       = "${azurerm_stream_analytics_function_javascript_udf.test.resource_group_name}"
-  script                    = "${azurerm_stream_analytics_function_javascript_udf.test.script}"
-  inputs                    = "${azurerm_stream_analytics_function_javascript_udf.test.inputs}"
-  output                    = "${azurerm_stream_analytics_function_javascript_udf.test.output}"
+  name                      = azurerm_stream_analytics_function_javascript_udf.test.name
+  stream_analytics_job_name = azurerm_stream_analytics_function_javascript_udf.test.stream_analytics_job_name
+  resource_group_name       = azurerm_stream_analytics_function_javascript_udf.test.resource_group_name
+  script                    = azurerm_stream_analytics_function_javascript_udf.test.script
+
+  input {
+    type = azurerm_stream_analytics_function_javascript_udf.test.input.0.type
+  }
+
+  output {
+    type = azurerm_stream_analytics_function_javascript_udf.test.output.0.type
+  }
 }
 `, template)
 }

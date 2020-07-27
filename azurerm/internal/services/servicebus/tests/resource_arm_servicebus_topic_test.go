@@ -144,7 +144,7 @@ func TestAccAzureRMServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 				Config: testAccAzureRMServiceBusTopic_enablePartitioningStandard(data),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_partitioning", "true"),
-					// Ensure size is read back in it's original value and not the x16 value returned by Azure
+					// Ensure size is read back in its original value and not the x16 value returned by Azure
 					resource.TestCheckResourceAttr(data.ResourceName, "max_size_in_megabytes", "5120"),
 				),
 			},

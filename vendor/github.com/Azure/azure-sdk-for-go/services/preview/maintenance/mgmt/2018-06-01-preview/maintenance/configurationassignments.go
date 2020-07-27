@@ -119,7 +119,6 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdateSender(req *http.Requ
 func (client ConfigurationAssignmentsClient) CreateOrUpdateResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -208,7 +207,6 @@ func (client ConfigurationAssignmentsClient) CreateOrUpdateParentSender(req *htt
 func (client ConfigurationAssignmentsClient) CreateOrUpdateParentResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -290,7 +288,6 @@ func (client ConfigurationAssignmentsClient) DeleteSender(req *http.Request) (*h
 func (client ConfigurationAssignmentsClient) DeleteResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -376,7 +373,6 @@ func (client ConfigurationAssignmentsClient) DeleteParentSender(req *http.Reques
 func (client ConfigurationAssignmentsClient) DeleteParentResponder(resp *http.Response) (result ConfigurationAssignment, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -456,7 +452,6 @@ func (client ConfigurationAssignmentsClient) ListSender(req *http.Request) (*htt
 func (client ConfigurationAssignmentsClient) ListResponder(resp *http.Response) (result ListConfigurationAssignmentsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -540,7 +535,6 @@ func (client ConfigurationAssignmentsClient) ListParentSender(req *http.Request)
 func (client ConfigurationAssignmentsClient) ListParentResponder(resp *http.Response) (result ListConfigurationAssignmentsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

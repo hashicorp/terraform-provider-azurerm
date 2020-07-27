@@ -116,7 +116,6 @@ func (client RegionsClient) ListBySkuSender(req *http.Request) (*http.Response, 
 func (client RegionsClient) ListBySkuResponder(resp *http.Response) (result PremiumMessagingRegionsListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -87,9 +87,10 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 			},
 
 			"topic_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This field has been updated to readonly field since Apr 25, 2019 so no longer has any affect and will be removed in version 3.0 of the provider.",
 			},
 
 			"azure_function_endpoint": {
@@ -672,10 +673,6 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 		}
 
 		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
-
-		if props.Topic != nil && *props.Topic != "" {
-			d.Set("topic_name", props.Topic)
-		}
 
 		if azureFunctionEndpoint, ok := props.Destination.AsAzureFunctionEventSubscriptionDestination(); ok {
 			if err := d.Set("azure_function_endpoint", flattenEventGridEventSubscriptionAzureFunctionEndpoint(azureFunctionEndpoint)); err != nil {

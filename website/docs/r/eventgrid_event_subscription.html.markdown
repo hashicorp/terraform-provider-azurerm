@@ -103,7 +103,7 @@ A `storage_queue_endpoint` supports the following:
 
 An `azure_function_endpoint` supports the following:
 
-* `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events.
+* `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events. This must be the functions ID in format {function_app.id}/functions/{name}.
 
 * `max_events_per_batch` - (Optional) Maximum number of events per batch.
 
@@ -190,7 +190,7 @@ A `retry_policy` supports the following:
 
 * `max_delivery_attempts` - (Required) Specifies the maximum number of delivery retry attempts for events.
 
-* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events.
+* `event_time_to_live` - (Required) Specifies the time to live (in minutes) for events. Supported range is `1` to `1440`. Defaults to `1440`. See [official documentation](https://docs.microsoft.com/en-us/azure/event-grid/manage-event-delivery#set-retry-policy) for more details.
 
 ## Attributes Reference
 
@@ -198,7 +198,7 @@ The following attributes are exported:
 
 * `id` - The ID of the EventGrid Event Subscription.
 
-* `topic_name` - (Optional) Specifies the name of the topic to associate with the event subscription.
+* `topic_name` - (Optional/ **Deprecated) Specifies the name of the topic to associate with the event subscription.
 
 ## Timeouts
 

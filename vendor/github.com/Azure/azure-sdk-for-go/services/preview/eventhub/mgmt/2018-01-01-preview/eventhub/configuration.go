@@ -121,7 +121,6 @@ func (client ConfigurationClient) GetSender(req *http.Request) (*http.Response, 
 func (client ConfigurationClient) GetResponder(resp *http.Response) (result ClusterQuotaConfigurationProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -211,7 +210,6 @@ func (client ConfigurationClient) PatchSender(req *http.Request) (*http.Response
 func (client ConfigurationClient) PatchResponder(resp *http.Response) (result ClusterQuotaConfigurationProperties, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -10,6 +10,8 @@ description: |-
 
 Manages a Kusto (also known as Azure Data Explorer) Database Principal
 
+~> **NOTE:** This resource is being **deprecated** due to API updates and should no longer be used.  Please use [azurerm_kusto_database_principal_assignment](./kusto_database_principal_assignment.html) instead.
+
 ## Example Usage
 
 ```hcl

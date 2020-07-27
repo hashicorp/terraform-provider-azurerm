@@ -70,6 +70,8 @@ The following arguments are supported:
 
 * `app_service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App Slot.
 
+* `function_app_name` - (Required) The name of the Function App within which to create the Function App Slot. Changing this forces a new resource to be created.
+
 * `storage_account_name` - (Required) The backend storage account name which will be used by the Function App (such as the dashboard, logs).
 
 * `storage_account_access_key` - (Required) The access key which will be used to access the backend storage account for the Function App.
@@ -139,6 +141,8 @@ The following arguments are supported:
 * `cors` - (Optional) A `cors` block as defined below.
 
 * `ip_restriction` - (Optional) A [List of objects](/docs/configuration/attr-as-blocks.html) representing ip restrictions as defined below.
+
+* `auto_swap_slot_name` - (Optional) The name of the slot to automatically swap to during deployment
 
 ---
 

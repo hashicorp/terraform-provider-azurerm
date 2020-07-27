@@ -1532,13 +1532,13 @@ func (future *DeploymentsCreateOrUpdateFuture) Result(client DeploymentsClient) 
 
 // DeploymentSettings deployment settings payload
 type DeploymentSettings struct {
-	// CPU - Required CPU
+	// CPU - Required CPU, basic tier should be 1, standard tier should be in range (1, 4)
 	CPU *int32 `json:"cpu,omitempty"`
-	// MemoryInGB - Required Memory size in GB
+	// MemoryInGB - Required Memory size in GB, basic tier should be in range (1, 2), standard tier should be in range (1, 8)
 	MemoryInGB *int32 `json:"memoryInGB,omitempty"`
 	// JvmOptions - JVM parameter
 	JvmOptions *string `json:"jvmOptions,omitempty"`
-	// InstanceCount - Instance count
+	// InstanceCount - Instance count, basic tier should be in range (1, 25), standard tier should be in range (1, 500)
 	InstanceCount *int32 `json:"instanceCount,omitempty"`
 	// EnvironmentVariables - Collection of environment variables
 	EnvironmentVariables map[string]*string `json:"environmentVariables"`

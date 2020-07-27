@@ -23,15 +23,6 @@ func TestAccAzureRMMonitorMetricAlert_basic(t *testing.T) {
 				Config: testAccAzureRMMonitorMetricAlert_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_namespace", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_name", "UsedCapacity"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.aggregation", "Average"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operator", "GreaterThan"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.threshold", "55.5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "0"),
 				),
 			},
 			data.ImportStep(),
@@ -73,35 +64,6 @@ func TestAccAzureRMMonitorMetricAlert_complete(t *testing.T) {
 				Config: testAccAzureRMMonitorMetricAlert_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "severity", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is a complete metric alert resource."),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT30M"),
-					resource.TestCheckResourceAttr(data.ResourceName, "window_size", "PT12H"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_namespace", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_name", "Transactions"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.aggregation", "Maximum"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operator", "Equals"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.threshold", "99"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.0.name", "GeoType"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.0.operator", "Include"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.0.values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.0.values.0", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.1.name", "ApiName"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.1.operator", "Include"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.1.values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.1.values.0", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.metric_namespace", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.metric_name", "UsedCapacity"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.aggregation", "Total"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.operator", "GreaterThanOrEqual"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.threshold", "66.6"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.dimension.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "2"),
 				),
 			},
 			data.ImportStep(),
@@ -121,218 +83,74 @@ func TestAccAzureRMMonitorMetricAlert_basicAndCompleteUpdate(t *testing.T) {
 				Config: testAccAzureRMMonitorMetricAlert_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "severity", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT1M"),
-					resource.TestCheckResourceAttr(data.ResourceName, "window_size", "PT5M"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_namespace", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_name", "UsedCapacity"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.aggregation", "Average"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operator", "GreaterThan"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.threshold", "55.5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "0"),
 				),
 			},
 			{
 				Config: testAccAzureRMMonitorMetricAlert_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "severity", "4"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", "This is a complete metric alert resource."),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT30M"),
-					resource.TestCheckResourceAttr(data.ResourceName, "window_size", "PT12H"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_namespace", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_name", "Transactions"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.aggregation", "Maximum"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operator", "Equals"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.threshold", "99"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.#", "2"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.0.name", "GeoType"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.0.operator", "Include"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.0.values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.0.values.0", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.1.name", "ApiName"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.1.operator", "Include"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.1.values.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.1.values.0", "*"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.metric_namespace", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.metric_name", "UsedCapacity"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.aggregation", "Total"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.operator", "GreaterThanOrEqual"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.threshold", "66.6"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.1.dimension.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "2"),
 				),
 			},
 			{
 				Config: testAccAzureRMMonitorMetricAlert_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "auto_mitigate", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "severity", "3"),
-					resource.TestCheckResourceAttr(data.ResourceName, "description", ""),
-					resource.TestCheckResourceAttr(data.ResourceName, "frequency", "PT1M"),
-					resource.TestCheckResourceAttr(data.ResourceName, "window_size", "PT5M"),
-					resource.TestCheckResourceAttr(data.ResourceName, "scopes.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.#", "1"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_namespace", "Microsoft.Storage/storageAccounts"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.metric_name", "UsedCapacity"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.aggregation", "Average"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.operator", "GreaterThan"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.threshold", "55.5"),
-					resource.TestCheckResourceAttr(data.ResourceName, "criteria.0.dimension.#", "0"),
-					resource.TestCheckResourceAttr(data.ResourceName, "action.#", "0"),
 				),
 			},
 		},
 	})
 }
 
-func testAccAzureRMMonitorMetricAlert_basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+func TestAccAzureRMMonitorMetricAlert_multiScope(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, 1),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMMonitorMetricAlert_multiScope(data, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+func TestAccAzureRMMonitorMetricAlert_applicationInsightsWebTest(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_metric_alert", "test")
 
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_monitor_metric_alert" "test" {
-  name                = "acctestMetricAlert-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  scopes              = [azurerm_storage_account.test.id]
-
-  criteria {
-    metric_namespace = "Microsoft.Storage/storageAccounts"
-    metric_name      = "UsedCapacity"
-    aggregation      = "Average"
-    operator         = "GreaterThan"
-    threshold        = 55.5
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
-}
-
-func testAccAzureRMMonitorMetricAlert_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMMonitorMetricAlert_basic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_monitor_metric_alert" "import" {
-  name                = azurerm_monitor_metric_alert.test.name
-  resource_group_name = azurerm_monitor_metric_alert.test.resource_group_name
-  scopes              = azurerm_monitor_metric_alert.test.scopes
-
-  criteria {
-    metric_namespace = "Microsoft.Storage/storageAccounts"
-    metric_name      = "UsedCapacity"
-    aggregation      = "Average"
-    operator         = "GreaterThan"
-    threshold        = 55.5
-  }
-}
-`, template)
-}
-
-func testAccAzureRMMonitorMetricAlert_complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa1%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag1"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_monitor_metric_alert" "test" {
-  name                = "acctestMetricAlert-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  scopes              = [azurerm_storage_account.test.id]
-  enabled             = true
-  auto_mitigate       = false
-  severity            = 4
-  description         = "This is a complete metric alert resource."
-  frequency           = "PT30M"
-  window_size         = "PT12H"
-
-  criteria {
-    metric_namespace = "Microsoft.Storage/storageAccounts"
-    metric_name      = "Transactions"
-    aggregation      = "Maximum"
-    operator         = "Equals"
-    threshold        = 99
-
-    dimension {
-      name     = "GeoType"
-      operator = "Include"
-      values   = ["*"]
-    }
-
-    dimension {
-      name     = "ApiName"
-      operator = "Include"
-      values   = ["*"]
-    }
-  }
-
-  criteria {
-    metric_namespace = "Microsoft.Storage/storageAccounts"
-    metric_name      = "UsedCapacity"
-    aggregation      = "Total"
-    operator         = "GreaterThanOrEqual"
-    threshold        = 66.6
-  }
-
-  action {
-    action_group_id = azurerm_monitor_action_group.test1.id
-  }
-
-  action {
-    action_group_id = azurerm_monitor_action_group.test2.id
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMonitorMetricAlertDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMonitorMetricAlert_applicationInsightsWebTest(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMonitorMetricAlertExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
 }
 
 func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
@@ -384,4 +202,286 @@ func testCheckAzureRMMonitorMetricAlertExists(resourceName string) resource.Test
 
 		return nil
 	}
+}
+
+func testAccAzureRMMonitorMetricAlert_basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_metric_alert" "test" {
+  name                = "acctestMetricAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_storage_account.test.id]
+
+  criteria {
+    metric_namespace = "Microsoft.Storage/storageAccounts"
+    metric_name      = "UsedCapacity"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 55.5
+  }
+
+  window_size = "PT1H"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func testAccAzureRMMonitorMetricAlert_requiresImport(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorMetricAlert_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_metric_alert" "import" {
+  name                = azurerm_monitor_metric_alert.test.name
+  resource_group_name = azurerm_monitor_metric_alert.test.resource_group_name
+  scopes              = azurerm_monitor_metric_alert.test.scopes
+
+  criteria {
+    metric_namespace = "Microsoft.Storage/storageAccounts"
+    metric_name      = "UsedCapacity"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 55.5
+  }
+  window_size = "PT1H"
+}
+`, template)
+}
+
+func testAccAzureRMMonitorMetricAlert_complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa1%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_monitor_action_group" "test1" {
+  name                = "acctestActionGroup1-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag1"
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_monitor_metric_alert" "test" {
+  name                = "acctestMetricAlert-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_storage_account.test.id]
+  enabled             = true
+  auto_mitigate       = false
+  severity            = 4
+  description         = "This is a complete metric alert resource."
+  frequency           = "PT30M"
+  window_size         = "PT12H"
+
+  criteria {
+    metric_namespace = "Microsoft.Storage/storageAccounts"
+    metric_name      = "Transactions"
+    aggregation      = "Total"
+    operator         = "GreaterThan"
+    threshold        = 99
+
+    dimension {
+      name     = "GeoType"
+      operator = "Include"
+      values   = ["*"]
+    }
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test1.id
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test2.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func testAccAzureRMMonitorMetricAlert_multiVMTemplate(data acceptance.TestData, count int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  count                = %[3]d
+  name                 = "internal-${count.index}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.${count.index}.0/24"
+}
+
+resource "azurerm_network_interface" "test" {
+  count               = %[3]d
+  name                = "acctestnic-${count.index}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test[count.index].id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  count                           = %[3]d
+  name                            = "acctestVM-${count.index}"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@$$w0rd1234!"
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.test[count.index].id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, count)
+}
+
+func testAccAzureRMMonitorMetricAlert_multiScope(data acceptance.TestData, count int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_metric_alert" "test" {
+  name                = "acctestMetricAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = azurerm_linux_virtual_machine.test.*.id
+  dynamic_criteria {
+    metric_namespace = "Microsoft.Compute/virtualMachines"
+    metric_name      = "Network In"
+    aggregation      = "Total"
+
+    operator          = "GreaterOrLessThan"
+    alert_sensitivity = "Medium"
+  }
+  window_size              = "PT1H"
+  frequency                = "PT5M"
+  target_resource_type     = "Microsoft.Compute/virtualMachines"
+  target_resource_location = "%s"
+}
+`, testAccAzureRMMonitorMetricAlert_multiVMTemplate(data, count), data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMonitorMetricAlert_applicationInsightsWebTestTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestAppInsight-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "web"
+}
+
+resource "azurerm_application_insights_web_test" "test" {
+  name                    = "acctestAppInsight-webtest-%[1]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  application_insights_id = azurerm_application_insights.test.id
+  kind                    = "ping"
+  frequency               = 300
+  timeout                 = 60
+  enabled                 = true
+  geo_locations           = ["us-tx-sn1-azr", "us-il-ch1-azr"]
+
+  configuration = <<XML
+<WebTest Name="WebTest1" Id="ABD48585-0831-40CB-9069-682EA6BB3583" Enabled="True" CssProjectStructure="" CssIteration="" Timeout="0" WorkItemIds="" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010" Description="" CredentialUserName="" CredentialPassword="" PreAuthenticate="True" Proxy="default" StopOnError="False" RecordedResultFile="" ResultsLocale="">
+  <Items>
+    <Request Method="GET" Guid="a5f10126-e4cd-570d-961c-cea43999a200" Version="1.1" Url="http://microsoft.com" ThinkTime="0" Timeout="300" ParseDependentRequests="True" FollowRedirects="True" RecordResult="True" Cache="False" ResponseTimeGoal="0" Encoding="utf-8" ExpectedHttpStatusCode="200" ExpectedResponseUrl="" ReportingName="" IgnoreHttpStatusCode="False" />
+  </Items>
+</WebTest>
+XML
+  lifecycle {
+    ignore_changes = [tags]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func testAccAzureRMMonitorMetricAlert_applicationInsightsWebTest(data acceptance.TestData) string {
+	template := testAccAzureRMMonitorMetricAlert_applicationInsightsWebTestTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_monitor_metric_alert" "test" {
+  name                = "acctestMetricAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes = [
+    azurerm_application_insights.test.id,
+    azurerm_application_insights_web_test.test.id,
+  ]
+  application_insights_web_test_location_availability_criteria {
+    web_test_id           = azurerm_application_insights_web_test.test.id
+    component_id          = azurerm_application_insights.test.id
+    failed_location_count = 2
+  }
+  window_size = "PT15M"
+  frequency   = "PT1M"
+}
+`, template, data.RandomInteger)
 }

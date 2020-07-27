@@ -28,8 +28,7 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// need to create a vm and then reference it in the image creation
-				Config:  testAccAzureRMSharedImageVersion_setup(data, userName, password, hostName),
-				Destroy: false,
+				Config: testAccAzureRMSharedImageVersion_setup(data, userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
 					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, data.Locations.Primary),
@@ -122,6 +121,56 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 					testCheckAzureRMSharedImageVersionExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(data.ResourceName, "target_region.#", "1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMSharedImageVersion_specializedImageVersionBySnapshot(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSharedImageVersion_imageVersionSpecializedBySnapshot(data, userName, password, hostName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageVersionExists(data.ResourceName),
+					// the share image version will generate a shared access signature (SAS) on the referenced snapshot and keep it active until the replication is complete
+					// in the meantime, the service will return success of creation before the replication complete.
+					// therefore in this test, we have to revoke the access on the snapshot in order to do the cleaning work
+					revokeSASOnSnapshotForCleanup("azurerm_snapshot.test"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMSharedImageVersion_specializedImageVersionByVM(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_shared_image_version", "test")
+
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", data.RandomInteger)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSharedImageVersion_imageVersionSpecializedByVM(data, userName, password, hostName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageVersionExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -229,6 +278,32 @@ func testCheckAzureRMSharedImageVersionExists(resourceName string) resource.Test
 	}
 }
 
+func revokeSASOnSnapshotForCleanup(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Compute.SnapshotsClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+
+		// Get the snapshot resource
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		snapShotName := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		future, err := client.RevokeAccess(ctx, resourceGroup, snapShotName)
+		if err != nil {
+			return fmt.Errorf("bad: cannot revoke SAS on the snapshot: %+v", err)
+		}
+		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("bad: waiting the revoke of SAS on the snapshot: %+v", err)
+		}
+
+		return nil
+	}
+}
+
 // nolint: unparam
 func testAccAzureRMSharedImageVersion_setup(data acceptance.TestData, username, password, hostname string) string {
 	return testAccAzureRMImage_standaloneImage_setup(data, username, password, hostname, "LRS")
@@ -273,6 +348,179 @@ resource "azurerm_shared_image_version" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+
+  tags = {
+    "foo" = "bar"
+  }
+}
+`, template)
+}
+
+func testAccAzureRMSharedImageVersion_setupSpecialized(data acceptance.TestData, username, password, hostname string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctpip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Dynamic"
+  domain_name_label   = "%s"
+}
+
+resource "azurerm_network_interface" "testsource" {
+  name                = "acctnicsource-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "testconfigurationsource"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_virtual_machine" "testsource" {
+  name                  = "testsource"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  network_interface_ids = [azurerm_network_interface.testsource.id]
+  vm_size               = "Standard_D1_v2"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "myosdisk1"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "mdimagetestsource"
+    admin_username = "%s"
+    admin_password = "%s"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags = {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, hostname, data.RandomInteger, username, password)
+}
+
+func testAccAzureRMSharedImageVersion_provisionSpecialized(data acceptance.TestData, username, password, hostname string) string {
+	template := testAccAzureRMSharedImageVersion_setupSpecialized(data, username, password, hostname)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_gallery" "test" {
+  name                = "acctestsig%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_shared_image" "test" {
+  name                = "acctestimg%d"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  os_type             = "Linux"
+  specialized         = true
+
+  identifier {
+    publisher = "AccTesPublisher%d"
+    offer     = "AccTesOffer%d"
+    sku       = "AccTesSku%d"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMSharedImageVersion_imageVersionSpecializedBySnapshot(data acceptance.TestData, username, password, hostname string) string {
+	template := testAccAzureRMSharedImageVersion_provisionSpecialized(data, username, password, hostname)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_snapshot" "test" {
+  name                = "acctestsnapshot%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  create_option       = "Copy"
+  source_resource_id  = azurerm_virtual_machine.testsource.storage_os_disk.0.managed_disk_id
+}
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  os_disk_snapshot_id = azurerm_snapshot.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+
+  tags = {
+    "foo" = "bar"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMSharedImageVersion_imageVersionSpecializedByVM(data acceptance.TestData, username, password, hostname string) string {
+	template := testAccAzureRMSharedImageVersion_provisionSpecialized(data, username, password, hostname)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  managed_image_id = azurerm_virtual_machine.testsource.id
 
   target_region {
     name                   = azurerm_resource_group.test.location

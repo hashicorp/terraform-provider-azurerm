@@ -151,7 +151,6 @@ func (client ProductSubscriptionsClient) ListSender(req *http.Request) (*http.Re
 func (client ProductSubscriptionsClient) ListResponder(resp *http.Response) (result SubscriptionCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

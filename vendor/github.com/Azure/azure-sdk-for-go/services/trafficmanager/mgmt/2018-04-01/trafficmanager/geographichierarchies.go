@@ -101,7 +101,6 @@ func (client GeographicHierarchiesClient) GetDefaultSender(req *http.Request) (*
 func (client GeographicHierarchiesClient) GetDefaultResponder(resp *http.Response) (result GeographicHierarchy, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

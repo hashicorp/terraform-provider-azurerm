@@ -113,7 +113,6 @@ func (client WorkflowTriggersClient) GetSender(req *http.Request) (*http.Respons
 func (client WorkflowTriggersClient) GetResponder(resp *http.Response) (result WorkflowTrigger, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -191,7 +190,6 @@ func (client WorkflowTriggersClient) GetSchemaJSONSender(req *http.Request) (*ht
 func (client WorkflowTriggersClient) GetSchemaJSONResponder(resp *http.Response) (result JSONSchema, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -276,7 +274,6 @@ func (client WorkflowTriggersClient) ListSender(req *http.Request) (*http.Respon
 func (client WorkflowTriggersClient) ListResponder(resp *http.Response) (result WorkflowTriggerListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -391,7 +388,6 @@ func (client WorkflowTriggersClient) ListCallbackURLSender(req *http.Request) (*
 func (client WorkflowTriggersClient) ListCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -469,7 +465,6 @@ func (client WorkflowTriggersClient) ResetSender(req *http.Request) (*http.Respo
 func (client WorkflowTriggersClient) ResetResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -546,7 +541,6 @@ func (client WorkflowTriggersClient) RunSender(req *http.Request) (*http.Respons
 func (client WorkflowTriggersClient) RunResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -632,7 +626,6 @@ func (client WorkflowTriggersClient) SetStateSender(req *http.Request) (*http.Re
 func (client WorkflowTriggersClient) SetStateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp

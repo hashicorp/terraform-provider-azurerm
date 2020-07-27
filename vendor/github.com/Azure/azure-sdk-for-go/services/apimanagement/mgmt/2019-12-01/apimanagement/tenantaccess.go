@@ -119,7 +119,6 @@ func (client TenantAccessClient) GetSender(req *http.Request) (*http.Response, e
 func (client TenantAccessClient) GetResponder(resp *http.Response) (result AccessInformationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client TenantAccessClient) GetEntityTagSender(req *http.Request) (*http.Re
 func (client TenantAccessClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -288,7 +286,6 @@ func (client TenantAccessClient) ListSecretsSender(req *http.Request) (*http.Res
 func (client TenantAccessClient) ListSecretsResponder(resp *http.Response) (result AccessInformationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -373,7 +370,6 @@ func (client TenantAccessClient) RegeneratePrimaryKeySender(req *http.Request) (
 func (client TenantAccessClient) RegeneratePrimaryKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -457,7 +453,6 @@ func (client TenantAccessClient) RegenerateSecondaryKeySender(req *http.Request)
 func (client TenantAccessClient) RegenerateSecondaryKeyResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -547,7 +542,6 @@ func (client TenantAccessClient) UpdateSender(req *http.Request) (*http.Response
 func (client TenantAccessClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

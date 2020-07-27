@@ -44,6 +44,8 @@ The following arguments are supported:
 
 ---
 
+* `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this resource. Defaults to `true`.
+
 * `partition_count` - (Optional) The number of partitions which should be created.
 
 * `replica_count` - (Optional) The number of replica's which should be created.

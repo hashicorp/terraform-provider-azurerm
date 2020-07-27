@@ -118,7 +118,6 @@ func (client ReplicationProtectedItemsClient) ApplyRecoveryPointSender(req *http
 func (client ReplicationProtectedItemsClient) ApplyRecoveryPointResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client ReplicationProtectedItemsClient) CreateSender(req *http.Request) (f
 func (client ReplicationProtectedItemsClient) CreateResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -284,7 +282,6 @@ func (client ReplicationProtectedItemsClient) DeleteSender(req *http.Request) (f
 func (client ReplicationProtectedItemsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -363,7 +360,6 @@ func (client ReplicationProtectedItemsClient) FailoverCommitSender(req *http.Req
 func (client ReplicationProtectedItemsClient) FailoverCommitResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -443,7 +439,6 @@ func (client ReplicationProtectedItemsClient) GetSender(req *http.Request) (*htt
 func (client ReplicationProtectedItemsClient) GetResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -526,7 +521,6 @@ func (client ReplicationProtectedItemsClient) ListSender(req *http.Request) (*ht
 func (client ReplicationProtectedItemsClient) ListResponder(resp *http.Response) (result ReplicationProtectedItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -642,7 +636,6 @@ func (client ReplicationProtectedItemsClient) ListByReplicationProtectionContain
 func (client ReplicationProtectedItemsClient) ListByReplicationProtectionContainersResponder(resp *http.Response) (result ReplicationProtectedItemCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -762,7 +755,6 @@ func (client ReplicationProtectedItemsClient) PlannedFailoverSender(req *http.Re
 func (client ReplicationProtectedItemsClient) PlannedFailoverResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -844,7 +836,6 @@ func (client ReplicationProtectedItemsClient) PurgeSender(req *http.Request) (fu
 func (client ReplicationProtectedItemsClient) PurgeResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -924,7 +915,6 @@ func (client ReplicationProtectedItemsClient) RepairReplicationSender(req *http.
 func (client ReplicationProtectedItemsClient) RepairReplicationResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1007,7 +997,6 @@ func (client ReplicationProtectedItemsClient) ReprotectSender(req *http.Request)
 func (client ReplicationProtectedItemsClient) ReprotectResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1090,7 +1079,6 @@ func (client ReplicationProtectedItemsClient) TestFailoverSender(req *http.Reque
 func (client ReplicationProtectedItemsClient) TestFailoverResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1179,7 +1167,6 @@ func (client ReplicationProtectedItemsClient) TestFailoverCleanupSender(req *htt
 func (client ReplicationProtectedItemsClient) TestFailoverCleanupResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1262,7 +1249,6 @@ func (client ReplicationProtectedItemsClient) UnplannedFailoverSender(req *http.
 func (client ReplicationProtectedItemsClient) UnplannedFailoverResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1345,7 +1331,6 @@ func (client ReplicationProtectedItemsClient) UpdateSender(req *http.Request) (f
 func (client ReplicationProtectedItemsClient) UpdateResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1429,7 +1414,6 @@ func (client ReplicationProtectedItemsClient) UpdateMobilityServiceSender(req *h
 func (client ReplicationProtectedItemsClient) UpdateMobilityServiceResponder(resp *http.Response) (result ReplicationProtectedItem, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

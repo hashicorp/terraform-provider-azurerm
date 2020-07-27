@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -604,7 +604,7 @@ func flattenArmPrivateDnsZoneConfigs(input *[]network.PrivateDNSZoneConfig, zone
 
 		if name := v.Name; name != nil {
 			result["name"] = *name
-			// I have to consturct this because the SDK does not expose it in it's PrivateDNSZoneConfig struct
+			// I have to consturct this because the SDK does not expose it in its PrivateDNSZoneConfig struct
 			result["id"] = fmt.Sprintf("%s/privateDnsZoneConfigs/%s", zoneGroupId, *name)
 		}
 
