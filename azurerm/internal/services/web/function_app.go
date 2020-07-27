@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
-func SchemaAppServiceFunctionAppSiteConfig() *schema.Schema {
+func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -63,28 +63,28 @@ func SchemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 								Optional:     true,
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
-							// TODO - Expand Ip Restriction
-							//"name": {
-							//	Type:         schema.TypeString,
-							//	Optional:     true,
-							//	Computed:     true,
-							//	ValidateFunc: validation.StringIsNotEmpty,
-							//},
-							//"priority": {
-							//	Type:         schema.TypeInt,
-							//	Optional:     true,
-							//	Default:      65000,
-							//	ValidateFunc: validation.IntBetween(1, 2147483647),
-							//},
-							//"action": {
-							//	Type:     schema.TypeString,
-							//	Default:  "Allow",
-							//	Optional: true,
-							//	ValidateFunc: validation.StringInSlice([]string{
-							//		"Allow",
-							//		"Deny",
-							//	}, false),
-							//},
+
+							"name": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								Computed:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"priority": {
+								Type:         schema.TypeInt,
+								Optional:     true,
+								Default:      65000,
+								ValidateFunc: validation.IntBetween(1, 2147483647),
+							},
+							"action": {
+								Type:     schema.TypeString,
+								Default:  "Allow",
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Allow",
+									"Deny",
+								}, false),
+							},
 						},
 					},
 				},

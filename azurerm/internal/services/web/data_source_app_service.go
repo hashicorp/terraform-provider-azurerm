@@ -35,7 +35,7 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
-			"site_config": azure.SchemaAppServiceDataSourceSiteConfig(),
+			"site_config": SchemaAppServiceDataSourceSiteConfig(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -216,7 +216,7 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
+	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
 	}

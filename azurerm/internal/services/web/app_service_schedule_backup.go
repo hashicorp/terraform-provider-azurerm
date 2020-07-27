@@ -1,4 +1,4 @@
-package azure
+package web
 
 import (
 	"time"
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func SchemaAppServiceBackup() *schema.Schema {
+func schemaAppServiceBackup() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -87,7 +87,7 @@ func SchemaAppServiceBackup() *schema.Schema {
 	}
 }
 
-func ExpandAppServiceBackup(input []interface{}) *web.BackupRequest {
+func expandAppServiceBackup(input []interface{}) *web.BackupRequest {
 	if len(input) == 0 {
 		return nil
 	}
@@ -138,7 +138,7 @@ func ExpandAppServiceBackup(input []interface{}) *web.BackupRequest {
 	return request
 }
 
-func FlattenAppServiceBackup(input *web.BackupRequestProperties) []interface{} {
+func flattenAppServiceBackup(input *web.BackupRequestProperties) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}

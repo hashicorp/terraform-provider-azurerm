@@ -47,7 +47,7 @@ func resourceArmAppService() *schema.Resource {
 				ValidateFunc: validate.AppServiceName,
 			},
 
-			"identity": azure.SchemaAppServiceIdentity(),
+			"identity": schemaAppServiceIdentity(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -58,13 +58,13 @@ func resourceArmAppService() *schema.Resource {
 				Required: true,
 			},
 
-			"site_config": azure.SchemaAppServiceSiteConfig(),
+			"site_config": SchemaAppServiceSiteConfig(),
 
-			"auth_settings": azure.SchemaAppServiceAuthSettings(),
+			"auth_settings": schemaAppServiceAuthSettings(),
 
-			"logs": azure.SchemaAppServiceLogsConfig(),
+			"logs": SchemaAppServiceLogsConfig(),
 
-			"backup": azure.SchemaAppServiceBackup(),
+			"backup": schemaAppServiceBackup(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -99,7 +99,7 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
-			"storage_account": azure.SchemaAppServiceStorageAccounts(),
+			"storage_account": SchemaAppServiceStorageAccounts(),
 
 			"connection_string": {
 				Type:     schema.TypeSet,
@@ -232,7 +232,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
@@ -250,7 +250,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -294,7 +294,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	d.SetId(*read.ID)
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
-	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
 		ID:                         read.ID,
@@ -304,7 +304,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error updating auth settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	logsConfig := azure.ExpandAppServiceLogs(d.Get("logs"))
+	logsConfig := expandAppServiceLogs(d.Get("logs"))
 
 	logs := web.SiteLogsConfig{
 		ID:                       read.ID,
@@ -315,7 +315,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	backupRaw := d.Get("backup").([]interface{})
-	if backup := azure.ExpandAppServiceBackup(backupRaw); backup != nil {
+	if backup := expandAppServiceBackup(backupRaw); backup != nil {
 		_, err = client.UpdateBackupConfiguration(ctx, resourceGroup, name, *backup)
 		if err != nil {
 			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -342,7 +342,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 	}
@@ -371,7 +371,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("site_config") {
 		// update the main configuration
-		siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 		if err != nil {
 			return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
 		}
@@ -386,7 +386,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("auth_settings") {
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
-		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
 			ID:                         utils.String(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
@@ -399,7 +399,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("backup") {
 		backupRaw := d.Get("backup").([]interface{})
-		if backup := azure.ExpandAppServiceBackup(backupRaw); backup != nil {
+		if backup := expandAppServiceBackup(backupRaw); backup != nil {
 			_, err = client.UpdateBackupConfiguration(ctx, id.ResourceGroup, id.Name, *backup)
 			if err != nil {
 				return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
@@ -447,7 +447,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	// updating the former will clobber the log settings
 	hasLogs := len(d.Get("logs").([]interface{})) > 0
 	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
-		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
+		logs := expandAppServiceLogs(d.Get("logs"))
 		logsResource := web.SiteLogsConfig{
 			ID:                       utils.String(d.Id()),
 			SiteLogsConfigProperties: &logs,
@@ -460,7 +460,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("storage_account") {
 		storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
-		storageAccounts := azure.ExpandAppServiceStorageAccounts(storageAccountsRaw)
+		storageAccounts := expandAppServiceStorageAccounts(storageAccountsRaw)
 		properties := web.AzureStoragePropertyDictionaryResource{
 			Properties: storageAccounts,
 		}
@@ -489,7 +489,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		site.Identity = appServiceIdentity
 
 		future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, site)
@@ -631,11 +631,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `app_settings`: %s", err)
 	}
 
-	if err := d.Set("backup", azure.FlattenAppServiceBackup(backupResp.BackupRequestProperties)); err != nil {
+	if err := d.Set("backup", flattenAppServiceBackup(backupResp.BackupRequestProperties)); err != nil {
 		return fmt.Errorf("Error setting `backup`: %s", err)
 	}
 
-	if err := d.Set("storage_account", azure.FlattenAppServiceStorageAccounts(storageAccountsResp.Properties)); err != nil {
+	if err := d.Set("storage_account", flattenAppServiceStorageAccounts(storageAccountsResp.Properties)); err != nil {
 		return fmt.Errorf("Error setting `storage_account`: %s", err)
 	}
 
@@ -643,17 +643,17 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `connection_string`: %s", err)
 	}
 
-	siteConfig := azure.FlattenAppServiceSiteConfig(configResp.SiteConfig)
+	siteConfig := flattenAppServiceSiteConfig(configResp.SiteConfig)
 	if err := d.Set("site_config", siteConfig); err != nil {
 		return err
 	}
 
-	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
 		return fmt.Errorf("Error setting `auth_settings`: %s", err)
 	}
 
-	logs := azure.FlattenAppServiceLogs(logsResp.SiteLogsConfigProperties)
+	logs := flattenAppServiceLogs(logsResp.SiteLogsConfigProperties)
 	if err := d.Set("logs", logs); err != nil {
 		return fmt.Errorf("Error setting `logs`: %s", err)
 	}
@@ -668,7 +668,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `site_credential`: %s", err)
 	}
 
-	identity := azure.FlattenAppServiceIdentity(resp.Identity)
+	identity := flattenAppServiceIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}

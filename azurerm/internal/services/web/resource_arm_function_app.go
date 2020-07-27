@@ -153,7 +153,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
-			"identity": azure.SchemaAppServiceIdentity(),
+			"identity": schemaAppServiceIdentity(),
 
 			"source_control": appServiceSiteSourceControlSchema(),
 
@@ -185,9 +185,9 @@ func resourceArmFunctionApp() *schema.Resource {
 				Optional: true,
 			},
 
-			"site_config": SchemaAppServiceFunctionAppSiteConfig(),
+			"site_config": schemaAppServiceFunctionAppSiteConfig(),
 
-			"auth_settings": azure.SchemaAppServiceAuthSettings(),
+			"auth_settings": schemaAppServiceAuthSettings(),
 
 			// Computed Only
 
@@ -315,7 +315,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -355,7 +355,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	d.SetId(*read.ID)
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
-	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
 		ID:                         read.ID,
@@ -427,7 +427,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -467,7 +467,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 	if d.HasChange("auth_settings") {
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
-		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
 			ID:                         utils.String(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
@@ -632,7 +632,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	identity := azure.FlattenAppServiceIdentity(resp.Identity)
+	identity := flattenAppServiceIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
@@ -647,7 +647,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
 		return fmt.Errorf("Error setting `auth_settings`: %s", err)
 	}
@@ -835,7 +835,7 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 
 	if v, ok := config["ip_restriction"]; ok {
 		ipSecurityRestrictions := v.(interface{})
-		restrictions, err := expandFunctionAppIpRestriction(ipSecurityRestrictions)
+		restrictions, err := expandAppServiceIpRestriction(ipSecurityRestrictions)
 		if err != nil {
 			return siteConfig, err
 		}
@@ -925,45 +925,60 @@ func expandFunctionAppConnectionStrings(d *schema.ResourceData) map[string]*web.
 	return output
 }
 
-func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
-	restrictions := make([]web.IPSecurityRestriction, 0)
-
-	for i, r := range input.([]interface{}) {
-		if r == nil {
-			continue
-		}
-
-		restriction := r.(map[string]interface{})
-
-		ipAddress := restriction["ip_address"].(string)
-		vNetSubnetID := restriction["subnet_id"].(string)
-
-		if vNetSubnetID != "" && ipAddress != "" {
-			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
-		}
-
-		if vNetSubnetID == "" && ipAddress == "" {
-			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
-		}
-
-		ipSecurityRestriction := web.IPSecurityRestriction{}
-		if ipAddress == "Any" {
-			continue
-		}
-
-		if ipAddress != "" {
-			ipSecurityRestriction.IPAddress = &ipAddress
-		}
-
-		if vNetSubnetID != "" {
-			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
-		}
-
-		restrictions = append(restrictions, ipSecurityRestriction)
-	}
-
-	return restrictions, nil
-}
+//func expandFunctionAppIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
+//	restrictions := make([]web.IPSecurityRestriction, 0)
+//
+//	for i, r := range input.([]interface{}) {
+//		if r == nil {
+//			continue
+//		}
+//
+//		restriction := r.(map[string]interface{})
+//
+//		ipAddress := restriction["ip_address"].(string)
+//		vNetSubnetID := restriction["subnet_id"].(string)
+//		name := restriction["name"].(string)
+//		priority := restriction["priority"].(int)
+//		action := restriction["action"].(string)
+//
+//		if vNetSubnetID != "" && ipAddress != "" {
+//			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
+//		}
+//
+//		if vNetSubnetID == "" && ipAddress == "" {
+//			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
+//		}
+//
+//		ipSecurityRestriction := web.IPSecurityRestriction{}
+//		if ipAddress == "Any" {
+//			continue
+//		}
+//
+//		if ipAddress != "" {
+//			ipSecurityRestriction.IPAddress = &ipAddress
+//		}
+//
+//		if vNetSubnetID != "" {
+//			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+//		}
+//
+//		if name != "" {
+//			ipSecurityRestriction.Name = &name
+//		}
+//
+//		if priority != 0 {
+//			ipSecurityRestriction.Priority = utils.Int32(int32(priority))
+//		}
+//
+//		if action != "" {
+//			ipSecurityRestriction.Action = &action
+//		}
+//
+//		restrictions = append(restrictions, ipSecurityRestriction)
+//	}
+//
+//	return restrictions, nil
+//}
 
 func flattenFunctionAppConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)

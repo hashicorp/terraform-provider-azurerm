@@ -53,7 +53,7 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"identity": azure.SchemaAppServiceIdentity(),
+			"identity": schemaAppServiceIdentity(),
 
 			"function_app_name": {
 				Type:         schema.TypeString,
@@ -278,7 +278,7 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 				},
 			},
 
-			"auth_settings": azure.SchemaAppServiceAuthSettings(),
+			"auth_settings": schemaAppServiceAuthSettings(),
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -373,7 +373,7 @@ func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) 
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -398,7 +398,7 @@ func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) 
 	d.SetId(*read.ID)
 
 	authSettingsRaw := d.Get("auth_settings").([]interface{})
-	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
 		ID:                         read.ID,
@@ -467,7 +467,7 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 
 	if _, ok := d.GetOk("identity"); ok {
 		appServiceIdentityRaw := d.Get("identity").([]interface{})
-		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
+		appServiceIdentity := expandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -508,7 +508,7 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 
 	if d.HasChange("auth_settings") {
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
-		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
 			ID:                         utils.String(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
@@ -650,7 +650,7 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	identity := azure.FlattenAppServiceIdentity(resp.Identity)
+	identity := flattenAppServiceIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
@@ -665,7 +665,7 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	authSettings := flattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
 		return fmt.Errorf("Error setting `auth_settings`: %s", err)
 	}
