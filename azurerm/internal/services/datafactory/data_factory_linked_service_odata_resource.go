@@ -262,12 +262,13 @@ func resourceArmDataFactoryLinkedServiceODataRead(d *schema.ResourceData, meta i
 		d.Set("tenant", props.Tenant)
 		d.Set("service_principal_id", props.ServicePrincipalID)
 		d.Set("aad_service_principal_credential_type", props.AadServicePrincipalCredentialType)
-		if props.AadServicePrincipalCredentialType == datafactory.ServicePrincipalCert {
+		switch props.AadServicePrincipalCredentialType {
+		case datafactory.ServicePrincipalCert:
 			d.Set("service_principal_embedded_cert", props.ServicePrincipalEmbeddedCert)
 			d.Set("service_principal_embedded_cert_password", props.ServicePrincipalEmbeddedCertPassword)
-		} else if props.AadServicePrincipalCredentialType == datafactory.ServicePrincipalKey {
+		case datafactory.ServicePrincipalKey:
 			d.Set("service_principal_key", props.ServicePrincipalKey)
-		} else {
+		default:
 			return fmt.Errorf("Unsupported `aad_service_principal_credential_type`: %+v", props.AadServicePrincipalCredentialType)
 		}
 	}
