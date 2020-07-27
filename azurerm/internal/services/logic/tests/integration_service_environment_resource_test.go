@@ -27,8 +27,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -59,8 +58,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -92,8 +90,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_developer(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Developer"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Developer_0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -125,8 +122,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -139,14 +135,13 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMIntegrationServiceEnvironment_capacity(data),
+				Config: testAccAzureRMIntegrationServiceEnvironment_skuName(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "1"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -165,8 +160,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
@@ -196,8 +190,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
-					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium"),
-					resource.TestCheckResourceAttr(data.ResourceName, "capacity", "0"),
+					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "1"),
@@ -322,7 +315,7 @@ resource "azurerm_integration_service_environment" "test" {
   name                 = "acctest-ise-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
-  sku_name             = "Premium"
+  sku_name             = "Premium_0"
   access_endpoint_type = "Internal"
   virtual_network_subnet_ids = [
     azurerm_subnet.isesubnet1.id,
@@ -343,8 +336,7 @@ resource "azurerm_integration_service_environment" "test" {
   name                 = "acctest-ise-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
-  sku_name             = "Premium"
-  capacity             = 0
+  sku_name             = "Premium_0"
   access_endpoint_type = "Internal"
   virtual_network_subnet_ids = [
     azurerm_subnet.isesubnet1.id,
@@ -368,7 +360,7 @@ resource "azurerm_integration_service_environment" "test" {
   name                 = "acctest-ise-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
-  sku_name             = "Developer"
+  sku_name             = "Developer_0"
   access_endpoint_type = "Internal"
   virtual_network_subnet_ids = [
     azurerm_subnet.isesubnet1.id,
@@ -383,7 +375,7 @@ resource "azurerm_integration_service_environment" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMIntegrationServiceEnvironment_capacity(data acceptance.TestData) string {
+func testAccAzureRMIntegrationServiceEnvironment_skuName(data acceptance.TestData) string {
 	template := testAccAzureRMIntegrationServiceEnvironment_template(data)
 	return fmt.Sprintf(`
 %s
@@ -392,8 +384,7 @@ resource "azurerm_integration_service_environment" "test" {
   name                 = "acctest-ise-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
-  sku_name             = "Premium"
-  capacity             = 1
+  sku_name             = "Premium_1"
   access_endpoint_type = "Internal"
   virtual_network_subnet_ids = [
     azurerm_subnet.isesubnet1.id,
@@ -415,7 +406,6 @@ resource "azurerm_integration_service_environment" "import" {
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   sku_name                   = azurerm_integration_service_environment.test.sku_name
-  capacity                   = azurerm_integration_service_environment.test.capacity
   access_endpoint_type       = azurerm_integration_service_environment.test.access_endpoint_type
   virtual_network_subnet_ids = azurerm_integration_service_environment.test.virtual_network_subnet_ids
   tags                       = azurerm_integration_service_environment.test.tags

@@ -65,8 +65,7 @@ resource "azurerm_integration_service_environment" "example" {
   name                 = "example-ise"
   location             = azurerm_resource_group.example.location
   resource_group_name  = azurerm_resource_group.example.name
-  sku_name             = "Developer"
-  capacity             = 0
+  sku_name             = "Developer_0"
   access_endpoint_type = "Internal"
   virtual_network_subnet_ids = [
     azurerm_subnet.isesubnet1.id,
@@ -90,11 +89,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Integration Service Environment should exist. Changing this forces a new Integration Service Environment to be created.
 
-* `sku_name` - (Required) The sku name of the Integration Service Environment. Possible Values are `Developer` and `Premium`. Changing this forces a new Integration Service Environment to be created.
+* `sku_name` - (Required) The sku name and capacity of the Integration Service Environment. Possible Values for `sku` element are `Developer` and `Premium` and possible values for the `capacity` element are from `0` to `10`.  Defaults to `sku` of `Developer` with a `Capacity` of `0` (e.g. `Developer_0`). Changing this forces a new Integration Service Environment to be created when `sku` element is not the same with existing one.
 
-* `capacity` - (Optional) Number of scale units for the Integration Service Environment. Min is `0`. Max is `10`. Defaults to `0`.
-
-~> **NOTE** For `sku_name` equal `Developer` capacity must be always `0`. For `sku_name` equal `Premium` capacity can be between `0` - `10`.
+~> **NOTE** For a `sku_name` using the `Developer` `sku` the `capacity` element must be always `0`. For a `sku_name` using the `sku` of `Premium` the `capacity` element can be between `0` and `10`.
 
 * `access_endpoint_type` - (Required) The type of access endpoint to use for the Integration Service Environment. Possible Values are `Internal` and `External`. Changing this forces a new Integration Service Environment to be created.
 

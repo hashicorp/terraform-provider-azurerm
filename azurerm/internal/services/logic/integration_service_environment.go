@@ -4,11 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2019-05-01/logic"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -53,22 +55,26 @@ func resourceArmIntegrationServiceEnvironment() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			// Maximum scale units that you can add	10 - https://docs.microsoft.com/en-US/azure/logic-apps/logic-apps-limits-and-config#integration-service-environment-ise
+			// Developer Always 0 capacity
 			"sku_name": {
 				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true, // The SKU cannot be changed once integration service environment has been provisioned.
+				Optional: true,
+				Default:  "Developer_0",
 				ValidateFunc: validation.StringInSlice([]string{
-					string(logic.IntegrationServiceEnvironmentSkuNameDeveloper),
-					string(logic.IntegrationServiceEnvironmentSkuNamePremium),
+					"Developer_0",
+					"Premium_0",
+					"Premium_1",
+					"Premium_2",
+					"Premium_3",
+					"Premium_4",
+					"Premium_5",
+					"Premium_6",
+					"Premium_7",
+					"Premium_8",
+					"Premium_9",
+					"Premium_10",
 				}, false),
-			},
-
-			// Maximum scale units that you can add	10 - https://docs.microsoft.com/en-US/azure/logic-apps/logic-apps-limits-and-config#integration-service-environment-ise
-			"capacity": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Default:      0,
-				ValidateFunc: validation.IntBetween(0, 10),
 			},
 
 			"access_endpoint_type": {
@@ -119,6 +125,15 @@ func resourceArmIntegrationServiceEnvironment() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("sku_name", func(old, new, meta interface{}) bool {
+				oldSku := strings.Split(old.(string), "_")
+				newSku := strings.Split(new.(string), "_")
+				// The SKU cannot be changed once integration service environment has been provisioned. -> we need ForceNew
+				return oldSku[0] != newSku[0]
+			}),
+		),
 	}
 }
 
@@ -146,14 +161,13 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	skuName := d.Get("sku_name").(string)
-	capacity := d.Get("capacity").(int)
 	accessEndpointType := d.Get("access_endpoint_type").(string)
 	virtualNetworkSubnetIds := d.Get("virtual_network_subnet_ids").(*schema.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
-	if skuName != string(logic.IntegrationServiceEnvironmentSkuNamePremium) && capacity > 0 {
-		return fmt.Errorf("`capacity` can only be greater than zero for `sku_name` `Premium`")
+	sku, err := expandIntegrationServiceEnvironmentSkuName(d.Get("sku_name").(string))
+	if err != nil {
+		return fmt.Errorf("expanding `sku_name` for Integration Service Environment %q (Resource Group %q): %v", name, resourceGroup, err)
 	}
 
 	integrationServiceEnvironment := logic.IntegrationServiceEnvironment{
@@ -167,10 +181,7 @@ func resourceArmIntegrationServiceEnvironmentCreateUpdate(d *schema.ResourceData
 				Subnets: expandSubnetResourceID(virtualNetworkSubnetIds),
 			},
 		},
-		Sku: &logic.IntegrationServiceEnvironmentSku{
-			Name:     logic.IntegrationServiceEnvironmentSkuName(skuName),
-			Capacity: utils.Int32(int32(capacity)),
-		},
+		Sku:  sku,
 		Tags: tags.Expand(t),
 	}
 
@@ -223,9 +234,8 @@ func resourceArmIntegrationServiceEnvironmentRead(d *schema.ResourceData, meta i
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku_name", sku.Name)
-		d.Set("capacity", sku.Capacity)
+	if err := d.Set("sku_name", flattenIntegrationServiceEnvironmentSkuName(resp.Sku)); err != nil {
+		return fmt.Errorf("setting `sku_name`: %+v", err)
 	}
 
 	if props := resp.Properties; props != nil {
@@ -311,6 +321,45 @@ func resourceArmIntegrationServiceEnvironmentDelete(d *schema.ResourceData, meta
 	}
 
 	return nil
+}
+
+func flattenIntegrationServiceEnvironmentSkuName(input *logic.IntegrationServiceEnvironmentSku) string {
+	if input == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
+}
+
+func expandIntegrationServiceEnvironmentSkuName(skuName string) (*logic.IntegrationServiceEnvironmentSku, error) {
+	parts := strings.Split(skuName, "_")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("sku_name (%s) has the wrong number of parts (%d) after splitting on _", skuName, len(parts))
+	}
+
+	var sku logic.IntegrationServiceEnvironmentSkuName
+	switch parts[0] {
+	case string(logic.IntegrationServiceEnvironmentSkuNameDeveloper):
+		sku = logic.IntegrationServiceEnvironmentSkuNameDeveloper
+	case string(logic.IntegrationServiceEnvironmentSkuNamePremium):
+		sku = logic.IntegrationServiceEnvironmentSkuNamePremium
+	default:
+		return nil, fmt.Errorf("sku_name %s has unknown sku %s", skuName, parts[0])
+	}
+
+	capacity, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return nil, fmt.Errorf("cannot convert sku_name %s capacity %s to int", skuName, parts[1])
+	}
+
+	if sku != logic.IntegrationServiceEnvironmentSkuNamePremium && capacity > 0 {
+		return nil, fmt.Errorf("`capacity` can only be greater than zero for `sku_name` `Premium`")
+	}
+
+	return &logic.IntegrationServiceEnvironmentSku{
+		Name:     sku,
+		Capacity: utils.Int32(int32(capacity)),
+	}, nil
 }
 
 func expandSubnetResourceID(input []interface{}) *[]logic.ResourceReference {
