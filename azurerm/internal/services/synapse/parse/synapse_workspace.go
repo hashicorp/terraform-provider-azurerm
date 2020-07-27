@@ -19,7 +19,8 @@ func SynapseWorkspaceID(input string) (*SynapseWorkspaceId, error) {
 	}
 
 	synapseWorkspace := SynapseWorkspaceId{
-		ResourceGroup: id.ResourceGroup,
+		ResourceGroup:  id.ResourceGroup,
+		SubscriptionID: id.SubscriptionID,
 	}
 	if synapseWorkspace.Name, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
