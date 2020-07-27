@@ -14,8 +14,7 @@ func SynapseFirewallRuleName(i interface{}, k string) (warnings []string, errors
 
 	// The name attribute rules are :
 	// 1. can contain only letters, numbers, underscore and hythen.
-	// 2. must not end with the string 'ondemand'
-	// 3. The value must be between 1 and 128 characters long
+	// 2. The value must be between 1 and 128 characters long
 
 	if !regexp.MustCompile(`^[a-zA-Z\d-_]{1,128}$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s can contain only letters, numbers, underscore and hythen, and be between 1 and 128 characters long", k))

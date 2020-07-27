@@ -38,9 +38,10 @@ func resourceArmSynapseFirewallRule() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.SynapseFirewallRuleName,
 			},
 
 			"synapse_workspace_id": {
@@ -157,7 +158,6 @@ func resourceArmSynapseFirewallRuleDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("deleting Synapse Firewall Rule %q (Resource Group %q / Workspace %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 
-	// sometimes the waitForCompletion rest api will return 404
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("waiting for deleting Synapse Firewall Rule %q (Resource Group %q / Workspace %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
