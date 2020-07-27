@@ -13,9 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -55,11 +53,6 @@ func resourceArmFunctionApp() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
-
-			"kind": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
@@ -162,12 +155,9 @@ func resourceArmFunctionApp() *schema.Resource {
 
 			"identity": azure.SchemaAppServiceIdentity(),
 
-			"tags": tags.Schema(),
+			"source_control": appServiceSiteSourceControlSchema(),
 
-			"default_hostname": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			"tags": tags.Schema(),
 
 			"os_type": {
 				Type:     schema.TypeString,
@@ -176,16 +166,6 @@ func resourceArmFunctionApp() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"linux",
 				}, false),
-			},
-
-			"outbound_ip_addresses": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"possible_outbound_ip_addresses": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"client_affinity_enabled": {
@@ -205,89 +185,31 @@ func resourceArmFunctionApp() *schema.Resource {
 				Optional: true,
 			},
 
-			"site_config": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"always_on": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"use_32_bit_worker_process": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-						"websockets_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"linux_fx_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"http2_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"ip_restriction": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							ConfigMode: schema.SchemaConfigModeAttr,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"ip_address": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.CIDR,
-									},
-									"subnet_id": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-						"min_tls_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.OneFullStopZero),
-								string(web.OneFullStopOne),
-								string(web.OneFullStopTwo),
-							}, false),
-						},
-						"ftps_state": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.AllAllowed),
-								string(web.Disabled),
-								string(web.FtpsOnly),
-							}, false),
-						},
-						"pre_warmed_instance_count": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 10),
-						},
-						"cors": azure.SchemaWebCorsSettings(),
-					},
-				},
-			},
+			"site_config": SchemaAppServiceFunctionAppSiteConfig(),
 
 			"auth_settings": azure.SchemaAppServiceAuthSettings(),
+
+			// Computed Only
+
+			"default_hostname": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"kind": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"possible_outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -321,17 +243,15 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Function App %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_function_app", *existing.ID)
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
@@ -409,11 +329,26 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	if _, ok := d.GetOk("source_control"); ok {
+		if siteConfig.ScmType != "" {
+			return fmt.Errorf("cannot set source_control parameters when scm_type is set to %q", siteConfig.ScmType)
+		}
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		// TODO - Do we need to lock the app for updates?
+		_, err := client.CreateOrUpdateSourceControl(ctx, resourceGroup, name, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
-	if read.ID == nil {
+
+	if read.ID == nil || *read.ID == "" {
 		return fmt.Errorf("Cannot read Function App %s (resource group %s) ID", name, resourceGroup)
 	}
 
@@ -552,6 +487,17 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.Name, properties); err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", id.Name, err)
+		}
+	}
+
+	if d.HasChange("source_control") {
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		// TODO - Do we need to lock the function app for updates?
+		_, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -704,6 +650,15 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
 		return fmt.Errorf("Error setting `auth_settings`: %s", err)
+	}
+
+	scmResp, err := client.GetSourceControl(ctx, id.ResourceGroup, id.Name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on Function App Source Control %q: %+v", id.Name, err)
+	}
+	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	if err := d.Set("source_control", scm); err != nil {
+		return fmt.Errorf("Error setting `source_control`: %s", err)
 	}
 
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
@@ -897,6 +852,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 
 	if v, ok := config["pre_warmed_instance_count"]; ok {
 		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
+	}
+
+	if v, ok := config["scm_type"]; ok {
+		siteConfig.ScmType = web.ScmType(v.(string))
 	}
 
 	return siteConfig, nil

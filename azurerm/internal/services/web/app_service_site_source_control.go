@@ -10,10 +10,10 @@ import (
 
 func appServiceSiteSourceControlSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
-		Optional: true,
-		MaxItems: 1,
-		Computed: true,
+		Type:          schema.TypeList,
+		Optional:      true,
+		MaxItems:      1,
+		Computed:      true,
 		ConflictsWith: []string{"site_config.0.scm_type"},
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -32,7 +32,7 @@ func appServiceSiteSourceControlSchema() *schema.Schema {
 				"manual_integration": {
 					Type:     schema.TypeBool,
 					Optional: true,
-					Computed:  true,
+					Computed: true,
 				},
 
 				"use_mercurial": {
@@ -63,10 +63,8 @@ func expandAppServiceSiteSourceControl(d *schema.ResourceData) *web.SiteSourceCo
 		DeploymentRollbackEnabled: utils.Bool(sourceControl["rollback_enabled"].(bool)),
 	}
 
-
 	return result
 }
-
 
 func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
 	results := make([]interface{}, 0)

@@ -4029,7 +4029,7 @@ resource "azurerm_app_service" "test" {
 
   source_control {
     repo_url           = "https://github.com/jackofallops/azure-app-service-static-site-tests.git"
-    branch             = "angularjs"
+    branch             = "main"
     manual_integration = true
     rollback_enabled   = false
   }
