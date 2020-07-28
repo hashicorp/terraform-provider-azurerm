@@ -430,7 +430,6 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:         schema.TypeList,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
