@@ -70,6 +70,13 @@ func resourceArmCosmosDbSQLDatabase() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
+
+			"autoscale_throughput": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validate.CosmosThroughput,
+			},
 		},
 	}
 }
@@ -109,6 +116,10 @@ func resourceArmCosmosDbSQLDatabaseCreate(d *schema.ResourceData, meta interface
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		db.SQLDatabaseCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
+	}
+
+	if autoScaleThroughput, hasAutoScaleThroughput := d.GetOk("autoscale_throughput"); hasAutoScaleThroughput {
+		db.SQLDatabaseCreateUpdateProperties.Options.AutoscaleSettings.MaxThroughput = common.ConvertThroughputFromResourceData(autoScaleThroughput)
 	}
 
 	future, err := client.CreateUpdateSQLDatabase(ctx, resourceGroup, account, name, db)
@@ -184,6 +195,30 @@ func resourceArmCosmosDbSQLDatabaseUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
+	if d.HasChange("autoscale_throughput") {
+		throughputParameters := documentdb.ThroughputSettingsUpdateParameters{
+			ThroughputSettingsUpdateProperties: &documentdb.ThroughputSettingsUpdateProperties{
+				Resource: &documentdb.ThroughputSettingsResource{
+					AutoscaleSettings: &documentdb.AutoscaleSettingsResource{
+						MaxThroughput: common.ConvertThroughputFromResourceData(d.Get("autoscale_throughput")),
+					},
+				},
+			},
+		}
+
+		throughputFuture, err := client.UpdateSQLDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Name, throughputParameters)
+		if err != nil {
+			if response.WasNotFound(throughputFuture.Response()) {
+				return fmt.Errorf("Error setting Throughput for Cosmos SQL Database %q (Account: %q) %+v - "+
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Name, id.Account, err)
+			}
+		}
+
+		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos SQL Database %q (Account: %q): %+v", id.Name, id.Account, err)
+		}
+	}
+
 	return resourceArmCosmosDbSQLDatabaseRead(d, meta)
 }
 
@@ -222,9 +257,11 @@ func resourceArmCosmosDbSQLDatabaseRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error reading Throughput on Cosmos SQL Database %q (Account: %q) ID: %v", id.Name, id.Account, err)
 		} else {
 			d.Set("throughput", nil)
+			d.Set("autoscale_throughput", nil)
 		}
 	} else {
 		d.Set("throughput", common.GetThroughputFromResult(throughputResp))
+		d.Set("autoscale_throughput", common.GetAutoScaleThroughputFromResult(throughputResp))
 	}
 
 	return nil
