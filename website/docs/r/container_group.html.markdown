@@ -81,7 +81,9 @@ The following arguments are supported:
 
 ~> **Note:** DNS label/name is not supported when deploying to virtual networks.
 
-* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` or `Private`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
+* `ip_address_type` - (Optional) Specifies the ip address type of the container. Possible values are `Public` or `Private`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
+
+~> **Note:** When `ip_address_type` isn't set, `ports` also wouldn't be set.
 
 ~> **Note:** `dns_name_label`, `identity` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
 

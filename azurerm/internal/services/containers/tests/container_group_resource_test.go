@@ -424,6 +424,25 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerGroup_withoutIPAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerGroup_withoutIPAddress(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMContainerGroup_SystemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1238,4 +1257,31 @@ func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 	}
 
 	return nil
+}
+
+func testAccAzureRMContainerGroup_withoutIPAddress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-containergroup-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

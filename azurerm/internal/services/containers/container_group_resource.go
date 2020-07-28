@@ -55,7 +55,6 @@ func resourceArmContainerGroup() *schema.Resource {
 			"ip_address_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "Public",
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
@@ -445,7 +444,6 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	OSType := d.Get("os_type").(string)
-	IPAddressType := d.Get("ip_address_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 	restartPolicy := d.Get("restart_policy").(string)
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
@@ -458,13 +456,9 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		Tags:     tags.Expand(t),
 		Identity: expandContainerGroupIdentity(d),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
-			Containers:    containers,
-			Diagnostics:   diagnostics,
-			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
-			IPAddress: &containerinstance.IPAddress{
-				Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
-				Ports: containerGroupPorts,
-			},
+			Containers:               containers,
+			Diagnostics:              diagnostics,
+			RestartPolicy:            containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
 			Volumes:                  containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
@@ -473,6 +467,13 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 	if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
 		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
+	}
+
+	if v, ok := d.GetOk("ip_address_type"); ok {
+		containerGroup.ContainerGroupProperties.IPAddress = &containerinstance.IPAddress{
+			Type:  containerinstance.ContainerGroupIPAddressType(v.(string)),
+			Ports: containerGroupPorts,
+		}
 	}
 
 	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
