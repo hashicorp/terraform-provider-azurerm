@@ -74,6 +74,7 @@ The following arguments are supported:
 ~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported. Windows containers are not supported in virtual networks.
 
 ---
+* `dns_config` - (Optionsal) A `dns_config` block as documented below.
 
 * `diagnostics` - (Optional) A `diagnostics` block as documented below.
 
@@ -238,6 +239,14 @@ The `http_get` block supports:
 * `port` - (Optional) Number of the port to access on the container. Changing this forces a new resource to be created.
 
 * `scheme` - (Optional) Scheme to use for connecting to the host. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
+
+---
+
+The `dns_config` block supports:
+
+* `nameservers` (Required) A list of nameservers (IPv4 format) for the container to search out to resolve requests
+* `search_domains` (Required) A string that represents the search domains that DNS requests will search along
+* `options` (Required) `ex: ndots:2` A string representing the number of domains to search above the current `search_domains` field
 
 ## Attributes Reference
 
