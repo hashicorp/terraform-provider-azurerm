@@ -423,7 +423,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				ForceNew: true,
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"nameservers": {
@@ -500,7 +500,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
 			Volumes:                  containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
-			DNSConfig: expandContainerGroupDnsConfig(d),
+			DNSConfig:                expandContainerGroupDnsConfig(d),
 		},
 	}
 
@@ -1410,20 +1410,20 @@ func resourceArmContainerGroupPortsHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) []interface{}{
+func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) []interface{} {
 	if input == nil {
 		return nil
 	}
 	outputArr := make([]interface{}, 1)
 	output := make(map[string]interface{})
 
-	if v := input.SearchDomains; v != nil{
+	if v := input.SearchDomains; v != nil {
 		output["search_domains"] = *v
 	}
-	if v := input.Options; v != nil{
+	if v := input.Options; v != nil {
 		output["options"] = *v
 	}
-	if v := input.NameServers; v != nil{
+	if v := input.NameServers; v != nil {
 		output["nameservers"] = *v
 	}
 
@@ -1433,20 +1433,20 @@ func flattenContainerGroupDnsConfig(input *containerinstance.DNSConfiguration) [
 
 func expandContainerGroupDnsConfig(d *schema.ResourceData) *containerinstance.DNSConfiguration {
 	configRaw := d.Get("dns_config").([]interface{})
-	if len(configRaw) == 0{
+	if len(configRaw) == 0 {
 		return nil
 	}
 	config := configRaw[0].(map[string]interface{})
 
 	ns := []string{}
-	for _, v := range config["nameservers"].([]interface{}){
+	for _, v := range config["nameservers"].([]interface{}) {
 		ns = append(ns, v.(string))
 	}
 
 	dnsConfig := &containerinstance.DNSConfiguration{
-		Options: utils.String(config["options"].(string)),
+		Options:       utils.String(config["options"].(string)),
 		SearchDomains: utils.String(config["search_domains"].(string)),
-		NameServers: &ns,
+		NameServers:   &ns,
 	}
 
 	return dnsConfig
