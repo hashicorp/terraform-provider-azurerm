@@ -905,12 +905,14 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 					// TODO - Remove in 3.0
 					Type:         schema.TypeString,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Deprecated:   "This field has been deprecated in favour of `virtual_network_subnet_id` and will be removed in a future version of the provider",
 				},
 
 				"virtual_network_subnet_id": {
 					Type:         schema.TypeString,
+					Computed:     true, // TODO Remove `Computed` in 3.0
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
@@ -1863,7 +1865,7 @@ func flattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValu
 func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
 	restrictions := make([]web.IPSecurityRestriction, 0)
 
-	for i, r := range input.([]interface{}) {
+	for _, r := range input.([]interface{}) {
 		if r == nil {
 			continue
 		}
@@ -1871,17 +1873,20 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		restriction := r.(map[string]interface{})
 
 		ipAddress := restriction["ip_address"].(string)
-		vNetSubnetID := restriction["subnet_id"].(string)
+		vNetSubnetID := ""
+		if vNetSubnetID = restriction["subnet_id"].(string); vNetSubnetID == "" {
+			vNetSubnetID = restriction["virtual_network_subnet_id"].(string)
+		}
 		name := restriction["name"].(string)
 		priority := restriction["priority"].(int)
 		action := restriction["action"].(string)
 
 		if vNetSubnetID != "" && ipAddress != "" {
-			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `viretual_network_subnet_id` can be set for `site_config.0.ip_restriction.%d`", i))
+			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can be set for an IP restriction"))
 		}
 
 		if vNetSubnetID == "" && ipAddress == "" {
-			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `viretual_network_subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
+			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set for an IP restriction"))
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}
