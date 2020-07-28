@@ -103,6 +103,10 @@ func AzureEnvironmentByNameFromEndpoint(ctx context.Context, endpoint string, en
 		return &env, nil
 	}
 
+	if endpoint == "" {
+		return nil, fmt.Errorf("unable to locate metadata for environment %q from the built in `public`, `usgoverment`, `china` and no custom metadata host has been specified", environmentName)
+	}
+
 	environments, err := getSupportedEnvironments(ctx, endpoint)
 	if err != nil {
 		return nil, err
@@ -119,7 +123,7 @@ func AzureEnvironmentByNameFromEndpoint(ctx context.Context, endpoint string, en
 		}
 	}
 
-	return nil, fmt.Errorf("unable to find environment %q from endpoint %q", environmentName, endpoint)
+	return nil, fmt.Errorf("unable to locate metadata for environment %q from custom metadata host %q", environmentName, endpoint)
 }
 
 // IsEnvironmentAzureStack returns whether a specific Azure Environment is an Azure Stack environment
