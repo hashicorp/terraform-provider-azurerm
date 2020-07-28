@@ -521,7 +521,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				// @tombuildsstuff (2020-05-29) - Preview limitations:
 				//  * Currently, there is no way to remove Uptime SLA from an AKS cluster after creation with it enabled.
 				//  * Private clusters aren't currently supported.
-				// @jackofallops (2020-07-21) - Preview Update:
+				// @jackofallops (2020-07-21) - Update:
 				//  * sku_tier can now be upgraded in place, downgrade requires rebuild
 				Default: string(containerservice.Free),
 				ValidateFunc: validation.StringInSlice([]string{
