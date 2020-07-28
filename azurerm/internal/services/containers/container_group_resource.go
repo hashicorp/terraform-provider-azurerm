@@ -465,15 +465,20 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	if dnsNameLabel := d.Get("dns_name_label").(string); dnsNameLabel != "" {
-		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = &dnsNameLabel
+	dnsNameLabel, hasDnsNameLabel := d.GetOk("dns_name_label")
+	ipAddressType, hasIPAddressType := d.GetOk("ip_address_type")
+
+	if hasDnsNameLabel || hasIPAddressType {
+		containerGroup.ContainerGroupProperties.IPAddress = &containerinstance.IPAddress{}
 	}
 
-	if v, ok := d.GetOk("ip_address_type"); ok {
-		containerGroup.ContainerGroupProperties.IPAddress = &containerinstance.IPAddress{
-			Type:  containerinstance.ContainerGroupIPAddressType(v.(string)),
-			Ports: containerGroupPorts,
-		}
+	if hasDnsNameLabel {
+		containerGroup.ContainerGroupProperties.IPAddress.DNSNameLabel = utils.String(dnsNameLabel.(string))
+	}
+
+	if hasIPAddressType {
+		containerGroup.ContainerGroupProperties.IPAddress.Type = containerinstance.ContainerGroupIPAddressType(ipAddressType.(string))
+		containerGroup.ContainerGroupProperties.IPAddress.Ports = containerGroupPorts
 	}
 
 	// https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet#virtual-network-deployment-limitations
