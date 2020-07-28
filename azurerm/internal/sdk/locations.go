@@ -45,20 +45,16 @@ func AvailableAzureLocations(ctx context.Context, endpoint string) (*SupportedLo
 		return nil, fmt.Errorf("deserializing JSON from Azure MetaData service: %+v", err)
 	}
 
-	var locations []string
-	for k, v := range out.CloudEndpoint {
+	var locations *[]string
+	for _, v := range out.CloudEndpoint {
 		// one of the endpoints on this endpoint should reference itself
 		// however this is best-effort, so if it doesn't, it's not the end of the world
 		if strings.EqualFold(v.Endpoint, endpoint) {
-			locations = *v.Locations
-		}
-
-		if strings.EqualFold(k, "public") {
-			locations = append(locations, "global")
+			locations = v.Locations
 		}
 	}
 
 	return &SupportedLocations{
-		Locations: &locations,
+		Locations: locations,
 	}, nil
 }
