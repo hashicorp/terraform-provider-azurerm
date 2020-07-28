@@ -20,7 +20,7 @@ func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAdvancedThreatProtectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(data, true, true),
+				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvancedThreatProtectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -28,7 +28,7 @@ func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(data, true, false),
+				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(data, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvancedThreatProtectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "false"),
@@ -87,7 +87,7 @@ func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAdvancedThreatProtectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(data, true, true),
+				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(data, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvancedThreatProtectionExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enabled", "true"),
@@ -180,7 +180,7 @@ func testCheckAzureRMAdvancedThreatProtectionDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMAdvancedThreatProtection_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMAdvancedThreatProtection_storageAccount(data, true, true)
+	template := testAccAzureRMAdvancedThreatProtection_storageAccount(data, true)
 	return fmt.Sprintf(`
 %s
 
@@ -191,17 +191,7 @@ resource "azurerm_advanced_threat_protection" "import" {
 `, template)
 }
 
-func testAccAzureRMAdvancedThreatProtection_storageAccount(data acceptance.TestData, hasResource, enabled bool) string {
-	atp := ""
-	if hasResource {
-		atp = fmt.Sprintf(`
-resource "azurerm_advanced_threat_protection" "test" {
-  target_resource_id = "${azurerm_storage_account.test.id}"
-  enabled            = %t
-}
-`, enabled)
-	}
-
+func testAccAzureRMAdvancedThreatProtection_storageAccount(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -225,8 +215,11 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-%s
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, atp)
+resource "azurerm_advanced_threat_protection" "test" {
+  target_resource_id = "${azurerm_storage_account.test.id}"
+  enabled            = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, enabled)
 }
 
 // nolint unused - mistakenly marked as unused
