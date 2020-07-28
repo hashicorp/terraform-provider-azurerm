@@ -2,6 +2,7 @@ package azure
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
@@ -755,6 +756,9 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
+							ConflictsWith: []string{
+								fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+							},
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"min_instance_count": {
@@ -766,6 +770,66 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 										Type:         schema.TypeInt,
 										Required:     true,
 										ValidateFunc: countValidation,
+									},
+								},
+							},
+						},
+						"recurrence": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							ConflictsWith: []string{
+								fmt.Sprintf("%s.0.autoscale.0.capacity", schemaLocation),
+							},
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"timezone": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"schedule": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"time": {
+													Type:     schema.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringMatch(
+														regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+														"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+													),
+												},
+												"days": {
+													Type:     schema.TypeList,
+													Required: true,
+													Elem: &schema.Schema{
+														Type: schema.TypeString,
+														ValidateFunc: validation.StringInSlice([]string{
+															string(hdinsight.Monday),
+															string(hdinsight.Tuesday),
+															string(hdinsight.Wednesday),
+															string(hdinsight.Thursday),
+															string(hdinsight.Friday),
+															string(hdinsight.Saturday),
+															string(hdinsight.Sunday),
+														}, false),
+													},
+												},
+
+												"min_instance_count": {
+													Type:         schema.TypeInt,
+													Required:     true,
+													ValidateFunc: countValidation,
+												},
+												"max_instance_count": {
+													Type:         schema.TypeInt,
+													Required:     true,
+													ValidateFunc: countValidation,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -897,6 +961,14 @@ func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *hdinsight.Auto
 		}
 	}
 
+	recurrenceRaw := vs["recurrence"].([]interface{})
+	recurrence := ExpandHDInsightAutoscaleRecurrenceDefinition(recurrenceRaw)
+	if recurrence != nil {
+		return &hdinsight.Autoscale{
+			Recurrence: recurrence,
+		}
+	}
+
 	return nil
 }
 
@@ -911,6 +983,42 @@ func ExpandHDInsightAutoscaleCapacityDefinition(input []interface{}) *hdinsight.
 		MinInstanceCount: utils.Int32(int32(vs["min_instance_count"].(int))),
 		MaxInstanceCount: utils.Int32(int32(vs["max_instance_count"].(int))),
 	}
+}
+
+func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *hdinsight.AutoscaleRecurrence {
+	if input == nil || len(input) == 0 {
+		return nil
+	}
+
+	vs := input[0].(map[string]interface{})
+
+	schedules := make([]hdinsight.AutoscaleSchedule, 0)
+
+	for _, v := range vs["schedule"].([]interface{}) {
+		val := v.(map[string]interface{})
+
+		weekDays := val["days"].([]interface{})
+		expandedWeekDays := make([]hdinsight.DaysOfWeek, len(weekDays))
+		for i := range weekDays {
+			expandedWeekDays[i] = hdinsight.DaysOfWeek(weekDays[i].(string))
+		}
+
+		schedules = append(schedules, hdinsight.AutoscaleSchedule{
+			Days: &expandedWeekDays,
+			TimeAndCapacity: &hdinsight.AutoscaleTimeAndCapacity{
+				Time:             utils.String(val["time"].(string)),
+				MinInstanceCount: utils.Int32(int32(val["min_instance_count"].(int))),
+				MaxInstanceCount: utils.Int32(int32(val["max_instance_count"].(int))),
+			},
+		})
+	}
+
+	result := &hdinsight.AutoscaleRecurrence{
+		TimeZone: utils.String(vs["timezone"].(string)),
+		Schedule: &schedules,
+	}
+
+	return result
 }
 
 func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{}, definition HDInsightNodeDefinition) []interface{} {
@@ -1042,6 +1150,10 @@ func FlattenHDInsightNodeAutoscaleDefinition(input *hdinsight.Autoscale) []inter
 		result["capacity"] = FlattenHDInsightAutoscaleCapacityDefinition(input.Capacity)
 	}
 
+	if input.Recurrence != nil {
+		result["recurrence"] = FlattenHDInsightAutoscaleRecurrenceDefinition(input.Recurrence)
+	}
+
 	if len(result) > 0 {
 		return []interface{}{result}
 	}
@@ -1055,4 +1167,25 @@ func FlattenHDInsightAutoscaleCapacityDefinition(input *hdinsight.AutoscaleCapac
 			"max_instance_count": input.MaxInstanceCount,
 		},
 	}
+}
+
+func FlattenHDInsightAutoscaleRecurrenceDefinition(input *hdinsight.AutoscaleRecurrence) []interface{} {
+	schedules := make([]interface{}, len(*input.Schedule))
+
+	for i := range *input.Schedule {
+		schedules[i] = map[string]interface{}{
+			"days":               (*input.Schedule)[i].Days,
+			"time":               (*input.Schedule)[i].TimeAndCapacity.Time,
+			"min_instance_count": (*input.Schedule)[i].TimeAndCapacity.MinInstanceCount,
+			"max_instance_count": (*input.Schedule)[i].TimeAndCapacity.MaxInstanceCount,
+		}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"timezone": input.TimeZone,
+			"schedule": &schedules,
+		},
+	}
+
 }
