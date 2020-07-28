@@ -178,7 +178,7 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 		db.SQLContainerCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceData(throughput)
 	}
 
-	if autoScaleThroughput, hasAutoScaleThroughput := d.GetOk("throughput"); hasAutoScaleThroughput {
+	if autoScaleThroughput, hasAutoScaleThroughput := d.GetOk("autoscale_throughput"); hasAutoScaleThroughput {
 		db.SQLContainerCreateUpdateProperties.Options.AutoscaleSettings.MaxThroughput = common.ConvertThroughputFromResourceData(autoScaleThroughput)
 	}
 
