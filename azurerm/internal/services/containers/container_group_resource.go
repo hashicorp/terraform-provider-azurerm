@@ -325,24 +325,52 @@ func resourceArmContainerGroup() *schema.Resource {
 
 									"share_name": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"storage_account_name": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 
 									"storage_account_key": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										Sensitive:    true,
 										ForceNew:     true,
 										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"git_repo": {
+										Type:     schema.TypeList,
+										Optional: true,
+										ForceNew: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"url": {
+													Type:     schema.TypeString,
+													Required: true,
+													ForceNew: true,
+												},
+
+												"directory": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+												},
+
+												"revision": {
+													Type:     schema.TypeString,
+													Optional: true,
+													ForceNew: true,
+												},
+											},
+										},
 									},
 								},
 							},
@@ -942,18 +970,40 @@ func expandContainerVolumes(input interface{}) (*[]containerinstance.VolumeMount
 
 		cv := containerinstance.Volume{
 			Name: utils.String(name),
-			AzureFile: &containerinstance.AzureFileVolume{
+		}
+
+		if gitRepoVolume := expandGitRepoVolume(volumeConfig["git_repo"].([]interface{})); gitRepoVolume != nil {
+			cv.GitRepo = gitRepoVolume
+		} else {
+			cv.AzureFile = &containerinstance.AzureFileVolume{
 				ShareName:          utils.String(shareName),
 				ReadOnly:           utils.Bool(readOnly),
 				StorageAccountName: utils.String(storageAccountName),
 				StorageAccountKey:  utils.String(storageAccountKey),
-			},
+			}
 		}
 
 		containerGroupVolumes = append(containerGroupVolumes, cv)
 	}
 
 	return &volumeMounts, &containerGroupVolumes
+}
+
+func expandGitRepoVolume(input []interface{}) *containerinstance.GitRepoVolume {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+	gitRepoVolume := &containerinstance.GitRepoVolume{
+		Repository: utils.String(v["url"].(string)),
+	}
+	if directory := v["directory"].(string); directory != "" {
+		gitRepoVolume.Directory = utils.String(directory)
+	}
+	if revision := v["revision"].(string); revision != "" {
+		gitRepoVolume.Revision = utils.String(revision)
+	}
+	return gitRepoVolume
 }
 
 func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
@@ -1243,6 +1293,8 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 						}
 						// skip storage_account_key, is always nil
 					}
+
+					volumeConfig["git_repo"] = flattenGitRepoVolume(cgv.GitRepo)
 				}
 			}
 		}
@@ -1264,6 +1316,29 @@ func flattenContainerVolumes(volumeMounts *[]containerinstance.VolumeMount, cont
 	}
 
 	return volumeConfigs
+}
+
+func flattenGitRepoVolume(input *containerinstance.GitRepoVolume) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	var revision, directory, repository string
+	if input.Directory != nil {
+		directory = *input.Directory
+	}
+	if input.Revision != nil {
+		revision = *input.Revision
+	}
+	if input.Repository != nil {
+		repository = *input.Repository
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"url":       repository,
+			"directory": directory,
+			"revision":  revision,
+		},
+	}
 }
 
 func flattenContainerProbes(input *containerinstance.ContainerProbe) []interface{} {
