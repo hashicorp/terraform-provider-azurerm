@@ -3,6 +3,7 @@
 DEPENDENCIES:
 
 * updating `search` to `2020-03-13` [GH-7867]
+* updating `go-azure-helpers` to v0.11.2 [GH-7911]
 
 FEATURES:
 
