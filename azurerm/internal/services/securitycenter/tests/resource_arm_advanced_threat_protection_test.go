@@ -35,12 +35,6 @@ func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{
-				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(data, false, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAdvancedThreatProtectionIsFalse(data.ResourceName),
-				),
-			},
 		},
 	})
 }
@@ -85,7 +79,7 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 }
 
 func TestAccAzureRMAdvancedThreatProtection_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "import")
+	data := acceptance.BuildTestData(t, "azurerm_advanced_threat_protection", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
