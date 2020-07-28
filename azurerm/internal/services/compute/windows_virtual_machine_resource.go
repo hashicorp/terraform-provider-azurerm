@@ -1,6 +1,7 @@
 package compute
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -17,6 +18,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/requestwrapper"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
 	networkValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/validate"
@@ -490,16 +492,23 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("waiting for creation of Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name, "")
+	read, err := requestwrapper.GetWithTimeoutsAndRetries(
+		requestwrapper.DefaultRetries,
+		requestwrapper.DefaultRequestTimeout,
+		ctx,
+		func(timeoutAndRetryContext context.Context) (interface{}, error) {
+			return client.Get(timeoutAndRetryContext, resourceGroup, name, "")
+		})
+
 	if err != nil {
 		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if read.ID == nil {
+	if read.(compute.VirtualMachine).ID == nil {
 		return fmt.Errorf("retrieving Windows Virtual Machine %q (Resource Group %q): `id` was nil", name, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(*read.(compute.VirtualMachine).ID)
 	return resourceWindowsVirtualMachineRead(d, meta)
 }
 
