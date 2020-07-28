@@ -38,34 +38,6 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
-	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSecurityCenterWorkspaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMSecurityCenterWorkspace_basicCfg(data, scope),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSecurityCenterWorkspaceExists(),
-					resource.TestCheckResourceAttr(data.ResourceName, "scope", scope),
-				),
-			},
-			{
-				Config:      testAccAzureRMSecurityCenterWorkspace_requiresImportCfg(data, scope),
-				ExpectError: acceptance.RequiresImportError("azurerm_security_center_workspace"),
-			},
-			{
-				// reset pricing to free
-				Config: testAccAzureRMSecurityCenterSubscriptionPricing_tier("Free"),
-			},
-		},
-	})
-}
-
 func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_security_center_workspace", "test")
 	scope := fmt.Sprintf("/subscriptions/%s", os.Getenv("ARM_SUBSCRIPTION_ID"))
@@ -169,18 +141,6 @@ resource "azurerm_security_center_workspace" "test" {
   workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, scope)
-}
-
-func testAccAzureRMSecurityCenterWorkspace_requiresImportCfg(data acceptance.TestData, scope string) string {
-	template := testAccAzureRMSecurityCenterWorkspace_basicCfg(data, scope)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_security_center_workspace" "import" {
-  scope        = azurerm_security_center_workspace.test.scope
-  workspace_id = azurerm_security_center_workspace.test.workspace_id
-}
-`, template)
 }
 
 func testAccAzureRMSecurityCenterWorkspace_differentWorkspaceCfg(data acceptance.TestData, scope string) string {
