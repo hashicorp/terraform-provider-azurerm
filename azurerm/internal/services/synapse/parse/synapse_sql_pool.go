@@ -7,10 +7,11 @@ import (
 )
 
 type SynapseSqlPoolId struct {
-	ResourceGroup string
-	WorkspaceId   string
-	WorkspaceName string
-	Name          string
+	SubscriptionID string
+	ResourceGroup  string
+	WorkspaceId    string
+	WorkspaceName  string
+	Name           string
 }
 
 func SynapseSqlPoolID(input string) (*SynapseSqlPoolId, error) {
@@ -20,7 +21,8 @@ func SynapseSqlPoolID(input string) (*SynapseSqlPoolId, error) {
 	}
 
 	synapseSqlPool := SynapseSqlPoolId{
-		ResourceGroup: id.ResourceGroup,
+		SubscriptionID: id.SubscriptionID,
+		ResourceGroup:  id.ResourceGroup,
 	}
 	if synapseSqlPool.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err

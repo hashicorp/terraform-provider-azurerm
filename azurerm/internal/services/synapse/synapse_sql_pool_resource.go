@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	sqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
+	sqlValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -110,6 +112,10 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 			"source_database_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.Any(
+					validate.SynapseSqlPoolID,
+					sqlValidate.SqlDatabaseID,
+				),
 			},
 
 			"restore_point_in_time": {
@@ -170,13 +176,13 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 	case "Default":
 		sqlPoolInfo.SQLPoolResourceProperties.Collation = utils.String(d.Get("collation").(string))
 	case "Recovery":
-		sourceDatabaseId := d.Get("source_database_id").(string)
+		sourceDatabaseId := constructSourceDatabaseId(d.Get("source_database_id").(string))
 		if sourceDatabaseId == "" {
 			return fmt.Errorf("`source_database_id` must be set when `create_mode` is `Recovery`")
 		}
 		sqlPoolInfo.SQLPoolResourceProperties.RecoverableDatabaseID = utils.String(sourceDatabaseId)
 	case "PointInTimeRestore":
-		sourceDatabaseId := d.Get("source_database_id").(string)
+		sourceDatabaseId := constructSourceDatabaseId(d.Get("source_database_id").(string))
 		restorePointInTimeStr := d.Get("restore_point_in_time").(string)
 		if sourceDatabaseId == "" || restorePointInTimeStr == "" {
 			return fmt.Errorf("`source_database_id` and `restore_point_in_time` must be set when `create_mode` is `PointInTimeRestore`")
@@ -354,4 +360,21 @@ func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQ
 		}
 		return resp, *resp.SQLPoolResourceProperties.Status, nil
 	}
+}
+
+// sqlPool backend service is a proxy to sql database
+// backend service restore and backup only accept id format of sql database
+// so if the id is sqlPool, we need to construct the corresponding sql database id
+func constructSourceDatabaseId(id string) string {
+	sqlPoolId, err := parse.SynapseSqlPoolID(id)
+	if err != nil {
+		return id
+	}
+	sqlDataBaseId := sqlParse.SqlDatabaseId{
+		SubscriptionID: sqlPoolId.SubscriptionID,
+		ResourceGroup:  sqlPoolId.ResourceGroup,
+		ServerName:     sqlPoolId.WorkspaceName,
+		Name:           sqlPoolId.Name,
+	}
+	return sqlDataBaseId.String()
 }
