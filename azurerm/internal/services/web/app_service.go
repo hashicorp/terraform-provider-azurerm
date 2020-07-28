@@ -342,47 +342,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Default:  false,
 				},
 
-				"ip_restriction": {
-					Type:       schema.TypeList,
-					Optional:   true,
-					Computed:   true,
-					ConfigMode: schema.SchemaConfigModeAttr,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"ip_address": {
-								Type:         schema.TypeString,
-								Optional:     true,
-								ValidateFunc: validate.CIDR,
-							},
-							"virtual_network_subnet_id": {
-								Type:         schema.TypeString,
-								Optional:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"name": {
-								Type:         schema.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"priority": {
-								Type:         schema.TypeInt,
-								Optional:     true,
-								Default:      65000,
-								ValidateFunc: validation.IntBetween(1, 2147483647),
-							},
-							"action": {
-								Type:     schema.TypeString,
-								Default:  "Allow",
-								Optional: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									"Allow",
-									"Deny",
-								}, false),
-							},
-						},
-					},
-				},
+				"ip_restriction": schemaAppServiceIpRestriction(),
 
 				"scm_use_main_ip_restriction": {
 					Type:     schema.TypeBool,
@@ -390,47 +350,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Default:  false,
 				},
 
-				"scm_ip_restriction": {
-					Type:       schema.TypeList,
-					Optional:   true,
-					Computed:   true,
-					ConfigMode: schema.SchemaConfigModeAttr,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"ip_address": {
-								Type:         schema.TypeString,
-								Optional:     true,
-								ValidateFunc: validate.CIDR,
-							},
-							"virtual_network_subnet_id": {
-								Type:         schema.TypeString,
-								Optional:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"name": {
-								Type:         schema.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"priority": {
-								Type:         schema.TypeInt,
-								Optional:     true,
-								Default:      65000,
-								ValidateFunc: validation.IntBetween(1, 2147483647),
-							},
-							"action": {
-								Type:     schema.TypeString,
-								Optional: true,
-								Default:  "Allow",
-								ValidateFunc: validation.StringInSlice([]string{
-									"Allow",
-									"Deny",
-								}, true),
-							},
-						},
-					},
-				},
+				"scm_ip_restriction": schemaAppServiceIpRestriction(),
 
 				"java_version": {
 					Type:     schema.TypeString,
@@ -961,6 +881,62 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 							},
 						},
 					},
+				},
+			},
+		},
+	}
+}
+
+func schemaAppServiceIpRestriction() *schema.Schema {
+	return &schema.Schema{
+		Type:       schema.TypeList,
+		Optional:   true,
+		Computed:   true,
+		ConfigMode: schema.SchemaConfigModeAttr,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"ip_address": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.CIDR,
+				},
+
+				"subnet_id": {
+					// TODO - Remove in 3.0
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Deprecated:   "This field has been deprecated in favour of `virtual_network_subnet_id` and will be removed in a future version of the provider",
+				},
+
+				"virtual_network_subnet_id": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"name": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"priority": {
+					Type:         schema.TypeInt,
+					Optional:     true,
+					Default:      65000,
+					ValidateFunc: validation.IntBetween(1, 2147483647),
+				},
+
+				"action": {
+					Type:     schema.TypeString,
+					Default:  "Allow",
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"Allow",
+						"Deny",
+					}, false),
 				},
 			},
 		},
@@ -1605,50 +1581,10 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["ip_restriction"]; ok {
-		ipSecurityRestrictions := v.([]interface{})
-		restrictions := make([]web.IPSecurityRestriction, 0)
-		for i, ipSecurityRestriction := range ipSecurityRestrictions {
-			restriction := ipSecurityRestriction.(map[string]interface{})
-
-			ipAddress := restriction["ip_address"].(string)
-			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
-			name := restriction["name"].(string)
-			priority := restriction["priority"].(int)
-			action := restriction["action"].(string)
-			if vNetSubnetID != "" && ipAddress != "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can be set for `site_config.0.ip_restriction.%d`", i))
-			}
-
-			if vNetSubnetID == "" && ipAddress == "" {
-				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
-			}
-
-			ipSecurityRestriction := web.IPSecurityRestriction{}
-			if ipAddress == "Any" {
-				continue
-			}
-
-			if ipAddress != "" {
-				ipSecurityRestriction.IPAddress = &ipAddress
-			}
-
-			if vNetSubnetID != "" {
-				ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
-			}
-
-			if name != "" {
-				ipSecurityRestriction.Name = &name
-			}
-
-			if priority != 0 {
-				ipSecurityRestriction.Priority = utils.Int32(int32(priority))
-			}
-
-			if action != "" {
-				ipSecurityRestriction.Action = &action
-			}
-
-			restrictions = append(restrictions, ipSecurityRestriction)
+		ipSecurityRestrictions := v.(interface{})
+		restrictions, err := expandAppServiceIpRestriction(ipSecurityRestrictions)
+		if err != nil {
+			return siteConfig, err
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
@@ -1774,70 +1710,13 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["http2_enabled"] = *input.HTTP20Enabled
 	}
 
-	restrictions := make([]interface{}, 0)
-	if vs := input.IPSecurityRestrictions; vs != nil {
-		for _, v := range *vs {
-			block := make(map[string]interface{})
-
-			if ip := v.IPAddress; ip != nil {
-				if *ip == "Any" {
-					continue
-				} else {
-					block["ip_address"] = *ip
-				}
-			}
-			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
-				block["virtual_network_subnet_id"] = *vNetSubnetID
-			}
-			if name := v.Name; name != nil {
-				block["name"] = *name
-			}
-			if priority := v.Priority; priority != nil {
-				block["priority"] = *priority
-			}
-
-			if action := v.Action; action != nil {
-				block["action"] = *action
-			}
-
-			restrictions = append(restrictions, block)
-		}
-	}
-	result["ip_restriction"] = restrictions
+	result["ip_restriction"] = flattenAppServiceIpRestriction(input.IPSecurityRestrictions)
 
 	if input.ScmIPSecurityRestrictionsUseMain != nil {
 		result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
 	}
 
-	scmRestrictions := make([]interface{}, 0)
-	if vs := input.ScmIPSecurityRestrictions; vs != nil {
-		for _, v := range *vs {
-			block := make(map[string]interface{})
-
-			if ip := v.IPAddress; ip != nil {
-				if *ip == "Any" {
-					continue
-				} else {
-					block["ip_address"] = *ip
-				}
-			}
-			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
-				block["virtual_network_subnet_id"] = *vNetSubnetID
-			}
-			if name := v.Name; name != nil {
-				block["name"] = *name
-			}
-			if priority := v.Priority; priority != nil {
-				block["priority"] = *priority
-			}
-
-			if action := v.Action; action != nil {
-				block["action"] = *action
-			}
-			scmRestrictions = append(scmRestrictions, block)
-		}
-	}
-	result["scm_ip_restriction"] = scmRestrictions
+	result["scm_ip_restriction"] = flattenAppServiceIpRestriction(input.ScmIPSecurityRestrictions)
 
 	result["managed_pipeline_mode"] = string(input.ManagedPipelineMode)
 
@@ -1889,6 +1768,46 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	return append(results, result)
+}
+
+func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interface{} {
+	restrictions := make([]interface{}, 0)
+
+	if input == nil {
+		return restrictions
+	}
+
+	for _, v := range *input {
+		restriction := make(map[string]interface{})
+		if ip := v.IPAddress; ip != nil {
+			if *ip == "Any" {
+				continue
+			} else {
+				restriction["ip_address"] = *ip
+			}
+		}
+
+		if subnetId := v.VnetSubnetResourceID; subnetId != nil {
+			restriction["virtual_network_subnet_id"] = subnetId
+			restriction["subnet_id"] = subnetId
+		}
+
+		if name := v.Name; name != nil {
+			restriction["name"] = *name
+		}
+
+		if priority := v.Priority; priority != nil {
+			restriction["priority"] = *priority
+		}
+
+		if action := v.Action; action != nil {
+			restriction["action"] = *action
+		}
+
+		restrictions = append(restrictions, restriction)
+	}
+
+	return restrictions
 }
 
 func expandAppServiceStorageAccounts(input []interface{}) map[string]*web.AzureStorageInfoValue {
@@ -1958,11 +1877,11 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		action := restriction["action"].(string)
 
 		if vNetSubnetID != "" && ipAddress != "" {
-			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
+			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `viretual_network_subnet_id` can be set for `site_config.0.ip_restriction.%d`", i))
 		}
 
 		if vNetSubnetID == "" && ipAddress == "" {
-			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
+			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `viretual_network_subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}
