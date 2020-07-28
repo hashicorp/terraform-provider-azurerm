@@ -25,6 +25,7 @@ BUG FIXES:
 * `azurerm_api_management_named_value` - the `value` has been marked as sensitive to hide secret values [GH-7819]
 * `azurerm_iothub_dps` - the only valid value for the `sku` property for the API is now `S1` [GH-7847]
 * `azurerm_eventgrid_event_subscription` - deprecate the `topic_name` as it is now readonly in the API [GH-7871]
+* `azurerm_kubernetes_cluster` - Updates no longer fail when using managed AAD integration [GH-7874]
 
 ## 2.20.0 (July 23, 2020)
 
