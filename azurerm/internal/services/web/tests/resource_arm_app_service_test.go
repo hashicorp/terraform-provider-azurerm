@@ -1435,8 +1435,7 @@ func TestAccAzureRMAppService_healthCheckPath(t *testing.T) {
 	})
 }
 
-// todo - linuxFxVersion seems to reject all supplied values - needs more detailed investigation.
-// error message simply reads: Original Error: Code="BadRequest" Message="The parameter LinuxFxVersion has an invalid value."
+// Note: to specify `linux_fx_version` the App Service Plan must be of `kind = "Linux"`, and `reserved = true`
 func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
 	resource.ParallelTest(t, resource.TestCase{
@@ -1448,11 +1447,9 @@ func TestAccAzureRMAppService_linuxFxVersion(t *testing.T) {
 				Config: testAccAzureRMAppService_linuxFxVersion(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.always_on", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "site_config.0.linux_fx_version", "DOCKER|(golang:latest)"),
-					resource.TestCheckResourceAttr(data.ResourceName, "app_settings.WEBSITES_ENABLE_APP_SERVICE_STORAGE", "false"),
 				),
 			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -4122,6 +4119,8 @@ resource "azurerm_app_service_plan" "test" {
   name                = "acctestASP-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  kind                = "Linux"
+  reserved            = true
 
   sku {
     tier = "Standard"
@@ -4137,7 +4136,7 @@ resource "azurerm_app_service" "test" {
 
   site_config {
     always_on        = true
-    linux_fx_version = "DOCKER|(golang:latest)"
+    linux_fx_version = "DOCKER|golang:latest"
   }
 
   app_settings = {
