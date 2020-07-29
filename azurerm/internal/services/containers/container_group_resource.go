@@ -427,9 +427,9 @@ func resourceArmContainerGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"nameservers": {
-							Type:         schema.TypeList,
-							Required:     true,
-							ForceNew:     true,
+							Type:     schema.TypeList,
+							Required: true,
+							ForceNew: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
