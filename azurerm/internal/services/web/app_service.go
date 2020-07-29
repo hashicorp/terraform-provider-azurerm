@@ -1882,11 +1882,11 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 		action := restriction["action"].(string)
 
 		if vNetSubnetID != "" && ipAddress != "" {
-			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can be set for an IP restriction"))
+			return nil, fmt.Errorf("only one of `ip_address` or `virtual_network_subnet_id` can be set for an IP restriction")
 		}
 
 		if vNetSubnetID == "" && ipAddress == "" {
-			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set for an IP restriction"))
+			return nil, fmt.Errorf("one of `ip_address` or `virtual_network_subnet_id` must be set for an IP restriction")
 		}
 
 		ipSecurityRestriction := web.IPSecurityRestriction{}

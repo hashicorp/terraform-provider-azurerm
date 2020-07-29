@@ -333,8 +333,6 @@ A `ip_restriction` block supports the following:
 
 ---
 
----
-
 A `scm_ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
