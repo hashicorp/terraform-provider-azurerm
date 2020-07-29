@@ -11,6 +11,7 @@ FEATURES:
 
 IMPROVEMENTS:
 * `azurerm_api_management_identity_provider_aad` - Support for `signin_tenant` [GH-7901]
+* `azurerm_app_service_plan` - update the relation between `kind` and `reserved` [GH-7943]
 * `azurerm_automation_runbook` - recreate `azurerm_automation_job_schedule` after an update [GH-7555]
 * `azurerm_app_service_slot` - support for the `application_logs.file_system` [GH-7311]
 * `azurerm_firewall` - no longer requires a `zone` [GH-7817]
