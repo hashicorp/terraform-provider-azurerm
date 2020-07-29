@@ -55,6 +55,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 				},
 			},
 		},
+
+		"network": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"relaxed_locking": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -94,6 +109,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			PurgeSoftDeleteOnDestroy:    true,
 			RecoverSoftDeletedKeyVaults: true,
 		},
+		Network: features.NetworkFeatures{
+			RelaxedLocking: false,
+		},
 	}
 
 	if len(input) == 0 || input[0] == nil {
@@ -130,6 +148,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		if len(items) > 0 {
 			scaleSetRaw := items[0].(map[string]interface{})
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
+				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["network"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			scaleSetRaw := items[0].(map[string]interface{})
+			if v, ok := scaleSetRaw["relaxed_locking"]; ok {
 				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
 			}
 		}
