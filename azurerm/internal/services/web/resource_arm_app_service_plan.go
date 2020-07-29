@@ -193,6 +193,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("`reserved` has to be set to true when kind is set to `Linux`")
 	}
 
+	if strings.EqualFold(kind, "Windows") && reserved {
+		return fmt.Errorf("`reserved` has to be set to false when kind is set to `Windows`")
+	}
+
 	if v := d.Get("maximum_elastic_worker_count").(int); v > 0 {
 		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v))
 	}
