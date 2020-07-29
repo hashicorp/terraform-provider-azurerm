@@ -20,49 +20,7 @@ const (
 	SystemAssignedUserAssigned web.ManagedServiceIdentityType = "SystemAssigned, UserAssigned"
 )
 
-type AppServiceResourceID struct {
-	ResourceGroup string
-	Name          string
-}
-
-func ParseAppServiceID(input string) (*AppServiceResourceID, error) {
-	id, err := azure.ParseAzureResourceID(input)
-	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse App Service ID %q: %+v", input, err)
-	}
-
-	appService := AppServiceResourceID{
-		ResourceGroup: id.ResourceGroup,
-	}
-
-	if appService.Name, err = id.PopSegment("sites"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
-		return nil, err
-	}
-
-	return &appService, nil
-}
-
-// ValidateAppServiceID validates that the specified ID is a valid App Service ID
-func ValidateAppServiceID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return
-	}
-
-	if _, err := ParseAppServiceID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
-		return
-	}
-
-	return warnings, errors
-}
-
-func SchemaAppServiceAadAuthSettings() *schema.Schema {
+func schemaAppServiceAadAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -88,7 +46,7 @@ func SchemaAppServiceAadAuthSettings() *schema.Schema {
 	}
 }
 
-func SchemaAppServiceFacebookAuthSettings() *schema.Schema {
+func schemaAppServiceFacebookAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -114,7 +72,7 @@ func SchemaAppServiceFacebookAuthSettings() *schema.Schema {
 	}
 }
 
-func SchemaAppServiceGoogleAuthSettings() *schema.Schema {
+func schemaAppServiceGoogleAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -140,7 +98,7 @@ func SchemaAppServiceGoogleAuthSettings() *schema.Schema {
 	}
 }
 
-func SchemaAppServiceMicrosoftAuthSettings() *schema.Schema {
+func schemaAppServiceMicrosoftAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -166,7 +124,7 @@ func SchemaAppServiceMicrosoftAuthSettings() *schema.Schema {
 	}
 }
 
-func SchemaAppServiceTwitterAuthSettings() *schema.Schema {
+func schemaAppServiceTwitterAuthSettings() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -249,11 +207,11 @@ func schemaAppServiceAuthSettings() *schema.Schema {
 						string(web.RedirectToLoginPage),
 					}, false),
 				},
-				"active_directory": SchemaAppServiceAadAuthSettings(),
-				"facebook":         SchemaAppServiceFacebookAuthSettings(),
-				"google":           SchemaAppServiceGoogleAuthSettings(),
-				"microsoft":        SchemaAppServiceMicrosoftAuthSettings(),
-				"twitter":          SchemaAppServiceTwitterAuthSettings(),
+				"active_directory": schemaAppServiceAadAuthSettings(),
+				"facebook":         schemaAppServiceFacebookAuthSettings(),
+				"google":           schemaAppServiceGoogleAuthSettings(),
+				"microsoft":        schemaAppServiceMicrosoftAuthSettings(),
+				"twitter":          schemaAppServiceTwitterAuthSettings(),
 			},
 		},
 	}
@@ -300,7 +258,7 @@ func schemaAppServiceIdentity() *schema.Schema {
 	}
 }
 
-func SchemaAppServiceSiteConfig() *schema.Schema {
+func schemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -521,7 +479,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 	}
 }
 
-func SchemaAppServiceLogsConfig() *schema.Schema {
+func schemaAppServiceLogsConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -635,7 +593,7 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 	}
 }
 
-func SchemaAppServiceStorageAccounts() *schema.Schema {
+func schemaAppServiceStorageAccounts() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
 		Optional: true,
@@ -685,7 +643,7 @@ func SchemaAppServiceStorageAccounts() *schema.Schema {
 	}
 }
 
-func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
+func schemaAppServiceDataSourceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Computed: true,

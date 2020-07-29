@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -28,7 +28,7 @@ func resourceArmAppService() *schema.Resource {
 		Delete: resourceArmAppServiceDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceID(id)
+			_, err := parse.AppServiceID(id)
 			return err
 		}),
 
@@ -58,11 +58,11 @@ func resourceArmAppService() *schema.Resource {
 				Required: true,
 			},
 
-			"site_config": SchemaAppServiceSiteConfig(),
+			"site_config": schemaAppServiceSiteConfig(),
 
 			"auth_settings": schemaAppServiceAuthSettings(),
 
-			"logs": SchemaAppServiceLogsConfig(),
+			"logs": schemaAppServiceLogsConfig(),
 
 			"backup": schemaAppServiceBackup(),
 
@@ -99,7 +99,7 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
-			"storage_account": SchemaAppServiceStorageAccounts(),
+			"storage_account": schemaAppServiceStorageAccounts(),
 
 			"connection_string": {
 				Type:     schema.TypeSet,
@@ -188,17 +188,15 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
-			}
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_app_service", *existing.ID)
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
@@ -330,7 +328,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceID(d.Id())
+	id, err := parse.AppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -522,7 +520,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceID(d.Id())
+	id, err := parse.AppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -681,7 +679,7 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceID(d.Id())
+	id, err := parse.AppServiceID(d.Id())
 	if err != nil {
 		return err
 	}

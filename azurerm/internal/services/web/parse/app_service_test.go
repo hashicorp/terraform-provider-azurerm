@@ -1,4 +1,4 @@
-package web
+package parse
 
 import (
 	"testing"
@@ -53,7 +53,7 @@ func TestParseAppService(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseAppServiceID(v.Input)
+		actual, err := AppServiceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -68,52 +68,6 @@ func TestParseAppService(t *testing.T) {
 
 		if actual.ResourceGroup != v.Expected.ResourceGroup {
 			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
-		}
-	}
-}
-
-func TestValidateAppServiceID(t *testing.T) {
-	cases := []struct {
-		ID    string
-		Valid bool
-	}{
-		{
-			ID:    "",
-			Valid: false,
-		},
-		{
-			ID:    "nonsense",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Web",
-			Valid: false,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Web/sites/duckduckgo",
-			Valid: true,
-		},
-		{
-			ID:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/providers/Microsoft.Web/Sites/duckduckgo",
-			Valid: false,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Logf("[DEBUG] Testing Value %q", tc.ID)
-		_, errors := ValidateAppServiceID(tc.ID, "test")
-		valid := len(errors) == 0
-
-		if tc.Valid != valid {
-			t.Fatalf("Expected %t but got %t", tc.Valid, valid)
 		}
 	}
 }

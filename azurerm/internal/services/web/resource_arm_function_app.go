@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -30,7 +31,7 @@ func resourceArmFunctionApp() *schema.Resource {
 		Update: resourceArmFunctionAppUpdate,
 		Delete: resourceArmFunctionAppDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseAppServiceID(id)
+			_, err := parse.AppServiceID(id)
 			return err
 		}),
 
@@ -373,7 +374,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceID(d.Id())
+	id, err := parse.AppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -508,7 +509,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceID(d.Id())
+	id, err := parse.AppServiceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -673,7 +674,7 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseAppServiceID(d.Id())
+	id, err := parse.AppServiceID(d.Id())
 	if err != nil {
 		return err
 	}

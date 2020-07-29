@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	webValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
@@ -26,6 +25,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 		Read:   resourceArmAppServiceSlotRead,
 		Update: resourceArmAppServiceSlotCreateUpdate,
 		Delete: resourceArmAppServiceSlotDelete,
+
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
 			_, err := ParseAppServiceSlotID(id)
 			return err
@@ -46,16 +46,17 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				ValidateFunc: webValidate.AppServiceName,
 			},
 
+			"identity": schemaAppServiceIdentity(),
+
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
-			"identity": schemaAppServiceIdentity(),
-
 			"app_service_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: webValidate.AppServiceName,
 			},
 
 			"app_service_plan_id": {
@@ -64,11 +65,11 @@ func resourceArmAppServiceSlot() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"site_config": SchemaAppServiceSiteConfig(),
+			"site_config": schemaAppServiceSiteConfig(),
 
 			"auth_settings": schemaAppServiceAuthSettings(),
 
-			"logs": SchemaAppServiceLogsConfig(),
+			"logs": schemaAppServiceLogsConfig(),
 
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
@@ -171,7 +172,7 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 	resourceGroup := d.Get("resource_group_name").(string)
 	appServiceName := d.Get("app_service_name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
