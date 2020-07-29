@@ -452,7 +452,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", id.Name, err)
 	}
 
-	if d.HasChange("site_config") {
+	// If `source_control` is defined, we need to set site_config.0.scm_type to "" or we cannot update it
+	_, hasSourceControl := d.GetOk("source_control")
+
+	if d.HasChange("site_config") || hasSourceControl {
 		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `site_config` for Function App %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
@@ -460,8 +463,24 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}
+
+		if hasSourceControl {
+			siteConfigResource.SiteConfig.ScmType = ""
+		}
+
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.Name, siteConfigResource); err != nil {
 			return fmt.Errorf("Error updating Configuration for Function App %q: %+v", id.Name, err)
+		}
+	}
+
+	if hasSourceControl {
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		// TODO - Do we need to lock the function app for updates?
+		_, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
@@ -487,17 +506,6 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 
 		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.Name, properties); err != nil {
 			return fmt.Errorf("Error updating Connection Strings for App Service %q: %+v", id.Name, err)
-		}
-	}
-
-	if d.HasChange("source_control") {
-		sourceControlProperties := expandAppServiceSiteSourceControl(d)
-		sourceControl := &web.SiteSourceControl{}
-		sourceControl.SiteSourceControlProperties = sourceControlProperties
-		// TODO - Do we need to lock the function app for updates?
-		_, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
-		if err != nil {
-			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 

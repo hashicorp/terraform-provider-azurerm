@@ -878,7 +878,33 @@ func TestAccAzureRMFunctionApp_basicWithSourceControl(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFunctionApp_basicWithSourceControl(data),
+				Config: testAccAzureRMFunctionApp_basicWithSourceControl(data, "main"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMFunctionApp_basicWithSourceControlUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFunctionApp_basicWithSourceControl(data, "main"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMFunctionApp_basicWithSourceControl(data, "development"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
 				),
@@ -1049,7 +1075,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_basicWithSourceControl(data acceptance.TestData) string {
+func testAccAzureRMFunctionApp_basicWithSourceControl(data acceptance.TestData, branch string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1089,12 +1115,12 @@ resource "azurerm_function_app" "test" {
 
   source_control {
     repo_url           = "https://github.com/jackofallops/azure-app-service-static-site-tests.git"
-    branch             = "main"
+    branch             = "%[4]s"
     manual_integration = true
     rollback_enabled   = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, branch)
 }
 
 func testAccAzureRMFunctionApp_requiresImport(data acceptance.TestData) string {

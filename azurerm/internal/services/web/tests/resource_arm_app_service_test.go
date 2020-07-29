@@ -1387,7 +1387,32 @@ func TestAccAzureRMAppService_withSourceControl(t *testing.T) {
 		CheckDestroy: testCheckAzureRMAppServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAppService_withSourceControl(data),
+				Config: testAccAzureRMAppService_withSourceControl(data, "main"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMAppService_withSourceControlUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_service", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppService_withSourceControl(data, "main"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMAppService_withSourceControl(data, "development"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(data.ResourceName),
 				),
@@ -3996,7 +4021,7 @@ resource "azurerm_app_service" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func testAccAzureRMAppService_withSourceControl(data acceptance.TestData) string {
+func testAccAzureRMAppService_withSourceControl(data acceptance.TestData, branch string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4026,12 +4051,12 @@ resource "azurerm_app_service" "test" {
 
   source_control {
     repo_url           = "https://github.com/jackofallops/azure-app-service-static-site-tests.git"
-    branch             = "main"
+    branch             = "%[5]s"
     manual_integration = true
     rollback_enabled   = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, branch)
 }
 
 func testAccAzureRMAppService_ftpsState(data acceptance.TestData) string {
