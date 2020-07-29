@@ -374,11 +374,9 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 	resGroup := id.ResourceGroup
 	nsgName := id.Path["networkSecurityGroups"]
 	sgRuleName := id.Path["securityRules"]
-
-	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
-		locks.ByName(nsgName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
-	}
+	
+	locks.ByName(nsgName, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
 
 	future, err := client.Delete(ctx, resGroup, nsgName, sgRuleName)
 	if err != nil {
