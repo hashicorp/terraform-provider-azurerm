@@ -20,10 +20,8 @@ func GetWithTimeoutsAndRetries(
 	requestTimeout int,
 	ctx context.Context,
 	getMethod func(ctx context.Context) (interface{}, error)) (read interface{}, err error) {
-
 	// Retry the request based on <numRetries> should the request return an error or be not reploy afer <requestTimeout> seconds
 	for attempt := 0; attempt < numRetries; attempt++ {
-
 		var timeTillContextDeadline = time.Now().Add(time.Duration(requestTimeout) * time.Second)
 
 		// Create a context based on the duration we will wait for a reply
@@ -32,7 +30,7 @@ func GetWithTimeoutsAndRetries(
 		read, err = getMethod(getCtx)
 		defer ctxCancelFunc()
 
-		// Check if the request was sucessful
+		// Check if the request was successful
 		if err == nil {
 			// Request completed
 			break
