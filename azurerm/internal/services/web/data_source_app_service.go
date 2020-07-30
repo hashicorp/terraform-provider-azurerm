@@ -122,22 +122,7 @@ func dataSourceArmAppService() *schema.Resource {
 				Computed: true,
 			},
 
-			"source_control": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"repo_url": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"branch": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"source_control": schemaDataSourceAppServiceSiteSourceControl(),
 		},
 	}
 }

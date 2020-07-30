@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func appServiceSiteSourceControlSchema() *schema.Schema {
+func schemaAppServiceSiteSourceControl() *schema.Schema {
 	return &schema.Schema{
 		Type:          schema.TypeList,
 		Optional:      true,
@@ -44,6 +44,41 @@ func appServiceSiteSourceControlSchema() *schema.Schema {
 				"rollback_enabled": {
 					Type:     schema.TypeBool,
 					Optional: true,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaDataSourceAppServiceSiteSourceControl() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"repo_url": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"branch": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"manual_integration": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"use_mercurial": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"rollback_enabled": {
+					Type:     schema.TypeBool,
 					Computed: true,
 				},
 			},

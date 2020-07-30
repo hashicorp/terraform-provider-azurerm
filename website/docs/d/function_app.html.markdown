@@ -54,6 +54,8 @@ The following attributes are exported:
 
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses, not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
+* `source_control` - A `source_control` block as defined below.
+
 ---
 
 The `connection_string` supports the following:
@@ -68,6 +70,21 @@ The `site_credential` block exports the following:
 
 * `username` - The username which can be used to publish to this App Service
 * `password` - The password associated with the username, which can be used to publish to this App Service.
+
+---
+
+A `source_control` block exports the following:
+
+* `repo_url` -  The URL of the source code repository.
+
+* `branch` - The branch of the remote repository in use. 
+
+* `manual_integration` - Limits to manual integration.  
+
+* `rollback_enabled` - Is roll-back enabled for the repository.
+
+* `use_mercurial` - Uses Mercurial if `true`, otherwise uses Git. 
+
 
 ## Timeouts
 

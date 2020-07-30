@@ -111,6 +111,8 @@ func dataSourceArmFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"source_control": schemaDataSourceAppServiceSiteSourceControl(),
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -143,6 +145,11 @@ func dataSourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) erro
 	connectionStringsResp, err := client.ListConnectionStrings(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM Function App ConnectionStrings %q: %+v", name, err)
+	}
+
+	scmResp, err := client.GetSourceControl(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM App Service Source Control %q: %+v", name, err)
 	}
 
 	siteCredFuture, err := client.ListPublishingCredentials(ctx, resourceGroup, name)
@@ -193,6 +200,11 @@ func dataSourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) erro
 
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
 	if err = d.Set("site_credential", siteCred); err != nil {
+		return err
+	}
+
+	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	if err := d.Set("source_control", scm); err != nil {
 		return err
 	}
 

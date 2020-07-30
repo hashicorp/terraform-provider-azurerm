@@ -138,7 +138,7 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
-			"source_control": appServiceSiteSourceControlSchema(),
+			"source_control": schemaAppServiceSiteSourceControl(),
 
 			"tags": tags.Schema(),
 

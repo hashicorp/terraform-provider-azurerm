@@ -185,6 +185,24 @@ func TestAccDataSourceAzureRMAppService_scmIPRestriction(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMAppService_withSourceControl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAppService_withSourceControl(data, "main"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "source_control.0.branch", "main"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAzureRMAppService_http2Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
@@ -338,6 +356,18 @@ data "azurerm_app_service" "test" {
 
 func testAccDataSourceAppService_scmIPRestriction(data acceptance.TestData) string {
 	config := testAccAzureRMAppService_completeScmIpRestriction(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_app_service" "test" {
+  name                = azurerm_app_service.test.name
+  resource_group_name = azurerm_app_service.test.resource_group_name
+}
+`, config)
+}
+
+func testAccDataSourceAppService_withSourceControl(data acceptance.TestData, branch string) string {
+	config := testAccAzureRMAppService_withSourceControl(data, branch)
 	return fmt.Sprintf(`
 %s
 

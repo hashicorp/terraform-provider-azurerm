@@ -155,7 +155,7 @@ func resourceArmFunctionApp() *schema.Resource {
 
 			"identity": schemaAppServiceIdentity(),
 
-			"source_control": appServiceSiteSourceControlSchema(),
+			"source_control": schemaAppServiceSiteSourceControl(),
 
 			"tags": tags.Schema(),
 

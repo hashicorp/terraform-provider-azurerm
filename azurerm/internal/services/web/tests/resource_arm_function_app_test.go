@@ -854,7 +854,7 @@ func TestAccAzureRMFunctionApp_scmUseMainIPRestriction(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAFunctionApp_scmOneIpRestriction(t *testing.T) {
+func TestAccAzureRMFunctionApp_scmOneIpRestriction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -905,7 +905,7 @@ func TestAccAzureRMFunctionApp_updateStorageAccountKey(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_basicWithSourceControl(t *testing.T) {
+func TestAccAzureRMFunctionApp_withSourceControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -914,7 +914,7 @@ func TestAccAzureRMFunctionApp_basicWithSourceControl(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFunctionApp_basicWithSourceControl(data, "main"),
+				Config: testAccAzureRMFunctionApp_withSourceControl(data, "main"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
 				),
@@ -924,7 +924,7 @@ func TestAccAzureRMFunctionApp_basicWithSourceControl(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFunctionApp_basicWithSourceControlUpdate(t *testing.T) {
+func TestAccAzureRMFunctionApp_sourceControlUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -933,14 +933,14 @@ func TestAccAzureRMFunctionApp_basicWithSourceControlUpdate(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMFunctionApp_basicWithSourceControl(data, "main"),
+				Config: testAccAzureRMFunctionApp_withSourceControl(data, "main"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMFunctionApp_basicWithSourceControl(data, "development"),
+				Config: testAccAzureRMFunctionApp_withSourceControl(data, "development"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
 				),
@@ -1111,7 +1111,7 @@ resource "azurerm_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMFunctionApp_basicWithSourceControl(data acceptance.TestData, branch string) string {
+func testAccAzureRMFunctionApp_withSourceControl(data acceptance.TestData, branch string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -70,6 +70,24 @@ func TestAccDataSourceAzureRMFunctionApp_connectionStrings(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMFunctionApp_withSourceControl(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_function_app", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAzureRMFunctionApp_withSourceControl(data, "main"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "source_control.0.branch", "main"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAzureRMFunctionApp_basic(data acceptance.TestData) string {
 	template := testAccAzureRMFunctionApp_basic(data)
 	return fmt.Sprintf(`
@@ -104,4 +122,16 @@ data "azurerm_function_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, template)
+}
+
+func testAccDataSourceAzureRMFunctionApp_withSourceControl(data acceptance.TestData, branch string) string {
+	config := testAccAzureRMFunctionApp_withSourceControl(data, branch)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_function_app" "test" {
+  name                = azurerm_function_app.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, config)
 }
