@@ -80,6 +80,8 @@ A `subnet` block exports the following:
 
 * `name` - The name of the Subnet for this Virtual Network.
 
+-> **NOTE:** The subnet name is handled by service side, which is composed of virtual network name and suffix "Subnet".
+
 ## Timeouts
 
 
