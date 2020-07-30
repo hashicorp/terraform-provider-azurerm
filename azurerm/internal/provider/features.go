@@ -156,9 +156,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 	if raw, ok := val["network"]; ok {
 		items := raw.([]interface{})
 		if len(items) > 0 {
-			scaleSetRaw := items[0].(map[string]interface{})
-			if v, ok := scaleSetRaw["relaxed_locking"]; ok {
-				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
+			networkRaw := items[0].(map[string]interface{})
+			if v, ok := networkRaw["relaxed_locking"]; ok {
+				features.Network.RelaxedLocking = v.(bool)
 			}
 		}
 	}
