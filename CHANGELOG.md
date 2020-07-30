@@ -8,6 +8,7 @@ DEPENDENCIES:
 FEATURES:
 
 * **New Data Source:** `azurerm_data_share_dataset_data_lake_gen1` [GH-7840]
+* **New Resource:** `azurerm_dedicated_hardware_security_module` [GH-7727]
 
 IMPROVEMENTS:
 * `azurerm_api_management_identity_provider_aad` - Support for `signin_tenant` [GH-7901]
