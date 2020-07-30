@@ -214,6 +214,8 @@ The following arguments are supported:
 
 -> **NOTE** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
+* `source_control` - (Optional) A Source Control block as defined below
+
 ---
 
 A `cors` block supports the following:
@@ -337,6 +339,22 @@ A `scm_ip_restriction` block supports the following:
 * `priority` - (Optional) The priority for this IP Restriction. Restrictions are enforced in priority order. By default, priority is set to 65000 if not specified.  
 
 * `action` - (Optional) Allow or Deny access for this IP range. Defaults to Allow.  
+
+---
+
+A `source_control` block supports the following:
+
+* `repo_url` - (Required) The URL of the source code repository.
+
+* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'. 
+
+* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified. 
+
+* `rollback_enabled` - (Optional) Enable roll-back for the repository. Defaults to `false` if not specified.
+
+* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git. 
+
+
 
 ## Attributes Reference
 

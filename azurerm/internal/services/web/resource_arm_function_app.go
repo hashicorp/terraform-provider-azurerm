@@ -453,7 +453,8 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	// If `source_control` is defined, we need to set site_config.0.scm_type to "None" or we cannot update it
-	_, hasSourceControl := d.GetOk("source_control")
+	// repo_url is required by the API
+	_, hasSourceControl := d.GetOk("source_control.0.repo_url")
 
 	if d.HasChange("site_config") || hasSourceControl {
 		siteConfig, err := expandFunctionAppSiteConfig(d)

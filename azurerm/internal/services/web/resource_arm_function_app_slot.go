@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/parse"
@@ -192,91 +191,7 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 				Computed: true,
 			},
 
-			"site_config": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"always_on": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"use_32_bit_worker_process": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-						"websockets_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"linux_fx_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-						},
-						"http2_enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-						"ip_restriction": {
-							Type:       schema.TypeList,
-							Optional:   true,
-							Computed:   true,
-							ConfigMode: schema.SchemaConfigModeAttr,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"ip_address": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.CIDR,
-									},
-									"subnet_id": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-						"min_tls_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.OneFullStopZero),
-								string(web.OneFullStopOne),
-								string(web.OneFullStopTwo),
-							}, false),
-						},
-						"ftps_state": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.AllAllowed),
-								string(web.Disabled),
-								string(web.FtpsOnly),
-							}, false),
-						},
-						"pre_warmed_instance_count": {
-							Type:         schema.TypeInt,
-							Optional:     true,
-							ValidateFunc: validation.IntBetween(0, 10),
-						},
-						"cors": azure.SchemaWebCorsSettings(),
-						"auto_swap_slot_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-					},
-				},
-			},
+			"site_config": schemaAppServiceFunctionAppSiteConfig(),
 
 			"auth_settings": schemaAppServiceAuthSettings(),
 
@@ -350,7 +265,7 @@ func resourceArmFunctionAppSlotCreate(d *schema.ResourceData, meta interface{}) 
 
 	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
 
-	siteConfig, err := expandFunctionAppSlotSiteConfig(d)
+	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for Function App Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
 	}
@@ -444,7 +359,7 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 
 	basicAppSettings := getBasicFunctionAppSlotAppSettings(d, appServiceTier, endpointSuffix)
 
-	siteConfig, err := expandFunctionAppSlotSiteConfig(d)
+	siteConfig, err := expandFunctionAppSiteConfig(d)
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 	}
@@ -494,7 +409,7 @@ func resourceArmFunctionAppSlotUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if d.HasChange("site_config") {
-		siteConfig, err := expandFunctionAppSlotSiteConfig(d)
+		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `site_config` for Slot %q (Function App %q / Resource Group %q): %s", id.Name, id.FunctionAppName, id.ResourceGroup, err)
 		}
@@ -660,7 +575,7 @@ func resourceArmFunctionAppSlotRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", id.Name, err)
 	}
 
-	siteConfig := flattenFunctionAppSlotSiteConfig(configResp.SiteConfig)
+	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
 	if err = d.Set("site_config", siteConfig); err != nil {
 		return err
 	}
@@ -779,117 +694,117 @@ func expandFunctionAppSlotAppSettings(d *schema.ResourceData, appServiceTier, en
 	return output, nil
 }
 
-func expandFunctionAppSlotSiteConfig(d *schema.ResourceData) (web.SiteConfig, error) {
-	configs := d.Get("site_config").([]interface{})
-	siteConfig := web.SiteConfig{}
-
-	if len(configs) == 0 {
-		return siteConfig, nil
-	}
-
-	config := configs[0].(map[string]interface{})
-
-	if v, ok := config["always_on"]; ok {
-		siteConfig.AlwaysOn = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["use_32_bit_worker_process"]; ok {
-		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["websockets_enabled"]; ok {
-		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["linux_fx_version"]; ok {
-		siteConfig.LinuxFxVersion = utils.String(v.(string))
-	}
-
-	if v, ok := config["cors"]; ok {
-		corsSettings := v.(interface{})
-		expand := azure.ExpandWebCorsSettings(corsSettings)
-		siteConfig.Cors = &expand
-	}
-
-	if v, ok := config["http2_enabled"]; ok {
-		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
-	}
-
-	if v, ok := config["ip_restriction"]; ok {
-		ipSecurityRestrictions := v.(interface{})
-		restrictions, err := expandFunctionAppSlotIPRestriction(ipSecurityRestrictions)
-		if err != nil {
-			return siteConfig, err
-		}
-		siteConfig.IPSecurityRestrictions = &restrictions
-	}
-
-	if v, ok := config["min_tls_version"]; ok {
-		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
-	}
-
-	if v, ok := config["ftps_state"]; ok {
-		siteConfig.FtpsState = web.FtpsState(v.(string))
-	}
-
-	if v, ok := config["pre_warmed_instance_count"]; ok {
-		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
-	}
-
-	if v, ok := config["auto_swap_slot_name"]; ok {
-		siteConfig.AutoSwapSlotName = utils.String(v.(string))
-	}
-
-	return siteConfig, nil
-}
-
-func flattenFunctionAppSlotSiteConfig(input *web.SiteConfig) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if input == nil {
-		log.Printf("[DEBUG] SiteConfig is nil")
-		return results
-	}
-
-	if input.AlwaysOn != nil {
-		result["always_on"] = *input.AlwaysOn
-	}
-
-	if input.Use32BitWorkerProcess != nil {
-		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
-	}
-
-	if input.WebSocketsEnabled != nil {
-		result["websockets_enabled"] = *input.WebSocketsEnabled
-	}
-
-	if input.LinuxFxVersion != nil {
-		result["linux_fx_version"] = *input.LinuxFxVersion
-	}
-
-	if input.HTTP20Enabled != nil {
-		result["http2_enabled"] = *input.HTTP20Enabled
-	}
-
-	if input.PreWarmedInstanceCount != nil {
-		result["pre_warmed_instance_count"] = *input.PreWarmedInstanceCount
-	}
-
-	result["ip_restriction"] = flattenFunctionAppSlotIPRestriction(input.IPSecurityRestrictions)
-
-	result["min_tls_version"] = string(input.MinTLSVersion)
-	result["ftps_state"] = string(input.FtpsState)
-
-	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
-
-	if input.AutoSwapSlotName != nil {
-		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
-	}
-
-	results = append(results, result)
-	return results
-}
+//func expandFunctionAppSlotSiteConfig(d *schema.ResourceData) (web.SiteConfig, error) {
+//	configs := d.Get("site_config").([]interface{})
+//	siteConfig := web.SiteConfig{}
+//
+//	if len(configs) == 0 {
+//		return siteConfig, nil
+//	}
+//
+//	config := configs[0].(map[string]interface{})
+//
+//	if v, ok := config["always_on"]; ok {
+//		siteConfig.AlwaysOn = utils.Bool(v.(bool))
+//	}
+//
+//	if v, ok := config["use_32_bit_worker_process"]; ok {
+//		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
+//	}
+//
+//	if v, ok := config["websockets_enabled"]; ok {
+//		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
+//	}
+//
+//	if v, ok := config["linux_fx_version"]; ok {
+//		siteConfig.LinuxFxVersion = utils.String(v.(string))
+//	}
+//
+//	if v, ok := config["cors"]; ok {
+//		corsSettings := v.(interface{})
+//		expand := azure.ExpandWebCorsSettings(corsSettings)
+//		siteConfig.Cors = &expand
+//	}
+//
+//	if v, ok := config["http2_enabled"]; ok {
+//		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
+//	}
+//
+//	if v, ok := config["ip_restriction"]; ok {
+//		ipSecurityRestrictions := v.(interface{})
+//		restrictions, err := expandFunctionAppSlotIPRestriction(ipSecurityRestrictions)
+//		if err != nil {
+//			return siteConfig, err
+//		}
+//		siteConfig.IPSecurityRestrictions = &restrictions
+//	}
+//
+//	if v, ok := config["min_tls_version"]; ok {
+//		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
+//	}
+//
+//	if v, ok := config["ftps_state"]; ok {
+//		siteConfig.FtpsState = web.FtpsState(v.(string))
+//	}
+//
+//	if v, ok := config["pre_warmed_instance_count"]; ok {
+//		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
+//	}
+//
+//	if v, ok := config["auto_swap_slot_name"]; ok {
+//		siteConfig.AutoSwapSlotName = utils.String(v.(string))
+//	}
+//
+//	return siteConfig, nil
+//}
+//
+//func flattenFunctionAppSlotSiteConfig(input *web.SiteConfig) []interface{} {
+//	results := make([]interface{}, 0)
+//	result := make(map[string]interface{})
+//
+//	if input == nil {
+//		log.Printf("[DEBUG] SiteConfig is nil")
+//		return results
+//	}
+//
+//	if input.AlwaysOn != nil {
+//		result["always_on"] = *input.AlwaysOn
+//	}
+//
+//	if input.Use32BitWorkerProcess != nil {
+//		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
+//	}
+//
+//	if input.WebSocketsEnabled != nil {
+//		result["websockets_enabled"] = *input.WebSocketsEnabled
+//	}
+//
+//	if input.LinuxFxVersion != nil {
+//		result["linux_fx_version"] = *input.LinuxFxVersion
+//	}
+//
+//	if input.HTTP20Enabled != nil {
+//		result["http2_enabled"] = *input.HTTP20Enabled
+//	}
+//
+//	if input.PreWarmedInstanceCount != nil {
+//		result["pre_warmed_instance_count"] = *input.PreWarmedInstanceCount
+//	}
+//
+//	result["ip_restriction"] = flattenFunctionAppSlotIPRestriction(input.IPSecurityRestrictions)
+//
+//	result["min_tls_version"] = string(input.MinTLSVersion)
+//	result["ftps_state"] = string(input.FtpsState)
+//
+//	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
+//
+//	if input.AutoSwapSlotName != nil {
+//		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
+//	}
+//
+//	results = append(results, result)
+//	return results
+//}
 
 func expandFunctionAppSlotConnectionStrings(d *schema.ResourceData) map[string]*web.ConnStringValueTypePair {
 	input := d.Get("connection_string").(*schema.Set).List()
@@ -911,45 +826,45 @@ func expandFunctionAppSlotConnectionStrings(d *schema.ResourceData) map[string]*
 	return output
 }
 
-func expandFunctionAppSlotIPRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
-	restrictions := make([]web.IPSecurityRestriction, 0)
-
-	for i, r := range input.([]interface{}) {
-		if r == nil {
-			continue
-		}
-
-		restriction := r.(map[string]interface{})
-
-		ipAddress := restriction["ip_address"].(string)
-		vNetSubnetID := restriction["subnet_id"].(string)
-
-		if vNetSubnetID != "" && ipAddress != "" {
-			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
-		}
-
-		if vNetSubnetID == "" && ipAddress == "" {
-			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
-		}
-
-		ipSecurityRestriction := web.IPSecurityRestriction{}
-		if ipAddress == "Any" {
-			continue
-		}
-
-		if ipAddress != "" {
-			ipSecurityRestriction.IPAddress = &ipAddress
-		}
-
-		if vNetSubnetID != "" {
-			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
-		}
-
-		restrictions = append(restrictions, ipSecurityRestriction)
-	}
-
-	return restrictions, nil
-}
+//func expandFunctionAppSlotIPRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
+//	restrictions := make([]web.IPSecurityRestriction, 0)
+//
+//	for i, r := range input.([]interface{}) {
+//		if r == nil {
+//			continue
+//		}
+//
+//		restriction := r.(map[string]interface{})
+//
+//		ipAddress := restriction["ip_address"].(string)
+//		vNetSubnetID := restriction["subnet_id"].(string)
+//
+//		if vNetSubnetID != "" && ipAddress != "" {
+//			return nil, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `subnet_id` can set for `site_config.0.ip_restriction.%d`", i))
+//		}
+//
+//		if vNetSubnetID == "" && ipAddress == "" {
+//			return nil, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `subnet_id` must be set for `site_config.0.ip_restriction.%d`", i))
+//		}
+//
+//		ipSecurityRestriction := web.IPSecurityRestriction{}
+//		if ipAddress == "Any" {
+//			continue
+//		}
+//
+//		if ipAddress != "" {
+//			ipSecurityRestriction.IPAddress = &ipAddress
+//		}
+//
+//		if vNetSubnetID != "" {
+//			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+//		}
+//
+//		restrictions = append(restrictions, ipSecurityRestriction)
+//	}
+//
+//	return restrictions, nil
+//}
 
 func flattenFunctionAppSlotConnectionStrings(input map[string]*web.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
@@ -985,32 +900,32 @@ func flattenFunctionAppSlotSiteCredential(input *web.UserProperties) []interface
 	return append(results, result)
 }
 
-func flattenFunctionAppSlotIPRestriction(input *[]web.IPSecurityRestriction) []interface{} {
-	restrictions := make([]interface{}, 0)
-
-	if input == nil {
-		return restrictions
-	}
-
-	for _, v := range *input {
-		ipAddress := ""
-		if v.IPAddress != nil {
-			ipAddress = *v.IPAddress
-			if ipAddress == "Any" {
-				continue
-			}
-		}
-
-		subnetID := ""
-		if v.VnetSubnetResourceID != nil {
-			subnetID = *v.VnetSubnetResourceID
-		}
-
-		restrictions = append(restrictions, map[string]interface{}{
-			"ip_address": ipAddress,
-			"subnet_id":  subnetID,
-		})
-	}
-
-	return restrictions
-}
+//func flattenFunctionAppSlotIPRestriction(input *[]web.IPSecurityRestriction) []interface{} {
+//	restrictions := make([]interface{}, 0)
+//
+//	if input == nil {
+//		return restrictions
+//	}
+//
+//	for _, v := range *input {
+//		ipAddress := ""
+//		if v.IPAddress != nil {
+//			ipAddress = *v.IPAddress
+//			if ipAddress == "Any" {
+//				continue
+//			}
+//		}
+//
+//		subnetID := ""
+//		if v.VnetSubnetResourceID != nil {
+//			subnetID = *v.VnetSubnetResourceID
+//		}
+//
+//		restrictions = append(restrictions, map[string]interface{}{
+//			"ip_address": ipAddress,
+//			"subnet_id":  subnetID,
+//		})
+//	}
+//
+//	return restrictions
+//}

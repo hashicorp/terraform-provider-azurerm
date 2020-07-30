@@ -1832,9 +1832,15 @@ func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestricti
 
 		ipAddress := restriction["ip_address"].(string)
 		vNetSubnetID := ""
-		if vNetSubnetID = restriction["subnet_id"].(string); vNetSubnetID == "" {
-			vNetSubnetID = restriction["virtual_network_subnet_id"].(string)
+
+		if subnetID, ok := restriction["subnet_id"]; ok {
+			vNetSubnetID = subnetID.(string)
 		}
+
+		if subnetID, ok := restriction["virtual_network_subnet_id"]; ok {
+			vNetSubnetID = subnetID.(string)
+		}
+
 		name := restriction["name"].(string)
 		priority := restriction["priority"].(int)
 		action := restriction["action"].(string)

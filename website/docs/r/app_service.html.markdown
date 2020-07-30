@@ -95,6 +95,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
 
+* `source_control` - (Optional) A Source Control block as defined below
+
 ---
 
 A `storage_account` block supports the following:
@@ -382,6 +384,20 @@ A `schedule` block supports the following:
 * `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted.
 
 * `start_time` - (Optional) Sets when the schedule should start working.
+
+---
+
+A `source_control` block supports the following:
+
+* `repo_url` - (Required) The URL of the source code repository.
+
+* `branch` - (Optional) The branch of the remote repository to use. Defaults to 'master'. 
+
+* `manual_integration` - (Optional) Limits to manual integration. Defaults to `false` if not specified. 
+
+* `rollback_enabled` - (Optional) Enable roll-back for the repository. Defaults to `false` if not specified.
+
+* `use_mercurial` - (Optional) Use Mercurial if `true`, otherwise uses Git. 
 
 ## Attributes Reference
 

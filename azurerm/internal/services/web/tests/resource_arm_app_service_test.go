@@ -3528,6 +3528,7 @@ resource "azurerm_app_service" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMAppService_applicationBlobStorageLogsWithAppSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3571,6 +3572,7 @@ resource "azurerm_app_service" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMAppService_httpFileSystemLogs(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3610,6 +3612,7 @@ resource "azurerm_app_service" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
+
 func testAccAzureRMAppService_httpBlobStorageLogs(data acceptance.TestData) string {
 	template := testAccAzureRMAppService_backupTemplate(data)
 	return fmt.Sprintf(`

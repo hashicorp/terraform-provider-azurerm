@@ -85,6 +85,12 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 
 				"cors": azure.SchemaWebCorsSettings(),
 
+				// The following is only used for "slots"
+				"auto_swap_slot_name": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
 				"scm_ip_restriction": {
 					Type:       schema.TypeList,
 					Optional:   true,
@@ -340,6 +346,11 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) (web.SiteConfig, error)
 		siteConfig.ScmType = web.ScmType(v.(string))
 	}
 
+	// This optional parameter can only present in "slot" resources
+	if v, ok := config["auto_swap_slot_name"]; ok {
+		siteConfig.AutoSwapSlotName = utils.String(v.(string))
+	}
+
 	return siteConfig, nil
 }
 
@@ -388,6 +399,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	result["ftps_state"] = string(input.FtpsState)
 
 	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
+
+	if input.AutoSwapSlotName != nil {
+		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
+	}
 
 	results = append(results, result)
 	return results
