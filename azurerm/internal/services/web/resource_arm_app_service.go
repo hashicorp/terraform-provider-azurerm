@@ -345,9 +345,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	// If `source_control` is defined, we need to set site_config.0.scm_type to "" or we cannot update it
-	_, hasSourceControl := d.GetOk("source_control")
-
 	siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 	if err != nil {
 		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", id.Name, id.ResourceGroup, err)
@@ -366,10 +363,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
 
-	if hasSourceControl {
-		siteEnvelope.SiteProperties.SiteConfig.ScmType = ""
-	}
-
 	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, siteEnvelope)
 	if err != nil {
 		return err
@@ -379,29 +372,10 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if hasSourceControl {
-		sourceControlProperties := expandAppServiceSiteSourceControl(d)
-		sourceControl := &web.SiteSourceControl{}
-		sourceControl.SiteSourceControlProperties = sourceControlProperties
-		// TODO - Do we need to lock the app for updates?
-		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
-		if err != nil {
-			return fmt.Errorf("failed to update App Service Source Control for %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-		}
+	// If `source_control` is defined, we need to set site_config.0.scm_type to "None" or we cannot update it
+	_, hasSourceControl := d.GetOk("source_control")
 
-		err = scFuture.WaitForCompletionRef(ctx, client.Client)
-		if err != nil {
-			return fmt.Errorf("failed waiting for App Service Source Control configuration")
-		}
-
-		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			return fmt.Errorf("failed reading back App Service Source Control for %q", sc.Name)
-		}
-
-	}
-
-	if d.HasChange("site_config") {
+	if d.HasChange("site_config") || hasSourceControl {
 		// update the main configuration
 		siteConfig, err := expandAppServiceSiteConfig(d.Get("site_config"))
 		if err != nil {
@@ -411,8 +385,32 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			SiteConfig: siteConfig,
 		}
 
+		if hasSourceControl {
+			siteConfigResource.SiteConfig.ScmType = "None"
+		}
+
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.Name, siteConfigResource); err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service %q: %+v", id.Name, err)
+		}
+	}
+
+	if hasSourceControl {
+		sourceControlProperties := expandAppServiceSiteSourceControl(d)
+		sourceControl := &web.SiteSourceControl{}
+		sourceControl.SiteSourceControlProperties = sourceControlProperties
+		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
+		if err != nil {
+			return fmt.Errorf("failed to update App Service Source Control for %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		err = scFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("failed waiting for App Service Source Control configuration: %+v", err)
+		}
+
+		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("failed reading back App Service Source Control for %q", *sc.Name)
 		}
 	}
 

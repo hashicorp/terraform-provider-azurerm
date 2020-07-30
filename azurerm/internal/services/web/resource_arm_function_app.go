@@ -452,7 +452,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating Application Settings for Function App %q: %+v", id.Name, err)
 	}
 
-	// If `source_control` is defined, we need to set site_config.0.scm_type to "" or we cannot update it
+	// If `source_control` is defined, we need to set site_config.0.scm_type to "None" or we cannot update it
 	_, hasSourceControl := d.GetOk("source_control")
 
 	if d.HasChange("site_config") || hasSourceControl {
@@ -465,7 +465,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 
 		if hasSourceControl {
-			siteConfigResource.SiteConfig.ScmType = ""
+			siteConfigResource.SiteConfig.ScmType = "None"
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.Name, siteConfigResource); err != nil {
@@ -477,10 +477,19 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		sourceControlProperties := expandAppServiceSiteSourceControl(d)
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
-		// TODO - Do we need to lock the function app for updates?
-		_, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
+		scFuture, err := client.CreateOrUpdateSourceControl(ctx, id.ResourceGroup, id.Name, *sourceControl)
 		if err != nil {
 			return fmt.Errorf("failed to create App Service Source Control for %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
+
+		err = scFuture.WaitForCompletionRef(ctx, client.Client)
+		if err != nil {
+			return fmt.Errorf("failed waiting for App Service Source Control configuration: %+v", err)
+		}
+
+		sc, err := client.GetSourceControl(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("failed reading back App Service Source Control for %q", *sc.Name)
 		}
 	}
 
