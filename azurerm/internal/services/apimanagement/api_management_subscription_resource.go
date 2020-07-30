@@ -192,6 +192,7 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 	d.Set("subscription_id", subscriptionId)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("api_management_name", serviceName)
+	d.Set("allow_tracing", resp.AllowTracing)
 
 	if props := resp.SubscriptionContractProperties; props != nil {
 		d.Set("display_name", props.DisplayName)
@@ -199,8 +200,6 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 		d.Set("product_id", props.Scope)
 		d.Set("user_id", props.OwnerID)
 	}
-
-	d.Set("allow_tracing", resp.AllowTracing)
 
 	// Primary and secondary keys must be got from this additional api
 	keyResp, err := client.ListSecrets(ctx, resourceGroup, serviceName, subscriptionId)
