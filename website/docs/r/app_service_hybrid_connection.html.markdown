@@ -73,14 +73,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the App Service.  Changing this forces a new resource to be created.
 
-* `relay_id` - (Required) The Resource ID of Service Bus relay.  Changing this forces a new resource to be created.
+* `relay_id` - (Required) The Resource ID of Service Bus relay. Changing this forces a new resource to be created.
 
 * `hostname` - (Optional) The hostname of the endpoint.
 
 * `port` - (Required) The port of the endpoint.
 
-* `send_key_name` - (Required) The name of the Service Bus key.
-
+* `send_key_name` - (Optional) The name of the Service Bus key which has Send permissions. Defaults to `RootManageSharedAccessKey`.
 
 ## Attributes Reference
 
