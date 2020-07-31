@@ -142,7 +142,7 @@ func resourceArmStorageAccount() *schema.Resource {
 			"min_tls_version": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(storage.TLS12),
+				Default:  string(storage.TLS10),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.TLS10),
 					string(storage.TLS11),
@@ -1066,7 +1066,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
-		d.Set("min_tls_version", props.MinimumTLSVersion)
+		d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 

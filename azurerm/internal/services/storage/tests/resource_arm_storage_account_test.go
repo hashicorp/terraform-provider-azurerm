@@ -246,12 +246,12 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_0"),
 				),
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_minTLSVersion10(data),
+				Config: testAccAzureRMStorageAccount_minTLSVersion(data, "TLS1_0"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_0"),
@@ -259,7 +259,7 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_minTLSVersion11(data),
+				Config: testAccAzureRMStorageAccount_minTLSVersion(data, "TLS1_1"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_1"),
@@ -267,10 +267,18 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMStorageAccount_minTLSVersion12(data),
+				Config: testAccAzureRMStorageAccount_minTLSVersion(data, "TLS1_2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_2"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMStorageAccount_minTLSVersion(data, "TLS1_1"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_1"),
 				),
 			},
 		},
@@ -1020,7 +1028,7 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func testAccAzureRMStorageAccount_minTLSVersion10(data acceptance.TestData) string {
+func testAccAzureRMStorageAccount_minTLSVersion(data acceptance.TestData, tlsVersion string) string {
 	return fmt.Sprintf(`
 
 provider "azurerm" {
@@ -1039,72 +1047,14 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  min_tls_vresion          = "TLS1_0"
+  min_tls_vresion          = %s
 
   tags = {
     environment = "production"
   }
 }
 
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func testAccAzureRMStorageAccount_minTLSVersion11(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  min_tls_vresion          = "TLS1_1"
-
-  tags = {
-    environment = "production"
-  }
-}
-
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func testAccAzureRMStorageAccount_minTLSVersion12(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-storage-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  min_tls_vresion          = "TLS1_2"
-
-  tags = {
-    environment = "production"
-  }
-}
-
-	`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	`, data.RandomInteger, data.Locations.Primary, data.RandomString, tlsVersion)
 }
 
 func testAccAzureRMStorageAccount_allowBlobPublicAccess(data acceptance.TestData) string {
