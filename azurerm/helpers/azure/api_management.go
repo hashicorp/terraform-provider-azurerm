@@ -68,14 +68,6 @@ func SchemaApiManagementUserName() *schema.Schema {
 	}
 }
 
-func SchemaApiManagementUserDataSourceName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
-		Required:     true,
-		ValidateFunc: validate.ApiManagementUserName,
-	}
-}
-
 func SchemaApiManagementOperationRepresentation() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
