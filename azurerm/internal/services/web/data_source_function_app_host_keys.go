@@ -29,8 +29,9 @@ func dataSourceArmFunctionAppHostKeys() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"master_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"function_keys": {
@@ -39,6 +40,7 @@ func dataSourceArmFunctionAppHostKeys() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Sensitive: true,
 			},
 
 			"system_keys": {
@@ -47,6 +49,7 @@ func dataSourceArmFunctionAppHostKeys() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Sensitive: true,
 			},
 		},
 	}
