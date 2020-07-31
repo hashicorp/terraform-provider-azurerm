@@ -76,11 +76,11 @@ The following arguments are supported:
     the following: `backup`, `create`, `delete`, `deleteissuers`, `get`, `getissuers`, `import`, `list`, `listissuers`,
     `managecontacts`, `manageissuers`, `purge`, `recover`, `restore`, `setissuers` and `update`.
 
-* `key_permissions` - (Required) List of key permissions, must be one or more from
+* `key_permissions` - (Optional) List of key permissions, must be one or more from
     the following: `backup`, `create`, `decrypt`, `delete`, `encrypt`, `get`, `import`, `list`, `purge`,
     `recover`, `restore`, `sign`, `unwrapKey`, `update`, `verify` and `wrapKey`.
 
-* `secret_permissions` - (Required) List of secret permissions, must be one or more
+* `secret_permissions` - (Optional) List of secret permissions, must be one or more
     from the following: `backup`, `delete`, `get`, `list`, `purge`, `recover`, `restore` and `set`.
 
 * `storage_permissions` - (Optional) List of storage permissions, must be one or more from the following: `backup`, `delete`, `deletesas`, `get`, `getsas`, `list`, `listsas`, `purge`, `recover`, `regeneratekey`, `restore`, `set`, `setsas` and `update`.
