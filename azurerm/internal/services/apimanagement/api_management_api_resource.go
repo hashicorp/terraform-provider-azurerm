@@ -166,7 +166,6 @@ func resourceArmApiManagementApi() *schema.Resource {
 			"subscription_required": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: true,
 				Default:  true,
 			},
 
