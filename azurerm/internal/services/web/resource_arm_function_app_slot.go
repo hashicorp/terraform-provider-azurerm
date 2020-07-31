@@ -270,6 +270,10 @@ func resourceArmFunctionAppSlot() *schema.Resource {
 							ValidateFunc: validation.IntBetween(0, 10),
 						},
 						"cors": azure.SchemaWebCorsSettings(),
+						"auto_swap_slot_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 					},
 				},
 			},
@@ -832,6 +836,10 @@ func expandFunctionAppSlotSiteConfig(d *schema.ResourceData) (web.SiteConfig, er
 		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
 	}
 
+	if v, ok := config["auto_swap_slot_name"]; ok {
+		siteConfig.AutoSwapSlotName = utils.String(v.(string))
+	}
+
 	return siteConfig, nil
 }
 
@@ -874,6 +882,10 @@ func flattenFunctionAppSlotSiteConfig(input *web.SiteConfig) []interface{} {
 	result["ftps_state"] = string(input.FtpsState)
 
 	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
+
+	if input.AutoSwapSlotName != nil {
+		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
+	}
 
 	results = append(results, result)
 	return results
