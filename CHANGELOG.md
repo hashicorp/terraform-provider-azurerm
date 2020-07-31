@@ -1,10 +1,15 @@
 ## 2.22.0 (Unreleased)
+
+DEPENDENCIES:
+
+* updating `github.com/Azure/azure-sdk-for-go` to `v44.2.0` [GH-7933]
+
 ## 2.21.0 (July 31, 2020)
 
 DEPENDENCIES:
 
 * updating `search` to `2020-03-13` ([#7867](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7867))
-* updating `go-azure-helpers` to v0.11.2 ([#7911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7911))
+* updating `go-azure-helpers` to `v0.11.2` ([#7911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7911))
 
 FEATURES:
 
@@ -41,7 +46,7 @@ UPGRADE NOTES
 
 DEPENDENCIES:
 
-* updating `github.com/Azure/azure-sdk-for-go` to v44.1.0 ([#7774](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7774))
+* updating `github.com/Azure/azure-sdk-for-go` to `v44.1.0` ([#7774](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7774))
 * updating `cosmos` to `2020-04-01` ([#7597](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7597))
 
 FEATURES: 
