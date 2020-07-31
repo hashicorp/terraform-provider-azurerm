@@ -117,7 +117,7 @@ The following arguments are supported:
 
 ~> **NOTE:** Attaching to an App Service Environment requires the App Service Plan use a `Premium` SKU (when using an ASEv1) and the `Isolated` SKU (for an ASEv2).
 
-* `reserved` - (Optional) Is this App Service Plan `Reserved`. Defaults to `false`.
+* `reserved` - (Optional) Specifies whether it's Linux Platform. Should be `true` If Linux app service plan, false otherwise. Defaults to `false`.
 
 * `per_site_scaling` - (Optional) Can Apps assigned to this App Service Plan be scaled independently? If set to `false` apps assigned to this plan will scale to all instances of the plan.  Defaults to `false`.
 
