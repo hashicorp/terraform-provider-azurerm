@@ -201,6 +201,10 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("`kind` has to be set to `FunctionApp` when `sku.tier` is `Dynamic`")
 	}
 
+	if strings.EqualFold(*sku.Tier, "ElasticPremium") && !strings.EqualFold(kind, "elastic") {
+		return fmt.Errorf("`kind` has to be set to `elastic` when `sku.tier` is `ElasticPremium`")
+	}
+
 	if v := d.Get("maximum_elastic_worker_count").(int); v > 0 {
 		appServicePlan.AppServicePlanProperties.MaximumElasticWorkerCount = utils.Int32(int32(v))
 	}
