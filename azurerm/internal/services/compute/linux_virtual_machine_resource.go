@@ -79,9 +79,19 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"os_disk": virtualMachineOSDiskSchema(),
 
 			"size": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"sizes"},
+			},
+
+			"sizes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				ConflictsWith: []string{"size"},
 			},
 
 			// Optional
@@ -323,8 +333,19 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 	plan := expandPlan(planRaw)
 	priority := compute.VirtualMachinePriorityTypes(d.Get("priority").(string))
 	provisionVMAgent := d.Get("provision_vm_agent").(bool)
-	size := d.Get("size").(string)
 	t := d.Get("tags").(map[string]interface{})
+
+	// Parse vm sizes into an array for later use
+	vmSizes := make([]string, 1)
+	if d.Get("sizes") != nil {
+		sizeList := d.Get("sizes").([]interface{})
+		vmSizes = make([]string, len(sizeList))
+		for key, val := range sizeList {
+			vmSizes[key] = val.(string)
+		}
+	} else {
+		vmSizes[0] = d.Get("size").(string)
+	}
 
 	networkInterfaceIdsRaw := d.Get("network_interface_ids").([]interface{})
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
@@ -352,7 +373,7 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		Plan:     plan,
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			HardwareProfile: &compute.HardwareProfile{
-				VMSize: compute.VirtualMachineSizeTypes(size),
+				VMSize: compute.VirtualMachineSizeTypes(vmSizes[0]),
 			},
 			OsProfile: &compute.OSProfile{
 				AdminUsername:            utils.String(adminUsername),
@@ -457,12 +478,32 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		params.OsProfile.AdminPassword = utils.String(adminPassword)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
-	if err != nil {
-		return fmt.Errorf("Error creating Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
+	// Try to create the VM at the one of the sizes specified
+	var vmCreated bool = false
+	for vmSizeIndex, tryVMSize := range vmSizes {
+		log.Printf("[DEBUG] createDeployment tring vm size %d, %s of %d\n", vmSizeIndex, tryVMSize, len(vmSizes))
+
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
+
+		// TODO: There is no documented comprehensive list of return codes so we just retry on ANY error
+
+		if err == nil {
+			err = future.WaitForCompletionRef(ctx, client.Client)
+			if err == nil {
+				// Managed to create a vm
+				vmCreated = true
+				break
+			}
+		}
+
+		// Try another VM size
+		params.VirtualMachineProperties.HardwareProfile = &compute.HardwareProfile{
+			VMSize: compute.VirtualMachineSizeTypes(tryVMSize),
+		}
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if !vmCreated {
+		// Tried all VM sizes
 		return fmt.Errorf("Error waiting for creation of Linux Virtual Machine %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
