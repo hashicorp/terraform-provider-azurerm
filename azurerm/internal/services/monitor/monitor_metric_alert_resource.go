@@ -399,10 +399,20 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
+
+	// To keep backward compatibility for the "old" created resources, whose criteria type
+	// is `MetricAlertSingleResourceMultipleMetricCriteria` (rather than `MetricAlertMultipleResourceMultipleMetricCriteria`).
+	// We need to check whether this is such an "old" resource already existed.
+	existing, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		// TODO
+	}
+
 	criteria, err := expandMonitorMetricAlertCriteria(d)
 	if err != nil {
 		return fmt.Errorf(`Expanding criteria: %+v`, err)
 	}
+
 	parameters := insights.MetricAlertResource{
 		Location: utils.String(azure.NormalizeLocation("Global")),
 		MetricAlertProperties: &insights.MetricAlertProperties{
@@ -646,19 +656,9 @@ func expandMonitorMetricAlertAction(input []interface{}) *[]insights.MetricAlert
 func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) []interface{} {
 	switch criteria := input.(type) {
 	case insights.MetricAlertSingleResourceMultipleMetricCriteria:
-		// As service is gonna deprecate data type of `MetricAlertSingleResourceMultipleMetricCriteria`,
-		// we use the same function to handle both single/multiple ResourceMultipleMetricCriteria cases.
-		// This is possible because their `AllOf` member implement the same interface: `MultiMetricCriteria`.
-		if criteria.AllOf == nil {
-			return nil
-		}
-		l := make([]insights.BasicMultiMetricCriteria, len(*criteria.AllOf))
-		for i, c := range *criteria.AllOf {
-			l[i] = c
-		}
-		return flattenMonitorMetricAlertMultiMetricCriteria(&l)
+		return flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(criteria.AllOf)
 	case insights.MetricAlertMultipleResourceMultipleMetricCriteria:
-		return flattenMonitorMetricAlertMultiMetricCriteria(criteria.AllOf)
+		return flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(criteria.AllOf)
 	case insights.WebtestLocationAvailabilityCriteria:
 		return flattenMonitorMetricAlertWebtestLocAvailCriteria(&criteria)
 	default:
@@ -666,7 +666,59 @@ func flattenMonitorMetricAlertCriteria(input insights.BasicMetricAlertCriteria) 
 	}
 }
 
-func flattenMonitorMetricAlertMultiMetricCriteria(input *[]insights.BasicMultiMetricCriteria) []interface{} {
+func flattenMonitorMetricAlertSingleResourceMultiMetricCriteria(input *[]insights.MetricCriteria) []interface{} {
+	if input == nil || len(*input) == 0 {
+		return nil
+	}
+	criteria := (*input)[0]
+
+	metricName := ""
+	if criteria.MetricName != nil {
+		metricName = *criteria.MetricName
+	}
+
+	metricNamespace := ""
+	if criteria.MetricNamespace != nil {
+		metricNamespace = *criteria.MetricNamespace
+	}
+
+	timeAggregation := criteria.TimeAggregation
+
+	dimResult := make([]map[string]interface{}, 0)
+	if criteria.Dimensions != nil {
+		for _, dimension := range *criteria.Dimensions {
+			dVal := make(map[string]interface{})
+			if dimension.Name != nil {
+				dVal["name"] = *dimension.Name
+			}
+			if dimension.Operator != nil {
+				dVal["operator"] = *dimension.Operator
+			}
+			dVal["values"] = utils.FlattenStringSlice(dimension.Values)
+			dimResult = append(dimResult, dVal)
+		}
+	}
+
+	operator := string(criteria.Operator)
+
+	threshold := 0.0
+	if criteria.Threshold != nil {
+		threshold = *criteria.Threshold
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"metric_namespace": metricNamespace,
+			"metric_name":      metricName,
+			"aggregation":      timeAggregation,
+			"dimension":        dimResult,
+			"operator":         operator,
+			"threshold":        threshold,
+		},
+	}
+}
+
+func flattenMonitorMetricAlertMultiResourceMultiMetricCriteria(input *[]insights.BasicMultiMetricCriteria) []interface{} {
 	if input == nil {
 		return nil
 	}
