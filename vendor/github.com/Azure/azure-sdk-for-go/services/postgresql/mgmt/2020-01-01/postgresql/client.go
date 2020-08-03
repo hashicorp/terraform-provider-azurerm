@@ -1,4 +1,4 @@
-// Package postgresql implements the Azure ARM Postgresql service API version 2017-12-01.
+// Package postgresql implements the Azure ARM Postgresql service API version .
 //
 // The Microsoft Azure management API provides create, read, update, and delete functionality for Azure PostgreSQL
 // resources including servers, databases, firewall rules, VNET rules, security alert policies, log files and
