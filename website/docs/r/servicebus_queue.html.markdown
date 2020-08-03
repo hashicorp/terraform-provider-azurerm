@@ -93,6 +93,10 @@ The following arguments are supported:
 
 * `max_delivery_count` - (Optional) Integer value which controls when a message is automatically deadlettered. Defaults to `10`.
 
+* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to. Please [see the documentation](https://docs.microsoft.com/en-us/azure/service-bus-messaging/service-bus-auto-forwarding) for more information.
+
+* `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward deadlettered messages to.
+
 ## Attributes Reference
 
 The following attributes are exported:

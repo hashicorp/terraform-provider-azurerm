@@ -272,6 +272,56 @@ func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusQueue_forwardTo(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusQueue_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "forward_to", ""),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_forwardTo(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "forward_to", fmt.Sprintf("acctestservicebusqueue-forward_to-%d", data.RandomInteger)),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusQueue_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "forward_dead_lettered_messages_to", ""),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_forwardDeadLetteredMessagesTo(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "forward_dead_lettered_messages_to", fmt.Sprintf("acctestservicebusqueue-forward_dl_messages_to-%d", data.RandomInteger)),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -648,4 +698,70 @@ resource "azurerm_servicebus_queue" "test" {
   max_delivery_count  = 20
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMServiceBusQueue_forwardTo(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_queue" "forward_to" {
+  name                = "acctestservicebusqueue-forward_to-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
+}
+
+resource "azurerm_servicebus_queue" "test" {
+  name                = "acctestservicebusqueue-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  forward_to          = azurerm_servicebus_queue.forward_to.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMServiceBusQueue_forwardDeadLetteredMessagesTo(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_queue" "forward_dl_messages_to" {
+  name                = "acctestservicebusqueue-forward_dl_messages_to-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
+}
+
+resource "azurerm_servicebus_queue" "test" {
+  name                              = "acctestservicebusqueue-%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  namespace_name                    = azurerm_servicebus_namespace.test.name
+  forward_dead_lettered_messages_to = azurerm_servicebus_queue.forward_dl_messages_to.name
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

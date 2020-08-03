@@ -124,6 +124,18 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Default:      10,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
+
+			"forward_to": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateServiceBusQueueName(),
+			},
+
+			"forward_dead_lettered_messages_to": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateServiceBusQueueName(),
+			},
 		},
 	}
 }
@@ -186,6 +198,14 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 
 	if lockDuration := d.Get("lock_duration").(string); lockDuration != "" {
 		parameters.SBQueueProperties.LockDuration = &lockDuration
+	}
+
+	if forwardTo := d.Get("forward_to").(string); forwardTo != "" {
+		parameters.SBQueueProperties.ForwardTo = &forwardTo
+	}
+
+	if forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string); forwardDeadLetteredMessagesTo != "" {
+		parameters.SBQueueProperties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
 	}
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
@@ -257,6 +277,8 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
 		d.Set("max_delivery_count", props.MaxDeliveryCount)
+		d.Set("forward_to", props.ForwardTo)
+		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 
 		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
 			maxSize := int(*maxSizeMB)
