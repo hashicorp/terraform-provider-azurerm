@@ -493,9 +493,9 @@ resource "azurerm_mysql_server" "test" {
   storage_mb                       = 51200
   version                          = "%s"
 
-identity {
-type = "SystemAssigned"
-}
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
