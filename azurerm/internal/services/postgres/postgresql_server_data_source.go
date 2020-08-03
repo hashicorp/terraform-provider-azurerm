@@ -59,17 +59,17 @@ func dataSourcePostgreSqlServer() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"principal_id": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"tenant_id": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
