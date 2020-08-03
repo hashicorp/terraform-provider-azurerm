@@ -527,8 +527,22 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error retrieving Linux Virtual Machine Scale Set %q (Resource Group %q): `properties` was nil", id.Name, id.ResourceGroup)
 	}
 
+	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+	sourceImageId := d.Get("source_image_id").(string)
+	sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+	if err != nil {
+		return err
+	}
+
 	updateProps := compute.VirtualMachineScaleSetUpdateProperties{
-		VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{},
+		VirtualMachineProfile: &compute.VirtualMachineScaleSetUpdateVMProfile{
+			// if an image reference has been configured previously (it has to be), we would better to include that in this
+			// update request to avoid some circumstances that the API will complain ImageReference is null
+			// issue tracking: https://github.com/Azure/azure-rest-api-specs/issues/10322
+			StorageProfile: &compute.VirtualMachineScaleSetUpdateStorageProfile{
+				ImageReference: sourceImageReference,
+			},
+		},
 		// if an upgrade policy's been configured previously (which it will have) it must be threaded through
 		// this doesn't matter for Manual - but breaks when updating anything on a Automatic and Rolling Mode Scale Set
 		UpgradePolicy: existing.VirtualMachineScaleSetProperties.UpgradePolicy,
@@ -626,30 +640,17 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
 		updateInstances = true
 
-		storageProfile := &compute.VirtualMachineScaleSetUpdateStorageProfile{}
+		//storageProfile := &compute.VirtualMachineScaleSetUpdateStorageProfile{}
 
 		if d.HasChange("data_disk") {
 			dataDisksRaw := d.Get("data_disk").([]interface{})
-			storageProfile.DataDisks = ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
+			updateProps.VirtualMachineProfile.StorageProfile.DataDisks = ExpandVirtualMachineScaleSetDataDisk(dataDisksRaw)
 		}
 
 		if d.HasChange("os_disk") {
 			osDiskRaw := d.Get("os_disk").([]interface{})
-			storageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
+			updateProps.VirtualMachineProfile.StorageProfile.OsDisk = ExpandVirtualMachineScaleSetOSDiskUpdate(osDiskRaw)
 		}
-
-		if d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
-			sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
-			sourceImageId := d.Get("source_image_id").(string)
-			sourceImageReference, err := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-			if err != nil {
-				return err
-			}
-
-			storageProfile.ImageReference = sourceImageReference
-		}
-
-		updateProps.VirtualMachineProfile.StorageProfile = storageProfile
 	}
 
 	if d.HasChange("network_interface") {
