@@ -246,7 +246,6 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_0"),
 				),
 			},
 			data.ImportStep(),
@@ -254,7 +253,6 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_minTLSVersion(data, "TLS1_0"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_0"),
 				),
 			},
 			data.ImportStep(),
@@ -262,7 +260,6 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_minTLSVersion(data, "TLS1_1"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_1"),
 				),
 			},
 			data.ImportStep(),
@@ -270,7 +267,6 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_minTLSVersion(data, "TLS1_2"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_2"),
 				),
 			},
 			data.ImportStep(),
@@ -278,7 +274,6 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 				Config: testAccAzureRMStorageAccount_minTLSVersion(data, "TLS1_1"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "min_tls_version", "TLS1_1"),
 				),
 			},
 		},
