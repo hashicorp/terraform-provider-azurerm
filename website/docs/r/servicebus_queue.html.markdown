@@ -99,6 +99,8 @@ The following arguments are supported:
 
 * `enable_batched_operations` - (Optional) Boolean flag which controls whether server-side batched operations are enabled. Defaults to `true`.
 
+* `status` - (Optional) The status of the Queue. Possible values are `Active`, `Creating`, `Deleting`, `Disabled`, `ReceiveDisabled`, `Renaming`, `SendDisabled`, `Unknown`. Note that `Restoring` is not accepted. Defaults to `Active`.
+
 ## Attributes Reference
 
 The following attributes are exported:

@@ -142,6 +142,22 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Default:  true,
 				Optional: true,
 			},
+
+			"status": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(servicebus.Active),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(servicebus.Active),
+					string(servicebus.Creating),
+					string(servicebus.Deleting),
+					string(servicebus.Disabled),
+					string(servicebus.ReceiveDisabled),
+					string(servicebus.Renaming),
+					string(servicebus.SendDisabled),
+					string(servicebus.Unknown),
+				}, false),
+			},
 		},
 	}
 }
@@ -164,6 +180,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresSession := d.Get("requires_session").(bool)
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
 	enableBatchedOperations := d.Get("enable_batched_operations").(bool)
+	status := servicebus.EntityStatus(d.Get("status").(string))
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
@@ -189,6 +206,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 			RequiresSession:                  &requiresSession,
 			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,
 			EnableBatchedOperations:          &enableBatchedOperations,
+			Status:                           status,
 		},
 	}
 
@@ -288,6 +306,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
+		d.Set("status", props.Status)
 
 		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
 			maxSize := int(*maxSizeMB)

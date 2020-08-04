@@ -324,6 +324,73 @@ func TestAccAzureRMServiceBusQueue_forwardDeadLetteredMessagesTo(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusQueue_status(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMServiceBusQueueDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusQueue_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Active"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_status(data, "Creating"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Creating"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_status(data, "Deleting"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Deleting"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_status(data, "Disabled"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Disabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_status(data, "ReceiveDisabled"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "ReceiveDisabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_status(data, "Renaming"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Renaming"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_status(data, "SendDisabled"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "SendDisabled"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_status(data, "Unknown"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Unknown"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusQueue_status(data, "Active"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "status", "Active"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).ServiceBus.QueuesClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -767,4 +834,31 @@ resource "azurerm_servicebus_queue" "test" {
   forward_dead_lettered_messages_to = azurerm_servicebus_queue.forward_dl_messages_to.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMServiceBusQueue_status(data acceptance.TestData, status string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard"
+}
+
+resource "azurerm_servicebus_queue" "test" {
+  name                = "acctestservicebusqueue-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  namespace_name      = azurerm_servicebus_namespace.test.name
+  status              = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, status)
 }
