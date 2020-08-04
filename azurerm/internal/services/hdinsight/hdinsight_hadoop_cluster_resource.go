@@ -3,6 +3,7 @@ package hdinsight
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"log"
 	"time"
 
@@ -257,6 +258,19 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		// The resource still would be created even if the create operation failed.
+		// But expect behavior is that the failed resource should be deleted.
+		if !response.WasNotFound(future.Response()) {
+			future, err := client.Delete(ctx, resourceGroup, name)
+			if err != nil {
+				return fmt.Errorf("Error deleting HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+
+			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for deletion of HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
+
 		return fmt.Errorf("failed waiting for creation of HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
