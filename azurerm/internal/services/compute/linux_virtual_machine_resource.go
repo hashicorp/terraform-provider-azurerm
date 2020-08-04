@@ -839,6 +839,18 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		update.Tags = tags.Expand(tagsRaw)
 	}
 
+	if d.HasChange("additional_capabilities") {
+		shouldUpdate = true
+
+		if d.HasChange("additional_capabilities.0.ultra_ssd_enabled") {
+			shouldShutDown = true
+			shouldDeallocate = true
+		}
+
+		additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
+		update.VirtualMachineProperties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
+	}
+
 	if shouldShutDown {
 		log.Printf("[DEBUG] Shutting Down Linux Virtual Machine %q (Resource Group %q)..", id.Name, id.ResourceGroup)
 		forceShutdown := false
