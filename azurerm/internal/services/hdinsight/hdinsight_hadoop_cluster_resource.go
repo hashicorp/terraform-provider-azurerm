@@ -263,11 +263,11 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		if !response.WasNotFound(future.Response()) {
 			future, err := client.Delete(ctx, resourceGroup, name)
 			if err != nil {
-				return fmt.Errorf("Error deleting HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Error deleting HDInsight Hadoop Cluster %q (Resource Group %q) while creating cluster failed: %+v", name, resourceGroup, err)
 			}
 
 			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for deletion of HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Error waiting for deletion of HDInsight Hadoop Cluster %q (Resource Group %q) while creating cluster failed: %+v", name, resourceGroup, err)
 			}
 		}
 
