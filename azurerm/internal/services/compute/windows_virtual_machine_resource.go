@@ -593,7 +593,11 @@ func resourceWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{})
 
 	if profile := props.OsProfile; profile != nil {
 		d.Set("admin_username", profile.AdminUsername)
-		d.Set("allow_extension_operations", profile.AllowExtensionOperations)
+		allowExtensionOperations := true // this is the default value of allowExtensionOperations. If the service returns null for this property, it should mean `true`
+		if profile.AllowExtensionOperations != nil {
+			allowExtensionOperations = *profile.AllowExtensionOperations
+		}
+		d.Set("allow_extension_operations", allowExtensionOperations)
 		d.Set("computer_name", profile.ComputerName)
 
 		if config := profile.WindowsConfiguration; config != nil {
