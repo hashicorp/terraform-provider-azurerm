@@ -3,11 +3,11 @@ package hdinsight
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/response"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
