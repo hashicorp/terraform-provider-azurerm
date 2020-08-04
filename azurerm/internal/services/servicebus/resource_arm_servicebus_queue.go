@@ -136,6 +136,12 @@ func resourceArmServiceBusQueue() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: azure.ValidateServiceBusQueueName(),
 			},
+
+			"enable_batched_operations": {
+				Type:     schema.TypeBool,
+				Default:  true,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -157,6 +163,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requiresSession := d.Get("requires_session").(bool)
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
+	enableBatchedOperations := d.Get("enable_batched_operations").(bool)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
@@ -181,6 +188,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 			RequiresDuplicateDetection:       &requiresDuplicateDetection,
 			RequiresSession:                  &requiresSession,
 			DeadLetteringOnMessageExpiration: &deadLetteringOnMessageExpiration,
+			EnableBatchedOperations:          &enableBatchedOperations,
 		},
 	}
 
@@ -279,6 +287,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("max_delivery_count", props.MaxDeliveryCount)
 		d.Set("forward_to", props.ForwardTo)
 		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
+		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 
 		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
 			maxSize := int(*maxSizeMB)

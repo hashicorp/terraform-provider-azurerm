@@ -63,6 +63,7 @@ func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMServiceBusQueueExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_express", "false"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_batched_operations", "true"),
 				),
 			},
 			{
@@ -70,6 +71,7 @@ func TestAccAzureRMServiceBusQueue_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "enable_express", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "max_size_in_megabytes", "2048"),
+					resource.TestCheckResourceAttr(data.ResourceName, "enable_batched_operations", "false"),
 				),
 			},
 			data.ImportStep(),
@@ -469,11 +471,12 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                  = "acctestservicebusqueue-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  namespace_name        = azurerm_servicebus_namespace.test.name
-  enable_express        = true
-  max_size_in_megabytes = 2048
+  name                      = "acctestservicebusqueue-%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  namespace_name            = azurerm_servicebus_namespace.test.name
+  enable_express            = true
+  max_size_in_megabytes     = 2048
+  enable_batched_operations = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

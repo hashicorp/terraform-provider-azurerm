@@ -97,6 +97,8 @@ The following arguments are supported:
 
 * `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward deadlettered messages to.
 
+* `enable_batched_operations` - (Optional) Boolean flag which controls whether server-side batched operations are enabled. Defaults to `true`.
+
 ## Attributes Reference
 
 The following attributes are exported:
