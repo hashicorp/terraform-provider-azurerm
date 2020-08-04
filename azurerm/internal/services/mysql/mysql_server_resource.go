@@ -878,7 +878,7 @@ func flattenSecurityAlertPolicy(props *mysql.SecurityAlertPolicyProperties, acce
 		block["disabled_alerts"] = utils.FlattenStringSlice(props.DisabledAlerts)
 	}
 
-	// the service will return "emailAddresses":[""] for emtpy
+	// the service will return "emailAddresses":[""] for empty
 	if props.EmailAddresses == nil || len(*props.EmailAddresses) == 0 || (*props.EmailAddresses)[0] == "" {
 		block["email_addresses"] = []interface{}{}
 	} else {
