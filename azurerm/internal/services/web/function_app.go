@@ -28,42 +28,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					Default:  false,
 				},
 
-				"use_32_bit_worker_process": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Default:  true, // TODO - toggleable?
-				},
-
-				"websockets_enabled": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Default:  false, // TODO - service defaults to false?
-				},
-
-				"linux_fx_version": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Computed: true,
-				},
-
-				"http2_enabled": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Default:  false,
-				},
-
-				"ip_restriction": schemaAppServiceIpRestriction(),
-
-				"min_tls_version": {
-					Type:     schema.TypeString,
-					Optional: true,
-					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(web.OneFullStopZero),
-						string(web.OneFullStopOne),
-						string(web.OneFullStopTwo),
-					}, false),
-				},
+				"cors": azure.SchemaWebCorsSettings(),
 
 				"ftps_state": {
 					Type:     schema.TypeString,
@@ -76,18 +41,35 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					}, false),
 				},
 
+				"http2_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"ip_restriction": schemaAppServiceIpRestriction(),
+
+				"linux_fx_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+
+				"min_tls_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.OneFullStopZero),
+						string(web.OneFullStopOne),
+						string(web.OneFullStopTwo),
+					}, false),
+				},
+
 				"pre_warmed_instance_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(0, 10),
-				},
-
-				"cors": azure.SchemaWebCorsSettings(),
-
-				// The following is only used for "slots"
-				"auto_swap_slot_name": {
-					Type:     schema.TypeString,
-					Optional: true,
 				},
 
 				"scm_ip_restriction": schemaAppServiceIpRestriction(),
@@ -110,10 +92,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 						string(web.ScmTypeOneDrive),
 						string(web.ScmTypeTfs),
 						string(web.ScmTypeVSO),
-						// Not in the specs, but is set by Azure Pipelines
-						// https://github.com/Microsoft/azure-pipelines-tasks/blob/master/Tasks/AzureRmWebAppDeploymentV4/operations/AzureAppServiceUtility.ts#L19
-						// upstream issue: https://github.com/Azure/azure-rest-api-specs/issues/5345
-						"VSTSRM",
+						string(web.ScmTypeVSTSRM),
 					}, false),
 				},
 
@@ -121,6 +100,24 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
+				},
+
+				"use_32_bit_worker_process": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
+				"websockets_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				// The following is only used for "slots"
+				"auto_swap_slot_name": {
+					Type:     schema.TypeString,
+					Optional: true,
 				},
 			},
 		},
@@ -137,6 +134,8 @@ func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
 					Type:     schema.TypeBool,
 					Computed: true,
 				},
+
+				"cors": azure.SchemaWebCorsSettings(),
 
 				"use_32_bit_worker_process": {
 					Type:     schema.TypeBool,
@@ -174,8 +173,6 @@ func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
 					Type:     schema.TypeInt,
 					Computed: true,
 				},
-
-				"cors": azure.SchemaWebCorsSettings(),
 
 				// The following is only used for "slots"
 				"auto_swap_slot_name": {

@@ -47,8 +47,6 @@ func resourceArmAppService() *schema.Resource {
 				ValidateFunc: validate.AppServiceName,
 			},
 
-			"identity": schemaAppServiceIdentity(),
-
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
@@ -56,38 +54,6 @@ func resourceArmAppService() *schema.Resource {
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
 				Required: true,
-			},
-
-			"site_config": schemaAppServiceSiteConfig(),
-
-			"auth_settings": schemaAppServiceAuthSettings(),
-
-			"logs": schemaAppServiceLogsConfig(),
-
-			"backup": schemaAppServiceBackup(),
-
-			"client_affinity_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"https_only": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"client_cert_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
 			},
 
 			"app_settings": {
@@ -99,7 +65,21 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
-			"storage_account": schemaAppServiceStorageAccounts(),
+			"auth_settings": schemaAppServiceAuthSettings(),
+
+			"backup": schemaAppServiceBackup(),
+
+			"client_affinity_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"client_cert_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 
 			"connection_string": {
 				Type:     schema.TypeSet,
@@ -111,11 +91,7 @@ func resourceArmAppService() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"value": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
+
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -134,9 +110,35 @@ func resourceArmAppService() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+
+						"value": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
 					},
 				},
 			},
+
+			"enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"identity": schemaAppServiceIdentity(),
+
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"logs": schemaAppServiceLogsConfig(),
+
+			"site_config": schemaAppServiceSiteConfig(),
+
+			"storage_account": schemaAppServiceStorageAccounts(),
 
 			"source_control": schemaAppServiceSiteSourceControl(),
 

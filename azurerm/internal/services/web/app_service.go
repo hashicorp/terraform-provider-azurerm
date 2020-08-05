@@ -157,6 +157,7 @@ func schemaAppServiceAuthSettings() *schema.Schema {
 					Type:     schema.TypeBool,
 					Required: true,
 				},
+
 				"additional_login_params": {
 					Type:     schema.TypeMap,
 					Optional: true,
@@ -164,11 +165,13 @@ func schemaAppServiceAuthSettings() *schema.Schema {
 						Type: schema.TypeString,
 					},
 				},
+
 				"allowed_external_redirect_urls": {
 					Type:     schema.TypeList,
 					Optional: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
+
 				"default_provider": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -180,25 +183,30 @@ func schemaAppServiceAuthSettings() *schema.Schema {
 						string(web.Twitter),
 					}, false),
 				},
+
 				"issuer": {
 					Type:         schema.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsURLWithScheme([]string{"http", "https"}),
 				},
+
 				"runtime_version": {
 					Type:     schema.TypeString,
 					Optional: true,
 				},
+
 				"token_refresh_extension_hours": {
 					Type:     schema.TypeFloat,
 					Optional: true,
 					Default:  72,
 				},
+
 				"token_store_enabled": {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
+
 				"unauthenticated_client_action": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -207,11 +215,16 @@ func schemaAppServiceAuthSettings() *schema.Schema {
 						string(web.RedirectToLoginPage),
 					}, false),
 				},
+
 				"active_directory": schemaAppServiceAadAuthSettings(),
-				"facebook":         schemaAppServiceFacebookAuthSettings(),
-				"google":           schemaAppServiceGoogleAuthSettings(),
-				"microsoft":        schemaAppServiceMicrosoftAuthSettings(),
-				"twitter":          schemaAppServiceTwitterAuthSettings(),
+
+				"facebook": schemaAppServiceFacebookAuthSettings(),
+
+				"google": schemaAppServiceGoogleAuthSettings(),
+
+				"microsoft": schemaAppServiceMicrosoftAuthSettings(),
+
+				"twitter": schemaAppServiceTwitterAuthSettings(),
 			},
 		},
 	}
@@ -225,6 +238,16 @@ func schemaAppServiceIdentity() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				"identity_ids": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MinItems: 1,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: validation.NoZeroValues,
+					},
+				},
+
 				"type": {
 					Type:     schema.TypeString,
 					Required: true,
@@ -236,22 +259,15 @@ func schemaAppServiceIdentity() *schema.Schema {
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
 				},
+
 				"principal_id": {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
 				"tenant_id": {
 					Type:     schema.TypeString,
 					Computed: true,
-				},
-				"identity_ids": {
-					Type:     schema.TypeList,
-					Optional: true,
-					MinItems: 1,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
-						ValidateFunc: validation.NoZeroValues,
-					},
 				},
 			},
 		},

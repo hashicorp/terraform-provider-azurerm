@@ -59,28 +59,98 @@ func resourceArmFunctionApp() *schema.Resource {
 				Required: true,
 			},
 
+			"app_settings": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"auth_settings": schemaAppServiceAuthSettings(),
+
+			"connection_string": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.APIHub),
+								string(web.Custom),
+								string(web.DocDb),
+								string(web.EventHub),
+								string(web.MySQL),
+								string(web.NotificationHub),
+								string(web.PostgreSQL),
+								string(web.RedisCache),
+								string(web.ServiceBus),
+								string(web.SQLAzure),
+								string(web.SQLServer),
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+
+						"value": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+					},
+				},
+			},
+
+			"client_affinity_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
+			"daily_memory_time_quota": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
 
-			"version": {
-				Type:     schema.TypeString,
+			"enable_builtin_logging": {
+				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  "~1",
+				Default:  true,
 			},
 
-			// TODO remove this in 3.0
-			"storage_connection_string": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ForceNew:      true,
-				Sensitive:     true,
-				Deprecated:    "Deprecated in favor of `storage_account_name` and `storage_account_access_key`",
-				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
+			"https_only": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
+
+			"identity": schemaAppServiceIdentity(),
+
+			"os_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"linux",
+				}, false),
+			},
+
+			"site_config": schemaAppServiceFunctionAppSiteConfig(),
+
+			"source_control": schemaAppServiceSiteSourceControl(),
 
 			"storage_account_name": {
 				Type: schema.TypeString,
@@ -102,92 +172,24 @@ func resourceArmFunctionApp() *schema.Resource {
 				ConflictsWith: []string{"storage_connection_string"},
 			},
 
-			"app_settings": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			// TODO remove this in 3.0
+			"storage_connection_string": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				Sensitive:     true,
+				Deprecated:    "Deprecated in favor of `storage_account_name` and `storage_account_access_key`",
+				ConflictsWith: []string{"storage_account_name", "storage_account_access_key"},
 			},
 
-			"enable_builtin_logging": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
-			"connection_string": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"value": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
-						},
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(web.APIHub),
-								string(web.Custom),
-								string(web.DocDb),
-								string(web.EventHub),
-								string(web.MySQL),
-								string(web.NotificationHub),
-								string(web.PostgreSQL),
-								string(web.RedisCache),
-								string(web.ServiceBus),
-								string(web.SQLAzure),
-								string(web.SQLServer),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-					},
-				},
-			},
-
-			"identity": schemaAppServiceIdentity(),
-
-			"source_control": schemaAppServiceSiteSourceControl(),
-
-			"tags": tags.Schema(),
-
-			"os_type": {
+			"version": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"linux",
-				}, false),
+				Default:  "~1",
 			},
 
-			"client_affinity_enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
-
-			"https_only": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"daily_memory_time_quota": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-
-			"site_config": schemaAppServiceFunctionAppSiteConfig(),
-
-			"auth_settings": schemaAppServiceAuthSettings(),
+			"tags": tags.Schema(),
 
 			// Computed Only
 

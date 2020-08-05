@@ -73,8 +73,6 @@ The following arguments are supported:
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
-* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
-
 * `backup` - (Optional) A `backup` block as defined below.
 
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
@@ -85,17 +83,19 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is the App Service Enabled?
 
+* `identity` - (Optional) A Managed Service Identity block as defined below.
+
 * `https_only` - (Optional) Can the App Service only be accessed via HTTPS? Defaults to `false`.
 
 * `logs` - (Optional) A `logs` block as defined below.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `site_config` - (Optional) A `site_config` block as defined below.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
-* `identity` - (Optional) A Managed Service Identity block as defined below.
-
 * `source_control` - (Optional) A Source Control block as defined below
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
