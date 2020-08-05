@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -91,47 +90,7 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					Optional: true,
 				},
 
-				"scm_ip_restriction": {
-					Type:       schema.TypeList,
-					Optional:   true,
-					Computed:   true,
-					ConfigMode: schema.SchemaConfigModeAttr,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"ip_address": {
-								Type:         schema.TypeString,
-								Optional:     true,
-								ValidateFunc: validate.CIDR,
-							},
-							"virtual_network_subnet_id": {
-								Type:         schema.TypeString,
-								Optional:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"name": {
-								Type:         schema.TypeString,
-								Optional:     true,
-								Computed:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"priority": {
-								Type:         schema.TypeInt,
-								Optional:     true,
-								Default:      65000,
-								ValidateFunc: validation.IntBetween(1, 2147483647),
-							},
-							"action": {
-								Type:     schema.TypeString,
-								Optional: true,
-								Default:  "Allow",
-								ValidateFunc: validation.StringInSlice([]string{
-									"Allow",
-									"Deny",
-								}, true),
-							},
-						},
-					},
-				},
+				"scm_ip_restriction": schemaAppServiceIpRestriction(),
 
 				"scm_type": {
 					Type:     schema.TypeString,
@@ -162,6 +121,78 @@ func schemaAppServiceFunctionAppSiteConfig() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
+				},
+			},
+		},
+	}
+}
+
+func schemaFunctionAppDataSourceSiteConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"always_on": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"use_32_bit_worker_process": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"websockets_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"linux_fx_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"http2_enabled": {
+					Type:     schema.TypeBool,
+					Computed: true,
+				},
+
+				"ip_restriction": schemaAppServiceDataSourceIpRestriction(),
+
+				"min_tls_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"ftps_state": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"pre_warmed_instance_count": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+
+				"cors": azure.SchemaWebCorsSettings(),
+
+				// The following is only used for "slots"
+				"auto_swap_slot_name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"scm_ip_restriction": schemaAppServiceDataSourceIpRestriction(),
+
+				"scm_type": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"scm_use_main_ip_restriction": {
+					Type:     schema.TypeBool,
+					Computed: true,
 				},
 			},
 		},

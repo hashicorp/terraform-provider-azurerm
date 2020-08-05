@@ -675,68 +675,14 @@ func schemaAppServiceDataSourceSiteConfig() *schema.Schema {
 					Computed: true,
 				},
 
-				"ip_restriction": {
-					Type:     schema.TypeList,
-					Computed: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"ip_address": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"virtual_network_subnet_id": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"name": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"priority": {
-								Type:     schema.TypeInt,
-								Computed: true,
-							},
-							"action": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
+				"ip_restriction": schemaAppServiceDataSourceIpRestriction(),
 
 				"scm_use_main_ip_restriction": {
 					Type:     schema.TypeBool,
 					Computed: true,
 				},
 
-				"scm_ip_restriction": {
-					Type:     schema.TypeList,
-					Computed: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"ip_address": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"virtual_network_subnet_id": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"name": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-							"priority": {
-								Type:     schema.TypeInt,
-								Computed: true,
-							},
-							"action": {
-								Type:     schema.TypeString,
-								Computed: true,
-							},
-						},
-					},
-				},
+				"scm_ip_restriction": schemaAppServiceDataSourceIpRestriction(),
 
 				"java_version": {
 					Type:     schema.TypeString,
@@ -897,6 +843,37 @@ func schemaAppServiceIpRestriction() *schema.Schema {
 						"Allow",
 						"Deny",
 					}, false),
+				},
+			},
+		},
+	}
+}
+
+func schemaAppServiceDataSourceIpRestriction() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"ip_address": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"virtual_network_subnet_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"priority": {
+					Type:     schema.TypeInt,
+					Computed: true,
+				},
+				"action": {
+					Type:     schema.TypeString,
+					Computed: true,
 				},
 			},
 		},

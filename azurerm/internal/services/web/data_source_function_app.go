@@ -78,6 +78,21 @@ func dataSourceArmFunctionApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"os_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"possible_outbound_ip_addresses": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"site_credential": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -96,20 +111,7 @@ func dataSourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
-			"os_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"outbound_ip_addresses": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"possible_outbound_ip_addresses": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			"site_config": schemaFunctionAppDataSourceSiteConfig(),
 
 			"source_control": schemaDataSourceAppServiceSiteSourceControl(),
 
@@ -164,6 +166,10 @@ func dataSourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) erro
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
 	}
+	configResp, err := client.GetConfiguration(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on AzureRM Function App Configuration %q: %+v", name, err)
+	}
 
 	d.SetId(*resp.ID)
 
@@ -200,6 +206,11 @@ func dataSourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) erro
 
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
 	if err = d.Set("site_credential", siteCred); err != nil {
+		return err
+	}
+
+	siteConfig := flattenFunctionAppSiteConfig(configResp.SiteConfig)
+	if err = d.Set("site_config", siteConfig); err != nil {
 		return err
 	}
 
