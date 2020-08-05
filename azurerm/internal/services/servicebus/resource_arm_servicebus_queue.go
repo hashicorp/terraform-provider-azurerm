@@ -174,7 +174,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 
 	enableExpress := d.Get("enable_express").(bool)
 	enablePartitioning := d.Get("enable_partitioning").(bool)
-	maxSize := int32(d.Get("max_size_in_megabytes").(int))
+	maxSizeInMegabytes := int32(d.Get("max_size_in_megabytes").(int))
 	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requiresSession := d.Get("requires_session").(bool)
@@ -200,7 +200,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		SBQueueProperties: &servicebus.SBQueueProperties{
 			EnableExpress:                    &enableExpress,
 			EnablePartitioning:               &enablePartitioning,
-			MaxSizeInMegabytes:               &maxSize,
+			MaxSizeInMegabytes:               &maxSizeInMegabytes,
 			MaxDeliveryCount:                 &maxDeliveryCount,
 			RequiresDuplicateDetection:       &requiresDuplicateDetection,
 			RequiresSession:                  &requiresSession,
@@ -214,12 +214,12 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 		parameters.SBQueueProperties.AutoDeleteOnIdle = &autoDeleteOnIdle
 	}
 
-	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
-		parameters.SBQueueProperties.DefaultMessageTimeToLive = &defaultTTL
+	if defaultMessageTTL := d.Get("default_message_ttl").(string); defaultMessageTTL != "" {
+		parameters.SBQueueProperties.DefaultMessageTimeToLive = &defaultMessageTTL
 	}
 
-	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
-		parameters.SBQueueProperties.DuplicateDetectionHistoryTimeWindow = &duplicateWindow
+	if duplicateDetectionHistoryTimeWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateDetectionHistoryTimeWindow != "" {
+		parameters.SBQueueProperties.DuplicateDetectionHistoryTimeWindow = &duplicateDetectionHistoryTimeWindow
 	}
 
 	if lockDuration := d.Get("lock_duration").(string); lockDuration != "" {
@@ -308,8 +308,8 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 		d.Set("status", props.Status)
 
-		if maxSizeMB := props.MaxSizeInMegabytes; maxSizeMB != nil {
-			maxSize := int(*maxSizeMB)
+		if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
+			maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)
 
 			// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
 			// then the max size returned by the API will be 16 times greater than the value set.
@@ -322,11 +322,11 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 
 				if namespace.Sku.Name != servicebus.Premium {
 					const partitionCount = 16
-					maxSize = int(*props.MaxSizeInMegabytes / partitionCount)
+					maxSizeInMegabytes = int(*apiMaxSizeInMegabytes / partitionCount)
 				}
 			}
 
-			d.Set("max_size_in_megabytes", maxSize)
+			d.Set("max_size_in_megabytes", maxSizeInMegabytes)
 		}
 	}
 
