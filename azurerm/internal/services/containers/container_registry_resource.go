@@ -86,6 +86,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 			"storage_account_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true, // the storage_account_id is no longer updatable in 2019-12-01-preview
 			},
 
 			"login_server": {
@@ -323,18 +324,6 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 			Tier: containerregistry.SkuTier(sku),
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("storage_account_id"); ok {
-		if !strings.EqualFold(sku, string(containerregistry.Classic)) {
-			return fmt.Errorf("`storage_account_id` can only be specified for a Classic (unmanaged) Sku.")
-		}
-
-		parameters.StorageAccount = &containerregistry.StorageAccountProperties{
-			ID: utils.String(v.(string)),
-		}
-	} else if strings.EqualFold(sku, string(containerregistry.Classic)) {
-		return fmt.Errorf("`storage_account_id` must be specified for a Classic (unmanaged) Sku.")
 	}
 
 	// geo replication is only supported by Premium Sku
