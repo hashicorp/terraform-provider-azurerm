@@ -4,6 +4,10 @@ DEPENDENCIES:
 
 * updating `github.com/Azure/azure-sdk-for-go` to `v44.2.0` [GH-7933]
 
+IMPROVEMENTS:
+
+* `azurerm_storage_account` - Support for `min_tls_version` [GH-7879]
+
 ## 2.21.0 (July 31, 2020)
 
 DEPENDENCIES:
