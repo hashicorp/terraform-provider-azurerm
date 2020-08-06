@@ -99,13 +99,39 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 		CheckDestroy: testCheckAzureRMIotHubDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMIotHub_customRoutes(data),
+				Config: testAccAzureRMIotHub_customRoutes(data, "S1"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotHubExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "endpoint.#", "2"),
 					resource.TestCheckResourceAttr(data.ResourceName, "endpoint.0.type", "AzureIotHub.StorageContainer"),
 					resource.TestCheckResourceAttr(data.ResourceName, "endpoint.1.type", "AzureIotHub.EventHub"),
 					resource.TestCheckResourceAttr(data.ResourceName, "route.#", "2"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMIotHub_removeEndpointsAndRoutes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_iothub", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_customRoutes(data, "B1"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMIotHub_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -321,7 +347,7 @@ resource "azurerm_iothub" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func testAccAzureRMIotHub_customRoutes(data acceptance.TestData) string {
+func testAccAzureRMIotHub_customRoutes(data acceptance.TestData, skuName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -375,7 +401,7 @@ resource "azurerm_iothub" "test" {
   location            = azurerm_resource_group.test.location
 
   sku {
-    name     = "S1"
+    name     = "%s"
     capacity = "1"
   }
 
@@ -419,7 +445,7 @@ resource "azurerm_iothub" "test" {
     purpose = "testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, skuName)
 }
 
 func testAccAzureRMIotHub_fallbackRoute(data acceptance.TestData) string {

@@ -211,7 +211,6 @@ func resourceArmIotHub() *schema.Resource {
 			"endpoint": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -287,7 +286,6 @@ func resourceArmIotHub() *schema.Resource {
 			"route": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
