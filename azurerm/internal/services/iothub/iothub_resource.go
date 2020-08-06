@@ -224,6 +224,7 @@ func resourceArmIotHub() *schema.Resource {
 								"AzureIotHub.EventHub",
 							}, false),
 						},
+
 						"connection_string": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -239,11 +240,15 @@ func resourceArmIotHub() *schema.Resource {
 							},
 							Sensitive: true,
 						},
+
+						"endpoint_resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.IoTHubEndpointName,
 						},
+
 						"batch_frequency_in_seconds": {
 							Type:             schema.TypeInt,
 							Optional:         true,
@@ -251,6 +256,7 @@ func resourceArmIotHub() *schema.Resource {
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							ValidateFunc:     validation.IntBetween(60, 720),
 						},
+
 						"max_chunk_size_in_bytes": {
 							Type:             schema.TypeInt,
 							Optional:         true,
@@ -258,11 +264,13 @@ func resourceArmIotHub() *schema.Resource {
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 							ValidateFunc:     validation.IntBetween(10485760, 524288000),
 						},
+
 						"container_name": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							DiffSuppressFunc: suppressIfTypeIsNot("AzureIotHub.StorageContainer"),
 						},
+
 						"encoding": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -275,6 +283,7 @@ func resourceArmIotHub() *schema.Resource {
 								string(devices.JSON),
 							}, true),
 						},
+
 						"file_name_format": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -772,8 +781,8 @@ func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) *devic
 		t := endpoint["type"]
 		connectionStr := endpoint["connection_string"].(string)
 		name := endpoint["name"].(string)
+		resourceGroup := endpoint["endpoint_resource_group_name"].(string)
 		subscriptionID := subscriptionId
-		resourceGroup := d.Get("resource_group_name").(string)
 
 		switch t {
 		case "AzureIotHub.StorageContainer":
@@ -964,6 +973,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if chunkSize := container.MaxChunkSizeInBytes; chunkSize != nil {
 					output["max_chunk_size_in_bytes"] = *chunkSize
 				}
+				if resourceGroup := container.ResourceGroup; resourceGroup != nil {
+					output["endpoint_resource_group_name"] = *resourceGroup
+				}
 
 				output["encoding"] = string(container.Encoding)
 				output["type"] = "AzureIotHub.StorageContainer"
@@ -982,6 +994,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if name := queue.Name; name != nil {
 					output["name"] = *name
 				}
+				if resourceGroup := queue.ResourceGroup; resourceGroup != nil {
+					output["endpoint_resource_group_name"] = *resourceGroup
+				}
 
 				output["type"] = "AzureIotHub.ServiceBusQueue"
 
@@ -999,6 +1014,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				if name := topic.Name; name != nil {
 					output["name"] = *name
 				}
+				if resourceGroup := topic.ResourceGroup; resourceGroup != nil {
+					output["endpoint_resource_group_name"] = *resourceGroup
+				}
 
 				output["type"] = "AzureIotHub.ServiceBusTopic"
 
@@ -1015,6 +1033,9 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 				}
 				if name := eventHub.Name; name != nil {
 					output["name"] = *name
+				}
+				if resourceGroup := eventHub.ResourceGroup; resourceGroup != nil {
+					output["endpoint_resource_group_name"] = *resourceGroup
 				}
 
 				output["type"] = "AzureIotHub.EventHub"
