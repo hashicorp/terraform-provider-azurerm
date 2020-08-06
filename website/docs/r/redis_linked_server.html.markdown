@@ -68,7 +68,7 @@ resource "azurerm_redis_linked_server" "link" {
 
 The following arguments are supported:
 
-* `linked_redis_cache_id` - (Required) The ID of the linked Redis ache. Changing this forces a new Redis to be created.
+* `linked_redis_cache_id` - (Required) The ID of the linked Redis cache. Changing this forces a new Redis to be created.
 
 * `linked_redis_cache_location` - (Required) The location of the linked Redis cache. Changing this forces a new Redis to be created.
 
