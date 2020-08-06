@@ -14,6 +14,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_key_vault_certificate` - fixing a crash when using acmebot certificates [GH-8029]
+* `azurerm_iothub_shared_access_policy` - prevent `primary_connection_string` & `seconday_connection_string` from regenerating during every apply [GH-8017]
 
 ## 2.21.0 (July 31, 2020)
 
