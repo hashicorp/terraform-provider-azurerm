@@ -6,8 +6,9 @@ DEPENDENCIES:
 
 IMPROVEMENTS:
 
-* `azurerm_cosmosdb_account` - support `DisableRateLimitingResponses` for the `capabilities` property [GH-8016]
+* `azurerm_cosmosdb_account` - support `DisableRateLimitingResponses` with the `capabilities` property [GH-8016]
 * `azurerm_storage_account` - support for the `min_tls_version` property [GH-7879]
+* `azurerm_servicebus_queue` - support for the `enable_batched_operations`, `status`, `forward_to`, and `forward_dead_lettered_messages_to` [GH-7990]
 
 BUG FIXES:
 
