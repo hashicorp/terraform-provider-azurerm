@@ -6,7 +6,8 @@ DEPENDENCIES:
 
 IMPROVEMENTS:
 
-* `azurerm_storage_account` - Support for `min_tls_version` [GH-7879]
+* `azurerm_cosmosdb_account` - support `DisableRateLimitingResponses` for the `capabilities` property [GH-8016]
+* `azurerm_storage_account` - support for the `min_tls_version` property [GH-7879]
 
 BUG FIXES:
 
