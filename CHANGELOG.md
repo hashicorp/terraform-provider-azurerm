@@ -8,6 +8,10 @@ IMPROVEMENTS:
 
 * `azurerm_storage_account` - Support for `min_tls_version` [GH-7879]
 
+BUG FIXES:
+
+* Data Source: `azurerm_key_vault_certificate` - fixing a crash when using acmebot certificates [GH-8029]
+
 ## 2.21.0 (July 31, 2020)
 
 DEPENDENCIES:
