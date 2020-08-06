@@ -47,18 +47,41 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			roles := rolesRaw[0].(map[string]interface{})
 			workerNodes := roles["worker_node"].([]interface{})
 			workerNode := workerNodes[0].(map[string]interface{})
-			targetInstanceCount := workerNode["target_instance_count"].(int)
-			params := hdinsight.ClusterResizeParameters{
-				TargetInstanceCount: utils.Int32(int32(targetInstanceCount)),
+			if d.HasChange("roles.0.worker_node.0.target_instance_count") {
+				fmt.Printf("Worker Node changed target count\n")
+				targetInstanceCount := workerNode["target_instance_count"].(int)
+				params := hdinsight.ClusterResizeParameters{
+					TargetInstanceCount: utils.Int32(int32(targetInstanceCount)),
+				}
+
+				future, err := client.Resize(ctx, resourceGroup, name, params)
+				if err != nil {
+					return fmt.Errorf("Error resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("Error waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+				}
 			}
 
-			future, err := client.Resize(ctx, resourceGroup, name, params)
-			if err != nil {
-				return fmt.Errorf("Error resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
-			}
+			fmt.Printf("Worker Node chnaged\n")
+			if d.HasChange("roles.0.worker_node.0.autoscale") {
+				fmt.Printf("Autoscale\n")
+				autoscale := azure.ExpandHDInsightNodeAutoScaleDefinition(workerNode["autoscale"].([]interface{}))
+				params := hdinsight.AutoscaleConfigurationUpdateParameter{
+					Autoscale: autoscale,
+				}
+				fmt.Printf("Autoscale params %q\n", params)
 
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+				future, err := client.UpdateAutoScaleConfiguration(ctx, resourceGroup, name, params)
+
+				if err != nil {
+					return fmt.Errorf("Error changing autoscale of the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("Error waiting for changing autoscale of the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+				}
 			}
 		}
 
