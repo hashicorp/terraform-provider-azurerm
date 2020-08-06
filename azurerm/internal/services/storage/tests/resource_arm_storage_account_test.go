@@ -1042,7 +1042,7 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  min_tls_vresion          = %s
+  min_tls_version          = %s
 
   tags = {
     environment = "production"
