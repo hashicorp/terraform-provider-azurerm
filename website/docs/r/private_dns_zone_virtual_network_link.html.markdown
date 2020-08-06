@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `private_dns_zone_name` - (Required) The name of the Private DNS zone (without a terminating dot). Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the resource group where the Private DNS Zone exists. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Required) The Resource ID of the Virtual Network that should be linked to the DNS Zone. Changing this forces a new resource to be created.
 

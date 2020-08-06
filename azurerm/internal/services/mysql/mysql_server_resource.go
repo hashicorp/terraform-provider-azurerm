@@ -402,6 +402,10 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		infraEncrypt = mysql.InfrastructureEncryptionDisabled
 	}
 
+	if sku.Tier == mysql.Basic && infraEncrypt == mysql.InfrastructureEncryptionEnabled {
+		return fmt.Errorf("`infrastructure_encryption_enabled` is not supported for sku Tier `Basic` in MySQL Server %q (Resource Group %q)", name, resourceGroup)
+	}
+
 	publicAccess := mysql.PublicNetworkAccessEnumEnabled
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
 		publicAccess = mysql.PublicNetworkAccessEnumDisabled
