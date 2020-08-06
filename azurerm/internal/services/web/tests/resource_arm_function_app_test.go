@@ -2518,7 +2518,7 @@ resource "azurerm_function_app" "test" {
 
   site_config {
     ip_restriction {
-      subnet_id = azurerm_subnet.test.id
+      virtual_network_subnet_id = azurerm_subnet.test.id
     }
   }
 }
