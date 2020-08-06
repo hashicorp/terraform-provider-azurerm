@@ -139,6 +139,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				Default:  true,
 			},
 
+			"min_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(storage.TLS10),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storage.TLS10),
+					string(storage.TLS11),
+					string(storage.TLS12),
+				}, false),
+			},
+
 			"is_hns_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -620,6 +631,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
+	minimumTLSVersion := d.Get("min_tls_version").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
@@ -636,6 +648,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
+			MinimumTLSVersion:      storage.MinimumTLSVersion(minimumTLSVersion),
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
 			AllowBlobPublicAccess:  &allowBlobPublicAccess,
@@ -872,6 +885,20 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if d.HasChange("min_tls_version") {
+		minimumTLSVersion := d.Get("min_tls_version").(string)
+
+		opts := storage.AccountUpdateParameters{
+			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+				MinimumTLSVersion: storage.MinimumTLSVersion(minimumTLSVersion),
+			},
+		}
+
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account min_tls_version %q: %+v", storageAccountName, err)
+		}
+	}
+
 	if d.HasChange("allow_blob_public_access") {
 		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
@@ -1039,6 +1066,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
+		d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 
