@@ -8,6 +8,7 @@ cloud.google.com/go/internal/version
 cloud.google.com/go/storage
 # github.com/Azure/azure-sdk-for-go v44.2.0+incompatible
 github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources
+github.com/Azure/azure-sdk-for-go/profiles/latest/network/mgmt/network
 github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2020-01-01/advisor
 github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices
 github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-12-01/apimanagement
