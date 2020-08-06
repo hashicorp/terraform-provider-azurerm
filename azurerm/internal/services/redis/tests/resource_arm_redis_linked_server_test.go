@@ -109,7 +109,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "pri" {
-  name     = "accpriRG-%d"
+  name     = "acctestRG-redis-%d"
   location = "%s"
 }
 
