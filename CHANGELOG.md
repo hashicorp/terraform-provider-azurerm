@@ -4,6 +4,9 @@ IMPROVEMENTS:
 
 * `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type [GH-7890]
 
+BUG FIXES:
+
+* All resources using a `location` field - allowing the value `global` when using enhanced validation [GH-8042]
 
 ## 2.22.0 (August 07, 2020)
 
