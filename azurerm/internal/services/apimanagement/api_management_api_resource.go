@@ -209,7 +209,6 @@ func resourceArmApiManagementApi() *schema.Resource {
 						"bearer_token_sending_methods": {
 							Type:         schema.TypeSet,
 							Optional:     true,
-							ValidateFunc: nil,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
@@ -600,7 +599,7 @@ func expandApiManagementOpenIDAuthenticationSettingsContract(input []interface{}
 	openIDAuthorizationV := input[0].(map[string]interface{})
 	return &apimanagement.OpenIDAuthenticationSettingsContract{
 		OpenidProviderID:          utils.String(openIDAuthorizationV["openid_provider_name"].(string)),
-		BearerTokenSendingMethods: expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(openIDAuthorizationV["bearer_token_sending_methods"].([]interface{})),
+		BearerTokenSendingMethods: expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(openIDAuthorizationV["bearer_token_sending_methods"].(*schema.Set).List()),
 	}
 }
 
