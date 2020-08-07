@@ -1453,11 +1453,11 @@ func flattenArmFrontDoorSubResource(input *frontdoor.SubResource, resourceType s
 	name := ""
 
 	if id := input.ID; id != nil {
-		aid, err := azure.ParseAzureResourceID(*id)
+		aid, err := azure.ParseAzureResourceID(strings.ToLower(*id))
 		if err != nil {
 			return ""
 		}
-		name = aid.Path[resourceType]
+		name = aid.Path[strings.ToLower(resourceType)]
 	}
 
 	return name
