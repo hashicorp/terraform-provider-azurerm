@@ -80,6 +80,8 @@ The following arguments are supported:
 
 -> **NOTE** Small address ranges using "/31" or "/32" prefix sizes are not supported. These ranges should be configured using individual IP address rules without prefix specified.
 
+-> **NOTE** IP network rules have no effect on requests originating from the same Azure region as the storage account. Use Virtual network rules to allow same-region requests. Services deployed in the same region as the storage account use private Azure IP addresses for communication. Thus, you cannot restrict access to specific Azure services based on their public outbound IP address range.
+
 -> **NOTE** User has to explicitly set `ip_rules` to empty slice (`[]`) to remove it.
 
 * `virtual_network_subnet_ids` - (Optional) A list of virtual network subnet ids to to secure the storage account.
