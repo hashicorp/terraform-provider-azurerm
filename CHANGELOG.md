@@ -21,7 +21,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_key_vault_certificate` - fixing a crash when using acmebot certificates ([#8029](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8029))
-* `azurerm_iothub_shared_access_policy` - prevent `primary_connection_string` & `seconday_connection_string` from regenerating during every apply ([#8017](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8017))
+* `azurerm_iothub_shared_access_policy` - prevent `primary_connection_string` & `secondary_connection_string` from regenerating during every apply ([#8017](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8017))
 
 ## 2.21.0 (July 31, 2020)
 
