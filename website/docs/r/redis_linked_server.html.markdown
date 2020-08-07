@@ -56,7 +56,7 @@ resource "azurerm_redis_cache" "example-secondary" {
 }
 
 resource "azurerm_redis_linked_server" "example-link" {
-  redis_cache_name            = azurerm_redis_cache.example-primary.name
+  target_redis_cache_name     = azurerm_redis_cache.example-primary.name
   resource_group_name         = azurerm_redis_cache.example-primary.resource_group_name
   linked_redis_cache_id       = azurerm_redis_cache.example-secondary.id
   linked_redis_cache_location = azurerm_redis_cache.example-secondary.location
@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `linked_redis_cache_location` - (Required) The location of the linked Redis cache. Changing this forces a new Redis to be created.
 
-* `redis_cache_name` - (Required) The name of Redis cache. Changing this forces a new Redis to be created.
+* `target_redis_cache_name` - (Required) The name of Redis cache to link with. Changing this forces a new Redis to be created. (eg The primary role)
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Redis caches exists. Changing this forces a new Redis to be created.
 
