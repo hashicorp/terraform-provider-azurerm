@@ -1,4 +1,10 @@
 ## 2.23.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type (#7890)
+
+
 ## 2.22.0 (August 07, 2020)
 
 DEPENDENCIES:
