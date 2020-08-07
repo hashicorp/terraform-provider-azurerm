@@ -50,12 +50,6 @@ func resourceArmAttestation() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"attestation_policy": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-
 			"policy_signing_certificate": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -220,11 +214,12 @@ func resourceArmAttestationCreate(d *schema.ResourceData, meta interface{}) erro
 	props := attestation.ServiceCreationParams{
 		Location: utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &attestation.ServiceCreationSpecificParams{
-			AttestationPolicy:         utils.String(d.Get("attestation_policy").(string)),
+			// AttestationPolicy was deprecated in October of 2019
 			PolicySigningCertificates: expandArmAttestationProviderJSONWebKeySet(d.Get("policy_signing_certificate").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
 	if _, err := client.Create(ctx, resourceGroup, name, props); err != nil {
 		return fmt.Errorf("creating Attestation %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -261,14 +256,17 @@ func resourceArmAttestationRead(d *schema.ResourceData, meta interface{}) error 
 		}
 		return fmt.Errorf("retrieving Attestation %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
+
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
+
 	if props := resp.StatusResult; props != nil {
 		d.Set("attest_uri", props.AttestURI)
 		d.Set("trust_model", props.TrustModel)
 	}
 	d.Set("type", resp.Type)
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 

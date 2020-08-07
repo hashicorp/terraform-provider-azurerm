@@ -37,8 +37,6 @@ The following arguments are supported:
 
 ---
 
-* `attestation_policy` - (Optional) Name of attestation policy. Changing this forces a new attestation provider to be created.
-
 * `policy_signing_certificate` - (Optional)  A `policy_signing_certificate` block as defined below. Changing this forces a new attestation provider to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the attestation provider.
@@ -60,8 +58,6 @@ An `key` block exports the following:
 * `kty` - (Required) The "kty" (key type) parameter identifies the cryptographic algorithm family used with the key, such as "RSA" or "EC". "kty" values should either be registered in the IANA "JSON Web Key Types" registry established by [JWA] or  e a value that contains a Collision-Resistant Name.  The "kty" value is a case-sensitive string. Changing this forces a new attestation provider to be created.
 
 * `use` - (Required) Use ("public key use") identifies the intended use of the public key. The "use" parameter is employed to indicate whether a public key is used for encrypting data or verifying the signature on data. Values are commonly "sig" (signature) or "enc" (encryption). Changing this forces a new attestation provider to be created.
-
----
 
 * `crv` - (Optional) The "crv" (curve) parameter identifies the curve type. Changing this forces a new attestation provider to be created.
 

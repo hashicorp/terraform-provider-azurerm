@@ -165,9 +165,8 @@ resource "azurerm_attestation" "test" {
   name                = "ap%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  attestation_policy  = "acctest-attestation-policy-%d"
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func testAccAzureRMAttestation_requiresImport(data acceptance.TestData) string {
