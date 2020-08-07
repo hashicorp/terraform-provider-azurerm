@@ -21,6 +21,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+var IothubSharedAccessPolicyResourceName = "azurerm_iothub_shared_access_policy"
+
 func resourceArmIotHubSharedAccessPolicy() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmIotHubSharedAccessPolicyCreateUpdate,
