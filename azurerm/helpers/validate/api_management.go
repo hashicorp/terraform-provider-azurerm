@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func ApiManagementChildName(v interface{}, k string) (warnings []string, errors []error) {
@@ -70,14 +68,6 @@ func ApiManagementApiName(v interface{}, k string) (ws []string, es []error) {
 		es = append(es, fmt.Errorf("%q may only be up to 256 characters in length and not include the characters `*`, `#`, `&` or `+`", k))
 	}
 	return ws, es
-}
-
-func SchemaApiManagementUserDataSourceName() *schema.Schema {
-	return &schema.Schema{
-		Type:         schema.TypeString,
-		Required:     true,
-		ValidateFunc: validate.ApiManagementUserName,
-	}
 }
 
 func ApiManagementApiPath(v interface{}, k string) (ws []string, es []error) {
