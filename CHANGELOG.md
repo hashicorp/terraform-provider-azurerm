@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover [GH-5688]
 * `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type [GH-7890]
 
 BUG FIXES:
