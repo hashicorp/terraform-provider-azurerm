@@ -20,10 +20,7 @@ func dataSourceArmApiManagementUser() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"user_id": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
+			"user_id": azure.SchemaApiManagementUserDataSourceName(),
 
 			"api_management_name": azure.SchemaApiManagementDataSourceName(),
 
