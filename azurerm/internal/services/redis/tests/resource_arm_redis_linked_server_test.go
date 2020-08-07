@@ -61,7 +61,7 @@ func testCheckAzureRMRedisLinkedServerExists(resourceName string) resource.TestC
 		}
 
 		name := rs.Primary.Attributes["name"]
-		cacheName := rs.Primary.Attributes["redis_cache_name"]
+		cacheName := rs.Primary.Attributes["target_redis_cache_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, cacheName, name)
@@ -85,7 +85,7 @@ func testCheckAzureRMRedisLinkedServerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		redisCacheName := rs.Primary.Attributes["redis_cache_name"]
+		redisCacheName := rs.Primary.Attributes["target_redis_cache_name"]
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
@@ -114,7 +114,7 @@ resource "azurerm_resource_group" "pri" {
 }
 
 resource "azurerm_redis_cache" "pri" {
-  name                = "accpriRedis%d"
+  name                = "acctestRedispri%d"
   location            = azurerm_resource_group.pri.location
   resource_group_name = azurerm_resource_group.pri.name
   capacity            = 1
@@ -135,7 +135,7 @@ resource "azurerm_resource_group" "sec" {
 }
 
 resource "azurerm_redis_cache" "sec" {
-  name                = "accsecRedis%d"
+  name                = "acctestRedissec%d"
   location            = azurerm_resource_group.sec.location
   resource_group_name = azurerm_resource_group.sec.name
   capacity            = 1
@@ -151,7 +151,7 @@ resource "azurerm_redis_cache" "sec" {
 }
 
 resource "azurerm_redis_linked_server" "test" {
-  redis_cache_name            = azurerm_redis_cache.pri.name
+  target_redis_cache_name     = azurerm_redis_cache.pri.name
   resource_group_name         = azurerm_redis_cache.pri.resource_group_name
   linked_redis_cache_id       = azurerm_redis_cache.sec.id
   linked_redis_cache_location = azurerm_redis_cache.sec.location
@@ -167,7 +167,7 @@ func testAccAzureRMRedisLinkedServer_requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_redis_linked_server" "import" {
-  redis_cache_name            = azurerm_redis_linked_server.test.redis_cache_name
+  target_redis_cache_name     = azurerm_redis_linked_server.test.target_redis_cache_name
   resource_group_name         = azurerm_redis_linked_server.test.resource_group_name
   linked_redis_cache_id       = azurerm_redis_linked_server.test.linked_redis_cache_id
   linked_redis_cache_location = azurerm_redis_linked_server.test.linked_redis_cache_location

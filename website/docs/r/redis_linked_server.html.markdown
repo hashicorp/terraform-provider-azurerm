@@ -13,15 +13,15 @@ Manages a Redis Linked Server (ie Geo Location)
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "pri" {
-  name     = "example-resourcesi-pri"
+resource "azurerm_resource_group" "example-primary" {
+  name     = "example-resources-primary"
   location = "East US"
 }
 
-resource "azurerm_redis_cache" "pri" {
+resource "azurerm_redis_cache" "example-primary" {
   name                = "example-cache1"
-  location            = azurerm_resource_group.pri.location
-  resource_group_name = azurerm_resource_group.pri.name
+  location            = azurerm_resource_group.example-primary.location
+  resource_group_name = azurerm_resource_group.example-primary.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -34,15 +34,15 @@ resource "azurerm_redis_cache" "pri" {
   }
 }
 
-resource "azurerm_resource_group" "sec" {
-  name     = "example-resources-sec"
+resource "azurerm_resource_group" "example-secondary" {
+  name     = "example-resources-secondary"
   location = "West US"
 }
 
-resource "azurerm_redis_cache" "sec" {
+resource "azurerm_redis_cache" "example-secondary" {
   name                = "example-cache2"
-  location            = azurerm_resource_group.sec.location
-  resource_group_name = azurerm_resource_group.sec.name
+  location            = azurerm_resource_group.example-secondary.location
+  resource_group_name = azurerm_resource_group.example-secondary.name
   capacity            = 1
   family              = "P"
   sku_name            = "Premium"
@@ -55,11 +55,11 @@ resource "azurerm_redis_cache" "sec" {
   }
 }
 
-resource "azurerm_redis_linked_server" "link" {
-  redis_cache_name            = azurerm_redis_cache.pri.name
-  resource_group_name         = azurerm_redis_cache.pri.resource_group_name
-  linked_redis_cache_id       = azurerm_redis_cache.sec.id
-  linked_redis_cache_location = azurerm_redis_cache.sec.location
+resource "azurerm_redis_linked_server" "example-link" {
+  redis_cache_name            = azurerm_redis_cache.example-primary.name
+  resource_group_name         = azurerm_redis_cache.example-primary.resource_group_name
+  linked_redis_cache_id       = azurerm_redis_cache.example-secondary.id
+  linked_redis_cache_location = azurerm_redis_cache.example-secondary.location
   server_role                 = "Secondary"
 }
 ```

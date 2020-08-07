@@ -36,12 +36,7 @@ func resourceArmRedisLinkedServer() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"redis_cache_name": {
+			"target_redis_cache_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -69,6 +64,11 @@ func resourceArmRedisLinkedServer() *schema.Resource {
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
+
+			"name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -79,7 +79,7 @@ func resourceArmRedisLinkedServerCreate(d *schema.ResourceData, meta interface{}
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Redis Linked Server creation.")
 
-	redisCacheName := d.Get("redis_cache_name").(string)
+	redisCacheName := d.Get("target_redis_cache_name").(string)
 	linkedRedisCacheId := d.Get("linked_redis_cache_id").(string)
 	linkedRedisCacheLocation := d.Get("linked_redis_cache_location").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -176,7 +176,7 @@ func resourceArmRedisLinkedServerRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", name)
-	d.Set("redis_cache_name", redisCacheName)
+	d.Set("target_redis_cache_name", redisCacheName)
 	d.Set("resource_group_name", resourceGroup)
 	if props := resp.LinkedServerProperties; props != nil {
 		d.Set("linked_redis_cache_id", props.LinkedRedisCacheID)
@@ -209,19 +209,21 @@ func resourceArmRedisLinkedServerDelete(d *schema.ResourceData, meta interface{}
 
 	// No LinkedServerDeleteFuture
 	// https://github.com/Azure/azure-sdk-for-go/issues/12159
-
-	for {
-		time.Sleep(1 * time.Minute)
-		resp, err := client.Get(ctx, resourceGroup, redisCacheName, name)
-
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				// Secondary server needs another minute
-				time.Sleep(1 * time.Minute)
-				return nil
-			}
-		}
+	log.Printf("[DEBUG] Waiting for Redis Linked Server %q (cache %q / Resource Group %q) to be eventually deleted", name, redisCacheName, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"Exists"},
+		Target:                    []string{"NotFound"},
+		Refresh:                   redisLinkedServerDeleteStateRefreshFunc(ctx, client, resourceGroup, redisCacheName, name),
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 10,
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("failed to wait for Redis Linked Server %q (cache %q / resource group %q) to be deleted: %+v", name, redisCacheName, resourceGroup, err)
+	}
+
+	return nil
 }
 
 func redisLinkedServerStateRefreshFunc(ctx context.Context, client *redis.LinkedServerClient, resourceGroupName string, redisCacheName string, name string) resource.StateRefreshFunc {
@@ -232,5 +234,20 @@ func redisLinkedServerStateRefreshFunc(ctx context.Context, client *redis.Linked
 		}
 
 		return res, *res.LinkedServerProperties.ProvisioningState, nil
+	}
+}
+
+func redisLinkedServerDeleteStateRefreshFunc(ctx context.Context, client *redis.LinkedServerClient, resourceGroupName string, redisCacheName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, redisCacheName, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return "NotFound", "NotFound", nil
+			}
+
+			return nil, "", fmt.Errorf("failed to poll to check if the Linked Server has been deleted: %+v", err)
+		}
+
+		return res, "Exists", nil
 	}
 }
