@@ -1219,6 +1219,8 @@ func testAccAzureRMHDInsightHadoopCluster_template(data acceptance.TestData) str
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+  # Due to bug in HDInsight we can't reuse client with the same x-ms-correlation-request-id for multiple updates
+  disable_correlation_request_id = true
 }
 
 resource "azurerm_resource_group" "test" {

@@ -48,7 +48,6 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			workerNodes := roles["worker_node"].([]interface{})
 			workerNode := workerNodes[0].(map[string]interface{})
 			if d.HasChange("roles.0.worker_node.0.target_instance_count") {
-				fmt.Printf("Worker Node changed target count\n")
 				targetInstanceCount := workerNode["target_instance_count"].(int)
 				params := hdinsight.ClusterResizeParameters{
 					TargetInstanceCount: utils.Int32(int32(targetInstanceCount)),
@@ -64,14 +63,11 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				}
 			}
 
-			fmt.Printf("Worker Node chnaged\n")
 			if d.HasChange("roles.0.worker_node.0.autoscale") {
-				fmt.Printf("Autoscale\n")
 				autoscale := azure.ExpandHDInsightNodeAutoScaleDefinition(workerNode["autoscale"].([]interface{}))
 				params := hdinsight.AutoscaleConfigurationUpdateParameter{
 					Autoscale: autoscale,
 				}
-				fmt.Printf("Autoscale params %q\n", params)
 
 				future, err := client.UpdateAutoScaleConfiguration(ctx, resourceGroup, name, params)
 
