@@ -439,6 +439,7 @@ func TestAccAzureRMHDInsightKafkaCluster_restProxy(t *testing.T) {
 				Config: testAccAzureRMHDInsightKafkaCluster_restProxy(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "rest_proxy_endpoint"),
 				),
 			},
 			data.ImportStep("roles.0.head_node.0.password",
