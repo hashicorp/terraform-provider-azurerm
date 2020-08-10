@@ -1,8 +1,31 @@
-## 2.22.0 (Unreleased)
+## 2.23.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover [GH-5688]
+* `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type [GH-7890]
+
+BUG FIXES:
+
+* All resources using a `location` field - allowing the value `global` when using enhanced validation [GH-8042]
+
+## 2.22.0 (August 07, 2020)
 
 DEPENDENCIES:
 
-* updating `github.com/Azure/azure-sdk-for-go` to `v44.2.0` [GH-7933]
+* updating `github.com/Azure/azure-sdk-for-go` to `v44.2.0` ([#7933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7933))
+
+IMPROVEMENTS:
+
+* `azurerm_cosmosdb_account` - support `DisableRateLimitingResponses` with the `capabilities` property ([#8016](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8016))
+* `azurerm_storage_account` - support for the `min_tls_version` property ([#7879](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7879))
+* `azurerm_storage_account_sas` - support for the `signed_version attribute` property ([#8020](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8020))
+* `azurerm_servicebus_queue` - support for the `enable_batched_operations`, `status`, `forward_to`, and `forward_dead_lettered_messages_to` ([#7990](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7990))
+
+BUG FIXES:
+
+* Data Source: `azurerm_key_vault_certificate` - fixing a crash when using acmebot certificates ([#8029](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8029))
+* `azurerm_iothub_shared_access_policy` - prevent `primary_connection_string` & `secondary_connection_string` from regenerating during every apply ([#8017](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8017))
 
 ## 2.21.0 (July 31, 2020)
 

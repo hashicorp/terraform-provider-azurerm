@@ -117,7 +117,7 @@ The following arguments are supported:
 
 * `static_website` - (Optional) A `static_website` block as defined below.
 
-~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2`
+~> **NOTE:** `static_website` can only be set when the `account_kind` is set to `StorageV2` or `BlockBlobStorage`.
 
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
