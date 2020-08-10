@@ -6,8 +6,9 @@ import (
 )
 
 type Client struct {
-	ServicesClient *appplatform.ServicesClient
-	AppsClient     *appplatform.AppsClient
+	ServicesClient     *appplatform.ServicesClient
+	CertificatesClient *appplatform.CertificatesClient
+	AppsClient         *appplatform.AppsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -17,8 +18,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	servicesClient := appplatform.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
+	certificatesClient := appplatform.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&certificatesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		AppsClient:     &appsClient,
-		ServicesClient: &servicesClient,
+		AppsClient:         &appsClient,
+		ServicesClient:     &servicesClient,
+		CertificatesClient: &certificatesClient,
 	}
 }
