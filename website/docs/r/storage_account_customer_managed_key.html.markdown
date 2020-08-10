@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `key_name` - (Required) The name of Key Vault Key.
 
-* `key_version` - (Optional) The version of Key Vault Key. When set, disables the Automated key rotation feature.
+* `key_version` - (Optional) The version of Key Vault Key. Remove or omit this argument to enable Automatic Key Rotation.
 
 ## Attributes Reference
 
