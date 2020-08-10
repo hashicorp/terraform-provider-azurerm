@@ -41,6 +41,13 @@ var hdInsightKafkaClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
 }
 
+var hdInsightKafkaClusterKafkaManagementNodeDefinition = azure.HDInsightNodeDefinition{
+	CanSpecifyInstanceCount:  false,
+	MinInstanceCount:         2,
+	CanSpecifyDisks:          false,
+	FixedTargetInstanceCount: utils.Int32(int32(2)),
+}
+
 func resourceArmHDInsightKafkaCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmHDInsightKafkaClusterCreate,
@@ -100,11 +107,13 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition),
+						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightKafkaClusterHeadNodeDefinition, true),
 
-						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition),
+						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightKafkaClusterWorkerNodeDefinition, true),
 
-						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition),
+						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightKafkaClusterZookeeperNodeDefinition, true),
+
+						"kafka_management_node": azure.SchemaHDInsightNodeDefinition("roles.0.kafka_management_node", hdInsightKafkaClusterKafkaManagementNodeDefinition, false),
 					},
 				},
 			},
@@ -127,6 +136,7 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 						},
 					},
 				},
+				RequiredWith: []string{"roles.0.kafka_management_node"},
 			},
 
 			"tags": tags.Schema(),
@@ -185,9 +195,10 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 	}
 
 	kafkaRoles := hdInsightRoleDefinition{
-		HeadNodeDef:      hdInsightKafkaClusterHeadNodeDefinition,
-		WorkerNodeDef:    hdInsightKafkaClusterWorkerNodeDefinition,
-		ZookeeperNodeDef: hdInsightKafkaClusterZookeeperNodeDefinition,
+		HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
+		WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
+		ZookeeperNodeDef:       hdInsightKafkaClusterZookeeperNodeDefinition,
+		KafkaManagementNodeDef: &hdInsightKafkaClusterKafkaManagementNodeDefinition,
 	}
 	rolesRaw := d.Get("roles").([]interface{})
 	roles, err := expandHDInsightRoles(rolesRaw, kafkaRoles)
@@ -324,9 +335,10 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		}
 
 		kafkaRoles := hdInsightRoleDefinition{
-			HeadNodeDef:      hdInsightKafkaClusterHeadNodeDefinition,
-			WorkerNodeDef:    hdInsightKafkaClusterWorkerNodeDefinition,
-			ZookeeperNodeDef: hdInsightKafkaClusterZookeeperNodeDefinition,
+			HeadNodeDef:            hdInsightKafkaClusterHeadNodeDefinition,
+			WorkerNodeDef:          hdInsightKafkaClusterWorkerNodeDefinition,
+			ZookeeperNodeDef:       hdInsightKafkaClusterZookeeperNodeDefinition,
+			KafkaManagementNodeDef: &hdInsightKafkaClusterKafkaManagementNodeDefinition,
 		}
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, kafkaRoles)
 		if err := d.Set("roles", flattenedRoles); err != nil {
@@ -385,8 +397,8 @@ func expandKafkaRestProxyProperty(input []interface{}) *hdinsight.KafkaRestPrope
 	raw := input[0].(map[string]interface{})
 	return &hdinsight.KafkaRestProperties{
 		ClientGroupInfo: &hdinsight.ClientGroupInfo{
-			GroupName: utils.String(raw["group_name"].(string)),
-			GroupID:   utils.String(raw["group_id"].(string)),
+			GroupName: utils.String(raw["security_group_name"].(string)),
+			GroupID:   utils.String(raw["security_group_id"].(string)),
 		},
 	}
 }
@@ -409,9 +421,8 @@ func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []inter
 
 	return []interface{}{
 		map[string]interface{}{
-			"group_name": groupName,
-			"group_id":   groupId,
+			"security_group_name": groupName,
+			"security_group_id":   groupId,
 		},
 	}
-
 }

@@ -173,10 +173,11 @@ func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 }
 
 type hdInsightRoleDefinition struct {
-	HeadNodeDef      azure.HDInsightNodeDefinition
-	WorkerNodeDef    azure.HDInsightNodeDefinition
-	ZookeeperNodeDef azure.HDInsightNodeDefinition
-	EdgeNodeDef      *azure.HDInsightNodeDefinition
+	HeadNodeDef            azure.HDInsightNodeDefinition
+	WorkerNodeDef          azure.HDInsightNodeDefinition
+	ZookeeperNodeDef       azure.HDInsightNodeDefinition
+	KafkaManagementNodeDef *azure.HDInsightNodeDefinition
+	EdgeNodeDef            *azure.HDInsightNodeDefinition
 }
 
 func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinition) (*[]hdinsight.Role, error) {
@@ -215,6 +216,15 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 		roles = append(roles, *edgeNode)
 	}
 
+	if definition.KafkaManagementNodeDef != nil {
+		kafkaManagementNodeRaw := v["kafka_management_node"].([]interface{})
+		kafkaManagementNode, err := azure.ExpandHDInsightNodeDefinition("kafkamanagementnode", kafkaManagementNodeRaw, *definition.KafkaManagementNodeDef)
+		if err != nil {
+			return nil, fmt.Errorf("Error expanding `kafka_management_node`: %+v", err)
+		}
+		roles = append(roles, *kafkaManagementNode)
+	}
+
 	return &roles, nil
 }
 
@@ -223,7 +233,7 @@ func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfi
 		return []interface{}{}
 	}
 
-	var existingEdgeNodes, existingHeadNodes, existingWorkerNodes, existingZookeeperNodes []interface{}
+	var existingKafkaManagementNodes, existingEdgeNodes, existingHeadNodes, existingWorkerNodes, existingZookeeperNodes []interface{}
 
 	existingVs := d.Get("roles").([]interface{})
 	if len(existingVs) > 0 {
@@ -231,6 +241,10 @@ func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfi
 
 		if definition.EdgeNodeDef != nil {
 			existingEdgeNodes = existingV["edge_node"].([]interface{})
+		}
+
+		if definition.KafkaManagementNodeDef != nil {
+			existingKafkaManagementNodes = existingV["kafka_management_node"].([]interface{})
 		}
 
 		existingHeadNodes = existingV["head_node"].([]interface{})
@@ -257,6 +271,12 @@ func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfi
 		edgeNode := azure.FindHDInsightRole(input.Roles, "edgenode")
 		edgeNodes := azure.FlattenHDInsightNodeDefinition(edgeNode, existingEdgeNodes, *definition.EdgeNodeDef)
 		result["edge_node"] = edgeNodes
+	}
+
+	if definition.KafkaManagementNodeDef != nil {
+		kafkaManagementNode := azure.FindHDInsightRole(input.Roles, "kafkamanagementnode")
+		kafkaManagementNodes := azure.FlattenHDInsightNodeDefinition(kafkaManagementNode, existingKafkaManagementNodes, *definition.KafkaManagementNodeDef)
+		result["kafka_management_node"] = kafkaManagementNodes
 	}
 
 	return []interface{}{

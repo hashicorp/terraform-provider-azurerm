@@ -673,7 +673,7 @@ func ValidateSchemaHDInsightNodeDefinitionVMSize() schema.SchemaValidateFunc {
 	}, true)
 }
 
-func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition) *schema.Schema {
+func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNodeDefinition, required bool) *schema.Schema {
 	result := map[string]*schema.Schema{
 		"vm_size": {
 			Type:             schema.TypeString,
@@ -753,14 +753,19 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		}
 	}
 
-	return &schema.Schema{
+	s := &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: result,
 		},
 	}
+	if required {
+		s.Required = true
+	} else {
+		s.Optional = true
+	}
+	return s
 }
 
 func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition HDInsightNodeDefinition) (*hdinsight.Role, error) {

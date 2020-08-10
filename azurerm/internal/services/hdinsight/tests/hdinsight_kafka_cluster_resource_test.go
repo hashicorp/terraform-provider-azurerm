@@ -1329,6 +1329,12 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
       username = "acctestusrvm"
       password = "AccTestvdSC4daf986!"
     }
+
+    kafka_management_node {
+      vm_size  = "Standard_D4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
   }
 
   rest_proxy {
