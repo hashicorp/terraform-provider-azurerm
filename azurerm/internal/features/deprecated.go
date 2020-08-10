@@ -7,3 +7,7 @@ package features
 func SupportsCustomTimeouts() bool {
 	return true
 }
+
+func ShouldResourcesBeImported() bool {
+	return true
+}
