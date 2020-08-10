@@ -38,7 +38,7 @@ func TestNamespaceID(t *testing.T) {
 			Name:  "Namespaces Value ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1",
 			Expect: &NamespaceId{
-				Name: "namespace1",
+				Name:          "namespace1",
 				ResourceGroup: "group1",
 			},
 		},

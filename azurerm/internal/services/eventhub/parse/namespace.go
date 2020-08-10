@@ -3,7 +3,7 @@ package parse
 import "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 
 type NamespaceId struct {
-	Name string
+	Name          string
 	ResourceGroup string
 }
 

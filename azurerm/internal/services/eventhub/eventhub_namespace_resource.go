@@ -98,13 +98,13 @@ func resourceArmEventHubNamespace() *schema.Resource {
 			},
 
 			"identity": {
-				Type: schema.TypeList,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(eventhub.SystemAssigned),
@@ -112,12 +112,12 @@ func resourceArmEventHubNamespace() *schema.Resource {
 						},
 
 						"principal_id": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 
 						"tenant_id": {
-							Type: schema.TypeString,
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -577,11 +577,11 @@ func flattenEventHubIdentity(input *eventhub.Identity) []interface{} {
 		tenantID = *input.TenantID
 	}
 
-	return []interface{} {
+	return []interface{}{
 		map[string]interface{}{
-			"type": string(input.Type),
+			"type":         string(input.Type),
 			"principal_id": principalID,
-			"tenant_id": tenantID,
+			"tenant_id":    tenantID,
 		},
 	}
 }
