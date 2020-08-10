@@ -109,6 +109,26 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 				},
 			},
 
+			"rest_proxy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"security_group_name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"security_group_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 
 			"https_endpoint": {
@@ -201,6 +221,7 @@ func resourceArmHDInsightKafkaClusterCreate(d *schema.ResourceData, meta interfa
 			ComputeProfile: &hdinsight.ComputeProfile{
 				Roles: roles,
 			},
+			KafkaRestProperties: expandKafkaRestProxyProperty(d.Get("rest_proxy").([]interface{})),
 		},
 		Tags:     tags.Expand(t),
 		Identity: identity,
@@ -318,6 +339,11 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		}
 
 		d.Set("monitor", flattenHDInsightMonitoring(monitor))
+		if restProxyProp := props.KafkaRestProperties; restProxyProp != nil {
+			if err := d.Set("rest_proxy", flattenKafkaRestProxyProperty(props.KafkaRestProperties)); err != nil {
+				return fmt.Errorf(`failed setting "rest_proxy" for HDInsight Kafka Cluster %q (Resource Group %q): %+v`, name, resourceGroup, err)
+			}
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -342,4 +368,43 @@ func flattenHDInsightKafkaComponentVersion(input map[string]*string) []interface
 			"kafka": kafkaVersion,
 		},
 	}
+}
+
+func expandKafkaRestProxyProperty(input []interface{}) *hdinsight.KafkaRestProperties {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+	return &hdinsight.KafkaRestProperties{
+		ClientGroupInfo: &hdinsight.ClientGroupInfo{
+			GroupName: utils.String(raw["group_name"].(string)),
+			GroupID:   utils.String(raw["group_id"].(string)),
+		},
+	}
+}
+
+func flattenKafkaRestProxyProperty(input *hdinsight.KafkaRestProperties) []interface{} {
+	if input == nil || input.ClientGroupInfo == nil {
+		return []interface{}{}
+	}
+
+	groupInfo := input.ClientGroupInfo
+
+	groupName := ""
+	if groupInfo.GroupName != nil {
+		groupName = *groupInfo.GroupName
+	}
+	groupId := ""
+	if groupInfo.GroupID != nil {
+		groupId = *groupInfo.GroupID
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"group_name": groupName,
+			"group_id":   groupId,
+		},
+	}
+
 }
