@@ -5,9 +5,19 @@ IMPROVEMENTS:
 * `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover [GH-5688]
 * `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type [GH-7890]
 
+ENHANCEMENTS:
+
+* dependencies: updating `mysql` to `2020-01-01` [GH-8062]
+* dependencies: updating `postgresql` to `2020-01-01` [GH-8045]
+* `azurerm_eventhub_namespace` - support for the `identity` block [GH-8065]
+
 BUG FIXES:
 
 * All resources using a `location` field - allowing the value `global` when using enhanced validation [GH-8042]
+* Data Source: `azurerm_api_management_user` - `user_id` now accepts single characters [GH-7975]
+* `azurerm_iothub_consumer_group` - locking during creation and deletion to workaround an API issue [GH-8041]
+* `azurerm_linux_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]
+* `azurerm_windows_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]
 
 ## 2.22.0 (August 07, 2020)
 

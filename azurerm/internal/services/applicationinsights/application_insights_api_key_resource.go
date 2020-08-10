@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -96,40 +95,38 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 	resGroup := id.ResourceGroup
 	appInsightsName := id.Path["components"]
 
-	if features.ShouldResourcesBeImported() {
-		var existingAPIKeyList insights.ApplicationInsightsComponentAPIKeyListResult
-		var keyId string
-		existingAPIKeyList, err = client.List(ctx, resGroup, appInsightsName)
+	var existingAPIKeyList insights.ApplicationInsightsComponentAPIKeyListResult
+	var keyId string
+	existingAPIKeyList, err = client.List(ctx, resGroup, appInsightsName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existingAPIKeyList.Response) {
+			return fmt.Errorf("checking for presence of existing Application Insights API key list (Application Insights %q / Resource Group %q): %s", appInsightsName, resGroup, err)
+		}
+	}
+
+	for _, existingAPIKey := range *existingAPIKeyList.Value {
+		existingAPIKeyId, err := azure.ParseAzureResourceID(*existingAPIKey.ID)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existingAPIKeyList.Response) {
-				return fmt.Errorf("checking for presence of existing Application Insights API key list (Application Insights %q / Resource Group %q): %s", appInsightsName, resGroup, err)
-			}
+			return err
 		}
 
-		for _, existingAPIKey := range *existingAPIKeyList.Value {
-			existingAPIKeyId, err := azure.ParseAzureResourceID(*existingAPIKey.ID)
-			if err != nil {
-				return err
-			}
-
-			existingAppInsightsName := existingAPIKeyId.Path["components"]
-			if appInsightsName == existingAppInsightsName {
-				keyId = existingAPIKeyId.Path["apikeys"]
-				break
-			}
+		existingAppInsightsName := existingAPIKeyId.Path["components"]
+		if appInsightsName == existingAppInsightsName {
+			keyId = existingAPIKeyId.Path["apikeys"]
+			break
 		}
+	}
 
-		var existing insights.ApplicationInsightsComponentAPIKey
-		existing, err = client.Get(ctx, resGroup, appInsightsName, keyId)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Application Insights API key %q (Resource Group %q): %s", name, resGroup, err)
-			}
+	var existing insights.ApplicationInsightsComponentAPIKey
+	existing, err = client.Get(ctx, resGroup, appInsightsName, keyId)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing Application Insights API key %q (Resource Group %q): %s", name, resGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_application_insights_api_key", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_application_insights_api_key", *existing.ID)
 	}
 
 	apiKeyProperties := insights.APIKeyRequest{
