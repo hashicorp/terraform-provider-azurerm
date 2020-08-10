@@ -91,7 +91,7 @@ resource "azurerm_key_vault_certificate" "example" {
         "keyEncipherment",
       ]
 
-      subject            = "CN=hello-world"
+      subject            = "CN=contoso.com"
       validity_in_months = 12
     }
   }

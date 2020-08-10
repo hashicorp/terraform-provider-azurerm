@@ -15,15 +15,15 @@ func NewClient(o *common.ClientOptions) *Client {
 	appsClient := appplatform.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&appsClient.Client, o.ResourceManagerAuthorizer)
 
-	servicesClient := appplatform.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
-
 	certificatesClient := appplatform.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&certificatesClient.Client, o.ResourceManagerAuthorizer)
 
+	servicesClient := appplatform.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AppsClient:         &appsClient,
-		ServicesClient:     &servicesClient,
 		CertificatesClient: &certificatesClient,
+		ServicesClient:     &servicesClient,
 	}
 }
