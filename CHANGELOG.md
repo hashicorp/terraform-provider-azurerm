@@ -12,6 +12,7 @@ ENHANCEMENTS:
 BUG FIXES:
 
 * All resources using a `location` field - allowing the value `global` when using enhanced validation [GH-8042]
+* `azurerm_iothub_consumer_group` - locking during creation and deletion to workaround an API issue [GH-8041]
 
 ## 2.22.0 (August 07, 2020)
 
