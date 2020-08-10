@@ -72,13 +72,6 @@ func TestAccAzureRMEventHubNamespace_basicUpdateIdentity(t *testing.T) {
 				),
 			},
 			data.ImportStep(),
-			{
-				Config: testAccAzureRMEventHubNamespace_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
 		},
 	})
 }
@@ -160,13 +153,6 @@ func TestAccAzureRMEventHubNamespace_standardUpdateIdentity(t *testing.T) {
 			data.ImportStep(),
 			{
 				Config: testAccAzureRMEventHubNamespace_standardWithIdentity(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMEventHubNamespace_standard(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(data.ResourceName),
 				),

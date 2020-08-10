@@ -65,6 +65,8 @@ A `identity` block supports the following:
 
 * `type` - (Required) The Type of Identity which should be used for this EventHub Namespace. At this time the only possible value is `SystemAssigned`.
 
+~> **Note:** Due to the limitation of the current Azure API, once an EventHub Namespace has been assigned an identity, it cannot be removed.
+
 ---
 
 A `network_rulesets` block supports the following:
