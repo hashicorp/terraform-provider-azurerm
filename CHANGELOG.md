@@ -8,6 +8,7 @@ IMPROVEMENTS:
 ENHANCEMENTS:
 
 * dependencies: updating `mysql` to `2020-01-01` [GH-8062]
+* dependencies: updating `postgresql` to `2020-01-01` [GH-8045]
 
 BUG FIXES:
 
