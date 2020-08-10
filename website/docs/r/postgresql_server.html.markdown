@@ -121,6 +121,8 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the PostgreSQL Server.
 
+* `identity` - An `identity` block as documented below.
+
 ---
 
 A `identity` block exports the following:
