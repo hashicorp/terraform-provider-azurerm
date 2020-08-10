@@ -6,9 +6,9 @@ import (
 )
 
 type Client struct {
-	ServicesClient     *appplatform.ServicesClient
-	CertificatesClient *appplatform.CertificatesClient
 	AppsClient         *appplatform.AppsClient
+	CertificatesClient *appplatform.CertificatesClient
+	ServicesClient     *appplatform.ServicesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
