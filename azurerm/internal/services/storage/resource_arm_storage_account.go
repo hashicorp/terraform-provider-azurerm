@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
+	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -604,6 +605,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
+	env := meta.(*clients.Client).Storage.Environment
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -631,13 +633,23 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
-	minimumTLSVersion := d.Get("min_tls_version").(string)
 	isHnsEnabled := d.Get("is_hns_enabled").(bool)
 	allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
+
+	minimumTLSVersion := d.Get("min_tls_version").(string)
+	// For Azure China, don't specify "min_tls_version" in request body.
+	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8057
+	if env.Name == autorestAzure.ChinaCloud.Name {
+		if minimumTLSVersion == string(storage.TLS10) {
+			minimumTLSVersion = ""
+		} else {
+			return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, env.Name)
+		}
+	}
 
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
@@ -784,6 +796,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+	env := meta.(*clients.Client).Storage.Environment
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -887,6 +900,16 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("min_tls_version") {
 		minimumTLSVersion := d.Get("min_tls_version").(string)
+
+		// For Azure China, don't specify "min_tls_version" in request body.
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8057
+		if env.Name == autorestAzure.ChinaCloud.Name {
+			if minimumTLSVersion == string(storage.TLS10) {
+				minimumTLSVersion = ""
+			} else {
+				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, env.Name)
+			}
+		}
 
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
@@ -1005,6 +1028,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+	env := meta.(*clients.Client).Storage.Environment
 	client := meta.(*clients.Client).Storage.AccountsClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -1066,7 +1090,13 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
-		d.Set("min_tls_version", string(props.MinimumTLSVersion))
+
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8057
+		if env.Name == autorestAzure.ChinaCloud.Name {
+			d.Set("min_tls_version", string(storage.TLS10))
+		} else {
+			d.Set("min_tls_version", string(props.MinimumTLSVersion))
+		}
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 
