@@ -89,15 +89,19 @@ func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if d.IsNewResource() {
-		existing, err := keysClient.Get(ctx, serverID.ResourceGroup, serverID.Name, name)
+		// This resource is a singleton, but its name can be anything.
+		// If you create a new key with different name with the old key, the service will not give you any warning but directly replace the old key with the new key.
+		// Therefore sometimes you cannot get the old key using the GET API since you may not know the name of the old key
+		resp, err := keysClient.List(ctx, serverID.ResourceGroup, serverID.Name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
-			}
+			return fmt.Errorf("listing existing MySQL Server Keys in Resource Group %q / Server %q: %+v", serverID.ResourceGroup, serverID.Name, err)
 		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_mysql_server_key", *existing.ID)
+		keys := resp.Values()
+		if len(keys) > 1 {
+			return fmt.Errorf("expecting at most one MySQL Server Key, but got %q", len(keys))
+		}
+		if len(keys) == 1 && keys[0].ID != nil && *keys[0].ID != "" {
+			return tf.ImportAsExistsError("azurerm_mysql_server_key", *keys[0].ID)
 		}
 	}
 
