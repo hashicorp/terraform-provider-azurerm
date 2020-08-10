@@ -1,12 +1,14 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/go-azure-helpers/response"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -142,10 +144,23 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error waiting for creation of Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", name, resourceGroup, err)
+	// Hub returns provisioned while the routing state is still "provisining". This might cause issues with following hubvnet connection operations.
+	// https://github.com/Azure/azure-rest-api-specs/issues/10391
+	// As a workaround, we will poll the routing state and ensure it is "Provisioned".
+	timeout, _ := ctx.Deadline()
+	stateConf := &resource.StateChangeConf{
+		Pending:      []string{"Provisioning"},
+		Target:       []string{"Provisioned", "Failed"},
+		Refresh:      virtualHubCreateRefreshFunc(ctx, client, resourceGroup, name),
+		PollInterval: 5 * time.Second,
+		Timeout:      time.Until(timeout),
 	}
+	respRaw, err := stateConf.WaitForState()
+	if err != nil {
+		return fmt.Errorf("waiting for Virtual Hub %q (Host Group Name %q) provisioning route: %+v", name, resourceGroup, err)
+	}
+
+	resp := respRaw.(network.VirtualHub)
 	if resp.ID == nil {
 		return fmt.Errorf("Cannot read Virtual Hub %q (Resource Group %q) ID", name, resourceGroup)
 	}
@@ -272,4 +287,22 @@ func flattenArmVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{
 	}
 
 	return results
+}
+
+func virtualHubCreateRefreshFunc(ctx context.Context, client *network.VirtualHubsClient, resourceGroup, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if utils.ResponseWasNotFound(res.Response) {
+				return nil, "", fmt.Errorf("Virtual Hub %q (Resource Group %q) doesn't exist", resourceGroup, name)
+			}
+
+			return nil, "", fmt.Errorf("retrieving Virtual Hub %q (Resource Group %q): %+v", resourceGroup, name, err)
+		}
+		if res.VirtualHubProperties == nil {
+			return nil, "", fmt.Errorf("unexpected nil properties of Virtual Hub %q (Resource Group %q)", resourceGroup, name)
+		}
+
+		return res, string(res.VirtualHubProperties.RoutingState), nil
+	}
 }
