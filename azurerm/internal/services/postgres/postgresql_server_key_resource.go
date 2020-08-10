@@ -182,7 +182,7 @@ func resourceArmPostgreSQLServerKeyDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("deleting PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName)
+		return fmt.Errorf("waiting for deletion of PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
 	}
 
 	return nil
