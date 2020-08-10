@@ -86,7 +86,7 @@ func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error checking for present of existing Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
+			return fmt.Errorf("checking for presence of existing Batch Application %q (Account Name %q / Resource Group %q): %+v", name, accountName, resourceGroup, err)
 		}
 	}
 	if !utils.ResponseWasNotFound(resp.Response) {
