@@ -125,7 +125,7 @@ The following attributes are exported:
 
 A `identity` block exports the following:
 
-* `principal_id` - The (Client) ID of the Service Principal.
+* `principal_id` - The Client ID of the Service Principal assigned to this PostgreSQL Server.
 
 * `tenant_id` - The ID of the Tenant the Service Principal is assigned in.
 
