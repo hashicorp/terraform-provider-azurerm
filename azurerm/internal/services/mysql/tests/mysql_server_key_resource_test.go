@@ -2,13 +2,14 @@ package tests
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"testing"
 )
 
 func TestAccAzureRMMySQLServerKey_basic(t *testing.T) {
@@ -157,17 +158,17 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_access_policy" "server" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_mysql_server.test.identity.0.principal_id
+  key_vault_id       = azurerm_key_vault.test.id
+  tenant_id          = data.azurerm_client_config.current.tenant_id
+  object_id          = azurerm_mysql_server.test.identity.0.principal_id
   key_permissions    = ["get", "unwrapkey", "wrapkey"]
   secret_permissions = ["get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
+  key_vault_id       = azurerm_key_vault.test.id
+  tenant_id          = data.azurerm_client_config.current.tenant_id
+  object_id          = data.azurerm_client_config.current.object_id
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
@@ -209,8 +210,8 @@ func testAccAzureRMMySQLServerKey_basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_mysql_server_key" "test" {
-server_id = azurerm_mysql_server.test.id
-key_vault_key_id = azurerm_key_vault_key.first.id
+  server_id        = azurerm_mysql_server.test.id
+  key_vault_key_id = azurerm_key_vault_key.first.id
 }
 `, template)
 }
@@ -221,8 +222,8 @@ func testAccAzureRMMySQLServerKey_requiresImport(data acceptance.TestData) strin
 %s
 
 resource "azurerm_mysql_server_key" "import" {
-server_id = azurerm_mysql_server_key.test.server_id
-key_vault_key_id = azurerm_mysql_server_key.test.key_vault_key_id
+  server_id        = azurerm_mysql_server_key.test.server_id
+  key_vault_key_id = azurerm_mysql_server_key.test.key_vault_key_id
 }
 `, template)
 }

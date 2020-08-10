@@ -21,27 +21,27 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                = "examplekv"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
+  name                     = "examplekv"
+  location                 = azurerm_resource_group.example.location
+  resource_group_name      = azurerm_resource_group.example.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "premium"
   soft_delete_enabled      = true
   purge_protection_enabled = true
 }
 
 resource "azurerm_key_vault_access_policy" "server" {
-  key_vault_id = azurerm_key_vault.example.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = azurerm_mysql_server.example.identity.0.principal_id
+  key_vault_id       = azurerm_key_vault.example.id
+  tenant_id          = data.azurerm_client_config.current.tenant_id
+  object_id          = azurerm_mysql_server.example.identity.0.principal_id
   key_permissions    = ["get", "unwrapkey", "wrapkey"]
   secret_permissions = ["get"]
 }
 
 resource "azurerm_key_vault_access_policy" "client" {
-  key_vault_id = azurerm_key_vault.example.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
+  key_vault_id       = azurerm_key_vault.example.id
+  tenant_id          = data.azurerm_client_config.current.tenant_id
+  object_id          = data.azurerm_client_config.current.object_id
   key_permissions    = ["get", "create", "delete", "list", "restore", "recover", "unwrapkey", "wrapkey", "purge", "encrypt", "decrypt", "sign", "verify"]
   secret_permissions = ["get"]
 }
