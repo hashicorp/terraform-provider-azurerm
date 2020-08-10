@@ -46,6 +46,11 @@ func enhancedValidation(i interface{}, k string) ([]string, []error) {
 		}
 
 		if !found {
+			// Some resources use a location named "global".
+			if normalizedUserInput == "global" {
+				return nil, nil
+			}
+
 			locations := strings.Join(*supportedLocations, ",")
 			return nil, []error{
 				fmt.Errorf("%q was not found in the list of supported Azure Locations: %q", normalizedUserInput, locations),
