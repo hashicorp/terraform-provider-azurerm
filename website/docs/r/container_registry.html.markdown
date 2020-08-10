@@ -14,8 +14,6 @@ Manages an Azure Container Registry.
 ~> **Note:** All arguments including the access key will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
--> **Note:** The `storage_account_id` is no longer updatable since API version `2019-12-01-preview`. If you are using a container registry with `Classical` sku, changing the `storage_account_id` would result in a replacement of the container registry.
-
 ## Example Usage
 
 ```hcl
