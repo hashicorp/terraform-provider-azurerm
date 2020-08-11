@@ -33,38 +33,29 @@ resource "azurerm_network_interface" "example" {
   }
 }
 
-resource "azurerm_virtual_machine" "example" {
-  name                  = "${var.prefix}-vm"
-  location              = azurerm_resource_group.example.location
-  resource_group_name   = azurerm_resource_group.example.name
-  network_interface_ids = [azurerm_network_interface.example.id]
-  vm_size               = "Standard_B1s"
+resource "azurerm_linux_virtual_machine" "example" {
+  name                            = "${var.prefix}-vm"
+  resource_group_name             = azurerm_resource_group.example.name
+  location                        = azurerm_resource_group.example.location
+  size                            = "Standard_B1s"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssw0rd1234!"
+  disable_password_authentication = false
 
-  delete_os_disk_on_termination    = true
-  delete_data_disks_on_termination = true
+  network_interface_ids = [
+    azurerm_network_interface.example.id,
+  ]
 
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
+    sku       = "16.04-LTS"
     version   = "latest"
   }
 
-  storage_os_disk {
-    name              = "sodtest06-osdisk"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "${var.prefix}-vm"
-    admin_username = "adminuser"
-    admin_password = "#PassWord2020"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
   }
 }
 
@@ -72,7 +63,7 @@ resource "azurerm_network_interface_application_security_group_association" "exa
   network_interface_id          = azurerm_network_interface.example.id
   application_security_group_id = azurerm_application_security_group.example.id
 
-  depends_on = [azurerm_virtual_machine.example]
+  depends_on = [azurerm_linux_virtual_machine.example]
 }
 
 resource "azurerm_network_security_group" "example" {
@@ -85,14 +76,14 @@ resource "azurerm_virtual_network" "example" {
   name                = "${var.prefix}-vnet"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  address_space       = ["23.0.0.0/8"]
+  address_space       = ["10.0.0.0/8"]
 }
 
 resource "azurerm_subnet" "example" {
   name                 = "${var.prefix}-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["23.0.1.0/24"]
+  address_prefixes     = ["10.0.1.0/24"]
 }
 
 resource "azurerm_network_security_rule" "example" {
