@@ -3,8 +3,9 @@
 
 FEATURES:
 
-* **New Resource:** `azurerm_redis_linked_server` [GH-8026]
 * **New Resource:** `azurerm_integration_service_environment` [GH-7763]
+* **New Resource:** `azurerm_redis_linked_server` [GH-8026]
+* **New Resource:** `azurerm_synapse_firewall_rule` [GH-7904]
 
 IMPROVEMENTS:
 
