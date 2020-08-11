@@ -183,7 +183,7 @@ func resourceArmMySQLServerKeyDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("deleting MySQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
 	}
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of MySQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName)
+		return fmt.Errorf("waiting for deletion of MySQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
 	}
 
 	return nil
