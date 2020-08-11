@@ -218,11 +218,14 @@ func expandHDInsightRoles(input []interface{}, definition hdInsightRoleDefinitio
 
 	if definition.KafkaManagementNodeDef != nil {
 		kafkaManagementNodeRaw := v["kafka_management_node"].([]interface{})
-		kafkaManagementNode, err := azure.ExpandHDInsightNodeDefinition("kafkamanagementnode", kafkaManagementNodeRaw, *definition.KafkaManagementNodeDef)
-		if err != nil {
-			return nil, fmt.Errorf("Error expanding `kafka_management_node`: %+v", err)
+		// "kafka_management_node" is optional, we expand it only when user has specified it.
+		if len(kafkaManagementNodeRaw) != 0 {
+			kafkaManagementNode, err := azure.ExpandHDInsightNodeDefinition("kafkamanagementnode", kafkaManagementNodeRaw, *definition.KafkaManagementNodeDef)
+			if err != nil {
+				return nil, fmt.Errorf("Error expanding `kafka_management_node`: %+v", err)
+			}
+			roles = append(roles, *kafkaManagementNode)
 		}
-		roles = append(roles, *kafkaManagementNode)
 	}
 
 	return &roles, nil
