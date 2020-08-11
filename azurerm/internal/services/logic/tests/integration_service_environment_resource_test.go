@@ -258,7 +258,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-ise-%d"
+  name     = "acctestRG-logic-%d"
   location = "%s"
 }
 
