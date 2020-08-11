@@ -18,6 +18,7 @@ BUG FIXES:
 * Data Source: `azurerm_api_management_user` - `user_id` now accepts single characters [GH-7975]
 * `azurerm_application_gateway` - enforce case for the `rule_type` property [GH-8061]
 * `azurerm_iothub_consumer_group` - locking during creation and deletion to workaround an API issue [GH-8041]
+* `azurerm_mysql_server` - prevent a non empty plan when using `threat_detection_policy` [GH-7981]
 * `azurerm_linux_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]
 * `azurerm_orchestrated_virtual_machine_scale_set` - allow `single_placement_group` to be `true` [GH-7821]
 * `azurerm_traffic_manager_profile` - updating no longer clears all endpoints [GH-7846]
