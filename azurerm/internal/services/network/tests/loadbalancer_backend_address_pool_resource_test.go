@@ -2,6 +2,8 @@ package tests
 
 import (
 	"fmt"
+	"os"
+	"regexp"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
@@ -35,6 +37,81 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_basic(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMLoadBalancerBackEndAddressPool_standard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+
+	var lb network.LoadBalancer
+	addressPoolName := fmt.Sprintf("%d-address-pool", data.RandomInteger)
+
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	backendAddressPoolId := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
+		subscriptionID, data.RandomInteger, data.RandomInteger, addressPoolName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerBackEndAddressPool_standard(data, addressPoolName, "Standard"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
+					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
+					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "ip_address.#", "2"),
+					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "ip_address.0.name", "addr-1"),
+					resource.TestCheckResourceAttrSet("azurerm_lb_backend_address_pool.test", "ip_address.0.virtual_network_id"),
+					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "ip_address.0.ip_address", "10.0.1.4"),
+					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "ip_address.1.name", "addr-2"),
+					resource.TestCheckResourceAttrSet("azurerm_lb_backend_address_pool.test", "ip_address.1.virtual_network_id"),
+					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "ip_address.1.ip_address", "10.0.1.5"),
+				),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLoadBalancerBackEndAddressPool_standard_wrongSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+
+	var lb network.LoadBalancer
+	addressPoolName := fmt.Sprintf("%d-address-pool", data.RandomInteger)
+
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	backendAddressPoolId := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
+		subscriptionID, data.RandomInteger, data.RandomInteger, addressPoolName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerBackEndAddressPool_standard(data, addressPoolName, "Basic"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
+					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
+				),
+				ExpectError: regexp.MustCompile("LoadBalancer uses Basic Sku and cannot"),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancerBackEndAddressPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
 
@@ -74,6 +151,28 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_removal(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMLoadBalancerBackEndAddressPool_removal(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+					testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName, &lb),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLoadBalancerBackEndAddressPool_standard_removal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+
+	var lb network.LoadBalancer
+	addressPoolName := fmt.Sprintf("%d-address-pool", data.RandomInteger)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerBackEndAddressPool_standard_removal(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerBackEndAddressPoolNotExists(addressPoolName, &lb),
@@ -162,6 +261,70 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 	}
 }
 
+func testAccAzureRMLoadBalancerBackEndAddressPool_standard(data acceptance.TestData, addressPoolName string, sku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+	features {}
+}
+
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+	name                = "test-ip-%d"
+	sku					= "%s"
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
+	allocation_method   = "Static"
+}
+
+resource "azurerm_virtual_network" "test" {
+	name                = "acctestvirtnet-%d"
+	address_space       = ["10.0.0.0/16"]
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
+
+	subnet {
+		name           = "subnet1"
+		address_prefix = "10.0.1.0/24"
+	}
+}
+
+resource "azurerm_lb" "test" {
+	name                = "arm-test-loadbalancer-%d"
+	sku                 = "%s"
+	location            = azurerm_resource_group.test.location
+	resource_group_name = azurerm_resource_group.test.name
+
+	frontend_ip_configuration {
+		name                 = "one-%d"
+		public_ip_address_id = azurerm_public_ip.test.id
+	}
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+	name = "%s"
+	resource_group_name = azurerm_resource_group.test.name
+	loadbalancer_id = azurerm_lb.test.id
+
+	ip_address {
+		name = "addr-1"
+		virtual_network_id = azurerm_virtual_network.test.id
+		ip_address = "10.0.1.4"
+	}
+
+	ip_address {
+		name = "addr-2"
+		virtual_network_id = azurerm_virtual_network.test.id
+		ip_address = "10.0.1.5"
+	}
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, data.RandomInteger, data.RandomInteger, sku, data.RandomInteger, addressPoolName)
+}
+
 func testAccAzureRMLoadBalancerBackEndAddressPool_basic(data acceptance.TestData, addressPoolName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -232,6 +395,39 @@ resource "azurerm_public_ip" "test" {
 
 resource "azurerm_lb" "test" {
   name                = "arm-test-loadbalancer-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMLoadBalancerBackEndAddressPool_standard_removal(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%d"
+  sku                 = "Standard"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "arm-test-loadbalancer-%d"
+  sku                 = "Standard"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
