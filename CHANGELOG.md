@@ -1,13 +1,37 @@
 ## 2.23.0 (Unreleased)
 
+
+FEATURES:
+
+* **New Resource:** `azurerm_redis_linked_server` [GH-8026]
+
 IMPROVEMENTS:
 
 * `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover [GH-5688]
 * `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type [GH-7890]
 
+ENHANCEMENTS:
+
+* dependencies: updating `mysql` to `2020-01-01` [GH-8062]
+* dependencies: updating `postgresql` to `2020-01-01` [GH-8045]
+* `azurerm_eventhub_namespace` - support for the `identity` block [GH-8065]
+* `azurerm_postgresql_server` - support for the `identity` block [GH-8044]
+
 BUG FIXES:
 
 * All resources using a `location` field - allowing the value `global` when using enhanced validation [GH-8042]
+* Data Source: `azurerm_api_management_user` - `user_id` now accepts single characters [GH-7975]
+* `azurerm_application_gateway` - enforce case for the `rule_type` property [GH-8061]
+* `azurerm_iothub_consumer_group` - lock during creation and deletion to workaround an API issue [GH-8041]
+* `azurerm_iothub` - the `endpoint` and `route` lists can now be cleared by setting them to `[]` [GH-8028]
+* `azurerm_linux_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]
+* `azurerm_monitor_metric_alert_resource` - continue using `SingleResourceMultiMetricCriteria` for existing alerts [GH-7995]
+* `azurerm_mysql_server` - prevent a non empty plan when using `threat_detection_policy` [GH-7981]
+* `azurerm_orchestrated_virtual_machine_scale_set` - allow `single_placement_group` to be `true` [GH-7821]
+* `azurerm_mysql_server` - support for the `identity` block [GH-8059]
+* `azurerm_traffic_manager_profile` - updating no longer clears all endpoints [GH-7846]
+* `azurerm_windows_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]'
+* `azurerm_data_factory_dataset_delimited_text` - fix issue with property `azure_blob_storage_account` [GH-7953]
 
 ## 2.22.0 (August 07, 2020)
 
