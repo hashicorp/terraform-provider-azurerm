@@ -35,6 +35,8 @@ output "postgresql_server_id" {
 
 * `fqdn` - The fully qualified domain name of the PostgreSQL Server.
 
+* `identity` - An `identity` block as defined below.
+
 * `version` - The version of the PostgreSQL Server.
 
 * `administrator_login` - The administrator username of the PostgreSQL Server.
@@ -42,6 +44,16 @@ output "postgresql_server_id" {
 * `sku_name` - The SKU name of the PostgreSQL Server.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The ID of the System Managed Service Principal assigned to the PostgreSQL Server.
+
+* `tenant_id` - The ID of the Tenant of the System Managed Service Principal assigned to the PostgreSQL Server.
+
+* `type` - The identity type of the Managed Identity assigned to the PostgreSQL Server.
 
 ## Timeouts
 
