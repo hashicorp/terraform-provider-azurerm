@@ -1,4 +1,4 @@
-package common
+package locks
 
 import (
 	"reflect"
@@ -30,7 +30,7 @@ func TestRemoveDuplicatesInStringArray(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
-			if !reflect.DeepEqual(RemoveDuplicatesFromStringArray(tc.Input), tc.Result) {
+			if !reflect.DeepEqual(removeDuplicatesFromStringArray(tc.Input), tc.Result) {
 				t.Fatalf("Expected TestRemoveDuplicatesInStringArray to return %v", tc.Result)
 			}
 		})

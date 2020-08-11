@@ -1,7 +1,7 @@
-package common
+package locks
 
 // Remove duplicates from the input array and return unify array (without duplicated elements)
-func RemoveDuplicatesFromStringArray(elements []string) []string {
+func removeDuplicatesFromStringArray(elements []string) []string {
 	visited := map[string]bool{}
 	result := []string{}
 

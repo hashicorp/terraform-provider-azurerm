@@ -35,7 +35,7 @@ func UnlockByName(name string, resourceType string) {
 }
 
 func UnlockMultipleByName(names *[]string, resourceType string) {
-	newSlice := common.RemoveDuplicatesFromStringArray(*names)
+	newSlice := removeDuplicatesFromStringArray(*names)
 
 	for _, name := range newSlice {
 		UnlockByName(name, resourceType)
