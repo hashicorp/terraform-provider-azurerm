@@ -6,11 +6,15 @@ import (
 )
 
 type Client struct {
+	FirewallRulesClient      *synapse.IPFirewallRulesClient
 	WorkspaceClient          *synapse.WorkspacesClient
 	WorkspaceAadAdminsClient *synapse.WorkspaceAadAdminsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
+	firewallRuleClient := synapse.NewIPFirewallRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&firewallRuleClient.Client, o.ResourceManagerAuthorizer)
+
 	workspaceClient := synapse.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&workspaceClient.Client, o.ResourceManagerAuthorizer)
 
@@ -18,6 +22,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&workspaceAadAdminsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		FirewallRulesClient:      &firewallRuleClient,
 		WorkspaceClient:          &workspaceClient,
 		WorkspaceAadAdminsClient: &workspaceAadAdminsClient,
 	}
