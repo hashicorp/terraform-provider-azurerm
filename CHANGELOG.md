@@ -1,5 +1,10 @@
 ## 2.23.0 (Unreleased)
 
+
+FEATURES:
+
+* **New Resource:** `azurerm_redis_linked_server` [GH-8026]
+
 IMPROVEMENTS:
 
 * `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover [GH-5688]
