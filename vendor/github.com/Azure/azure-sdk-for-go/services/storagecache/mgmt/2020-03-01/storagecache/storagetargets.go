@@ -48,8 +48,10 @@ func NewStorageTargetsClientWithBaseURI(baseURI string, subscriptionID string) S
 // unhealthy, the actual creation/modification of the Storage Target may be delayed until the Cache is healthy again.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
-// storageTargetName - name of the Storage Target.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
+// storageTargetName - name of the Storage Target. Length of name must be not greater than 80 and chars must be
+// in list of [-0-9a-zA-Z_] char class.
 // storagetarget - object containing the definition of a Storage Target.
 func (client StorageTargetsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string, storagetarget *StorageTarget) (result StorageTargetsCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
@@ -64,15 +66,15 @@ func (client StorageTargetsClient) CreateOrUpdate(ctx context.Context, resourceG
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
 		{TargetValue: storageTargetName,
-			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
 		{TargetValue: storagetarget,
 			Constraints: []validation.Constraint{{Target: "storagetarget", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties", Name: validation.Null, Rule: false,
-					Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3", Name: validation.Null, Rule: false,
-						Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3.Target", Name: validation.Null, Rule: false,
-							Chain: []validation.Constraint{{Target: "storagetarget.StorageTargetProperties.Nfs3.Target", Name: validation.Pattern, Rule: `^[-.0-9a-zA-Z]+$`, Chain: nil}}},
+				Chain: []validation.Constraint{{Target: "storagetarget.BasicStorageTargetProperties", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "storagetarget.BasicStorageTargetProperties.Nfs3", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "storagetarget.BasicStorageTargetProperties.Nfs3.Target", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "storagetarget.BasicStorageTargetProperties.Nfs3.Target", Name: validation.Pattern, Rule: `^[-.0-9a-zA-Z]+$`, Chain: nil}}},
 						}},
 					}},
 				}}}}}); err != nil {
@@ -103,14 +105,11 @@ func (client StorageTargetsClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
-	storagetarget.Name = nil
-	storagetarget.ID = nil
-	storagetarget.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -154,7 +153,8 @@ func (client StorageTargetsClient) CreateOrUpdateResponder(resp *http.Response) 
 // deleted.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 // storageTargetName - name of Storage Target.
 func (client StorageTargetsClient) Delete(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string) (result StorageTargetsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
@@ -169,9 +169,9 @@ func (client StorageTargetsClient) Delete(ctx context.Context, resourceGroupName
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
 		{TargetValue: storageTargetName,
-			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.StorageTargetsClient", "Delete", err.Error())
 	}
 
@@ -199,7 +199,7 @@ func (client StorageTargetsClient) DeletePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -239,8 +239,10 @@ func (client StorageTargetsClient) DeleteResponder(resp *http.Response) (result 
 // Get returns a Storage Target from a Cache.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
-// storageTargetName - name of the Storage Target.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
+// storageTargetName - name of the Storage Target. Length of name must be not greater than 80 and chars must be
+// in list of [-0-9a-zA-Z_] char class.
 func (client StorageTargetsClient) Get(ctx context.Context, resourceGroupName string, cacheName string, storageTargetName string) (result StorageTarget, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StorageTargetsClient.Get")
@@ -254,9 +256,9 @@ func (client StorageTargetsClient) Get(ctx context.Context, resourceGroupName st
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
 		{TargetValue: storageTargetName,
-			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "storageTargetName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.StorageTargetsClient", "Get", err.Error())
 	}
 
@@ -290,7 +292,7 @@ func (client StorageTargetsClient) GetPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -324,7 +326,8 @@ func (client StorageTargetsClient) GetResponder(resp *http.Response) (result Sto
 // ListByCache returns a list of Storage Targets for the specified Cache.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 func (client StorageTargetsClient) ListByCache(ctx context.Context, resourceGroupName string, cacheName string) (result StorageTargetsResultPage, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/StorageTargetsClient.ListByCache")
@@ -338,7 +341,7 @@ func (client StorageTargetsClient) ListByCache(ctx context.Context, resourceGrou
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.StorageTargetsClient", "ListByCache", err.Error())
 	}
 
@@ -372,7 +375,7 @@ func (client StorageTargetsClient) ListByCachePreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

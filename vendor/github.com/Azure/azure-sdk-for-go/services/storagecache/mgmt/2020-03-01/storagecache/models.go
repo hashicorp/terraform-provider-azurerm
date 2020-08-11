@@ -29,7 +29,22 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2019-11-01/storagecache"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-03-01/storagecache"
+
+// CacheIdentityType enumerates the values for cache identity type.
+type CacheIdentityType string
+
+const (
+	// None ...
+	None CacheIdentityType = "None"
+	// SystemAssigned ...
+	SystemAssigned CacheIdentityType = "SystemAssigned"
+)
+
+// PossibleCacheIdentityTypeValues returns an array of possible values for the CacheIdentityType const type.
+func PossibleCacheIdentityTypeValues() []CacheIdentityType {
+	return []CacheIdentityType{None, SystemAssigned}
+}
 
 // FirmwareStatusType enumerates the values for firmware status type.
 type FirmwareStatusType string
@@ -128,6 +143,25 @@ const (
 // PossibleStorageTargetTypeValues returns an array of possible values for the StorageTargetType const type.
 func PossibleStorageTargetTypeValues() []StorageTargetType {
 	return []StorageTargetType{StorageTargetTypeClfs, StorageTargetTypeNfs3, StorageTargetTypeUnknown}
+}
+
+// TargetBaseType enumerates the values for target base type.
+type TargetBaseType string
+
+const (
+	// TargetBaseTypeClfs ...
+	TargetBaseTypeClfs TargetBaseType = "clfs"
+	// TargetBaseTypeNfs3 ...
+	TargetBaseTypeNfs3 TargetBaseType = "nfs3"
+	// TargetBaseTypeStorageTargetProperties ...
+	TargetBaseTypeStorageTargetProperties TargetBaseType = "StorageTargetProperties"
+	// TargetBaseTypeUnknown ...
+	TargetBaseTypeUnknown TargetBaseType = "unknown"
+)
+
+// PossibleTargetBaseTypeValues returns an array of possible values for the TargetBaseType const type.
+func PossibleTargetBaseTypeValues() []TargetBaseType {
+	return []TargetBaseType{TargetBaseTypeClfs, TargetBaseTypeNfs3, TargetBaseTypeStorageTargetProperties, TargetBaseTypeUnknown}
 }
 
 // APIOperation REST API operation description: see
@@ -296,6 +330,23 @@ func NewAPIOperationListResultPage(getNextPage func(context.Context, APIOperatio
 	return APIOperationListResultPage{fn: getNextPage}
 }
 
+// AscOperation the status of operation.
+type AscOperation struct {
+	autorest.Response `json:"-"`
+	// ID - The operation Id.
+	ID *string `json:"id,omitempty"`
+	// Name - The operation name.
+	Name *string `json:"name,omitempty"`
+	// StartTime - The start time of the operation.
+	StartTime *string `json:"startTime,omitempty"`
+	// EndTime - The end time of the operation.
+	EndTime *string `json:"endTime,omitempty"`
+	// Status - The status of the operation.
+	Status *string `json:"status,omitempty"`
+	// Error - The error detail of the operation if any.
+	Error *ErrorResponse `json:"error,omitempty"`
+}
+
 // Cache a Cache instance. Follows Azure Resource Manager standards:
 // https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/resource-api-reference.md
 type Cache struct {
@@ -310,6 +361,8 @@ type Cache struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; Type of the Cache; Microsoft.StorageCache/Cache
 	Type *string `json:"type,omitempty"`
+	// Identity - The identity of the cache, if configured.
+	Identity *CacheIdentity `json:"identity,omitempty"`
 	// CacheProperties - Properties of the Cache.
 	*CacheProperties `json:"properties,omitempty"`
 	// Sku - SKU for the Cache.
@@ -324,6 +377,9 @@ func (c Cache) MarshalJSON() ([]byte, error) {
 	}
 	if c.Location != nil {
 		objectMap["location"] = c.Location
+	}
+	if c.Identity != nil {
+		objectMap["identity"] = c.Identity
 	}
 	if c.CacheProperties != nil {
 		objectMap["properties"] = c.CacheProperties
@@ -388,6 +444,15 @@ func (c *Cache) UnmarshalJSON(body []byte) error {
 				}
 				c.Type = &typeVar
 			}
+		case "identity":
+			if v != nil {
+				var identity CacheIdentity
+				err = json.Unmarshal(*v, &identity)
+				if err != nil {
+					return err
+				}
+				c.Identity = &identity
+			}
 		case "properties":
 			if v != nil {
 				var cacheProperties CacheProperties
@@ -412,6 +477,12 @@ func (c *Cache) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// CacheEncryptionSettings cache encryption settings.
+type CacheEncryptionSettings struct {
+	// KeyEncryptionKey - Specifies the location of the key encryption key in Key Vault.
+	KeyEncryptionKey *KeyVaultKeyReference `json:"keyEncryptionKey,omitempty"`
+}
+
 // CacheHealth an indication of Cache health. Gives more information about health than just that related to
 // provisioning.
 type CacheHealth struct {
@@ -419,6 +490,24 @@ type CacheHealth struct {
 	State HealthStateType `json:"state,omitempty"`
 	// StatusDescription - Describes explanation of state.
 	StatusDescription *string `json:"statusDescription,omitempty"`
+}
+
+// CacheIdentity cache identity properties.
+type CacheIdentity struct {
+	// PrincipalID - READ-ONLY; The principal id of the cache.
+	PrincipalID *string `json:"principalId,omitempty"`
+	// TenantID - READ-ONLY; The tenant id associated with the cache.
+	TenantID *string `json:"tenantId,omitempty"`
+	// Type - The type of identity used for the cache. Possible values include: 'SystemAssigned', 'None'
+	Type CacheIdentityType `json:"type,omitempty"`
+}
+
+// CacheNetworkSettings cache network settings.
+type CacheNetworkSettings struct {
+	// Mtu - The IPv4 maximum transmission unit configured for the subnet.
+	Mtu *int32 `json:"mtu,omitempty"`
+	// UtilityAddresses - READ-ONLY; Array of additional IP addresses used by this Cache.
+	UtilityAddresses *[]string `json:"utilityAddresses,omitempty"`
 }
 
 // CacheProperties properties of the Cache.
@@ -435,6 +524,12 @@ type CacheProperties struct {
 	Subnet *string `json:"subnet,omitempty"`
 	// UpgradeStatus - Upgrade status of the Cache.
 	UpgradeStatus *CacheUpgradeStatus `json:"upgradeStatus,omitempty"`
+	// NetworkSettings - Specifies network settings of the cache.
+	NetworkSettings *CacheNetworkSettings `json:"networkSettings,omitempty"`
+	// EncryptionSettings - Specifies encryption settings of the cache.
+	EncryptionSettings *CacheEncryptionSettings `json:"encryptionSettings,omitempty"`
+	// SecuritySettings - Specifies security settings of the cache.
+	SecuritySettings *CacheSecuritySettings `json:"securitySettings,omitempty"`
 }
 
 // CachesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -492,6 +587,12 @@ func (future *CachesDeleteFuture) Result(client CachesClient) (so SetObject, err
 		}
 	}
 	return
+}
+
+// CacheSecuritySettings cache security settings.
+type CacheSecuritySettings struct {
+	// RootSquash - root squash of cache property.
+	RootSquash *bool `json:"rootSquash,omitempty"`
 }
 
 // CachesFlushFuture an abstraction for monitoring and retrieving the results of a long-running operation.
@@ -774,10 +875,81 @@ type CacheUpgradeStatus struct {
 	PendingFirmwareVersion *string `json:"pendingFirmwareVersion,omitempty"`
 }
 
-// ClfsTarget storage container for use as a CLFS Storage Target.
+// ClfsTarget properties pertained to ClfsTarget
 type ClfsTarget struct {
 	// Target - Resource ID of storage container.
 	Target *string `json:"target,omitempty"`
+}
+
+// ClfsTargetProperties storage container for use as a CLFS Storage Target.
+type ClfsTargetProperties struct {
+	// Junctions - List of Cache namespace junctions to target for namespace associations.
+	Junctions *[]NamespaceJunction `json:"junctions,omitempty"`
+	// TargetType - Type of the Storage Target.
+	TargetType *string `json:"targetType,omitempty"`
+	// ProvisioningState - ARM provisioning state, see https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/Addendum.md#provisioningstate-property. Possible values include: 'Succeeded', 'Failed', 'Cancelled', 'Creating', 'Deleting', 'Updating'
+	ProvisioningState ProvisioningStateType `json:"provisioningState,omitempty"`
+	// Nfs3 - Properties when targetType is nfs3.
+	Nfs3 *Nfs3Target `json:"nfs3,omitempty"`
+	// Clfs - Properties when targetType is clfs.
+	Clfs *ClfsTarget `json:"clfs,omitempty"`
+	// Unknown - Properties when targetType is unknown.
+	Unknown *UnknownTarget `json:"unknown,omitempty"`
+	// TargetBaseType - Possible values include: 'TargetBaseTypeStorageTargetProperties', 'TargetBaseTypeNfs3', 'TargetBaseTypeClfs', 'TargetBaseTypeUnknown'
+	TargetBaseType TargetBaseType `json:"targetBaseType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ClfsTargetProperties.
+func (ctp ClfsTargetProperties) MarshalJSON() ([]byte, error) {
+	ctp.TargetBaseType = TargetBaseTypeClfs
+	objectMap := make(map[string]interface{})
+	if ctp.Junctions != nil {
+		objectMap["junctions"] = ctp.Junctions
+	}
+	if ctp.TargetType != nil {
+		objectMap["targetType"] = ctp.TargetType
+	}
+	if ctp.ProvisioningState != "" {
+		objectMap["provisioningState"] = ctp.ProvisioningState
+	}
+	if ctp.Nfs3 != nil {
+		objectMap["nfs3"] = ctp.Nfs3
+	}
+	if ctp.Clfs != nil {
+		objectMap["clfs"] = ctp.Clfs
+	}
+	if ctp.Unknown != nil {
+		objectMap["unknown"] = ctp.Unknown
+	}
+	if ctp.TargetBaseType != "" {
+		objectMap["targetBaseType"] = ctp.TargetBaseType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNfs3TargetProperties is the BasicStorageTargetProperties implementation for ClfsTargetProperties.
+func (ctp ClfsTargetProperties) AsNfs3TargetProperties() (*Nfs3TargetProperties, bool) {
+	return nil, false
+}
+
+// AsClfsTargetProperties is the BasicStorageTargetProperties implementation for ClfsTargetProperties.
+func (ctp ClfsTargetProperties) AsClfsTargetProperties() (*ClfsTargetProperties, bool) {
+	return &ctp, true
+}
+
+// AsUnknownTargetProperties is the BasicStorageTargetProperties implementation for ClfsTargetProperties.
+func (ctp ClfsTargetProperties) AsUnknownTargetProperties() (*UnknownTargetProperties, bool) {
+	return nil, false
+}
+
+// AsStorageTargetProperties is the BasicStorageTargetProperties implementation for ClfsTargetProperties.
+func (ctp ClfsTargetProperties) AsStorageTargetProperties() (*StorageTargetProperties, bool) {
+	return nil, false
+}
+
+// AsBasicStorageTargetProperties is the BasicStorageTargetProperties implementation for ClfsTargetProperties.
+func (ctp ClfsTargetProperties) AsBasicStorageTargetProperties() (BasicStorageTargetProperties, bool) {
+	return &ctp, true
 }
 
 // CloudError an error response.
@@ -798,6 +970,28 @@ type CloudErrorBody struct {
 	Target *string `json:"target,omitempty"`
 }
 
+// ErrorResponse describes the format of Error response.
+type ErrorResponse struct {
+	// Code - Error code
+	Code *string `json:"code,omitempty"`
+	// Message - Error message indicating why the operation failed.
+	Message *string `json:"message,omitempty"`
+}
+
+// KeyVaultKeyReference describes a reference to Key Vault Key.
+type KeyVaultKeyReference struct {
+	// KeyURL - The URL referencing a key encryption key in Key Vault.
+	KeyURL *string `json:"keyUrl,omitempty"`
+	// SourceVault - Describes a resource Id to source Key Vault.
+	SourceVault *KeyVaultKeyReferenceSourceVault `json:"sourceVault,omitempty"`
+}
+
+// KeyVaultKeyReferenceSourceVault describes a resource Id to source Key Vault.
+type KeyVaultKeyReferenceSourceVault struct {
+	// ID - Resource Id.
+	ID *string `json:"id,omitempty"`
+}
+
 // NamespaceJunction a namespace junction.
 type NamespaceJunction struct {
 	// NamespacePath - Namespace path on a Cache for a Storage Target.
@@ -808,12 +1002,83 @@ type NamespaceJunction struct {
 	NfsExport *string `json:"nfsExport,omitempty"`
 }
 
-// Nfs3Target an NFSv3 mount point for use as a Storage Target.
+// Nfs3Target properties pertained to Nfs3Target
 type Nfs3Target struct {
 	// Target - IP address or host name of an NFSv3 host (e.g., 10.0.44.44).
 	Target *string `json:"target,omitempty"`
 	// UsageModel - Identifies the primary usage model to be used for this Storage Target. Get choices from .../usageModels
 	UsageModel *string `json:"usageModel,omitempty"`
+}
+
+// Nfs3TargetProperties an NFSv3 mount point for use as a Storage Target.
+type Nfs3TargetProperties struct {
+	// Junctions - List of Cache namespace junctions to target for namespace associations.
+	Junctions *[]NamespaceJunction `json:"junctions,omitempty"`
+	// TargetType - Type of the Storage Target.
+	TargetType *string `json:"targetType,omitempty"`
+	// ProvisioningState - ARM provisioning state, see https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/Addendum.md#provisioningstate-property. Possible values include: 'Succeeded', 'Failed', 'Cancelled', 'Creating', 'Deleting', 'Updating'
+	ProvisioningState ProvisioningStateType `json:"provisioningState,omitempty"`
+	// Nfs3 - Properties when targetType is nfs3.
+	Nfs3 *Nfs3Target `json:"nfs3,omitempty"`
+	// Clfs - Properties when targetType is clfs.
+	Clfs *ClfsTarget `json:"clfs,omitempty"`
+	// Unknown - Properties when targetType is unknown.
+	Unknown *UnknownTarget `json:"unknown,omitempty"`
+	// TargetBaseType - Possible values include: 'TargetBaseTypeStorageTargetProperties', 'TargetBaseTypeNfs3', 'TargetBaseTypeClfs', 'TargetBaseTypeUnknown'
+	TargetBaseType TargetBaseType `json:"targetBaseType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Nfs3TargetProperties.
+func (n3tp Nfs3TargetProperties) MarshalJSON() ([]byte, error) {
+	n3tp.TargetBaseType = TargetBaseTypeNfs3
+	objectMap := make(map[string]interface{})
+	if n3tp.Junctions != nil {
+		objectMap["junctions"] = n3tp.Junctions
+	}
+	if n3tp.TargetType != nil {
+		objectMap["targetType"] = n3tp.TargetType
+	}
+	if n3tp.ProvisioningState != "" {
+		objectMap["provisioningState"] = n3tp.ProvisioningState
+	}
+	if n3tp.Nfs3 != nil {
+		objectMap["nfs3"] = n3tp.Nfs3
+	}
+	if n3tp.Clfs != nil {
+		objectMap["clfs"] = n3tp.Clfs
+	}
+	if n3tp.Unknown != nil {
+		objectMap["unknown"] = n3tp.Unknown
+	}
+	if n3tp.TargetBaseType != "" {
+		objectMap["targetBaseType"] = n3tp.TargetBaseType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNfs3TargetProperties is the BasicStorageTargetProperties implementation for Nfs3TargetProperties.
+func (n3tp Nfs3TargetProperties) AsNfs3TargetProperties() (*Nfs3TargetProperties, bool) {
+	return &n3tp, true
+}
+
+// AsClfsTargetProperties is the BasicStorageTargetProperties implementation for Nfs3TargetProperties.
+func (n3tp Nfs3TargetProperties) AsClfsTargetProperties() (*ClfsTargetProperties, bool) {
+	return nil, false
+}
+
+// AsUnknownTargetProperties is the BasicStorageTargetProperties implementation for Nfs3TargetProperties.
+func (n3tp Nfs3TargetProperties) AsUnknownTargetProperties() (*UnknownTargetProperties, bool) {
+	return nil, false
+}
+
+// AsStorageTargetProperties is the BasicStorageTargetProperties implementation for Nfs3TargetProperties.
+func (n3tp Nfs3TargetProperties) AsStorageTargetProperties() (*StorageTargetProperties, bool) {
+	return nil, false
+}
+
+// AsBasicStorageTargetProperties is the BasicStorageTargetProperties implementation for Nfs3TargetProperties.
+func (n3tp Nfs3TargetProperties) AsBasicStorageTargetProperties() (BasicStorageTargetProperties, bool) {
+	return &n3tp, true
 }
 
 // ResourceSku a resource SKU.
@@ -1010,25 +1275,23 @@ type SetObject struct {
 	Value             interface{} `json:"value,omitempty"`
 }
 
-// StorageTarget a storage system being cached by a Cache.
+// StorageTarget type of the Storage Target.
 type StorageTarget struct {
 	autorest.Response `json:"-"`
+	// BasicStorageTargetProperties - StorageTarget properties
+	BasicStorageTargetProperties `json:"properties,omitempty"`
 	// Name - READ-ONLY; Name of the Storage Target.
 	Name *string `json:"name,omitempty"`
 	// ID - READ-ONLY; Resource ID of the Storage Target.
 	ID *string `json:"id,omitempty"`
 	// Type - READ-ONLY; Type of the Storage Target; Microsoft.StorageCache/Cache/StorageTarget
 	Type *string `json:"type,omitempty"`
-	// StorageTargetProperties - Properties of the Storage Target.
-	*StorageTargetProperties `json:"properties,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for StorageTarget.
 func (st StorageTarget) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if st.StorageTargetProperties != nil {
-		objectMap["properties"] = st.StorageTargetProperties
-	}
+	objectMap["properties"] = st.BasicStorageTargetProperties
 	return json.Marshal(objectMap)
 }
 
@@ -1041,6 +1304,14 @@ func (st *StorageTarget) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
+		case "properties":
+			if v != nil {
+				basicStorageTargetProperties, err := unmarshalBasicStorageTargetProperties(*v)
+				if err != nil {
+					return err
+				}
+				st.BasicStorageTargetProperties = basicStorageTargetProperties
+			}
 		case "name":
 			if v != nil {
 				var name string
@@ -1068,27 +1339,26 @@ func (st *StorageTarget) UnmarshalJSON(body []byte) error {
 				}
 				st.Type = &typeVar
 			}
-		case "properties":
-			if v != nil {
-				var storageTargetProperties StorageTargetProperties
-				err = json.Unmarshal(*v, &storageTargetProperties)
-				if err != nil {
-					return err
-				}
-				st.StorageTargetProperties = &storageTargetProperties
-			}
 		}
 	}
 
 	return nil
 }
 
+// BasicStorageTargetProperties properties of the Storage Target.
+type BasicStorageTargetProperties interface {
+	AsNfs3TargetProperties() (*Nfs3TargetProperties, bool)
+	AsClfsTargetProperties() (*ClfsTargetProperties, bool)
+	AsUnknownTargetProperties() (*UnknownTargetProperties, bool)
+	AsStorageTargetProperties() (*StorageTargetProperties, bool)
+}
+
 // StorageTargetProperties properties of the Storage Target.
 type StorageTargetProperties struct {
 	// Junctions - List of Cache namespace junctions to target for namespace associations.
 	Junctions *[]NamespaceJunction `json:"junctions,omitempty"`
-	// TargetType - Type of the Storage Target. Possible values include: 'StorageTargetTypeNfs3', 'StorageTargetTypeClfs', 'StorageTargetTypeUnknown'
-	TargetType StorageTargetType `json:"targetType,omitempty"`
+	// TargetType - Type of the Storage Target.
+	TargetType *string `json:"targetType,omitempty"`
 	// ProvisioningState - ARM provisioning state, see https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/Addendum.md#provisioningstate-property. Possible values include: 'Succeeded', 'Failed', 'Cancelled', 'Creating', 'Deleting', 'Updating'
 	ProvisioningState ProvisioningStateType `json:"provisioningState,omitempty"`
 	// Nfs3 - Properties when targetType is nfs3.
@@ -1097,6 +1367,116 @@ type StorageTargetProperties struct {
 	Clfs *ClfsTarget `json:"clfs,omitempty"`
 	// Unknown - Properties when targetType is unknown.
 	Unknown *UnknownTarget `json:"unknown,omitempty"`
+	// TargetBaseType - Possible values include: 'TargetBaseTypeStorageTargetProperties', 'TargetBaseTypeNfs3', 'TargetBaseTypeClfs', 'TargetBaseTypeUnknown'
+	TargetBaseType TargetBaseType `json:"targetBaseType,omitempty"`
+}
+
+func unmarshalBasicStorageTargetProperties(body []byte) (BasicStorageTargetProperties, error) {
+	var m map[string]interface{}
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return nil, err
+	}
+
+	switch m["targetBaseType"] {
+	case string(TargetBaseTypeNfs3):
+		var n3tp Nfs3TargetProperties
+		err := json.Unmarshal(body, &n3tp)
+		return n3tp, err
+	case string(TargetBaseTypeClfs):
+		var ctp ClfsTargetProperties
+		err := json.Unmarshal(body, &ctp)
+		return ctp, err
+	case string(TargetBaseTypeUnknown):
+		var utp UnknownTargetProperties
+		err := json.Unmarshal(body, &utp)
+		return utp, err
+	default:
+		var stp StorageTargetProperties
+		err := json.Unmarshal(body, &stp)
+		return stp, err
+	}
+}
+func unmarshalBasicStorageTargetPropertiesArray(body []byte) ([]BasicStorageTargetProperties, error) {
+	var rawMessages []*json.RawMessage
+	err := json.Unmarshal(body, &rawMessages)
+	if err != nil {
+		return nil, err
+	}
+
+	stpArray := make([]BasicStorageTargetProperties, len(rawMessages))
+
+	for index, rawMessage := range rawMessages {
+		stp, err := unmarshalBasicStorageTargetProperties(*rawMessage)
+		if err != nil {
+			return nil, err
+		}
+		stpArray[index] = stp
+	}
+	return stpArray, nil
+}
+
+// MarshalJSON is the custom marshaler for StorageTargetProperties.
+func (stp StorageTargetProperties) MarshalJSON() ([]byte, error) {
+	stp.TargetBaseType = TargetBaseTypeStorageTargetProperties
+	objectMap := make(map[string]interface{})
+	if stp.Junctions != nil {
+		objectMap["junctions"] = stp.Junctions
+	}
+	if stp.TargetType != nil {
+		objectMap["targetType"] = stp.TargetType
+	}
+	if stp.ProvisioningState != "" {
+		objectMap["provisioningState"] = stp.ProvisioningState
+	}
+	if stp.Nfs3 != nil {
+		objectMap["nfs3"] = stp.Nfs3
+	}
+	if stp.Clfs != nil {
+		objectMap["clfs"] = stp.Clfs
+	}
+	if stp.Unknown != nil {
+		objectMap["unknown"] = stp.Unknown
+	}
+	if stp.TargetBaseType != "" {
+		objectMap["targetBaseType"] = stp.TargetBaseType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNfs3TargetProperties is the BasicStorageTargetProperties implementation for StorageTargetProperties.
+func (stp StorageTargetProperties) AsNfs3TargetProperties() (*Nfs3TargetProperties, bool) {
+	return nil, false
+}
+
+// AsClfsTargetProperties is the BasicStorageTargetProperties implementation for StorageTargetProperties.
+func (stp StorageTargetProperties) AsClfsTargetProperties() (*ClfsTargetProperties, bool) {
+	return nil, false
+}
+
+// AsUnknownTargetProperties is the BasicStorageTargetProperties implementation for StorageTargetProperties.
+func (stp StorageTargetProperties) AsUnknownTargetProperties() (*UnknownTargetProperties, bool) {
+	return nil, false
+}
+
+// AsStorageTargetProperties is the BasicStorageTargetProperties implementation for StorageTargetProperties.
+func (stp StorageTargetProperties) AsStorageTargetProperties() (*StorageTargetProperties, bool) {
+	return &stp, true
+}
+
+// AsBasicStorageTargetProperties is the BasicStorageTargetProperties implementation for StorageTargetProperties.
+func (stp StorageTargetProperties) AsBasicStorageTargetProperties() (BasicStorageTargetProperties, bool) {
+	return &stp, true
+}
+
+// StorageTargetResource resource used by a Cache.
+type StorageTargetResource struct {
+	// Name - READ-ONLY; Name of the Storage Target.
+	Name *string `json:"name,omitempty"`
+	// ID - READ-ONLY; Resource ID of the Storage Target.
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; Type of the Storage Target; Microsoft.StorageCache/Cache/StorageTarget
+	Type *string `json:"type,omitempty"`
 }
 
 // StorageTargetsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -1303,7 +1683,7 @@ func NewStorageTargetsResultPage(getNextPage func(context.Context, StorageTarget
 	return StorageTargetsResultPage{fn: getNextPage}
 }
 
-// UnknownTarget storage container for use as an Unknown Storage Target.
+// UnknownTarget properties pertained to UnknownTarget
 type UnknownTarget struct {
 	// UnknownMap - Dictionary of string->string pairs containing information about the Storage Target.
 	UnknownMap map[string]*string `json:"unknownMap"`
@@ -1316,6 +1696,77 @@ func (ut UnknownTarget) MarshalJSON() ([]byte, error) {
 		objectMap["unknownMap"] = ut.UnknownMap
 	}
 	return json.Marshal(objectMap)
+}
+
+// UnknownTargetProperties storage container for use as an Unknown Storage Target.
+type UnknownTargetProperties struct {
+	// Junctions - List of Cache namespace junctions to target for namespace associations.
+	Junctions *[]NamespaceJunction `json:"junctions,omitempty"`
+	// TargetType - Type of the Storage Target.
+	TargetType *string `json:"targetType,omitempty"`
+	// ProvisioningState - ARM provisioning state, see https://github.com/Azure/azure-resource-manager-rpc/blob/master/v1.0/Addendum.md#provisioningstate-property. Possible values include: 'Succeeded', 'Failed', 'Cancelled', 'Creating', 'Deleting', 'Updating'
+	ProvisioningState ProvisioningStateType `json:"provisioningState,omitempty"`
+	// Nfs3 - Properties when targetType is nfs3.
+	Nfs3 *Nfs3Target `json:"nfs3,omitempty"`
+	// Clfs - Properties when targetType is clfs.
+	Clfs *ClfsTarget `json:"clfs,omitempty"`
+	// Unknown - Properties when targetType is unknown.
+	Unknown *UnknownTarget `json:"unknown,omitempty"`
+	// TargetBaseType - Possible values include: 'TargetBaseTypeStorageTargetProperties', 'TargetBaseTypeNfs3', 'TargetBaseTypeClfs', 'TargetBaseTypeUnknown'
+	TargetBaseType TargetBaseType `json:"targetBaseType,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for UnknownTargetProperties.
+func (utp UnknownTargetProperties) MarshalJSON() ([]byte, error) {
+	utp.TargetBaseType = TargetBaseTypeUnknown
+	objectMap := make(map[string]interface{})
+	if utp.Junctions != nil {
+		objectMap["junctions"] = utp.Junctions
+	}
+	if utp.TargetType != nil {
+		objectMap["targetType"] = utp.TargetType
+	}
+	if utp.ProvisioningState != "" {
+		objectMap["provisioningState"] = utp.ProvisioningState
+	}
+	if utp.Nfs3 != nil {
+		objectMap["nfs3"] = utp.Nfs3
+	}
+	if utp.Clfs != nil {
+		objectMap["clfs"] = utp.Clfs
+	}
+	if utp.Unknown != nil {
+		objectMap["unknown"] = utp.Unknown
+	}
+	if utp.TargetBaseType != "" {
+		objectMap["targetBaseType"] = utp.TargetBaseType
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsNfs3TargetProperties is the BasicStorageTargetProperties implementation for UnknownTargetProperties.
+func (utp UnknownTargetProperties) AsNfs3TargetProperties() (*Nfs3TargetProperties, bool) {
+	return nil, false
+}
+
+// AsClfsTargetProperties is the BasicStorageTargetProperties implementation for UnknownTargetProperties.
+func (utp UnknownTargetProperties) AsClfsTargetProperties() (*ClfsTargetProperties, bool) {
+	return nil, false
+}
+
+// AsUnknownTargetProperties is the BasicStorageTargetProperties implementation for UnknownTargetProperties.
+func (utp UnknownTargetProperties) AsUnknownTargetProperties() (*UnknownTargetProperties, bool) {
+	return &utp, true
+}
+
+// AsStorageTargetProperties is the BasicStorageTargetProperties implementation for UnknownTargetProperties.
+func (utp UnknownTargetProperties) AsStorageTargetProperties() (*StorageTargetProperties, bool) {
+	return nil, false
+}
+
+// AsBasicStorageTargetProperties is the BasicStorageTargetProperties implementation for UnknownTargetProperties.
+func (utp UnknownTargetProperties) AsBasicStorageTargetProperties() (BasicStorageTargetProperties, bool) {
+	return &utp, true
 }
 
 // UsageModel a usage model.

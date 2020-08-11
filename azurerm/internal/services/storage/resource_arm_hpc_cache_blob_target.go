@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2019-11-01/storagecache"
+	"github.com/Azure/azure-sdk-for-go/services/storagecache/mgmt/2020-03-01/storagecache"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -25,10 +25,10 @@ func resourceArmHPCCacheBlobTarget() *schema.Resource {
 		Read:   resourceArmHPCCacheBlobTargetRead,
 		Delete: resourceArmHPCCacheBlobTargetDelete,
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+		Importer: azSchema.ValidateResourceIDPriorToImportThen(func(id string) error {
 			_, err := parsers.HPCCacheTargetID(id)
 			return err
-		}),
+		}, importHpcCache(storagecache.StorageTargetTypeClfs)),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -104,9 +104,9 @@ func resourceArmHPCCacheBlobTargetCreateOrUpdate(d *schema.ResourceData, meta in
 		},
 	}
 	param := &storagecache.StorageTarget{
-		StorageTargetProperties: &storagecache.StorageTargetProperties{
+		BasicStorageTargetProperties: &storagecache.ClfsTargetProperties{
 			Junctions:  &namespaceJunction,
-			TargetType: storagecache.StorageTargetTypeClfs,
+			TargetType: utils.String(string(storagecache.StorageTargetTypeClfs)),
 			Clfs: &storagecache.ClfsTarget{
 				Target: utils.String(containerId),
 			},
@@ -161,7 +161,12 @@ func resourceArmHPCCacheBlobTargetRead(d *schema.ResourceData, meta interface{})
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("cache_name", id.Cache)
 
-	if props := resp.StorageTargetProperties; props != nil {
+	if props := resp.BasicStorageTargetProperties; props != nil {
+		props, ok := props.AsClfsTargetProperties()
+		if !ok {
+			return fmt.Errorf("The type of this HPC Cache Target %q (Resource Group %q, Cahe %q) is not a Blob Target", id.Name, id.ResourceGroup, id.Cache)
+		}
+
 		storageContainerId := ""
 		if props.Clfs != nil && props.Clfs.Target != nil {
 			storageContainerId = *props.Clfs.Target

@@ -1,4 +1,4 @@
-// Package storagecache implements the Azure ARM Storagecache service API version 2019-11-01.
+// Package storagecache implements the Azure ARM Storagecache service API version 2020-03-01.
 //
 // A Storage Cache provides scalable caching service for NAS clients, serving data from either NFSv3 or Blob at-rest
 // storage (referred to as "Storage Targets"). These operations allow you to manage Caches.

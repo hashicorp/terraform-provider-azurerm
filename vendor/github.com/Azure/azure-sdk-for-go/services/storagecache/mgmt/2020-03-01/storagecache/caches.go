@@ -46,7 +46,8 @@ func NewCachesClientWithBaseURI(baseURI string, subscriptionID string) CachesCli
 // CreateOrUpdate create or update a Cache.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 // cache - object containing the user-selectable properties of the new Cache. If read-only properties are
 // included, they must match the existing values of those properties.
 func (client CachesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, cacheName string, cache *Cache) (result CachesCreateOrUpdateFuture, err error) {
@@ -62,7 +63,24 @@ func (client CachesClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}},
+		{TargetValue: cache,
+			Constraints: []validation.Constraint{{Target: "cache", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "cache.CacheProperties", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "cache.CacheProperties.NetworkSettings", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "cache.CacheProperties.NetworkSettings.Mtu", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "cache.CacheProperties.NetworkSettings.Mtu", Name: validation.InclusiveMaximum, Rule: int64(1500), Chain: nil},
+								{Target: "cache.CacheProperties.NetworkSettings.Mtu", Name: validation.InclusiveMinimum, Rule: int64(576), Chain: nil},
+							}},
+						}},
+						{Target: "cache.CacheProperties.EncryptionSettings", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "cache.CacheProperties.EncryptionSettings.KeyEncryptionKey", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "cache.CacheProperties.EncryptionSettings.KeyEncryptionKey.KeyURL", Name: validation.Null, Rule: true, Chain: nil},
+									{Target: "cache.CacheProperties.EncryptionSettings.KeyEncryptionKey.SourceVault", Name: validation.Null, Rule: true, Chain: nil},
+								}},
+							}},
+					}},
+				}}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -89,7 +107,7 @@ func (client CachesClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -137,7 +155,8 @@ func (client CachesClient) CreateOrUpdateResponder(resp *http.Response) (result 
 // Delete schedules a Cache for deletion.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 func (client CachesClient) Delete(ctx context.Context, resourceGroupName string, cacheName string) (result CachesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.Delete")
@@ -151,7 +170,7 @@ func (client CachesClient) Delete(ctx context.Context, resourceGroupName string,
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Delete", err.Error())
 	}
 
@@ -178,7 +197,7 @@ func (client CachesClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -219,7 +238,8 @@ func (client CachesClient) DeleteResponder(resp *http.Response) (result SetObjec
 // returned until the flush is complete.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 func (client CachesClient) Flush(ctx context.Context, resourceGroupName string, cacheName string) (result CachesFlushFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.Flush")
@@ -233,7 +253,7 @@ func (client CachesClient) Flush(ctx context.Context, resourceGroupName string, 
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Flush", err.Error())
 	}
 
@@ -260,7 +280,7 @@ func (client CachesClient) FlushPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -300,7 +320,8 @@ func (client CachesClient) FlushResponder(resp *http.Response) (result SetObject
 // Get returns a Cache.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 func (client CachesClient) Get(ctx context.Context, resourceGroupName string, cacheName string) (result Cache, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.Get")
@@ -314,7 +335,7 @@ func (client CachesClient) Get(ctx context.Context, resourceGroupName string, ca
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Get", err.Error())
 	}
 
@@ -347,7 +368,7 @@ func (client CachesClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -418,7 +439,7 @@ func (client CachesClient) ListPreparer(ctx context.Context) (*http.Request, err
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -529,7 +550,7 @@ func (client CachesClient) ListByResourceGroupPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -600,7 +621,8 @@ func (client CachesClient) ListByResourceGroupComplete(ctx context.Context, reso
 // Start tells a Stopped state Cache to transition to Active state.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 func (client CachesClient) Start(ctx context.Context, resourceGroupName string, cacheName string) (result CachesStartFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.Start")
@@ -614,7 +636,7 @@ func (client CachesClient) Start(ctx context.Context, resourceGroupName string, 
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Start", err.Error())
 	}
 
@@ -641,7 +663,7 @@ func (client CachesClient) StartPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -681,7 +703,8 @@ func (client CachesClient) StartResponder(resp *http.Response) (result SetObject
 // Stop tells an Active Cache to transition to Stopped state.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 func (client CachesClient) Stop(ctx context.Context, resourceGroupName string, cacheName string) (result CachesStopFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.Stop")
@@ -695,7 +718,7 @@ func (client CachesClient) Stop(ctx context.Context, resourceGroupName string, c
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Stop", err.Error())
 	}
 
@@ -722,7 +745,7 @@ func (client CachesClient) StopPreparer(ctx context.Context, resourceGroupName s
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -762,7 +785,8 @@ func (client CachesClient) StopResponder(resp *http.Response) (result SetObject,
 // Update update a Cache instance.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 // cache - object containing the user-selectable properties of the Cache. If read-only properties are included,
 // they must match the existing values of those properties.
 func (client CachesClient) Update(ctx context.Context, resourceGroupName string, cacheName string, cache *Cache) (result Cache, err error) {
@@ -778,7 +802,7 @@ func (client CachesClient) Update(ctx context.Context, resourceGroupName string,
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "Update", err.Error())
 	}
 
@@ -811,7 +835,7 @@ func (client CachesClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -853,7 +877,8 @@ func (client CachesClient) UpdateResponder(resp *http.Response) (result Cache, e
 // UpgradeFirmware upgrade a Cache's firmware if a new version is available. Otherwise, this operation has no effect.
 // Parameters:
 // resourceGroupName - target resource group.
-// cacheName - name of Cache.
+// cacheName - name of Cache. Length of name must be not greater than 80 and chars must be in list of
+// [-0-9a-zA-Z_] char class.
 func (client CachesClient) UpgradeFirmware(ctx context.Context, resourceGroupName string, cacheName string) (result CachesUpgradeFirmwareFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CachesClient.UpgradeFirmware")
@@ -867,7 +892,7 @@ func (client CachesClient) UpgradeFirmware(ctx context.Context, resourceGroupNam
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: cacheName,
-			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,31}$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "cacheName", Name: validation.Pattern, Rule: `^[-0-9a-zA-Z_]{1,80}$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("storagecache.CachesClient", "UpgradeFirmware", err.Error())
 	}
 
@@ -894,7 +919,7 @@ func (client CachesClient) UpgradeFirmwarePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-03-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
