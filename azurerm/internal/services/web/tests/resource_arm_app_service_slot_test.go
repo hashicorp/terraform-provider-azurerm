@@ -2844,7 +2844,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-web-%d"
   location = "%s"
 }
 
@@ -2901,7 +2901,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-web-%d"
   location = "%s"
 }
 
