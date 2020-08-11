@@ -429,6 +429,10 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 		infraEncrypt = mysql.InfrastructureEncryptionDisabled
 	}
 
+	if sku.Tier == mysql.Basic && infraEncrypt == mysql.InfrastructureEncryptionEnabled {
+		return fmt.Errorf("`infrastructure_encryption_enabled` is not supported for sku Tier `Basic` in MySQL Server %q (Resource Group %q)", name, resourceGroup)
+	}
+
 	publicAccess := mysql.PublicNetworkAccessEnumEnabled
 	if v := d.Get("public_network_access_enabled"); !v.(bool) {
 		publicAccess = mysql.PublicNetworkAccessEnumDisabled
@@ -904,8 +908,19 @@ func flattenSecurityAlertPolicy(props *mysql.SecurityAlertPolicyProperties, acce
 
 	block["enabled"] = props.State == mysql.ServerSecurityAlertPolicyStateEnabled
 
-	block["disabled_alerts"] = utils.FlattenStringSlice(props.DisabledAlerts)
-	block["email_addresses"] = utils.FlattenStringSlice(props.EmailAddresses)
+	// the service will return "disabledAlerts":[""] for empty
+	if props.DisabledAlerts == nil || len(*props.DisabledAlerts) == 0 || (*props.DisabledAlerts)[0] == "" {
+		block["disabled_alerts"] = []interface{}{}
+	} else {
+		block["disabled_alerts"] = utils.FlattenStringSlice(props.DisabledAlerts)
+	}
+
+	// the service will return "emailAddresses":[""] for empty
+	if props.EmailAddresses == nil || len(*props.EmailAddresses) == 0 || (*props.EmailAddresses)[0] == "" {
+		block["email_addresses"] = []interface{}{}
+	} else {
+		block["email_addresses"] = utils.FlattenStringSlice(props.EmailAddresses)
+	}
 
 	if v := props.EmailAccountAdmins; v != nil {
 		block["email_account_admins"] = *v

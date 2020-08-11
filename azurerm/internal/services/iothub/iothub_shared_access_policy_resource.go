@@ -171,6 +171,15 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 			if features.ShouldResourcesBeImported() && d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_iothub_shared_access_policy", resourceId)
 			}
+
+			if existingAccessPolicy.PrimaryKey != nil {
+				expandedAccessPolicy.PrimaryKey = existingAccessPolicy.PrimaryKey
+			}
+
+			if existingAccessPolicy.SecondaryKey != nil {
+				expandedAccessPolicy.SecondaryKey = existingAccessPolicy.SecondaryKey
+			}
+
 			accessPolicies = append(accessPolicies, expandedAccessPolicy)
 			alreadyExists = true
 		} else {
