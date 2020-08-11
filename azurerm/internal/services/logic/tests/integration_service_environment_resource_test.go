@@ -140,7 +140,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
-					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_1"),
 					resource.TestCheckResourceAttr(data.ResourceName, "access_endpoint_type", "Internal"),
 					resource.TestCheckResourceAttr(data.ResourceName, "virtual_network_subnet_ids.#", "4"),
