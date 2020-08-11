@@ -21,7 +21,8 @@ BUG FIXES:
 * `azurerm_linux_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]
 * `azurerm_orchestrated_virtual_machine_scale_set` - allow `single_placement_group` to be `true` [GH-7821]
 * `azurerm_traffic_manager_profile` - updating no longer clears all endpoints [GH-7846]
-* `azurerm_windows_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]
+* `azurerm_windows_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]'
+* `azurerm_data_factory_dataset_delimited_text` - fix issue with property `azure_blob_storage_account` [GH-7953]
 
 ## 2.22.0 (August 07, 2020)
 
