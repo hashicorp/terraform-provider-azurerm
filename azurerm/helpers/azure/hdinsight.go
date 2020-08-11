@@ -584,7 +584,8 @@ type HDInsightNodeDefinition struct {
 	MaxNumberOfDisksPerNode  *int
 	FixedMinInstanceCount    *int32
 	FixedTargetInstanceCount *int32
-	CanAutoScale             bool
+	CanAutoScaleByCapacity   bool
+	CanAutoScaleOnSchedule   bool
 }
 
 func ValidateSchemaHDInsightNodeDefinitionVMSize() schema.SchemaValidateFunc {
@@ -745,96 +746,111 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 			ValidateFunc: countValidation,
 		}
 
-		if definition.CanAutoScale {
-			result["autoscale"] = &schema.Schema{
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"capacity": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							ConflictsWith: []string{
-								fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+		if definition.CanAutoScaleByCapacity || definition.CanAutoScaleOnSchedule {
+			autoScales := map[string]*schema.Schema{}
+
+			if definition.CanAutoScaleByCapacity {
+				autoScales["capacity"] = &schema.Schema{
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					ConflictsWith: []string{
+						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+					},
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"min_instance_count": {
+								Type:         schema.TypeInt,
+								Required:     true,
+								ValidateFunc: countValidation,
 							},
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"min_instance_count": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										ValidateFunc: countValidation,
-									},
-									"max_instance_count": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										ValidateFunc: countValidation,
-									},
-								},
+							"max_instance_count": {
+								Type:         schema.TypeInt,
+								Required:     true,
+								ValidateFunc: countValidation,
 							},
 						},
-						"recurrence": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							ConflictsWith: []string{
-								fmt.Sprintf("%s.0.autoscale.0.capacity", schemaLocation),
-							},
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"timezone": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"schedule": {
-										Type:     schema.TypeList,
-										Required: true,
-										MinItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"time": {
-													Type:     schema.TypeString,
-													Required: true,
-													ValidateFunc: validation.StringMatch(
-														regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
-														"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
-													),
-												},
-												"days": {
-													Type:     schema.TypeList,
-													Required: true,
-													Elem: &schema.Schema{
-														Type: schema.TypeString,
-														ValidateFunc: validation.StringInSlice([]string{
-															string(hdinsight.Monday),
-															string(hdinsight.Tuesday),
-															string(hdinsight.Wednesday),
-															string(hdinsight.Thursday),
-															string(hdinsight.Friday),
-															string(hdinsight.Saturday),
-															string(hdinsight.Sunday),
-														}, false),
-													},
-												},
+					},
+				}
+				if definition.CanAutoScaleOnSchedule {
+					autoScales["capacity"].ConflictsWith = []string{
+						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
+					}
+				}
 
-												"min_instance_count": {
-													Type:         schema.TypeInt,
-													Required:     true,
-													ValidateFunc: countValidation,
-												},
-												"max_instance_count": {
-													Type:         schema.TypeInt,
-													Required:     true,
-													ValidateFunc: countValidation,
-												},
+			}
+			if definition.CanAutoScaleOnSchedule {
+
+				autoScales["recurrence"] = &schema.Schema{
+					Type:     schema.TypeList,
+					Optional: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"timezone": {
+								Type:     schema.TypeString,
+								Required: true,
+							},
+							"schedule": {
+								Type:     schema.TypeList,
+								Required: true,
+								MinItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"time": {
+											Type:     schema.TypeString,
+											Required: true,
+											ValidateFunc: validation.StringMatch(
+												regexp.MustCompile("^([01][0-9]|[2][0-3]):([03][0])$"), // time must be on the hour or half past
+												"Time of day must match the format HH:mm where HH is 00-23 and mm is 00 or 30",
+											),
+										},
+										"days": {
+											Type:     schema.TypeList,
+											Required: true,
+											Elem: &schema.Schema{
+												Type: schema.TypeString,
+												ValidateFunc: validation.StringInSlice([]string{
+													string(hdinsight.Monday),
+													string(hdinsight.Tuesday),
+													string(hdinsight.Wednesday),
+													string(hdinsight.Thursday),
+													string(hdinsight.Friday),
+													string(hdinsight.Saturday),
+													string(hdinsight.Sunday),
+												}, false),
 											},
+										},
+
+										"min_instance_count": {
+											Type:         schema.TypeInt,
+											Required:     true,
+											ValidateFunc: countValidation,
+										},
+										"max_instance_count": {
+											Type:         schema.TypeInt,
+											Required:     true,
+											ValidateFunc: countValidation,
 										},
 									},
 								},
 							},
 						},
 					},
+				}
+				if definition.CanAutoScaleByCapacity {
+					autoScales["recurrence"].ConflictsWith = []string{
+						fmt.Sprintf("%s.0.autoscale.0.capacity", schemaLocation),
+					}
+				}
+			}
+
+			result["autoscale"] = &schema.Schema{
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: autoScales,
 				},
 			}
 		}
@@ -919,7 +935,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 		targetInstanceCount := v["target_instance_count"].(int)
 		role.TargetInstanceCount = utils.Int32(int32(targetInstanceCount))
 
-		if definition.CanAutoScale {
+		if definition.CanAutoScaleByCapacity || definition.CanAutoScaleOnSchedule {
 			autoscaleRaw := v["autoscale"].([]interface{})
 			autoscale := ExpandHDInsightNodeAutoScaleDefinition(autoscaleRaw)
 			if autoscale != nil {
@@ -952,20 +968,24 @@ func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *hdinsight.Auto
 
 	vs := input[0].(map[string]interface{})
 
-	capacityRaw := vs["capacity"].([]interface{})
+	if vs["capacity"] != nil {
+		capacityRaw := vs["capacity"].([]interface{})
 
-	capacity := ExpandHDInsightAutoscaleCapacityDefinition(capacityRaw)
-	if capacity != nil {
-		return &hdinsight.Autoscale{
-			Capacity: capacity,
+		capacity := ExpandHDInsightAutoscaleCapacityDefinition(capacityRaw)
+		if capacity != nil {
+			return &hdinsight.Autoscale{
+				Capacity: capacity,
+			}
 		}
 	}
 
-	recurrenceRaw := vs["recurrence"].([]interface{})
-	recurrence := ExpandHDInsightAutoscaleRecurrenceDefinition(recurrenceRaw)
-	if recurrence != nil {
-		return &hdinsight.Autoscale{
-			Recurrence: recurrence,
+	if vs["recurrence"] != nil {
+		recurrenceRaw := vs["recurrence"].([]interface{})
+		recurrence := ExpandHDInsightAutoscaleRecurrenceDefinition(recurrenceRaw)
+		if recurrence != nil {
+			return &hdinsight.Autoscale{
+				Recurrence: recurrence,
+			}
 		}
 	}
 
@@ -1081,7 +1101,7 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 			output["target_instance_count"] = int(*input.TargetInstanceCount)
 		}
 
-		if definition.CanAutoScale {
+		if definition.CanAutoScaleByCapacity || definition.CanAutoScaleOnSchedule {
 			autoscale := FlattenHDInsightNodeAutoscaleDefinition(input.AutoscaleConfiguration)
 			if autoscale != nil {
 				output["autoscale"] = autoscale

@@ -30,6 +30,7 @@ var hdInsightHBaseClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
+	CanAutoScaleOnSchedule:  true,
 }
 
 var hdInsightHBaseClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
