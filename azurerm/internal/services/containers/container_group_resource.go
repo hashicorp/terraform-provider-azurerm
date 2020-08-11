@@ -348,9 +348,9 @@ func resourceArmContainerGroup() *schema.Resource {
 							},
 						},
 
-						"liveness_probe": azure.SchemaContainerGroupProbe(),
+						"liveness_probe": SchemaContainerGroupProbe(),
 
-						"readiness_probe": azure.SchemaContainerGroupProbe(),
+						"readiness_probe": SchemaContainerGroupProbe(),
 					},
 				},
 			},

@@ -1,4 +1,4 @@
-package azure
+package containers
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
