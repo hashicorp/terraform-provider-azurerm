@@ -47,7 +47,7 @@ func TestSpringCloudCertificateID(t *testing.T) {
 		},
 		{
 			Name:  "Spring Cloud Certificate ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/certificates/app1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/certificates/cert1",
 			Expected: &SpringCloudCertificateId{
 				ResourceGroup: "resGroup1",
 				ServiceName:   "spring1",
@@ -56,7 +56,7 @@ func TestSpringCloudCertificateID(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/Certificates/app1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/Spring/spring1/Certificates/cert1",
 			Expected: nil,
 		},
 	}
@@ -64,7 +64,7 @@ func TestSpringCloudCertificateID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := SpringCloudAppID(v.Input)
+		actual, err := SpringCloudCertificateID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
