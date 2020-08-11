@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * dependencies: updating `mysql` to `2020-01-01` [GH-8062]
 * dependencies: updating `postgresql` to `2020-01-01` [GH-8045]
 * `azurerm_eventhub_namespace` - support for the `identity` block [GH-8065]
+* `azurerm_postgresql_server` - support for the `identity` block [GH-8044]
 
 BUG FIXES:
 
