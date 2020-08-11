@@ -12,6 +12,7 @@ IMPROVEMENTS:
 
 ENHANCEMENTS:
 
+* dependencies: updating `containerservice` to `2020-04-01` [GH-7894]
 * dependencies: updating `mysql` to `2020-01-01` [GH-8062]
 * dependencies: updating `postgresql` to `2020-01-01` [GH-8045]
 * `azurerm_eventhub_namespace` - support for the `identity` block [GH-8065]
