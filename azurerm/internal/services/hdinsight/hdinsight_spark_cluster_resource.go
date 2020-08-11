@@ -30,6 +30,7 @@ var hdInsightSparkClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
+	CanAutoScale:            true,
 }
 
 var hdInsightSparkClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
