@@ -7,6 +7,13 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* Data Source: `azurerm_app_service` now exports `source_control` configuration [GH-7945]
+* Data Source: `azurerm_function_app` now exports `source_control` configuration [GH-7945]
+* Data Source: `azurerm_function_app` now exports `site_config` configuration [GH-7945]
+* `azurerm_app_service` now supports `source_control` configuration [GH-7945]
+* `azurerm_function_app` now supports `source_control` configuration [GH-7945]
+* `azurerm_function_app` now supports full `ip_restriction` configuration [GH-7945]
+* `azurerm_function_app` now supports full `scm_ip_restriction` configuration [GH-7945]
 * `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover [GH-5688]
 * `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type [GH-7890]
 
