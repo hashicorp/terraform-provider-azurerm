@@ -65,25 +65,25 @@ func resourceArmAttestation() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"alg": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 										ForceNew: true,
 									},
 
 									"kid": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 										ForceNew: true,
 									},
 
 									"kty": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 										ForceNew: true,
 									},
 
 									"use": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 										ForceNew: true,
 									},
 
@@ -153,7 +153,7 @@ func resourceArmAttestation() *schema.Resource {
 										ForceNew: true,
 									},
 
-									"x5cs": {
+									"x5c": {
 										Type:     schema.TypeSet,
 										Optional: true,
 										ForceNew: true,
@@ -338,7 +338,7 @@ func expandArmAttestationProviderJSONWebKeyArray(input []interface{}) *[]attesta
 			Qi:  utils.String(v["qi"].(string)),
 			Use: utils.String(v["use"].(string)),
 			X:   utils.String(v["x"].(string)),
-			X5c: utils.ExpandStringSlice(v["x5cs"].(*schema.Set).List()),
+			X5c: utils.ExpandStringSlice(v["x5c"].(*schema.Set).List()),
 			Y:   utils.String(v["y"].(string)),
 		}
 		results = append(results, result)

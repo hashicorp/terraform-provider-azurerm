@@ -194,27 +194,11 @@ resource "azurerm_attestation" "test" {
   name                = "ap%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  attestation_policy  = "acctest-attestation-policy-%d"
 
   policy_signing_certificate {
     key {
-      alg  = ""
-      kid  = ""
-      kty  = ""
-      use  = ""
-      crv  = ""
-      d    = ""
-      dp   = ""
-      dq   = ""
-      e    = ""
-      k    = ""
-      n    = ""
-      p    = ""
-      q    = ""
-      qi   = ""
-      x    = ""
-      x5cs = []
-      y    = ""
+      kty  = "RSA"
+      x5c = ["LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6akNDQVRHZ0F3SUJBZ0lCQVRBS0JnZ3Foa2pPUFFRREJEQVNNUkF3RGdZRFZRUUtFd2RCWTIxbElFTnYKTUI0WERUQTVNVEV4TURJek1EQXdNRm9YRFRFd01EVXdPVEl6TURBd01Gb3dFakVRTUE0R0ExVUVDaE1IUVdOdApaU0JEYnpDQm16QVFCZ2NxaGtqT1BRSUJCZ1VyZ1FRQUl3T0JoZ0FFQUpuVnlBdkoyOW1DUlJoVTQ4UVdrUDJKCmJ6K0ZCRmFET0xTMXBhVW9KUGJ6R0NZd05velg4NjBZTXdVOGtzd1BZTzkrUDE0c08vRnZkRVQ3ZURFZlN2VUMKQUFocEtJT01jSHdjcDE3WG5NazFPSmIwZExWK2wrUVViL1pDR3pkYTdRc2J3MjA3Zlp2OERYOHhWMFYwQkVnOApyUW1IM0htNCtCK0xsaVU4bFFXU3lFcG5velV3TXpBT0JnTlZIUThCQWY4RUJBTUNCNEF3RXdZRFZSMGxCQXd3CkNnWUlLd1lCQlFVSEF3RXdEQVlEVlIwVEFRSC9CQUl3QURBS0JnZ3Foa2pPUFFRREJBT0JpZ0F3Z1lZQ1FYNkQKYUVqVjhQS0V5SWJyNUFBd1pyOTc5QkEzQndtcGUxNUd4ODlUbk5ScDZ1MjhZbSt0eFB6RjBFK3ZXS3NuQjF6aQpTdURhYmVRMHpMbGRCaVhRVHdkV0FrRURGUEdjb2owUjZvS3Y1N0lZZjRjd3hjdklmMjI1SEhrVXVDdXAzQit4ClFZcXRxWW44OTdJSDRWUXdrbVpCWnBoVXVjY2xEaWxIQlhQeWE3RTZZb2dBMmc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=="]
     }
   }
 
@@ -222,5 +206,5 @@ resource "azurerm_attestation" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger)
 }
