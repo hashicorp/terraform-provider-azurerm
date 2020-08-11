@@ -97,7 +97,8 @@ func resourceArmRoleDefinition() *schema.Resource {
 
 			"assignable_scopes": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -184,13 +185,17 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if id := resp.ID; id != nil {
-		roleDefinitionId, err := parseRoleDefinitionId(*id, *resp.RoleDefinitionProperties.AssignableScopes)
-		if err != nil {
-			return fmt.Errorf("Error parsing Role Definition ID: %+v", err)
-		}
-		if roleDefinitionId != nil {
-			d.Set("scope", roleDefinitionId.scope)
-			d.Set("role_definition_id", roleDefinitionId.roleDefinitionId)
+		if resp.RoleDefinitionProperties != nil && resp.RoleDefinitionProperties.AssignableScopes != nil {
+			roleDefinitionId, err := parseRoleDefinitionId(*id, *resp.RoleDefinitionProperties.AssignableScopes)
+			if err != nil {
+				return fmt.Errorf("Error parsing Role Definition ID: %+v", err)
+			}
+			if roleDefinitionId != nil {
+				d.Set("scope", roleDefinitionId.scope)
+				d.Set("role_definition_id", roleDefinitionId.roleDefinitionId)
+			}
+		} else {
+			return fmt.Errorf("assignable scopes not found for Role Definition with id %q", d.Id())
 		}
 	}
 
@@ -279,9 +284,15 @@ func expandRoleDefinitionPermissions(d *schema.ResourceData) []authorization.Per
 func expandRoleDefinitionAssignableScopes(d *schema.ResourceData) []string {
 	scopes := make([]string, 0)
 
+	// The first scope in the list must be the target scope as it it not returned in any API call
+	assignedScope := d.Get("scope").(string)
+	scopes = append(scopes, assignedScope)
 	assignableScopes := d.Get("assignable_scopes").([]interface{})
 	for _, scope := range assignableScopes {
-		scopes = append(scopes, scope.(string))
+		// Ensure the assigned scope is not duplicated in the list if also specified in `assignable_scopes`
+		if scope != assignedScope {
+			scopes = append(scopes, scope.(string))
+		}
 	}
 
 	return scopes
@@ -351,24 +362,14 @@ type roleDefinitionId struct {
 func parseRoleDefinitionId(input string, scopes []string) (*roleDefinitionId, error) {
 	segments := strings.Split(input, "/providers/Microsoft.Authorization/roleDefinitions/")
 
-	// First check if role is scoped to a Management Group
-	if len(scopes) == 1 && strings.HasPrefix(scopes[0], "/providers/Microsoft.Management/managementGroups/") {
-		id := roleDefinitionId{
-			scope:            strings.TrimPrefix(scopes[0], "/"),
-			roleDefinitionId: segments[1],
-		}
-		return &id, nil
-	}
-
-	// Role is scoped to a Subscription
 	if len(segments) != 2 {
 		return nil, fmt.Errorf("Expected Role Definition ID to be in the format `{scope}/providers/Microsoft.Authorization/roleDefinitions/{name}` but got %q", input)
 	}
 
-	// {scope}/providers/Microsoft.Authorization/roleDefinitions/{roleDefinitionId}
 	id := roleDefinitionId{
-		scope:            segments[0],
+		scope:            scopes[0],
 		roleDefinitionId: segments[1],
 	}
+
 	return &id, nil
 }
