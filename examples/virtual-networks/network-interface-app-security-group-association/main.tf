@@ -60,7 +60,7 @@ resource "azurerm_virtual_machine" "example" {
   os_profile {
     computer_name  = "${var.prefix}-vm"
     admin_username = "adminuser"
-    admin_password = "#Bugsfor2020"
+    admin_password = "#PassWord2020"
   }
 
   os_profile_linux_config {
