@@ -28,6 +28,7 @@ BUG FIXES:
 * `azurerm_monitor_metric_alert_resource` - continue using `SingleResourceMultiMetricCriteria` for existing alerts [GH-7995]
 * `azurerm_mysql_server` - prevent a non empty plan when using `threat_detection_policy` [GH-7981]
 * `azurerm_orchestrated_virtual_machine_scale_set` - allow `single_placement_group` to be `true` [GH-7821]
+* `azurerm_mysql_server` - support for the `identity` block [GH-8059]
 * `azurerm_traffic_manager_profile` - updating no longer clears all endpoints [GH-7846]
 * `azurerm_windows_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]'
 * `azurerm_data_factory_dataset_delimited_text` - fix issue with property `azure_blob_storage_account` [GH-7953]
