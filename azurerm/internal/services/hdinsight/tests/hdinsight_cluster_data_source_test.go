@@ -20,6 +20,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_hadoop(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "hadoop"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "edge_ssh_endpoint", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "kafka_rest_proxy_endpoint", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
@@ -40,6 +41,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_hbase(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "hbase"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "edge_ssh_endpoint", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "kafka_rest_proxy_endpoint", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
@@ -60,6 +62,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_interactiveQuery(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "interactivehive"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "edge_ssh_endpoint", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "kafka_rest_proxy_endpoint", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
@@ -80,8 +83,30 @@ func TestAccDataSourceAzureRMHDInsightCluster_kafka(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "kafka"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "edge_ssh_endpoint", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "kafka_rest_proxy_endpoint", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMHDInsightCluster_kafkaWithRestProxy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_hdinsight_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { acceptance.PreCheck(t) },
+		Providers: acceptance.SupportedProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceHDInsightCluster_kafkaWithRestProxy(data),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(data.ResourceName, "kind", "kafka"),
+					resource.TestCheckResourceAttr(data.ResourceName, "tier", "standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "edge_ssh_endpoint", ""),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kafka_rest_proxy_endpoint"),
 				),
 			},
 		},
@@ -99,6 +124,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_mlServices(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "mlservices"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kafka_rest_proxy_endpoint", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
@@ -119,6 +145,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_rserver(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "rserver"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "standard"),
+					resource.TestCheckResourceAttr(data.ResourceName, "kafka_rest_proxy_endpoint", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "edge_ssh_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
@@ -140,6 +167,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_spark(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "spark"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "edge_ssh_endpoint", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "kafka_rest_proxy_endpoint", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
@@ -161,6 +189,7 @@ func TestAccDataSourceAzureRMHDInsightCluster_storm(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "kind", "storm"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tier", "standard"),
 					resource.TestCheckResourceAttr(data.ResourceName, "edge_ssh_endpoint", ""),
+					resource.TestCheckResourceAttr(data.ResourceName, "kafka_rest_proxy_endpoint", ""),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
 				),
@@ -207,6 +236,18 @@ data "azurerm_hdinsight_cluster" "test" {
 
 func testAccDataSourceHDInsightCluster_kafka(data acceptance.TestData) string {
 	template := testAccAzureRMHDInsightKafkaCluster_basic(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_hdinsight_cluster" "test" {
+  name                = azurerm_hdinsight_kafka_cluster.test.name
+  resource_group_name = azurerm_hdinsight_kafka_cluster.test.resource_group_name
+}
+`, template)
+}
+
+func testAccDataSourceHDInsightCluster_kafkaWithRestProxy(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightKafkaCluster_restProxy(data)
 	return fmt.Sprintf(`
 %s
 

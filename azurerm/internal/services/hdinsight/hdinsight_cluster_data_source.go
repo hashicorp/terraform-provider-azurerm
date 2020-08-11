@@ -90,6 +90,11 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"kafka_rest_proxy_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"ssh_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -150,6 +155,8 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
+		kafkaRestProxyEndpoint := azure.FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
+		d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

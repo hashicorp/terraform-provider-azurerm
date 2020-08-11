@@ -44,6 +44,8 @@ output "https_endpoint" {
 
 * `https_endpoint` - The HTTPS Endpoint for this HDInsight Cluster.
 
+* `kafka_rest_proxy_endpoint` - The Kafka Rest Proxy Endpoint for this HDInsight Cluster.
+
 * `kind` - The kind of HDInsight Cluster this is, such as a Spark or Storm cluster.
 
 * `tier` - The SKU / Tier of this HDInsight Cluster.

@@ -146,12 +146,12 @@ func resourceArmHDInsightKafkaCluster() *schema.Resource {
 				Computed: true,
 			},
 
-			"ssh_endpoint": {
+			"kafka_rest_proxy_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"rest_proxy_endpoint": {
+			"ssh_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -349,8 +349,8 @@ func resourceArmHDInsightKafkaClusterRead(d *schema.ResourceData, meta interface
 		d.Set("https_endpoint", httpEndpoint)
 		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
-		restProxyEndpoint := azure.FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
-		d.Set("rest_proxy_endpoint", restProxyEndpoint)
+		kafkaRestProxyEndpoint := azure.FindHDInsightConnectivityEndpoint("KafkaRestProxyPublicEndpoint", props.ConnectivityEndpoints)
+		d.Set("kafka_rest_proxy_endpoint", kafkaRestProxyEndpoint)
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)
 		if err != nil {

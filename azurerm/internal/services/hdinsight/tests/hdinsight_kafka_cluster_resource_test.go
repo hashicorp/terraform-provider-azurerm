@@ -439,7 +439,7 @@ func TestAccAzureRMHDInsightKafkaCluster_restProxy(t *testing.T) {
 				Config: testAccAzureRMHDInsightKafkaCluster_restProxy(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "rest_proxy_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "kafka_rest_proxy_endpoint"),
 				),
 			},
 			data.ImportStep("roles.0.head_node.0.password",
@@ -448,6 +448,8 @@ func TestAccAzureRMHDInsightKafkaCluster_restProxy(t *testing.T) {
 				"roles.0.worker_node.0.vm_size",
 				"roles.0.zookeeper_node.0.password",
 				"roles.0.zookeeper_node.0.vm_size",
+				"roles.0.kafka_management_node.0.password",
+				"roles.0.kafka_management_node.0.vm_size",
 				"storage_account"),
 		},
 	})
