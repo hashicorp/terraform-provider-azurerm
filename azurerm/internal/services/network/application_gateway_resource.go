@@ -486,13 +486,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 						},
 
 						"rule_type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.Basic),
 								string(network.PathBasedRouting),
-							}, true),
+							}, false),
 						},
 
 						"http_listener_name": {
