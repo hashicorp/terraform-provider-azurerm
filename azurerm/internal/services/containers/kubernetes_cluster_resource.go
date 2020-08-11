@@ -12,12 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	kubernetes2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -1290,14 +1290,14 @@ func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClust
 			var flattenedKubeConfig []interface{}
 
 			if strings.Contains(rawConfig, "apiserver-id:") {
-				kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
+				kubeConfigAAD, err := kubernetes2.ParseKubeConfigAAD(rawConfig)
 				if err != nil {
 					return utils.String(rawConfig), []interface{}{}
 				}
 
 				flattenedKubeConfig = flattenKubernetesClusterKubeConfigAAD(*kubeConfigAAD)
 			} else {
-				kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
+				kubeConfig, err := kubernetes2.ParseKubeConfig(rawConfig)
 				if err != nil {
 					return utils.String(rawConfig), []interface{}{}
 				}
@@ -1822,7 +1822,7 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 	}
 }
 
-func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
+func flattenKubernetesClusterKubeConfig(config kubernetes2.KubeConfig) []interface{} {
 	// we don't size-check these since they're validated in the Parse method
 	cluster := config.Clusters[0].Cluster
 	user := config.Users[0].User
@@ -1840,7 +1840,7 @@ func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interfac
 	}
 }
 
-func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []interface{} {
+func flattenKubernetesClusterKubeConfigAAD(config kubernetes2.KubeConfigAAD) []interface{} {
 	// we don't size-check these since they're validated in the Parse method
 	cluster := config.Clusters[0].Cluster
 	name := config.Users[0].Name
