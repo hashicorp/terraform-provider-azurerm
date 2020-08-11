@@ -24,7 +24,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_basic(t *testing.T) {
 				Config: testAccAzureRMIntegrationServiceEnvironment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
@@ -55,7 +55,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_complete(t *testing.T) {
 				Config: testAccAzureRMIntegrationServiceEnvironment_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
@@ -87,7 +87,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_developer(t *testing.T) {
 				Config: testAccAzureRMIntegrationServiceEnvironment_developer(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Developer_0"),
@@ -119,7 +119,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 				Config: testAccAzureRMIntegrationServiceEnvironment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
@@ -138,7 +138,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 				Config: testAccAzureRMIntegrationServiceEnvironment_skuName(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_1"),
@@ -157,7 +157,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_update(t *testing.T) {
 				Config: testAccAzureRMIntegrationServiceEnvironment_basic(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
@@ -187,7 +187,7 @@ func TestAccAzureRMIntegrationServiceEnvironment_requiresImport(t *testing.T) {
 				Config: testAccAzureRMIntegrationServiceEnvironment_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIntegrationServiceEnvironmentExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctest-ise-%d", data.RandomInteger)),
+					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "location", data.Locations.Primary),
 					resource.TestCheckResourceAttr(data.ResourceName, "resource_group_name", fmt.Sprintf("acctestRG-logic-%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "sku_name", "Premium_0"),
@@ -312,7 +312,7 @@ func testAccAzureRMIntegrationServiceEnvironment_basic(data acceptance.TestData)
 %s
 
 resource "azurerm_integration_service_environment" "test" {
-  name                 = "acctest-ise-%d"
+  name                 = "acctestRG-logic-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   sku_name             = "Premium_0"
@@ -333,7 +333,7 @@ func testAccAzureRMIntegrationServiceEnvironment_complete(data acceptance.TestDa
 %s
 
 resource "azurerm_integration_service_environment" "test" {
-  name                 = "acctest-ise-%d"
+  name                 = "acctestRG-logic-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   sku_name             = "Premium_0"
@@ -357,7 +357,7 @@ func testAccAzureRMIntegrationServiceEnvironment_developer(data acceptance.TestD
 %s
 
 resource "azurerm_integration_service_environment" "test" {
-  name                 = "acctest-ise-%d"
+  name                 = "acctestRG-logic-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   sku_name             = "Developer_0"
@@ -381,7 +381,7 @@ func testAccAzureRMIntegrationServiceEnvironment_skuName(data acceptance.TestDat
 %s
 
 resource "azurerm_integration_service_environment" "test" {
-  name                 = "acctest-ise-%d"
+  name                 = "acctestRG-logic-%d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   sku_name             = "Premium_1"
