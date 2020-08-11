@@ -50,6 +50,32 @@ func TestAccAzureRMMySQLServer_basicFiveSixWithIdentity(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLServer_basicFiveSixWithIdentityUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLServer_basic(data, "5.6"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
+			{
+				Config: testAccAzureRMMySQLServer_basicWithIdentity(data, "5.6"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("administrator_login_password"), // not returned as sensitive
+		},
+	})
+}
+
 func TestAccAzureRMMySQLServer_basicFiveSixDeprecated(t *testing.T) { // remove in v3.0
 	data := acceptance.BuildTestData(t, "azurerm_mysql_server", "test")
 
