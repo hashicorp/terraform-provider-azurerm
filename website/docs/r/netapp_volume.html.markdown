@@ -124,6 +124,8 @@ An `export_policy_rule` block supports the following:
 
 * `unix_read_write` - (Optional) Is the file system on unix read and write?
 
+-> **Note**: If `export_policy_rule` is specified, the protocol must be enabled by `protocols_enabled`, `cifs_enabled`, `nfsv3_enabled` or `nfsv4_enabled` and the enabled protocol must be same with the specified `protocols`.
+
 ---
 
 ## Attributes Reference
