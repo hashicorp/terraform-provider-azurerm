@@ -101,6 +101,8 @@ The following arguments are supported:
 
 * `allow_blob_public_access` - Allow or disallow public access to all blobs or containers in the storage account. Defaults to `false`.
 
+-> **NOTE:** At this time `allow_blob_public_access` is not supported in US Government.
+
 * `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created. 
 
 -> **NOTE:** When this is set to `true` the `account_tier` argument must be set to `Standard`

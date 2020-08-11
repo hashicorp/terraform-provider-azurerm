@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
+	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -604,6 +605,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
+	env := meta.(*clients.Client).Storage.Environment
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -651,8 +653,13 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 			MinimumTLSVersion:      storage.MinimumTLSVersion(minimumTLSVersion),
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
-			AllowBlobPublicAccess:  &allowBlobPublicAccess,
 		},
+	}
+
+	// For US Government Cloud, don't specify "allow_blob_public_access" in request body.
+	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
+	if env.Name != autorestAzure.USGovernmentCloud.Name {
+		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -784,6 +791,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+	env := meta.(*clients.Client).Storage.Environment
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -902,14 +910,18 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("allow_blob_public_access") {
 		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				AllowBlobPublicAccess: &allowBlobPublicAccess,
-			},
-		}
+		// For US Government Cloud, don't specify "allow_blob_public_access" in request body.
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
+		if env.Name != autorestAzure.USGovernmentCloud.Name {
+			opts := storage.AccountUpdateParameters{
+				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+					AllowBlobPublicAccess: &allowBlobPublicAccess,
+				},
+			}
 
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
+			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
+			}
 		}
 	}
 
@@ -1005,6 +1017,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
+	env := meta.(*clients.Client).Storage.Environment
 	client := meta.(*clients.Client).Storage.AccountsClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -1068,7 +1081,12 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
-		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+
+		// For US Government Cloud, don't specify "allow_blob_public_access" in request body.
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
+		if env.Name != autorestAzure.USGovernmentCloud.Name {
+			d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+		}
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {
