@@ -207,8 +207,8 @@ func resourceArmApiManagementApi() *schema.Resource {
 							ValidateFunc: validate.ApiManagementChildName,
 						},
 						"bearer_token_sending_methods": {
-							Type:         schema.TypeSet,
-							Optional:     true,
+							Type:     schema.TypeSet,
+							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
