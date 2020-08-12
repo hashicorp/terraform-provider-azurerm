@@ -549,8 +549,6 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	// Now loop through the FrontendEndpoints and enable/disable Custom Domain HTTPS
 	// on each individual Frontend Endpoint if required
 	feClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
-	feCtx, feCancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer feCancel()
 
 	for _, v := range frontendEndpoints {
 		frontendEndpoint := v.(map[string]interface{})
@@ -558,7 +556,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		frontendEndpointName := frontendEndpoint["name"].(string)
 
 		// Get current state of endpoint from Azure
-		resp, err := feClient.Get(feCtx, resourceGroup, name, frontendEndpointName)
+		resp, err := feClient.Get(ctx, resourceGroup, name, frontendEndpointName)
 		if err != nil {
 			return fmt.Errorf("retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 		}
@@ -666,28 +664,22 @@ func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.FrontDoorID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	name := id.Path["frontdoors"]
-	// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
-	if name == "" {
-		name = id.Path["Frontdoors"]
-	}
 
-	future, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("deleting Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deleting Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("waiting for deleting Front Door %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
 	}
 
