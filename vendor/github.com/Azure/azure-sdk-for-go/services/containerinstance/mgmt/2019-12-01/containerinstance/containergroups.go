@@ -74,6 +74,11 @@ func (client ContainerGroupsClient) CreateOrUpdate(ctx context.Context, resource
 						Chain: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties.NetworkProfile.ID", Name: validation.Null, Rule: true, Chain: nil}}},
 					{Target: "containerGroup.ContainerGroupProperties.DNSConfig", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties.DNSConfig.NameServers", Name: validation.Null, Rule: true, Chain: nil}}},
+					{Target: "containerGroup.ContainerGroupProperties.EncryptionProperties", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "containerGroup.ContainerGroupProperties.EncryptionProperties.VaultBaseURL", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "containerGroup.ContainerGroupProperties.EncryptionProperties.KeyName", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "containerGroup.ContainerGroupProperties.EncryptionProperties.KeyVersion", Name: validation.Null, Rule: true, Chain: nil},
+						}},
 				}}}}}); err != nil {
 		return result, validation.NewError("containerinstance.ContainerGroupsClient", "CreateOrUpdate", err.Error())
 	}
@@ -101,7 +106,7 @@ func (client ContainerGroupsClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -145,13 +150,13 @@ func (client ContainerGroupsClient) CreateOrUpdateResponder(resp *http.Response)
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // containerGroupName - the name of the container group.
-func (client ContainerGroupsClient) Delete(ctx context.Context, resourceGroupName string, containerGroupName string) (result ContainerGroup, err error) {
+func (client ContainerGroupsClient) Delete(ctx context.Context, resourceGroupName string, containerGroupName string) (result ContainerGroupsDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerGroupsClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -162,16 +167,10 @@ func (client ContainerGroupsClient) Delete(ctx context.Context, resourceGroupNam
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Delete", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsClient", "Delete", resp, "Failure responding to request")
 	}
 
 	return
@@ -185,7 +184,7 @@ func (client ContainerGroupsClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -200,8 +199,14 @@ func (client ContainerGroupsClient) DeletePreparer(ctx context.Context, resource
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client ContainerGroupsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client ContainerGroupsClient) DeleteSender(req *http.Request) (future ContainerGroupsDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -209,7 +214,7 @@ func (client ContainerGroupsClient) DeleteSender(req *http.Request) (*http.Respo
 func (client ContainerGroupsClient) DeleteResponder(resp *http.Response) (result ContainerGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -262,7 +267,7 @@ func (client ContainerGroupsClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -335,7 +340,7 @@ func (client ContainerGroupsClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -448,7 +453,7 @@ func (client ContainerGroupsClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -555,7 +560,7 @@ func (client ContainerGroupsClient) RestartPreparer(ctx context.Context, resourc
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -591,7 +596,7 @@ func (client ContainerGroupsClient) RestartResponder(resp *http.Response) (resul
 	return
 }
 
-// Start starts all containers in a container group.
+// Start starts all containers in a container group. Compute resources will be allocated and billing will start.
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // containerGroupName - the name of the container group.
@@ -629,7 +634,7 @@ func (client ContainerGroupsClient) StartPreparer(ctx context.Context, resourceG
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -709,7 +714,7 @@ func (client ContainerGroupsClient) StopPreparer(ctx context.Context, resourceGr
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -784,7 +789,7 @@ func (client ContainerGroupsClient) UpdatePreparer(ctx context.Context, resource
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

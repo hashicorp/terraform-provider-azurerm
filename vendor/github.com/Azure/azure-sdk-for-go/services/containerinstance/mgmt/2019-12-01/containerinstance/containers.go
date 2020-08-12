@@ -25,20 +25,20 @@ import (
 	"net/http"
 )
 
-// ContainerClient is the client for the Container methods of the Containerinstance service.
-type ContainerClient struct {
+// ContainersClient is the client for the Containers methods of the Containerinstance service.
+type ContainersClient struct {
 	BaseClient
 }
 
-// NewContainerClient creates an instance of the ContainerClient client.
-func NewContainerClient(subscriptionID string) ContainerClient {
-	return NewContainerClientWithBaseURI(DefaultBaseURI, subscriptionID)
+// NewContainersClient creates an instance of the ContainersClient client.
+func NewContainersClient(subscriptionID string) ContainersClient {
+	return NewContainersClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
-// NewContainerClientWithBaseURI creates an instance of the ContainerClient client using a custom endpoint.  Use this
+// NewContainersClientWithBaseURI creates an instance of the ContainersClient client using a custom endpoint.  Use this
 // when interacting with an Azure cloud that uses a non-standard base URI (sovereign clouds, Azure stack).
-func NewContainerClientWithBaseURI(baseURI string, subscriptionID string) ContainerClient {
-	return ContainerClient{NewWithBaseURI(baseURI, subscriptionID)}
+func NewContainersClientWithBaseURI(baseURI string, subscriptionID string) ContainersClient {
+	return ContainersClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // ExecuteCommand executes a command for a specific container instance in a specified resource group and container
@@ -48,9 +48,9 @@ func NewContainerClientWithBaseURI(baseURI string, subscriptionID string) Contai
 // containerGroupName - the name of the container group.
 // containerName - the name of the container instance.
 // containerExecRequest - the request for the exec command.
-func (client ContainerClient) ExecuteCommand(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, containerExecRequest ContainerExecRequest) (result ContainerExecResponse, err error) {
+func (client ContainersClient) ExecuteCommand(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, containerExecRequest ContainerExecRequest) (result ContainerExecResponse, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerClient.ExecuteCommand")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainersClient.ExecuteCommand")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -61,27 +61,27 @@ func (client ContainerClient) ExecuteCommand(ctx context.Context, resourceGroupN
 	}
 	req, err := client.ExecuteCommandPreparer(ctx, resourceGroupName, containerGroupName, containerName, containerExecRequest)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerClient", "ExecuteCommand", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "ExecuteCommand", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ExecuteCommandSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerClient", "ExecuteCommand", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "ExecuteCommand", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ExecuteCommandResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerClient", "ExecuteCommand", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "ExecuteCommand", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ExecuteCommandPreparer prepares the ExecuteCommand request.
-func (client ContainerClient) ExecuteCommandPreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, containerExecRequest ContainerExecRequest) (*http.Request, error) {
+func (client ContainersClient) ExecuteCommandPreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, containerExecRequest ContainerExecRequest) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"containerGroupName": autorest.Encode("path", containerGroupName),
 		"containerName":      autorest.Encode("path", containerName),
@@ -89,7 +89,7 @@ func (client ContainerClient) ExecuteCommandPreparer(ctx context.Context, resour
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -106,13 +106,13 @@ func (client ContainerClient) ExecuteCommandPreparer(ctx context.Context, resour
 
 // ExecuteCommandSender sends the ExecuteCommand request. The method will close the
 // http.Response Body if it receives an error.
-func (client ContainerClient) ExecuteCommandSender(req *http.Request) (*http.Response, error) {
+func (client ContainersClient) ExecuteCommandSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ExecuteCommandResponder handles the response to the ExecuteCommand request. The method always
 // closes the http.Response Body.
-func (client ContainerClient) ExecuteCommandResponder(resp *http.Response) (result ContainerExecResponse, err error) {
+func (client ContainersClient) ExecuteCommandResponder(resp *http.Response) (result ContainerExecResponse, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
@@ -129,9 +129,9 @@ func (client ContainerClient) ExecuteCommandResponder(resp *http.Response) (resu
 // containerName - the name of the container instance.
 // tail - the number of lines to show from the tail of the container instance log. If not provided, all
 // available logs are shown up to 4mb.
-func (client ContainerClient) ListLogs(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32) (result Logs, err error) {
+func (client ContainersClient) ListLogs(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32) (result Logs, err error) {
 	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerClient.ListLogs")
+		ctx = tracing.StartSpan(ctx, fqdn+"/ContainersClient.ListLogs")
 		defer func() {
 			sc := -1
 			if result.Response.Response != nil {
@@ -142,27 +142,27 @@ func (client ContainerClient) ListLogs(ctx context.Context, resourceGroupName st
 	}
 	req, err := client.ListLogsPreparer(ctx, resourceGroupName, containerGroupName, containerName, tail)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerClient", "ListLogs", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "ListLogs", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.ListLogsSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerClient", "ListLogs", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "ListLogs", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.ListLogsResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "containerinstance.ContainerClient", "ListLogs", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainersClient", "ListLogs", resp, "Failure responding to request")
 	}
 
 	return
 }
 
 // ListLogsPreparer prepares the ListLogs request.
-func (client ContainerClient) ListLogsPreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32) (*http.Request, error) {
+func (client ContainersClient) ListLogsPreparer(ctx context.Context, resourceGroupName string, containerGroupName string, containerName string, tail *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"containerGroupName": autorest.Encode("path", containerGroupName),
 		"containerName":      autorest.Encode("path", containerName),
@@ -170,7 +170,7 @@ func (client ContainerClient) ListLogsPreparer(ctx context.Context, resourceGrou
 		"subscriptionId":     autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-10-01"
+	const APIVersion = "2019-12-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -188,13 +188,13 @@ func (client ContainerClient) ListLogsPreparer(ctx context.Context, resourceGrou
 
 // ListLogsSender sends the ListLogs request. The method will close the
 // http.Response Body if it receives an error.
-func (client ContainerClient) ListLogsSender(req *http.Request) (*http.Response, error) {
+func (client ContainersClient) ListLogsSender(req *http.Request) (*http.Response, error) {
 	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
 }
 
 // ListLogsResponder handles the response to the ListLogs request. The method always
 // closes the http.Response Body.
-func (client ContainerClient) ListLogsResponder(resp *http.Response) (result Logs, err error) {
+func (client ContainersClient) ListLogsResponder(resp *http.Response) (result Logs, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
