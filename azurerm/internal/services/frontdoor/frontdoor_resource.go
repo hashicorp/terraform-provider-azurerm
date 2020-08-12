@@ -1536,24 +1536,6 @@ func flattenArmFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []string {
 	return output
 }
 
-func flattenArmFrontDoorSubResource(input *frontdoor.SubResource, resourceType string) string {
-	if input == nil {
-		return ""
-	}
-
-	name := ""
-
-	if id := input.ID; id != nil {
-		aid, err := azure.ParseAzureResourceID(*id)
-		if err != nil {
-			return ""
-		}
-		name = aid.Path[resourceType]
-	}
-
-	return name
-}
-
 func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubResource) (*[]string, error) {
 	output := make([]string, 0)
 
