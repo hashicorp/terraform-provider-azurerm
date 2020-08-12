@@ -658,15 +658,13 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	// For US Government Cloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-	if env.Name != autorestAzure.USGovernmentCloud.Name {
-		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
-		parameters.AccountPropertiesCreateParameters.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
-	} else {
-		// As removing default value for "allow_blob_public_access" and "min_tls_version" is breaking change, so default value has to be kept.
-		// So when "allow_blob_public_access" and "min_tls_version" are default value, they would be set as empty value in request body for provisioning successfully.
+	if env.Name == autorestAzure.USGovernmentCloud.Name {
 		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
 			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, env.Name)
 		}
+	} else {
+		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
+		parameters.AccountPropertiesCreateParameters.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -905,7 +903,11 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 		// For US Government Cloud, don't specify "min_tls_version" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-		if env.Name != autorestAzure.USGovernmentCloud.Name {
+		if env.Name == autorestAzure.USGovernmentCloud.Name {
+			if minimumTLSVersion != string(storage.TLS10) {
+				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, env.Name)
+			}
+		} else {
 			opts := storage.AccountUpdateParameters{
 				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 					MinimumTLSVersion: storage.MinimumTLSVersion(minimumTLSVersion),
@@ -915,12 +917,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account min_tls_version %q: %+v", storageAccountName, err)
 			}
-		} else {
-			// As removing default value for "min_tls_version" is breaking change, so default value has to be kept.
-			// So when "min_tls_version" is default value, it would be set as empty value in request body for provisioning successfully.
-			if minimumTLSVersion != string(storage.TLS10) {
-				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, env.Name)
-			}
 		}
 	}
 
@@ -929,7 +925,11 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 		// For US Government Cloud, don't specify "allow_blob_public_access" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
-		if env.Name != autorestAzure.USGovernmentCloud.Name {
+		if env.Name == autorestAzure.USGovernmentCloud.Name {
+			if allowBlobPublicAccess {
+				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, env.Name)
+			}
+		} else {
 			opts := storage.AccountUpdateParameters{
 				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 					AllowBlobPublicAccess: &allowBlobPublicAccess,
@@ -938,12 +938,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 				return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
-			}
-		} else {
-			// As removing default value for "allow_blob_public_access" is breaking change, so default value has to be kept.
-			// So when "allow_blob_public_access" is default value, it would be set as empty value in request body for provisioning successfully.
-			if allowBlobPublicAccess {
-				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, env.Name)
 			}
 		}
 	}
