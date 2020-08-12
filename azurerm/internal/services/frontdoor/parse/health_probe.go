@@ -2,39 +2,39 @@ package parse
 
 import "fmt"
 
-type FrontDoorFrontendEndpointId struct {
+type HealthProbeId struct {
 	ResourceGroup string
 	FrontDoorName string
 	Name          string
 }
 
-func NewFrontDoorFrontendEndpointID(id FrontDoorId, name string) FrontDoorFrontendEndpointId {
-	return FrontDoorFrontendEndpointId{
+func NewHealthProbeID(id FrontDoorId, name string) HealthProbeId {
+	return HealthProbeId{
 		ResourceGroup: id.ResourceGroup,
 		FrontDoorName: id.Name,
 		Name:          name,
 	}
 }
 
-func (id FrontDoorFrontendEndpointId) ID(subscriptionId string) string {
+func (id HealthProbeId) ID(subscriptionId string) string {
 	base := NewFrontDoorID(id.ResourceGroup, id.Name).ID(subscriptionId)
-	return fmt.Sprintf("%s/frontendEndpoints/%s", base, id.Name)
+	return fmt.Sprintf("%s/healthProbeSettings/%s", base, id.Name)
 }
 
-func FrontDoorFrontendEndpointID(input string) (*FrontDoorFrontendEndpointId, error) {
+func HealthProbeID(input string) (*HealthProbeId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing FrontDoor Frontend Endpoint ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing FrontDoor Health Probe ID %q: %+v", input, err)
 	}
 
-	endpointId := FrontDoorFrontendEndpointId{
+	probeId := HealthProbeId{
 		ResourceGroup: frontDoorId.ResourceGroup,
 		FrontDoorName: frontDoorId.Name,
 	}
 
 	// TODO: handle this being case-insensitive
 	// https://github.com/Azure/azure-sdk-for-go/issues/6762
-	if endpointId.Name, err = id.PopSegment("frontendEndpoints"); err != nil {
+	if probeId.Name, err = id.PopSegment("healthProbeSettings"); err != nil {
 		return nil, err
 	}
 
@@ -42,5 +42,5 @@ func FrontDoorFrontendEndpointID(input string) (*FrontDoorFrontendEndpointId, er
 		return nil, err
 	}
 
-	return &endpointId, nil
+	return &probeId, nil
 }

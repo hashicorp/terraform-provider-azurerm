@@ -27,14 +27,14 @@ func FrontDoorBackendPoolID(input string) (*FrontDoorBackendPoolId, error) {
 		return nil, fmt.Errorf("parsing FrontDoor Backend Pool ID %q: %+v", input, err)
 	}
 
-	endpointId := FrontDoorBackendPoolId{
+	poolId := FrontDoorBackendPoolId{
 		ResourceGroup: frontDoorId.ResourceGroup,
 		FrontDoorName: frontDoorId.Name,
 	}
 
 	// TODO: handle this being case-insensitive
 	// https://github.com/Azure/azure-sdk-for-go/issues/6762
-	if endpointId.Name, err = id.PopSegment("backendPools"); err != nil {
+	if poolId.Name, err = id.PopSegment("backendPools"); err != nil {
 		return nil, err
 	}
 
@@ -42,5 +42,5 @@ func FrontDoorBackendPoolID(input string) (*FrontDoorBackendPoolId, error) {
 		return nil, err
 	}
 
-	return nil, nil
+	return &poolId, nil
 }

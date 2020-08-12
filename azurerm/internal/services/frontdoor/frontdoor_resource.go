@@ -607,7 +607,11 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if props := resp.Properties; props != nil {
-		if err := d.Set("backend_pool", flattenArmFrontDoorBackendPools(props.BackendPools)); err != nil {
+		flattenedBackendPools, err := flattenArmFrontDoorBackendPools(props.BackendPools)
+		if err != nil {
+			return fmt.Errorf("flattening `backend_pool`: %+v", err)
+		}
+		if err := d.Set("backend_pool", flattenedBackendPools); err != nil {
 			return fmt.Errorf("setting `backend_pool`: %+v", err)
 		}
 
@@ -1083,42 +1087,58 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 	return forwardingConfiguration
 }
 
-func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []map[string]interface{} {
+func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) (*[]interface{}, error) {
 	if input == nil {
-		return make([]map[string]interface{}, 0)
+		return &[]interface{}{}, nil
 	}
 
-	output := make([]map[string]interface{}, 0)
-
+	output := make([]interface{}, 0)
 	for _, v := range *input {
-		result := make(map[string]interface{})
-
-		if id := v.ID; id != nil {
-			result["id"] = *id
+		id := ""
+		if v.ID != nil {
+			id = *v.ID
 		}
 
-		if name := v.Name; name != nil {
-			result["name"] = *name
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
 		}
 
-		if properties := v.BackendPoolProperties; properties != nil {
-			result["backend"] = flattenArmFrontDoorBackend(properties.Backends)
-			result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "HealthProbeSettings")
-			// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
-			if result["health_probe_name"] == "" {
-				result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "healthProbeSettings")
+		backend := make([]interface{}, 0)
+		healthProbeName := ""
+		loadBalancingName := ""
+
+		if props := v.BackendPoolProperties; props != nil {
+			backend = flattenArmFrontDoorBackend(props.Backends)
+
+			if props.HealthProbeSettings != nil && props.HealthProbeSettings.ID != nil {
+				name, err := parse.HealthProbeID(*props.HealthProbeSettings.ID)
+				if err != nil {
+					return nil, err
+				}
+
+				healthProbeName = name.Name
 			}
 
-			result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "LoadBalancingSettings")
-			// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
-			if result["load_balancing_name"] == "" {
-				result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "loadBalancingSettings")
+			if props.LoadBalancingSettings != nil && props.LoadBalancingSettings.ID != nil {
+				name, err := parse.LoadBalancingID(*props.LoadBalancingSettings.ID)
+				if err != nil {
+					return nil, err
+				}
+
+				loadBalancingName = name.Name
 			}
 		}
-		output = append(output, result)
+		output = append(output, map[string]interface{}{
+			"backend":             backend,
+			"health_probe_name":   healthProbeName,
+			"id":                  id,
+			"load_balancing_name": loadBalancingName,
+			"name":                name,
+		})
 	}
 
-	return output
+	return &output, nil
 }
 
 func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) map[string]interface{} {
