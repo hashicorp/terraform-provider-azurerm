@@ -1,11 +1,11 @@
-package sql
+package mssql
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -20,12 +20,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSQLManagedInstance() *schema.Resource {
+func resourceArmMSSQLManagedInstance() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSQLManagedInstanceCreateUpdate,
-		Read:   resourceArmSQLManagedInstanceRead,
-		Update: resourceArmSQLManagedInstanceCreateUpdate,
-		Delete: resourceArmSQLManagedInstanceDelete,
+		Create: resourceArmMSSQLManagedInstanceCreateUpdate,
+		Read:   resourceArmMSSQLManagedInstanceRead,
+		Update: resourceArmMSSQLManagedInstanceCreateUpdate,
+		Delete: resourceArmMSSQLManagedInstanceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -162,7 +162,8 @@ func resourceArmSQLManagedInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				ValidateFunc: validation.IsRFC3339Time,
+				DiffSuppressFunc: suppress.RFC3339Time,
+				ValidateFunc:     validation.IsRFC3339Time,
 			},
 
 			"source_managed_instance_id": {
@@ -271,34 +272,34 @@ func resourceArmSQLManagedInstance() *schema.Resource {
 				},
 			},
 
-			"fully_qualified_domain_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			// "fully_qualified_domain_name": {
+			// 	Type:     schema.TypeString,
+			// 	Computed: true,
+			// },
 
-			"state": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			// "state": {
+			// 	Type:     schema.TypeString,
+			// 	Computed: true,
+			// },
 
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			// "type": {
+			// 	Type:     schema.TypeString,
+			// 	Computed: true,
+			// },
 
-			"dns_zone": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			// "dns_zone": {
+			// 	Type:     schema.TypeString,
+			// 	Computed: true,
+			// },
 
 			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.ManagedInstancesClient
-	adminClient := meta.(*clients.Client).Sql.ManagedInstanceAdministratorsClient
+func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.ManagedInstancesClient
+	adminClient := meta.(*clients.Client).MSSQL.ManagedInstanceAdministratorsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -478,13 +479,13 @@ func resourceArmSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	return resourceArmSQLManagedInstanceRead(d, meta)
+	return resourceArmMSSQLManagedInstanceRead(d, meta)
 
 }
 
-func resourceArmSQLManagedInstanceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.ManagedInstancesClient
-	adminClient := meta.(*clients.Client).Sql.ManagedInstanceAdministratorsClient
+func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.ManagedInstancesClient
+	adminClient := meta.(*clients.Client).MSSQL.ManagedInstanceAdministratorsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -503,7 +504,7 @@ func resourceArmSQLManagedInstanceRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("type", (resp.Type))
+	// d.Set("type", (resp.Type))
 	
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -516,15 +517,15 @@ func resourceArmSQLManagedInstanceRead(d *schema.ResourceData, meta interface{})
 
 	if props := resp.ManagedInstanceProperties ; props != nil {
 		d.Set("create_mode", props.ManagedInstanceCreateMode)
-		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		// d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("subnet_id", props.SubnetID)
-		d.Set("state", props.State)
+		// d.Set("state", props.State)
 		d.Set("license_type", props.LicenseType)
 		d.Set("vcores", props.VCores)
 		d.Set("storage_size_gb", props.StorageSizeInGB)
 		d.Set("collation", props.Collation)
-		d.Set("dns_zone", props.DNSZone)
+		// d.Set("dns_zone", props.DNSZone)
 		d.Set("dns_zone_partner", props.DNSZonePartner)
 		d.Set("data_endpoint_enabled", props.PublicDataEndpointEnabled)
 		d.Set("source_managed_instance_id", props.SourceManagedInstanceID)
@@ -550,8 +551,8 @@ func resourceArmSQLManagedInstanceRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSQLManagedInstanceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Sql.ManagedInstancesClient
+func resourceArmMSSQLManagedInstanceDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.ManagedInstancesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

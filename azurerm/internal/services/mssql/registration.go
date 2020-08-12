@@ -23,6 +23,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_mssql_database":    dataSourceArmMsSqlDatabase(),
 		"azurerm_mssql_elasticpool": dataSourceArmMsSqlElasticpool(),
+		"azurerm_mssql_managed_instance": dataSourceArmMSSQLManagedInstance(),
 	}
 }
 
@@ -36,5 +37,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_mssql_server_security_alert_policy":                    resourceArmMssqlServerSecurityAlertPolicy(),
 		"azurerm_mssql_server_vulnerability_assessment":                 resourceArmMssqlServerVulnerabilityAssessment(),
 		"azurerm_mssql_virtual_machine":                                 resourceArmMsSqlVirtualMachine(),
+		"azurerm_mssql_managed_instance":               			     resourceArmMSSQLManagedInstance(),
 	}
 }

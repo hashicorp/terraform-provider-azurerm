@@ -19,6 +19,8 @@ type Client struct {
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
 	VirtualMachinesClient                              *sqlvirtualmachine.SQLVirtualMachinesClient
+	ManagedInstancesClient                     		   *sql.ManagedInstancesClient
+	ManagedInstanceAdministratorsClient				   *sql.ManagedInstanceAdministratorsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -58,6 +60,12 @@ func NewClient(o *common.ClientOptions) *Client {
 	sqlVirtualMachinesClient := sqlvirtualmachine.NewSQLVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlVirtualMachinesClient.Client, o.ResourceManagerAuthorizer)
 
+	managedInstancesClient := sql.NewManagedInstancesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstancesClient.Client, o.ResourceManagerAuthorizer)
+
+	managedInstanceAdministratorsClient := sql.NewManagedInstanceAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedInstanceAdministratorsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		DatabasesClient: &databasesClient,
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
@@ -71,5 +79,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerSecurityAlertPoliciesClient:                  &serverSecurityAlertPoliciesClient,
 		ServerVulnerabilityAssessmentsClient:               &serverVulnerabilityAssessmentsClient,
 		VirtualMachinesClient:                              &sqlVirtualMachinesClient,
+		ManagedInstancesClient:                     		&managedInstancesClient,
+		ManagedInstanceAdministratorsClient: 				&managedInstanceAdministratorsClient,
 	}
 }
