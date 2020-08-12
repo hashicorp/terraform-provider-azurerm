@@ -57,6 +57,11 @@ resource "azurerm_subnet_route_table_association" "example" {
   route_table_id = azurerm_route_table.example.id
 }
 
+data "azurerm_mssql_managed_instance" "example" {
+  name = "${var.prefix}-mi"
+  resource_group_name =  "${azurerm_resource_group.example.name}"
+}
+
 resource "azurerm_mssql_managed_instance" "example" {
   name                 = "${var.prefix}-mi"
   resource_group_name = "${azurerm_resource_group.example.name}"
@@ -70,7 +75,7 @@ resource "azurerm_mssql_managed_instance" "example" {
       license_type = "LicenseIncluded"
       collation =  "SQL_Latin1_General_CP1_CI_AS"
       proxy_override = "Redirect"
-      storage_size_gb = 256
-        vcores = 8
+      storage_size_gb = 32
+        vcores = 16
         minimal_tls_version = "1.2"
 }

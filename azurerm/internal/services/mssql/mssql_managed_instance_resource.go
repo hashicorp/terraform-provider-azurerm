@@ -272,25 +272,25 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				},
 			},
 
-			// "fully_qualified_domain_name": {
-			// 	Type:     schema.TypeString,
-			// 	Computed: true,
-			// },
+			"fully_qualified_domain_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
-			// "state": {
-			// 	Type:     schema.TypeString,
-			// 	Computed: true,
-			// },
+			"state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
-			// "type": {
-			// 	Type:     schema.TypeString,
-			// 	Computed: true,
-			// },
+			"type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
-			// "dns_zone": {
-			// 	Type:     schema.TypeString,
-			// 	Computed: true,
-			// },
+			"dns_zone": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -504,7 +504,7 @@ func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
-	// d.Set("type", (resp.Type))
+	d.Set("type", (resp.Type))
 	
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
@@ -517,15 +517,15 @@ func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{
 
 	if props := resp.ManagedInstanceProperties ; props != nil {
 		d.Set("create_mode", props.ManagedInstanceCreateMode)
-		// d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
+		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("subnet_id", props.SubnetID)
-		// d.Set("state", props.State)
+		d.Set("state", props.State)
 		d.Set("license_type", props.LicenseType)
 		d.Set("vcores", props.VCores)
 		d.Set("storage_size_gb", props.StorageSizeInGB)
 		d.Set("collation", props.Collation)
-		// d.Set("dns_zone", props.DNSZone)
+		d.Set("dns_zone", props.DNSZone)
 		d.Set("dns_zone_partner", props.DNSZonePartner)
 		d.Set("data_endpoint_enabled", props.PublicDataEndpointEnabled)
 		d.Set("source_managed_instance_id", props.SourceManagedInstanceID)
