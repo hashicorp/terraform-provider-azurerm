@@ -23,6 +23,7 @@ func (r Registration) SupportedDataSources() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
 		"azurerm_sql_server":   dataSourceSqlServer(),
 		"azurerm_sql_database": dataSourceSqlDatabase(),
+		"azurerm_sql_managed_instance": dataSourceArmManagedSQLInstance(),
 	}
 }
 
@@ -36,5 +37,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_sql_firewall_rule":                  resourceArmSqlFirewallRule(),
 		"azurerm_sql_server":                         resourceArmSqlServer(),
 		"azurerm_sql_virtual_network_rule":           resourceArmSqlVirtualNetworkRule(),
+		"azurerm_sql_managed_instance":               resourceArmSQLManagedInstance(),
 	}
 }
