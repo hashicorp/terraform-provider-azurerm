@@ -21,7 +21,7 @@ func (id FrontendEndpointId) ID(subscriptionId string) string {
 	return fmt.Sprintf("%s/frontendEndpoints/%s", base, id.Name)
 }
 
-func FrontDoorFrontendEndpointID(input string) (*FrontendEndpointId, error) {
+func FrontendEndpointID(input string) (*FrontendEndpointId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
 		return nil, fmt.Errorf("parsing Frontend Endpoint ID %q: %+v", input, err)

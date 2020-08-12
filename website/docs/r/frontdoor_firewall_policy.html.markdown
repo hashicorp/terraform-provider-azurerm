@@ -249,5 +249,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 FrontDoor Web Application Firewall Policy can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/frontdoorwebapplicationfirewallpolicies/example-fdwafpolicy
+$ terraform import azurerm_frontdoor_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/frontDoorWebApplicationFirewallPolicies/example-fdwafpolicy
 ```

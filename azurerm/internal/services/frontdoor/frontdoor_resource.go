@@ -1543,7 +1543,7 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 			continue
 		}
 
-		id, err := parse.FrontDoorFrontendEndpointID(*v.ID)
+		id, err := parse.FrontendEndpointID(*v.ID)
 		if err != nil {
 			return nil, err
 		}
