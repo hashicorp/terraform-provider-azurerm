@@ -507,10 +507,12 @@ resource "azurerm_postgresql_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  sku_name                     = "GP_Gen5_2"
-  version                      = "%s"
-  auto_grow_enabled            = true
-  ssl_enforcement_enabled      = true
+
+  sku_name          = "GP_Gen5_2"
+  version           = "%s"
+  auto_grow_enabled = true
+
+  ssl_enforcement_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -533,10 +535,13 @@ resource "azurerm_postgresql_server" "test" {
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  sku_name                     = "GP_Gen5_2"
-  version                      = "%s"
-  storage_mb                   = 51200
-  ssl_enforcement_enabled      = false
+
+  sku_name = "GP_Gen5_2"
+  version  = "%s"
+
+  storage_mb = 51200
+
+  ssl_enforcement_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -553,10 +558,12 @@ resource "azurerm_postgresql_server" "import" {
 
   administrator_login          = azurerm_postgresql_server.test.administrator_login
   administrator_login_password = azurerm_postgresql_server.test.administrator_login_password
-  sku_name                     = azurerm_postgresql_server.test.sku_name
-  version                      = azurerm_postgresql_server.test.version
-  storage_mb                   = azurerm_postgresql_server.test.storage_mb
-  ssl_enforcement_enabled      = azurerm_postgresql_server.test.ssl_enforcement_enabled
+
+  sku_name   = azurerm_postgresql_server.test.sku_name
+  version    = azurerm_postgresql_server.test.version
+  storage_mb = azurerm_postgresql_server.test.storage_mb
+
+  ssl_enforcement_enabled = azurerm_postgresql_server.test.ssl_enforcement_enabled
 }
 `, template)
 }
@@ -577,16 +584,20 @@ resource "azurerm_postgresql_server" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  version                          = "%s"
-  sku_name                         = "GP_Gen5_2"
-  administrator_login              = "acctestun"
-  administrator_login_password     = "H@Sh1CoR3!"
+  version  = "%s"
+  sku_name = "GP_Gen5_2"
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+
   public_network_access_enabled    = false
   ssl_minimal_tls_version_enforced = "TLS1_2"
-  ssl_enforcement_enabled          = true
-  storage_mb                       = 640000
-  backup_retention_days            = 7
-  auto_grow_enabled                = true
+
+  ssl_enforcement_enabled = true
+
+  storage_mb            = 640000
+  backup_retention_days = 7
+  auto_grow_enabled     = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, version)
 }
@@ -633,13 +644,16 @@ resource "azurerm_postgresql_server" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  administrator_login              = "acctestun"
-  administrator_login_password     = "H@Sh1CoR3!updated"
-  sku_name                         = "GP_Gen5_4"
-  version                          = "%[3]s"
-  storage_mb                       = 640000
-  backup_retention_days            = 7
-  auto_grow_enabled                = true
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!updated"
+
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  backup_retention_days = 7
+  auto_grow_enabled     = true
+
   public_network_access_enabled    = false
   ssl_enforcement_enabled          = true
   ssl_minimal_tls_version_enforced = "TLS1_2"
@@ -649,7 +663,8 @@ resource "azurerm_postgresql_server" "test" {
     disabled_alerts      = ["Sql_Injection", "Data_Exfiltration"]
     email_account_admins = true
     email_addresses      = ["kt@example.com", "admin@example.com"]
-    retention_days       = 7
+
+    retention_days = 7
   }
 }
 `, data.RandomInteger, data.Locations.Primary, version)
@@ -712,27 +727,32 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                         = "acctest-psql-server-%[1]d"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
+  name                = "acctest-psql-server-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!updated"
 
-  sku_name                         = "GP_Gen5_4"
-  version                          = "%[3]s"
-  storage_mb                       = 640000
-  backup_retention_days            = 14
-  auto_grow_enabled                = false
+  sku_name   = "GP_Gen5_4"
+  version    = "%[3]s"
+  storage_mb = 640000
+
+  backup_retention_days = 14
+  auto_grow_enabled     = false
+
   public_network_access_enabled    = true
-  ssl_enforcement_enabled          = true
+  ssl_enforcement_enabled          = false
   ssl_minimal_tls_version_enforced = "TLS1_1"
 
   threat_detection_policy {
-    enabled                    = true
-    disabled_alerts            = ["Sql_Injection"]
-    email_account_admins       = true
-    email_addresses            = ["kt@example.com"]
-    retention_days             = 7
+    enabled              = true
+    disabled_alerts      = ["Sql_Injection"]
+    email_account_admins = true
+    email_addresses      = ["kt@example.com"]
+
+    retention_days = 7
+
     storage_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
     storage_account_access_key = azurerm_storage_account.test.primary_access_key
   }
@@ -752,15 +772,18 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                         = "acctest-psql-server-%d"
-  location                     = azurerm_resource_group.test.location
-  resource_group_name          = azurerm_resource_group.test.name
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
-  sku_name                     = "%s"
-  storage_mb                   = 51200
-  version                      = "%s"
-  ssl_enforcement_enabled      = true
+
+  sku_name   = "%s"
+  storage_mb = 51200
+  version    = "%s"
+
+  ssl_enforcement_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, version)
 }
@@ -770,14 +793,17 @@ func testAccAzureRMPostgreSQLServer_createReplica(data acceptance.TestData, vers
 %[1]s
 
 resource "azurerm_postgresql_server" "replica" {
-  name                      = "acctest-psql-server-%[2]d-replica"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  sku_name                  = "GP_Gen5_2"
-  version                   = "%[3]s"
+  name                = "acctest-psql-server-%[2]d-replica"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "GP_Gen5_2"
+  version  = "%[3]s"
+
   create_mode               = "Replica"
   creation_source_server_id = azurerm_postgresql_server.test.id
-  ssl_enforcement_enabled   = true
+
+  ssl_enforcement_enabled = true
 }
 `, testAccAzureRMPostgreSQLServer_template(data, "GP_Gen5_2", version), data.RandomInteger, version)
 }
@@ -787,16 +813,19 @@ func testAccAzureRMPostgreSQLServer_createPointInTimeRestore(data acceptance.Tes
 %[1]s
 
 resource "azurerm_postgresql_server" "restore" {
-  name                      = "acctest-psql-server-%[2]d-restore"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  sku_name                  = "GP_Gen5_2"
-  version                   = "%[4]s"
-  storage_mb                = 51200
+  name                = "acctest-psql-server-%[2]d-restore"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name   = "GP_Gen5_2"
+  version    = "%[4]s"
+  storage_mb = 51200
+
   create_mode               = "PointInTimeRestore"
   creation_source_server_id = azurerm_postgresql_server.test.id
   restore_point_in_time     = "%[3]s"
-  ssl_enforcement_enabled   = true
+
+  ssl_enforcement_enabled = true
 }
 `, testAccAzureRMPostgreSQLServer_template(data, "GP_Gen5_2", version), data.RandomInteger, restoreTime, version)
 }

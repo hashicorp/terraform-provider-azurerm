@@ -196,6 +196,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:          schema.TypeBool,
 				Optional:      true,
 				Default:       false,
+				ForceNew:      true,
 				ConflictsWith: []string{"storage_profile", "storage_profile.0.geo_redundant_backup"},
 			},
 
