@@ -911,7 +911,7 @@ func testAccAzureRMHDInsightHBaseCluster_template(data acceptance.TestData) stri
 provider "azurerm" {
   features {}
   # Due to bug in HDInsight we can't reuse client with the same x-ms-correlation-request-id for multiple updates
-  disable_correlation_request_id = true  
+  disable_correlation_request_id = true
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1323,19 +1323,19 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
       target_instance_count = 2
       autoscale {
         recurrence {
-          timezone  = "Pacific Standard Time"          
+          timezone = "Pacific Standard Time"
           schedule {
-            days      = ["Monday"]
-            time      = "10:00"
+            days                  = ["Monday"]
+            time                  = "10:00"
             target_instance_count = 5
           }
           schedule {
-              days      = ["Saturday", "Sunday"]
-              time      = "10:00"
-              target_instance_count = 3
+            days                  = ["Saturday", "Sunday"]
+            time                  = "10:00"
+            target_instance_count = 3
           }
         }
-      }        
+      }
     }
 
     zookeeper_node {

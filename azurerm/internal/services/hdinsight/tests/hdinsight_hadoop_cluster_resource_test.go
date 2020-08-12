@@ -1671,7 +1671,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
           min_instance_count = 2
           max_instance_count = 3
         }
-      }      
+      }
     }
 
     zookeeper_node {
@@ -1725,19 +1725,19 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       target_instance_count = 2
       autoscale {
         recurrence {
-          timezone  = "Pacific Standard Time"          
+          timezone = "Pacific Standard Time"
           schedule {
-            days      = ["Monday"]
-            time      = "10:00"
+            days                  = ["Monday"]
+            time                  = "10:00"
             target_instance_count = 5
           }
           schedule {
-              days      = ["Saturday", "Sunday"]
-              time      = "10:00"
-              target_instance_count = 3
+            days                  = ["Saturday", "Sunday"]
+            time                  = "10:00"
+            target_instance_count = 3
           }
         }
-      }      
+      }
     }
 
     zookeeper_node {

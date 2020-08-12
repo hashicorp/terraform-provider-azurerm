@@ -777,10 +777,8 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 						fmt.Sprintf("%s.0.autoscale.0.recurrence", schemaLocation),
 					}
 				}
-
 			}
 			if definition.CanAutoScaleOnSchedule {
-
 				autoScales["recurrence"] = &schema.Schema{
 					Type:     schema.TypeList,
 					Optional: true,
@@ -957,7 +955,7 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 }
 
 func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *hdinsight.Autoscale {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -988,7 +986,7 @@ func ExpandHDInsightNodeAutoScaleDefinition(input []interface{}) *hdinsight.Auto
 }
 
 func ExpandHDInsightAutoscaleCapacityDefinition(input []interface{}) *hdinsight.AutoscaleCapacity {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -1001,7 +999,7 @@ func ExpandHDInsightAutoscaleCapacityDefinition(input []interface{}) *hdinsight.
 }
 
 func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *hdinsight.AutoscaleRecurrence {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -1202,5 +1200,4 @@ func FlattenHDInsightAutoscaleRecurrenceDefinition(input *hdinsight.AutoscaleRec
 			"schedule": &schedules,
 		},
 	}
-
 }
