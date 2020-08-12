@@ -264,62 +264,62 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 func testAccAzureRMLoadBalancerBackEndAddressPool_standard(data acceptance.TestData, addressPoolName string, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-	name                = "test-ip-%d"
-	sku					= "%s"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	allocation_method   = "Static"
+  name                = "test-ip-%d"
+  sku                 = "%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
 }
 
 resource "azurerm_virtual_network" "test" {
-	name                = "acctestvirtnet-%d"
-	address_space       = ["10.0.0.0/16"]
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "acctestvirtnet-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-	subnet {
-		name           = "subnet1"
-		address_prefix = "10.0.1.0/24"
-	}
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+  }
 }
 
 resource "azurerm_lb" "test" {
-	name                = "arm-test-loadbalancer-%d"
-	sku                 = "%s"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "arm-test-loadbalancer-%d"
+  sku                 = "%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
-	frontend_ip_configuration {
-		name                 = "one-%d"
-		public_ip_address_id = azurerm_public_ip.test.id
-	}
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
 }
 
 resource "azurerm_lb_backend_address_pool" "test" {
-	name = "%s"
-	resource_group_name = azurerm_resource_group.test.name
-	loadbalancer_id = azurerm_lb.test.id
+  name                = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  loadbalancer_id     = azurerm_lb.test.id
 
-	ip_address {
-		name = "addr-1"
-		virtual_network_id = azurerm_virtual_network.test.id
-		ip_address = "10.0.1.4"
-	}
+  ip_address {
+    name               = "addr-1"
+    virtual_network_id = azurerm_virtual_network.test.id
+    ip_address         = "10.0.1.4"
+  }
 
-	ip_address {
-		name = "addr-2"
-		virtual_network_id = azurerm_virtual_network.test.id
-		ip_address = "10.0.1.5"
-	}
+  ip_address {
+    name               = "addr-2"
+    virtual_network_id = azurerm_virtual_network.test.id
+    ip_address         = "10.0.1.5"
+  }
 }
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, data.RandomInteger, data.RandomInteger, sku, data.RandomInteger, addressPoolName)
