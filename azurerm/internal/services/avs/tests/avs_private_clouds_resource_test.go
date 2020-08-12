@@ -1,198 +1,299 @@
 package tests
 
 import (
-    "fmt"
-    "github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-    "github.com/hashicorp/terraform-plugin-sdk/terraform"
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/avs/parse"
-    "github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-    "testing"
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/avs/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"testing"
 )
 
 func TestAccAzureRMavsPrivateCloud_basic(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-    resource.ParallelTest(t, resource.TestCase{
-        PreCheck:     func() { acceptance.PreCheck(t) },
-        Providers:    acceptance.SupportedProviders,
-        CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
-        Steps: []resource.TestStep{
-            {
-                Config: testAccAzureRMavsPrivateCloud_basic(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.ImportStep(),
-        },
-    })
+	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMavsPrivateCloud_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
 }
 
 func TestAccAzureRMavsPrivateCloud_requiresImport(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-    resource.ParallelTest(t, resource.TestCase{
-        PreCheck:     func() { acceptance.PreCheck(t) },
-        Providers:    acceptance.SupportedProviders,
-        CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
-        Steps: []resource.TestStep{
-            {
-                Config: testAccAzureRMavsPrivateCloud_basic(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.RequiresImportErrorStep(testAccAzureRMavsPrivateCloud_requiresImport),
-        },
-    })
+	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMavsPrivateCloud_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+				),
+			},
+			data.RequiresImportErrorStep(testAccAzureRMavsPrivateCloud_requiresImport),
+		},
+	})
 }
 
 func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-    resource.ParallelTest(t, resource.TestCase{
-        PreCheck:     func() { acceptance.PreCheck(t) },
-        Providers:    acceptance.SupportedProviders,
-        CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
-        Steps: []resource.TestStep{
-            {
-                Config: testAccAzureRMavsPrivateCloud_complete(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.ImportStep(),
-        },
-    })
+	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMavsPrivateCloud_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
 }
 
 func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-    resource.ParallelTest(t, resource.TestCase{
-        PreCheck:     func() { acceptance.PreCheck(t) },
-        Providers:    acceptance.SupportedProviders,
-        CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
-        Steps: []resource.TestStep{
-            {
-                Config: testAccAzureRMavsPrivateCloud_basic(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.ImportStep(),
-            {
-                Config: testAccAzureRMavsPrivateCloud_complete(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.ImportStep(),
-            {
-                Config: testAccAzureRMavsPrivateCloud_basic(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.ImportStep(),
-        },
-    })
-}
-
-func TestAccAzureRMavsPrivateCloud_updateManagementCluster(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-    resource.ParallelTest(t, resource.TestCase{
-        PreCheck:     func() { acceptance.PreCheck(t) },
-        Providers:    acceptance.SupportedProviders,
-        CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
-        Steps: []resource.TestStep{
-            {
-                Config: testAccAzureRMavsPrivateCloud_complete(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.ImportStep(),
-            {
-                Config: testAccAzureRMavsPrivateCloud_updateManagementCluster(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.ImportStep(),
-        },
-    })
+	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMavsPrivateCloud_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMavsPrivateCloud_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMavsPrivateCloud_update(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMavsPrivateCloud_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
 }
 
 func TestAccAzureRMavsPrivateCloud_updateIdentitySources(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-    resource.ParallelTest(t, resource.TestCase{
-        PreCheck:     func() { acceptance.PreCheck(t) },
-        Providers:    acceptance.SupportedProviders,
-        CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
-        Steps: []resource.TestStep{
-            {
-                Config: testAccAzureRMavsPrivateCloud_complete(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.ImportStep(),
-            {
-                Config: testAccAzureRMavsPrivateCloud_updateIdentitySources(data),
-                Check: resource.ComposeTestCheckFunc(
-                    testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
-                ),
-            },
-            data.ImportStep(),
-        },
-    })
+	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMavsPrivateCloud_complete(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMavsPrivateCloud_updateIdentitySources(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMavsPrivateCloud_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.secondary_subnet"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "hcx_cloud_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "nsxt_manager_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "provisioning_network"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcenter_certificate_thumbprint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vcsa_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
 }
 
 func testCheckAzureRMavsPrivateCloudExists(resourceName string) resource.TestCheckFunc {
-    return func(s *terraform.State) error {
-        client := acceptance.AzureProvider.Meta().(*clients.Client).Avs.PrivateCloudClient
-        ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
-        rs, ok := s.RootModule().Resources[resourceName]
-        if !ok {
-            return fmt.Errorf("avs PrivateCloud not found: %s", resourceName)
-        }
-        id, err := parse.AvsPrivateCloudID(rs.Primary.ID)
-        if err != nil {
-            return err
-        }
-        if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-            if !utils.ResponseWasNotFound(resp.Response) {
-                return fmt.Errorf("bad: Avs PrivateCloud %q does not exist", id.Name)
-            }
-            return fmt.Errorf("bad: Get on Avs.PrivateCloudClient: %+v", err)
-        }
-        return nil
-    }
+	return func(s *terraform.State) error {
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Avs.PrivateCloudClient
+		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("avs PrivateCloud not found: %s", resourceName)
+		}
+		id, err := parse.AvsPrivateCloudID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("bad: Avs PrivateCloud %q does not exist", id.Name)
+			}
+			return fmt.Errorf("bad: Get on Avs.PrivateCloudClient: %+v", err)
+		}
+		return nil
+	}
 }
 
 func testCheckAzureRMavsPrivateCloudDestroy(s *terraform.State) error {
-    client := acceptance.AzureProvider.Meta().(*clients.Client).Avs.PrivateCloudClient
-    ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Avs.PrivateCloudClient
+	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
-    for _, rs := range s.RootModule().Resources {
-        if rs.Type != "azurerm_avs_private_cloud" {
-            continue
-        }
-        id, err := parse.AvsPrivateCloudID(rs.Primary.ID)
-        if err != nil {
-            return err
-        }
-        if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
-            if !utils.ResponseWasNotFound(resp.Response) {
-                 return fmt.Errorf("bad: Get on Avs.PrivateCloudClient: %+v", err)
-            }
-        }
-        return nil
-    }
-    return nil
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_avs_private_cloud" {
+			continue
+		}
+		id, err := parse.AvsPrivateCloudID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+		if resp, err := client.Get(ctx, id.ResourceGroup, id.Name); err != nil {
+			if !utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("bad: Get on Avs.PrivateCloudClient: %+v", err)
+			}
+		}
+		return nil
+	}
+	return nil
 }
 
 func testAccAzureRMavsPrivateCloud_template(data acceptance.TestData) string {
-    return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -205,17 +306,15 @@ resource "azurerm_resource_group" "test" {
 }
 
 func testAccAzureRMavsPrivateCloud_basic(data acceptance.TestData) string {
-    template := testAccAzureRMavsPrivateCloud_template(data)
-    return fmt.Sprintf(`
+	template := testAccAzureRMavsPrivateCloud_template(data)
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name = "acctest-apc-%d"
+  name                = "acctest-apc-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  sku {
-    name = "av36"
-  }
+  location            = azurerm_resource_group.test.location
+  sku_name            = "av36"
 
   management_cluster {
     cluster_size = 4
@@ -226,19 +325,18 @@ resource "azurerm_avs_private_cloud" "test" {
 }
 
 func testAccAzureRMavsPrivateCloud_requiresImport(data acceptance.TestData) string {
-    config := testAccAzureRMavsPrivateCloud_basic(data)
-    return fmt.Sprintf(`
+	config := testAccAzureRMavsPrivateCloud_basic(data)
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_avs_private_cloud" "import" {
-  name = azurerm_avs_private_cloud.test.name
+  name                = azurerm_avs_private_cloud.test.name
   resource_group_name = azurerm_avs_private_cloud.test.resource_group_name
-  location = azurerm_avs_private_cloud.test.location
-  sku {
-    name = azurerm_avs_private_cloud.test.sku.name
-  }
+  location            = azurerm_avs_private_cloud.test.location
+  sku_name            = azurerm_avs_private_cloud.test.sku_name
+
   management_cluster {
-    cluster_size = azurerm_avs_private_cloud.test.management_cluster.cluster_size
+    cluster_size = azurerm_avs_private_cloud.test.management_cluster.0.cluster_size
   }
   network_block = azurerm_avs_private_cloud.test.network_block
 }
@@ -246,37 +344,35 @@ resource "azurerm_avs_private_cloud" "import" {
 }
 
 func testAccAzureRMavsPrivateCloud_complete(data acceptance.TestData) string {
-    template := testAccAzureRMavsPrivateCloud_template(data)
-    return fmt.Sprintf(`
+	template := testAccAzureRMavsPrivateCloud_template(data)
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name = "acctest-apc-%d"
+  name                = "acctest-apc-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  sku {
-    name = "AV36"
-  }
+  location            = azurerm_resource_group.test.location
+  sku_name            = "AV36"
 
   management_cluster {
     cluster_size = 4
   }
   network_block = "192.168.48.0/22"
   identity_source {
-    name = ""
-    alias = ""
-    base_group_dn = ""
-    base_user_dn = ""
-    domain = ""
-    password = ""
-    primary_server = ""
-    secondary_server = ""
-    ssl = false
-    username = ""
+    name                 = "testName"
+    alias                = "testAlias"
+    base_group_dn        = "testGp"
+    base_user_dn         = "testUser"
+    domain               = "testDomain"
+    password             = "PassWord1234!"
+    primary_server_url   = "http://test.com"
+    secondary_server_url = "http://test2.com"
+    ssl_enabled          = false
+    username             = "testUser"
   }
-  internet = false
-  nsxt_password = ""
-  vcenter_password = ""
+  internet_connected = false
+  nsxt_password      = "PassWord1234!"
+  vcenter_password   = "PassWord1234!"
   tags = {
     ENV = "Test"
   }
@@ -284,80 +380,88 @@ resource "azurerm_avs_private_cloud" "test" {
 `, template, data.RandomInteger)
 }
 
-func testAccAzureRMavsPrivateCloud_updateManagementCluster(data acceptance.TestData) string {
-    template := testAccAzureRMavsPrivateCloud_template(data)
-    return fmt.Sprintf(`
+func testAccAzureRMavsPrivateCloud_update(data acceptance.TestData) string {
+	template := testAccAzureRMavsPrivateCloud_template(data)
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name = "acctest-apc-%d"
+  name                = "acctest-apc-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  sku {
-    name = "AV36"
-  }
+  location            = azurerm_resource_group.test.location
+  sku_name            = "AV36"
 
   management_cluster {
-    cluster_size = 4
+    cluster_size = 3
   }
   network_block = "192.168.48.0/22"
   identity_source {
-    name = ""
-    alias = ""
-    base_group_dn = ""
-    base_user_dn = ""
-    domain = ""
-    password = ""
-    primary_server = ""
-    secondary_server = ""
-    ssl = false
-    username = ""
+    name                 = "testName2"
+    alias                = "testAlias2"
+    base_group_dn        = "testGp2"
+    base_user_dn         = "testUser2"
+    domain               = "testDomain2"
+    password             = "PassWord1234!2"
+    primary_server_url   = "http://test_secondary.com"
+    secondary_server_url = "http://test_secondary2.com"
+    ssl_enabled          = true
+    username             = "testUser2"
   }
-  internet = false
-  nsxt_password = ""
-  vcenter_password = ""
+  internet_connected = true
+  nsxt_password      = "PassWord1234!"
+  vcenter_password   = "PassWord1234!"
   tags = {
-    ENV = "Test"
+    ENV = "Stage"
   }
 }
 `, template, data.RandomInteger)
 }
 
 func testAccAzureRMavsPrivateCloud_updateIdentitySources(data acceptance.TestData) string {
-    template := testAccAzureRMavsPrivateCloud_template(data)
-    return fmt.Sprintf(`
+	template := testAccAzureRMavsPrivateCloud_template(data)
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
   name = "acctest-apc-%d"
   resource_group_name = azurerm_resource_group.test.name
   location = azurerm_resource_group.test.location
-  sku {
-    name = "AV36"
-  }
+  sku_name= "AV36"
 
   management_cluster {
     cluster_size = 4
   }
   network_block = "192.168.48.0/22"
   identity_source {
-    name = ""
-    alias = ""
-    base_group_dn = ""
-    base_user_dn = ""
-    domain = ""
-    password = ""
-    primary_server = ""
-    secondary_server = ""
-    ssl = false
-    username = ""
+    name = "testName"
+    alias = "testAlias"
+    base_group_dn = "testGp"
+    base_user_dn = "testUser"
+    domain = "testDomain"
+    password = "PassWord1234!"
+    primary_server_url = "http://test.com"
+    secondary_server_url = "http://test2.com"
+    ssl_enabled = false
+    username = "testUser"
   }
-  internet = false
-  nsxt_password = ""
-  vcenter_password = ""
+
+identity_source {
+    name = "testName3"
+    alias = "testAlias3"
+    base_group_dn = "testGp3"
+    base_user_dn = "testUser3"
+    domain = "testDomain3"
+    password = "PassWord1234!3"
+    primary_server_url = "http://test_secondary.com"
+    secondary_server_url = "http://test_secondary2.com"
+    ssl_enabled = true
+    username = "testUser3"
+  }
+  internet_connected = false
+  nsxt_password = "PassWord1234!"
+  vcenter_password = "PassWord1234!"
   tags = {
     ENV = "Test"
   }
-}
 `, template, data.RandomInteger)
 }
