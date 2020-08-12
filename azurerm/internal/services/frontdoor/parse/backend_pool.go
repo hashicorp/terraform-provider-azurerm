@@ -2,32 +2,32 @@ package parse
 
 import "fmt"
 
-type FrontDoorBackendPoolId struct {
+type BackendPoolId struct {
 	ResourceGroup string
 	FrontDoorName string
 	Name          string
 }
 
-func NewFrontDoorBackendPoolID(id FrontDoorId, name string) FrontDoorBackendPoolId {
-	return FrontDoorBackendPoolId{
+func NewBackendPoolID(id FrontDoorId, name string) BackendPoolId {
+	return BackendPoolId{
 		ResourceGroup: id.ResourceGroup,
 		FrontDoorName: id.Name,
 		Name:          name,
 	}
 }
 
-func (id FrontDoorBackendPoolId) ID(subscriptionId string) string {
+func (id BackendPoolId) ID(subscriptionId string) string {
 	base := NewFrontDoorID(id.ResourceGroup, id.Name).ID(subscriptionId)
 	return fmt.Sprintf("%s/backendPools/%s", base, id.Name)
 }
 
-func FrontDoorBackendPoolID(input string) (*FrontDoorBackendPoolId, error) {
+func BackendPoolID(input string) (*BackendPoolId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing FrontDoor Backend Pool ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing Backend Pool ID %q: %+v", input, err)
 	}
 
-	poolId := FrontDoorBackendPoolId{
+	poolId := BackendPoolId{
 		ResourceGroup: frontDoorId.ResourceGroup,
 		FrontDoorName: frontDoorId.Name,
 	}

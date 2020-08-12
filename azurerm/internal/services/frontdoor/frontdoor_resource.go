@@ -806,7 +806,7 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorId parse.F
 		sessionAffinityTtlSeconds := int32(frontendEndpoint["session_affinity_ttl_seconds"].(int))
 		waf := frontendEndpoint["web_application_firewall_policy_link_id"].(string)
 		name := frontendEndpoint["name"].(string)
-		id := parse.NewFrontDoorFrontendEndpointID(frontDoorId, name).ID(subscriptionId)
+		id := parse.NewFrontendEndpointID(frontDoorId, name).ID(subscriptionId)
 
 		sessionAffinityEnabled := frontdoor.SessionAffinityEnabledStateDisabled
 		if isSessionAffinityEnabled {
@@ -1206,7 +1206,7 @@ func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 	return output
 }
 
-func retrieveFrontEndEndpointInformation(ctx context.Context, client *frontdoor.FrontendEndpointsClient, frontDoorId parse.FrontDoorId, endpoints *[]frontdoor.FrontendEndpoint) (*[]frontdoor.FrontendEndpoint, interface{}) {
+func retrieveFrontEndEndpointInformation(ctx context.Context, client *frontdoor.FrontendEndpointsClient, frontDoorId parse.FrontDoorId, endpoints *[]frontdoor.FrontendEndpoint) (*[]frontdoor.FrontendEndpoint, error) {
 	output := make([]frontdoor.FrontendEndpoint, 0)
 	if endpoints == nil {
 		return &output, nil
@@ -1426,7 +1426,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 
 	name := ""
 	if v.BackendPool != nil && v.BackendPool.ID != nil {
-		backendPoolId, err := parse.FrontDoorBackendPoolID(*v.BackendPool.ID)
+		backendPoolId, err := parse.BackendPoolID(*v.BackendPool.ID)
 		if err != nil {
 			return nil, err
 		}

@@ -2,32 +2,32 @@ package parse
 
 import "fmt"
 
-type FrontDoorFrontendEndpointId struct {
+type FrontendEndpointId struct {
 	ResourceGroup string
 	FrontDoorName string
 	Name          string
 }
 
-func NewFrontDoorFrontendEndpointID(id FrontDoorId, name string) FrontDoorFrontendEndpointId {
-	return FrontDoorFrontendEndpointId{
+func NewFrontendEndpointID(id FrontDoorId, name string) FrontendEndpointId {
+	return FrontendEndpointId{
 		ResourceGroup: id.ResourceGroup,
 		FrontDoorName: id.Name,
 		Name:          name,
 	}
 }
 
-func (id FrontDoorFrontendEndpointId) ID(subscriptionId string) string {
+func (id FrontendEndpointId) ID(subscriptionId string) string {
 	base := NewFrontDoorID(id.ResourceGroup, id.Name).ID(subscriptionId)
 	return fmt.Sprintf("%s/frontendEndpoints/%s", base, id.Name)
 }
 
-func FrontDoorFrontendEndpointID(input string) (*FrontDoorFrontendEndpointId, error) {
+func FrontDoorFrontendEndpointID(input string) (*FrontendEndpointId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing FrontDoor Frontend Endpoint ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing Frontend Endpoint ID %q: %+v", input, err)
 	}
 
-	endpointId := FrontDoorFrontendEndpointId{
+	endpointId := FrontendEndpointId{
 		ResourceGroup: frontDoorId.ResourceGroup,
 		FrontDoorName: frontDoorId.Name,
 	}
