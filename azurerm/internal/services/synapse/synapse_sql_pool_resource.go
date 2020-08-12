@@ -121,7 +121,6 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 			"restore_point_in_time": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IsRFC3339Time,
 			},
 
@@ -189,7 +188,7 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 		}
 		restorePointInTime, _ := time.Parse(time.RFC3339, restorePointInTimeStr)
 		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
-		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(d.Get("source_database_id").(string))
+		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
 	}
 
 	future, err := client.Create(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, sqlPoolInfo)
@@ -246,7 +245,7 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 				Status: status,
 			},
 		}
-		if _, err := sqlPoolTransparentDataEncryptionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, parameter); err != nil {
+		if _, err := sqlPoolTransparentDataEncryptionClient.CreateOrUpdate(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name, parameter); err != nil {
 			return fmt.Errorf("updating `data_encrypted`: %+v", err)
 		}
 	}
@@ -259,8 +258,8 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
 
-		if _, err := client.Update(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, sqlPoolInfo); err != nil {
-			return fmt.Errorf("updating Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		if _, err := client.Update(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name, sqlPoolInfo); err != nil {
+			return fmt.Errorf("updating Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 		}
 
 		// wait for sku scale completion
@@ -272,14 +271,14 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 				Target: []string{
 					"Online",
 				},
-				Refresh:                   synapseSqlPoolScaleStateRefreshFunc(ctx, client, id.ResourceGroup, id.WorkspaceName, id.Name),
+				Refresh:                   synapseSqlPoolScaleStateRefreshFunc(ctx, client, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name),
 				MinTimeout:                5 * time.Second,
 				ContinuousTargetOccurence: 3,
 				Timeout:                   d.Timeout(schema.TimeoutUpdate),
 			}
 
 			if _, err := stateConf.WaitForState(); err != nil {
-				return fmt.Errorf("waiting for scaling of Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+				return fmt.Errorf("waiting for scaling of Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 			}
 		}
 	}
@@ -298,29 +297,28 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] synapse %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 
-	transparentDataEncryption, err := sqlPoolTransparentDataEncryptionClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	transparentDataEncryption, err := sqlPoolTransparentDataEncryptionClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
-		return fmt.Errorf("retrieving Transparent Data Encryption settings of Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("retrieving Transparent Data Encryption settings of Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 
 	d.Set("name", id.Name)
-	d.Set("synapse_workspace_id", id.WorkspaceId)
+	d.Set("synapse_workspace_id", id.Workspace.String())
 	if resp.Sku != nil {
 		d.Set("sku_name", resp.Sku.Name)
 	}
 	if props := resp.SQLPoolResourceProperties; props != nil {
 		d.Set("collation", props.Collation)
-		d.Set("restore_point_in_time", props.RestorePointInTime.Format(time.RFC3339))
 	}
 	if props := transparentDataEncryption.TransparentDataEncryptionProperties; props != nil {
 		d.Set("data_encrypted", props.Status == synapse.TransparentDataEncryptionStatusEnabled)
@@ -338,13 +336,13 @@ func resourceArmSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.Name)
+	future, err := client.Delete(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("deleting Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.ResourceGroup, id.WorkspaceName, err)
+		return fmt.Errorf("waiting on deleting future for Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 	return nil
 }
@@ -371,9 +369,9 @@ func constructSourceDatabaseId(id string) string {
 		return id
 	}
 	sqlDataBaseId := sqlParse.SqlDatabaseId{
-		SubscriptionID: sqlPoolId.SubscriptionID,
-		ResourceGroup:  sqlPoolId.ResourceGroup,
-		ServerName:     sqlPoolId.WorkspaceName,
+		SubscriptionID: sqlPoolId.Workspace.SubscriptionID,
+		ResourceGroup:  sqlPoolId.Workspace.ResourceGroup,
+		ServerName:     sqlPoolId.Workspace.Name,
 		Name:           sqlPoolId.Name,
 	}
 	return sqlDataBaseId.String()

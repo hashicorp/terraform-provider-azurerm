@@ -22,7 +22,7 @@ func TestAccAzureRMSynapseSqlPool_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMSynapseSqlPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMsynapseSqlPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -40,7 +40,7 @@ func TestAccAzureRMSynapseSqlPool_requiresImport(t *testing.T) {
 			{
 				Config: testAccAzureRMSynapseSqlPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMsynapseSqlPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
 				),
 			},
 			data.RequiresImportErrorStep(testAccAzureRMSynapseSqlPool_requiresImport),
@@ -58,7 +58,7 @@ func TestAccAzureRMSynapseSqlPool_complete(t *testing.T) {
 			{
 				Config: testAccAzureRMSynapseSqlPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMsynapseSqlPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -76,21 +76,21 @@ func TestAccAzureRMSynapseSqlPool_update(t *testing.T) {
 			{
 				Config: testAccAzureRMSynapseSqlPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMsynapseSqlPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
 				Config: testAccAzureRMSynapseSqlPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMsynapseSqlPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
 			{
 				Config: testAccAzureRMSynapseSqlPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMsynapseSqlPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSqlPoolExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -98,7 +98,7 @@ func TestAccAzureRMSynapseSqlPool_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMsynapseSqlPoolExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMSynapseSqlPoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.SqlPoolClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -110,7 +110,7 @@ func testCheckAzureRMsynapseSqlPoolExists(resourceName string) resource.TestChec
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Synapse SqlPool %q does not exist", id.Name)
 			}
@@ -132,7 +132,7 @@ func testCheckAzureRMsynapseSqlPoolDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		if resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name); err != nil {
+		if resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Get on Synapse.SqlPoolClient: %+v", err)
 			}
@@ -193,7 +193,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-Synapse-%d"
+  name     = "acctestRG-synapse-%d"
   location = "%s"
 }
 
