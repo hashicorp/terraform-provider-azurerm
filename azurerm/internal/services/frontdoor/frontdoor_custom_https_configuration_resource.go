@@ -140,14 +140,12 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 	d.Set("frontend_endpoint_id", resp.ID)
 
 	if resp.Name != nil {
-		output := make(map[string]interface{})
-		if err := azure.FlattenArmFrontDoorCustomHttpsConfiguration(&resp, output, *resp.Name); err != nil {
-			return fmt.Errorf("flattening `frontend_endpoint/custom_https_configuration`: %s", *resp.Name)
-		}
-		if err := d.Set("custom_https_configuration", output["custom_https_configuration"]); err != nil {
+
+		flattenedHttpsConfig := azure.FlattenArmFrontDoorCustomHttpsConfiguration(*resp.FrontendEndpointProperties)
+		if err := d.Set("custom_https_configuration", flattenedHttpsConfig.CustomHTTPSConfiguration); err != nil {
 			return fmt.Errorf("setting `custom_https_configuration`: %+v", err)
 		}
-		if err := d.Set("custom_https_provisioning_enabled", output["custom_https_provisioning_enabled"]); err != nil {
+		if err := d.Set("custom_https_provisioning_enabled", flattenedHttpsConfig.CustomHTTPSProvisioningEnabled); err != nil {
 			return fmt.Errorf("setting `custom_https_provisioning_enabled`: %+v", err)
 		}
 	} else {

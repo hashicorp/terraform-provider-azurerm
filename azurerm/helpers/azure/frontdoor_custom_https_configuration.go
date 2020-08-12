@@ -1,8 +1,6 @@
 package azure
 
 import (
-	"fmt"
-
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -48,47 +46,65 @@ func SchemaFrontdoorCustomHttpsConfiguration() map[string]*schema.Schema {
 	}
 }
 
-func FlattenArmFrontDoorCustomHttpsConfiguration(input *frontdoor.FrontendEndpoint, output map[string]interface{}, resourceGroup string) error {
-	if input == nil {
-		return fmt.Errorf("cannot read Front Door Frontend Endpoint (Resource Group %q): endpoint is empty", resourceGroup)
-	}
+type FlattenedCustomHttpsConfiguration struct {
+	CustomHTTPSConfiguration       []interface{}
+	CustomHTTPSProvisioningEnabled bool
+}
 
-	customHttpsConfiguration := make([]interface{}, 0)
-	chc := make(map[string]interface{})
+func FlattenArmFrontDoorCustomHttpsConfiguration(properties frontdoor.FrontendEndpointProperties) FlattenedCustomHttpsConfiguration {
+	customHttpsConfig := make([]interface{}, 0)
+	customHttpsProvisioningEnabled := false
 
-	if properties := input.FrontendEndpointProperties; properties != nil {
-		if properties.CustomHTTPSConfiguration != nil {
-			customHTTPSConfiguration := properties.CustomHTTPSConfiguration
-			if customHTTPSConfiguration.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
-				if kvcsp := customHTTPSConfiguration.KeyVaultCertificateSourceParameters; kvcsp != nil {
-					chc["certificate_source"] = string(frontdoor.CertificateSourceAzureKeyVault)
-					chc["azure_key_vault_certificate_vault_id"] = *kvcsp.Vault.ID
-					chc["azure_key_vault_certificate_secret_name"] = *kvcsp.SecretName
-					chc["azure_key_vault_certificate_secret_version"] = *kvcsp.SecretVersion
-				}
-			} else {
-				chc["certificate_source"] = string(frontdoor.CertificateSourceFrontDoor)
-			}
+	if config := properties.CustomHTTPSConfiguration; config != nil {
+		certificateSource := string(frontdoor.CertificateSourceFrontDoor)
 
-			chc["minimum_tls_version"] = string(customHTTPSConfiguration.MinimumTLSVersion)
+		keyVaultCertificateVaultId := ""
+		keyVaultCertificateSecretName := ""
+		keyVaultCertificateSecretVersion := ""
+		if config.CertificateSource == frontdoor.CertificateSourceAzureKeyVault {
+			if vault := config.KeyVaultCertificateSourceParameters; vault != nil {
+				certificateSource = string(frontdoor.CertificateSourceAzureKeyVault)
 
-			if provisioningState := properties.CustomHTTPSProvisioningState; provisioningState != "" {
-				chc["provisioning_state"] = provisioningState
-				if provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled || provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabling {
-					output["custom_https_provisioning_enabled"] = true
-
-					if provisioningSubstate := properties.CustomHTTPSProvisioningSubstate; provisioningSubstate != "" {
-						chc["provisioning_substate"] = provisioningSubstate
-					}
-				} else {
-					output["custom_https_provisioning_enabled"] = false
+				if vault.Vault != nil && vault.Vault.ID != nil {
+					keyVaultCertificateVaultId = *vault.Vault.ID
 				}
 
-				customHttpsConfiguration = append(customHttpsConfiguration, chc)
-				output["custom_https_configuration"] = customHttpsConfiguration
+				if vault.SecretName != nil {
+					keyVaultCertificateSecretName = *vault.SecretName
+				}
+
+				if vault.SecretVersion != nil {
+					keyVaultCertificateSecretVersion = *vault.SecretVersion
+				}
 			}
+		}
+
+		provisioningState := ""
+		provisioningSubstate := ""
+		if properties.CustomHTTPSProvisioningState != "" {
+			provisioningState = string(properties.CustomHTTPSProvisioningState)
+			if properties.CustomHTTPSProvisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled || properties.CustomHTTPSProvisioningState == frontdoor.CustomHTTPSProvisioningStateEnabling {
+				customHttpsProvisioningEnabled = true
+
+				if properties.CustomHTTPSProvisioningSubstate != "" {
+					provisioningSubstate = string(properties.CustomHTTPSProvisioningSubstate)
+				}
+			}
+
+			customHttpsConfig = append(customHttpsConfig, map[string]interface{}{
+				"azure_key_vault_certificate_vault_id":       keyVaultCertificateVaultId,
+				"azure_key_vault_certificate_secret_name":    keyVaultCertificateSecretName,
+				"azure_key_vault_certificate_secret_version": keyVaultCertificateSecretVersion,
+				"certificate_source":                         certificateSource,
+				"minimum_tls_version":                        string(config.MinimumTLSVersion),
+				"provisioning_state":                         provisioningState,
+				"provisioning_substate":                      provisioningSubstate,
+			})
 		}
 	}
 
-	return nil
+	return FlattenedCustomHttpsConfiguration{
+		CustomHTTPSConfiguration:       customHttpsConfig,
+		CustomHTTPSProvisioningEnabled: customHttpsProvisioningEnabled,
+	}
 }
