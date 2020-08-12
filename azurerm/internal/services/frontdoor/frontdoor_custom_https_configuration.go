@@ -1,4 +1,4 @@
-package azure
+package frontdoor
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2020-01-01/frontdoor"

@@ -444,7 +444,7 @@ func resourceArmFrontDoor() *schema.Resource {
 							MaxItems:   1,
 							Deprecated: "Deprecated in favour of `azurerm_frontdoor_custom_https_configuration` resource",
 							Elem: &schema.Resource{
-								Schema: azure.SchemaFrontdoorCustomHttpsConfiguration(),
+								Schema: SchemaFrontdoorCustomHttpsConfiguration(),
 							},
 						},
 					},
@@ -1248,7 +1248,7 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint) (*[]interface
 				webApplicationFirewallPolicyLinkId = *waf.ID
 			}
 
-			flattenedHttpsConfig := azure.FlattenArmFrontDoorCustomHttpsConfiguration(*props)
+			flattenedHttpsConfig := FlattenArmFrontDoorCustomHttpsConfiguration(*props)
 			customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
 			customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
 		}
