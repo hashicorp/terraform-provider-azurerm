@@ -54,7 +54,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: SchemaFrontdoorCustomHttpsConfiguration(),
+					Schema: schemaCustomHttpsConfiguration(),
 				},
 			},
 		},
@@ -141,7 +141,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 
 	if resp.Name != nil {
 
-		flattenedHttpsConfig := FlattenArmFrontDoorCustomHttpsConfiguration(*resp.FrontendEndpointProperties)
+		flattenedHttpsConfig := flattenCustomHttpsConfiguration(*resp.FrontendEndpointProperties)
 		if err := d.Set("custom_https_configuration", flattenedHttpsConfig.CustomHTTPSConfiguration); err != nil {
 			return fmt.Errorf("setting `custom_https_configuration`: %+v", err)
 		}

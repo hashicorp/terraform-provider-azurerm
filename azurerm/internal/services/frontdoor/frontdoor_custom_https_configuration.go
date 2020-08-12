@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func SchemaFrontdoorCustomHttpsConfiguration() map[string]*schema.Schema {
+func schemaCustomHttpsConfiguration() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"certificate_source": {
 			Type:     schema.TypeString,
@@ -46,12 +46,12 @@ func SchemaFrontdoorCustomHttpsConfiguration() map[string]*schema.Schema {
 	}
 }
 
-type FlattenedCustomHttpsConfiguration struct {
+type flattenedCustomHttpsConfiguration struct {
 	CustomHTTPSConfiguration       []interface{}
 	CustomHTTPSProvisioningEnabled bool
 }
 
-func FlattenArmFrontDoorCustomHttpsConfiguration(properties frontdoor.FrontendEndpointProperties) FlattenedCustomHttpsConfiguration {
+func flattenCustomHttpsConfiguration(properties frontdoor.FrontendEndpointProperties) flattenedCustomHttpsConfiguration {
 	customHttpsConfig := make([]interface{}, 0)
 	customHttpsProvisioningEnabled := false
 
@@ -103,7 +103,7 @@ func FlattenArmFrontDoorCustomHttpsConfiguration(properties frontdoor.FrontendEn
 		}
 	}
 
-	return FlattenedCustomHttpsConfiguration{
+	return flattenedCustomHttpsConfiguration{
 		CustomHTTPSConfiguration:       customHttpsConfig,
 		CustomHTTPSProvisioningEnabled: customHttpsProvisioningEnabled,
 	}
