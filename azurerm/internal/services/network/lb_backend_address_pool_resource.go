@@ -346,13 +346,10 @@ func readArmLoadBalancerBackendIPAddressPool(d *schema.ResourceData, meta interf
 		}
 		d.Set("name", config.Name)
 
-		var backendIpConfigurations []string
-		var loadBalancingRules []string
-
 		if props := config.BackendAddressPoolPropertiesFormat; props != nil {
 			if configs := props.BackendIPConfigurations; configs != nil {
 				for _, backendConfig := range *configs {
-					backendIpConfigurations = append(backendIpConfigurations, *backendConfig.ID)
+					backendIPConfigurations = append(backendIPConfigurations, *backendConfig.ID)
 				}
 			}
 
@@ -455,13 +452,13 @@ func expandArmLoadBalancerBackendIPAddressPool(input []interface{}) *[]network.L
 		ipAddress := vals["ip_address"].(string)
 
 		output = append(output, network.LoadBalancerBackendAddress{
-			&network.LoadBalancerBackendAddressPropertiesFormat{
+			LoadBalancerBackendAddressPropertiesFormat: &network.LoadBalancerBackendAddressPropertiesFormat{
 				VirtualNetwork: &network.SubResource{
 					ID: &vnetID,
 				},
 				IPAddress: &ipAddress,
 			},
-			name,
+			Name: name,
 		})
 	}
 
