@@ -605,7 +605,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	env := meta.(*clients.Client).Storage.Environment
+	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -658,9 +658,9 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	// For US Government Cloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-	if env.Name == autorestAzure.USGovernmentCloud.Name {
+	if envName == autorestAzure.USGovernmentCloud.Name {
 		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
-			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, env.Name)
+			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
 		}
 	} else {
 		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
@@ -796,7 +796,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	env := meta.(*clients.Client).Storage.Environment
+	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -903,9 +903,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 		// For US Government Cloud, don't specify "min_tls_version" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-		if env.Name == autorestAzure.USGovernmentCloud.Name {
+		if envName == autorestAzure.USGovernmentCloud.Name {
 			if minimumTLSVersion != string(storage.TLS10) {
-				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, env.Name)
+				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
 			}
 		} else {
 			opts := storage.AccountUpdateParameters{
@@ -925,9 +925,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 		// For US Government Cloud, don't specify "allow_blob_public_access" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
-		if env.Name == autorestAzure.USGovernmentCloud.Name {
+		if envName == autorestAzure.USGovernmentCloud.Name {
 			if allowBlobPublicAccess {
-				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, env.Name)
+				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, envName)
 			}
 		} else {
 			opts := storage.AccountUpdateParameters{
@@ -1034,7 +1034,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
-	env := meta.(*clients.Client).Storage.Environment
 	client := meta.(*clients.Client).Storage.AccountsClient
 	endpointSuffix := meta.(*clients.Client).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
@@ -1100,7 +1099,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		// For US Government Cloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-		if env.Name != autorestAzure.USGovernmentCloud.Name {
+		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.USGovernmentCloud.Name {
 			d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 			d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		}
