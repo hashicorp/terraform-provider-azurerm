@@ -425,6 +425,62 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_updateMonitor(t *testing.T) 
 	})
 }
 
+func TestAccAzureRMHDInsightInteractiveQueryCluster_autoscale(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_hdinsight_interactive_query_cluster", "test")
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy(data.ResourceType),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_autoscale_capacity(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+			{
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_autoscale_schedule(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+			{
+				Config: testAccAzureRMHDInsightInteractiveQueryCluster_basic(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(data.ResourceName),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "ssh_endpoint"),
+				),
+			},
+			data.ImportStep("roles.0.head_node.0.password",
+				"roles.0.head_node.0.vm_size",
+				"roles.0.worker_node.0.password",
+				"roles.0.worker_node.0.vm_size",
+				"roles.0.zookeeper_node.0.password",
+				"roles.0.zookeeper_node.0.vm_size",
+				"storage_account"),
+		},
+	})
+}
+
 func testAccAzureRMHDInsightInteractiveQueryCluster_basic(data acceptance.TestData) string {
 	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
 	return fmt.Sprintf(`
@@ -871,6 +927,8 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_template(data acceptance.Tes
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+  # Due to bug in HDInsight we can't reuse client with the same x-ms-correlation-request-id for multiple updates
+  disable_correlation_request_id = true  
 }
 
 resource "azurerm_resource_group" "test" {
@@ -1236,4 +1294,131 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
   }
 }
 `, template, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMHDInsightInteractiveQueryCluster_autoscale_capacity(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+
+  component_version {
+    interactive_hive = "3.1"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D13_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D14_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+      autoscale {
+        capacity {
+          min_instance_count = 2
+          max_instance_count = 3
+        }
+      }      
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMHDInsightInteractiveQueryCluster_autoscale_schedule(data acceptance.TestData) string {
+	template := testAccAzureRMHDInsightInteractiveQueryCluster_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  cluster_version     = "4.0"
+  tier                = "Standard"
+
+  component_version {
+    interactive_hive = "3.1"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = azurerm_storage_container.test.id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D13_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D14_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+      autoscale {
+        recurrence {
+          timezone  = "Pacific Standard Time"          
+          schedule {
+            days      = ["Monday"]
+            time      = "10:00"
+            min_instance_count = 5
+            max_instance_count = 5                
+          }
+          schedule {
+              days      = ["Saturday", "Sunday"]
+              time      = "10:00"
+              min_instance_count = 2
+              max_instance_count = 2                
+          }
+        }
+      }     
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_A4_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }
