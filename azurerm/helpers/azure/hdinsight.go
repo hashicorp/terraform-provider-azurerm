@@ -822,12 +822,7 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 											},
 										},
 
-										"min_instance_count": {
-											Type:         schema.TypeInt,
-											Required:     true,
-											ValidateFunc: countValidation,
-										},
-										"max_instance_count": {
+										"target_instance_count": {
 											Type:         schema.TypeInt,
 											Required:     true,
 											ValidateFunc: countValidation,
@@ -1026,9 +1021,10 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *hdinsigh
 		schedules = append(schedules, hdinsight.AutoscaleSchedule{
 			Days: &expandedWeekDays,
 			TimeAndCapacity: &hdinsight.AutoscaleTimeAndCapacity{
-				Time:             utils.String(val["time"].(string)),
-				MinInstanceCount: utils.Int32(int32(val["min_instance_count"].(int))),
-				MaxInstanceCount: utils.Int32(int32(val["max_instance_count"].(int))),
+				Time: utils.String(val["time"].(string)),
+				// SDK supports min and max, but server side always overrides max to be equal to min
+				MinInstanceCount: utils.Int32(int32(val["target_instance_count"].(int))),
+				MaxInstanceCount: utils.Int32(int32(val["target_instance_count"].(int))),
 			},
 		})
 	}
@@ -1194,10 +1190,9 @@ func FlattenHDInsightAutoscaleRecurrenceDefinition(input *hdinsight.AutoscaleRec
 
 	for i := range *input.Schedule {
 		schedules[i] = map[string]interface{}{
-			"days":               (*input.Schedule)[i].Days,
-			"time":               (*input.Schedule)[i].TimeAndCapacity.Time,
-			"min_instance_count": (*input.Schedule)[i].TimeAndCapacity.MinInstanceCount,
-			"max_instance_count": (*input.Schedule)[i].TimeAndCapacity.MaxInstanceCount,
+			"days":                  (*input.Schedule)[i].Days,
+			"time":                  (*input.Schedule)[i].TimeAndCapacity.Time,
+			"target_instance_count": (*input.Schedule)[i].TimeAndCapacity.MinInstanceCount,
 		}
 	}
 

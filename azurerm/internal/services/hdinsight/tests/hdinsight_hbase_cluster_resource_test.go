@@ -1327,14 +1327,12 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
           schedule {
             days      = ["Monday"]
             time      = "10:00"
-            min_instance_count = 5
-            max_instance_count = 5                
+            target_instance_count = 5
           }
           schedule {
               days      = ["Saturday", "Sunday"]
               time      = "10:00"
-              min_instance_count = 2
-              max_instance_count = 2                
+              target_instance_count = 3
           }
         }
       }        

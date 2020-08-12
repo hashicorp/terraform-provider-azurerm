@@ -68,7 +68,6 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				params := hdinsight.AutoscaleConfigurationUpdateParameter{
 					Autoscale: autoscale,
 				}
-				fmt.Println("Changing autoscale")
 
 				future, err := client.UpdateAutoScaleConfiguration(ctx, resourceGroup, name, params)
 
