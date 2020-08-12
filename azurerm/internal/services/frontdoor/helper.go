@@ -29,19 +29,6 @@ func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoor.Cus
 	return isEnabled
 }
 
-func GetFrontDoorBasicRouteConfigurationType(i interface{}) string {
-	_, ok := i.(frontdoor.ForwardingConfiguration)
-	if !ok {
-		_, ok := i.(frontdoor.RedirectConfiguration)
-		if !ok {
-			return ""
-		}
-		return "RedirectConfiguration"
-	} else {
-		return "ForwardingConfiguration"
-	}
-}
-
 func FlattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
 	result := make([]interface{}, 0)
 

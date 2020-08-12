@@ -1343,107 +1343,164 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 		return &[]interface{}{}, nil
 	}
 
-	oldByName := map[string]map[string]interface{}{}
-
-	for _, i := range oldBlocks.([]interface{}) {
-		v := i.(map[string]interface{})
-
-		oldByName[v["name"].(string)] = v
-	}
-
 	output := make([]interface{}, 0)
 	for _, v := range *input {
-		result := make(map[string]interface{})
-
-		if id := v.ID; id != nil {
-			result["id"] = *id
+		id := ""
+		if v.ID != nil {
+			id = *v.ID
 		}
 
-		name := v.Name
-		if name != nil {
-			result["name"] = *name
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
 		}
 
-		if properties := v.RoutingRuleProperties; properties != nil {
-			result["accepted_protocols"] = flattenArmFrontDoorAcceptedProtocol(properties.AcceptedProtocols)
-			result["enabled"] = properties.EnabledState == frontdoor.RoutingRuleEnabledStateEnabled
-			frontendEndpoints, err := flattenArmFrontDoorFrontendEndpointsSubResources(properties.FrontendEndpoints)
+		acceptedProtocols := make([]string, 0)
+		enabled := false
+		forwardingConfiguration := make([]interface{}, 0)
+		frontEndEndpoints := make([]string, 0)
+		patternsToMatch := make([]string, 0)
+		redirectConfiguration := make([]interface{}, 0)
+		if props := v.RoutingRuleProperties; props != nil {
+			acceptedProtocols = flattenArmFrontDoorAcceptedProtocol(props.AcceptedProtocols)
+			enabled = props.EnabledState == frontdoor.RoutingRuleEnabledStateEnabled
+
+			forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(props.RouteConfiguration, oldBlocks)
 			if err != nil {
 				return nil, err
 			}
-			result["frontend_endpoints"] = frontendEndpoints
-			if patternsToMatch := properties.PatternsToMatch; patternsToMatch != nil {
-				result["patterns_to_match"] = *patternsToMatch
+			forwardingConfiguration = *forwardConfiguration
+
+			frontendEndpoints, err := flattenArmFrontDoorFrontendEndpointsSubResources(props.FrontendEndpoints)
+			if err != nil {
+				return nil, err
 			}
+			frontEndEndpoints = *frontendEndpoints
 
-			brc := properties.RouteConfiguration
-			if routeConfigType := GetFrontDoorBasicRouteConfigurationType(brc.(interface{})); routeConfigType != "" {
-				rc := make([]interface{}, 0)
-				c := make(map[string]interface{})
-
-				// there are only two types of Route Configuration
-				if routeConfigType == "ForwardingConfiguration" {
-					v := brc.(frontdoor.ForwardingConfiguration)
-
-					c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "BackendPools")
-					// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
-					if c["backend_pool_name"] == "" {
-						c["backend_pool_name"] = flattenArmFrontDoorSubResource(v.BackendPool, "backendPools")
-					}
-					c["custom_forwarding_path"] = v.CustomForwardingPath
-					c["forwarding_protocol"] = string(v.ForwardingProtocol)
-
-					if cacheConfiguration := v.CacheConfiguration; cacheConfiguration != nil {
-						c["cache_enabled"] = true
-						if stripDirective := cacheConfiguration.QueryParameterStripDirective; stripDirective != "" {
-							c["cache_query_parameter_strip_directive"] = string(stripDirective)
-						} else {
-							// Default value if not set
-							c["cache_query_parameter_strip_directive"] = string(frontdoor.StripAll)
-						}
-
-						if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
-							c["cache_use_dynamic_compression"] = string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled)
-						}
-					} else {
-						// if the cache is disabled, set the default values or revert to what they were in the previous plan
-						c["cache_enabled"] = false
-						c["cache_query_parameter_strip_directive"] = string(frontdoor.StripAll)
-
-						if name != nil {
-							// get `forwarding_configuration`
-							if o, ok := oldByName[*name]; ok {
-								ofcs := o["forwarding_configuration"].([]interface{})
-								if len(ofcs) > 0 {
-									ofc := ofcs[0].(map[string]interface{})
-									c["cache_query_parameter_strip_directive"] = ofc["cache_query_parameter_strip_directive"]
-									c["cache_use_dynamic_compression"] = ofc["cache_use_dynamic_compression"]
-								}
-							}
-						}
-					}
-
-					rc = append(rc, c)
-					result["forwarding_configuration"] = rc
-				} else {
-					v := brc.(frontdoor.RedirectConfiguration)
-					c["custom_fragment"] = v.CustomFragment
-					c["custom_host"] = v.CustomHost
-					c["custom_path"] = v.CustomPath
-					c["custom_query_string"] = v.CustomQueryString
-					c["redirect_protocol"] = string(v.RedirectProtocol)
-					c["redirect_type"] = string(v.RedirectType)
-
-					rc = append(rc, c)
-					result["redirect_configuration"] = rc
-				}
+			if props.PatternsToMatch != nil {
+				patternsToMatch = *props.PatternsToMatch
 			}
+			redirectConfiguration = flattenRoutingRuleRedirectConfiguration(props.RouteConfiguration)
 		}
 
-		output = append(output, result)
+		output = append(output, map[string]interface{}{
+			"accepted_protocols":       acceptedProtocols,
+			"enabled":                  enabled,
+			"forwarding_configuration": forwardingConfiguration,
+			"frontend_endpoints":       frontEndEndpoints,
+			"id":                       id,
+			"name":                     name,
+			"patterns_to_match":        patternsToMatch,
+			"redirect_configuration":   redirectConfiguration,
+		})
 	}
 
 	return &output, nil
+}
+
+func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfiguration, oldConfig interface{}) (*[]interface{}, error) {
+	v, ok := config.(frontdoor.ForwardingConfiguration)
+	if !ok {
+		return &[]interface{}{}, nil
+	}
+
+	name := ""
+	if v.BackendPool != nil && v.BackendPool.ID != nil {
+		backendPoolId, err := parse.FrontDoorBackendPoolID(*v.BackendPool.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		name = backendPoolId.Name
+	}
+
+	customForwardingPath := ""
+	if v.CustomForwardingPath != nil {
+		customForwardingPath = *v.CustomForwardingPath
+	}
+
+	cacheEnabled := false
+	cacheQueryParameterStripDirective := string(frontdoor.StripAll)
+	cacheUseDynamicCompression := false
+
+	if cacheConfiguration := v.CacheConfiguration; cacheConfiguration != nil {
+		cacheEnabled = true
+		if stripDirective := cacheConfiguration.QueryParameterStripDirective; stripDirective != "" {
+			cacheQueryParameterStripDirective = string(stripDirective)
+		}
+
+		if dynamicCompression := cacheConfiguration.DynamicCompression; dynamicCompression != "" {
+			cacheUseDynamicCompression = string(dynamicCompression) == string(frontdoor.DynamicCompressionEnabledEnabled)
+		}
+	} else {
+		// if the cache is disabled, use the default values or revert to what they were in the previous plan
+		old, ok := oldConfig.([]interface{})
+		if ok {
+			for _, oldValue := range old {
+				oldVal, ok := oldValue.(map[string]interface{})
+				if ok {
+					thisName := oldVal["name"].(string)
+					if name == thisName {
+						oldConfigs := oldVal["forwarding_configuration"].([]interface{})
+						if len(oldConfigs) > 0 {
+							ofc := oldConfigs[0].(map[string]interface{})
+							cacheQueryParameterStripDirective = ofc["cache_query_parameter_strip_directive"].(string)
+							cacheUseDynamicCompression = ofc["cache_use_dynamic_compression"].(bool)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return &[]interface{}{
+		map[string]interface{}{
+			"backend_pool_name":                     "name",
+			"custom_forwarding_path":                customForwardingPath,
+			"forwarding_protocol":                   string(v.ForwardingProtocol),
+			"cache_enabled":                         cacheEnabled,
+			"cache_query_parameter_strip_directive": cacheQueryParameterStripDirective,
+			"cache_use_dynamic_compression":         cacheUseDynamicCompression,
+		},
+	}, nil
+}
+
+func flattenRoutingRuleRedirectConfiguration(config frontdoor.BasicRouteConfiguration) []interface{} {
+	v, ok := config.(frontdoor.RedirectConfiguration)
+	if !ok {
+		return []interface{}{}
+	}
+
+	customFragment := ""
+	if v.CustomFragment != nil {
+		customFragment = *v.CustomFragment
+	}
+
+	customHost := ""
+	if v.CustomHost != nil {
+		customHost = *v.CustomHost
+	}
+
+	customQueryString := ""
+	if v.CustomQueryString != nil {
+		customQueryString = *v.CustomQueryString
+	}
+
+	customPath := ""
+	if v.CustomPath != nil {
+		customPath = *v.CustomPath
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"custom_host":         customHost,
+			"custom_fragment":     customFragment,
+			"custom_query_string": customQueryString,
+			"custom_path":         customPath,
+			"redirect_protocol":   string(v.RedirectProtocol),
+			"redirect_type":       string(v.RedirectType),
+		},
+	}
 }
 
 func flattenArmFrontDoorAcceptedProtocol(input *[]frontdoor.Protocol) []string {
