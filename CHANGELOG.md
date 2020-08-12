@@ -35,6 +35,7 @@ BUG FIXES:
 * `azurerm_iothub_consumer_group` - lock during creation and deletion to workaround an API issue [GH-8041]
 * `azurerm_iothub` - the `endpoint` and `route` lists can now be cleared by setting them to `[]` [GH-8028]
 * `azurerm_linux_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]
+* `azurerm_mariadb_virtual_network_rule` will now work across subscriptions [GH-8100]
 * `azurerm_monitor_metric_alert_resource` - continue using `SingleResourceMultiMetricCriteria` for existing alerts [GH-7995]
 * `azurerm_mysql_server` - prevent a non empty plan when using `threat_detection_policy` [GH-7981]
 * `azurerm_orchestrated_virtual_machine_scale_set` - allow `single_placement_group` to be `true` [GH-7821]
