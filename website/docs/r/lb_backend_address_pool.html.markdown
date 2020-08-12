@@ -52,16 +52,32 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of the Backend Address Pool.
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource.
 * `loadbalancer_id` - (Required) The ID of the Load Balancer in which to create the Backend Address Pool.
+* `ip_address` - (Optional) One or multiple `ip_address` blocks as documented below. 
+
+~> **NOTE:** IP based backend pools are currently available with a Load Balancer with the `Standard` Sku only. An error will be issued accordingly, when the referenced Load Balancer uses the `Basic` Sku.
+
+`ip_address` supports the following:
+
+* `name` - (Required) Name of the backend address
+* `virtual_network_id` - (Required) Reference to an existing virtual network
+* `ip_address` - (Required) IP Address belonging to the referenced virtual network
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the Backend Address Pool.
-
 * `backend_ip_configurations` - The Backend IP Configurations associated with this Backend Address Pool.
-
 * `load_balancing_rules` - The Load Balancing Rules associated with this Backend Address Pool.
+* `ip_address` - One or multiple `ip_address` blocks as documented below. 
+
+---
+
+A `ip_address` block exports the following:
+
+* `name` - Name of the backend address
+* `virtual_network_id` - Reference to an existing virtual network
+* `ip_address` - IP Address belonging to the referenced virtual network
 
 ## Timeouts
 

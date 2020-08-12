@@ -36,7 +36,6 @@ output "backend_ip_configuration_ids" {
 ## Argument Reference
 
 * `name` - Specifies the name of the Backend Address Pool.
-
 * `loadbalancer_id` - The ID of the Load Balancer in which the Backend Address Pool exists.
 
 ## Attributes Reference
@@ -44,10 +43,19 @@ output "backend_ip_configuration_ids" {
 The following attributes are exported:
 
 * `id` - The ID of the Backend Address Pool.
-
 * `name` - The name of the Backend Address Pool.
- 
+* `ip_address` - One or multiple `ip_address` blocks as documented below.
 * `backend_ip_configurations` - An array of references to IP addresses defined in network interfaces.
+
+~> **NOTE:** IP based backend pools are currently available with a Load Balancer with the `Standard` Sku only. Thus the `ip_address` attribute will always be empty for a Load Balancer using the `Basic` Sku.
+
+---
+
+A `ip_address` block exports the following:
+
+* `name` - Name of the backend address
+* `virtual_network_id` - Reference to an existing virtual network
+* `ip_address` - IP Address belonging to the referenced virtual network
 
 ## Timeouts
 
