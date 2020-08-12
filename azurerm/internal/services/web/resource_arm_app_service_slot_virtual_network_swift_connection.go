@@ -62,7 +62,7 @@ func resourceArmAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *schem
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appID, err := ParseAppServiceID(d.Get("app_service_id").(string))
+	appID, err := parse.AppServiceID(d.Get("app_service_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q", appID)
 	}

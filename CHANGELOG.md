@@ -1,29 +1,98 @@
-## 2.21.0 (Unreleased)
+## 2.23.0 (Unreleased)
 
-DEPENDENCIES:
-
-* updating `search` to `2020-03-13` [GH-7867]
-* updating `go-azure-helpers` to v0.11.2 [GH-7911]
 
 FEATURES:
 
-* **New Data Source:** `azurerm_data_share_dataset_data_lake_gen1` [GH-7840]
+* **New Resource:** `azurerm_integration_service_environment` [GH-7763]
+* **New Resource:** `azurerm_redis_linked_server` [GH-8026]
+* **New Resource:** `azurerm_synapse_firewall_rule` [GH-7904]
 
 IMPROVEMENTS:
-* `azurerm_automation_runbook` - recreate `azurerm_automation_job_schedule` after an update [GH-7555]
-* `azurerm_app_service_slot` - support for the `application_logs.file_system` [GH-7311]
-* `azurerm_firewall` - no longer requires a `zone` [GH-7817]
-* `azurerm_function_app_slot` - support for the `site_config.auto_swap_slot_name` property [GH-7859]
-* `azurerm_monitor_scheduled_query_rules_alert` - `action.0.custom_webhook_payload` is now sent as empty to allow for Azure's default to take effect[GH-7838]
-* `azurerm_search_service` - support for the `public_network_access_enabled` property [GH-7867]
-* `azurerm_servicebus_subscription` - support for the `status` property [GH-7852]
+
+* Data Source: `azurerm_app_service` now exports `source_control` configuration [GH-7945]
+* Data Source: `azurerm_function_app` now exports `source_control` configuration [GH-7945]
+* Data Source: `azurerm_function_app` now exports `site_config` configuration [GH-7945]
+* `azurerm_app_service` now supports `source_control` configuration [GH-7945]
+* `azurerm_function_app` now supports `source_control` configuration [GH-7945]
+* `azurerm_function_app` now supports full `ip_restriction` configuration [GH-7945]
+* `azurerm_function_app` now supports full `scm_ip_restriction` configuration [GH-7945]
+* `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover [GH-5688]
+* `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type [GH-7890]
+
+ENHANCEMENTS:
+
+* dependencies: updating `containerservice` to `2020-04-01` [GH-7894]
+* dependencies: updating `mysql` to `2020-01-01` [GH-8062]
+* dependencies: updating `postgresql` to `2020-01-01` [GH-8045]
+* `azurerm_eventhub_namespace` - support for the `identity` block [GH-8065]
+* `azurerm_postgresql_server` - support for the `identity` block [GH-8044]
 
 BUG FIXES:
 
-* `azurerm_automation_runbook` - allow `publish_content_link` resource to not exist [GH-7824]
-* `azurerm_api_management_named_value` - the `value` has been marked as sensitive to hide secret values [GH-7819]
-* `azurerm_iothub_dps` - the only valid value for the `sku` property for the API is now `S1` [GH-7847]
-* `azurerm_eventgrid_event_subscription` - deprecate the `topic_name` as it is now readonly in the API [GH-7871]
+* All resources using a `location` field - allowing the value `global` when using enhanced validation [GH-8042]
+* Data Source: `azurerm_api_management_user` - `user_id` now accepts single characters [GH-7975]
+* `azurerm_application_gateway` - enforce case for the `rule_type` property [GH-8061]
+* `azurerm_iothub_consumer_group` - lock during creation and deletion to workaround an API issue [GH-8041]
+* `azurerm_iothub` - the `endpoint` and `route` lists can now be cleared by setting them to `[]` [GH-8028]
+* `azurerm_linux_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]
+* `azurerm_monitor_metric_alert_resource` - continue using `SingleResourceMultiMetricCriteria` for existing alerts [GH-7995]
+* `azurerm_mysql_server` - prevent a non empty plan when using `threat_detection_policy` [GH-7981]
+* `azurerm_orchestrated_virtual_machine_scale_set` - allow `single_placement_group` to be `true` [GH-7821]
+* `azurerm_mysql_server` - support for the `identity` block [GH-8059]
+* `azurerm_traffic_manager_profile` - updating no longer clears all endpoints [GH-7846]
+* `azurerm_windows_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]'
+* `azurerm_data_factory_dataset_delimited_text` - fix issue with property `azure_blob_storage_account` [GH-7953]
+
+## 2.22.0 (August 07, 2020)
+
+DEPENDENCIES:
+
+* updating `github.com/Azure/azure-sdk-for-go` to `v44.2.0` ([#7933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7933))
+
+IMPROVEMENTS:
+
+* `azurerm_cosmosdb_account` - support `DisableRateLimitingResponses` with the `capabilities` property ([#8016](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8016))
+* `azurerm_storage_account` - support for the `min_tls_version` property ([#7879](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7879))
+* `azurerm_storage_account_sas` - support for the `signed_version attribute` property ([#8020](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8020))
+* `azurerm_servicebus_queue` - support for the `enable_batched_operations`, `status`, `forward_to`, and `forward_dead_lettered_messages_to` ([#7990](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7990))
+
+BUG FIXES:
+
+* Data Source: `azurerm_key_vault_certificate` - fixing a crash when using acmebot certificates ([#8029](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8029))
+* `azurerm_iothub_shared_access_policy` - prevent `primary_connection_string` & `secondary_connection_string` from regenerating during every apply ([#8017](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8017))
+
+## 2.21.0 (July 31, 2020)
+
+DEPENDENCIES:
+
+* updating `search` to `2020-03-13` ([#7867](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7867))
+* updating `go-azure-helpers` to `v0.11.2` ([#7911](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7911))
+
+FEATURES:
+
+* **New Data Source:** `azurerm_data_share_dataset_data_lake_gen1` ([#7840](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7840))
+* **New Resource:** `azurerm_dedicated_hardware_security_module` ([#7727](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7727))
+
+IMPROVEMENTS:
+* `azurerm_api_management_identity_provider_aad` - Support for `signin_tenant` ([#7901](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7901))
+* `azurerm_app_service_plan` - update the relation between `kind` and `reserved` ([#7943](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7943))
+* `azurerm_automation_runbook` - recreate `azurerm_automation_job_schedule` after an update ([#7555](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7555))
+* `azurerm_app_service_slot` - support for the `application_logs.file_system` ([#7311](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7311))
+* `azurerm_firewall` - no longer requires a `zone` ([#7817](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7817))
+* `azurerm_function_app_slot` - support for the `site_config.auto_swap_slot_name` property ([#7859](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7859))
+* `azurerm_kubernetes_cluster` - support for in-place upgrade from `Free` to `Paid` for `sku_tier` ([#7927](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7927))
+* `azurerm_monitor_scheduled_query_rules_alert` - `action.0.custom_webhook_payload` is now sent as empty to allow for Azure's default to take effect([#7838](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7838))
+* `azurerm_search_service` - support for the `public_network_access_enabled` property ([#7867](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7867))
+* `azurerm_servicebus_subscription` - support for the `status` property ([#7852](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7852))
+
+BUG FIXES:
+
+* `azurerm_automation_runbook` - allow `publish_content_link` resource to not be set ([#7824](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7824))
+* `azurerm_api_management_named_value` - the `value` has been marked as sensitive to hide secret values ([#7819](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7819))
+* `azurerm_cognitive_account` - allow `qname_runtime_endpoint` to not be set ([#7916](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7916))
+* `azurerm_iothub_dps` - the only valid value for the `sku` property for the API is now `S1` ([#7847](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7847))
+* `azurerm_eventgrid_event_subscription` - deprecate the `topic_name` as it is now readonly in the API ([#7871](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7871))
+* `azurerm_kubernetes_cluster` - updates will no longer fail when using managed AAD integration ([#7874](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7874))
 
 ## 2.20.0 (July 23, 2020)
 
@@ -34,7 +103,7 @@ UPGRADE NOTES
 
 DEPENDENCIES:
 
-* updating `github.com/Azure/azure-sdk-for-go` to v44.1.0 ([#7774](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7774))
+* updating `github.com/Azure/azure-sdk-for-go` to `v44.1.0` ([#7774](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7774))
 * updating `cosmos` to `2020-04-01` ([#7597](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7597))
 
 FEATURES: 
