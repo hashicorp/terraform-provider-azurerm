@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
@@ -85,46 +84,6 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_mariadb_virtual_network_rule", *existing.ID)
 		}
-	}
-
-	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
-	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
-	subnetsClient := meta.(*clients.Client).Network.SubnetsClient
-	subnetParsedId, err := azure.ParseAzureResourceID(subnetId)
-	if err != nil {
-		return err
-	}
-
-	subnetResourceGroup := subnetParsedId.ResourceGroup
-	virtualNetwork := subnetParsedId.Path["virtualNetworks"]
-	subnetName := subnetParsedId.Path["subnets"]
-	subnet, err := subnetsClient.Get(ctx, subnetResourceGroup, virtualNetwork, subnetName, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(subnet.Response) {
-			return fmt.Errorf("Subnet with ID %q was not found: %+v", subnetId, err)
-		}
-
-		return fmt.Errorf("Error obtaining Subnet %q (Virtual Network %q / Resource Group %q: %+v", subnetName, virtualNetwork, subnetResourceGroup, err)
-	}
-
-	containsEndpoint := false
-	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if endpoints := props.ServiceEndpoints; endpoints != nil {
-			for _, e := range *endpoints {
-				if e.Service == nil {
-					continue
-				}
-
-				if strings.EqualFold(*e.Service, "Microsoft.Sql") {
-					containsEndpoint = true
-					break
-				}
-			}
-		}
-	}
-
-	if !containsEndpoint {
-		return fmt.Errorf("Error creating MariaDb Virtual Network Rule: Subnet %q (Virtual Network %q / Resource Group %q) must contain a Service Endpoint for `Microsoft.Sql`", subnetName, virtualNetwork, subnetResourceGroup)
 	}
 
 	parameters := mariadb.VirtualNetworkRule{
