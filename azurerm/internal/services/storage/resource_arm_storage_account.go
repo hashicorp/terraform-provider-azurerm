@@ -1096,11 +1096,13 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
-		// For US Government Cloud, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
+		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+		// For US Government Cloud, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
 		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
-		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.USGovernmentCloud.Name {
-			d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+		if meta.(*clients.Client).Account.Environment.Name == autorestAzure.USGovernmentCloud.Name {
+			d.Set("min_tls_version", string(storage.TLS10))
+		} else {
 			d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		}
 
