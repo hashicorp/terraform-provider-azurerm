@@ -53,7 +53,8 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			// TODO: finish deprecating and remove this since it's unused
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 
 			"custom_https_configuration": {
 				Type:     schema.TypeList,
@@ -66,8 +67,15 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if err := validate.FrontdoorCustomHttpsSettings(d); err != nil {
-				return fmt.Errorf("creating Front Door Custom Https Configuration for endpoint %q (Resource Group %q): %+v", d.Get("frontend_endpoint_id").(string), d.Get("resource_group_name").(string), err)
+			if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
+				id, err := parse.FrontendEndpointID(v.(string))
+				if err != nil {
+					return err
+				}
+
+				if err := validate.FrontdoorCustomHttpsSettings(d); err != nil {
+					return fmt.Errorf("validating Front Door Custom Https Configuration for Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
+				}
 			}
 
 			return nil
@@ -90,11 +98,11 @@ func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.Resource
 
 	resp, err := client.Get(ctx, id.ResourceGroup, id.FrontDoorName, id.Name)
 	if err != nil {
-		return fmt.Errorf("reading Front Door Endpoint %q (Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
+		return fmt.Errorf("reading Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
 	}
 
 	if resp.FrontendEndpointProperties == nil {
-		return fmt.Errorf("reading Front Door Endpoint %q (Resource Group %q): `properties` was nil", id.Name, id.FrontDoorName, id.ResourceGroup)
+		return fmt.Errorf("reading Endpoint %q (Front Door %q / Resource Group %q): `properties` was nil", id.Name, id.FrontDoorName, id.ResourceGroup)
 	}
 	props := *resp.FrontendEndpointProperties
 
@@ -114,7 +122,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.Resource
 		d.SetId(id.ID(subscriptionId))
 	}
 
-	return nil
+	return resourceArmFrontDoorCustomHttpsConfigurationRead(d, meta)
 }
 
 func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, meta interface{}) error {
