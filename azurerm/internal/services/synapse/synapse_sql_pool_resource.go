@@ -135,8 +135,8 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 }
 
 func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.SqlPoolClient
-	sqlPoolTransparentDataEncryptionClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
+	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
+	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -144,7 +144,7 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	workspaceId, _ := parse.SynapseWorkspaceID(d.Get("synapse_workspace_id").(string))
 
-	existing, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
+	existing, err := sqlClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("checking for present of existing Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
@@ -191,11 +191,11 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
 	}
 
-	future, err := client.Create(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, sqlPoolInfo)
+	future, err := sqlClient.Create(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, sqlPoolInfo)
 	if err != nil {
 		return fmt.Errorf("creating Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
 	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, sqlClient.Client); err != nil {
 		return fmt.Errorf("waiting on creating future for Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
 	}
 
@@ -205,12 +205,12 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 				Status: synapse.TransparentDataEncryptionStatusEnabled,
 			},
 		}
-		if _, err := sqlPoolTransparentDataEncryptionClient.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, parameter); err != nil {
+		if _, err := sqlPTDEClient.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, parameter); err != nil {
 			return fmt.Errorf("setting `data_encrypted`: %+v", err)
 		}
 	}
 
-	resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
+	resp, err := sqlClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
 	if err != nil {
 		return fmt.Errorf("retrieving Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
 	}
@@ -224,8 +224,8 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.SqlPoolClient
-	sqlPoolTransparentDataEncryptionClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
+	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
+	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -245,7 +245,7 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 				Status: status,
 			},
 		}
-		if _, err := sqlPoolTransparentDataEncryptionClient.CreateOrUpdate(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name, parameter); err != nil {
+		if _, err := sqlPTDEClient.CreateOrUpdate(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name, parameter); err != nil {
 			return fmt.Errorf("updating `data_encrypted`: %+v", err)
 		}
 	}
@@ -258,7 +258,7 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 		}
 
-		if _, err := client.Update(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name, sqlPoolInfo); err != nil {
+		if _, err := sqlClient.Update(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name, sqlPoolInfo); err != nil {
 			return fmt.Errorf("updating Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 		}
 
@@ -271,7 +271,7 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 				Target: []string{
 					"Online",
 				},
-				Refresh:                   synapseSqlPoolScaleStateRefreshFunc(ctx, client, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name),
+				Refresh:                   synapseSqlPoolScaleStateRefreshFunc(ctx, sqlClient, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name),
 				MinTimeout:                5 * time.Second,
 				ContinuousTargetOccurence: 3,
 				Timeout:                   d.Timeout(schema.TimeoutUpdate),
@@ -287,8 +287,8 @@ func resourceArmSynapseSqlPoolUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.SqlPoolClient
-	sqlPoolTransparentDataEncryptionClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
+	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
+	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -297,7 +297,7 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+	resp, err := sqlClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] synapse %q does not exist - removing from state", d.Id())
@@ -307,7 +307,7 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 
-	transparentDataEncryption, err := sqlPoolTransparentDataEncryptionClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+	transparentDataEncryption, err := sqlPTDEClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
 		return fmt.Errorf("retrieving Transparent Data Encryption settings of Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
@@ -327,7 +327,7 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.SqlPoolClient
+	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -336,12 +336,12 @@ func resourceArmSynapseSqlPoolDelete(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
+	future, err := sqlClient.Delete(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
 		return fmt.Errorf("deleting Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, sqlClient.Client); err != nil {
 		return fmt.Errorf("waiting on deleting future for Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 	return nil

@@ -3,12 +3,12 @@ subcategory: "Synapse"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_synapse_sql_pool"
 description: |-
-  Manages a synapse Sql Pool.
+  Manages a Synapse Sql Pool.
 ---
 
 # azurerm_synapse_sql_pool
 
-Manages a synapse Sql Pool.
+Manages a Synapse Sql Pool.
 
 ## Example Usage
 
@@ -60,9 +60,9 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) Specifies how to create the Sql Pool. Valid values are: `Default`, `Recovery` or `PointInTimeRestore`. Must be `Default` to create a new database. Defaults to `Default`.
 
-* `collation` - (Optional) The name of the collation. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
+* `collation` - (Optional) The name of the collation to use with this pool. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `source_database_id` - (Optional) The ID of the source_database which is to recovery or back up.
+* `source_database_id` - (Optional) The ID of the Synapse Sql Pool or Sql Database which is to restore or back up. It needs to be specified if `create_mode` is `PointInTimeRestore` or `Recovery`.
 
 * `restore_point_in_time` - (Optional) Specifies the Snapshot time to restore.
 
