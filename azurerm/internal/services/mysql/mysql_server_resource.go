@@ -24,6 +24,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const (
+	mySQLServerResourceName = "azurerm_mysql_server"
+)
+
 func resourceArmMySqlServer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmMySqlServerCreate,

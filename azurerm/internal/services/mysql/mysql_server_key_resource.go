@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"log"
 	"time"
 
@@ -87,6 +88,9 @@ func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interfac
 	if err != nil {
 		return fmt.Errorf("cannot compose name for MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
 	}
+
+	locks.ByName(serverID.Name, mySQLServerResourceName)
+	defer locks.UnlockByName(serverID.Name, mySQLServerResourceName)
 
 	if d.IsNewResource() {
 		// This resource is a singleton, but its name can be anything.
