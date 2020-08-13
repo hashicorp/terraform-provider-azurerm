@@ -22,7 +22,6 @@ func SchemaResourceGroupNameDeprecated() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeString,
 		Optional:     true,
-		ForceNew:     true,
 		ValidateFunc: validateResourceGroupName,
 		Deprecated:   "This field is no longer used and will be removed in the next major verrsion of the Azure Provider",
 	}
