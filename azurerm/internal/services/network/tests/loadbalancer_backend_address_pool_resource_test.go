@@ -55,7 +55,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_standard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerBackEndAddressPool_standard(data, addressPoolName, "Standard"),
+				Config: testAccAzureRMLoadBalancerBackEndAddressPool_standard(data, addressPoolName, "Standard", true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
@@ -67,6 +67,40 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_standard(t *testing.T) {
 					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "ip_address.1.name", "addr-2"),
 					resource.TestCheckResourceAttrSet("azurerm_lb_backend_address_pool.test", "ip_address.1.virtual_network_id"),
 					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "ip_address.1.ip_address", "10.0.1.5"),
+				),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMLoadBalancerBackEndAddressPool_standard_noIPAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_lb_backend_address_pool", "test")
+
+	var lb network.LoadBalancer
+	addressPoolName := fmt.Sprintf("%d-address-pool", data.RandomInteger)
+
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	backendAddressPoolId := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/backendAddressPools/%s",
+		subscriptionID, data.RandomInteger, data.RandomInteger, addressPoolName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerBackEndAddressPool_standard(data, addressPoolName, "Standard", false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
+					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "id", backendAddressPoolId),
+					resource.TestCheckResourceAttr("azurerm_lb_backend_address_pool.test", "ip_address.#", "0"),
 				),
 			},
 			{
@@ -95,7 +129,7 @@ func TestAccAzureRMLoadBalancerBackEndAddressPool_standard_wrongSku(t *testing.T
 		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLoadBalancerBackEndAddressPool_standard(data, addressPoolName, "Basic"),
+				Config: testAccAzureRMLoadBalancerBackEndAddressPool_standard(data, addressPoolName, "Basic", true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 					testCheckAzureRMLoadBalancerBackEndAddressPoolExists(addressPoolName, &lb),
@@ -261,7 +295,23 @@ func testCheckAzureRMLoadBalancerBackEndAddressPoolDisappears(addressPoolName st
 	}
 }
 
-func testAccAzureRMLoadBalancerBackEndAddressPool_standard(data acceptance.TestData, addressPoolName string, sku string) string {
+func testAccAzureRMLoadBalancerBackEndAddressPool_standard(data acceptance.TestData, addressPoolName string, sku string, createIPBinding bool) string {
+	ipBinding := ""
+	if createIPBinding {
+		ipBinding = `
+		ip_address {
+			name               = "addr-1"
+			virtual_network_id = azurerm_virtual_network.test.id
+			ip_address         = "10.0.1.4"
+		}
+
+		ip_address {
+			name               = "addr-2"
+			virtual_network_id = azurerm_virtual_network.test.id
+			ip_address         = "10.0.1.5"
+		}`
+	}
+
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -308,21 +358,10 @@ resource "azurerm_lb_backend_address_pool" "test" {
   name                = "%s"
   resource_group_name = azurerm_resource_group.test.name
   loadbalancer_id     = azurerm_lb.test.id
-
-  ip_address {
-    name               = "addr-1"
-    virtual_network_id = azurerm_virtual_network.test.id
-    ip_address         = "10.0.1.4"
-  }
-
-  ip_address {
-    name               = "addr-2"
-    virtual_network_id = azurerm_virtual_network.test.id
-    ip_address         = "10.0.1.5"
-  }
+  %s
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, data.RandomInteger, data.RandomInteger, sku, data.RandomInteger, addressPoolName)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, data.RandomInteger, data.RandomInteger, sku, data.RandomInteger, addressPoolName, ipBinding)
 }
 
 func testAccAzureRMLoadBalancerBackEndAddressPool_basic(data acceptance.TestData, addressPoolName string) string {
