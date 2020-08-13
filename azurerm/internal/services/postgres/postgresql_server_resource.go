@@ -24,6 +24,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+const (
+	postgreSQLServerResourceName = "azurerm_postgresql_server"
+)
+
 func resourceArmPostgreSQLServer() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmPostgreSQLServerCreate,

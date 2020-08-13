@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"log"
 	"time"
 
@@ -56,7 +57,7 @@ func resourceArmPostgreSQLServerKey() *schema.Resource {
 	}
 }
 
-func getMySQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (string, error) {
+func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (string, error) {
 	keyVaultKeyID, err := azure.ParseKeyVaultChildID(keyVaultKeyURI)
 	if err != nil {
 		return "", err
@@ -83,10 +84,13 @@ func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta int
 		return err
 	}
 	keyVaultKeyURI := d.Get("key_vault_key_id").(string)
-	name, err := getMySQLServerKeyName(ctx, vaultsClient, keyVaultKeyURI)
+	name, err := getPostgreSQLServerKeyName(ctx, vaultsClient, keyVaultKeyURI)
 	if err != nil {
 		return fmt.Errorf("cannot compose name for PostgreSQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
 	}
+
+	locks.ByName(serverID.Name, postgreSQLServerResourceName)
+	defer locks.UnlockByName(serverID.Name, postgreSQLServerResourceName)
 
 	if d.IsNewResource() {
 		// This resource is a singleton, but its name can be anything.
