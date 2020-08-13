@@ -553,22 +553,28 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	for _, v := range frontendEndpoints {
 		frontendEndpoint := v.(map[string]interface{})
 		customHttpsProvisioningEnabled := frontendEndpoint["custom_https_provisioning_enabled"].(bool)
-		frontendEndpointName := frontendEndpoint["name"].(string)
+		endpointName := frontendEndpoint["name"].(string)
 
 		// Get current state of endpoint from Azure
-		resp, err := feClient.Get(ctx, resourceGroup, name, frontendEndpointName)
+		resp, err := feClient.Get(ctx, resourceGroup, name, endpointName)
 		if err != nil {
-			return fmt.Errorf("retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
-		}
-		if resp.ID == nil {
-			return fmt.Errorf("cannot read Front Door Frontend Endpoint %q (Resource Group %q) ID", frontendEndpointName, resourceGroup)
+			return fmt.Errorf("retrieving Front Door Frontend Endpoint %q (Resource Group %q): %+v", endpointName, resourceGroup, err)
 		}
 
 		if properties := resp.FrontendEndpointProperties; properties != nil {
+			frontendClient := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
 			customHttpsConfigurationNew := frontendEndpoint["custom_https_configuration"].([]interface{})
-			err := resourceArmFrontDoorFrontendEndpointCustomHttpsConfigurationUpdate(ctx, *resp.ID, customHttpsProvisioningEnabled, name, frontendEndpointName, resourceGroup, properties.CustomHTTPSProvisioningState, properties.CustomHTTPSConfiguration, customHttpsConfigurationNew, meta)
-			if err != nil {
-				return fmt.Errorf("unable to update Custom HTTPS configuration for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
+			frontendInputId := parse.NewFrontendEndpointID(frontDoorId, endpointName)
+			input := customHttpsConfigurationUpdateInput{
+				customHttpsConfigurationCurrent: properties.CustomHTTPSConfiguration,
+				customHttpsConfigurationNew:     customHttpsConfigurationNew,
+				customHttpsProvisioningEnabled:  customHttpsProvisioningEnabled,
+				frontendEndpointId:              frontendInputId,
+				provisioningState:               properties.CustomHTTPSProvisioningState,
+				subscriptionId:                  subscriptionId,
+			}
+			if err := updateCustomHttpsConfiguration(ctx, frontendClient, input); err != nil {
+				return fmt.Errorf("updating Custom HTTPS configuration for Frontend Endpoint %q (Front Door %q / Resource Group %q): %+v", endpointName, name, resourceGroup, err)
 			}
 		}
 	}
@@ -1263,7 +1269,7 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint) (*[]interface
 				webApplicationFirewallPolicyLinkId = *waf.ID
 			}
 
-			flattenedHttpsConfig := flattenCustomHttpsConfiguration(*props)
+			flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
 			customHTTPSConfiguration = flattenedHttpsConfig.CustomHTTPSConfiguration
 			customHttpsProvisioningEnabled = flattenedHttpsConfig.CustomHTTPSProvisioningEnabled
 		}

@@ -51,9 +51,14 @@ type flattenedCustomHttpsConfiguration struct {
 	CustomHTTPSProvisioningEnabled bool
 }
 
-func flattenCustomHttpsConfiguration(properties frontdoor.FrontendEndpointProperties) flattenedCustomHttpsConfiguration {
-	customHttpsConfig := make([]interface{}, 0)
-	customHttpsProvisioningEnabled := false
+func flattenCustomHttpsConfiguration(properties *frontdoor.FrontendEndpointProperties) flattenedCustomHttpsConfiguration {
+	result := flattenedCustomHttpsConfiguration{
+		CustomHTTPSConfiguration:       make([]interface{}, 0),
+		CustomHTTPSProvisioningEnabled: false,
+	}
+	if properties == nil {
+		return result
+	}
 
 	if config := properties.CustomHTTPSConfiguration; config != nil {
 		certificateSource := string(frontdoor.CertificateSourceFrontDoor)
@@ -84,14 +89,14 @@ func flattenCustomHttpsConfiguration(properties frontdoor.FrontendEndpointProper
 		if properties.CustomHTTPSProvisioningState != "" {
 			provisioningState = string(properties.CustomHTTPSProvisioningState)
 			if properties.CustomHTTPSProvisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled || properties.CustomHTTPSProvisioningState == frontdoor.CustomHTTPSProvisioningStateEnabling {
-				customHttpsProvisioningEnabled = true
+				result.CustomHTTPSProvisioningEnabled = true
 
 				if properties.CustomHTTPSProvisioningSubstate != "" {
 					provisioningSubstate = string(properties.CustomHTTPSProvisioningSubstate)
 				}
 			}
 
-			customHttpsConfig = append(customHttpsConfig, map[string]interface{}{
+			result.CustomHTTPSConfiguration = append(result.CustomHTTPSConfiguration, map[string]interface{}{
 				"azure_key_vault_certificate_vault_id":       keyVaultCertificateVaultId,
 				"azure_key_vault_certificate_secret_name":    keyVaultCertificateSecretName,
 				"azure_key_vault_certificate_secret_version": keyVaultCertificateSecretVersion,
@@ -103,8 +108,5 @@ func flattenCustomHttpsConfiguration(properties frontdoor.FrontendEndpointProper
 		}
 	}
 
-	return flattenedCustomHttpsConfiguration{
-		CustomHTTPSConfiguration:       customHttpsConfig,
-		CustomHTTPSProvisioningEnabled: customHttpsProvisioningEnabled,
-	}
+	return result
 }
