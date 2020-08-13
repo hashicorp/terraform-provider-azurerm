@@ -27,6 +27,7 @@ func resourceArmHPCCache() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
@@ -88,7 +89,7 @@ func resourceArmHPCCache() *schema.Resource {
 			"root_squash_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				// TODO 3.0: remove "Computed: true" and add "Deafult: true"
+				// TODO 3.0: remove "Computed: true" and add "Default: true"
 				// The old resource has no consistent default for the rootSquash setting. In order not to
 				// break users, we intentionally mark this property as Computed.
 				// https://docs.microsoft.com/en-us/azure/hpc-cache/configuration#configure-root-squash.
