@@ -11,15 +11,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-// TODO: switch to using the Frontend Endpoint ID here with a state migration
-// this was: `resourceId = fmt.Sprintf("%s/customHttpsConfiguration/%s", *id, frontendEndpointName)`
 
 func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 	return &schema.Resource{
@@ -53,9 +51,6 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 				Required: true,
 			},
 
-			// TODO: finish deprecating and remove this since it's unused
-			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
-
 			"custom_https_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -64,6 +59,9 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 					Schema: schemaCustomHttpsConfiguration(),
 				},
 			},
+
+			// TODO: remove in 3.0
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
@@ -79,6 +77,15 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 			}
 
 			return nil
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.CustomHttpsConfigurationV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.CustomHttpsConfigurationV0ToV1,
+				Version: 0,
+			},
 		},
 	}
 }
