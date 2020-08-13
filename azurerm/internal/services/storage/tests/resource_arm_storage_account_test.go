@@ -6,7 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -282,10 +281,6 @@ func TestAccAzureRMStorageAccount_minTLSVersion(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_allowBlobPublicAccess(t *testing.T) {
-	if ok := environmentUSGovernment(); ok {
-		t.Skip("Skipping `allowBlobPublicAccess` test only valid in Public Cloud")
-	}
-
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -314,29 +309,6 @@ func TestAccAzureRMStorageAccount_allowBlobPublicAccess(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageAccountExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "allow_blob_public_access", "false"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMStorageAccount_allowBlobPublicAccessUSGov(t *testing.T) {
-	if ok := environmentUSGovernment(); !ok {
-		t.Skip("Skipping `allowBlobPublicAccessUSGov` test only valid in US Government Cloud")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMStorageAccount_basic(data),
-				ExpectError: regexp.MustCompile(`allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in AzureUSGovernmentCloud`),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageAccountExists(data.ResourceName),
 				),
 			},
 		},
@@ -836,14 +808,6 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 
 		return nil
 	}
-}
-
-func environmentUSGovernment() bool {
-	if acceptance.AzureProvider.Meta().(*clients.Client).Account.Environment.Name == autorestAzure.USGovernmentCloud.Name {
-		return true
-	}
-
-	return false
 }
 
 func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.TestCheckFunc {
