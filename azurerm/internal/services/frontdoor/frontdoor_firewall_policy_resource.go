@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -49,7 +50,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				ValidateFunc: validate.FrontDoorWAFName,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": azure.SchemaLocationOptional(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -419,6 +420,15 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.WebApplicationFirewallPolicyV0Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.WebApplicationFirewallPolicyV0ToV1,
+				Version: 0,
+			},
 		},
 	}
 }

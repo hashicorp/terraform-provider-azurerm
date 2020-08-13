@@ -438,6 +438,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"web_application_firewall_policy_link_id": {
 							Type:     schema.TypeString,
 							Optional: true,
+							// TODO: validation that this is a resource id
 						},
 						"custom_https_configuration": {
 							Type:       schema.TypeList,
