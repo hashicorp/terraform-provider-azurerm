@@ -17,7 +17,7 @@ func NewFrontendEndpointID(id FrontDoorId, name string) FrontendEndpointId {
 }
 
 func (id FrontendEndpointId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.Name).ID(subscriptionId)
+	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
 	return fmt.Sprintf("%s/frontendEndpoints/%s", base, id.Name)
 }
 

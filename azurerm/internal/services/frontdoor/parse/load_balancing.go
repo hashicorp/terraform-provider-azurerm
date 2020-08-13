@@ -17,7 +17,7 @@ func NewLoadBalancingID(id FrontDoorId, name string) LoadBalancingId {
 }
 
 func (id LoadBalancingId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.Name).ID(subscriptionId)
+	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
 	return fmt.Sprintf("%s/loadBalancingSettings/%s", base, id.Name)
 }
 

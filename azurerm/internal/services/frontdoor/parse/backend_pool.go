@@ -17,7 +17,7 @@ func NewBackendPoolID(id FrontDoorId, name string) BackendPoolId {
 }
 
 func (id BackendPoolId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.Name).ID(subscriptionId)
+	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
 	return fmt.Sprintf("%s/backendPools/%s", base, id.Name)
 }
 

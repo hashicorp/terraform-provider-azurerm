@@ -17,7 +17,7 @@ func NewHealthProbeID(id FrontDoorId, name string) HealthProbeId {
 }
 
 func (id HealthProbeId) ID(subscriptionId string) string {
-	base := NewFrontDoorID(id.ResourceGroup, id.Name).ID(subscriptionId)
+	base := NewFrontDoorID(id.ResourceGroup, id.FrontDoorName).ID(subscriptionId)
 	return fmt.Sprintf("%s/healthProbeSettings/%s", base, id.Name)
 }
 
