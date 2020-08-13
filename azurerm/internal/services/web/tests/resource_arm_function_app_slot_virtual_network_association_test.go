@@ -141,8 +141,8 @@ resource "azurerm_subnet" "test2" {
 
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-   resource_group_name = azurerm_resource_group.test.name
-location            = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -160,17 +160,17 @@ resource "azurerm_app_service_plan" "test" {
 
 resource "azurerm_function_app" "test" {
   name                       = "acctest-FA-%d"
-  resource_group_name = azurerm_resource_group.test.name
-location            = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
   app_service_plan_id        = azurerm_app_service_plan.test.id
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 }
 
 resource "azurerm_function_app_slot" "test-staging" {
-  name                = "acctest-FA-%d-staging"
-  resource_group_name = azurerm_resource_group.test.name
-location            = azurerm_resource_group.test.location
+  name                       = "acctest-FA-%d-staging"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
   app_service_plan_id        = azurerm_app_service_plan.test.id
   function_app_name          = azurerm_function_app.test.name
   storage_account_name       = azurerm_storage_account.test.name
