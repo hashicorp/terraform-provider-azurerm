@@ -40,6 +40,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Prviate DNS Zone ID.
+*  `name` - The Private DNS Zone Name
 * `number_of_record_sets` - The current number of record sets in this Private DNS zone.
 * `max_number_of_record_sets` - The maximum number of record sets that can be created in this Private DNS zone.
 * `max_number_of_virtual_network_links` - The maximum number of virtual networks that can be linked to this Private DNS zone.
