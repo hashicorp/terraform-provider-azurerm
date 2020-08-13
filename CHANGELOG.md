@@ -18,6 +18,7 @@ IMPROVEMENTS:
 * `azurerm_function_app` now supports full `scm_ip_restriction` configuration [GH-7945]
 * `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover [GH-5688]
 * `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type [GH-7890]
+* `azurerm_storage_account` - filter `allow_blob_public_access` and `min_tls_version` from Azure US Government [GH-8092]
 
 ENHANCEMENTS:
 
