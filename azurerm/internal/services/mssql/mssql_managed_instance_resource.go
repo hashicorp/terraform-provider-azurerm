@@ -125,7 +125,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(sql.ManagedServerCreateModeDefault),
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.ManagedServerCreateModeDefault),
 					string(sql.ManagedServerCreateModePointInTimeRestore),
@@ -312,10 +312,6 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 	location := d.Get("location").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if createMode == string(sql.ManagedServerCreateModePointInTimeRestore) && (len(restorePoint) == 0 || len(sourceManagedInstanceID) == 0) {
-		return fmt.Errorf("could not configure managed SQL instance %q (Resource Group %q) in restore in point create mode", name, resourceGroup)
-	}
-
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -333,9 +329,15 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 		ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-			ManagedInstanceCreateMode: sql.ManagedServerCreateMode(createMode),
 			AdministratorLogin:        utils.String(adminName),
 		},
+	}
+
+	if d.HasChange("create_mode") {
+		if createMode == string(sql.ManagedServerCreateModePointInTimeRestore) && (len(restorePoint) == 0 || len(sourceManagedInstanceID) == 0) {
+			return fmt.Errorf("could not configure managed SQL instance %q (Resource Group %q) in restore in point create mode", name, resourceGroup)
+		}
+		parameters.ManagedInstanceProperties.ManagedInstanceCreateMode = sql.ManagedServerCreateMode(createMode)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
