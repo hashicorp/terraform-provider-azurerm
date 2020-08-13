@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -22,8 +23,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-// TODO: a state migration to patch the ID's
 
 func resourceArmFrontDoor() *schema.Resource {
 	return &schema.Resource{
@@ -37,7 +36,23 @@ func resourceArmFrontDoor() *schema.Resource {
 			return err
 		}),
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				// this resource was set to "schema version 1" unintentionally.. so we're adding
+				// a "fake" upgrade here to account for it
+				Type: migration.FrontDoorV0V1Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: func(rawState map[string]interface{}, _ interface{}) (map[string]interface{}, error) {
+					return rawState, nil
+				},
+				Version: 0,
+			},
+			{
+				Type:    migration.FrontDoorV0V1Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.FrontDoorV1ToV2,
+				Version: 1,
+			},
+		},
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(6 * time.Hour),

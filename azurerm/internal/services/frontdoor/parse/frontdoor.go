@@ -34,7 +34,7 @@ func FrontDoorID(input string) (*FrontDoorId, error) {
 }
 
 func (id FrontDoorId) ID(subscriptionId string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontdoors/%s", subscriptionId, id.ResourceGroup, id.Name)
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s", subscriptionId, id.ResourceGroup, id.Name)
 }
 
 func parseFrontDoorChildResourceId(input string) (*FrontDoorId, *azure.ResourceID, error) {
