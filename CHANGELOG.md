@@ -1,49 +1,49 @@
-## 2.23.0 (Unreleased)
+## 2.23.0 (August 13, 2020)
 
 
 FEATURES:
 
-* **New Resource:** `azurerm_integration_service_environment` [GH-7763]
-* **New Resource:** `azurerm_redis_linked_server` [GH-8026]
-* **New Resource:** `azurerm_synapse_firewall_rule` [GH-7904]
+* **New Resource:** `azurerm_integration_service_environment` ([#7763](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7763))
+* **New Resource:** `azurerm_redis_linked_server` ([#8026](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8026))
+* **New Resource:** `azurerm_synapse_firewall_rule` ([#7904](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7904))
 
 IMPROVEMENTS:
 
-* Data Source: `azurerm_app_service` now exports `source_control` configuration [GH-7945]
-* Data Source: `azurerm_function_app` now exports `source_control` configuration [GH-7945]
-* Data Source: `azurerm_function_app` now exports `site_config` configuration [GH-7945]
-* `azurerm_app_service` now supports `source_control` configuration [GH-7945]
-* `azurerm_function_app` now supports `source_control` configuration [GH-7945]
-* `azurerm_function_app` now supports full `ip_restriction` configuration [GH-7945]
-* `azurerm_function_app` now supports full `scm_ip_restriction` configuration [GH-7945]
-* `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover [GH-5688]
-* `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type [GH-7890]
-* `azurerm_storage_account` - filter `allow_blob_public_access` and `min_tls_version` from Azure US Government [GH-8092]
+* Data Source: `azurerm_app_service` now exports `source_control` configuration ([#7945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7945))
+* Data Source: `azurerm_function_app` now exports `source_control` configuration ([#7945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7945))
+* Data Source: `azurerm_function_app` now exports `site_config` configuration ([#7945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7945))
+* `azurerm_app_service` now supports `source_control` configuration ([#7945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7945))
+* `azurerm_function_app` now supports `source_control` configuration ([#7945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7945))
+* `azurerm_function_app` now supports full `ip_restriction` configuration ([#7945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7945))
+* `azurerm_function_app` now supports full `scm_ip_restriction` configuration ([#7945](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7945))
+* `azurerm_site_recovery_replicated_vm` - support setting `target_network_id` and `network_interface` on failover ([#5688](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5688))
+* `azurerm_storage_account` - support `static_website` for `BlockBlobStorage` account type ([#7890](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7890))
+* `azurerm_storage_account` - filter `allow_blob_public_access` and `min_tls_version` from Azure US Government ([#8092](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8092))
 
 ENHANCEMENTS:
 
-* dependencies: updating `containerservice` to `2020-04-01` [GH-7894]
-* dependencies: updating `mysql` to `2020-01-01` [GH-8062]
-* dependencies: updating `postgresql` to `2020-01-01` [GH-8045]
-* `azurerm_eventhub_namespace` - support for the `identity` block [GH-8065]
-* `azurerm_postgresql_server` - support for the `identity` block [GH-8044]
+* dependencies: updating `containerservice` to `2020-04-01` ([#7894](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7894))
+* dependencies: updating `mysql` to `2020-01-01` ([#8062](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8062))
+* dependencies: updating `postgresql` to `2020-01-01` ([#8045](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8045))
+* `azurerm_eventhub_namespace` - support for the `identity` block ([#8065](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8065))
+* `azurerm_postgresql_server` - support for the `identity` block ([#8044](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8044))
 
 BUG FIXES:
 
-* All resources using a `location` field - allowing the value `global` when using enhanced validation [GH-8042]
-* Data Source: `azurerm_api_management_user` - `user_id` now accepts single characters [GH-7975]
-* `azurerm_application_gateway` - enforce case for the `rule_type` property [GH-8061]
-* `azurerm_iothub_consumer_group` - lock during creation and deletion to workaround an API issue [GH-8041]
-* `azurerm_iothub` - the `endpoint` and `route` lists can now be cleared by setting them to `[]` [GH-8028]
-* `azurerm_linux_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]
-* `azurerm_mariadb_virtual_network_rule` will now work across subscriptions [GH-8100]
-* `azurerm_monitor_metric_alert_resource` - continue using `SingleResourceMultiMetricCriteria` for existing alerts [GH-7995]
-* `azurerm_mysql_server` - prevent a non empty plan when using `threat_detection_policy` [GH-7981]
-* `azurerm_orchestrated_virtual_machine_scale_set` - allow `single_placement_group` to be `true` [GH-7821]
-* `azurerm_mysql_server` - support for the `identity` block [GH-8059]
-* `azurerm_traffic_manager_profile` - updating no longer clears all endpoints [GH-7846]
-* `azurerm_windows_virtual_machine` - handling machines which are already stopped/deallocated [GH-8000]'
-* `azurerm_data_factory_dataset_delimited_text` - fix issue with property `azure_blob_storage_account` [GH-7953]
+* All resources using a `location` field - allowing the value `global` when using enhanced validation ([#8042](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8042))
+* Data Source: `azurerm_api_management_user` - `user_id` now accepts single characters ([#7975](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7975))
+* `azurerm_application_gateway` - enforce case for the `rule_type` property ([#8061](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8061))
+* `azurerm_iothub_consumer_group` - lock during creation and deletion to workaround an API issue ([#8041](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8041))
+* `azurerm_iothub` - the `endpoint` and `route` lists can now be cleared by setting them to `[]` ([#8028](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8028))
+* `azurerm_linux_virtual_machine` - handling machines which are already stopped/deallocated ([#8000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8000))
+* `azurerm_mariadb_virtual_network_rule` will now work across subscriptions ([#8100](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8100))
+* `azurerm_monitor_metric_alert_resource` - continue using `SingleResourceMultiMetricCriteria` for existing alerts ([#7995](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7995))
+* `azurerm_mysql_server` - prevent a non empty plan when using `threat_detection_policy` ([#7981](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7981))
+* `azurerm_orchestrated_virtual_machine_scale_set` - allow `single_placement_group` to be `true` ([#7821](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7821))
+* `azurerm_mysql_server` - support for the `identity` block ([#8059](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8059))
+* `azurerm_traffic_manager_profile` - updating no longer clears all endpoints ([#7846](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7846))
+* `azurerm_windows_virtual_machine` - handling machines which are already stopped/deallocated [[#8000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8000)]'
+* `azurerm_data_factory_dataset_delimited_text` - fix issue with property `azure_blob_storage_account` ([#7953](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7953))
 
 ## 2.22.0 (August 07, 2020)
 
