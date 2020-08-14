@@ -165,6 +165,8 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Optional: true,
 					ForceNew: true,
 				},
+
+				"upgrade_settings": upgradeSettingsSchema(),
 			},
 		},
 	}
@@ -197,6 +199,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			NodeLabels:                defaultCluster.NodeLabels,
 			NodeTaints:                defaultCluster.NodeTaints,
 			Tags:                      defaultCluster.Tags,
+			UpgradeSettings:           defaultCluster.UpgradeSettings,
 		},
 	}
 }
@@ -279,6 +282,10 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 	if proximityPlacementGroupId := raw["proximity_placement_group_id"].(string); proximityPlacementGroupId != "" {
 		profile.ProximityPlacementGroupID = utils.String(proximityPlacementGroupId)
+	}
+
+	if upgradeSettingsRaw, ok := raw["upgrade_settings"].([]interface{}); ok && len(upgradeSettingsRaw) > 0 {
+		profile.UpgradeSettings = expandUpgradeSettings(upgradeSettingsRaw)
 	}
 
 	count := raw["node_count"].(int)
@@ -430,6 +437,8 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		proximityPlacementGroupId = *agentPool.ProximityPlacementGroupID
 	}
 
+	upgradeSettings := flattenUpgradeSettings(agentPool.UpgradeSettings)
+
 	return &[]interface{}{
 		map[string]interface{}{
 			"availability_zones":           availabilityZones,
@@ -450,6 +459,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"vm_size":                      string(agentPool.VMSize),
 			"orchestrator_version":         orchestratorVersion,
 			"proximity_placement_group_id": proximityPlacementGroupId,
+			"upgrade_settings":             upgradeSettings,
 			"vnet_subnet_id":               vnetSubnetId,
 			"only_critical_addons_enabled": criticalAddonsEnabled,
 		},
