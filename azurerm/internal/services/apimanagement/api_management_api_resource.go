@@ -603,14 +603,13 @@ func expandApiManagementOpenIDAuthenticationSettingsContract(input []interface{}
 	}
 }
 
-func expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(input interface{}) *[]apimanagement.BearerTokenSendingMethods {
+func expandApiManagementOpenIDAuthenticationSettingsBearerTokenSendingMethods(input []interface{}) *[]apimanagement.BearerTokenSendingMethods {
 	if input == nil {
 		return nil
 	}
 	results := make([]apimanagement.BearerTokenSendingMethods, 0)
 
-	vs := input.(*schema.Set).List()
-	for _, v := range vs {
+	for _, v := range input {
 		results = append(results, apimanagement.BearerTokenSendingMethods(v.(string)))
 	}
 
@@ -633,7 +632,7 @@ func flattenApiManagementOpenIDAuthentication(input *apimanagement.OpenIDAuthent
 	bearerTokenSendingMethods := make([]interface{}, 0)
 	if s := input.BearerTokenSendingMethods; s != nil {
 		for _, v := range *s {
-			bearerTokenSendingMethods = append(bearerTokenSendingMethods, v)
+			bearerTokenSendingMethods = append(bearerTokenSendingMethods, apimanagement.BearerTokenSendingMethod(v))
 		}
 	}
 	result["bearer_token_sending_methods"] = schema.NewSet(schema.HashString, bearerTokenSendingMethods)
