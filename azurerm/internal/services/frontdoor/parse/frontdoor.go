@@ -2,11 +2,10 @@ package parse
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
-
-// TODO: tests
 
 type FrontDoorId struct {
 	Name          string
@@ -47,16 +46,16 @@ func parseFrontDoorChildResourceId(input string) (*FrontDoorId, *azure.ResourceI
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	// TODO: ensure this is Normalized, presumably to frontdoor
-	// resourceGroup := id.ResourceGroup
-	//	name := id.Path["frontdoors"]
-	//	// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
-	//	if name == "" {
-	//		name = id.Path["Frontdoors"]
-	//	}
-
-	if frontdoor.Name, err = id.PopSegment("frontdoors"); err != nil {
-		return nil, nil, err
+	for key, value := range id.Path {
+		// In Azure API's should follow Postel's Law - where URI's should be insensitive for requests,
+		// but case-sensitive when referencing URI's in responses. Unfortunately the Networking API's
+		// treat both as case-insensitive - so until these API's follow the spec we need to identify
+		// the correct casing here.
+		if strings.EqualFold(key, "frontDoors") {
+			frontdoor.Name = value
+			delete(id.Path, key)
+			break
+		}
 	}
 
 	return &frontdoor, id, nil

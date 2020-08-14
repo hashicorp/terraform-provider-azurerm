@@ -32,10 +32,11 @@ func BackendPoolID(input string) (*BackendPoolId, error) {
 		FrontDoorName: frontDoorId.Name,
 	}
 
-	// TODO: handle this being case-insensitive
-	// https://github.com/Azure/azure-sdk-for-go/issues/6762
+	// API is broken - https://github.com/Azure/azure-sdk-for-go/issues/6762
 	if poolId.Name, err = id.PopSegment("backendPools"); err != nil {
-		return nil, err
+		if poolId.Name, err = id.PopSegment("backendpools"); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {

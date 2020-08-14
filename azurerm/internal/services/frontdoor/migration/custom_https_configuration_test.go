@@ -24,21 +24,21 @@ func TestCustomHttpsConfigurationV0ToV1(t *testing.T) {
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendendpoints/exampleFrontendEndpoint2/customHttpsConfiguration/exampleFrontendEndpoint2",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendEndpoints/exampleFrontendEndpoint2"),
+			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/exampleFrontendEndpoint2"),
 		},
 		{
 			name: "old id - mixed case",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourcegroups/mygroup1/providers/Microsoft.Network/Frontdoors/frontdoor1/frontendEndpoints/exampleFrontendEndpoint2/customHttpsConfiguration/exampleFrontendEndpoint2",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendEndpoints/exampleFrontendEndpoint2"),
+			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/exampleFrontendEndpoint2"),
 		},
 		{
 			name: "new id",
 			input: map[string]interface{}{
 				"id": "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendEndpoints/exampleFrontendEndpoint2",
 			},
-			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1/frontendEndpoints/exampleFrontendEndpoint2"),
+			expected: utils.String("/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/mygroup1/providers/Microsoft.Network/frontDoors/frontdoor1/frontendEndpoints/exampleFrontendEndpoint2"),
 		},
 	}
 	for _, test := range testData {
