@@ -621,6 +621,13 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
+
+			"encryption_at_host": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: false,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -680,6 +687,9 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 	networkProfile := expandAzureRmVirtualMachineNetworkProfile(d)
 	vmSize := d.Get("vm_size").(string)
 	properties := compute.VirtualMachineProperties{
+		SecurityProfile: &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host").(bool)),
+		},
 		NetworkProfile: &networkProfile,
 		HardwareProfile: &compute.HardwareProfile{
 			VMSize: compute.VirtualMachineSizeTypes(vmSize),
