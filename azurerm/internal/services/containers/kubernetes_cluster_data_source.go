@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	kubernetes2 "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -718,7 +718,7 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 		var flattenedKubeConfig []interface{}
 
 		if strings.Contains(rawConfig, "apiserver-id:") {
-			kubeConfigAAD, err := kubernetes2.ParseKubeConfigAAD(rawConfig)
+			kubeConfigAAD, err := kubernetes.ParseKubeConfigAAD(rawConfig)
 
 			if err != nil {
 				return utils.String(rawConfig), []interface{}{}
@@ -726,7 +726,7 @@ func flattenKubernetesClusterDataSourceAccessProfile(profile containerservice.Ma
 
 			flattenedKubeConfig = flattenKubernetesClusterDataSourceKubeConfigAAD(*kubeConfigAAD)
 		} else {
-			kubeConfig, err := kubernetes2.ParseKubeConfig(rawConfig)
+			kubeConfig, err := kubernetes.ParseKubeConfig(rawConfig)
 
 			if err != nil {
 				return utils.String(rawConfig), []interface{}{}
@@ -1048,7 +1048,7 @@ func flattenKubernetesClusterDataSourceServicePrincipalProfile(profile *containe
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes2.KubeConfig) []interface{} {
+func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
 	cluster := config.Clusters[0].Cluster
@@ -1065,7 +1065,7 @@ func flattenKubernetesClusterDataSourceKubeConfig(config kubernetes2.KubeConfig)
 	return []interface{}{values}
 }
 
-func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes2.KubeConfigAAD) []interface{} {
+func flattenKubernetesClusterDataSourceKubeConfigAAD(config kubernetes.KubeConfigAAD) []interface{} {
 	values := make(map[string]interface{})
 
 	cluster := config.Clusters[0].Cluster
