@@ -23,7 +23,7 @@ func TestAccAzureRMavsPrivateCloud_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
@@ -73,7 +73,7 @@ func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
@@ -88,7 +88,7 @@ func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("nsxt_password", "vcenter_password"),
 		},
 	})
 }
@@ -105,7 +105,7 @@ func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
@@ -126,7 +126,7 @@ func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
@@ -147,7 +147,7 @@ func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
@@ -168,7 +168,7 @@ func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
@@ -207,7 +207,7 @@ func TestAccAzureRMavsPrivateCloud_updateIdentitySources(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
@@ -228,7 +228,7 @@ func TestAccAzureRMavsPrivateCloud_updateIdentitySources(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMavsPrivateCloudExists(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.cluster_id"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "management_cluster.0.hosts.#"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.express_route_private_peering_id"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "circuit.0.primary_subnet"),
@@ -371,8 +371,8 @@ resource "azurerm_avs_private_cloud" "test" {
     username             = "testUser"
   }
   internet_connected = false
-  nsxt_password      = "PassWord1234!"
-  vcenter_password   = "PassWord1234!"
+  nsxt_password      = "QazWsx13$Edc"
+  vcenter_password   = "QazWsx13$Edc"
   tags = {
     ENV = "Test"
   }
@@ -408,8 +408,8 @@ resource "azurerm_avs_private_cloud" "test" {
     username             = "testUser2"
   }
   internet_connected = true
-  nsxt_password      = "PassWord1234!"
-  vcenter_password   = "PassWord1234!"
+  nsxt_password      = "QazWsx13$Edc"
+  vcenter_password   = "QazWsx13$Edc"
   tags = {
     ENV = "Stage"
   }
@@ -458,8 +458,8 @@ identity_source {
     username = "testUser3"
   }
   internet_connected = false
-  nsxt_password = "PassWord1234!"
-  vcenter_password = "PassWord1234!"
+  nsxt_password = "QazWsx13$Edc"
+  vcenter_password = "QazWsx13$Edc"
   tags = {
     ENV = "Test"
   }

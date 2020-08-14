@@ -351,8 +351,6 @@ func resourceArmAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("setting `identity_source`: %+v", err)
 		}
 		d.Set("internet_connected", props.Internet == avs.Enabled)
-		d.Set("nsxt_password", props.NsxtPassword)
-		d.Set("vcenter_password", props.VcenterPassword)
 		d.Set("hcx_cloud_manager_endpoint", props.Endpoints.HcxCloudManager)
 		d.Set("nsxt_manager_endpoint", props.Endpoints.NsxtManager)
 		d.Set("vcsa_endpoint", props.Endpoints.Vcsa)
@@ -435,7 +433,7 @@ func expandArmPrivateCloudIdentitySourceArray(input []interface{}) *[]avs.Identi
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		sSL := avs.SslEnumDisabled
-		if v["ssl"].(bool) {
+		if v["ssl_enabled"].(bool) {
 			sSL = avs.SslEnumEnabled
 		}
 		result := avs.IdentitySource{
