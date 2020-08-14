@@ -632,7 +632,7 @@ func flattenApiManagementOpenIDAuthentication(input *apimanagement.OpenIDAuthent
 	bearerTokenSendingMethods := make([]interface{}, 0)
 	if s := input.BearerTokenSendingMethods; s != nil {
 		for _, v := range *s {
-			bearerTokenSendingMethods = append(bearerTokenSendingMethods, apimanagement.BearerTokenSendingMethod(v))
+			bearerTokenSendingMethods = append(bearerTokenSendingMethods, string(v))
 		}
 	}
 	result["bearer_token_sending_methods"] = schema.NewSet(schema.HashString, bearerTokenSendingMethods)
