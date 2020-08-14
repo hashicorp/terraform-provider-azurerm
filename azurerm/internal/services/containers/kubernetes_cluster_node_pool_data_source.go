@@ -260,7 +260,6 @@ func dataSourceKubernetesClusterNodePoolRead(d *schema.ResourceData, meta interf
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))
-
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
