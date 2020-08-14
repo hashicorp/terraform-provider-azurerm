@@ -35,6 +35,7 @@ var kubernetesNodePoolTests = map[string]func(t *testing.T){
 	"osDiskSizeGB":                   testAccAzureRMKubernetesClusterNodePool_osDiskSizeGB,
 	"modeSystem":                     testAccAzureRMKubernetesClusterNodePool_modeSystem,
 	"modeUpdate":                     testAccAzureRMKubernetesClusterNodePool_modeUpdate,
+	"upgradeSettings":                testAccAzureRMKubernetesClusterNodePool_upgradeSettings,
 	"virtualNetworkAutomatic":        testAccAzureRMKubernetesClusterNodePool_virtualNetworkAutomatic,
 	"virtualNetworkManual":           testAccAzureRMKubernetesClusterNodePool_virtualNetworkManual,
 	"windows":                        testAccAzureRMKubernetesClusterNodePool_windows,
@@ -725,6 +726,31 @@ func testAccAzureRMKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
+	checkIfShouldRunTestsIndividually(t)
+	testAccAzureRMKubernetesClusterNodePool_upgradeSettings(t)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_upgradeSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterNodePoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesClusterNodePool_upgradeSettingsConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesNodePoolExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "upgrade_profile.0.max_surge", "2"),
+				),
+			},
+			data.ImportStep(),
 		},
 	})
 }
@@ -1449,6 +1475,27 @@ resource "azurerm_kubernetes_cluster_node_pool" "windows" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   os_type               = "Windows"
+}
+`, template)
+}
+
+func testAccAzureRMKubernetesClusterNodePool_upgradeSettingsConfig(data acceptance.TestData) string {
+	template := testAccAzureRMKubernetesClusterNodePool_templateConfig(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 3
+  upgrade_settings {
+    max_surge = "2"
+  }
 }
 `, template)
 }

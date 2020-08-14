@@ -133,6 +133,8 @@ func SchemaDefaultNodePool() *schema.Schema {
 					Computed:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
+
+				"upgrade_settings": upgradeSettingsSchema(),
 			},
 		},
 	}
@@ -163,6 +165,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterA
 			NodeLabels:             defaultCluster.NodeLabels,
 			NodeTaints:             defaultCluster.NodeTaints,
 			Tags:                   defaultCluster.Tags,
+			UpgradeSettings:        defaultCluster.UpgradeSettings,
 		},
 	}
 }
@@ -226,6 +229,9 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	if orchestratorVersion := raw["orchestrator_version"].(string); orchestratorVersion != "" {
 		profile.OrchestratorVersion = utils.String(orchestratorVersion)
 	}
+
+	upgradeSettingsRaw := raw["upgradeSettings"].([]interface{})
+	profile.UpgradeSettings = expandUpgradeSettings(upgradeSettingsRaw)
 
 	count := raw["node_count"].(int)
 	maxCount := raw["max_count"].(int)
@@ -357,6 +363,8 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 		orchestratorVersion = *agentPool.OrchestratorVersion
 	}
 
+	upgradeSettings := flattenUpgradeSettings(agentPool.UpgradeSettings)
+
 	return &[]interface{}{
 		map[string]interface{}{
 			"availability_zones":    availabilityZones,
@@ -374,6 +382,7 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"type":                  string(agentPool.Type),
 			"vm_size":               string(agentPool.VMSize),
 			"orchestrator_version":  orchestratorVersion,
+			"upgrade_settings":      upgradeSettings,
 			"vnet_subnet_id":        vnetSubnetId,
 		},
 	}, nil

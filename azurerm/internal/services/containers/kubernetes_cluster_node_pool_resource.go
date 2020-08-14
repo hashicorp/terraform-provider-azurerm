@@ -202,6 +202,8 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+
+			"upgrade_settings": upgradeSettingsSchema(),
 		},
 	}
 }
@@ -330,6 +332,11 @@ func resourceArmKubernetesClusterNodePoolCreate(d *schema.ResourceData, meta int
 
 	if vnetSubnetID := d.Get("vnet_subnet_id").(string); vnetSubnetID != "" {
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
+	}
+
+	upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
+	if len(upgradeSettingsRaw) > 0 {
+		profile.UpgradeSettings = expandUpgradeSettings(upgradeSettingsRaw)
 	}
 
 	maxCount := d.Get("max_count").(int)
@@ -478,6 +485,11 @@ func resourceArmKubernetesClusterNodePoolUpdate(d *schema.ResourceData, meta int
 	if d.HasChange("tags") {
 		t := d.Get("tags").(map[string]interface{})
 		props.Tags = tags.Expand(t)
+	}
+
+	if d.HasChange("upgrade_settings") {
+		upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
+		props.UpgradeSettings = expandUpgradeSettings(upgradeSettingsRaw)
 	}
 
 	// validate the auto-scale fields are both set/unset to prevent a continual diff
@@ -638,6 +650,8 @@ func resourceArmKubernetesClusterNodePoolRead(d *schema.ResourceData, meta inter
 
 		d.Set("vnet_subnet_id", props.VnetSubnetID)
 		d.Set("vm_size", string(props.VMSize))
+
+		d.Set("upgrade_settings", flattenUpgradeSettings(props.UpgradeSettings))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -663,4 +677,44 @@ func resourceArmKubernetesClusterNodePoolDelete(d *schema.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func upgradeSettingsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"max_surge": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func expandUpgradeSettings(input []interface{}) *containerservice.AgentPoolUpgradeSettings {
+	if len(input) == 0 {
+		return nil
+	}
+	upgradeSettingInput := input[0].(map[string]interface{})
+	upgradeSetting := containerservice.AgentPoolUpgradeSettings{}
+
+	if maxSurgeRaw := upgradeSettingInput["max_surge"].(string); maxSurgeRaw != "" {
+		upgradeSetting.MaxSurge = utils.String(maxSurgeRaw)
+	}
+	return &upgradeSetting
+}
+
+func flattenUpgradeSettings(input *containerservice.AgentPoolUpgradeSettings) []interface{} {
+	upgradeSettings := make([]interface{}, 0)
+
+	if input == nil {
+		return upgradeSettings
+	}
+	nodePoolSetting := make(map[string]interface{})
+	nodePoolSetting["max_surge"] = *input.MaxSurge
+	return append(upgradeSettings, nodePoolSetting)
 }

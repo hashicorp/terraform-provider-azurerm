@@ -249,6 +249,8 @@ A `default_node_pool` block supports the following:
 
 ~> At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) until this is fixed in the AKS API. 
 
+* `upgrade_settings` - (Optional) A `upgrade_settings` block as documented below.
+
 * `vnet_subnet_id` - (Optional) The ID of a Subnet where the Kubernetes Node Pool should exist. Changing this forces a new resource to be created.
 
 ~> **NOTE:** A Route Table must be configured on this Subnet.
@@ -390,6 +392,14 @@ A `windows_profile` block supports the following:
 * `admin_username` - (Required) The Admin Username for Windows VMs.
 
 * `admin_password` - (Required) The Admin Password for Windows VMs.
+
+---
+
+A `upgrade_settings` block exports the following:
+
+* `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
+-> **Note:** If a percentage is provided, the number of surge nodes is calculated from the `node_count` value on the current cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/en-us/azure/aks/upgrade-cluster#customize-node-surge-upgrade-preview) during an upgrade.
 
 
 ## Attributes Reference

@@ -214,6 +214,8 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
+
+						"upgrade_settings": upgradeSettingsSchema(),
 					},
 				},
 			},
@@ -922,6 +924,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.Tags != nil {
 			agentPoolProfile["tags"] = tags.Flatten(profile.Tags)
+		}
+
+		if profile.UpgradeSettings != nil {
+			agentPoolProfile["upgrade_settings"] = flattenUpgradeSettings(profile.UpgradeSettings)
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)

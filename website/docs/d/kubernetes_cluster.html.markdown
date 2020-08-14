@@ -128,11 +128,20 @@ A `agent_pool_profile` block exports the following:
 
 * `orchestrator_version` - Kubernetes version used for the Agents.
 
+* `upgrade_settings` - A `upgrade_settings` block as documented below.
+
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
 
 ---
+
+A `upgrade_settings` block exports the following:
+
+* `max_surge` - The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
+---
+
 
 A `azure_active_directory` block exports the following:
 
