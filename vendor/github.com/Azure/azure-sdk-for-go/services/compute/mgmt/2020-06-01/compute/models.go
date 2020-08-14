@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
 
 // AccessLevel enumerates the values for access level.
 type AccessLevel string
@@ -390,16 +390,20 @@ func PossibleDiskStorageAccountTypesValues() []DiskStorageAccountTypes {
 type EncryptionType string
 
 const (
-	// EncryptionAtRestWithCustomerKey Disk is encrypted with Customer managed key at rest.
+	// EncryptionAtRestWithCustomerKey Disk is encrypted at rest with Customer managed key that can be changed
+	// and revoked by a customer.
 	EncryptionAtRestWithCustomerKey EncryptionType = "EncryptionAtRestWithCustomerKey"
-	// EncryptionAtRestWithPlatformKey Disk is encrypted with XStore managed key at rest. It is the default
-	// encryption type.
+	// EncryptionAtRestWithPlatformAndCustomerKeys Disk is encrypted at rest with 2 layers of encryption. One
+	// of the keys is Customer managed and the other key is Platform managed.
+	EncryptionAtRestWithPlatformAndCustomerKeys EncryptionType = "EncryptionAtRestWithPlatformAndCustomerKeys"
+	// EncryptionAtRestWithPlatformKey Disk is encrypted at rest with Platform managed key. It is the default
+	// encryption type. This is not a valid encryption type for disk encryption sets.
 	EncryptionAtRestWithPlatformKey EncryptionType = "EncryptionAtRestWithPlatformKey"
 )
 
 // PossibleEncryptionTypeValues returns an array of possible values for the EncryptionType const type.
 func PossibleEncryptionTypeValues() []EncryptionType {
-	return []EncryptionType{EncryptionAtRestWithCustomerKey, EncryptionAtRestWithPlatformKey}
+	return []EncryptionType{EncryptionAtRestWithCustomerKey, EncryptionAtRestWithPlatformAndCustomerKeys, EncryptionAtRestWithPlatformKey}
 }
 
 // HostCaching enumerates the values for host caching.
@@ -462,6 +466,23 @@ const (
 // PossibleHyperVGenerationTypesValues returns an array of possible values for the HyperVGenerationTypes const type.
 func PossibleHyperVGenerationTypesValues() []HyperVGenerationTypes {
 	return []HyperVGenerationTypes{HyperVGenerationTypesV1, HyperVGenerationTypesV2}
+}
+
+// InGuestPatchMode enumerates the values for in guest patch mode.
+type InGuestPatchMode string
+
+const (
+	// AutomaticByOS ...
+	AutomaticByOS InGuestPatchMode = "AutomaticByOS"
+	// AutomaticByPlatform ...
+	AutomaticByPlatform InGuestPatchMode = "AutomaticByPlatform"
+	// Manual ...
+	Manual InGuestPatchMode = "Manual"
+)
+
+// PossibleInGuestPatchModeValues returns an array of possible values for the InGuestPatchMode const type.
+func PossibleInGuestPatchModeValues() []InGuestPatchMode {
+	return []InGuestPatchMode{AutomaticByOS, AutomaticByPlatform, Manual}
 }
 
 // InstanceViewTypes enumerates the values for instance view types.
@@ -528,6 +549,23 @@ const (
 // PossibleMaintenanceOperationResultCodeTypesValues returns an array of possible values for the MaintenanceOperationResultCodeTypes const type.
 func PossibleMaintenanceOperationResultCodeTypesValues() []MaintenanceOperationResultCodeTypes {
 	return []MaintenanceOperationResultCodeTypes{MaintenanceOperationResultCodeTypesMaintenanceAborted, MaintenanceOperationResultCodeTypesMaintenanceCompleted, MaintenanceOperationResultCodeTypesNone, MaintenanceOperationResultCodeTypesRetryLater}
+}
+
+// NetworkAccessPolicy enumerates the values for network access policy.
+type NetworkAccessPolicy string
+
+const (
+	// AllowAll The disk can be exported or uploaded to from any network.
+	AllowAll NetworkAccessPolicy = "AllowAll"
+	// AllowPrivate The disk can be exported or uploaded to using a DiskAccess resource's private endpoints.
+	AllowPrivate NetworkAccessPolicy = "AllowPrivate"
+	// DenyAll The disk cannot be exported.
+	DenyAll NetworkAccessPolicy = "DenyAll"
+)
+
+// PossibleNetworkAccessPolicyValues returns an array of possible values for the NetworkAccessPolicy const type.
+func PossibleNetworkAccessPolicyValues() []NetworkAccessPolicy {
+	return []NetworkAccessPolicy{AllowAll, AllowPrivate, DenyAll}
 }
 
 // OperatingSystemStateTypes enumerates the values for operating system state types.
@@ -616,6 +654,85 @@ const (
 // PossiblePassNamesValues returns an array of possible values for the PassNames const type.
 func PossiblePassNamesValues() []PassNames {
 	return []PassNames{OobeSystem}
+}
+
+// PatchAssessmentState enumerates the values for patch assessment state.
+type PatchAssessmentState string
+
+const (
+	// PatchAssessmentStateAvailable ...
+	PatchAssessmentStateAvailable PatchAssessmentState = "Available"
+	// PatchAssessmentStateExcluded ...
+	PatchAssessmentStateExcluded PatchAssessmentState = "Excluded"
+	// PatchAssessmentStateFailed ...
+	PatchAssessmentStateFailed PatchAssessmentState = "Failed"
+	// PatchAssessmentStateInstalled ...
+	PatchAssessmentStateInstalled PatchAssessmentState = "Installed"
+	// PatchAssessmentStateNotSelected ...
+	PatchAssessmentStateNotSelected PatchAssessmentState = "NotSelected"
+	// PatchAssessmentStatePending ...
+	PatchAssessmentStatePending PatchAssessmentState = "Pending"
+)
+
+// PossiblePatchAssessmentStateValues returns an array of possible values for the PatchAssessmentState const type.
+func PossiblePatchAssessmentStateValues() []PatchAssessmentState {
+	return []PatchAssessmentState{PatchAssessmentStateAvailable, PatchAssessmentStateExcluded, PatchAssessmentStateFailed, PatchAssessmentStateInstalled, PatchAssessmentStateNotSelected, PatchAssessmentStatePending}
+}
+
+// PatchOperationStatus enumerates the values for patch operation status.
+type PatchOperationStatus string
+
+const (
+	// PatchOperationStatusCompletedWithWarnings ...
+	PatchOperationStatusCompletedWithWarnings PatchOperationStatus = "CompletedWithWarnings"
+	// PatchOperationStatusFailed ...
+	PatchOperationStatusFailed PatchOperationStatus = "Failed"
+	// PatchOperationStatusInProgress ...
+	PatchOperationStatusInProgress PatchOperationStatus = "InProgress"
+	// PatchOperationStatusSucceeded ...
+	PatchOperationStatusSucceeded PatchOperationStatus = "Succeeded"
+)
+
+// PossiblePatchOperationStatusValues returns an array of possible values for the PatchOperationStatus const type.
+func PossiblePatchOperationStatusValues() []PatchOperationStatus {
+	return []PatchOperationStatus{PatchOperationStatusCompletedWithWarnings, PatchOperationStatusFailed, PatchOperationStatusInProgress, PatchOperationStatusSucceeded}
+}
+
+// PrivateEndpointConnectionProvisioningState enumerates the values for private endpoint connection
+// provisioning state.
+type PrivateEndpointConnectionProvisioningState string
+
+const (
+	// PrivateEndpointConnectionProvisioningStateCreating ...
+	PrivateEndpointConnectionProvisioningStateCreating PrivateEndpointConnectionProvisioningState = "Creating"
+	// PrivateEndpointConnectionProvisioningStateDeleting ...
+	PrivateEndpointConnectionProvisioningStateDeleting PrivateEndpointConnectionProvisioningState = "Deleting"
+	// PrivateEndpointConnectionProvisioningStateFailed ...
+	PrivateEndpointConnectionProvisioningStateFailed PrivateEndpointConnectionProvisioningState = "Failed"
+	// PrivateEndpointConnectionProvisioningStateSucceeded ...
+	PrivateEndpointConnectionProvisioningStateSucceeded PrivateEndpointConnectionProvisioningState = "Succeeded"
+)
+
+// PossiblePrivateEndpointConnectionProvisioningStateValues returns an array of possible values for the PrivateEndpointConnectionProvisioningState const type.
+func PossiblePrivateEndpointConnectionProvisioningStateValues() []PrivateEndpointConnectionProvisioningState {
+	return []PrivateEndpointConnectionProvisioningState{PrivateEndpointConnectionProvisioningStateCreating, PrivateEndpointConnectionProvisioningStateDeleting, PrivateEndpointConnectionProvisioningStateFailed, PrivateEndpointConnectionProvisioningStateSucceeded}
+}
+
+// PrivateEndpointServiceConnectionStatus enumerates the values for private endpoint service connection status.
+type PrivateEndpointServiceConnectionStatus string
+
+const (
+	// Approved ...
+	Approved PrivateEndpointServiceConnectionStatus = "Approved"
+	// Pending ...
+	Pending PrivateEndpointServiceConnectionStatus = "Pending"
+	// Rejected ...
+	Rejected PrivateEndpointServiceConnectionStatus = "Rejected"
+)
+
+// PossiblePrivateEndpointServiceConnectionStatusValues returns an array of possible values for the PrivateEndpointServiceConnectionStatus const type.
+func PossiblePrivateEndpointServiceConnectionStatusValues() []PrivateEndpointServiceConnectionStatus {
+	return []PrivateEndpointServiceConnectionStatus{Approved, Pending, Rejected}
 }
 
 // ProtocolTypes enumerates the values for protocol types.
@@ -904,6 +1021,23 @@ func PossibleSnapshotStorageAccountTypesValues() []SnapshotStorageAccountTypes {
 	return []SnapshotStorageAccountTypes{SnapshotStorageAccountTypesPremiumLRS, SnapshotStorageAccountTypesStandardLRS, SnapshotStorageAccountTypesStandardZRS}
 }
 
+// SoftwareUpdateRebootBehavior enumerates the values for software update reboot behavior.
+type SoftwareUpdateRebootBehavior string
+
+const (
+	// AlwaysRequiresReboot ...
+	AlwaysRequiresReboot SoftwareUpdateRebootBehavior = "AlwaysRequiresReboot"
+	// CanRequestReboot ...
+	CanRequestReboot SoftwareUpdateRebootBehavior = "CanRequestReboot"
+	// NeverReboots ...
+	NeverReboots SoftwareUpdateRebootBehavior = "NeverReboots"
+)
+
+// PossibleSoftwareUpdateRebootBehaviorValues returns an array of possible values for the SoftwareUpdateRebootBehavior const type.
+func PossibleSoftwareUpdateRebootBehaviorValues() []SoftwareUpdateRebootBehavior {
+	return []SoftwareUpdateRebootBehavior{AlwaysRequiresReboot, CanRequestReboot, NeverReboots}
+}
+
 // StatusLevelTypes enumerates the values for status level types.
 type StatusLevelTypes string
 
@@ -961,17 +1095,17 @@ func PossibleStorageAccountTypesValues() []StorageAccountTypes {
 type UpgradeMode string
 
 const (
-	// Automatic ...
-	Automatic UpgradeMode = "Automatic"
-	// Manual ...
-	Manual UpgradeMode = "Manual"
-	// Rolling ...
-	Rolling UpgradeMode = "Rolling"
+	// UpgradeModeAutomatic ...
+	UpgradeModeAutomatic UpgradeMode = "Automatic"
+	// UpgradeModeManual ...
+	UpgradeModeManual UpgradeMode = "Manual"
+	// UpgradeModeRolling ...
+	UpgradeModeRolling UpgradeMode = "Rolling"
 )
 
 // PossibleUpgradeModeValues returns an array of possible values for the UpgradeMode const type.
 func PossibleUpgradeModeValues() []UpgradeMode {
-	return []UpgradeMode{Automatic, Manual, Rolling}
+	return []UpgradeMode{UpgradeModeAutomatic, UpgradeModeManual, UpgradeModeRolling}
 }
 
 // UpgradeOperationInvoker enumerates the values for upgrade operation invoker.
@@ -1415,6 +1549,21 @@ const (
 // PossibleVirtualMachineSizeTypesValues returns an array of possible values for the VirtualMachineSizeTypes const type.
 func PossibleVirtualMachineSizeTypesValues() []VirtualMachineSizeTypes {
 	return []VirtualMachineSizeTypes{VirtualMachineSizeTypesBasicA0, VirtualMachineSizeTypesBasicA1, VirtualMachineSizeTypesBasicA2, VirtualMachineSizeTypesBasicA3, VirtualMachineSizeTypesBasicA4, VirtualMachineSizeTypesStandardA0, VirtualMachineSizeTypesStandardA1, VirtualMachineSizeTypesStandardA10, VirtualMachineSizeTypesStandardA11, VirtualMachineSizeTypesStandardA1V2, VirtualMachineSizeTypesStandardA2, VirtualMachineSizeTypesStandardA2mV2, VirtualMachineSizeTypesStandardA2V2, VirtualMachineSizeTypesStandardA3, VirtualMachineSizeTypesStandardA4, VirtualMachineSizeTypesStandardA4mV2, VirtualMachineSizeTypesStandardA4V2, VirtualMachineSizeTypesStandardA5, VirtualMachineSizeTypesStandardA6, VirtualMachineSizeTypesStandardA7, VirtualMachineSizeTypesStandardA8, VirtualMachineSizeTypesStandardA8mV2, VirtualMachineSizeTypesStandardA8V2, VirtualMachineSizeTypesStandardA9, VirtualMachineSizeTypesStandardB1ms, VirtualMachineSizeTypesStandardB1s, VirtualMachineSizeTypesStandardB2ms, VirtualMachineSizeTypesStandardB2s, VirtualMachineSizeTypesStandardB4ms, VirtualMachineSizeTypesStandardB8ms, VirtualMachineSizeTypesStandardD1, VirtualMachineSizeTypesStandardD11, VirtualMachineSizeTypesStandardD11V2, VirtualMachineSizeTypesStandardD12, VirtualMachineSizeTypesStandardD12V2, VirtualMachineSizeTypesStandardD13, VirtualMachineSizeTypesStandardD13V2, VirtualMachineSizeTypesStandardD14, VirtualMachineSizeTypesStandardD14V2, VirtualMachineSizeTypesStandardD15V2, VirtualMachineSizeTypesStandardD16sV3, VirtualMachineSizeTypesStandardD16V3, VirtualMachineSizeTypesStandardD1V2, VirtualMachineSizeTypesStandardD2, VirtualMachineSizeTypesStandardD2sV3, VirtualMachineSizeTypesStandardD2V2, VirtualMachineSizeTypesStandardD2V3, VirtualMachineSizeTypesStandardD3, VirtualMachineSizeTypesStandardD32sV3, VirtualMachineSizeTypesStandardD32V3, VirtualMachineSizeTypesStandardD3V2, VirtualMachineSizeTypesStandardD4, VirtualMachineSizeTypesStandardD4sV3, VirtualMachineSizeTypesStandardD4V2, VirtualMachineSizeTypesStandardD4V3, VirtualMachineSizeTypesStandardD5V2, VirtualMachineSizeTypesStandardD64sV3, VirtualMachineSizeTypesStandardD64V3, VirtualMachineSizeTypesStandardD8sV3, VirtualMachineSizeTypesStandardD8V3, VirtualMachineSizeTypesStandardDS1, VirtualMachineSizeTypesStandardDS11, VirtualMachineSizeTypesStandardDS11V2, VirtualMachineSizeTypesStandardDS12, VirtualMachineSizeTypesStandardDS12V2, VirtualMachineSizeTypesStandardDS13, VirtualMachineSizeTypesStandardDS132V2, VirtualMachineSizeTypesStandardDS134V2, VirtualMachineSizeTypesStandardDS13V2, VirtualMachineSizeTypesStandardDS14, VirtualMachineSizeTypesStandardDS144V2, VirtualMachineSizeTypesStandardDS148V2, VirtualMachineSizeTypesStandardDS14V2, VirtualMachineSizeTypesStandardDS15V2, VirtualMachineSizeTypesStandardDS1V2, VirtualMachineSizeTypesStandardDS2, VirtualMachineSizeTypesStandardDS2V2, VirtualMachineSizeTypesStandardDS3, VirtualMachineSizeTypesStandardDS3V2, VirtualMachineSizeTypesStandardDS4, VirtualMachineSizeTypesStandardDS4V2, VirtualMachineSizeTypesStandardDS5V2, VirtualMachineSizeTypesStandardE16sV3, VirtualMachineSizeTypesStandardE16V3, VirtualMachineSizeTypesStandardE2sV3, VirtualMachineSizeTypesStandardE2V3, VirtualMachineSizeTypesStandardE3216V3, VirtualMachineSizeTypesStandardE328sV3, VirtualMachineSizeTypesStandardE32sV3, VirtualMachineSizeTypesStandardE32V3, VirtualMachineSizeTypesStandardE4sV3, VirtualMachineSizeTypesStandardE4V3, VirtualMachineSizeTypesStandardE6416sV3, VirtualMachineSizeTypesStandardE6432sV3, VirtualMachineSizeTypesStandardE64sV3, VirtualMachineSizeTypesStandardE64V3, VirtualMachineSizeTypesStandardE8sV3, VirtualMachineSizeTypesStandardE8V3, VirtualMachineSizeTypesStandardF1, VirtualMachineSizeTypesStandardF16, VirtualMachineSizeTypesStandardF16s, VirtualMachineSizeTypesStandardF16sV2, VirtualMachineSizeTypesStandardF1s, VirtualMachineSizeTypesStandardF2, VirtualMachineSizeTypesStandardF2s, VirtualMachineSizeTypesStandardF2sV2, VirtualMachineSizeTypesStandardF32sV2, VirtualMachineSizeTypesStandardF4, VirtualMachineSizeTypesStandardF4s, VirtualMachineSizeTypesStandardF4sV2, VirtualMachineSizeTypesStandardF64sV2, VirtualMachineSizeTypesStandardF72sV2, VirtualMachineSizeTypesStandardF8, VirtualMachineSizeTypesStandardF8s, VirtualMachineSizeTypesStandardF8sV2, VirtualMachineSizeTypesStandardG1, VirtualMachineSizeTypesStandardG2, VirtualMachineSizeTypesStandardG3, VirtualMachineSizeTypesStandardG4, VirtualMachineSizeTypesStandardG5, VirtualMachineSizeTypesStandardGS1, VirtualMachineSizeTypesStandardGS2, VirtualMachineSizeTypesStandardGS3, VirtualMachineSizeTypesStandardGS4, VirtualMachineSizeTypesStandardGS44, VirtualMachineSizeTypesStandardGS48, VirtualMachineSizeTypesStandardGS5, VirtualMachineSizeTypesStandardGS516, VirtualMachineSizeTypesStandardGS58, VirtualMachineSizeTypesStandardH16, VirtualMachineSizeTypesStandardH16m, VirtualMachineSizeTypesStandardH16mr, VirtualMachineSizeTypesStandardH16r, VirtualMachineSizeTypesStandardH8, VirtualMachineSizeTypesStandardH8m, VirtualMachineSizeTypesStandardL16s, VirtualMachineSizeTypesStandardL32s, VirtualMachineSizeTypesStandardL4s, VirtualMachineSizeTypesStandardL8s, VirtualMachineSizeTypesStandardM12832ms, VirtualMachineSizeTypesStandardM12864ms, VirtualMachineSizeTypesStandardM128ms, VirtualMachineSizeTypesStandardM128s, VirtualMachineSizeTypesStandardM6416ms, VirtualMachineSizeTypesStandardM6432ms, VirtualMachineSizeTypesStandardM64ms, VirtualMachineSizeTypesStandardM64s, VirtualMachineSizeTypesStandardNC12, VirtualMachineSizeTypesStandardNC12sV2, VirtualMachineSizeTypesStandardNC12sV3, VirtualMachineSizeTypesStandardNC24, VirtualMachineSizeTypesStandardNC24r, VirtualMachineSizeTypesStandardNC24rsV2, VirtualMachineSizeTypesStandardNC24rsV3, VirtualMachineSizeTypesStandardNC24sV2, VirtualMachineSizeTypesStandardNC24sV3, VirtualMachineSizeTypesStandardNC6, VirtualMachineSizeTypesStandardNC6sV2, VirtualMachineSizeTypesStandardNC6sV3, VirtualMachineSizeTypesStandardND12s, VirtualMachineSizeTypesStandardND24rs, VirtualMachineSizeTypesStandardND24s, VirtualMachineSizeTypesStandardND6s, VirtualMachineSizeTypesStandardNV12, VirtualMachineSizeTypesStandardNV24, VirtualMachineSizeTypesStandardNV6}
+}
+
+// VMDiskTypes enumerates the values for vm disk types.
+type VMDiskTypes string
+
+const (
+	// VMDiskTypesNone ...
+	VMDiskTypesNone VMDiskTypes = "None"
+	// VMDiskTypesUnmanaged ...
+	VMDiskTypesUnmanaged VMDiskTypes = "Unmanaged"
+)
+
+// PossibleVMDiskTypesValues returns an array of possible values for the VMDiskTypes const type.
+func PossibleVMDiskTypesValues() []VMDiskTypes {
+	return []VMDiskTypes{VMDiskTypesNone, VMDiskTypesUnmanaged}
 }
 
 // AccessURI a disk access SAS uri.
@@ -1861,15 +2010,15 @@ type BillingProfile struct {
 type BootDiagnostics struct {
 	// Enabled - Whether boot diagnostics should be enabled on the Virtual Machine.
 	Enabled *bool `json:"enabled,omitempty"`
-	// StorageURI - Uri of the storage account to use for placing the console output and screenshot.
+	// StorageURI - Uri of the storage account to use for placing the console output and screenshot. <br><br>If storageUri is not specified while enabling boot diagnostics, managed storage will be used.
 	StorageURI *string `json:"storageUri,omitempty"`
 }
 
 // BootDiagnosticsInstanceView the instance view of a virtual machine boot diagnostics.
 type BootDiagnosticsInstanceView struct {
-	// ConsoleScreenshotBlobURI - READ-ONLY; The console screenshot blob URI.
+	// ConsoleScreenshotBlobURI - READ-ONLY; The console screenshot blob URI. <br><br>NOTE: This will **not** be set if boot diagnostics is currently enabled with managed storage.
 	ConsoleScreenshotBlobURI *string `json:"consoleScreenshotBlobUri,omitempty"`
-	// SerialConsoleLogBlobURI - READ-ONLY; The Linux serial console log blob Uri.
+	// SerialConsoleLogBlobURI - READ-ONLY; The serial console log blob Uri. <br><br>NOTE: This will **not** be set if boot diagnostics is currently enabled with managed storage.
 	SerialConsoleLogBlobURI *string `json:"serialConsoleLogBlobUri,omitempty"`
 	// Status - READ-ONLY; The boot diagnostics status information for the VM. <br><br> NOTE: It will be set only if there are errors encountered in enabling boot diagnostics.
 	Status *InstanceViewStatus `json:"status,omitempty"`
@@ -2594,6 +2743,12 @@ func (dhg *DedicatedHostGroup) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// DedicatedHostGroupInstanceView ...
+type DedicatedHostGroupInstanceView struct {
+	// Hosts - List of instance view of the dedicated hosts under the dedicated host group.
+	Hosts *[]DedicatedHostInstanceViewWithName `json:"hosts,omitempty"`
+}
+
 // DedicatedHostGroupListResult the List Dedicated Host Group with resource group response.
 type DedicatedHostGroupListResult struct {
 	autorest.Response `json:"-"`
@@ -2746,6 +2901,10 @@ type DedicatedHostGroupProperties struct {
 	PlatformFaultDomainCount *int32 `json:"platformFaultDomainCount,omitempty"`
 	// Hosts - READ-ONLY; A list of references to all dedicated hosts in the dedicated host group.
 	Hosts *[]SubResourceReadOnly `json:"hosts,omitempty"`
+	// InstanceView - READ-ONLY; The dedicated host group instance view, which has the list of instance view of the dedicated hosts under the dedicated host group.
+	InstanceView *DedicatedHostGroupInstanceView `json:"instanceView,omitempty"`
+	// SupportAutomaticPlacement - Specifies whether virtual machines or virtual machine scale sets can be placed automatically on the dedicated host group. Automatic placement means resources are allocated on dedicated hosts, that are chosen by Azure, under the dedicated host group. The value is defaulted to 'true' when not provided. <br><br>Minimum api-version: 2020-06-01.
+	SupportAutomaticPlacement *bool `json:"supportAutomaticPlacement,omitempty"`
 }
 
 // DedicatedHostGroupUpdate specifies information about the dedicated host group that the dedicated host
@@ -2817,6 +2976,19 @@ func (dhgu *DedicatedHostGroupUpdate) UnmarshalJSON(body []byte) error {
 
 // DedicatedHostInstanceView the instance view of a dedicated host.
 type DedicatedHostInstanceView struct {
+	// AssetID - READ-ONLY; Specifies the unique id of the dedicated physical machine on which the dedicated host resides.
+	AssetID *string `json:"assetId,omitempty"`
+	// AvailableCapacity - Unutilized capacity of the dedicated host.
+	AvailableCapacity *DedicatedHostAvailableCapacity `json:"availableCapacity,omitempty"`
+	// Statuses - The resource status information.
+	Statuses *[]InstanceViewStatus `json:"statuses,omitempty"`
+}
+
+// DedicatedHostInstanceViewWithName the instance view of a dedicated host that includes the name of the
+// dedicated host. It is used for the response to the instance view of a dedicated host group.
+type DedicatedHostInstanceViewWithName struct {
+	// Name - READ-ONLY; The name of the dedicated host.
+	Name *string `json:"name,omitempty"`
 	// AssetID - READ-ONLY; Specifies the unique id of the dedicated physical machine on which the dedicated host resides.
 	AssetID *string `json:"assetId,omitempty"`
 	// AvailableCapacity - Unutilized capacity of the dedicated host.
@@ -3147,6 +3319,12 @@ type Disallowed struct {
 	DiskTypes *[]string `json:"diskTypes,omitempty"`
 }
 
+// DisallowedConfiguration specifies the disallowed configuration for a virtual machine image.
+type DisallowedConfiguration struct {
+	// VMDiskType - VM disk types which are disallowed. Possible values include: 'VMDiskTypesNone', 'VMDiskTypesUnmanaged'
+	VMDiskType VMDiskTypes `json:"vmDiskType,omitempty"`
+}
+
 // Disk disk resource.
 type Disk struct {
 	autorest.Response `json:"-"`
@@ -3294,6 +3472,358 @@ func (d *Disk) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// DiskAccess disk access resource.
+type DiskAccess struct {
+	autorest.Response     `json:"-"`
+	*DiskAccessProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for DiskAccess.
+func (da DiskAccess) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if da.DiskAccessProperties != nil {
+		objectMap["properties"] = da.DiskAccessProperties
+	}
+	if da.Location != nil {
+		objectMap["location"] = da.Location
+	}
+	if da.Tags != nil {
+		objectMap["tags"] = da.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DiskAccess struct.
+func (da *DiskAccess) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var diskAccessProperties DiskAccessProperties
+				err = json.Unmarshal(*v, &diskAccessProperties)
+				if err != nil {
+					return err
+				}
+				da.DiskAccessProperties = &diskAccessProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				da.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				da.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				da.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				da.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				da.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// DiskAccessesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DiskAccessesCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DiskAccessesCreateOrUpdateFuture) Result(client DiskAccessesClient) (da DiskAccess, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.DiskAccessesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("compute.DiskAccessesCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if da.Response.Response, err = future.GetResult(sender); err == nil && da.Response.Response.StatusCode != http.StatusNoContent {
+		da, err = client.CreateOrUpdateResponder(da.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "compute.DiskAccessesCreateOrUpdateFuture", "Result", da.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DiskAccessesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DiskAccessesDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DiskAccessesDeleteFuture) Result(client DiskAccessesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.DiskAccessesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("compute.DiskAccessesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DiskAccessesUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DiskAccessesUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DiskAccessesUpdateFuture) Result(client DiskAccessesClient) (da DiskAccess, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.DiskAccessesUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("compute.DiskAccessesUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if da.Response.Response, err = future.GetResult(sender); err == nil && da.Response.Response.StatusCode != http.StatusNoContent {
+		da, err = client.UpdateResponder(da.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "compute.DiskAccessesUpdateFuture", "Result", da.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DiskAccessList the List disk access operation response.
+type DiskAccessList struct {
+	autorest.Response `json:"-"`
+	// Value - A list of disk access resources.
+	Value *[]DiskAccess `json:"value,omitempty"`
+	// NextLink - The uri to fetch the next page of disk access resources. Call ListNext() with this to fetch the next page of disk access resources.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DiskAccessListIterator provides access to a complete listing of DiskAccess values.
+type DiskAccessListIterator struct {
+	i    int
+	page DiskAccessListPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DiskAccessListIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DiskAccessListIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DiskAccessListIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DiskAccessListIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DiskAccessListIterator) Response() DiskAccessList {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DiskAccessListIterator) Value() DiskAccess {
+	if !iter.page.NotDone() {
+		return DiskAccess{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DiskAccessListIterator type.
+func NewDiskAccessListIterator(page DiskAccessListPage) DiskAccessListIterator {
+	return DiskAccessListIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dal DiskAccessList) IsEmpty() bool {
+	return dal.Value == nil || len(*dal.Value) == 0
+}
+
+// diskAccessListPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dal DiskAccessList) diskAccessListPreparer(ctx context.Context) (*http.Request, error) {
+	if dal.NextLink == nil || len(to.String(dal.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dal.NextLink)))
+}
+
+// DiskAccessListPage contains a page of DiskAccess values.
+type DiskAccessListPage struct {
+	fn  func(context.Context, DiskAccessList) (DiskAccessList, error)
+	dal DiskAccessList
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DiskAccessListPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DiskAccessListPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.dal)
+	if err != nil {
+		return err
+	}
+	page.dal = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DiskAccessListPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DiskAccessListPage) NotDone() bool {
+	return !page.dal.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DiskAccessListPage) Response() DiskAccessList {
+	return page.dal
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DiskAccessListPage) Values() []DiskAccess {
+	if page.dal.IsEmpty() {
+		return nil
+	}
+	return *page.dal.Value
+}
+
+// Creates a new instance of the DiskAccessListPage type.
+func NewDiskAccessListPage(getNextPage func(context.Context, DiskAccessList) (DiskAccessList, error)) DiskAccessListPage {
+	return DiskAccessListPage{fn: getNextPage}
+}
+
+// DiskAccessProperties ...
+type DiskAccessProperties struct {
+	// PrivateEndpointConnections - READ-ONLY; A readonly collection of private endpoint connections created on the disk. Currently only one endpoint connection is supported.
+	PrivateEndpointConnections *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
+	// ProvisioningState - READ-ONLY; The disk access resource provisioning state.
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// TimeCreated - READ-ONLY; The time when the disk access was created.
+	TimeCreated *date.Time `json:"timeCreated,omitempty"`
+}
+
+// DiskAccessUpdate used for updating a disk access resource.
+type DiskAccessUpdate struct {
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for DiskAccessUpdate.
+func (dau DiskAccessUpdate) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dau.Tags != nil {
+		objectMap["tags"] = dau.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // DiskEncryptionSet disk encryption set resource.
@@ -3708,7 +4238,9 @@ func (desu *DiskEncryptionSetUpdate) UnmarshalJSON(body []byte) error {
 
 // DiskEncryptionSetUpdateProperties disk encryption set resource update properties.
 type DiskEncryptionSetUpdateProperties struct {
-	ActiveKey *KeyVaultAndKeyReference `json:"activeKey,omitempty"`
+	// EncryptionType - Possible values include: 'EncryptionAtRestWithPlatformKey', 'EncryptionAtRestWithCustomerKey', 'EncryptionAtRestWithPlatformAndCustomerKeys'
+	EncryptionType EncryptionType           `json:"encryptionType,omitempty"`
+	ActiveKey      *KeyVaultAndKeyReference `json:"activeKey,omitempty"`
 }
 
 // DiskImageEncryption this is the disk image encryption base class.
@@ -3909,6 +4441,10 @@ type DiskProperties struct {
 	MaxShares *int32 `json:"maxShares,omitempty"`
 	// ShareInfo - READ-ONLY; Details of the list of all VMs that have the disk attached. maxShares should be set to a value greater than one for disks to allow attaching them to multiple VMs.
 	ShareInfo *[]ShareInfoElement `json:"shareInfo,omitempty"`
+	// NetworkAccessPolicy - Possible values include: 'AllowAll', 'AllowPrivate', 'DenyAll'
+	NetworkAccessPolicy NetworkAccessPolicy `json:"networkAccessPolicy,omitempty"`
+	// DiskAccessID - ARM id of the DiskAccess resource for using private endpoints on disks.
+	DiskAccessID *string `json:"diskAccessId,omitempty"`
 }
 
 // DisksCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -4135,13 +4671,17 @@ type DiskUpdateProperties struct {
 	MaxShares *int32 `json:"maxShares,omitempty"`
 	// Encryption - Encryption property can be used to encrypt data at rest with customer managed keys or platform managed keys.
 	Encryption *Encryption `json:"encryption,omitempty"`
+	// NetworkAccessPolicy - Possible values include: 'AllowAll', 'AllowPrivate', 'DenyAll'
+	NetworkAccessPolicy NetworkAccessPolicy `json:"networkAccessPolicy,omitempty"`
+	// DiskAccessID - ARM id of the DiskAccess resource for using private endpoints on disks.
+	DiskAccessID *string `json:"diskAccessId,omitempty"`
 }
 
 // Encryption encryption at rest settings for disk or snapshot
 type Encryption struct {
 	// DiskEncryptionSetID - ResourceId of the disk encryption set to use for enabling encryption at rest.
 	DiskEncryptionSetID *string `json:"diskEncryptionSetId,omitempty"`
-	// Type - The type of key used to encrypt the data of the disk. Possible values include: 'EncryptionAtRestWithPlatformKey', 'EncryptionAtRestWithCustomerKey'
+	// Type - Possible values include: 'EncryptionAtRestWithPlatformKey', 'EncryptionAtRestWithCustomerKey', 'EncryptionAtRestWithPlatformAndCustomerKeys'
 	Type EncryptionType `json:"type,omitempty"`
 }
 
@@ -4166,6 +4706,8 @@ type EncryptionSetIdentity struct {
 
 // EncryptionSetProperties ...
 type EncryptionSetProperties struct {
+	// EncryptionType - Possible values include: 'EncryptionAtRestWithPlatformKey', 'EncryptionAtRestWithCustomerKey', 'EncryptionAtRestWithPlatformAndCustomerKeys'
+	EncryptionType EncryptionType `json:"encryptionType,omitempty"`
 	// ActiveKey - The key vault key which is currently used by this disk encryption set.
 	ActiveKey *KeyVaultAndKeyReference `json:"activeKey,omitempty"`
 	// PreviousKeys - READ-ONLY; A readonly collection of key vault keys previously used by this disk encryption set while a key rotation is in progress. It will be empty if there is no ongoing key rotation.
@@ -7528,6 +8070,12 @@ type OSProfile struct {
 	RequireGuestProvisionSignal *bool `json:"requireGuestProvisionSignal,omitempty"`
 }
 
+// PatchSettings ...
+type PatchSettings struct {
+	// PatchMode - Specifies the mode of in-guest patching to IaaS virtual machine.<br /><br /> Possible values are:<br /><br /> **Manual** - You  control the application of patches to a virtual machine. You do this by applying patches manually inside the VM. In this mode, automatic updates are disabled; the property WindowsConfiguration.enableAutomaticUpdates must be false<br /><br /> **AutomaticByOS** - The virtual machine will automatically be updated by the OS. The property WindowsConfiguration.enableAutomaticUpdates must be true. <br /><br /> ** AutomaticByPlatform** - the virtual machine will automatically updated by the OS. The properties provisionVMAgent and WindowsConfiguration.enableAutomaticUpdates must be true. Possible values include: 'Manual', 'AutomaticByOS', 'AutomaticByPlatform'
+	PatchMode InGuestPatchMode `json:"patchMode,omitempty"`
+}
+
 // Plan specifies information about the marketplace image used to create the virtual machine. This element
 // is only used for marketplace images. Before you can use a marketplace image from an API, you must enable
 // the image for programmatic use.  In the Azure portal, find the marketplace image that you want to use
@@ -7542,6 +8090,194 @@ type Plan struct {
 	Product *string `json:"product,omitempty"`
 	// PromotionCode - The promotion code.
 	PromotionCode *string `json:"promotionCode,omitempty"`
+}
+
+// PrivateEndpoint the Private Endpoint resource.
+type PrivateEndpoint struct {
+	// ID - READ-ONLY; The ARM identifier for Private Endpoint
+	ID *string `json:"id,omitempty"`
+}
+
+// PrivateEndpointConnection the Private Endpoint Connection resource.
+type PrivateEndpointConnection struct {
+	// PrivateEndpointConnectionProperties - Resource properties.
+	*PrivateEndpointConnectionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; private endpoint connection Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; private endpoint connection name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; private endpoint connection type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateEndpointConnection.
+func (pec PrivateEndpointConnection) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pec.PrivateEndpointConnectionProperties != nil {
+		objectMap["properties"] = pec.PrivateEndpointConnectionProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateEndpointConnection struct.
+func (pec *PrivateEndpointConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateEndpointConnectionProperties PrivateEndpointConnectionProperties
+				err = json.Unmarshal(*v, &privateEndpointConnectionProperties)
+				if err != nil {
+					return err
+				}
+				pec.PrivateEndpointConnectionProperties = &privateEndpointConnectionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				pec.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				pec.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				pec.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateEndpointConnectionProperties properties of the PrivateEndpointConnectProperties.
+type PrivateEndpointConnectionProperties struct {
+	// PrivateEndpoint - The resource of private end point.
+	PrivateEndpoint *PrivateEndpoint `json:"privateEndpoint,omitempty"`
+	// PrivateLinkServiceConnectionState - A collection of information about the state of the connection between DiskAccess and Virtual Network.
+	PrivateLinkServiceConnectionState *PrivateLinkServiceConnectionState `json:"privateLinkServiceConnectionState,omitempty"`
+	// ProvisioningState - The provisioning state of the private endpoint connection resource. Possible values include: 'PrivateEndpointConnectionProvisioningStateSucceeded', 'PrivateEndpointConnectionProvisioningStateCreating', 'PrivateEndpointConnectionProvisioningStateDeleting', 'PrivateEndpointConnectionProvisioningStateFailed'
+	ProvisioningState PrivateEndpointConnectionProvisioningState `json:"provisioningState,omitempty"`
+}
+
+// PrivateLinkResource a private link resource
+type PrivateLinkResource struct {
+	// PrivateLinkResourceProperties - Resource properties.
+	*PrivateLinkResourceProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; private link resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; private link resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; private link resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PrivateLinkResource.
+func (plr PrivateLinkResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if plr.PrivateLinkResourceProperties != nil {
+		objectMap["properties"] = plr.PrivateLinkResourceProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for PrivateLinkResource struct.
+func (plr *PrivateLinkResource) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var privateLinkResourceProperties PrivateLinkResourceProperties
+				err = json.Unmarshal(*v, &privateLinkResourceProperties)
+				if err != nil {
+					return err
+				}
+				plr.PrivateLinkResourceProperties = &privateLinkResourceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				plr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				plr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				plr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// PrivateLinkResourceListResult a list of private link resources
+type PrivateLinkResourceListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Array of private link resources
+	Value *[]PrivateLinkResource `json:"value,omitempty"`
+}
+
+// PrivateLinkResourceProperties properties of a private link resource.
+type PrivateLinkResourceProperties struct {
+	// GroupID - READ-ONLY; The private link resource group id.
+	GroupID *string `json:"groupId,omitempty"`
+	// RequiredMembers - READ-ONLY; The private link resource required member names.
+	RequiredMembers *[]string `json:"requiredMembers,omitempty"`
+	// RequiredZoneNames - The private link resource DNS zone name.
+	RequiredZoneNames *[]string `json:"requiredZoneNames,omitempty"`
+}
+
+// PrivateLinkServiceConnectionState a collection of information about the state of the connection between
+// service consumer and provider.
+type PrivateLinkServiceConnectionState struct {
+	// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service. Possible values include: 'Pending', 'Approved', 'Rejected'
+	Status PrivateEndpointServiceConnectionStatus `json:"status,omitempty"`
+	// Description - The reason for approval/rejection of the connection.
+	Description *string `json:"description,omitempty"`
+	// ActionsRequired - A message indicating if changes on the service provider require any updates on the consumer.
+	ActionsRequired *string `json:"actionsRequired,omitempty"`
 }
 
 // ProximityPlacementGroup specifies information about the proximity placement group.
@@ -8163,6 +8899,15 @@ type ResourceSkuZoneDetails struct {
 	Capabilities *[]ResourceSkuCapabilities `json:"capabilities,omitempty"`
 }
 
+// RetrieveBootDiagnosticsDataResult the SAS URIs of the console screenshot and serial log blobs.
+type RetrieveBootDiagnosticsDataResult struct {
+	autorest.Response `json:"-"`
+	// ConsoleScreenshotBlobURI - READ-ONLY; The console screenshot blob URI
+	ConsoleScreenshotBlobURI *string `json:"consoleScreenshotBlobUri,omitempty"`
+	// SerialConsoleLogBlobURI - READ-ONLY; The serial console log blob URI.
+	SerialConsoleLogBlobURI *string `json:"serialConsoleLogBlobUri,omitempty"`
+}
+
 // RollbackStatusInfo information about rollback on failed VM instances after a OS Upgrade operation.
 type RollbackStatusInfo struct {
 	// SuccessfullyRolledbackInstanceCount - READ-ONLY; The number of instances which have been successfully rolled back.
@@ -8550,6 +9295,13 @@ type ScheduledEventsProfile struct {
 	TerminateNotificationProfile *TerminateNotificationProfile `json:"terminateNotificationProfile,omitempty"`
 }
 
+// SecurityProfile specifies the Security profile settings for the virtual machine or virtual machine scale
+// set.
+type SecurityProfile struct {
+	// EncryptionAtHost - This property can be used by user in the request to enable or disable the Host Encryption for the virtual machine or virtual machine scale set. This will enable the encryption for all the disks including Resource/Temp disk at host itself. <br><br> Default: The Encryption at host will be disabled unless this property is set to true for the resource.
+	EncryptionAtHost *bool `json:"encryptionAtHost,omitempty"`
+}
+
 // ShareInfoElement ...
 type ShareInfoElement struct {
 	// VMURI - READ-ONLY; A relative URI containing the ID of the VM that has the disk attached.
@@ -8840,7 +9592,7 @@ func NewSnapshotListPage(getNextPage func(context.Context, SnapshotList) (Snapsh
 
 // SnapshotProperties snapshot resource properties.
 type SnapshotProperties struct {
-	// TimeCreated - READ-ONLY; The time when the disk was created.
+	// TimeCreated - READ-ONLY; The time when the snapshot was created.
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
 	// OsType - The Operating System type. Possible values include: 'Windows', 'Linux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
@@ -8862,6 +9614,10 @@ type SnapshotProperties struct {
 	Incremental *bool `json:"incremental,omitempty"`
 	// Encryption - Encryption property can be used to encrypt data at rest with customer managed keys or platform managed keys.
 	Encryption *Encryption `json:"encryption,omitempty"`
+	// NetworkAccessPolicy - Possible values include: 'AllowAll', 'AllowPrivate', 'DenyAll'
+	NetworkAccessPolicy NetworkAccessPolicy `json:"networkAccessPolicy,omitempty"`
+	// DiskAccessID - ARM id of the DiskAccess resource for using private endpoints on disks.
+	DiskAccessID *string `json:"diskAccessId,omitempty"`
 }
 
 // SnapshotsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -9080,6 +9836,10 @@ type SnapshotUpdateProperties struct {
 	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
 	// Encryption - Encryption property can be used to encrypt data at rest with customer managed keys or platform managed keys.
 	Encryption *Encryption `json:"encryption,omitempty"`
+	// NetworkAccessPolicy - Possible values include: 'AllowAll', 'AllowPrivate', 'DenyAll'
+	NetworkAccessPolicy NetworkAccessPolicy `json:"networkAccessPolicy,omitempty"`
+	// DiskAccessID - ARM id of the DiskAccess resource for using private endpoints on disks.
+	DiskAccessID *string `json:"diskAccessId,omitempty"`
 }
 
 // SourceVault the vault id is an Azure Resource Manager Resource id in the form
@@ -9562,7 +10322,7 @@ type UpgradeOperationHistoryStatus struct {
 
 // UpgradePolicy describes an upgrade policy - automatic, manual, or rolling.
 type UpgradePolicy struct {
-	// Mode - Specifies the mode of an upgrade to virtual machines in the scale set.<br /><br /> Possible values are:<br /><br /> **Manual** - You  control the application of updates to virtual machines in the scale set. You do this by using the manualUpgrade action.<br /><br /> **Automatic** - All virtual machines in the scale set are  automatically updated at the same time. Possible values include: 'Automatic', 'Manual', 'Rolling'
+	// Mode - Specifies the mode of an upgrade to virtual machines in the scale set.<br /><br /> Possible values are:<br /><br /> **Manual** - You  control the application of updates to virtual machines in the scale set. You do this by using the manualUpgrade action.<br /><br /> **Automatic** - All virtual machines in the scale set are  automatically updated at the same time. Possible values include: 'UpgradeModeAutomatic', 'UpgradeModeManual', 'UpgradeModeRolling'
 	Mode UpgradeMode `json:"mode,omitempty"`
 	// RollingUpgradePolicy - The configuration parameters used while performing a rolling upgrade.
 	RollingUpgradePolicy *RollingUpgradePolicy `json:"rollingUpgradePolicy,omitempty"`
@@ -9782,6 +10542,27 @@ type VirtualMachineAgentInstanceView struct {
 	ExtensionHandlers *[]VirtualMachineExtensionHandlerInstanceView `json:"extensionHandlers,omitempty"`
 	// Statuses - The resource status information.
 	Statuses *[]InstanceViewStatus `json:"statuses,omitempty"`
+}
+
+// VirtualMachineAssessPatchesResult describes the properties of an AssessPatches result.
+type VirtualMachineAssessPatchesResult struct {
+	autorest.Response `json:"-"`
+	// Status - READ-ONLY; The overall success or failure status of the operation. It remains "InProgress" until the operation completes. At that point it will become "Failed", "Succeeded", or "CompletedWithWarnings.". Possible values include: 'PatchOperationStatusInProgress', 'PatchOperationStatusFailed', 'PatchOperationStatusSucceeded', 'PatchOperationStatusCompletedWithWarnings'
+	Status PatchOperationStatus `json:"status,omitempty"`
+	// AssessmentActivityID - READ-ONLY; The activity ID of the operation that produced this result. It is used to correlate across CRP and extension logs.
+	AssessmentActivityID *string `json:"assessmentActivityId,omitempty"`
+	// RebootPending - READ-ONLY; The overall reboot status of the VM. It will be true when partially installed patches require a reboot to complete installation but the reboot has not yet occurred.
+	RebootPending *bool `json:"rebootPending,omitempty"`
+	// CriticalAndSecurityPatchCount - READ-ONLY; The number of critical or security patches that have been detected as available and not yet installed.
+	CriticalAndSecurityPatchCount *int32 `json:"criticalAndSecurityPatchCount,omitempty"`
+	// OtherPatchCount - READ-ONLY; The number of all available patches excluding critical and security.
+	OtherPatchCount *int32 `json:"otherPatchCount,omitempty"`
+	// StartDateTime - READ-ONLY; The UTC timestamp when the operation began.
+	StartDateTime *date.Time `json:"startDateTime,omitempty"`
+	// Patches - READ-ONLY; The list of patches that have been detected as available for installation.
+	Patches *[]VirtualMachineSoftwarePatchProperties `json:"patches,omitempty"`
+	// Error - READ-ONLY; The errors that were encountered during execution of the operation. The details array contains the list of them.
+	Error *APIError `json:"error,omitempty"`
 }
 
 // VirtualMachineCaptureParameters capture Virtual Machine parameters.
@@ -10368,6 +11149,8 @@ type VirtualMachineImageProperties struct {
 	AutomaticOSUpgradeProperties *AutomaticOSUpgradeProperties `json:"automaticOSUpgradeProperties,omitempty"`
 	// HyperVGeneration - Possible values include: 'HyperVGenerationTypesV1', 'HyperVGenerationTypesV2'
 	HyperVGeneration HyperVGenerationTypes `json:"hyperVGeneration,omitempty"`
+	// Disallowed - Specifies disallowed configuration for the VirtualMachine created from the image
+	Disallowed *DisallowedConfiguration `json:"disallowed,omitempty"`
 }
 
 // VirtualMachineImageResource virtual machine image resource information.
@@ -10427,6 +11210,8 @@ type VirtualMachineInstanceView struct {
 	Extensions *[]VirtualMachineExtensionInstanceView `json:"extensions,omitempty"`
 	// BootDiagnostics - Boot Diagnostics is a debugging feature which allows you to view Console Output and Screenshot to diagnose VM status. <br><br> You can easily view the output of your console log. <br><br> Azure also enables you to see a screenshot of the VM from the hypervisor.
 	BootDiagnostics *BootDiagnosticsInstanceView `json:"bootDiagnostics,omitempty"`
+	// AssignedHost - READ-ONLY; Resource id of the dedicated host, on which the virtual machine is allocated through automatic placement, when the virtual machine is associated with a dedicated host group that has automatic placement enabled. <br><br>Minimum api-version: 2020-06-01.
+	AssignedHost *string `json:"assignedHost,omitempty"`
 	// Statuses - The resource status information.
 	Statuses *[]InstanceViewStatus `json:"statuses,omitempty"`
 }
@@ -10589,6 +11374,8 @@ type VirtualMachineProperties struct {
 	OsProfile *OSProfile `json:"osProfile,omitempty"`
 	// NetworkProfile - Specifies the network interfaces of the virtual machine.
 	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
+	// SecurityProfile - Specifies the Security related profile settings for the virtual machine.
+	SecurityProfile *SecurityProfile `json:"securityProfile,omitempty"`
 	// DiagnosticsProfile - Specifies the boot diagnostic settings state. <br><br>Minimum api-version: 2015-06-15.
 	DiagnosticsProfile *DiagnosticsProfile `json:"diagnosticsProfile,omitempty"`
 	// AvailabilitySet - Specifies information about the availability set that the virtual machine should be assigned to. Virtual machines specified in the same availability set are allocated to different nodes to maximize availability. For more information about availability sets, see [Manage the availability of virtual machines](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-manage-availability?toc=%2fazure%2fvirtual-machines%2fwindows%2ftoc.json). <br><br> For more information on Azure planned maintenance, see [Planned maintenance for virtual machines in Azure](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-planned-maintenance?toc=%2fazure%2fvirtual-machines%2fwindows%2ftoc.json) <br><br> Currently, a VM can only be added to availability set at creation time. The availability set to which the VM is being added should be under the same resource group as the availability set resource. An existing VM cannot be added to an availability set. <br><br>This property cannot exist along with a non-null properties.virtualMachineScaleSet reference.
@@ -10605,6 +11392,8 @@ type VirtualMachineProperties struct {
 	BillingProfile *BillingProfile `json:"billingProfile,omitempty"`
 	// Host - Specifies information about the dedicated host that the virtual machine resides in. <br><br>Minimum api-version: 2018-10-01.
 	Host *SubResource `json:"host,omitempty"`
+	// HostGroup - Specifies information about the dedicated host group that the virtual machine resides in. <br><br>Minimum api-version: 2020-06-01. <br><br>NOTE: User cannot specify both host and hostGroup properties.
+	HostGroup *SubResource `json:"hostGroup,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// InstanceView - READ-ONLY; The virtual machine instance view.
@@ -10613,6 +11402,8 @@ type VirtualMachineProperties struct {
 	LicenseType *string `json:"licenseType,omitempty"`
 	// VMID - READ-ONLY; Specifies the VM unique ID which is a 128-bits identifier that is encoded and stored in all Azure IaaS VMs SMBIOS and can be read using platform BIOS commands.
 	VMID *string `json:"vmId,omitempty"`
+	// ExtensionsTimeBudget - Specifies the time alloted for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. The default value is 90 minutes (PT1H30M). <br><br> Minimum api-version: 2020-06-01
+	ExtensionsTimeBudget *string `json:"extensionsTimeBudget,omitempty"`
 }
 
 // VirtualMachineReimageParameters parameters for Reimaging Virtual Machine. NOTE: Virtual Machine OS disk
@@ -10620,6 +11411,35 @@ type VirtualMachineProperties struct {
 type VirtualMachineReimageParameters struct {
 	// TempDisk - Specifies whether to reimage temp disk. Default value: false. Note: This temp disk reimage parameter is only supported for VM/VMSS with Ephemeral OS disk.
 	TempDisk *bool `json:"tempDisk,omitempty"`
+}
+
+// VirtualMachinesAssessPatchesFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type VirtualMachinesAssessPatchesFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *VirtualMachinesAssessPatchesFuture) Result(client VirtualMachinesClient) (vmapr VirtualMachineAssessPatchesResult, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesAssessPatchesFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("compute.VirtualMachinesAssessPatchesFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if vmapr.Response.Response, err = future.GetResult(sender); err == nil && vmapr.Response.Response.StatusCode != http.StatusNoContent {
+		vmapr, err = client.AssessPatchesResponder(vmapr.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "compute.VirtualMachinesAssessPatchesFuture", "Result", vmapr.Response.Response, "Failure responding to request")
+		}
+	}
+	return
 }
 
 // VirtualMachineScaleSet describes a Virtual Machine Scale Set.
@@ -11026,6 +11846,8 @@ func NewVirtualMachineScaleSetExtensionListResultPage(getNextPage func(context.C
 type VirtualMachineScaleSetExtensionProfile struct {
 	// Extensions - The virtual machine scale set child extension resources.
 	Extensions *[]VirtualMachineScaleSetExtension `json:"extensions,omitempty"`
+	// ExtensionsTimeBudget - Specifies the time alloted for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. The default value is 90 minutes (PT1H30M). <br><br> Minimum api-version: 2020-06-01
+	ExtensionsTimeBudget *string `json:"extensionsTimeBudget,omitempty"`
 }
 
 // VirtualMachineScaleSetExtensionProperties describes the properties of a Virtual Machine Scale Set
@@ -12114,6 +12936,8 @@ type VirtualMachineScaleSetProperties struct {
 	PlatformFaultDomainCount *int32 `json:"platformFaultDomainCount,omitempty"`
 	// ProximityPlacementGroup - Specifies information about the proximity placement group that the virtual machine scale set should be assigned to. <br><br>Minimum api-version: 2018-04-01.
 	ProximityPlacementGroup *SubResource `json:"proximityPlacementGroup,omitempty"`
+	// HostGroup - Specifies information about the dedicated host group that the virtual machine scale set resides in. <br><br>Minimum api-version: 2020-06-01.
+	HostGroup *SubResource `json:"hostGroup,omitempty"`
 	// AdditionalCapabilities - Specifies additional capabilities enabled or disabled on the Virtual Machines in the Virtual Machine Scale Set. For instance: whether the Virtual Machines have the capability to support attaching managed data disks with UltraSSD_LRS storage account type.
 	AdditionalCapabilities *AdditionalCapabilities `json:"additionalCapabilities,omitempty"`
 	// ScaleInPolicy - Specifies the scale-in policy that decides which virtual machines are chosen for removal when a Virtual Machine Scale Set is scaled-in.
@@ -13045,6 +13869,8 @@ type VirtualMachineScaleSetUpdateVMProfile struct {
 	StorageProfile *VirtualMachineScaleSetUpdateStorageProfile `json:"storageProfile,omitempty"`
 	// NetworkProfile - The virtual machine scale set network profile.
 	NetworkProfile *VirtualMachineScaleSetUpdateNetworkProfile `json:"networkProfile,omitempty"`
+	// SecurityProfile - The virtual machine scale set Security profile
+	SecurityProfile *SecurityProfile `json:"securityProfile,omitempty"`
 	// DiagnosticsProfile - The virtual machine scale set diagnostics profile.
 	DiagnosticsProfile *DiagnosticsProfile `json:"diagnosticsProfile,omitempty"`
 	// ExtensionProfile - The virtual machine scale set extension profile.
@@ -13342,6 +14168,8 @@ type VirtualMachineScaleSetVMInstanceView struct {
 	BootDiagnostics *BootDiagnosticsInstanceView `json:"bootDiagnostics,omitempty"`
 	// Statuses - The resource status information.
 	Statuses *[]InstanceViewStatus `json:"statuses,omitempty"`
+	// AssignedHost - READ-ONLY; Resource id of the dedicated host, on which the virtual machine is allocated through automatic placement, when the virtual machine is associated with a dedicated host group that has automatic placement enabled. <br><br>Minimum api-version: 2020-06-01.
+	AssignedHost *string `json:"assignedHost,omitempty"`
 	// PlacementGroupID - The placement group in which the VM is running. If the VM is deallocated it will not have a placementGroupId.
 	PlacementGroupID *string `json:"placementGroupId,omitempty"`
 }
@@ -13508,6 +14336,8 @@ type VirtualMachineScaleSetVMProfile struct {
 	StorageProfile *VirtualMachineScaleSetStorageProfile `json:"storageProfile,omitempty"`
 	// NetworkProfile - Specifies properties of the network interfaces of the virtual machines in the scale set.
 	NetworkProfile *VirtualMachineScaleSetNetworkProfile `json:"networkProfile,omitempty"`
+	// SecurityProfile - Specifies the Security related profile settings for the virtual machines in the scale set.
+	SecurityProfile *SecurityProfile `json:"securityProfile,omitempty"`
 	// DiagnosticsProfile - Specifies the boot diagnostic settings state. <br><br>Minimum api-version: 2015-06-15.
 	DiagnosticsProfile *DiagnosticsProfile `json:"diagnosticsProfile,omitempty"`
 	// ExtensionProfile - Specifies a collection of settings for extensions installed on virtual machines in the scale set.
@@ -13541,6 +14371,8 @@ type VirtualMachineScaleSetVMProperties struct {
 	AdditionalCapabilities *AdditionalCapabilities `json:"additionalCapabilities,omitempty"`
 	// OsProfile - Specifies the operating system settings for the virtual machine.
 	OsProfile *OSProfile `json:"osProfile,omitempty"`
+	// SecurityProfile - Specifies the Security related profile settings for the virtual machine.
+	SecurityProfile *SecurityProfile `json:"securityProfile,omitempty"`
 	// NetworkProfile - Specifies the network interfaces of the virtual machine.
 	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
 	// NetworkProfileConfiguration - Specifies the network profile configuration of the virtual machine.
@@ -13988,6 +14820,30 @@ type VirtualMachineSizeListResult struct {
 	Value *[]VirtualMachineSize `json:"value,omitempty"`
 }
 
+// VirtualMachineSoftwarePatchProperties describes the properties of a Virtual Machine software patch.
+type VirtualMachineSoftwarePatchProperties struct {
+	// PatchID - READ-ONLY; A unique identifier for the patch.
+	PatchID *string `json:"patchId,omitempty"`
+	// Name - READ-ONLY; The friendly name of the patch.
+	Name *string `json:"name,omitempty"`
+	// Version - READ-ONLY; The version number of the patch. This property applies only to Linux patches.
+	Version *string `json:"version,omitempty"`
+	// Kbid - READ-ONLY; The KBID of the patch. Only applies to Windows patches.
+	Kbid *string `json:"kbid,omitempty"`
+	// Classifications - READ-ONLY; The classification(s) of the patch as provided by the patch publisher.
+	Classifications *[]string `json:"classifications,omitempty"`
+	// RebootBehavior - READ-ONLY; Describes the reboot requirements of the patch. Possible values include: 'NeverReboots', 'AlwaysRequiresReboot', 'CanRequestReboot'
+	RebootBehavior SoftwareUpdateRebootBehavior `json:"rebootBehavior,omitempty"`
+	// ActivityID - READ-ONLY; The activity ID of the operation that produced this result. It is used to correlate across CRP and extension logs.
+	ActivityID *string `json:"activityId,omitempty"`
+	// PublishedDate - READ-ONLY; The UTC timestamp when the repository published this patch.
+	PublishedDate *date.Time `json:"publishedDate,omitempty"`
+	// LastModifiedDateTime - READ-ONLY; The UTC timestamp of the last update to this patch record.
+	LastModifiedDateTime *date.Time `json:"lastModifiedDateTime,omitempty"`
+	// AssessmentState - READ-ONLY; Describes the outcome of an install operation for a given patch. Possible values include: 'PatchAssessmentStateInstalled', 'PatchAssessmentStateFailed', 'PatchAssessmentStateExcluded', 'PatchAssessmentStateNotSelected', 'PatchAssessmentStatePending', 'PatchAssessmentStateAvailable'
+	AssessmentState PatchAssessmentState `json:"assessmentState,omitempty"`
+}
+
 // VirtualMachinesPerformMaintenanceFuture an abstraction for monitoring and retrieving the results of a
 // long-running operation.
 type VirtualMachinesPerformMaintenanceFuture struct {
@@ -14326,6 +15182,8 @@ type WindowsConfiguration struct {
 	TimeZone *string `json:"timeZone,omitempty"`
 	// AdditionalUnattendContent - Specifies additional base-64 encoded XML formatted information that can be included in the Unattend.xml file, which is used by Windows Setup.
 	AdditionalUnattendContent *[]AdditionalUnattendContent `json:"additionalUnattendContent,omitempty"`
+	// PatchSettings - Specifies settings related to in-guest patching (KBs).
+	PatchSettings *PatchSettings `json:"patchSettings,omitempty"`
 	// WinRM - Specifies the Windows Remote Management listeners. This enables remote Windows PowerShell.
 	WinRM *WinRMConfiguration `json:"winRM,omitempty"`
 }

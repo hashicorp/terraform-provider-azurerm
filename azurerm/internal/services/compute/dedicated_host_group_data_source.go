@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2020-06-01/compute"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -61,7 +63,7 @@ func dataSourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	resp, err := client.Get(ctx, resourceGroupName, name)
+	resp, err := client.Get(ctx, resourceGroupName, name, compute.InstanceView)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Dedicated Host Group %q (Resource Group %q) was not found", name, resourceGroupName)

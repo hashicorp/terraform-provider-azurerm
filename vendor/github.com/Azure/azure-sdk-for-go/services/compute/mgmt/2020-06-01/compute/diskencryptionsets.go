@@ -96,7 +96,7 @@ func (client DiskEncryptionSetsClient) CreateOrUpdatePreparer(ctx context.Contex
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -128,7 +128,7 @@ func (client DiskEncryptionSetsClient) CreateOrUpdateSender(req *http.Request) (
 func (client DiskEncryptionSetsClient) CreateOrUpdateResponder(resp *http.Response) (result DiskEncryptionSet, err error) {
 	err = autorest.Respond(
 		resp,
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
@@ -175,7 +175,7 @@ func (client DiskEncryptionSetsClient) DeletePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -257,7 +257,7 @@ func (client DiskEncryptionSetsClient) GetPreparer(ctx context.Context, resource
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -328,7 +328,7 @@ func (client DiskEncryptionSetsClient) ListPreparer(ctx context.Context) (*http.
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -439,7 +439,7 @@ func (client DiskEncryptionSetsClient) ListByResourceGroupPreparer(ctx context.C
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -549,7 +549,7 @@ func (client DiskEncryptionSetsClient) UpdatePreparer(ctx context.Context, resou
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-11-01"
+	const APIVersion = "2020-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

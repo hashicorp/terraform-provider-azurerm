@@ -42,6 +42,81 @@ func NewVirtualMachinesClientWithBaseURI(baseURI string, subscriptionID string) 
 	return VirtualMachinesClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
+// AssessPatches assess patches on the VM.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMName - the name of the virtual machine.
+func (client VirtualMachinesClient) AssessPatches(ctx context.Context, resourceGroupName string, VMName string) (result VirtualMachinesAssessPatchesFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachinesClient.AssessPatches")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.AssessPatchesPreparer(ctx, resourceGroupName, VMName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "AssessPatches", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.AssessPatchesSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "AssessPatches", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// AssessPatchesPreparer prepares the AssessPatches request.
+func (client VirtualMachinesClient) AssessPatchesPreparer(ctx context.Context, resourceGroupName string, VMName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"vmName":            autorest.Encode("path", VMName),
+	}
+
+	const APIVersion = "2020-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}/assessPatches", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// AssessPatchesSender sends the AssessPatches request. The method will close the
+// http.Response Body if it receives an error.
+func (client VirtualMachinesClient) AssessPatchesSender(req *http.Request) (future VirtualMachinesAssessPatchesFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// AssessPatchesResponder handles the response to the AssessPatches request. The method always
+// closes the http.Response Body.
+func (client VirtualMachinesClient) AssessPatchesResponder(resp *http.Response) (result VirtualMachineAssessPatchesResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
 // Capture captures the VM by copying virtual hard disks of the VM and outputs a template that can be used to create
 // similar VMs.
 // Parameters:
@@ -90,7 +165,7 @@ func (client VirtualMachinesClient) CapturePreparer(ctx context.Context, resourc
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -168,7 +243,7 @@ func (client VirtualMachinesClient) ConvertToManagedDisksPreparer(ctx context.Co
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -265,7 +340,7 @@ func (client VirtualMachinesClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -344,7 +419,7 @@ func (client VirtualMachinesClient) DeallocatePreparer(ctx context.Context, reso
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -418,7 +493,7 @@ func (client VirtualMachinesClient) DeletePreparer(ctx context.Context, resource
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -502,7 +577,7 @@ func (client VirtualMachinesClient) GeneralizePreparer(ctx context.Context, reso
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -577,7 +652,7 @@ func (client VirtualMachinesClient) GetPreparer(ctx context.Context, resourceGro
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -655,7 +730,7 @@ func (client VirtualMachinesClient) InstanceViewPreparer(ctx context.Context, re
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -730,7 +805,7 @@ func (client VirtualMachinesClient) ListPreparer(ctx context.Context, resourceGr
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -841,7 +916,7 @@ func (client VirtualMachinesClient) ListAllPreparer(ctx context.Context, statusO
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -956,7 +1031,7 @@ func (client VirtualMachinesClient) ListAvailableSizesPreparer(ctx context.Conte
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1036,7 +1111,7 @@ func (client VirtualMachinesClient) ListByLocationPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1142,7 +1217,7 @@ func (client VirtualMachinesClient) PerformMaintenancePreparer(ctx context.Conte
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1220,7 +1295,7 @@ func (client VirtualMachinesClient) PowerOffPreparer(ctx context.Context, resour
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1299,7 +1374,7 @@ func (client VirtualMachinesClient) ReapplyPreparer(ctx context.Context, resourc
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1373,7 +1448,7 @@ func (client VirtualMachinesClient) RedeployPreparer(ctx context.Context, resour
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1448,7 +1523,7 @@ func (client VirtualMachinesClient) ReimagePreparer(ctx context.Context, resourc
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1527,7 +1602,7 @@ func (client VirtualMachinesClient) RestartPreparer(ctx context.Context, resourc
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1560,6 +1635,87 @@ func (client VirtualMachinesClient) RestartResponder(resp *http.Response) (resul
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
+	return
+}
+
+// RetrieveBootDiagnosticsData the operation to retrieve SAS URIs for a virtual machine's boot diagnostic logs.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// VMName - the name of the virtual machine.
+// sasURIExpirationTimeInMinutes - expiration duration in minutes for the SAS URIs with a value between 1 to
+// 1440 minutes. <br><br>NOTE: If not specified, SAS URIs will be generated with a default expiration duration
+// of 120 minutes.
+func (client VirtualMachinesClient) RetrieveBootDiagnosticsData(ctx context.Context, resourceGroupName string, VMName string, sasURIExpirationTimeInMinutes *int32) (result RetrieveBootDiagnosticsDataResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/VirtualMachinesClient.RetrieveBootDiagnosticsData")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.RetrieveBootDiagnosticsDataPreparer(ctx, resourceGroupName, VMName, sasURIExpirationTimeInMinutes)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "RetrieveBootDiagnosticsData", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.RetrieveBootDiagnosticsDataSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "RetrieveBootDiagnosticsData", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.RetrieveBootDiagnosticsDataResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "RetrieveBootDiagnosticsData", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// RetrieveBootDiagnosticsDataPreparer prepares the RetrieveBootDiagnosticsData request.
+func (client VirtualMachinesClient) RetrieveBootDiagnosticsDataPreparer(ctx context.Context, resourceGroupName string, VMName string, sasURIExpirationTimeInMinutes *int32) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"vmName":            autorest.Encode("path", VMName),
+	}
+
+	const APIVersion = "2020-06-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if sasURIExpirationTimeInMinutes != nil {
+		queryParameters["sasUriExpirationTimeInMinutes"] = autorest.Encode("query", *sasURIExpirationTimeInMinutes)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Compute/virtualMachines/{vmName}/retrieveBootDiagnosticsData", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RetrieveBootDiagnosticsDataSender sends the RetrieveBootDiagnosticsData request. The method will close the
+// http.Response Body if it receives an error.
+func (client VirtualMachinesClient) RetrieveBootDiagnosticsDataSender(req *http.Request) (*http.Response, error) {
+	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+}
+
+// RetrieveBootDiagnosticsDataResponder handles the response to the RetrieveBootDiagnosticsData request. The method always
+// closes the http.Response Body.
+func (client VirtualMachinesClient) RetrieveBootDiagnosticsDataResponder(resp *http.Response) (result RetrieveBootDiagnosticsDataResult, err error) {
+	err = autorest.Respond(
+		resp,
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
@@ -1608,7 +1764,7 @@ func (client VirtualMachinesClient) RunCommandPreparer(ctx context.Context, reso
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1692,7 +1848,7 @@ func (client VirtualMachinesClient) SimulateEvictionPreparer(ctx context.Context
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1760,7 +1916,7 @@ func (client VirtualMachinesClient) StartPreparer(ctx context.Context, resourceG
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1835,7 +1991,7 @@ func (client VirtualMachinesClient) UpdatePreparer(ctx context.Context, resource
 		"vmName":            autorest.Encode("path", VMName),
 	}
 
-	const APIVersion = "2019-12-01"
+	const APIVersion = "2020-06-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
