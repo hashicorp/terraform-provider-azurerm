@@ -1,4 +1,4 @@
-package azure
+package kusto
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2020-02-15/kusto"
@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func SchemaKustoIdentity() *schema.Schema {
+func schemaIdentity() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
@@ -45,7 +45,7 @@ func SchemaKustoIdentity() *schema.Schema {
 	}
 }
 
-func ExpandKustoIdentity(input []interface{}) *kusto.Identity {
+func expandIdentity(input []interface{}) *kusto.Identity {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -59,7 +59,7 @@ func ExpandKustoIdentity(input []interface{}) *kusto.Identity {
 	return &kustoIdentity
 }
 
-func FlattenKustoIdentity(input *kusto.Identity) []interface{} {
+func flattenIdentity(input *kusto.Identity) []interface{} {
 	if input == nil || input.Type == kusto.IdentityTypeNone {
 		return []interface{}{}
 	}
@@ -91,7 +91,7 @@ func FlattenKustoIdentity(input *kusto.Identity) []interface{} {
 	}
 }
 
-func ExpandKustoClusterTrustedExternalTenants(input []interface{}) *[]kusto.TrustedExternalTenant {
+func expandTrustedExternalTenants(input []interface{}) *[]kusto.TrustedExternalTenant {
 	output := make([]kusto.TrustedExternalTenant, 0)
 
 	for _, v := range input {
@@ -103,7 +103,7 @@ func ExpandKustoClusterTrustedExternalTenants(input []interface{}) *[]kusto.Trus
 	return &output
 }
 
-func FlattenKustoClusterTrustedExternalTenants(input *[]kusto.TrustedExternalTenant) []interface{} {
+func flattenTrustedExternalTenants(input *[]kusto.TrustedExternalTenant) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
