@@ -42,7 +42,7 @@ resource "azurerm_synapse_workspace" "example" {
   sql_administrator_login_password     = "H@Sh1CoR3!"
 }
 
-resource "azurerm_synapse_big_data_pool" "test" {
+resource "azurerm_synapse_big_data_pool" "example" {
   name                 = "example"
   synapse_workspace_id = azurerm_synapse_workspace.example.id
   node_size_family     = "MemoryOptimized"
