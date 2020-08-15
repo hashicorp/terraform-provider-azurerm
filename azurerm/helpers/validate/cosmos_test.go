@@ -137,7 +137,7 @@ func TestCosmosMaxThroughput(t *testing.T) {
 			Errors: 1,
 		},
 		{
-			Value: "400",
+			Value:  "400",
 			Errors: 1,
 		},
 	}
@@ -149,4 +149,3 @@ func TestCosmosMaxThroughput(t *testing.T) {
 		}
 	}
 }
-
