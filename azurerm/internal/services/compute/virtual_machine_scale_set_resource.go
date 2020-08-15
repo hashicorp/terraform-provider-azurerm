@@ -78,7 +78,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 							}, false),
 						},
 						"identity_ids": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Optional: true,
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
@@ -1962,7 +1962,7 @@ func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *comput
 	identityType := compute.ResourceIdentityType(identity["type"].(string))
 
 	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
-	for _, id := range identity["identity_ids"].([]interface{}) {
+	for _, id := range identity["identity_ids"].(*schema.Set).List() {
 		identityIds[id.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}
 	}
 
