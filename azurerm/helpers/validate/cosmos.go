@@ -43,20 +43,24 @@ func CosmosThroughput(v interface{}, k string) (warnings []string, errors []erro
 	return warnings, errors
 }
 
-func CosmosMaxThroughput(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(int)
+func CosmosMaxThroughput(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(int)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be int", k))
+		return
+	}
 
-	if value < 4000 {
+	if v < 4000 {
 		errors = append(errors, fmt.Errorf(
 			"%s must be a minimum of 4000", k))
 	}
 
-	if value > 1000000 {
+	if v > 1000000 {
 		errors = append(errors, fmt.Errorf(
 			"%s must be a maximum of 1000000", k))
 	}
 
-	if value%1000 != 0 {
+	if v%1000 != 0 {
 		errors = append(errors, fmt.Errorf(
 			"%q must be set in increments of 1000", k))
 	}
