@@ -14,21 +14,21 @@ Note: This feature requires the keyvault to have soft deletion and purge protect
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "exmaple" {
+resource "azurerm_resource_group" "example" {
   name     = "postgres-rg"
   location = "westeurope"
 }
 
-resource "azurerm_key_vault" "exmaple" {
+resource "azurerm_key_vault" "example" {
   name                        = "examplekeyvault"
   # ...  
   soft_delete_enabled         = true
   purge_protection_enabled    = true
 }
 
-resource "azurerm_key_vault_access_policy" "exmaple" {
-  key_vault_id = azurerm_key_vault.exmaple.id
-  object_id    = azurerm_postgresql_server.exmaple.identity[0].principal_id
+resource "azurerm_key_vault_access_policy" "example" {
+  key_vault_id = azurerm_key_vault.example.id
+  object_id    = azurerm_postgresql_server.example.identity[0].principal_id
   tenant_id    = data.azurerm_client_config.current.tenant_id
 
   key_permissions = [
@@ -39,8 +39,8 @@ resource "azurerm_key_vault_access_policy" "exmaple" {
 }
 
 resource "azurerm_key_vault_key" "generated" {
-  name         = "accexmaple-generated-key-%d"
-  key_vault_id = azurerm_key_vault.exmaple.id
+  name         = "accexample-generated-key-%d"
+  key_vault_id = azurerm_key_vault.example.id
   key_type     = "RSA"
   key_size     = 2048
 
@@ -55,7 +55,7 @@ resource "azurerm_key_vault_key" "generated" {
 
 }
 
-resource "azurerm_postgresql_server" "exmaple" {
+resource "azurerm_postgresql_server" "example" {
   # ...
 
   identity {
@@ -64,9 +64,9 @@ resource "azurerm_postgresql_server" "exmaple" {
 
 }
 
-resource "azurerm_postgresql_server_key" "exmaple" {
-  resource_group_name = azurerm_resource_group.exmaple.name
-  server_name         = azurerm_postgresql_server.exmaple.name
+resource "azurerm_postgresql_server_key" "example" {
+  resource_group_name = azurerm_resource_group.example.name
+  server_name         = azurerm_postgresql_server.example.name
   key_type            = "AzureKeyVault"
   key_url             = azurerm_key_vault_key.generated.id
 }
