@@ -20,10 +20,10 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                        = "examplekeyvault"
+  name = "examplekeyvault"
   # ...  
-  soft_delete_enabled         = true
-  purge_protection_enabled    = true
+  soft_delete_enabled      = true
+  purge_protection_enabled = true
 }
 
 resource "azurerm_key_vault_access_policy" "example" {
@@ -32,8 +32,8 @@ resource "azurerm_key_vault_access_policy" "example" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
 
   key_permissions = [
-    "get", 
-    "unwrapKey", 
+    "get",
+    "unwrapKey",
     "wrapKey"
   ]
 }

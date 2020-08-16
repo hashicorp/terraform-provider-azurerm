@@ -141,8 +141,8 @@ resource "azurerm_key_vault_access_policy" "test" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
 
   key_permissions = [
-    "get", 
-    "unwrapKey", 
+    "get",
+    "unwrapKey",
     "wrapKey"
   ]
 }
@@ -153,8 +153,8 @@ resource "azurerm_key_vault_access_policy" "test_tf" {
   tenant_id    = data.azurerm_client_config.current.tenant_id
 
   key_permissions = [
-    "get", 
-    "create", 
+    "get",
+    "create",
     "delete"
   ]
 }
@@ -178,9 +178,9 @@ resource "azurerm_key_vault_key" "generated" {
 }
 
 resource "azurerm_postgresql_server" "test" {
-  name                              = "acctest-psql-server-%d"
-  location                          = azurerm_resource_group.test.location
-  resource_group_name               = azurerm_resource_group.test.name
+  name                = "acctest-psql-server-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku_name                          = "GP_Gen5_2"
   storage_mb                        = 51200
