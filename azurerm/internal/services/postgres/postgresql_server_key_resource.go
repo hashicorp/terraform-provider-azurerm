@@ -3,6 +3,7 @@ package postgres
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2020-01-01/postgresql"
@@ -45,9 +46,10 @@ func resourceArmPostgreSQLServerKey() *schema.Resource {
 			},
 
 			"key_url": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.PostgresServerServerKeyUrl,
 			},
 
 			"key_type": {
@@ -64,13 +66,13 @@ func resourceArmPostgreSQLServerKeyCreate(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server Key creation.")
-
-	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
 	keyURL := d.Get("key_url").(string)
+	name := getServerKeyNameFromUri(keyURL)
 	keyType := d.Get("key_type").(string)
+
+	log.Printf("[INFO] Creating key name to match required pattern.")
 
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resGroup, serverName, name)
@@ -125,7 +127,7 @@ func resourceArmPostgreSQLServerKeyRead(d *schema.ResourceData, meta interface{}
 	}
 	resGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
-	name := id.Path["ServerKeys"]
+	name := id.Path["keys"]
 
 	resp, err := client.Get(ctx, resGroup, serverName, name)
 	if err != nil {
@@ -138,10 +140,9 @@ func resourceArmPostgreSQLServerKeyRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error making Read request on Azure PostgreSQL server key %s: %+v", name, err)
 	}
 
-	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("server_name", serverName)
-	d.Set("key_type", resp.Type)
+	d.Set("key_type", resp.ServerKeyType)
 	d.Set("key_url", resp.URI)
 
 	return nil
@@ -158,7 +159,7 @@ func resourceArmPostgreSQLServerKeyDelete(d *schema.ResourceData, meta interface
 	}
 	resGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
-	name := id.Path["ServerKeys"]
+	name := id.Path["keys"]
 
 	future, err := client.Delete(ctx, resGroup, serverName, name)
 	if err != nil {
@@ -176,4 +177,19 @@ func resourceArmPostgreSQLServerKeyDelete(d *schema.ResourceData, meta interface
 	}
 
 	return nil
+}
+
+func getServerKeyNameFromUri(uri string) string {
+	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server Key creation.")
+
+	vault := strings.Split(strings.Replace(uri, "https://", "", 1), ".")[0]
+	log.Printf("[DEBUG] Extracted vault name: %s", vault)
+
+	key := strings.Split(strings.Replace(uri, "https://", "", 1), "/")[2]
+	log.Printf("[DEBUG] Extracted key name: %s", key)
+
+	version := strings.Split(strings.Replace(uri, "https://", "", 1), "/")[3]
+	log.Printf("[DEBUG] Extracted version: %s", version)
+
+	return fmt.Sprintf("%s_%s_%s", vault, key, version)
 }

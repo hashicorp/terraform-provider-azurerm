@@ -46,3 +46,11 @@ func PostgresServerServerID(i interface{}, k string) (warnings []string, errors 
 
 	return warnings, errors
 }
+
+func PostgresServerServerKeyUrl(i interface{}, k string) (_ []string, errors []error) {
+	if m, regexErrs := validate.RegExHelper(i, k, `^https(.)+\.vault(.)+\/keys\/[^\/]+\/[0-9a-zA-Z]+$`); !m {
+		return nil, append(regexErrs, fmt.Errorf("%q must be a valid key vault url, e.g. https://YourVaultName.vault.azure.net/keys/YourKeyName/01234567890123456789012345678901", k))
+	}
+
+	return nil, nil
+}
