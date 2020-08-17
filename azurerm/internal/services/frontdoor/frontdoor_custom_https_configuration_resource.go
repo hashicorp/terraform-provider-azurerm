@@ -64,20 +64,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 		},
 
-		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
-				id, err := parse.FrontendEndpointIDForImport(v.(string))
-				if err != nil {
-					return err
-				}
-
-				if err := validate.FrontdoorCustomHttpsSettings(d); err != nil {
-					return fmt.Errorf("validating Front Door Custom Https Configuration for Endpoint %q (Front Door %q / Resource Group %q): %+v", id.Name, id.FrontDoorName, id.ResourceGroup, err)
-				}
-			}
-
-			return nil
-		},
+		CustomizeDiff: customizeHttpsConfigurationCustomizeDiff,
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
