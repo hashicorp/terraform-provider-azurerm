@@ -4,6 +4,10 @@ IMPROVEMENTS:
 
 * `azurerm_api_management_api` - now supports `oauth2_authorization` and `openid_authentication` [GH-7617]
 
+BUG FIXES:
+
+* `azurerm_storage_account` - switch logic to be if not public cloud instead of if us government cloud [GH-8148]
+
 ## 2.23.0 (August 13, 2020)
 
 
