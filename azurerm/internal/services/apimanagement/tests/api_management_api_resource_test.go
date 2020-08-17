@@ -34,29 +34,6 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 	})
 }
 
-// Remove in 2.0
-func TestAccAzureRMApiManagementApi_basicClassic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { acceptance.PreCheck(t) },
-		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMApiManagementApi_basicClassic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApiManagementApiExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "soap_pass_through", "false"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_current", "true"),
-					resource.TestCheckResourceAttr(data.ResourceName, "is_online", "false"),
-				),
-			},
-			data.ImportStep(),
-		},
-	})
-}
-
 func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 
@@ -113,6 +90,44 @@ func TestAccAzureRMApiManagementApi_version(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementApiExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "version", "v1"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagementApi_oauth2Authorization(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementApi_oauth2Authorization(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMApiManagementApi_openidAuthentication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementApi_openidAuthentication(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiExists(data.ResourceName),
 				),
 			},
 			data.ImportStep(),
@@ -370,24 +385,6 @@ resource "azurerm_api_management_api" "test" {
 `, template, data.RandomInteger)
 }
 
-// Remove in 2.0
-func testAccAzureRMApiManagementApi_basicClassic(data acceptance.TestData) string {
-	template := testAccAzureRMApiManagementApi_templateClassic(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_api_management_api" "test" {
-  name                = "acctestapi-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  api_management_name = azurerm_api_management.test.name
-  display_name        = "api1"
-  path                = "api1"
-  protocols           = ["https"]
-  revision            = "1"
-}
-`, template, data.RandomInteger)
-}
-
 func testAccAzureRMApiManagementApi_blankPath(data acceptance.TestData) string {
 	template := testAccAzureRMApiManagementApi_template(data)
 	return fmt.Sprintf(`
@@ -575,6 +572,79 @@ resource "azurerm_api_management_api" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
+func testAccAzureRMApiManagementApi_oauth2Authorization(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApi_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_authorization_server" "test" {
+  name                         = "acctestauthsrv-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  api_management_name          = azurerm_api_management.test.name
+  display_name                 = "Test Group"
+  authorization_endpoint       = "https://azacctest.hashicorptest.com/client/authorize"
+  client_id                    = "42424242-4242-4242-4242-424242424242"
+  client_registration_endpoint = "https://azacctest.hashicorptest.com/client/register"
+
+  grant_types = [
+    "implicit",
+  ]
+
+  authorization_methods = [
+    "GET",
+  ]
+}
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  oauth2_authorization {
+    authorization_server_name = azurerm_api_management_authorization_server.test.name
+    scope                     = "acctest"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMApiManagementApi_openidAuthentication(data acceptance.TestData) string {
+	template := testAccAzureRMApiManagementApi_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_openid_connect_provider" "test" {
+  name                = "acctest-%d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  client_id           = "00001111-2222-3333-%d"
+  client_secret       = "%d-cwdavsxbacsaxZX-%d"
+  display_name        = "Initial Name"
+  metadata_endpoint   = "https://azacctest.hashicorptest.com/example/foo"
+}
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  openid_authentication {
+    openid_provider_name = azurerm_api_management_openid_connect_provider.test.name
+    bearer_token_sending_methods = [
+      "authorizationHeader",
+      "query",
+    ]
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
 func testAccAzureRMApiManagementApi_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -594,29 +664,6 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
 
   sku_name = "Developer_1"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-// Remove in 2.0
-func testAccAzureRMApiManagementApi_templateClassic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  publisher_name      = "pub1"
-  publisher_email     = "pub1@email.com"
-  sku_name            = "Developer_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
