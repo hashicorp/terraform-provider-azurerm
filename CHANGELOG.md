@@ -1,4 +1,9 @@
 ## 2.24.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_api_management_api` - now supports `oauth2_authorization` and `openid_authentication` [GH-7617]
+
 ## 2.23.0 (August 13, 2020)
 
 
