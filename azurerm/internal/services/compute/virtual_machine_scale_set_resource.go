@@ -135,9 +135,9 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.AutomaticByOS),
-					string(compute.Manual),
-					string(compute.AutomaticByPlatform),
+					string(compute.UpgradeModeAutomatic),
+					string(compute.UpgradeModeManual),
+					string(compute.UpgradeModeRolling),
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
@@ -778,13 +778,6 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 			},
 
 			"tags": tags.Schema(),
-
-			"encryption_at_host": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: false,
-				Default:  false,
-			},
 		},
 
 		CustomizeDiff: azureRmVirtualMachineScaleSetCustomizeDiff,
@@ -865,10 +858,7 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 			RollingUpgradePolicy: expandAzureRmRollingUpgradePolicy(d),
 		},
 		VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
-			NetworkProfile: expandAzureRmVirtualMachineScaleSetNetworkProfile(d),
-			SecurityProfile: &compute.SecurityProfile{
-				EncryptionAtHost: utils.Bool(d.Get("encryption_at_host").(bool)),
-			},
+			NetworkProfile:   expandAzureRmVirtualMachineScaleSetNetworkProfile(d),
 			StorageProfile:   &storageProfile,
 			OsProfile:        osProfile,
 			ExtensionProfile: extensions,

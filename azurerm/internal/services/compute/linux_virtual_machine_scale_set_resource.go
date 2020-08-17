@@ -218,9 +218,9 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				ForceNew: true,
 				Default:  string(compute.Manual),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(compute.AutomaticByOS),
-					string(compute.Manual),
-					string(compute.AutomaticByPlatform),
+					string(compute.UpgradeModeAutomatic),
+					string(compute.UpgradeModeManual),
+					string(compute.UpgradeModeRolling),
 				}, false),
 			},
 
@@ -255,8 +255,6 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			"encryption_at_host": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: false,
-				Default:  false,
 			},
 		},
 	}

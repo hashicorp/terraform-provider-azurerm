@@ -292,8 +292,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"encryption_at_host": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: false,
-				Default:  false,
 			},
 		},
 	}

@@ -75,7 +75,7 @@ func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{
 	resourceGroupName := d.Get("resource_group_name").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroupName, name, compute.InstanceView)
+		existing, err := client.Get(ctx, resourceGroupName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for present of existing Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
@@ -105,7 +105,7 @@ func resourceArmDedicatedHostGroupCreate(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error creating Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroupName, name, compute.InstanceView)
+	resp, err := client.Get(ctx, resourceGroupName, name, "")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Dedicated Host Group %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
@@ -129,7 +129,7 @@ func resourceArmDedicatedHostGroupRead(d *schema.ResourceData, meta interface{})
 	resourceGroupName := id.ResourceGroup
 	name := id.Path["hostGroups"]
 
-	resp, err := client.Get(ctx, resourceGroupName, name, compute.InstanceView)
+	resp, err := client.Get(ctx, resourceGroupName, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Dedicated Host Group %q does not exist - removing from state", d.Id())
