@@ -227,15 +227,13 @@ The `exclusion` block supports the following:
 
 The following attributes are exported:
 
-* `id` - Resource ID.
+* `id` - The ID of the FrontDoor Firewall Policy.
 
-* `location` - Resource location.
+* `location` - The Azure Region where this FrontDoor Firewall Policy exists.
 
-* `frontend_endpoint_ids` - the Frontend Endpoints associated with this Front Door Web Application Firewall policy.
+* `frontend_endpoint_ids` - The Frontend Endpoints associated with this Front Door Web Application Firewall policy.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
