@@ -27,7 +27,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 		Delete: resourceArmFrontDoorCustomHttpsConfigurationDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.FrontendEndpointID(id)
+			_, err := parse.FrontendEndpointIDForImport(id)
 			return err
 		}),
 
