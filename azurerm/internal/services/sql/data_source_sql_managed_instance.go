@@ -2,12 +2,12 @@ package sql
 
 import (
 	"fmt"
-	"time"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"time"
 )
 
 func dataSourceArmManagedSQLInstance() *schema.Resource {
@@ -20,8 +20,8 @@ func dataSourceArmManagedSQLInstance() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
+				Type:     schema.TypeString,
+				Required: true,
 			},
 
 			"location": {
@@ -36,80 +36,78 @@ func dataSourceArmManagedSQLInstance() *schema.Resource {
 				Computed: true,
 			},
 
-
 			"collation": {
-				Type:             schema.TypeString,
-				Computed:         true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"dns_zone_partner": {
 				Type:     schema.TypeString,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"instance_pool_id": {
 				Type:     schema.TypeString,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"license_type": {
-				Type:             schema.TypeString,
-				Computed:         true,
-
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"maintenance_configuration_id": {
 				Type:     schema.TypeString,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"create_mode": {
 				Type:     schema.TypeString,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"minimal_tls_version": {
 				Type:     schema.TypeString,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"proxy_override": {
 				Type:     schema.TypeString,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"data_endpoint_enabled": {
 				Type:     schema.TypeBool,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"restore_point_in_time": {
 				Type:     schema.TypeString,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"source_managed_instance_id": {
 				Type:     schema.TypeString,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"storage_size_gb": {
-				Type:         schema.TypeInt,
-				Computed:         true,
+				Type:     schema.TypeInt,
+				Computed: true,
 			},
 
 			"subnet_id": {
 				Type:     schema.TypeString,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"timezone_id": {
-				Type:         schema.TypeString,
-				Computed:         true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"vcores": {
 				Type:     schema.TypeInt,
-				Computed:         true,
+				Computed: true,
 			},
 
 			"fully_qualified_domain_name": {
@@ -145,7 +143,6 @@ func dataSourceArmManagedInstanceRead(d *schema.ResourceData, meta interface{}) 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error reading managed SQL instance %s: %v", name, err)
@@ -160,11 +157,11 @@ func dataSourceArmManagedInstanceRead(d *schema.ResourceData, meta interface{}) 
 		d.SetId(*id)
 	}
 
-	if props := resp.ManagedInstanceProperties ; props != nil {
+	if props := resp.ManagedInstanceProperties; props != nil {
 		d.Set("create_mode", props.ManagedInstanceCreateMode)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("administrator_login", props.AdministratorLogin)
-		
+
 		d.Set("subnet_id", props.SubnetID)
 		d.Set("state", props.State)
 		d.Set("license_type", props.LicenseType)

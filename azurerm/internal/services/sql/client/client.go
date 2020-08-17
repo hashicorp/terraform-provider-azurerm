@@ -18,7 +18,7 @@ type Client struct {
 	ServerAzureADAdministratorsClient          *sql.ServerAzureADAdministratorsClient
 	VirtualNetworkRulesClient                  *sql.VirtualNetworkRulesClient
 	ManagedInstancesClient                     *sql.ManagedInstancesClient
-	ManagedInstanceAdministratorsClient			*sql.ManagedInstanceAdministratorsClient
+	ManagedInstanceAdministratorsClient        *sql.ManagedInstanceAdministratorsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -75,6 +75,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerExtendedBlobAuditingPoliciesClient:   &serverExtendedBlobAuditingPoliciesClient,
 		VirtualNetworkRulesClient:                  &virtualNetworkRulesClient,
 		ManagedInstancesClient:                     &managedInstancesClient,
-		ManagedInstanceAdministratorsClient: 		&managedInstanceAdministratorsClient,
+		ManagedInstanceAdministratorsClient:        &managedInstanceAdministratorsClient,
 	}
 }

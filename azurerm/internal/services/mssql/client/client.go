@@ -19,8 +19,8 @@ type Client struct {
 	ServerSecurityAlertPoliciesClient                  *sql.ServerSecurityAlertPoliciesClient
 	ServerVulnerabilityAssessmentsClient               *sql.ServerVulnerabilityAssessmentsClient
 	VirtualMachinesClient                              *sqlvirtualmachine.SQLVirtualMachinesClient
-	ManagedInstancesClient                     		   *sql.ManagedInstancesClient
-	ManagedInstanceAdministratorsClient				   *sql.ManagedInstanceAdministratorsClient
+	ManagedInstancesClient                             *sql.ManagedInstancesClient
+	ManagedInstanceAdministratorsClient                *sql.ManagedInstanceAdministratorsClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -79,7 +79,7 @@ func NewClient(o *common.ClientOptions) *Client {
 		ServerSecurityAlertPoliciesClient:                  &serverSecurityAlertPoliciesClient,
 		ServerVulnerabilityAssessmentsClient:               &serverVulnerabilityAssessmentsClient,
 		VirtualMachinesClient:                              &sqlVirtualMachinesClient,
-		ManagedInstancesClient:                     		&managedInstancesClient,
-		ManagedInstanceAdministratorsClient: 				&managedInstanceAdministratorsClient,
+		ManagedInstancesClient:                             &managedInstancesClient,
+		ManagedInstanceAdministratorsClient:                &managedInstanceAdministratorsClient,
 	}
 }

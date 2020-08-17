@@ -94,7 +94,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				Optional:         true,
 				Computed:         true,
-				ForceNew: 		  true,
+				ForceNew:         true,
 			},
 
 			"dns_zone_partner": {
@@ -159,9 +159,9 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 			},
 
 			"restore_point_in_time": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time,
 			},
@@ -176,7 +176,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(32, 8192),
-				Computed: true,
+				Computed:     true,
 			},
 
 			"subnet_id": {
@@ -248,25 +248,25 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						
+
 						"login_username": {
-							Type:             schema.TypeString,
-							Required:         true,
+							Type:         schema.TypeString,
+							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"object_id": {
 							Type:             schema.TypeString,
 							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.IsUUID,
+							ValidateFunc:     validation.IsUUID,
 						},
 
 						"tenant_id": {
 							Type:             schema.TypeString,
-							Optional:     	  true,
-							Computed:     	  true,
+							Optional:         true,
+							Computed:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: 	  validation.IsUUID,
+							ValidateFunc:     validation.IsUUID,
 						},
 					},
 				},
@@ -329,7 +329,7 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 		Location: utils.String(location),
 		Tags:     tags.Expand(t),
 		ManagedInstanceProperties: &sql.ManagedInstanceProperties{
-			AdministratorLogin:        utils.String(adminName),
+			AdministratorLogin: utils.String(adminName),
 		},
 	}
 
@@ -507,7 +507,7 @@ func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("type", (resp.Type))
-	
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -516,8 +516,7 @@ func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
-
-	if props := resp.ManagedInstanceProperties ; props != nil {
+	if props := resp.ManagedInstanceProperties; props != nil {
 		d.Set("create_mode", props.ManagedInstanceCreateMode)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("administrator_login", props.AdministratorLogin)
@@ -642,11 +641,11 @@ func expandManagedInstanceAADAdmin(d *schema.ResourceData) *sql.ManagedInstanceA
 	adminDetail := administratorDetails[0].(map[string]interface{})
 	sid, _ := uuid.FromString(adminDetail["object_id"].(string))
 
-	managedInstanceAdmin := sql.ManagedInstanceAdministrator {
+	managedInstanceAdmin := sql.ManagedInstanceAdministrator{
 		ManagedInstanceAdministratorProperties: &sql.ManagedInstanceAdministratorProperties{
 			AdministratorType: utils.String("ActiveDirectory"),
-			Login : utils.String(adminDetail["login_username"].(string)),
-			Sid : &sid,
+			Login:             utils.String(adminDetail["login_username"].(string)),
+			Sid:               &sid,
 		},
 	}
 
@@ -680,4 +679,3 @@ func flattenManagedInstanceAdministrator(admin sql.ManagedInstanceAdministrator)
 		},
 	}
 }
-
