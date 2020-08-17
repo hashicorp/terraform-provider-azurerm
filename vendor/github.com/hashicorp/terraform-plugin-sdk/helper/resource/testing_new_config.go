@@ -1,14 +1,18 @@
 package resource
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	tftest "github.com/hashicorp/terraform-plugin-test"
+	tftest "github.com/hashicorp/terraform-plugin-test/v2"
 )
 
 func testStepNewConfig(t *testing.T, c TestCase, wd *tftest.WorkingDir, step TestStep) error {
+	t.Helper()
+
 	spewConf := spew.NewDefaultConfig()
 	spewConf.SortKeys = true
 
@@ -16,7 +20,14 @@ func testStepNewConfig(t *testing.T, c TestCase, wd *tftest.WorkingDir, step Tes
 	idRefresh := c.IDRefreshName != ""
 
 	if !step.Destroy {
-		state := getState(t, wd)
+		var state *terraform.State
+		err := runProviderCommand(t, func() error {
+			state = getState(t, wd)
+			return nil
+		}, wd, c.ProviderFactories)
+		if err != nil {
+			return fmt.Errorf("Error retrieving state: %w", err)
+		}
 		if err := testStepTaint(state, step); err != nil {
 			t.Fatalf("Error when tainting resources: %s", err)
 		}
@@ -24,13 +35,30 @@ func testStepNewConfig(t *testing.T, c TestCase, wd *tftest.WorkingDir, step Tes
 
 	wd.RequireSetConfig(t, step.Config)
 
+	// require a refresh before applying
+	// failing to do this will result in data sources not being updated
+	err := runProviderCommand(t, func() error {
+		return wd.Refresh()
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return fmt.Errorf("Error running refresh: %w", err)
+	}
 	if !step.PlanOnly {
-		err := wd.Apply()
+		err = runProviderCommand(t, func() error {
+			return wd.Apply()
+		}, wd, c.ProviderFactories)
 		if err != nil {
 			return err
 		}
 
-		state := getState(t, wd)
+		var state *terraform.State
+		err = runProviderCommand(t, func() error {
+			state = getState(t, wd)
+			return nil
+		}, wd, c.ProviderFactories)
+		if err != nil {
+			return fmt.Errorf("error retrieving state: %w", err)
+		}
 		if step.Check != nil {
 			state.IsBinaryDrivenTest = true
 			if err := step.Check(state); err != nil {
@@ -42,8 +70,21 @@ func testStepNewConfig(t *testing.T, c TestCase, wd *tftest.WorkingDir, step Tes
 	// Test for perpetual diffs by performing a plan, a refresh, and another plan
 
 	// do a plan
-	wd.RequireCreatePlan(t)
-	plan := wd.RequireSavedPlan(t)
+	err = runProviderCommand(t, func() error {
+		return wd.CreatePlan()
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return err
+	}
+
+	var plan *tfjson.Plan
+	err = runProviderCommand(t, func() error {
+		plan = wd.RequireSavedPlan(t)
+		return nil
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return err
+	}
 
 	if !planIsEmpty(plan) {
 		if step.ExpectNonEmptyPlan {
@@ -56,12 +97,29 @@ func testStepNewConfig(t *testing.T, c TestCase, wd *tftest.WorkingDir, step Tes
 
 	// do a refresh
 	if !c.PreventPostDestroyRefresh {
-		wd.RequireRefresh(t)
+		err := runProviderCommand(t, func() error {
+			return wd.Refresh()
+		}, wd, c.ProviderFactories)
+		if err != nil {
+			return err
+		}
 	}
 
 	// do another plan
-	wd.RequireCreatePlan(t)
-	plan = wd.RequireSavedPlan(t)
+	err = runProviderCommand(t, func() error {
+		return wd.CreatePlan()
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return err
+	}
+
+	err = runProviderCommand(t, func() error {
+		plan = wd.RequireSavedPlan(t)
+		return nil
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return err
+	}
 
 	// check if plan is empty
 	if !planIsEmpty(plan) {
@@ -76,7 +134,14 @@ func testStepNewConfig(t *testing.T, c TestCase, wd *tftest.WorkingDir, step Tes
 	// ID-ONLY REFRESH
 	// If we've never checked an id-only refresh and our state isn't
 	// empty, find the first resource and test it.
-	state := getState(t, wd)
+	var state *terraform.State
+	err = runProviderCommand(t, func() error {
+		state = getState(t, wd)
+		return nil
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return err
+	}
 	if idRefresh && idRefreshCheck == nil && !state.Empty() {
 		// Find the first non-nil resource in the state
 		for _, m := range state.Modules {

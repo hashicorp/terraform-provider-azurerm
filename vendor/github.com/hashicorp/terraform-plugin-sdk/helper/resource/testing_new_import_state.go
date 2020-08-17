@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -10,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/internal/addrs"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	tftest "github.com/hashicorp/terraform-plugin-test"
+	tftest "github.com/hashicorp/terraform-plugin-test/v2"
 )
 
 func testStepNewImportState(t *testing.T, c TestCase, wd *tftest.WorkingDir, step TestStep, cfg string) error {
@@ -22,7 +23,14 @@ func testStepNewImportState(t *testing.T, c TestCase, wd *tftest.WorkingDir, ste
 	}
 
 	// get state from check sequence
-	state := getState(t, wd)
+	var state *terraform.State
+	err := runProviderCommand(t, func() error {
+		state = getState(t, wd)
+		return nil
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		fmt.Errorf("Error getting state: %w", err)
+	}
 
 	// Determine the ID to import
 	var importId string
@@ -54,9 +62,28 @@ func testStepNewImportState(t *testing.T, c TestCase, wd *tftest.WorkingDir, ste
 	importWd := acctest.TestHelper.RequireNewWorkingDir(t)
 	defer importWd.Close()
 	importWd.RequireSetConfig(t, step.Config)
-	importWd.RequireInit(t)
-	importWd.RequireImport(t, step.ResourceName, importId)
-	importState := getState(t, wd)
+	err = runProviderCommand(t, func() error {
+		return importWd.Init()
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return fmt.Errorf("Error running init: %w", err)
+	}
+
+	err = runProviderCommand(t, func() error {
+		return importWd.Import(step.ResourceName, importId)
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return fmt.Errorf("Error running import: %w", err)
+	}
+
+	var importState *terraform.State
+	err = runProviderCommand(t, func() error {
+		importState = getState(t, wd)
+		return nil
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return fmt.Errorf("Error getting state after import: %w", err)
+	}
 
 	// Go through the imported state and verify
 	if step.ImportStateCheck != nil {

@@ -11,14 +11,29 @@ import (
 	tfjson "github.com/hashicorp/terraform-json"
 	"github.com/hashicorp/terraform-plugin-sdk/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	tftest "github.com/hashicorp/terraform-plugin-test"
+	tftest "github.com/hashicorp/terraform-plugin-test/v2"
 )
 
-func runPostTestDestroy(t *testing.T, c TestCase, wd *tftest.WorkingDir) error {
-	wd.RequireDestroy(t)
+func runPostTestDestroy(t *testing.T, c TestCase, wd *tftest.WorkingDir, factories map[string]terraform.ResourceProviderFactory) error {
+	t.Helper()
+
+	err := runProviderCommand(t, func() error {
+		wd.RequireDestroy(t)
+		return nil
+	}, wd, factories)
+	if err != nil {
+		return err
+	}
 
 	if c.CheckDestroy != nil {
-		statePostDestroy := getState(t, wd)
+		var statePostDestroy *terraform.State
+		err := runProviderCommand(t, func() error {
+			statePostDestroy = getState(t, wd)
+			return nil
+		}, wd, factories)
+		if err != nil {
+			return err
+		}
 
 		if err := c.CheckDestroy(statePostDestroy); err != nil {
 			return err
@@ -29,24 +44,44 @@ func runPostTestDestroy(t *testing.T, c TestCase, wd *tftest.WorkingDir) error {
 }
 
 func RunNewTest(t *testing.T, c TestCase, providers map[string]terraform.ResourceProvider) {
+	t.Helper()
+
 	spewConf := spew.NewDefaultConfig()
 	spewConf.SortKeys = true
 	wd := acctest.TestHelper.RequireNewWorkingDir(t)
 
 	defer func() {
-		statePreDestroy := getState(t, wd)
+		var statePreDestroy *terraform.State
+		err := runProviderCommand(t, func() error {
+			statePreDestroy = getState(t, wd)
+			return nil
+		}, wd, c.ProviderFactories)
+		if err != nil {
+			t.Fatalf("Error retrieving state, there may be dangling resources: %s", err.Error())
+			return
+		}
 
 		if !stateIsEmpty(statePreDestroy) {
-			runPostTestDestroy(t, c, wd)
+			runPostTestDestroy(t, c, wd, c.ProviderFactories)
 		}
 
 		wd.Close()
 	}()
 
-	providerCfg := testProviderConfig(c)
+	providerCfg, err := testProviderConfig(c)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	wd.RequireSetConfig(t, providerCfg)
-	wd.RequireInit(t)
+
+	err = runProviderCommand(t, func() error {
+		return wd.Init()
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		t.Fatalf("Error running init: %s", err.Error())
+		return
+	}
 
 	// use this to track last step succesfully applied
 	// acts as default for import tests
@@ -101,6 +136,8 @@ func RunNewTest(t *testing.T, c TestCase, providers map[string]terraform.Resourc
 }
 
 func getState(t *testing.T, wd *tftest.WorkingDir) *terraform.State {
+	t.Helper()
+
 	jsonState := wd.RequireState(t)
 	state, err := shimStateFromJson(jsonState)
 	if err != nil {
@@ -131,6 +168,8 @@ func planIsEmpty(plan *tfjson.Plan) bool {
 }
 
 func testIDRefresh(c TestCase, t *testing.T, wd *tftest.WorkingDir, step TestStep, r *terraform.ResourceState) error {
+	t.Helper()
+
 	spewConf := spew.NewDefaultConfig()
 	spewConf.SortKeys = true
 
@@ -142,13 +181,22 @@ func testIDRefresh(c TestCase, t *testing.T, wd *tftest.WorkingDir, step TestSte
 
 	// Temporarily set the config to a minimal provider config for the refresh
 	// test. After the refresh we can reset it.
-	cfg := testProviderConfig(c)
+	cfg, err := testProviderConfig(c)
+	if err != nil {
+		return err
+	}
 	wd.RequireSetConfig(t, cfg)
 	defer wd.RequireSetConfig(t, step.Config)
 
 	// Refresh!
-	wd.RequireRefresh(t)
-	state = getState(t, wd)
+	err = runProviderCommand(t, func() error {
+		wd.RequireRefresh(t)
+		state = getState(t, wd)
+		return nil
+	}, wd, c.ProviderFactories)
+	if err != nil {
+		return err
+	}
 
 	// Verify attribute equivalence.
 	actualR := state.RootModule().Resources[c.IDRefreshName]
