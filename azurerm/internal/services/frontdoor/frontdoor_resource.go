@@ -1493,7 +1493,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoor.BasicRouteConfig
 
 	return &[]interface{}{
 		map[string]interface{}{
-			"backend_pool_name":                     "name",
+			"backend_pool_name":                     name,
 			"custom_forwarding_path":                customForwardingPath,
 			"forwarding_protocol":                   string(v.ForwardingProtocol),
 			"cache_enabled":                         cacheEnabled,
