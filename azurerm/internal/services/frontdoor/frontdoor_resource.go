@@ -601,6 +601,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -624,7 +625,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if props := resp.Properties; props != nil {
-		flattenedBackendPools, err := flattenArmFrontDoorBackendPools(props.BackendPools)
+		flattenedBackendPools, err := flattenArmFrontDoorBackendPools(props.BackendPools, *id, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("flattening `backend_pool`: %+v", err)
 		}
@@ -633,14 +634,8 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		backendPoolSettings := flattenArmFrontDoorBackendPoolsSettings(props.BackendPoolsSettings)
-
-		if err := d.Set("enforce_backend_pools_certificate_name_check", backendPoolSettings["enforce_backend_pools_certificate_name_check"].(bool)); err != nil {
-			return fmt.Errorf("setting `enforce_backend_pools_certificate_name_check`: %+v", err)
-		}
-
-		if err := d.Set("backend_pools_send_receive_timeout_seconds", backendPoolSettings["backend_pools_send_receive_timeout_seconds"].(int32)); err != nil {
-			return fmt.Errorf("setting `backend_pools_send_receive_timeout_seconds`: %+v", err)
-		}
+		d.Set("enforce_backend_pools_certificate_name_check", backendPoolSettings.enforceBackendPoolsCertificateNameCheck)
+		d.Set("backend_pools_send_receive_timeout_seconds", backendPoolSettings.backendPoolsSendReceiveTimeoutSeconds)
 
 		d.Set("cname", props.Cname)
 		d.Set("header_frontdoor_id", props.FrontdoorID)
@@ -654,7 +649,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		if err != nil {
 			return fmt.Errorf("retrieving FrontEnd Endpoint Custom HTTPS Information: %+v", err)
 		}
-		frontDoorFrontendEndpoints, err := flattenFrontEndEndpoints(frontEndEndpointInfo)
+		frontDoorFrontendEndpoints, err := flattenFrontEndEndpoints(frontEndEndpointInfo, *id, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("flattening `frontend_endpoint`: %+v", err)
 		}
@@ -662,15 +657,15 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `frontend_endpoint`: %+v", err)
 		}
 
-		if err := d.Set("backend_pool_health_probe", flattenArmFrontDoorHealthProbeSettingsModel(props.HealthProbeSettings)); err != nil {
+		if err := d.Set("backend_pool_health_probe", flattenArmFrontDoorHealthProbeSettingsModel(props.HealthProbeSettings, *id, subscriptionId)); err != nil {
 			return fmt.Errorf("setting `backend_pool_health_probe`: %+v", err)
 		}
 
-		if err := d.Set("backend_pool_load_balancing", flattenArmFrontDoorLoadBalancingSettingsModel(props.LoadBalancingSettings)); err != nil {
+		if err := d.Set("backend_pool_load_balancing", flattenArmFrontDoorLoadBalancingSettingsModel(props.LoadBalancingSettings, *id, subscriptionId)); err != nil {
 			return fmt.Errorf("setting `backend_pool_load_balancing`: %+v", err)
 		}
 
-		flattenedRoutingRules, err := flattenArmFrontDoorRoutingRule(props.RoutingRules, d.Get("routing_rule"))
+		flattenedRoutingRules, err := flattenArmFrontDoorRoutingRule(props.RoutingRules, d.Get("routing_rule"), *id, subscriptionId)
 		if err != nil {
 			return fmt.Errorf("flattening `routing_rules`: %+v", err)
 		}
@@ -1105,7 +1100,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorId 
 	return forwardingConfiguration
 }
 
-func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) (*[]interface{}, error) {
+func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool, frontDoorId parse.FrontDoorId, subscriptionId string) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
@@ -1113,12 +1108,10 @@ func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) (*[]interfa
 	output := make([]interface{}, 0)
 	for _, v := range *input {
 		id := ""
-		if v.ID != nil {
-			id = *v.ID
-		}
-
 		name := ""
 		if v.Name != nil {
+			// rewrite the ID to ensure it's consistent
+			id = parse.NewBackendPoolID(frontDoorId, *v.Name).ID(subscriptionId)
 			name = *v.Name
 		}
 
@@ -1159,28 +1152,33 @@ func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) (*[]interfa
 	return &output, nil
 }
 
-func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) map[string]interface{} {
-	result := make(map[string]interface{})
+type flattenedBackendPoolSettings struct {
+	enforceBackendPoolsCertificateNameCheck bool
+	backendPoolsSendReceiveTimeoutSeconds   int
+}
 
-	// Set default values
-	result["enforce_backend_pools_certificate_name_check"] = true
-	result["backend_pools_send_receive_timeout_seconds"] = int32(60)
-
+func flattenArmFrontDoorBackendPoolsSettings(input *frontdoor.BackendPoolsSettings) flattenedBackendPoolSettings {
 	if input == nil {
-		return result
+		return flattenedBackendPoolSettings{
+			enforceBackendPoolsCertificateNameCheck: true,
+			backendPoolsSendReceiveTimeoutSeconds:   60,
+		}
 	}
 
-	result["enforce_backend_pools_certificate_name_check"] = false
-
-	if enforceCertificateNameCheck := input.EnforceCertificateNameCheck; enforceCertificateNameCheck != "" && enforceCertificateNameCheck == frontdoor.EnforceCertificateNameCheckEnabledStateEnabled {
-		result["enforce_backend_pools_certificate_name_check"] = true
+	enforceCertificateNameCheck := false
+	if input.EnforceCertificateNameCheck != "" && input.EnforceCertificateNameCheck == frontdoor.EnforceCertificateNameCheckEnabledStateEnabled {
+		enforceCertificateNameCheck = true
 	}
 
-	if sendRecvTimeoutSeconds := input.SendRecvTimeoutSeconds; sendRecvTimeoutSeconds != nil {
-		result["backend_pools_send_receive_timeout_seconds"] = *sendRecvTimeoutSeconds
+	sendReceiveTimeoutSeconds := 0
+	if input.SendRecvTimeoutSeconds != nil {
+		sendReceiveTimeoutSeconds = int(*input.SendRecvTimeoutSeconds)
 	}
 
-	return result
+	return flattenedBackendPoolSettings{
+		enforceBackendPoolsCertificateNameCheck: enforceCertificateNameCheck,
+		backendPoolsSendReceiveTimeoutSeconds:   sendReceiveTimeoutSeconds,
+	}
 }
 
 func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
@@ -1247,7 +1245,7 @@ func retrieveFrontEndEndpointInformation(ctx context.Context, client *frontdoor.
 	return &output, nil
 }
 
-func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint) (*[]interface{}, error) {
+func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint, frontDoorId parse.FrontDoorId, subscriptionId string) (*[]interface{}, error) {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return &results, nil
@@ -1255,11 +1253,10 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint) (*[]interface
 
 	for _, item := range *input {
 		id := ""
-		if item.ID != nil {
-			id = *item.ID
-		}
 		name := ""
 		if item.Name != nil {
+			// rewrite the ID to ensure it's consistent
+			id = parse.NewFrontendEndpointID(frontDoorId, *item.Name).ID(subscriptionId)
 			name = *item.Name
 		}
 
@@ -1283,7 +1280,13 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint) (*[]interface
 			}
 
 			if waf := props.WebApplicationFirewallPolicyLink; waf != nil && waf.ID != nil {
-				webApplicationFirewallPolicyLinkId = *waf.ID
+				// rewrite the ID to ensure it's consistent
+				parsed, err := parse.WebApplicationFirewallPolicyID(*waf.ID)
+				if err != nil {
+					return nil, err
+				}
+
+				webApplicationFirewallPolicyLinkId = parsed.ID(subscriptionId)
 			}
 
 			flattenedHttpsConfig := flattenCustomHttpsConfiguration(props)
@@ -1306,77 +1309,101 @@ func flattenFrontEndEndpoints(input *[]frontdoor.FrontendEndpoint) (*[]interface
 	return &results, nil
 }
 
-func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel) []interface{} {
+func flattenArmFrontDoorHealthProbeSettingsModel(input *[]frontdoor.HealthProbeSettingsModel, frontDoorId parse.FrontDoorId, subscriptionId string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, v := range *input {
-		result := make(map[string]interface{})
-		if id := v.ID; id != nil {
-			result["id"] = *id
+		id := ""
+		name := ""
+		if v.Name != nil {
+			// rewrite the ID to ensure it's consistent
+			id = parse.NewHealthProbeID(frontDoorId, *v.Name).ID(subscriptionId)
+			name = *v.Name
 		}
-		if name := v.Name; name != nil {
-			result["name"] = *name
-		}
+
+		enabled := false
+		intervalInSeconds := 0
+		path := ""
+		probeMethod := ""
+		protocol := ""
 		if properties := v.HealthProbeSettingsProperties; properties != nil {
-			if intervalInSeconds := properties.IntervalInSeconds; intervalInSeconds != nil {
-				result["interval_in_seconds"] = *intervalInSeconds
+			if properties.IntervalInSeconds != nil {
+				intervalInSeconds = int(*properties.IntervalInSeconds)
 			}
-			if path := properties.Path; path != nil {
-				result["path"] = *path
+			if properties.Path != nil {
+				path = *properties.Path
 			}
 			if healthProbeMethod := properties.HealthProbeMethod; healthProbeMethod != "" {
-				// I have to upper this as the frontdoor.GET and frondoor.HEAD types are uppercased
+				// I have to upper this as the frontdoor.GET and frontdoor.HEAD types are uppercased
 				// but Azure stores them in the resource as pascal cased (e.g. "Get" and "Head")
-				result["probe_method"] = strings.ToUpper(string(healthProbeMethod))
+				probeMethod = strings.ToUpper(string(healthProbeMethod))
 			}
-			if enabled := properties.EnabledState; enabled != "" {
-				result["enabled"] = enabled == frontdoor.HealthProbeEnabledEnabled
+			if properties.EnabledState != "" {
+				enabled = properties.EnabledState == frontdoor.HealthProbeEnabledEnabled
 			}
-			result["protocol"] = string(properties.Protocol)
+			protocol = string(properties.Protocol)
 		}
 
-		results = append(results, result)
+		results = append(results, map[string]interface{}{
+			"enabled":             enabled,
+			"id":                  id,
+			"name":                name,
+			"protocol":            protocol,
+			"interval_in_seconds": intervalInSeconds,
+			"path":                path,
+			"probe_method":        probeMethod,
+		})
 	}
 
 	return results
 }
 
-func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel) []interface{} {
+func flattenArmFrontDoorLoadBalancingSettingsModel(input *[]frontdoor.LoadBalancingSettingsModel, frontDoorId parse.FrontDoorId, subscriptionId string) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, v := range *input {
-		result := make(map[string]interface{})
-		if id := v.ID; id != nil {
-			result["id"] = *id
+		id := ""
+		name := ""
+		if v.Name != nil {
+			// rewrite the ID to ensure it's consistent
+			id = parse.NewLoadBalancingID(frontDoorId, *v.Name).ID(subscriptionId)
+			name = *v.Name
 		}
-		if name := v.Name; name != nil {
-			result["name"] = *name
-		}
+
+		additionalLatencyMilliseconds := 0
+		sampleSize := 0
+		successfulSamplesRequired := 0
 		if properties := v.LoadBalancingSettingsProperties; properties != nil {
-			if additionalLatencyMilliseconds := properties.AdditionalLatencyMilliseconds; additionalLatencyMilliseconds != nil {
-				result["additional_latency_milliseconds"] = *additionalLatencyMilliseconds
+			if properties.AdditionalLatencyMilliseconds != nil {
+				additionalLatencyMilliseconds = int(*properties.AdditionalLatencyMilliseconds)
 			}
-			if sampleSize := properties.SampleSize; sampleSize != nil {
-				result["sample_size"] = *sampleSize
+			if properties.SampleSize != nil {
+				sampleSize = int(*properties.SampleSize)
 			}
-			if successfulSamplesRequired := properties.SuccessfulSamplesRequired; successfulSamplesRequired != nil {
-				result["successful_samples_required"] = *successfulSamplesRequired
+			if properties.SuccessfulSamplesRequired != nil {
+				successfulSamplesRequired = int(*properties.SuccessfulSamplesRequired)
 			}
 		}
 
-		results = append(results, result)
+		results = append(results, map[string]interface{}{
+			"additional_latency_milliseconds": additionalLatencyMilliseconds,
+			"id":                              id,
+			"name":                            name,
+			"sample_size":                     sampleSize,
+			"successful_samples_required":     successfulSamplesRequired,
+		})
 	}
 
 	return results
 }
 
-func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}) (*[]interface{}, error) {
+func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks interface{}, frontDoorId parse.FrontDoorId, subscriptionId string) (*[]interface{}, error) {
 	if input == nil {
 		return &[]interface{}{}, nil
 	}
@@ -1384,12 +1411,10 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 	output := make([]interface{}, 0)
 	for _, v := range *input {
 		id := ""
-		if v.ID != nil {
-			id = *v.ID
-		}
-
 		name := ""
 		if v.Name != nil {
+			// rewrite the ID to ensure it's consistent
+			id = parse.NewRoutingRuleID(frontDoorId, *v.Name).ID(subscriptionId)
 			name = *v.Name
 		}
 
@@ -1405,13 +1430,13 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule, oldBlocks in
 
 			forwardConfiguration, err := flattenRoutingRuleForwardingConfiguration(props.RouteConfiguration, oldBlocks)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("flattening `forward_configuration`: %+v", err)
 			}
 			forwardingConfiguration = *forwardConfiguration
 
 			frontendEndpoints, err := flattenArmFrontDoorFrontendEndpointsSubResources(props.FrontendEndpoints)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("flattening `frontend_endpoints`: %+v", err)
 			}
 			frontEndEndpoints = *frontendEndpoints
 
