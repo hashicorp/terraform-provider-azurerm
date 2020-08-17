@@ -43,7 +43,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.FrontendEndpointID,
 			},
 
 			"custom_https_provisioning_enabled": {
@@ -66,7 +66,7 @@ func resourceArmFrontDoorCustomHttpsConfiguration() *schema.Resource {
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
 			if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
-				id, err := parse.FrontendEndpointID(v.(string))
+				id, err := parse.FrontendEndpointIDForImport(v.(string))
 				if err != nil {
 					return err
 				}
@@ -134,6 +134,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationCreateUpdate(d *schema.Resource
 
 func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Frontdoor.FrontDoorsFrontendClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -153,7 +154,7 @@ func resourceArmFrontDoorCustomHttpsConfigurationRead(d *schema.ResourceData, me
 		return fmt.Errorf("reading Front Door Endpoint %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	d.Set("frontend_endpoint_id", resp.ID)
+	d.Set("frontend_endpoint_id", id.ID(subscriptionId))
 
 	flattenedHttpsConfig := flattenCustomHttpsConfiguration(resp.FrontendEndpointProperties)
 	if err := d.Set("custom_https_configuration", flattenedHttpsConfig.CustomHTTPSConfiguration); err != nil {

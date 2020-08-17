@@ -93,7 +93,7 @@ func FrontdoorCustomHttpsSettings(d *schema.ResourceDiff) error {
 
 		// Verify frontend endpoints custom https configuration is valid if defined
 		if err := verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig, frontendId); err != nil {
-			return fmt.Errorf(`%+v`, err)
+			return err
 		}
 	} else if customHttpsEnabled {
 		return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid because "custom_https_provisioning_enabled" is set to "true". please add a "custom_https_configuration" block to the configuration file`, frontendId)
