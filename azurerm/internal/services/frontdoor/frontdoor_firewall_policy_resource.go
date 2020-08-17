@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
@@ -50,7 +51,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				ValidateFunc: validate.FrontDoorWAFName,
 			},
 
-			"location": azure.SchemaLocationOptional(),
+			"location": location.SchemaComputed(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
