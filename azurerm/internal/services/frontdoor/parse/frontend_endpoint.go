@@ -32,10 +32,12 @@ func FrontendEndpointID(input string) (*FrontendEndpointId, error) {
 		FrontDoorName: frontDoorId.Name,
 	}
 
-	// TODO: handle this being case-insensitive
 	// https://github.com/Azure/azure-sdk-for-go/issues/6762
-	if endpointId.Name, err = id.PopSegment("frontendEndpoints"); err != nil {
-		return nil, err
+	// note: the ordering is important since the defined case (we want to error with) is frontendEndpoints
+	if endpointId.Name, err = id.PopSegment("FrontendEndpoints"); err != nil {
+		if endpointId.Name, err = id.PopSegment("frontendEndpoints"); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {

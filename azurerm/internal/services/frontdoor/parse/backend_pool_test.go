@@ -43,7 +43,7 @@ func TestBackendPoolIDParser(t *testing.T) {
 		},
 		{
 			// title case
-			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Frontdoors/frontDoor1/backendPools/pool1",
+			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Frontdoors/frontDoor1/BackendPools/pool1",
 			expected: &BackendPoolId{
 				ResourceGroup: "group1",
 				FrontDoorName: "frontDoor1",
@@ -52,12 +52,8 @@ func TestBackendPoolIDParser(t *testing.T) {
 		},
 		{
 			// pascal case
-			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/FrontDoors/frontDoor1/backendPools/pool1",
-			expected: &BackendPoolId{
-				ResourceGroup: "group1",
-				FrontDoorName: "frontDoor1",
-				Name:          "pool1",
-			},
+			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/FrontDoors/frontDoor1/Backendpools/pool1",
+			expected: nil,
 		},
 	}
 	for _, test := range testData {

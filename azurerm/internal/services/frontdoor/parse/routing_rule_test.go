@@ -6,55 +6,55 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = LoadBalancingId{}
+var _ resourceid.Formatter = RoutingRuleId{}
 
-func TestLoadBalancingIDFormatter(t *testing.T) {
+func TestRoutingRuleIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
 	frontDoorId := NewFrontDoorID("group1", "frontdoor1")
-	actual := NewLoadBalancingID(frontDoorId, "setting1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/loadBalancingSettings/setting1"
+	actual := NewRoutingRuleID(frontDoorId, "rule1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontdoor1/routingRules/rule1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestLoadBalancingIDParser(t *testing.T) {
+func TestRoutingRuleIDParser(t *testing.T) {
 	testData := []struct {
 		input    string
-		expected *LoadBalancingId
+		expected *RoutingRuleId
 	}{
 		{
 			// lower case
-			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontdoors/frontDoor1/loadbalancingsettings/setting1",
+			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontdoors/frontDoor1/routingrules/rule1",
 			expected: nil,
 		},
 		{
 			// camel case
-			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontDoor1/loadBalancingSettings/setting1",
-			expected: &LoadBalancingId{
+			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/frontDoors/frontDoor1/routingRules/rule1",
+			expected: &RoutingRuleId{
 				ResourceGroup: "group1",
 				FrontDoorName: "frontDoor1",
-				Name:          "setting1",
+				Name:          "rule1",
 			},
 		},
 		{
 			// title case
-			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Frontdoors/frontDoor1/LoadBalancingSettings/setting1",
-			expected: &LoadBalancingId{
+			input: "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/Frontdoors/frontDoor1/RoutingRules/rule1",
+			expected: &RoutingRuleId{
 				ResourceGroup: "group1",
 				FrontDoorName: "frontDoor1",
-				Name:          "setting1",
+				Name:          "rule1",
 			},
 		},
 		{
 			// pascal case
-			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/FrontDoors/frontDoor1/Loadbalancingsettings/setting1",
+			input:    "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/FrontDoors/frontDoor1/Routingrules/rule1",
 			expected: nil,
 		},
 	}
 	for _, test := range testData {
 		t.Logf("Testing %q..", test.input)
-		actual, err := LoadBalancingID(test.input)
+		actual, err := RoutingRuleID(test.input)
 		if err != nil && test.expected == nil {
 			continue
 		} else if err == nil && test.expected == nil {

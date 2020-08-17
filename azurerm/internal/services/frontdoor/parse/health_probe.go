@@ -32,10 +32,12 @@ func HealthProbeID(input string) (*HealthProbeId, error) {
 		FrontDoorName: frontDoorId.Name,
 	}
 
-	// TODO: handle this being case-insensitive
 	// https://github.com/Azure/azure-sdk-for-go/issues/6762
-	if probeId.Name, err = id.PopSegment("healthProbeSettings"); err != nil {
-		return nil, err
+	// note: the ordering is important since the defined case (we want to error with) is healthProbeSettings
+	if probeId.Name, err = id.PopSegment("HealthProbeSettings"); err != nil {
+		if probeId.Name, err = id.PopSegment("healthProbeSettings"); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {

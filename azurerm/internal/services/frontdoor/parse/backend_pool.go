@@ -33,9 +33,12 @@ func BackendPoolID(input string) (*BackendPoolId, error) {
 	}
 
 	// API is broken - https://github.com/Azure/azure-sdk-for-go/issues/6762
-	if poolId.Name, err = id.PopSegment("backendPools"); err != nil {
-		if poolId.Name, err = id.PopSegment("backendpools"); err != nil {
-			return nil, err
+	// note: the ordering is important since the defined case (we want to error with) is backendPools
+	if poolId.Name, err = id.PopSegment("backendpools"); err != nil {
+		if poolId.Name, err = id.PopSegment("BackendPools"); err != nil {
+			if poolId.Name, err = id.PopSegment("backendPools"); err != nil {
+				return nil, err
+			}
 		}
 	}
 

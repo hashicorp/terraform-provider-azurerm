@@ -32,10 +32,12 @@ func LoadBalancingID(input string) (*LoadBalancingId, error) {
 		FrontDoorName: frontDoorId.Name,
 	}
 
-	// TODO: handle this being case-insensitive
 	// https://github.com/Azure/azure-sdk-for-go/issues/6762
-	if loadBalancingId.Name, err = id.PopSegment("loadBalancingSettings"); err != nil {
-		return nil, err
+	// note: the ordering is important since the defined case (we want to error with) is loadBalancingSettings
+	if loadBalancingId.Name, err = id.PopSegment("LoadBalancingSettings"); err != nil {
+		if loadBalancingId.Name, err = id.PopSegment("loadBalancingSettings"); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
