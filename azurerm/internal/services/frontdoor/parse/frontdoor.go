@@ -32,6 +32,27 @@ func FrontDoorID(input string) (*FrontDoorId, error) {
 	return frontDoorId, nil
 }
 
+func FrontDoorIDForImport(input string) (*FrontDoorId, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, fmt.Errorf("[ERROR] Unable to parse FrontDoor ID %q: %+v", input, err)
+	}
+
+	frontDoorId := FrontDoorId{
+		ResourceGroup: id.ResourceGroup,
+	}
+
+	if frontDoorId.Name, err = id.PopSegment("frontDoors"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &frontDoorId, nil
+}
+
 func (id FrontDoorId) ID(subscriptionId string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/frontDoors/%s", subscriptionId, id.ResourceGroup, id.Name)
 }

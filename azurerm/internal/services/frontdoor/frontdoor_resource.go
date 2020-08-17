@@ -32,7 +32,7 @@ func resourceArmFrontDoor() *schema.Resource {
 		Delete: resourceArmFrontDoorDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.FrontDoorID(id)
+			_, err := parse.FrontDoorIDForImport(id)
 			return err
 		}),
 
