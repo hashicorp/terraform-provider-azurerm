@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2017-08-01-preview/securityinsight"
+	"github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2019-01-01-preview/securityinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -18,6 +18,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+const OperationInsightsRPName = "Microsoft.OperationalInsights"
 
 func resourceArmSentinelAlertRuleAction() *schema.Resource {
 	return &schema.Resource{
@@ -85,7 +87,7 @@ func resourceArmSentinelAlertRuleActionCreate(d *schema.ResourceData, meta inter
 	}
 
 	// Ensure no existed resources
-	resp, err := client.GetAction(ctx, ruleID.ResourceGroup, ruleID.Workspace, ruleID.Name, name)
+	resp, err := client.GetAction(ctx, ruleID.ResourceGroup, OperationInsightsRPName, ruleID.Workspace, ruleID.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("checking for existing Sentinel Alert Rule Action %q (Resource Group %q / Workspace %q / Rule %q): %+v", name, ruleID.ResourceGroup, ruleID.Workspace, ruleID.Name, err)
@@ -110,11 +112,11 @@ func resourceArmSentinelAlertRuleActionCreate(d *schema.ResourceData, meta inter
 		},
 	}
 
-	if _, err := client.CreateOrUpdateAction(ctx, ruleID.ResourceGroup, ruleID.Workspace, ruleID.Name, name, param); err != nil {
+	if _, err := client.CreateOrUpdateAction(ctx, ruleID.ResourceGroup, OperationInsightsRPName, ruleID.Workspace, ruleID.Name, name, param); err != nil {
 		return fmt.Errorf("creating Sentinel Alert Rule Action %q (Resource Group %q / Workspace %q / Rule %q): %+v", name, ruleID.ResourceGroup, ruleID.Workspace, ruleID.Name, err)
 	}
 
-	resp, err = client.GetAction(ctx, ruleID.ResourceGroup, ruleID.Workspace, ruleID.Name, name)
+	resp, err = client.GetAction(ctx, ruleID.ResourceGroup, OperationInsightsRPName, ruleID.Workspace, ruleID.Name, name)
 	if err != nil {
 		return fmt.Errorf("retrieving Sentinel Alert Rule Action %q (Resource Group %q / Workspace %q / Rule %q): %+v", name, ruleID.ResourceGroup, ruleID.Workspace, ruleID.Name, err)
 	}
@@ -136,7 +138,7 @@ func resourceArmSentinelAlertRuleActionRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	resp, err := client.GetAction(ctx, id.ResourceGroup, id.Workspace, id.Rule, id.Name)
+	resp, err := client.GetAction(ctx, id.ResourceGroup, OperationInsightsRPName, id.Workspace, id.Rule, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[DEBUG] Sentinel Alert Rule Action %q was not found in Rule %q in Workspace %q in Resource Group %q - removing from state!", id.Name, id.Rule, id.Workspace, id.ResourceGroup)
@@ -169,7 +171,7 @@ func resourceArmSentinelAlertRuleActionDelete(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	if _, err := client.DeleteAction(ctx, id.ResourceGroup, id.Workspace, id.Rule, id.Name); err != nil {
+	if _, err := client.DeleteAction(ctx, id.ResourceGroup, OperationInsightsRPName, id.Workspace, id.Rule, id.Name); err != nil {
 		return fmt.Errorf("deleting Sentinel Alert Rule Action %q (Resource Group %q / Workspace %q / Rule %q): %+v", id.Name, id.ResourceGroup, id.Workspace, id.Rule, err)
 	}
 

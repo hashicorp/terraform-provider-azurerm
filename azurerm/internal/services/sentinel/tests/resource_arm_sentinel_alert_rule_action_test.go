@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sentinel/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -65,7 +66,7 @@ func testCheckAzureRMSentinelAlertRuleActionExists(resourceName string) resource
 			return err
 		}
 
-		if resp, err := client.GetAction(ctx, id.ResourceGroup, id.Workspace, id.Rule, id.Name); err != nil {
+		if resp, err := client.GetAction(ctx, id.ResourceGroup, sentinel.OperationInsightsRPName, id.Workspace, id.Rule, id.Name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Sentinel Alert Rule Action %q (Resource Group %q / Workspace: %q / Alert Rule: %q) does not exist", id.Name, id.ResourceGroup, id.Workspace, id.Rule)
 			}
@@ -90,7 +91,7 @@ func testCheckAzureRMSentinelAlertRuleActionDestroy(s *terraform.State) error {
 			return err
 		}
 
-		if resp, err := client.GetAction(ctx, id.ResourceGroup, id.Workspace, id.Rule, id.Name); err != nil {
+		if resp, err := client.GetAction(ctx, id.ResourceGroup, sentinel.OperationInsightsRPName, id.Workspace, id.Rule, id.Name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Getting on Sentinel.AlertRules: %+v", err)
 			}
