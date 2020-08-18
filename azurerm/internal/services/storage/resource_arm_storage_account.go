@@ -1103,7 +1103,12 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.PublicCloud.Name {
 			d.Set("min_tls_version", string(storage.TLS10))
 		} else {
-			d.Set("min_tls_version", string(props.MinimumTLSVersion))
+			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
+			minTlsVersion := string(storage.TLS10)
+			if props.MinimumTLSVersion != "" {
+				minTlsVersion = string(props.MinimumTLSVersion)
+			}
+			d.Set("min_tls_version", minTlsVersion)
 		}
 
 		if customDomain := props.CustomDomain; customDomain != nil {
