@@ -47,14 +47,14 @@ func (metadata virtualMachineScaleSetUpdateMetaData) performUpdate(ctx context.C
 		upgradeMode := metadata.Existing.VirtualMachineScaleSetProperties.UpgradePolicy.Mode
 
 		if userWantsToRollInstances {
-			if upgradeMode == compute.Automatic {
+			if upgradeMode == compute.UpgradeModeAutomatic {
 				if err := metadata.upgradeInstancesForAutomaticUpgradePolicy(ctx); err != nil {
 					return err
 				}
 			}
 		}
 
-		if upgradeMode == compute.Manual {
+		if upgradeMode == compute.UpgradeModeManual {
 			if err := metadata.upgradeInstancesForManualUpgradePolicy(ctx); err != nil {
 				return err
 			}

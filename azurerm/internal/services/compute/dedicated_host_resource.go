@@ -172,7 +172,7 @@ func resourceArmDedicatedHostRead(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	group, err := groupsClient.Get(ctx, id.ResourceGroup, id.HostGroup)
+	group, err := groupsClient.Get(ctx, id.ResourceGroup, id.HostGroup, compute.InstanceView)
 	if err != nil {
 		if utils.ResponseWasNotFound(group.Response) {
 			log.Printf("[INFO] Parent Dedicated Host Group %q does not exist - removing from state", d.Id())
