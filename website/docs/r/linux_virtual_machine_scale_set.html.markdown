@@ -144,6 +144,8 @@ The following arguments are supported:
 
 * `do_not_run_extensions_on_overprovisioned_machines` - (Optional) Should Virtual Machine Extensions be run on Overprovisioned Virtual Machines in the Scale Set? Defaults to `false`.
 
+* `encryption_at_host` - (Optional) Should Azure encrypt the data stored on the VM host at rest and flows encrypted to the Storage service.
+
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.

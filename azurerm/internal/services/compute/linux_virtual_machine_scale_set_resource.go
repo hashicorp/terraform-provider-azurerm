@@ -126,6 +126,11 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Default:  false,
 			},
 
+			"encryption_at_host": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     schema.TypeString,
@@ -250,11 +255,6 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			"unique_id": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"encryption_at_host": {
-				Type:     schema.TypeBool,
-				Optional: true,
 			},
 		},
 	}

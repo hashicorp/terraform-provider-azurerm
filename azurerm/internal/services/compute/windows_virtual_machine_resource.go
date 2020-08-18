@@ -153,6 +153,11 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Default:  true,
 			},
 
+			"encryption_at_host": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     schema.TypeString,
@@ -287,11 +292,6 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 			"virtual_machine_id": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"encryption_at_host": {
-				Type:     schema.TypeBool,
-				Optional: true,
 			},
 		},
 	}
