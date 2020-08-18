@@ -631,6 +631,7 @@ resource "azurerm_cosmosdb_account" "test" {
   geo_location {
     location          = "%[5]s"
     failover_priority = 1
+	is_zone_redundant = true
   }
 
   geo_location {
