@@ -53,10 +53,12 @@ func TestFrontDoorV1ToV2(t *testing.T) {
 		result, err := FrontDoorV1ToV2(test.input, nil)
 		if err != nil && test.expected == nil {
 			continue
-		} else if err == nil && test.expected == nil {
-			t.Fatalf("Expected an error but didn't get one")
-		} else if err != nil && test.expected != nil {
-			t.Fatalf("Expected no error but got: %+v", err)
+		} else {
+			if err == nil && test.expected == nil {
+				t.Fatalf("Expected an error but didn't get one")
+			} else if err != nil && test.expected != nil {
+				t.Fatalf("Expected no error but got: %+v", err)
+			}
 		}
 
 		actualId := result["id"].(string)

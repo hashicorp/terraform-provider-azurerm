@@ -60,10 +60,12 @@ func TestFrontDoorIDParser(t *testing.T) {
 		actual, err := FrontDoorID(test.input)
 		if err != nil && test.expected == nil {
 			continue
-		} else if err == nil && test.expected == nil {
-			t.Fatalf("Expected an error but didn't get one")
-		} else if err != nil && test.expected != nil {
-			t.Fatalf("Expected no error but got: %+v", err)
+		} else {
+			if err == nil && test.expected == nil {
+				t.Fatalf("Expected an error but didn't get one")
+			} else if err != nil && test.expected != nil {
+				t.Fatalf("Expected no error but got: %+v", err)
+			}
 		}
 
 		if actual.ResourceGroup != test.expected.ResourceGroup {
@@ -110,10 +112,12 @@ func TestFrontDoorIDForImportParser(t *testing.T) {
 		actual, err := FrontDoorIDForImport(test.input)
 		if err != nil && test.expected == nil {
 			continue
-		} else if err == nil && test.expected == nil {
-			t.Fatalf("Expected an error but didn't get one")
-		} else if err != nil && test.expected != nil {
-			t.Fatalf("Expected no error but got: %+v", err)
+		} else {
+			if err == nil && test.expected == nil {
+				t.Fatalf("Expected an error but didn't get one")
+			} else if err != nil && test.expected != nil {
+				t.Fatalf("Expected no error but got: %+v", err)
+			}
 		}
 
 		if actual.ResourceGroup != test.expected.ResourceGroup {
