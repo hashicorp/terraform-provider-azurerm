@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
 
 // ContainerGroupIPAddressType enumerates the values for container group ip address type.
 type ContainerGroupIPAddressType string
@@ -76,6 +76,21 @@ const (
 // PossibleContainerGroupRestartPolicyValues returns an array of possible values for the ContainerGroupRestartPolicy const type.
 func PossibleContainerGroupRestartPolicyValues() []ContainerGroupRestartPolicy {
 	return []ContainerGroupRestartPolicy{Always, Never, OnFailure}
+}
+
+// ContainerGroupSku enumerates the values for container group sku.
+type ContainerGroupSku string
+
+const (
+	// Dedicated ...
+	Dedicated ContainerGroupSku = "Dedicated"
+	// Standard ...
+	Standard ContainerGroupSku = "Standard"
+)
+
+// PossibleContainerGroupSkuValues returns an array of possible values for the ContainerGroupSku const type.
+func PossibleContainerGroupSkuValues() []ContainerGroupSku {
+	return []ContainerGroupSku{Dedicated, Standard}
 }
 
 // ContainerNetworkProtocol enumerates the values for container network protocol.
@@ -203,8 +218,6 @@ type AzureFileVolume struct {
 
 // CachedImages the cached image and OS type.
 type CachedImages struct {
-	// ID - The resource Id of the cached image.
-	ID *string `json:"id,omitempty"`
 	// OsType - The OS type of the cached image.
 	OsType *string `json:"osType,omitempty"`
 	// Image - The cached image name.
@@ -218,6 +231,143 @@ type CachedImagesListResult struct {
 	Value *[]CachedImages `json:"value,omitempty"`
 	// NextLink - The URI to fetch the next page of cached images.
 	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// CachedImagesListResultIterator provides access to a complete listing of CachedImages values.
+type CachedImagesListResultIterator struct {
+	i    int
+	page CachedImagesListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *CachedImagesListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CachedImagesListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *CachedImagesListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter CachedImagesListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter CachedImagesListResultIterator) Response() CachedImagesListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter CachedImagesListResultIterator) Value() CachedImages {
+	if !iter.page.NotDone() {
+		return CachedImages{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the CachedImagesListResultIterator type.
+func NewCachedImagesListResultIterator(page CachedImagesListResultPage) CachedImagesListResultIterator {
+	return CachedImagesListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (cilr CachedImagesListResult) IsEmpty() bool {
+	return cilr.Value == nil || len(*cilr.Value) == 0
+}
+
+// cachedImagesListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (cilr CachedImagesListResult) cachedImagesListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if cilr.NextLink == nil || len(to.String(cilr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(cilr.NextLink)))
+}
+
+// CachedImagesListResultPage contains a page of CachedImages values.
+type CachedImagesListResultPage struct {
+	fn   func(context.Context, CachedImagesListResult) (CachedImagesListResult, error)
+	cilr CachedImagesListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *CachedImagesListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CachedImagesListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.cilr)
+	if err != nil {
+		return err
+	}
+	page.cilr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *CachedImagesListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page CachedImagesListResultPage) NotDone() bool {
+	return !page.cilr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page CachedImagesListResultPage) Response() CachedImagesListResult {
+	return page.cilr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page CachedImagesListResultPage) Values() []CachedImages {
+	if page.cilr.IsEmpty() {
+		return nil
+	}
+	return *page.cilr.Value
+}
+
+// Creates a new instance of the CachedImagesListResultPage type.
+func NewCachedImagesListResultPage(getNextPage func(context.Context, CachedImagesListResult) (CachedImagesListResult, error)) CachedImagesListResultPage {
+	return CachedImagesListResultPage{fn: getNextPage}
 }
 
 // Capabilities the regional capabilities.
@@ -255,12 +405,149 @@ type CapabilitiesListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// CloudError an error response from the Batch service.
+// CapabilitiesListResultIterator provides access to a complete listing of Capabilities values.
+type CapabilitiesListResultIterator struct {
+	i    int
+	page CapabilitiesListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *CapabilitiesListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CapabilitiesListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *CapabilitiesListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter CapabilitiesListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter CapabilitiesListResultIterator) Response() CapabilitiesListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter CapabilitiesListResultIterator) Value() Capabilities {
+	if !iter.page.NotDone() {
+		return Capabilities{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the CapabilitiesListResultIterator type.
+func NewCapabilitiesListResultIterator(page CapabilitiesListResultPage) CapabilitiesListResultIterator {
+	return CapabilitiesListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (clr CapabilitiesListResult) IsEmpty() bool {
+	return clr.Value == nil || len(*clr.Value) == 0
+}
+
+// capabilitiesListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (clr CapabilitiesListResult) capabilitiesListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if clr.NextLink == nil || len(to.String(clr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(clr.NextLink)))
+}
+
+// CapabilitiesListResultPage contains a page of Capabilities values.
+type CapabilitiesListResultPage struct {
+	fn  func(context.Context, CapabilitiesListResult) (CapabilitiesListResult, error)
+	clr CapabilitiesListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *CapabilitiesListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/CapabilitiesListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.clr)
+	if err != nil {
+		return err
+	}
+	page.clr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *CapabilitiesListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page CapabilitiesListResultPage) NotDone() bool {
+	return !page.clr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page CapabilitiesListResultPage) Response() CapabilitiesListResult {
+	return page.clr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page CapabilitiesListResultPage) Values() []Capabilities {
+	if page.clr.IsEmpty() {
+		return nil
+	}
+	return *page.clr.Value
+}
+
+// Creates a new instance of the CapabilitiesListResultPage type.
+func NewCapabilitiesListResultPage(getNextPage func(context.Context, CapabilitiesListResult) (CapabilitiesListResult, error)) CapabilitiesListResultPage {
+	return CapabilitiesListResultPage{fn: getNextPage}
+}
+
+// CloudError an error response from the Container Instance service.
 type CloudError struct {
 	Error *CloudErrorBody `json:"error,omitempty"`
 }
 
-// CloudErrorBody an error response from the Batch service.
+// CloudErrorBody an error response from the Container Instance service.
 type CloudErrorBody struct {
 	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
 	Code *string `json:"code,omitempty"`
@@ -360,7 +647,8 @@ type ContainerExecResponse struct {
 type ContainerGroup struct {
 	autorest.Response `json:"-"`
 	// Identity - The identity of the container group, if configured.
-	Identity                  *ContainerGroupIdentity `json:"identity,omitempty"`
+	Identity *ContainerGroupIdentity `json:"identity,omitempty"`
+	// ContainerGroupProperties - The container group properties
 	*ContainerGroupProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; The resource id.
 	ID *string `json:"id,omitempty"`
@@ -660,7 +948,7 @@ type ContainerGroupNetworkProfile struct {
 	ID *string `json:"id,omitempty"`
 }
 
-// ContainerGroupProperties ...
+// ContainerGroupProperties the container group properties
 type ContainerGroupProperties struct {
 	// ProvisioningState - READ-ONLY; The provisioning state of the container group. This only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
@@ -688,6 +976,12 @@ type ContainerGroupProperties struct {
 	NetworkProfile *ContainerGroupNetworkProfile `json:"networkProfile,omitempty"`
 	// DNSConfig - The DNS config information for a container group.
 	DNSConfig *DNSConfiguration `json:"dnsConfig,omitempty"`
+	// Sku - The SKU for a container group. Possible values include: 'Standard', 'Dedicated'
+	Sku ContainerGroupSku `json:"sku,omitempty"`
+	// EncryptionProperties - The encryption properties for a container group.
+	EncryptionProperties *EncryptionProperties `json:"encryptionProperties,omitempty"`
+	// InitContainers - The init containers for a container group.
+	InitContainers *[]InitContainerDefinition `json:"initContainers,omitempty"`
 }
 
 // ContainerGroupPropertiesInstanceView the instance view of the container group. Only valid in response.
@@ -722,6 +1016,35 @@ func (future *ContainerGroupsCreateOrUpdateFuture) Result(client ContainerGroups
 		cg, err = client.CreateOrUpdateResponder(cg.Response.Response)
 		if err != nil {
 			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsCreateOrUpdateFuture", "Result", cg.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// ContainerGroupsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type ContainerGroupsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ContainerGroupsDeleteFuture) Result(client ContainerGroupsClient) (cg ContainerGroup, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("containerinstance.ContainerGroupsDeleteFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if cg.Response.Response, err = future.GetResult(sender); err == nil && cg.Response.Response.StatusCode != http.StatusNoContent {
+		cg, err = client.DeleteResponder(cg.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "containerinstance.ContainerGroupsDeleteFuture", "Result", cg.Response.Response, "Failure responding to request")
 		}
 	}
 	return
@@ -845,15 +1168,15 @@ type ContainerPropertiesInstanceView struct {
 
 // ContainerState the container instance state.
 type ContainerState struct {
-	// State - The state of the container instance.
+	// State - READ-ONLY; The state of the container instance.
 	State *string `json:"state,omitempty"`
-	// StartTime - The date-time when the container instance state started.
+	// StartTime - READ-ONLY; The date-time when the container instance state started.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// ExitCode - The container instance exit codes correspond to those from the `docker run` command.
+	// ExitCode - READ-ONLY; The container instance exit codes correspond to those from the `docker run` command.
 	ExitCode *int32 `json:"exitCode,omitempty"`
-	// FinishTime - The date-time when the container instance state finished.
+	// FinishTime - READ-ONLY; The date-time when the container instance state finished.
 	FinishTime *date.Time `json:"finishTime,omitempty"`
-	// DetailStatus - The human-readable status of the container instance state.
+	// DetailStatus - READ-ONLY; The human-readable status of the container instance state.
 	DetailStatus *string `json:"detailStatus,omitempty"`
 }
 
@@ -865,6 +1188,16 @@ type DNSConfiguration struct {
 	SearchDomains *string `json:"searchDomains,omitempty"`
 	// Options - The DNS options for the container group.
 	Options *string `json:"options,omitempty"`
+}
+
+// EncryptionProperties the container group encryption properties.
+type EncryptionProperties struct {
+	// VaultBaseURL - The keyvault base url.
+	VaultBaseURL *string `json:"vaultBaseUrl,omitempty"`
+	// KeyName - The encryption key name.
+	KeyName *string `json:"keyName,omitempty"`
+	// KeyVersion - The encryption key version.
+	KeyVersion *string `json:"keyVersion,omitempty"`
 }
 
 // EnvironmentVariable the environment variable to set within the container instance.
@@ -879,17 +1212,17 @@ type EnvironmentVariable struct {
 
 // Event a container group or container instance event.
 type Event struct {
-	// Count - The count of the event.
+	// Count - READ-ONLY; The count of the event.
 	Count *int32 `json:"count,omitempty"`
-	// FirstTimestamp - The date-time of the earliest logged event.
+	// FirstTimestamp - READ-ONLY; The date-time of the earliest logged event.
 	FirstTimestamp *date.Time `json:"firstTimestamp,omitempty"`
-	// LastTimestamp - The date-time of the latest logged event.
+	// LastTimestamp - READ-ONLY; The date-time of the latest logged event.
 	LastTimestamp *date.Time `json:"lastTimestamp,omitempty"`
-	// Name - The event name.
+	// Name - READ-ONLY; The event name.
 	Name *string `json:"name,omitempty"`
-	// Message - The event message.
+	// Message - READ-ONLY; The event message.
 	Message *string `json:"message,omitempty"`
-	// Type - The event type.
+	// Type - READ-ONLY; The event type.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -919,6 +1252,86 @@ type ImageRegistryCredential struct {
 	Username *string `json:"username,omitempty"`
 	// Password - The password for the private registry.
 	Password *string `json:"password,omitempty"`
+}
+
+// InitContainerDefinition the init container definition.
+type InitContainerDefinition struct {
+	// Name - The name for the init container.
+	Name *string `json:"name,omitempty"`
+	// InitContainerPropertiesDefinition - The properties for the init container.
+	*InitContainerPropertiesDefinition `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for InitContainerDefinition.
+func (icd InitContainerDefinition) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if icd.Name != nil {
+		objectMap["name"] = icd.Name
+	}
+	if icd.InitContainerPropertiesDefinition != nil {
+		objectMap["properties"] = icd.InitContainerPropertiesDefinition
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for InitContainerDefinition struct.
+func (icd *InitContainerDefinition) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				icd.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var initContainerPropertiesDefinition InitContainerPropertiesDefinition
+				err = json.Unmarshal(*v, &initContainerPropertiesDefinition)
+				if err != nil {
+					return err
+				}
+				icd.InitContainerPropertiesDefinition = &initContainerPropertiesDefinition
+			}
+		}
+	}
+
+	return nil
+}
+
+// InitContainerPropertiesDefinition the init container definition properties.
+type InitContainerPropertiesDefinition struct {
+	// Image - The image of the init container.
+	Image *string `json:"image,omitempty"`
+	// Command - The command to execute within the init container in exec form.
+	Command *[]string `json:"command,omitempty"`
+	// EnvironmentVariables - The environment variables to set in the init container.
+	EnvironmentVariables *[]EnvironmentVariable `json:"environmentVariables,omitempty"`
+	// InstanceView - READ-ONLY; The instance view of the init container. Only valid in response.
+	InstanceView *InitContainerPropertiesDefinitionInstanceView `json:"instanceView,omitempty"`
+	// VolumeMounts - The volume mounts available to the init container.
+	VolumeMounts *[]VolumeMount `json:"volumeMounts,omitempty"`
+}
+
+// InitContainerPropertiesDefinitionInstanceView the instance view of the init container. Only valid in
+// response.
+type InitContainerPropertiesDefinitionInstanceView struct {
+	// RestartCount - READ-ONLY; The number of times that the init container has been restarted.
+	RestartCount *int32 `json:"restartCount,omitempty"`
+	// CurrentState - READ-ONLY; The current state of the init container.
+	CurrentState *ContainerState `json:"currentState,omitempty"`
+	// PreviousState - READ-ONLY; The previous state of the init container.
+	PreviousState *ContainerState `json:"previousState,omitempty"`
+	// Events - READ-ONLY; The events of the init container.
+	Events *[]Event `json:"events,omitempty"`
 }
 
 // IPAddress IP address for the container group.
@@ -1006,6 +1419,143 @@ type OperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// OperationListResultIterator provides access to a complete listing of Operation values.
+type OperationListResultIterator struct {
+	i    int
+	page OperationListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *OperationListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *OperationListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter OperationListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter OperationListResultIterator) Response() OperationListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter OperationListResultIterator) Value() Operation {
+	if !iter.page.NotDone() {
+		return Operation{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the OperationListResultIterator type.
+func NewOperationListResultIterator(page OperationListResultPage) OperationListResultIterator {
+	return OperationListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (olr OperationListResult) IsEmpty() bool {
+	return olr.Value == nil || len(*olr.Value) == 0
+}
+
+// operationListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(olr.NextLink)))
+}
+
+// OperationListResultPage contains a page of Operation values.
+type OperationListResultPage struct {
+	fn  func(context.Context, OperationListResult) (OperationListResult, error)
+	olr OperationListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.olr)
+	if err != nil {
+		return err
+	}
+	page.olr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *OperationListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page OperationListResultPage) NotDone() bool {
+	return !page.olr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page OperationListResultPage) Response() OperationListResult {
+	return page.olr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page OperationListResultPage) Values() []Operation {
+	if page.olr.IsEmpty() {
+		return nil
+	}
+	return *page.olr.Value
+}
+
+// Creates a new instance of the OperationListResultPage type.
+func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{fn: getNextPage}
+}
+
 // Port the port exposed on the container group.
 type Port struct {
 	// Protocol - The protocol associated with the port. Possible values include: 'TCP', 'UDP'
@@ -1083,7 +1633,7 @@ type Usage struct {
 // UsageListResult the response containing the usage data
 type UsageListResult struct {
 	autorest.Response `json:"-"`
-	// Value - READ-ONLY
+	// Value - READ-ONLY; The usage data.
 	Value *[]Usage `json:"value,omitempty"`
 }
 
