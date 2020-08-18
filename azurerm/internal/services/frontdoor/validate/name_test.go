@@ -16,7 +16,7 @@ func TestAccAzureRMFrontDoorFirewallPolicy_validateName(t *testing.T) {
 			ExpectError: true,
 		},
 		{
-			Name:        "Starst with Numeric",
+			Name:        "Starts with Numeric",
 			Input:       "1WellThisIsAllWrong",
 			ExpectError: true,
 		},

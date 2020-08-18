@@ -22,8 +22,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// TODO: a state migration to patch the ID's
-
 func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmFrontDoorFirewallPolicyCreateUpdate,

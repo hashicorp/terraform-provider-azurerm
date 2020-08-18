@@ -22,7 +22,7 @@ func NewFrontDoorID(resourceGroup, name string) FrontDoorId {
 func FrontDoorID(input string) (*FrontDoorId, error) {
 	frontDoorId, id, err := parseFrontDoorChildResourceId(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse FrontDoor ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing FrontDoor ID %q: %+v", input, err)
 	}
 
 	if err := id.ValidateNoEmptySegments(input); err != nil {
@@ -35,7 +35,7 @@ func FrontDoorID(input string) (*FrontDoorId, error) {
 func FrontDoorIDForImport(input string) (*FrontDoorId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse FrontDoor ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing FrontDoor ID %q: %+v", input, err)
 	}
 
 	frontDoorId := FrontDoorId{
