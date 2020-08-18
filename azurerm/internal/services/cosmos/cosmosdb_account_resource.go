@@ -893,6 +893,7 @@ func flattenAzureRmCosmosDBAccountGeoLocations(account *documentdb.DatabaseAccou
 			"id":                id,
 			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
+			// there is not zone redundancy information in the FailoverPolicies currently, we have to search it by `id` in the Locations property.
 			"is_zone_redundant": findZoneRedundant(account.Locations, id),
 		}
 
