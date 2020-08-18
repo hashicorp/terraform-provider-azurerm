@@ -13,6 +13,7 @@ type VirtualMachineFeatures struct {
 
 type VirtualMachineScaleSetFeatures struct {
 	RollInstancesWhenRequired bool
+	UseExtensionsBeta bool
 }
 
 type KeyVaultFeatures struct {
