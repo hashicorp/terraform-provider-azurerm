@@ -2,14 +2,14 @@
 
 IMPROVEMENTS:
 
+* dependencies: update `containerinstance` to API version `2019-12-01` [GH-8110]
 * `azurerm_api_management_api` - now supports `oauth2_authorization` and `openid_authentication` [GH-7617]
 
 BUG FIXES:
 
-* `azurerm_storage_account` - switch logic to be if not public cloud instead of if us government cloud [GH-8148]
+* `azurerm_storage_account` - only sending `allow_blob_public_access` and `min_tls_version` in Azure Public since these are currently not supported in other regions [GH-8148]
 
 ## 2.23.0 (August 13, 2020)
-
 
 FEATURES:
 
