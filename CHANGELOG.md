@@ -7,6 +7,13 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_lb` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
+* `azurerm_lb_backend_address_pool` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
+* `azurerm_lb_nat_pool` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
+* `azurerm_lb_nat_rule` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
+* `azurerm_lb_probe` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
+* `azurerm_lb_outbound_rule` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
+* `azurerm_lb_rule` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
 * `azurerm_storage_account` - only sending `allow_blob_public_access` and `min_tls_version` in Azure Public since these are currently not supported in other regions [GH-8148]
 
 ## 2.23.0 (August 13, 2020)
