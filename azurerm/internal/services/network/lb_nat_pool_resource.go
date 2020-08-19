@@ -28,9 +28,16 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 		Read:   resourceArmLoadBalancerNatPoolRead,
 		Update: resourceArmLoadBalancerNatPoolCreateUpdate,
 		Delete: resourceArmLoadBalancerNatPoolDelete,
-		Importer: &schema.ResourceImporter{
-			State: loadBalancerSubResourceStateImporter,
-		},
+
+		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
+			id, err := parse.LoadBalancerInboundNATPoolID(input)
+			if err != nil {
+				return nil, err
+			}
+
+			lbId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+			return &lbId, nil
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

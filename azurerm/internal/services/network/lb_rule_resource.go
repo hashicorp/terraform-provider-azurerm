@@ -29,9 +29,15 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 		Update: resourceArmLoadBalancerRuleCreateUpdate,
 		Delete: resourceArmLoadBalancerRuleDelete,
 
-		Importer: &schema.ResourceImporter{
-			State: loadBalancerSubResourceStateImporter,
-		},
+		Importer: loadBalancerSubResourceImporter(func(input string) (*parse.LoadBalancerId, error) {
+			id, err := parse.LoadBalancerRuleID(input)
+			if err != nil {
+				return nil, err
+			}
+
+			lbId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+			return &lbId, nil
+		}),
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

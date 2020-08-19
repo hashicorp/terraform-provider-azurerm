@@ -3,12 +3,10 @@ package network
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -125,20 +123,17 @@ func FindLoadBalancerProbeByName(lb *network.LoadBalancer, name string) (*networ
 	return nil, -1, false
 }
 
-// sets the loadbalancer_id in the ResourceData from the sub resources full id
-func loadBalancerSubResourceStateImporter(d *schema.ResourceData, _ interface{}) ([]*schema.ResourceData, error) {
-	r := regexp.MustCompile(`.+/loadBalancers/.+?/`)
+func loadBalancerSubResourceImporter(parser func(input string) (*parse.LoadBalancerId, error)) *schema.ResourceImporter {
+	return &schema.ResourceImporter{
+		State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			lbId, err := parser(d.Id())
+			if err != nil {
+				return nil, err
+			}
 
-	lbID := strings.TrimSuffix(r.FindString(d.Id()), "/")
-	parsed, err := azure.ParseAzureResourceID(lbID)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse loadbalancer id from %s", d.Id())
+			d.Set("loadbalancer_id", lbId.ID(subscriptionId))
+			return []*schema.ResourceData{d}, nil
+		},
 	}
-
-	if parsed.Path["loadBalancers"] == "" {
-		return nil, fmt.Errorf("parsed ID is invalid")
-	}
-
-	d.Set("loadbalancer_id", lbID)
-	return []*schema.ResourceData{d}, nil
 }
