@@ -267,7 +267,7 @@ func testCheckAzureRMFrontDoorDestroy(s *terraform.State) error {
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_front_door" {
+		if rs.Type != "azurerm_frontdoor" {
 			continue
 		}
 
