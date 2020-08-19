@@ -87,72 +87,6 @@ func resourceArmAttestation() *schema.Resource {
 										ForceNew: true,
 									},
 
-									"crv": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"d": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"dp": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"dq": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"e": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"k": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"n": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"p": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"q": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"qi": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"x": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
 									"x5c": {
 										Type:     schema.TypeSet,
 										Optional: true,
@@ -160,12 +94,6 @@ func resourceArmAttestation() *schema.Resource {
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
-									},
-
-									"y": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
 									},
 								},
 							},
@@ -324,22 +252,10 @@ func expandArmAttestationProviderJSONWebKeyArray(input []interface{}) *[]attesta
 		v := item.(map[string]interface{})
 		result := attestation.JSONWebKey{
 			Alg: utils.String(v["alg"].(string)),
-			Crv: utils.String(v["crv"].(string)),
-			D:   utils.String(v["d"].(string)),
-			Dp:  utils.String(v["dp"].(string)),
-			Dq:  utils.String(v["dq"].(string)),
-			E:   utils.String(v["e"].(string)),
-			K:   utils.String(v["k"].(string)),
 			Kid: utils.String(v["kid"].(string)),
 			Kty: utils.String(v["kty"].(string)),
-			N:   utils.String(v["n"].(string)),
-			P:   utils.String(v["p"].(string)),
-			Q:   utils.String(v["q"].(string)),
-			Qi:  utils.String(v["qi"].(string)),
 			Use: utils.String(v["use"].(string)),
-			X:   utils.String(v["x"].(string)),
 			X5c: utils.ExpandStringSlice(v["x5c"].(*schema.Set).List()),
-			Y:   utils.String(v["y"].(string)),
 		}
 		results = append(results, result)
 	}

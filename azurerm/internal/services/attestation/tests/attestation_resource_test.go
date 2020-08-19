@@ -1,8 +1,18 @@
 package tests
 
 import (
+	"bytes"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
+	"math/big"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -48,26 +58,62 @@ func TestAccAzureRMAttestation_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAttestation_complete(t *testing.T) {
+func TestAccAzureRMAttestation_twoKeys(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation", "test")
+
+	testCertificate1, err := testAzureRMGenerateTestCertificate("FLYNN'S ARCADE")
+	if err != nil {
+		t.Fatalf("Test case failed: '%s'", err)
+	}
+
+	testCertificate2, err := testAzureRMGenerateTestCertificate("SPACE PARANOIDS")
+	if err != nil {
+		t.Fatalf("Test case failed: '%s'", err)
+	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMAttestationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMAttestation_complete(data),
+				Config: testAccAzureRMAttestation_twoKeys(data, testCertificate1, testCertificate2),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAttestationExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			// must ignore policy_signing_certificate since the API does not return these values
+			data.ImportStep("policy_signing_certificate"),
 		},
 	})
 }
 
+func TestAccAzureRMAttestation_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_attestation", "test")
+	testCertificate, err := testAzureRMGenerateTestCertificate("ENCOM")
+	if err != nil {
+		t.Fatalf("Test case failed: '%s'", err)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMAttestationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAttestation_complete(data, testCertificate),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAttestationExists(data.ResourceName),
+				),
+			},
+			// must ignore policy_signing_certificate since the API does not return these values
+			data.ImportStep("policy_signing_certificate"),
+		},
+	})
+}
 func TestAccAzureRMAttestation_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation", "test")
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
@@ -81,7 +127,7 @@ func TestAccAzureRMAttestation_update(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMAttestation_complete(data),
+				Config: testAccAzureRMAttestation_update(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAttestationExists(data.ResourceName),
 				),
@@ -118,6 +164,62 @@ func testCheckAzureRMAttestationExists(resourceName string) resource.TestCheckFu
 		}
 		return nil
 	}
+}
+
+func testAzureRMGenerateTestCertificate(organization string) (string, error) {
+	privateKey, err := ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
+	if err != nil {
+		return "", err
+	}
+
+	rawCert := x509.Certificate{
+		SerialNumber: big.NewInt(1),
+		Subject: pkix.Name{
+			Organization: []string{organization},
+		},
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().Add(time.Hour * 24 * 180),
+
+		KeyUsage:              x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+	}
+
+	certBytes, err := x509.CreateCertificate(rand.Reader, &rawCert, &rawCert, &privateKey.PublicKey, privateKey)
+	if err != nil {
+		return "", fmt.Errorf("unable to create test certificate: %s", err)
+	}
+
+	encoded := &bytes.Buffer{}
+	pem.Encode(encoded, &pem.Block{Type: "CERTIFICATE", Bytes: certBytes})
+
+	base64Cert, err := testAzureRMConvertCertificateToBase64String(encoded.String())
+	if err != nil {
+		return "", fmt.Errorf("unable to convert test certificate into single base64 string: %s", err)
+	}
+
+	return base64Cert, nil
+}
+
+func testAzureRMConvertCertificateToBase64String(input string) (string, error) {
+	cleanInput := strings.TrimSpace(input)
+
+	if len(cleanInput) == 0 {
+		return "", fmt.Errorf("unable to convert empty test certificate")
+	}
+
+	cleanCert := bytes.Split([]byte(cleanInput), []byte{10})
+	concatCert := []byte{}
+
+	for i, v := range cleanCert {
+		if i == 0 || len(v) == 0 || i == (len(cleanCert)-1) {
+			continue
+		}
+
+		concatCert = append(concatCert, cleanCert[i]...)
+	}
+
+	return string(concatCert), nil
 }
 
 func testCheckAzureRMAttestationDestroy(s *terraform.State) error {
@@ -169,6 +271,23 @@ resource "azurerm_attestation" "test" {
 `, template, data.RandomInteger)
 }
 
+func testAccAzureRMAttestation_update(data acceptance.TestData) string {
+	template := testAccAzureRMAttestation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_attestation" "test" {
+  name                = "ap%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger)
+}
+
 func testAccAzureRMAttestation_requiresImport(data acceptance.TestData) string {
 	config := testAccAzureRMAttestation_basic(data)
 	return fmt.Sprintf(`
@@ -178,14 +297,11 @@ resource "azurerm_attestation" "import" {
   name                = azurerm_attestation.test.name
   resource_group_name = azurerm_attestation.test.resource_group_name
   location            = azurerm_attestation.test.location
-  attest_uri          = azurerm_attestation.test.attest_uri
-  trust_model         = azurerm_attestation.test.trust_model
-  type                = azurerm_attestation.test.type
 }
 `, config)
 }
 
-func testAccAzureRMAttestation_complete(data acceptance.TestData) string {
+func testAccAzureRMAttestation_complete(data acceptance.TestData, testCertificate string) string {
 	template := testAccAzureRMAttestation_template(data)
 	return fmt.Sprintf(`
 %s
@@ -198,7 +314,7 @@ resource "azurerm_attestation" "test" {
   policy_signing_certificate {
     key {
       kty  = "RSA"
-      x5c = ["LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJ6akNDQVRHZ0F3SUJBZ0lCQVRBS0JnZ3Foa2pPUFFRREJEQVNNUkF3RGdZRFZRUUtFd2RCWTIxbElFTnYKTUI0WERUQTVNVEV4TURJek1EQXdNRm9YRFRFd01EVXdPVEl6TURBd01Gb3dFakVRTUE0R0ExVUVDaE1IUVdOdApaU0JEYnpDQm16QVFCZ2NxaGtqT1BRSUJCZ1VyZ1FRQUl3T0JoZ0FFQUpuVnlBdkoyOW1DUlJoVTQ4UVdrUDJKCmJ6K0ZCRmFET0xTMXBhVW9KUGJ6R0NZd05velg4NjBZTXdVOGtzd1BZTzkrUDE0c08vRnZkRVQ3ZURFZlN2VUMKQUFocEtJT01jSHdjcDE3WG5NazFPSmIwZExWK2wrUVViL1pDR3pkYTdRc2J3MjA3Zlp2OERYOHhWMFYwQkVnOApyUW1IM0htNCtCK0xsaVU4bFFXU3lFcG5velV3TXpBT0JnTlZIUThCQWY4RUJBTUNCNEF3RXdZRFZSMGxCQXd3CkNnWUlLd1lCQlFVSEF3RXdEQVlEVlIwVEFRSC9CQUl3QURBS0JnZ3Foa2pPUFFRREJBT0JpZ0F3Z1lZQ1FYNkQKYUVqVjhQS0V5SWJyNUFBd1pyOTc5QkEzQndtcGUxNUd4ODlUbk5ScDZ1MjhZbSt0eFB6RjBFK3ZXS3NuQjF6aQpTdURhYmVRMHpMbGRCaVhRVHdkV0FrRURGUEdjb2owUjZvS3Y1N0lZZjRjd3hjdklmMjI1SEhrVXVDdXAzQit4ClFZcXRxWW44OTdJSDRWUXdrbVpCWnBoVXVjY2xEaWxIQlhQeWE3RTZZb2dBMmc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=="]
+      x5c = ["%s"]
     }
   }
 
@@ -206,5 +322,29 @@ resource "azurerm_attestation" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomInteger, testCertificate)
+}
+
+func testAccAzureRMAttestation_twoKeys(data acceptance.TestData, testCertificate1 string, testCertificate2 string) string {
+	template := testAccAzureRMAttestation_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_attestation" "test" {
+  name                = "ap%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_signing_certificate {
+    key {
+      kty  = "RSA"
+      x5c = ["%s"]
+    }
+    key {
+      kty  = "RSA"
+      x5c = ["%s"]
+    }
+  }
+}
+`, template, data.RandomInteger, testCertificate1, testCertificate2)
 }
