@@ -13,7 +13,7 @@ Manages a Network Connection Monitor.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {e
+provider "azurerm" {
   features {}
 }
 
