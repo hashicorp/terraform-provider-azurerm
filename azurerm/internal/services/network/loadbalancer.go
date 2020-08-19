@@ -16,32 +16,22 @@ import (
 
 // TODO: refactor this
 
-// Deprecated: use `parse.LoadBalancerID`
-func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error) {
-	id, err := parse.LoadBalancerID(loadBalancerId)
-	if err != nil {
-		return "", "", err
-	}
-
-	return id.ResourceGroup, id.Name, nil
-}
-
 func retrieveLoadBalancerById(d *schema.ResourceData, loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resGroup, name, err := resourceGroupAndLBNameFromId(loadBalancerId)
+	id, err := parse.LoadBalancerID(loadBalancerId)
 	if err != nil {
-		return nil, false, fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
+		return nil, false, err
 	}
 
-	resp, err := client.Get(ctx, resGroup, name, "")
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("Error making Read request on Azure Load Balancer %s: %s", name, err)
+		return nil, false, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return &resp, true, nil
