@@ -313,7 +313,7 @@ resource "azurerm_attestation" "test" {
 
   policy_signing_certificate {
     key {
-      kty  = "RSA"
+      kty = "RSA"
       x5c = ["%s"]
     }
   }
@@ -337,11 +337,11 @@ resource "azurerm_attestation" "test" {
 
   policy_signing_certificate {
     key {
-      kty  = "RSA"
+      kty = "RSA"
       x5c = ["%s"]
     }
     key {
-      kty  = "RSA"
+      kty = "RSA"
       x5c = ["%s"]
     }
   }
