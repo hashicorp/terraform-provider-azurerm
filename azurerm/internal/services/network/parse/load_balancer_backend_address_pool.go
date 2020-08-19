@@ -12,6 +12,19 @@ type LoadBalancerBackendAddressPoolId struct {
 	Name             string
 }
 
+func (id LoadBalancerBackendAddressPoolId) ID(subscriptionId string) string {
+	baseId := NewLoadBalancerID(id.ResourceGroup, id.Name).ID(subscriptionId)
+	return fmt.Sprintf("%s/backendAddressPools/%s", baseId, id.Name)
+}
+
+func NewLoadBalancerBackendAddressPoolId(loadBalancerId LoadBalancerId, name string) LoadBalancerBackendAddressPoolId {
+	return LoadBalancerBackendAddressPoolId{
+		ResourceGroup:    loadBalancerId.ResourceGroup,
+		LoadBalancerName: loadBalancerId.Name,
+		Name:             name,
+	}
+}
+
 func LoadBalancerBackendAddressPoolID(input string) (*LoadBalancerBackendAddressPoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {

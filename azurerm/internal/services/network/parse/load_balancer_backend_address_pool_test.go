@@ -1,6 +1,22 @@
 package parse
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
+)
+
+var _ resourceid.Formatter = LoadBalancerBackendAddressPoolId{}
+
+func TestLoadBalancerBackendAddressPoolIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	loadBalancerId := NewLoadBalancerID("group1", "lb1")
+	actual := NewLoadBalancerBackendAddressPoolId(loadBalancerId, "pool1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/backendAddressPools/pool1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestLoadBalancerBackendAddressPoolIDParser(t *testing.T) {
 	testData := []struct {
