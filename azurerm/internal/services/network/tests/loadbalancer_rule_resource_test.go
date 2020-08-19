@@ -359,7 +359,17 @@ func TestAccAzureRMLoadBalancerRule_vmssBackendPool(t *testing.T) {
 			},
 			data.ImportStep(),
 			{
-				Config: testAccAzureRMLoadBalancerRule_vmssBackendPoolRemoveRule(data, "Standard"),
+				Config: testAccAzureRMLoadBalancerRule_vmssBackendPoolUpdate(data, lbRuleName, "Standard"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
+					resource.TestCheckResourceAttr(
+						"azurerm_lb_rule.test", "id", lbRule_id),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testAccAzureRMLoadBalancerRule_vmssBackendPoolWithoutLBRule(data, "Standard"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
 				),
@@ -596,7 +606,7 @@ resource "azurerm_lb_rule" "test2" {
 `, testAccAzureRMLoadBalancerRule_template(data, "Basic"), lbRuleName, lbRule2Name)
 }
 
-func testAccAzureRMLoadBalancerRule_vmssBackendPoolRemoveRule(data acceptance.TestData, sku string) string {
+func testAccAzureRMLoadBalancerRule_vmssBackendPoolWithoutLBRule(data acceptance.TestData, sku string) string {
 	template := testAccAzureRMLoadBalancerRule_template(data, sku)
 	return fmt.Sprintf(`
 %[1]s
@@ -677,7 +687,7 @@ resource "azurerm_virtual_machine_scale_set" "hbtest" {
 }
 
 func testAccAzureRMLoadBalancerRule_vmssBackendPool(data acceptance.TestData, lbRuleName, sku string) string {
-	template := testAccAzureRMLoadBalancerRule_vmssBackendPoolRemoveRule(data, sku)
+	template := testAccAzureRMLoadBalancerRule_vmssBackendPoolWithoutLBRule(data, sku)
 	return fmt.Sprintf(`
 %s
 
@@ -690,6 +700,25 @@ resource "azurerm_lb_rule" "test" {
   backend_port                   = 3389
   backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+}
+`, template, lbRuleName)
+}
+
+func testAccAzureRMLoadBalancerRule_vmssBackendPoolUpdate(data acceptance.TestData, lbRuleName, sku string) string {
+	template := testAccAzureRMLoadBalancerRule_vmssBackendPoolWithoutLBRule(data, sku)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_lb_rule" "test" {
+  resource_group_name            = azurerm_resource_group.test.name
+  loadbalancer_id                = azurerm_lb.test.id
+  name                           = "%s"
+  protocol                       = "Tcp"
+  frontend_port                  = 3389
+  backend_port                   = 3389
+  backend_address_pool_id        = azurerm_lb_backend_address_pool.test.id
+  frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
+  disable_outbound_snat          = false
 }
 `, template, lbRuleName)
 }
