@@ -63,12 +63,12 @@ func TestAccAzureRMAttestation_twoKeys(t *testing.T) {
 
 	testCertificate1, err := testAzureRMGenerateTestCertificate("FLYNN'S ARCADE")
 	if err != nil {
-		t.Fatalf("Test case failed: '%s'", err)
+		t.Fatalf("Test case failed: %+v", err)
 	}
 
 	testCertificate2, err := testAzureRMGenerateTestCertificate("SPACE PARANOIDS")
 	if err != nil {
-		t.Fatalf("Test case failed: '%s'", err)
+		t.Fatalf("Test case failed: %+v", err)
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -92,7 +92,7 @@ func TestAccAzureRMAttestation_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_attestation", "test")
 	testCertificate, err := testAzureRMGenerateTestCertificate("ENCOM")
 	if err != nil {
-		t.Fatalf("Test case failed: '%s'", err)
+		t.Fatalf("Test case failed: '%+v'", err)
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -187,17 +187,17 @@ func testAzureRMGenerateTestCertificate(organization string) (string, error) {
 
 	certBytes, err := x509.CreateCertificate(rand.Reader, &rawCert, &rawCert, &privateKey.PublicKey, privateKey)
 	if err != nil {
-		return "", fmt.Errorf("unable to create test certificate: %s", err)
+		return "", fmt.Errorf("unable to create test certificate: %+v", err)
 	}
 
 	encoded := &bytes.Buffer{}
 	if err := pem.Encode(encoded, &pem.Block{Type: "CERTIFICATE", Bytes: certBytes}); err != nil {
-		return "", fmt.Errorf("unable to pem encode test certificate: %s", err)
+		return "", fmt.Errorf("unable to pem encode test certificate: %+v", err)
 	}
 
 	base64Cert, err := testAzureRMConvertCertificateToBase64String(encoded.String())
 	if err != nil {
-		return "", fmt.Errorf("unable to convert test certificate into single base64 string: %s", err)
+		return "", fmt.Errorf("unable to convert test certificate into single base64 string: %+v", err)
 	}
 
 	return base64Cert, nil
