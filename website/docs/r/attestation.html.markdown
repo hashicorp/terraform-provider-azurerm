@@ -29,43 +29,43 @@ resource "azurerm_attestation" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this attestation provider. Changing this forces a new attestation provider to be created.
+* `name` - (Required) The name which should be used for this attestation provider. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the attestation provider should exist. Changing this forces a new attestation provider to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the attestation provider should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the attestation provider should exist. Changing this forces a new attestation provider to be created.
+* `location` - (Required) The Azure Region where the attestation provider should exist. Changing this forces a new resource to be created.
 
 -> **NOTE:** Currently only supported in the `East US 2`, `West Central US`, and `UK South` regions.
 
 ---
 
-* `policy_signing_certificate` - (Optional)  A `policy_signing_certificate` block as defined below. Changing this forces a new attestation provider to be created.
+* `policy_signing_certificate` - (Optional)  A `policy_signing_certificate` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the attestation provider.
 
 ---
 
-An `policy_signing_certificate` block exports the following:
+An `policy_signing_certificate` block defines the following:
 
-* `key` - (Optional)  A `key` block as defined below. Changing this forces a new attestation provider to be created.
+* `key` - (Optional)  A `key` block as defined below. Changing this forces a new resource to be created.
 
 ---
 
-An `key` block exports the following:
+A `key` block defines the following:
 
-* `alg` - (Optional) The "alg" (algorithm) parameter identifies the algorithm intended for use with the key.  The values used should either be registered in the IANA "JSON Web Signature and Encryption Algorithms" registry established by [JWA] or be value that contains a Collision-Resistant Name. Changing this forces a new attestation provider to be created.
+* `alg` - (Optional) The "alg" (algorithm) parameter identifies the algorithm intended for use with the key.  The values used should either be registered in the IANA "JSON Web Signature and Encryption Algorithms" registry established by [JWA] or be value that contains a Collision-Resistant Name. Changing this forces a new resource to be created.
 
-* `kid` - (Optional) The "kid" (key ID) parameter is used to match a specific key.  This is used, for instance, to choose among a set of keys within a JWK Set during key rollover. The structure of the "kid" value is unspecified.  When "kid" values re used within a JWK Set, different keys within the JWK Set SHOULD use distinct "kid" values.  (One example in which different keys might use the same "kid" value is if they have different "kty" (key type) values but are considered to be equivalent alternatives by the application using them.) The "kid" value is a case-sensitive string. Changing this forces a new attestation provider to be created.
+* `kid` - (Optional) The "kid" (key ID) parameter is used to match a specific key.  This is used, for instance, to choose among a set of keys within a JWK Set during key rollover. The structure of the "kid" value is unspecified.  When "kid" values re used within a JWK Set, different keys within the JWK Set SHOULD use distinct "kid" values. One example in which different keys might use the same "kid" value is if they have different "kty" (key type) values but are considered to be equivalent alternatives by the application using them. The "kid" value is a case-sensitive string. Changing this forces a new resource to be created.
 
-* `kty` - (Optional) The "kty" (key type) parameter identifies the cryptographic algorithm family used with the key, such as "RSA" or "EC". "kty" values should either be registered in the IANA "JSON Web Key Types" registry established by [JWA] or  e a value that contains a Collision-Resistant Name.  The "kty" value is a case-sensitive string. Changing this forces a new attestation provider to be created.
+* `kty` - (Optional) The "kty" (key type) parameter identifies the cryptographic algorithm family used with the key, such as "RSA" or "EC". "kty" values should either be registered in the IANA "JSON Web Key Types" registry established by [JWA] or  e a value that contains a Collision-Resistant Name.  The "kty" value is a case-sensitive string. Changing this forces a new resource to be created.
 
-* `use` - (Optional) Use ("public key use") identifies the intended use of the public key. The "use" parameter is employed to indicate whether a public key is used for encrypting data or verifying the signature on data. Values are commonly "sig" (signature) or "enc" (encryption). Changing this forces a new attestation provider to be created.
+* `use` - (Optional) Use ("public key use") identifies the intended use of the public key. The "use" parameter is employed to indicate whether a public key is used for encrypting data or verifying the signature on data. Values are commonly "sig" (signature) or "enc" (encryption). Changing this forces a new resource to be created.
 
-* `x5cs` - (Optional) The "x5c" (X.509 certificate chain) parameter contains a chain of one or more PKIX certificates [RFC5280].  The certificate chain is represented as a JSON array of certificate value strings.  Each string in the array is a base64-encoded (Section 4 of [RFC4648] not base64url-encoded) DER [ITU.X690.1994] PKIX certificate value. The PKIX certificate containing the key value MUST be the first certificate. Changing this forces a new attestation provider to be created.
+* `x5cs` - (Optional) The "x5c" (X.509 certificate chain) parameter contains a chain of one or more PKIX certificates [RFC5280].  The certificate chain is represented as a JSON array of certificate value strings.  Each string in the array is a base64-encoded (Section 4 of [RFC4648] not base64url-encoded) DER [ITU.X690.1994] PKIX certificate value. The PKIX certificate containing the key value MUST be the first certificate. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+The following Attributes are exported: 
 
 * `id` - The ID of the attestation provider.
 
