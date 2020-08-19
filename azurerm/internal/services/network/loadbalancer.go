@@ -9,21 +9,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // TODO: refactor this
 
+// Deprecated: use `parse.LoadBalancerID`
 func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error) {
-	id, err := azure.ParseAzureResourceID(loadBalancerId)
+	id, err := parse.LoadBalancerID(loadBalancerId)
 	if err != nil {
 		return "", "", err
 	}
-	name := id.Path["loadBalancers"]
-	resGroup := id.ResourceGroup
 
-	return resGroup, name, nil
+	return id.ResourceGroup, id.Name, nil
 }
 
 func retrieveLoadBalancerById(d *schema.ResourceData, loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
