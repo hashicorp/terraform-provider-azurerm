@@ -7,6 +7,13 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_frontdoor` - ensuring all fields are set into the state [GH-8146]
+* `azurerm_frontdoor` - rewriting case-inconsistent Resource ID's to ensure they're reliable [GH-8146]
+* `azurerm_frontdoor_firewall_policy` - ensuring all fields are set into the state [GH-8146]
+* `azurerm_frontdoor_firewall_policy` - rewriting case-inconsistent Resource ID's to ensure they're reliable [GH-8146]
+* `azurerm_frontdoor_custom_https_configuration` - ensuring all fields are set into the state [GH-8146]
+* `azurerm_frontdoor_custom_https_configuration` - rewriting case-inconsistent Resource ID's to ensure they're reliable [GH-8146]
+* `azurerm_frontdoor_custom_https_configuration` - updating the ID to use the frontendEndpoint's Resource ID rather than a custom Resource ID [GH-8146]
 * `azurerm_lb` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
 * `azurerm_lb_backend_address_pool` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
 * `azurerm_lb_nat_pool` - switching to use API version `2020-03-01` to workaround a bug in API version `2020-05-01` [GH-8006]
