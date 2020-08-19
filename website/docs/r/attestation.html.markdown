@@ -15,7 +15,7 @@ Manages a Attestation Provider.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "UK South"
 }
 
 resource "azurerm_attestation" "example" {
@@ -34,6 +34,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the Resource Group where the attestation provider should exist. Changing this forces a new attestation provider to be created.
 
 * `location` - (Required) The Azure Region where the attestation provider should exist. Changing this forces a new attestation provider to be created.
+
+-> **NOTE:** Currently only supported in the `East US 2`, `West Central US`, and `UK South` regions.
 
 ---
 

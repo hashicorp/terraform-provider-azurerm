@@ -244,7 +244,7 @@ func testCheckAzureRMAttestationDestroy(s *terraform.State) error {
 	return nil
 }
 
-// hard coded location because attestation resources are only available in the 'eastus2,centralus,uksouth' regions.
+// currently only supported in "East US 2", "West Central US" & "UK South"
 func testAccAzureRMAttestation_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
