@@ -3,6 +3,7 @@ package mssql
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -34,6 +35,28 @@ func dataSourceArmMSSQLManagedInstance() *schema.Resource {
 			"administrator_login": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			
+			"identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+							
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 
 			"collation": {
@@ -157,8 +180,12 @@ func dataSourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interfac
 		d.SetId(*id)
 	}
 
-	if props := resp.ManagedInstanceProperties; props != nil {
-		d.Set("create_mode", props.ManagedInstanceCreateMode)
+	if err := d.Set("identity", flattenMIIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
+	}
+
+	if props := resp.ManagedInstanceProperties ; props != nil {
+		d.Set("create_mode", string(props.ManagedInstanceCreateMode))
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("administrator_login", props.AdministratorLogin)
 
@@ -182,4 +209,20 @@ func dataSourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interfac
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func flattenMIIdentity(identity *sql.ResourceIdentity) []interface{} {
+	if identity == nil {
+		return []interface{}{}
+	}
+	result := make(map[string]interface{})
+	result["type"] = identity.Type
+	if identity.PrincipalID != nil {
+		result["principal_id"] = identity.PrincipalID.String()
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = identity.TenantID.String()
+	}
+
+	return []interface{}{result}
 }
