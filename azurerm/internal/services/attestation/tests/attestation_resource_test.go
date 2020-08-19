@@ -191,7 +191,9 @@ func testAzureRMGenerateTestCertificate(organization string) (string, error) {
 	}
 
 	encoded := &bytes.Buffer{}
-	pem.Encode(encoded, &pem.Block{Type: "CERTIFICATE", Bytes: certBytes})
+	if err := pem.Encode(encoded, &pem.Block{Type: "CERTIFICATE", Bytes: certBytes}); err != nil {
+		return "", fmt.Errorf("unable to pem encode test certificate: %s", err)
+	}
 
 	base64Cert, err := testAzureRMConvertCertificateToBase64String(encoded.String())
 	if err != nil {
