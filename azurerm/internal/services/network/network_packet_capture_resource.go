@@ -217,7 +217,7 @@ func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{
 
 	resourceGroup := id.ResourceGroup
 	watcherName := id.Path["networkWatchers"]
-	name := id.Path["NetworkPacketCaptures"]
+	name := id.Path["packetCaptures"]
 
 	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
 	if err != nil {
@@ -266,7 +266,7 @@ func resourceArmNetworkPacketCaptureDelete(d *schema.ResourceData, meta interfac
 
 	resourceGroup := id.ResourceGroup
 	watcherName := id.Path["networkWatchers"]
-	name := id.Path["NetworkPacketCaptures"]
+	name := id.Path["packetCaptures"]
 
 	future, err := client.Delete(ctx, resourceGroup, watcherName, name)
 	if err != nil {
