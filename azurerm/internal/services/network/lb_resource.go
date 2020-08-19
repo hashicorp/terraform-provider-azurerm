@@ -250,12 +250,16 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := parse.LoadBalancerID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, *id, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *id)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID %q: %+v", d.Id(), err)
 	}

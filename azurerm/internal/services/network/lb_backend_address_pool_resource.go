@@ -90,7 +90,7 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, *loadBalancerId, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -151,13 +151,17 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 }
 
 func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := parse.LoadBalancerBackendAddressPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("retrieving Load Balancer by ID: %+v", err)
 	}
@@ -216,7 +220,7 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID: %+v", err)
 	}

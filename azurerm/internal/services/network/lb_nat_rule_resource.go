@@ -132,7 +132,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 	locks.ByID(loadBalancerIdRaw)
 	defer locks.UnlockByID(loadBalancerIdRaw)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, *loadBalancerId, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -198,14 +198,18 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.LoadBalancersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	id, err := parse.LoadBalancerInboundNATRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -287,7 +291,7 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 	locks.ByID(loadBalancerID)
 	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}

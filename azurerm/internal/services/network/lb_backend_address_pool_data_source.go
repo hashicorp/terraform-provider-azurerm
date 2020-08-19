@@ -7,7 +7,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
@@ -48,13 +50,17 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 }
 
 func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
 	name := d.Get("name").(string)
 	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return err
 	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, *loadBalancerId, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(ctx, client, *loadBalancerId)
 	if err != nil {
 		return fmt.Errorf("retrieving Load Balancer by ID: %+v", err)
 	}

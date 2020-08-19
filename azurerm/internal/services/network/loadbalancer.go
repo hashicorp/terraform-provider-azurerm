@@ -1,6 +1,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -8,19 +9,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // TODO: refactor this
 
-func retrieveLoadBalancerById(d *schema.ResourceData, loadBalancerId parse.LoadBalancerId, meta interface{}) (*network.LoadBalancer, bool, error) {
-	client := meta.(*clients.Client).Network.LoadBalancersClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
+func retrieveLoadBalancerById(ctx context.Context, client *network.LoadBalancersClient, loadBalancerId parse.LoadBalancerId) (*network.LoadBalancer, bool, error) {
 	resp, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
