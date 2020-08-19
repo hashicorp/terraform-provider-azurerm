@@ -76,20 +76,21 @@ func resourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 
 func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	loadBalancerIdRaw := d.Get("loadbalancer_id").(string)
-	loadBalancerId, err := parse.LoadBalancerID(loadBalancerIdRaw)
+	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
 	}
 
-	locks.ByID(loadBalancerIdRaw)
-	defer locks.UnlockByID(loadBalancerIdRaw)
+	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerIdRaw, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(d, *loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -150,13 +151,12 @@ func resourceArmLoadBalancerBackendAddressPoolCreate(d *schema.ResourceData, met
 }
 
 func resourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	id, err := parse.LoadBalancerBackendAddressPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
 	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("retrieving Load Balancer by ID: %+v", err)
@@ -211,9 +211,10 @@ func resourceArmLoadBalancerBackendAddressPoolDelete(d *schema.ResourceData, met
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
-	locks.ByID(loadBalancerId)
-	defer locks.UnlockByID(loadBalancerId)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
 	if err != nil {

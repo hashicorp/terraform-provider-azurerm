@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 )
 
 func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
@@ -47,20 +48,23 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 }
 
 func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, meta interface{}) error {
-	loadBalancerID := d.Get("loadbalancer_id").(string)
 	name := d.Get("name").(string)
-
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, d.Get("loadbalancer_id").(string), meta)
+	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error retrieving Load Balancer by ID: %+v", err)
+		return err
+	}
+
+	loadBalancer, exists, err := retrieveLoadBalancerById(d, *loadBalancerId, meta)
+	if err != nil {
+		return fmt.Errorf("retrieving Load Balancer by ID: %+v", err)
 	}
 	if !exists {
-		return fmt.Errorf("Unable to retrieve Backend Address Pool %q since Load Balancer %q was not found", name, loadBalancerID)
+		return fmt.Errorf("Load Balancer %q (Resource Group %q) was not found", loadBalancerId.Name, loadBalancerId.ResourceGroup)
 	}
 
 	bap, _, exists := FindLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
 	if !exists {
-		return fmt.Errorf("Backend Address Pool %q was not found in Load Balancer %q", name, loadBalancerID)
+		return fmt.Errorf("Backend Address Pool %q was not found in Load Balancer %q (Resource Group %q)", name, loadBalancerId.Name, loadBalancerId.ResourceGroup)
 	}
 
 	d.SetId(*bap.ID)

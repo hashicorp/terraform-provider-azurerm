@@ -132,7 +132,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 	locks.ByID(loadBalancerIdRaw)
 	defer locks.UnlockByID(loadBalancerIdRaw)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerIdRaw, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(d, *loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -204,7 +204,7 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
 	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
@@ -282,9 +282,10 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
-	locks.ByID(loadBalancerId)
-	defer locks.UnlockByID(loadBalancerId)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
 	if err != nil {

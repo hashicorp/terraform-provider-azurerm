@@ -16,22 +16,17 @@ import (
 
 // TODO: refactor this
 
-func retrieveLoadBalancerById(d *schema.ResourceData, loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
+func retrieveLoadBalancerById(d *schema.ResourceData, loadBalancerId parse.LoadBalancerId, meta interface{}) (*network.LoadBalancer, bool, error) {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LoadBalancerID(loadBalancerId)
-	if err != nil {
-		return nil, false, err
-	}
-
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return nil, false, nil
 		}
-		return nil, false, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, false, fmt.Errorf("retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
 	return &resp, true, nil

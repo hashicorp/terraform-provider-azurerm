@@ -101,26 +101,27 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 
 func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	loadBalancerIdRaw := d.Get("loadbalancer_id").(string)
-	id, err := parse.LoadBalancerID(loadBalancerIdRaw)
+	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Load Balancer Name and Group: %+v", err)
 	}
 
-	locks.ByID(loadBalancerIdRaw)
-	defer locks.UnlockByID(loadBalancerIdRaw)
+	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerIdRaw, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(d, *loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("retrieving Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.Name)
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", loadBalancerId.Name)
 		return nil
 	}
 
@@ -145,21 +146,21 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 
 	loadBalancer.LoadBalancerPropertiesFormat.InboundNatPools = &natPools
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, *loadBalancer)
+	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, *loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the completion of Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error waiting for the completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	read, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %q (Resource Group %q) ID", id.Name, id.ResourceGroup)
+		return fmt.Errorf("Cannot read Load Balancer %q (Resource Group %q) ID", loadBalancerId.Name, loadBalancerId.ResourceGroup)
 	}
 
 	var natPoolId string
@@ -185,7 +186,7 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
 	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID: %+v", err)
@@ -255,9 +256,10 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
-	locks.ByID(loadBalancerId)
-	defer locks.UnlockByID(loadBalancerId)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName)
+	loadBalancerID := loadBalancerId.ID(subscriptionId)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
 	if err != nil {
