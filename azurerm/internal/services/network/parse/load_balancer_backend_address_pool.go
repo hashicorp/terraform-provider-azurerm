@@ -13,7 +13,7 @@ type LoadBalancerBackendAddressPoolId struct {
 }
 
 func (id LoadBalancerBackendAddressPoolId) ID(subscriptionId string) string {
-	baseId := NewLoadBalancerID(id.ResourceGroup, id.Name).ID(subscriptionId)
+	baseId := NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
 	return fmt.Sprintf("%s/backendAddressPools/%s", baseId, id.Name)
 }
 

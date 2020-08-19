@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -104,15 +105,20 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 
 func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	loadBalancerID := d.Get("loadbalancer_id").(string)
-	locks.ByID(loadBalancerID)
-	defer locks.UnlockByID(loadBalancerID)
+	loadBalancerId, err := parse.LoadBalancerID(d.Get("loadbalancer_id").(string))
+	if err != nil {
+		return err
+	}
+	loadBalancerIDRaw := loadBalancerId.ID(subscriptionId)
+	locks.ByID(loadBalancerIDRaw)
+	defer locks.UnlockByID(loadBalancerIDRaw)
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerID, meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerIDRaw, meta)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -138,26 +144,22 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	loadBalancer.LoadBalancerPropertiesFormat.Probes = &probes
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(loadBalancerID)
-	if err != nil {
-		return fmt.Errorf("Error Getting Load Balancer Name and Group: %+v", err)
-	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
+	future, err := client.CreateOrUpdate(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, *loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	read, err := client.Get(ctx, loadBalancerId.ResourceGroup, loadBalancerId.Name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error retrieving Load Balancer %q (Resource Group %q): %+v", loadBalancerId.Name, loadBalancerId.ResourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %q (resource group %q) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read Load Balancer %q (resource group %q) ID", loadBalancerId.Name, loadBalancerId.ResourceGroup)
 	}
 
 	var createdProbeId string
@@ -177,41 +179,57 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := azure.ParseAzureResourceID(d.Id())
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	id, err := parse.LoadBalancerProbeID(d.Id())
 	if err != nil {
 		return err
 	}
-	name := id.Path["probes"]
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, d.Get("loadbalancer_id").(string), meta)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
+	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer %q not found. Removing from state", id.LoadBalancerName)
 		return nil
 	}
 
-	config, _, exists := FindLoadBalancerProbeByName(loadBalancer, name)
+	config, _, exists := FindLoadBalancerProbeByName(loadBalancer, id.Name)
 	if !exists {
 		d.SetId("")
-		log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", name)
+		log.Printf("[INFO] Load Balancer Probe %q not found. Removing from state", id.Name)
 		return nil
 	}
 
 	d.Set("name", config.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if properties := config.ProbePropertiesFormat; properties != nil {
-		d.Set("protocol", properties.Protocol)
-		d.Set("interval_in_seconds", properties.IntervalInSeconds)
-		d.Set("number_of_probes", properties.NumberOfProbes)
-		d.Set("port", properties.Port)
-		d.Set("request_path", properties.RequestPath)
+	if props := config.ProbePropertiesFormat; props != nil {
+		intervalInSeconds := 0
+		if props.IntervalInSeconds != nil {
+			intervalInSeconds = int(*props.IntervalInSeconds)
+		}
+		d.Set("interval_in_seconds", intervalInSeconds)
 
+		numberOfProbes := 0
+		if props.NumberOfProbes != nil {
+			numberOfProbes = int(*props.NumberOfProbes)
+		}
+		d.Set("number_of_probes", numberOfProbes)
+
+		port := 0
+		if props.Port != nil {
+			port = int(*props.Port)
+		}
+		d.Set("port", port)
+		d.Set("protocol", string(props.Protocol))
+		d.Set("request_path", props.RequestPath)
+
+		// TODO: parse/make these consistent
 		var loadBalancerRules []string
-		if rules := properties.LoadBalancingRules; rules != nil {
+		if rules := props.LoadBalancingRules; rules != nil {
 			for _, ruleConfig := range *rules {
 				if id := ruleConfig.ID; id != nil {
 					loadBalancerRules = append(loadBalancerRules, *id)
@@ -219,7 +237,7 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		if err := d.Set("load_balancer_rules", loadBalancerRules); err != nil {
-			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", name, err)
+			return fmt.Errorf("Error setting `load_balancer_rules` (Load Balancer Probe %q): %+v", id.Name, err)
 		}
 	}
 
@@ -228,14 +246,20 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.LoadBalancersClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	loadBalancerID := d.Get("loadbalancer_id").(string)
-	locks.ByID(loadBalancerID)
-	defer locks.UnlockByID(loadBalancerID)
+	id, err := parse.LoadBalancerProbeID(d.Id())
+	if err != nil {
+		return err
+	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerID, meta)
+	loadBalancerId := parse.NewLoadBalancerID(id.ResourceGroup, id.LoadBalancerName).ID(subscriptionId)
+	locks.ByID(loadBalancerId)
+	defer locks.UnlockByID(loadBalancerId)
+
+	loadBalancer, exists, err := retrieveLoadBalancerById(d, loadBalancerId, meta)
 	if err != nil {
 		return fmt.Errorf("Error Getting Load Balancer By ID: %+v", err)
 	}
@@ -244,7 +268,7 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 		return nil
 	}
 
-	_, index, exists := FindLoadBalancerProbeByName(loadBalancer, d.Get("name").(string))
+	_, index, exists := FindLoadBalancerProbeByName(loadBalancer, id.Name)
 	if !exists {
 		return nil
 	}
@@ -253,26 +277,21 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 	newProbes := append(oldProbes[:index], oldProbes[index+1:]...)
 	loadBalancer.LoadBalancerPropertiesFormat.Probes = &newProbes
 
-	resGroup, loadBalancerName, err := resourceGroupAndLBNameFromId(d.Get("loadbalancer_id").(string))
+	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.LoadBalancerName, *loadBalancer)
 	if err != nil {
-		return fmt.Errorf("Error Getting Load Balancer Name and Group:: %+v", err)
-	}
-
-	future, err := client.CreateOrUpdate(ctx, resGroup, loadBalancerName, *loadBalancer)
-	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error Creating/Updating Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", loadBalancerName, resGroup, err)
+		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, loadBalancerName, "")
+	read, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
 	if err != nil {
 		return fmt.Errorf("Error Getting LoadBalancer: %+v", err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", loadBalancerName, resGroup)
+		return fmt.Errorf("Cannot read Load Balancer %s (resource group %s) ID", id.LoadBalancerName, id.ResourceGroup)
 	}
 
 	return nil
