@@ -14,7 +14,7 @@ import (
 
 func TestAccAzureRMavsPrivateCloud_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
@@ -46,7 +46,7 @@ func TestAccAzureRMavsPrivateCloud_basic(t *testing.T) {
 
 func TestAccAzureRMavsPrivateCloud_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
@@ -64,7 +64,7 @@ func TestAccAzureRMavsPrivateCloud_requiresImport(t *testing.T) {
 
 func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
@@ -96,7 +96,7 @@ func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
 
 func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,
@@ -149,7 +149,7 @@ func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 
 func TestAccAzureRMavsPrivateCloud_updateIdentitySources(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_avs_private_cloud", "test")
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMavsPrivateCloudDestroy,

@@ -160,10 +160,10 @@ A `management_cluster` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour and 30 minutes) Used when creating the Azure Vmware Solution Private Cloud.
+* `create` - (Defaults to 4 hours) Used when creating the Azure Vmware Solution Private Cloud.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Vmware Solution Private Cloud.
-* `update` - (Defaults to 1 hour and 30 minutes) Used when updating the Azure Vmware Solution Private Cloud.
-* `delete` - (Defaults to 1 hour and 30 minutes) Used when deleting the Azure Vmware Solution Private Cloud.
+* `update` - (Defaults to 4 hours) Used when updating the Azure Vmware Solution Private Cloud.
+* `delete` - (Defaults to 4 hours) Used when deleting the Azure Vmware Solution Private Cloud.
 
 ## Import
 
