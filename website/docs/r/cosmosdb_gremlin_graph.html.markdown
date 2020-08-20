@@ -50,6 +50,8 @@ resource "azurerm_cosmosdb_gremlin_graph" "example" {
 }
 ```
 
+-> **NOTE:** You need to declare `name = "EnableGremlin"` in `azurerm_cosmosdb_account.capabilites`` when using gremlin API. Otherwise the graph creation might end up with error `Requests for API gremlin are not supported for this account`. 
+
 ## Argument Reference
 
 The following arguments are supported:
