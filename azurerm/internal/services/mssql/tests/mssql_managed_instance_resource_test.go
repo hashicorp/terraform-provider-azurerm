@@ -307,6 +307,27 @@ func TestAccAzureRMMsSqlManagedInstance_updateTlsVersion(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlManagedInstance_DnsZonePartner(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	dns := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "dnspartner")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlManagedInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlManagedInstance_DnsZonePartner(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlManagedInstanceExists(data.ResourceName),
+					testCheckAzureRMMsSqlManagedInstanceExists(dns.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMMsSqlManagedInstance_basicTemplate(data acceptance.TestData) string {
 	return testAccAzureRMMsSqlManagedInstance_basic(data, "miadmin", "LengthyPassword@1234", 8, "Gen5", "GP_Gen5", "GeneralPurpose", "BasePrice", "SQL_Latin1_General_CP1_CI_AS", "Redirect", 64, 8, "UTC", "1.1")
 }
@@ -462,6 +483,40 @@ resource "azurerm_mssql_managed_instance" "import" {
 	vcores 					= 16
 	data_endpoint_enabled 	= true
 	timezone_id 			= "UTC"
+	minimal_tls_version 	= "1.1"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlManagedInstance_DnsZonePartner(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlManagedInstance_basicTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_managed_instance" "dnspartner" {
+	name                 			= "acctest-mi-dns-%[2]d"
+	resource_group_name 			= azurerm_resource_group.test.name
+	location            			= azurerm_resource_group.test.location
+	administrator_login 			= "miadministrator2"
+	administrator_login_password 	= "LengthyPassword@4321"
+	subnet_id 						= azurerm_subnet.test.id
+	identity {
+	  type = "SystemAssigned"
+	}
+	sku {
+		  capacity 	= 8
+		  family 	= "Gen5"
+		  name 		= "GP_Gen5"
+		  tier 		= "GeneralPurpose"
+	}
+	license_type 			= "BasePrice"
+	collation 				=  "SQL_Latin1_General_CP1_CI_AS"
+	proxy_override 			= "Redirect"
+	storage_size_gb 		= 64
+	vcores 					= 8
+	data_endpoint_enabled 	= true
+	timezone_id 			= "UTC"
+	dns_zone_partner		= azurerm_mssql_managed_instance.test.id
 	minimal_tls_version 	= "1.1"
 }
 `, template, data.RandomInteger)
