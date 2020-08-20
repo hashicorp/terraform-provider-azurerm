@@ -1,4 +1,9 @@
 ## 2.25.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* `azurerm_shared_image` - Support for `purchase_plan` [GH-8124]
+
 ## 2.24.0 (August 20, 2020)
 
 FEATURES:
