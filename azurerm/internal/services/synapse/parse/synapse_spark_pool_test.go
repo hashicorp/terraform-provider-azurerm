@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestSynapseBigDataPoolID(t *testing.T) {
+func TestSynapseSparkPoolID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *SynapseBigDataPoolId
+		Expected *SynapseSparkPoolId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestSynapseBigDataPoolID(t *testing.T) {
 		{
 			Name:  "synapse BigDataPool ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/bigDataPools/bigDataPool1",
-			Expected: &SynapseBigDataPoolId{
+			Expected: &SynapseSparkPoolId{
 				Workspace: &SynapseWorkspaceId{
 					ResourceGroup: "resourceGroup1",
 					Name:          "workspace1",
@@ -56,7 +56,7 @@ func TestSynapseBigDataPoolID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.Name)
 
-		actual, err := SynapseBigDataPoolID(v.Input)
+		actual, err := SynapseSparkPoolID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

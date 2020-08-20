@@ -18,12 +18,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSynapseBigDataPool() *schema.Resource {
+func resourceArmSynapseSparkPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSynapseBigDataPoolCreateUpdate,
-		Read:   resourceArmSynapseBigDataPoolRead,
-		Update: resourceArmSynapseBigDataPoolCreateUpdate,
-		Delete: resourceArmSynapseBigDataPoolDelete,
+		Create: resourceArmSynapseSparkPoolCreateUpdate,
+		Read:   resourceArmSynapseSparkPoolRead,
+		Update: resourceArmSynapseSparkPoolCreateUpdate,
+		Delete: resourceArmSynapseSparkPoolDelete,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -33,7 +33,7 @@ func resourceArmSynapseBigDataPool() *schema.Resource {
 		},
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.SynapseBigDataPoolID(id)
+			_, err := parse.SynapseSparkPoolID(id)
 			return err
 		}),
 
@@ -159,7 +159,7 @@ func resourceArmSynapseBigDataPool() *schema.Resource {
 	}
 }
 
-func resourceArmSynapseBigDataPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSynapseSparkPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.BigDataPoolClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
@@ -172,11 +172,11 @@ func resourceArmSynapseBigDataPoolCreateUpdate(d *schema.ResourceData, meta inte
 		existing, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+				return fmt.Errorf("checking for present of existing Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_synapse_big_data_pool", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_synapse_spark_pool", *existing.ID)
 		}
 	}
 
@@ -185,14 +185,14 @@ func resourceArmSynapseBigDataPoolCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("reading Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
 	}
 
-	autoScale := expandArmBigDataPoolAutoScaleProperties(d.Get("auto_scale").([]interface{}))
+	autoScale := expandArmSparkPoolAutoScaleProperties(d.Get("auto_scale").([]interface{}))
 	bigDataPoolInfo := synapse.BigDataPoolResourceInfo{
 		Location: workspace.Location,
 		BigDataPoolResourceProperties: &synapse.BigDataPoolResourceProperties{
-			AutoPause:             expandArmBigDataPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
+			AutoPause:             expandArmSparkPoolAutoPauseProperties(d.Get("auto_pause").([]interface{})),
 			AutoScale:             autoScale,
 			DefaultSparkLogFolder: utils.String(d.Get("spark_log_folder").(string)),
-			LibraryRequirements:   expandArmBigDataPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
+			LibraryRequirements:   expandArmSparkPoolLibraryRequirements(d.Get("library_requirement").([]interface{})),
 			NodeSize:              synapse.NodeSize(d.Get("node_size").(string)),
 			NodeSizeFamily:        synapse.NodeSizeFamily(d.Get("node_size_family").(string)),
 			SparkEventsFolder:     utils.String(d.Get("spark_events_folder").(string)),
@@ -206,32 +206,32 @@ func resourceArmSynapseBigDataPoolCreateUpdate(d *schema.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, workspaceId.ResourceGroup, workspaceId.Name, name, bigDataPoolInfo, nil)
 	if err != nil {
-		return fmt.Errorf("creating Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+		return fmt.Errorf("creating Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+		return fmt.Errorf("waiting on creating future for Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
 	}
 
 	resp, err := client.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
 	if err != nil {
-		return fmt.Errorf("retrieving Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+		return fmt.Errorf("retrieving Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
 	}
 
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("empty or nil ID returned for Synapse BigDataPool %q (Resource Group %q / workspaceName %q) ID", name, workspaceId.ResourceGroup, workspaceId.Name)
+		return fmt.Errorf("empty or nil ID returned for Synapse Spark Pool %q (Resource Group %q / workspaceName %q) ID", name, workspaceId.ResourceGroup, workspaceId.Name)
 	}
 
 	d.SetId(*resp.ID)
-	return resourceArmSynapseBigDataPoolRead(d, meta)
+	return resourceArmSynapseSparkPoolRead(d, meta)
 }
 
-func resourceArmSynapseBigDataPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSynapseSparkPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.BigDataPoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseBigDataPoolID(d.Id())
+	id, err := parse.SynapseSparkPoolID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -239,22 +239,22 @@ func resourceArmSynapseBigDataPoolRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Synapse BigDataPool %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Synapse Spark Pool %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("retrieving Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 	d.Set("name", id.Name)
 	d.Set("synapse_workspace_id", id.Workspace.String())
 	if props := resp.BigDataPoolResourceProperties; props != nil {
-		if err := d.Set("auto_pause", flattenArmBigDataPoolAutoPauseProperties(props.AutoPause)); err != nil {
+		if err := d.Set("auto_pause", flattenArmSparkPoolAutoPauseProperties(props.AutoPause)); err != nil {
 			return fmt.Errorf("setting `auto_pause`: %+v", err)
 		}
-		if err := d.Set("auto_scale", flattenArmBigDataPoolAutoScaleProperties(props.AutoScale)); err != nil {
+		if err := d.Set("auto_scale", flattenArmSparkPoolAutoScaleProperties(props.AutoScale)); err != nil {
 			return fmt.Errorf("setting `auto_scale`: %+v", err)
 		}
-		if err := d.Set("library_requirement", flattenArmBigDataPoolLibraryRequirements(props.LibraryRequirements)); err != nil {
+		if err := d.Set("library_requirement", flattenArmSparkPoolLibraryRequirements(props.LibraryRequirements)); err != nil {
 			return fmt.Errorf("setting `library_requirement`: %+v", err)
 		}
 		d.Set("node_count", props.NodeCount)
@@ -265,28 +265,28 @@ func resourceArmSynapseBigDataPoolRead(d *schema.ResourceData, meta interface{})
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmSynapseBigDataPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSynapseSparkPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Synapse.BigDataPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SynapseBigDataPoolID(d.Id())
+	id, err := parse.SynapseSparkPoolID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	future, err := client.Delete(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
-		return fmt.Errorf("deleting Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("deleting Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deleting Synapse BigDataPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("waiting for deleting Synapse Spark Pool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
 	}
 	return nil
 }
 
-func expandArmBigDataPoolAutoPauseProperties(input []interface{}) *synapse.AutoPauseProperties {
+func expandArmSparkPoolAutoPauseProperties(input []interface{}) *synapse.AutoPauseProperties {
 	if len(input) == 0 {
 		return &synapse.AutoPauseProperties{
 			Enabled: utils.Bool(false),
@@ -299,7 +299,7 @@ func expandArmBigDataPoolAutoPauseProperties(input []interface{}) *synapse.AutoP
 	}
 }
 
-func expandArmBigDataPoolAutoScaleProperties(input []interface{}) *synapse.AutoScaleProperties {
+func expandArmSparkPoolAutoScaleProperties(input []interface{}) *synapse.AutoScaleProperties {
 	if len(input) == 0 || input[0] == nil {
 		return &synapse.AutoScaleProperties{
 			Enabled: utils.Bool(false),
@@ -313,7 +313,7 @@ func expandArmBigDataPoolAutoScaleProperties(input []interface{}) *synapse.AutoS
 	}
 }
 
-func expandArmBigDataPoolLibraryRequirements(input []interface{}) *synapse.LibraryRequirements {
+func expandArmSparkPoolLibraryRequirements(input []interface{}) *synapse.LibraryRequirements {
 	if len(input) == 0 {
 		return nil
 	}
@@ -324,7 +324,7 @@ func expandArmBigDataPoolLibraryRequirements(input []interface{}) *synapse.Libra
 	}
 }
 
-func flattenArmBigDataPoolAutoPauseProperties(input *synapse.AutoPauseProperties) []interface{} {
+func flattenArmSparkPoolAutoPauseProperties(input *synapse.AutoPauseProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -349,7 +349,7 @@ func flattenArmBigDataPoolAutoPauseProperties(input *synapse.AutoPauseProperties
 	}
 }
 
-func flattenArmBigDataPoolAutoScaleProperties(input *synapse.AutoScaleProperties) []interface{} {
+func flattenArmSparkPoolAutoScaleProperties(input *synapse.AutoScaleProperties) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
@@ -379,7 +379,7 @@ func flattenArmBigDataPoolAutoScaleProperties(input *synapse.AutoScaleProperties
 	}
 }
 
-func flattenArmBigDataPoolLibraryRequirements(input *synapse.LibraryRequirements) []interface{} {
+func flattenArmSparkPoolLibraryRequirements(input *synapse.LibraryRequirements) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}

@@ -12,17 +12,17 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSynapseBigDataPool_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_big_data_pool", "test")
+func TestAccAzureRMSynapseSparkPool_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseBigDataPoolDestroy,
+		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSynapseBigDataPool_basic(data),
+				Config: testAccAzureRMSynapseSparkPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseBigDataPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
 				),
 			},
 			// not returned by service
@@ -31,35 +31,35 @@ func TestAccAzureRMSynapseBigDataPool_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSynapseBigDataPool_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_big_data_pool", "test")
+func TestAccAzureRMSynapseSparkPool_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseBigDataPoolDestroy,
+		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSynapseBigDataPool_basic(data),
+				Config: testAccAzureRMSynapseSparkPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseBigDataPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
 				),
 			},
-			data.RequiresImportErrorStep(testAccAzureRMSynapseBigDataPool_requiresImport),
+			data.RequiresImportErrorStep(testAccAzureRMSynapseSparkPool_requiresImport),
 		},
 	})
 }
 
-func TestAccAzureRMSynapseBigDataPool_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_big_data_pool", "test")
+func TestAccAzureRMSynapseSparkPool_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseBigDataPoolDestroy,
+		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSynapseBigDataPool_complete(data),
+				Config: testAccAzureRMSynapseSparkPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseBigDataPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
 				),
 			},
 			// not returned by service
@@ -68,31 +68,31 @@ func TestAccAzureRMSynapseBigDataPool_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSynapseBigDataPool_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_big_data_pool", "test")
+func TestAccAzureRMSynapseSparkPool_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMSynapseBigDataPoolDestroy,
+		CheckDestroy: testCheckAzureRMSynapseSparkPoolDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSynapseBigDataPool_basic(data),
+				Config: testAccAzureRMSynapseSparkPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseBigDataPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("spark_events_folder", "spark_log_folder"),
 			{
-				Config: testAccAzureRMSynapseBigDataPool_complete(data),
+				Config: testAccAzureRMSynapseSparkPool_complete(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseBigDataPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("spark_events_folder", "spark_log_folder"),
 			{
-				Config: testAccAzureRMSynapseBigDataPool_basic(data),
+				Config: testAccAzureRMSynapseSparkPool_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSynapseBigDataPoolExists(data.ResourceName),
+					testCheckAzureRMSynapseSparkPoolExists(data.ResourceName),
 				),
 			},
 			data.ImportStep("spark_events_folder", "spark_log_folder"),
@@ -100,7 +100,7 @@ func TestAccAzureRMSynapseBigDataPool_update(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMSynapseBigDataPoolExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMSynapseSparkPoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.BigDataPoolClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -108,7 +108,7 @@ func testCheckAzureRMSynapseBigDataPoolExists(resourceName string) resource.Test
 		if !ok {
 			return fmt.Errorf("synapse BigDataPool not found: %s", resourceName)
 		}
-		id, err := parse.SynapseBigDataPoolID(rs.Primary.ID)
+		id, err := parse.SynapseSparkPoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -122,15 +122,15 @@ func testCheckAzureRMSynapseBigDataPoolExists(resourceName string) resource.Test
 	}
 }
 
-func testCheckAzureRMSynapseBigDataPoolDestroy(s *terraform.State) error {
+func testCheckAzureRMSynapseSparkPoolDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.BigDataPoolClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_synapse_big_data_pool" {
+		if rs.Type != "azurerm_synapse_spark_pool" {
 			continue
 		}
-		id, err := parse.SynapseBigDataPoolID(rs.Primary.ID)
+		id, err := parse.SynapseSparkPoolID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -146,12 +146,12 @@ func testCheckAzureRMSynapseBigDataPoolDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSynapseBigDataPool_basic(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseBigDataPool_template(data)
+func testAccAzureRMSynapseSparkPool_basic(data acceptance.TestData) string {
+	template := testAccAzureRMSynapseSparkPool_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_synapse_big_data_pool" "test" {
+resource "azurerm_synapse_spark_pool" "test" {
   name                 = "acctestSSP%s"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   node_size_family     = "MemoryOptimized"
@@ -161,27 +161,27 @@ resource "azurerm_synapse_big_data_pool" "test" {
 `, template, data.RandomString)
 }
 
-func testAccAzureRMSynapseBigDataPool_requiresImport(data acceptance.TestData) string {
-	config := testAccAzureRMSynapseBigDataPool_basic(data)
+func testAccAzureRMSynapseSparkPool_requiresImport(data acceptance.TestData) string {
+	config := testAccAzureRMSynapseSparkPool_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_synapse_big_data_pool" "import" {
-  name                 = azurerm_synapse_big_data_pool.test.name
-  synapse_workspace_id = azurerm_synapse_big_data_pool.test.synapse_workspace_id
-  node_size_family     = azurerm_synapse_big_data_pool.test.node_size_family
-  node_size            = azurerm_synapse_big_data_pool.test.node_size
-  node_count           = azurerm_synapse_big_data_pool.test.node_count
+resource "azurerm_synapse_spark_pool" "import" {
+  name                 = azurerm_synapse_spark_pool.test.name
+  synapse_workspace_id = azurerm_synapse_spark_pool.test.synapse_workspace_id
+  node_size_family     = azurerm_synapse_spark_pool.test.node_size_family
+  node_size            = azurerm_synapse_spark_pool.test.node_size
+  node_count           = azurerm_synapse_spark_pool.test.node_count
 }
 `, config)
 }
 
-func testAccAzureRMSynapseBigDataPool_complete(data acceptance.TestData) string {
-	template := testAccAzureRMSynapseBigDataPool_template(data)
+func testAccAzureRMSynapseSparkPool_complete(data acceptance.TestData) string {
+	template := testAccAzureRMSynapseSparkPool_template(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_synapse_big_data_pool" "test" {
+resource "azurerm_synapse_spark_pool" "test" {
   name                 = "acctestSSP%s"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
   node_size_family     = "MemoryOptimized"
@@ -215,7 +215,7 @@ EOF
 `, template, data.RandomString)
 }
 
-func testAccAzureRMSynapseBigDataPool_template(data acceptance.TestData) string {
+func testAccAzureRMSynapseSparkPool_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
