@@ -102,7 +102,7 @@ func TestAccAzureRMSynapseSparkPool_update(t *testing.T) {
 
 func testCheckAzureRMSynapseSparkPoolExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.BigDataPoolClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.SparkPoolClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -116,14 +116,14 @@ func testCheckAzureRMSynapseSparkPoolExists(resourceName string) resource.TestCh
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("bad: Synapse BigDataPool %q does not exist", id.Name)
 			}
-			return fmt.Errorf("bad: Get on Synapse.BigDataPoolClient: %+v", err)
+			return fmt.Errorf("bad: Get on Synapse.SparkPoolClient: %+v", err)
 		}
 		return nil
 	}
 }
 
 func testCheckAzureRMSynapseSparkPoolDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.BigDataPoolClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.SparkPoolClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -137,7 +137,7 @@ func testCheckAzureRMSynapseSparkPoolDestroy(s *terraform.State) error {
 		resp, err := client.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("bad: Get on Synapse.BigDataPoolClient: %+v", err)
+				return fmt.Errorf("bad: Get on Synapse.SparkPoolClient: %+v", err)
 			}
 			return nil
 		}

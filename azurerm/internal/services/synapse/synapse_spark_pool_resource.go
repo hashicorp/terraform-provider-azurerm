@@ -160,7 +160,7 @@ func resourceArmSynapseSparkPool() *schema.Resource {
 }
 
 func resourceArmSynapseSparkPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.BigDataPoolClient
+	client := meta.(*clients.Client).Synapse.SparkPoolClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -227,7 +227,7 @@ func resourceArmSynapseSparkPoolCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmSynapseSparkPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.BigDataPoolClient
+	client := meta.(*clients.Client).Synapse.SparkPoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -266,7 +266,7 @@ func resourceArmSynapseSparkPoolRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSynapseSparkPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Synapse.BigDataPoolClient
+	client := meta.(*clients.Client).Synapse.SparkPoolClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
