@@ -102,14 +102,12 @@ func resourceArmLoadBalancer() *schema.Resource {
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
 						"public_ip_prefix_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
