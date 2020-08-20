@@ -93,7 +93,7 @@ The following arguments are supported:
 
 ---
 
-An `auto_pause` block exports the following:
+An `auto_pause` block supports the following:
 
 * `delay_in_minutes` - (Required) Number of minutes of idle time before the Spark Pool is automatically paused. Must be between `5` and `10080`.
 
