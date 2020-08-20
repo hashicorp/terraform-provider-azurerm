@@ -22,7 +22,7 @@ func TestAccAzureRMPolicyDefinition_basic(t *testing.T) {
 			{
 				Config: testAzureRMPolicyDefinition_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyDefinitionExists(data.ResourceName),
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName, "All"),
 				),
 			},
 			data.ImportStep(),
@@ -40,7 +40,7 @@ func TestAccAzureRMPolicyDefinition_requiresImport(t *testing.T) {
 			{
 				Config: testAzureRMPolicyDefinition_basic(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyDefinitionExists(data.ResourceName),
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName, "All"),
 				),
 			},
 			data.RequiresImportErrorStep(testAzureRMPolicyDefinition_requiresImport),
@@ -58,7 +58,7 @@ func TestAccAzureRMPolicyDefinition_computedMetadata(t *testing.T) {
 			{
 				Config: testAzureRMPolicyDefinition_computedMetadata(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyDefinitionExists(data.ResourceName),
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName, "Indexed"),
 				),
 			},
 			data.ImportStep(),
@@ -94,7 +94,38 @@ func TestAccAzureRMPolicyDefinition_metadata(t *testing.T) {
 			{
 				Config: testAzureRMPolicyDefinition_metadata(data),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPolicyDefinitionExists(data.ResourceName),
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName, "All"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccAzureRMPolicyDefinition_mode_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	number := data.RandomInteger
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMPolicyDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAzureRMPolicyDefinition_mode(number, "All"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName, "All"),
+				),
+			},
+			{
+				Config: testAzureRMPolicyDefinition_mode(number, "Indexed"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName, "Indexed"),
+				),
+			},
+			{
+				Config: testAzureRMPolicyDefinition_mode(number, "All"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPolicyDefinitionExists(data.ResourceName, "All"),
 				),
 			},
 			data.ImportStep(),
@@ -162,7 +193,7 @@ func testCheckAzureRMPolicyDefinitionDestroyInMgmtGroup(s *terraform.State) erro
 	return nil
 }
 
-func testCheckAzureRMPolicyDefinitionExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMPolicyDefinitionExists(resourceName string, mode string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.AzureProvider.Meta().(*clients.Client).Policy.DefinitionsClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
@@ -177,11 +208,16 @@ func testCheckAzureRMPolicyDefinitionExists(resourceName string) resource.TestCh
 			return err
 		}
 
-		if resp, err := client.Get(ctx, id.Name); err != nil {
+		resp, err := client.Get(ctx, id.Name)
+		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Policy Definition %q does not exist", id.Name)
 			}
 			return fmt.Errorf("Bad: Get on Policy.DefinitionsClient: %+v", err)
+		}
+
+		if mode != *resp.DefinitionProperties.Mode {
+			return fmt.Errorf("Bad: Policy Definition Mode is different. Expected: %s, Actual: %s", mode, *resp.DefinitionProperties.Mode)
 		}
 
 		return nil
@@ -401,4 +437,46 @@ PARAMETERS
 METADATA
 }
 `, data.RandomInteger, data.RandomInteger)
+}
+
+func testAzureRMPolicyDefinition_mode(number int, mode string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "%s"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+}
+`, number, mode, number)
 }
