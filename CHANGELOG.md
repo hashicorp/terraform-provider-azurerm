@@ -8,6 +8,7 @@ IMPROVEMENTS:
 
 * dependencies: update `containerinstance` to API version `2019-12-01` [GH-8110]
 * `azurerm_api_management_api` - now supports `oauth2_authorization` and `openid_authentication` [GH-7617]
+* `azurerm_policy_definition` - `mode` can now be updated without recreating the resource [GH-7976]
 
 BUG FIXES:
 
