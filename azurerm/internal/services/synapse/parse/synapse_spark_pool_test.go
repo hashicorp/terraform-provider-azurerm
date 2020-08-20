@@ -37,18 +37,18 @@ func TestSynapseSparkPoolID(t *testing.T) {
 		},
 		{
 			Name:  "synapse BigDataPool ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/bigDataPools/bigDataPool1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/bigDataPools/sparkPool1",
 			Expected: &SynapseSparkPoolId{
 				Workspace: &SynapseWorkspaceId{
 					ResourceGroup: "resourceGroup1",
 					Name:          "workspace1",
 				},
-				Name: "bigDataPool1",
+				Name: "sparkPool1",
 			},
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/BigDataPools/bigDataPool1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Synapse/workspaces/workspace1/BigDataPools/sparkPool1",
 			Expected: nil,
 		},
 	}
