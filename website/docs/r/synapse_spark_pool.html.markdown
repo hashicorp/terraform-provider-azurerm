@@ -107,7 +107,7 @@ An `auto_scale` block supports the following:
 
 ---
 
-An `library_requirement` block exports the following:
+An `library_requirement` block supports the following:
 
 * `content` - (Required) The content of library requirements.
 
