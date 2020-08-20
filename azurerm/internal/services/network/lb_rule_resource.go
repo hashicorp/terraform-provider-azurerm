@@ -354,7 +354,7 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for completion of Load Balancer %q (Resource Group %q): %+v", id.LoadBalancerName, id.ResourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, id.ResourceGroup, id.LoadBalancerName, "")
