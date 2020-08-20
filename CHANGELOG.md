@@ -29,6 +29,7 @@ FEATURES:
 
 * **New Resource:** `azurerm_integration_service_environment` ([#7763](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7763))
 * **New Resource:** `azurerm_redis_linked_server` ([#8026](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8026))
+* **New Resource:** `synapse_big_data_pool` ([#7886](https://github.com/terraform-providers/terraform-provider-azurerm/pull/7886))
 * **New Resource:** `azurerm_synapse_firewall_rule` ([#7904](https://github.com/terraform-providers/terraform-provider-azurerm/issues/7904))
 
 IMPROVEMENTS:
