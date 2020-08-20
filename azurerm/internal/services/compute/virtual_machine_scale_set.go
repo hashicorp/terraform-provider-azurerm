@@ -3,6 +3,8 @@ package compute
 import (
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -1296,4 +1298,145 @@ func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *compute.Automati
 			"grace_period": gracePeriod,
 		},
 	}
+}
+
+func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"publisher": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"type": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"type_handler_version": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"auto_upgrade_minor_version": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
+				"force_update_tag": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+
+				"protected_settings": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validation.StringIsJSON,
+				},
+
+				"provision_after_extensions": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+
+				"settings": {
+					Type:             schema.TypeString,
+					Optional:         true,
+					ValidateFunc:     validation.StringIsJSON,
+					DiffSuppressFunc: structure.SuppressJsonDiff,
+				},
+			},
+		},
+	}
+}
+
+func expandVirtualMachineScaleSetExtensions(input []interface{}) *compute.VirtualMachineScaleSetExtensionProfile {
+	result := &compute.VirtualMachineScaleSetExtensionProfile{}
+	if len(input) == 0 {
+		return result
+	}
+
+	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
+	for _, v := range input {
+		extensionRaw := v.(map[string]interface{})
+		extension := compute.VirtualMachineScaleSetExtension{
+			Name: utils.String(extensionRaw["name"].(string)),
+		}
+
+		extensionProps := compute.VirtualMachineScaleSetExtensionProperties{
+			Publisher:                utils.String(extensionRaw["publisher"].(string)),
+			Type:                     utils.String(extensionRaw["type"].(string)),
+			TypeHandlerVersion:       utils.String(extensionRaw["type_handler_version"].(string)),
+			AutoUpgradeMinorVersion:  utils.Bool(extensionRaw["auto_upgrade_minor_version"].(bool)),
+			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["provision_after_extensions"].([]interface{})),
+		}
+
+		if forceUpdateTag := extensionRaw["force_update_tag"]; forceUpdateTag != nil {
+			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
+		}
+
+		settings, _ := structure.ExpandJsonFromString(extensionRaw["settings"].(string))
+		extensionProps.Settings = settings
+
+		protectedSettings, _ := structure.ExpandJsonFromString(extensionRaw["protected_settings"].(string))
+		extensionProps.ProtectedSettings = protectedSettings
+
+		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
+		extensions = append(extensions, extension)
+	}
+	result.Extensions = &extensions
+
+	return result
+}
+
+func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {
+	result := make([]map[string]interface{}, 0)
+	if input == nil {
+		return result, nil
+	}
+
+	for k, v := range *input.Extensions {
+		ext := make(map[string]interface{})
+		ext["name"] = *v.Name
+		if props := v.VirtualMachineScaleSetExtensionProperties; props != nil {
+			ext["publisher"] = *props.Publisher
+			ext["type"] = *props.Type
+			ext["type_handler_version"] = *props.TypeHandlerVersion
+			ext["auto_upgrade_minor_version"] = *props.AutoUpgradeMinorVersion
+			ext["provision_after_extensions"] = utils.FlattenStringSlice(props.ProvisionAfterExtensions)
+			settings, err := structure.FlattenJsonToString(props.Settings.(map[string]interface{}))
+			if err != nil {
+				return nil, err
+			}
+			ext["settings"] = settings
+
+			// protected_settings isn't returned, so we attempt to get it from config otherwise set to empty string
+			if protectedSettings, ok := d.GetOk(fmt.Sprintf("vm_extension.%d.protected_settings", k)); ok {
+				if protectedSettings.(string) != "" && protectedSettings.(string) != "{}" {
+					ext["protected_settings"] = protectedSettings.(string)
+				}
+			} else {
+				ext["protected_settings"] = ""
+			}
+		}
+		result = append(result, ext)
+	}
+	return result, nil
 }
