@@ -96,11 +96,11 @@ A `identifier` block supports the following:
 
 A `purchase_plan` block supports the following:
 
-* `name` - (Required) The Purchase Plan Name for this Shared Image.
+* `name` - (Required) The Purchase Plan Name for this Shared Image. Changing this forces a new resource to be created.
 
-* `publisher` - (Required) The Purchase Plan Publisher for this Gallery Image.
+* `publisher` - (Optional) The Purchase Plan Publisher for this Gallery Image. Changing this forces a new resource to be created.
 
-* `product` - (Required) The Purchase Plan Product for this Gallery Image.
+* `product` - (Optional) The Purchase Plan Product for this Gallery Image. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

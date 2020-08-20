@@ -121,16 +121,19 @@ func resourceArmSharedImage() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"publisher": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 						"product": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -376,7 +379,7 @@ func flattenGalleryImageIdentifier(input *compute.GalleryImageIdentifier) []inte
 }
 
 func expandGalleryImagePurchasePlan(input []interface{}) *compute.ImagePurchasePlan {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
