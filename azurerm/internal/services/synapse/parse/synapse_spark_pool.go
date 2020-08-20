@@ -6,32 +6,32 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type SynapseBigDataPoolId struct {
+type SynapseSparkPoolId struct {
 	Workspace *SynapseWorkspaceId
 	Name      string
 }
 
-func SynapseBigDataPoolID(input string) (*SynapseBigDataPoolId, error) {
+func SynapseSparkPoolID(input string) (*SynapseSparkPoolId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing synapseBigDataPool ID %q: %+v", input, err)
+		return nil, fmt.Errorf("parsing synapse Spark Pool ID %q: %+v", input, err)
 	}
 
-	synapseBigDataPool := SynapseBigDataPoolId{
+	synapseSparkPool := SynapseSparkPoolId{
 		Workspace: &SynapseWorkspaceId{
 			SubscriptionID: id.SubscriptionID,
 			ResourceGroup:  id.ResourceGroup,
 		},
 	}
-	if synapseBigDataPool.Workspace.Name, err = id.PopSegment("workspaces"); err != nil {
+	if synapseSparkPool.Workspace.Name, err = id.PopSegment("workspaces"); err != nil {
 		return nil, err
 	}
-	if synapseBigDataPool.Name, err = id.PopSegment("bigDataPools"); err != nil {
+	if synapseSparkPool.Name, err = id.PopSegment("bigDataPools"); err != nil {
 		return nil, err
 	}
 	if err := id.ValidateNoEmptySegments(input); err != nil {
 		return nil, err
 	}
 
-	return &synapseBigDataPool, nil
+	return &synapseSparkPool, nil
 }
