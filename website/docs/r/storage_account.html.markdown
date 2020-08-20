@@ -105,7 +105,7 @@ The following arguments are supported:
 
 -> **NOTE:** At this time `allow_blob_public_access` is only supported in the Public Cloud.
 
-* `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created. 
+* `is_hns_enabled` - (Optional) Is Hierarchical Namespace enabled? This can be used with Azure Data Lake Storage Gen 2 ([see here for more information](https://docs.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-quickstart-create-account/)). Changing this forces a new resource to be created.
 
 -> **NOTE:** When this is set to `true` the `account_tier` argument must be set to `Standard`
 
@@ -251,7 +251,7 @@ A `static_website` block supports the following:
 
 The following attributes are exported in addition to the arguments listed above:
 
-* `id` - The storage account Resource ID.
+* `id` - The ID of the Storage Account.
 
 * `primary_location` - The primary location of the storage account.
 
