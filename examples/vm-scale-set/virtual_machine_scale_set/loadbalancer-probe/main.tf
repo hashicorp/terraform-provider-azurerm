@@ -65,60 +65,40 @@ resource "azurerm_lb_nat_pool" "example" {
   frontend_ip_configuration_name = "PublicIPAddress"
 }
 
-resource "azurerm_virtual_machine_scale_set" "example" {
+resource "azurerm_linux_virtual_machine_scale_set" "example" {
   name                = "${var.prefix}-vmss"
-  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  upgrade_policy_mode = "Manual"
+  location            = azurerm_resource_group.example.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "testuser"
+  admin_password      = "P@sstoken4567!"
 
-  network_profile {
-    name    = "terraformnetworkprofile"
-    primary = true
+  disable_password_authentication = false
 
-    ip_configuration {
-      name                                   = "TestIPConfiguration"
-      primary                                = true
-      subnet_id                              = azurerm_subnet.example.id
-      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
-      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.example.id]
-    }
-  }
-
-  sku {
-    name     = "Standard_A4_v2"
-    tier     = "Standard"
-    capacity = 2
-  }
-
-  storage_profile_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "16.04-LTS"
     version   = "latest"
   }
 
-  storage_profile_os_disk {
-    name              = ""
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
   }
 
-  storage_profile_data_disk {
-    lun           = 0
-    caching       = "ReadWrite"
-    create_option = "Empty"
-    disk_size_gb  = 10
-  }
+  network_interface {
+    name    = "example"
+    primary = true
 
-  os_profile {
-    computer_name_prefix = "testvm"
-    admin_username       = "myadmin"
-    admin_password       = "Passtoken4567!"
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.example.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.example.id]
+    }
   }
 
   depends_on = [azurerm_lb_probe.example]
