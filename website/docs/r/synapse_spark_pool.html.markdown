@@ -99,7 +99,7 @@ An `auto_pause` block exports the following:
 
 ---
 
-An `auto_scale` block exports the following:
+An `auto_scale` block supports the following:
 
 * `max_node_count` - (Required) The maximum number of nodes the Spark Pool can support. Must be between `3` and `200`.
 
