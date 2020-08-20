@@ -760,6 +760,66 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherAutomaticRepairsPolicy(t *
 	})
 }
 
+func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtension(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "scale_in_policy", "Default"),
+				),
+			},
+			// TODO - vm_extension should be changed to vm_extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "vm_extension"),
+		},
+	})
+}
+
+func TestAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "scale_in_policy", "Default"),
+				),
+			},
+			// TODO - vm_extension should be changed to vm_extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "vm_extension"),
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsUpdate(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "scale_in_policy", "Default"),
+				),
+			},
+			// TODO - vm_extension should be changed to vm_extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "vm_extension"),
+			{
+				Config: testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensions(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLinuxVirtualMachineScaleSetExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "scale_in_policy", "Default"),
+				),
+			},
+			// TODO - vm_extension should be changed to vm_extension.0.protected_settings when either binary testing is available or this feature is promoted from beta
+			data.ImportStep("admin_password", "vm_extension"),
+		},
+	})
+}
+
 func testAccAzureRMWindowsVirtualMachineScaleSet_otherBootDiagnostics(data acceptance.TestData) string {
 	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
@@ -2311,6 +2371,121 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   depends_on = [azurerm_lb_rule.test]
 }
 `, template, data.RandomInteger, enabled)
+}
+
+func testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensions(data acceptance.TestData) string {
+	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  vm_extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Compute"
+    type                       = "CustomScriptExtension"
+    type_handler_version       = "1.10"
+    auto_upgrade_minor_version = true
+
+    settings = <<SETTINGS
+		{
+			"commandToExecute": "powershell.exe -c \"Get-Content env:computername\""
+		}
+SETTINGS
+
+    protected_settings = <<SETTINGS
+		{
+			"managedIdentity" : {}
+		}
+SETTINGS
+  }
+}
+`, template)
+}
+
+func testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsUpdate(data acceptance.TestData) string {
+	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  vm_extension {
+    name                       = "CustomScript"
+    publisher                  = "Microsoft.Compute"
+    type                       = "CustomScriptExtension"
+    type_handler_version       = "1.10"
+    auto_upgrade_minor_version = true
+
+    settings = <<SETTINGS
+		{
+			"commandToExecute": "powershell.exe -c \"Get-Process | Where-Object { $_.CPU -gt 10000 }\""
+		}
+SETTINGS
+
+  }
+}
+`, template)
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_otherUpgradeMode(data acceptance.TestData, enabled bool) string {
