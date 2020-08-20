@@ -707,12 +707,6 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 		parameters.PoolProperties.Metadata = ExpandBatchMetaData(metaDataRaw)
 	}
 
-	networkConfiguration := d.Get("network_configuration").([]interface{})
-	parameters.PoolProperties.NetworkConfiguration, err = ExpandBatchPoolNetworkConfiguration(networkConfiguration)
-	if err != nil {
-		return fmt.Errorf("Error expanding `network_configuration`: %+v", err)
-	}
-
 	result, err := client.Update(ctx, id.ResourceGroup, id.AccountName, id.Name, parameters, "")
 	if err != nil {
 		return fmt.Errorf("Error updating Batch pool %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
