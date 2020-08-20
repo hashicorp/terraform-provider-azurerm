@@ -20,6 +20,7 @@ func RequiredResourceProviders() map[string]struct{} {
 		"Microsoft.AppPlatform":             {},
 		"Microsoft.Authorization":           {},
 		"Microsoft.Automation":              {},
+		"Microsoft.AVS":                     {},
 		"Microsoft.Blueprints":              {},
 		"Microsoft.BotService":              {},
 		"Microsoft.Cache":                   {},

@@ -2,13 +2,14 @@ package tests
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/avs/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"testing"
 )
 
 func TestAccAzureRMavsPrivateCloud_basic(t *testing.T) {
@@ -317,7 +318,7 @@ resource "azurerm_avs_private_cloud" "test" {
   sku_name            = "av36"
 
   management_cluster {
-    cluster_size = 4
+    cluster_size = 3
   }
   network_block = "192.168.48.0/22"
 }
@@ -355,7 +356,7 @@ resource "azurerm_avs_private_cloud" "test" {
   sku_name            = "AV36"
 
   management_cluster {
-    cluster_size = 4
+    cluster_size = 3
   }
   network_block = "192.168.48.0/22"
   identity_source {
@@ -392,7 +393,7 @@ resource "azurerm_avs_private_cloud" "test" {
   sku_name            = "AV36"
 
   management_cluster {
-    cluster_size = 3
+    cluster_size = 4
   }
   network_block = "192.168.48.0/22"
   identity_source {
@@ -423,45 +424,46 @@ func testAccAzureRMavsPrivateCloud_updateIdentitySources(data acceptance.TestDat
 %s
 
 resource "azurerm_avs_private_cloud" "test" {
-  name = "acctest-apc-%d"
+  name                = "acctest-apc-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  sku_name= "AV36"
+  location            = azurerm_resource_group.test.location
+  sku_name            = "AV36"
 
   management_cluster {
-    cluster_size = 4
+    cluster_size = 3
   }
   network_block = "192.168.48.0/22"
   identity_source {
-    name = "testName"
-    alias = "testAlias"
-    base_group_dn = "testGp"
-    base_user_dn = "testUser"
-    domain = "testDomain"
-    password = "PassWord1234!"
-    primary_server_url = "http://test.com"
+    name                 = "testName"
+    alias                = "testAlias"
+    base_group_dn        = "testGp"
+    base_user_dn         = "testUser"
+    domain               = "testDomain"
+    password             = "PassWord1234!"
+    primary_server_url   = "http://test.com"
     secondary_server_url = "http://test2.com"
-    ssl_enabled = false
-    username = "testUser"
+    ssl_enabled          = false
+    username             = "testUser"
   }
 
-identity_source {
-    name = "testName3"
-    alias = "testAlias3"
-    base_group_dn = "testGp3"
-    base_user_dn = "testUser3"
-    domain = "testDomain3"
-    password = "PassWord1234!3"
-    primary_server_url = "http://test_secondary.com"
+  identity_source {
+    name                 = "testName3"
+    alias                = "testAlias3"
+    base_group_dn        = "testGp3"
+    base_user_dn         = "testUser3"
+    domain               = "testDomain3"
+    password             = "PassWord1234!3"
+    primary_server_url   = "http://test_secondary.com"
     secondary_server_url = "http://test_secondary2.com"
-    ssl_enabled = true
-    username = "testUser3"
+    ssl_enabled          = true
+    username             = "testUser3"
   }
   internet_connected = false
-  nsxt_password = "QazWsx13$Edc"
-  vcenter_password = "QazWsx13$Edc"
+  nsxt_password      = "QazWsx13$Edc"
+  vcenter_password   = "QazWsx13$Edc"
   tags = {
     ENV = "Test"
   }
+}
 `, template, data.RandomInteger)
 }
