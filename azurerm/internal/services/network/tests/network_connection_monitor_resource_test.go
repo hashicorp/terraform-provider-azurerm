@@ -257,6 +257,12 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinations(t *testing.T
 				Config:      testAccAzureRMNetworkConnectionMonitor_conflictingDestinationsConfig(data),
 				ExpectError: regexp.MustCompile("conflicts with destination.0.address"),
 			},
+			{
+				Config: testAccAzureRMNetworkConnectionMonitor_basicAddressConfig(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
+				),
+			},
 		},
 	})
 }
