@@ -74,6 +74,7 @@ resource "azurerm_firewall_network_rule_collection" "example" {
     destination_addresses = [
       "8.8.8.8",
       "8.8.4.4",
+      "ntp.ubuntu.com"
     ]
 
     protocols = [
@@ -110,7 +111,7 @@ A `rule` block supports the following:
 
 * `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
 
-* `destination_addresses` - (Required) A list of destination IP addresses and/or IP ranges.
+* `destination_addresses` - (Required) A list of destination IP addresses, IP ranges, or FQDNs.
 
 * `destination_ports` - (Required) A list of destination ports.
 
