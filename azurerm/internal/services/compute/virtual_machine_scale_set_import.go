@@ -96,9 +96,8 @@ func importVirtualMachineScaleSet(osType compute.OperatingSystemTypes, resourceT
 			d.Set("admin_password", "ignored-as-imported")
 		}
 
-		//useExtensionsBeta := meta.(*clients.Client).Features.VirtualMachineScaleSet.UseExtensionsBeta
-		// forced for dev testing
-		useExtensionsBeta := true
+		useExtensionsBeta := meta.(*clients.Client).Features.VirtualMachineScaleSet.UseExtensionsBeta
+
 		if useExtensionsBeta {
 			if vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.ExtensionProfile != nil {
 				if extensionsProfile := vm.VirtualMachineScaleSetProperties.VirtualMachineProfile.ExtensionProfile; extensionsProfile != nil {
