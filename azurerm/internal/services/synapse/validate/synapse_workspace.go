@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
 )
 
 func SynapseWorkspaceName(i interface{}, k string) (warnings []string, errors []error) {
@@ -44,6 +46,21 @@ func SqlAdministratorLoginName(i interface{}, k string) (warnings []string, erro
 
 	if !regexp.MustCompile(`^[a-zA-Z][a-zA-Z\d]{0,127}$`).MatchString(v) {
 		errors = append(errors, fmt.Errorf("%s can contain only letters or numbers, must start with a letter, The value must be between 1 and 128 characters long", k))
+		return
+	}
+
+	return warnings, errors
+}
+
+func SynapseWorkspaceID(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if _, err := parse.SynapseWorkspaceID(v); err != nil {
+		errors = append(errors, fmt.Errorf("can not parse %q as a synapse workspace resource id: %v", k, err))
 		return
 	}
 

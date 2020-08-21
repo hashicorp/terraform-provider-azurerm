@@ -77,6 +77,10 @@ The following supported arguments are specific to JSON Dataset:
 
 * `http_server_location` - (Required) A `http_server_location` block as defined below.
 
+* `azure_blob_storage_location` - (Required) A `azure_blob_storage_location` block as defined below.
+
+The following supported arguments are specific to Delimited Text Dataset:
+
 * `encoding` - (Required) The encoding format for the file.
 
 ---
@@ -94,6 +98,16 @@ A `schema_column` block supports the following:
 A `http_server_location` block supports the following:
 
 * `relative_url` - (Required) The base URL to the web server hosting the file.
+
+* `path` - (Required) The folder path to the file on the web server.
+
+* `filename` - (Required) The filename of the file on the web server.
+
+---
+
+A `azure_blob_storage_location` block supports the following:
+
+* `container` - (Required) The container on the Azure Blob Storage Account hosting the file.
 
 * `path` - (Required) The folder path to the file on the web server.
 
