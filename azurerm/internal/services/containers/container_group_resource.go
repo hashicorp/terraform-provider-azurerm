@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
+	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2019-12-01/containerinstance"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -348,9 +348,9 @@ func resourceArmContainerGroup() *schema.Resource {
 							},
 						},
 
-						"liveness_probe": azure.SchemaContainerGroupProbe(),
+						"liveness_probe": SchemaContainerGroupProbe(),
 
-						"readiness_probe": azure.SchemaContainerGroupProbe(),
+						"readiness_probe": SchemaContainerGroupProbe(),
 					},
 				},
 			},
@@ -603,13 +603,12 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	resp, err := client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil
-		}
-
 		return fmt.Errorf("Error deleting Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for deletion of Container Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if networkProfileId != "" {

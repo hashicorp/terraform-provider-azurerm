@@ -25,7 +25,7 @@ resource "azurerm_policy_definition" "policy" {
     {
     "category": "General"
     }
-  
+
 METADATA
 
 
@@ -71,8 +71,7 @@ The following arguments are supported:
 
 * `mode` - (Required) The policy mode that allows you to specify which resource
     types will be evaluated.  The value can be "All", "Indexed" or
-    "NotSpecified". Changing this resource forces a new resource to be
-    created.
+    "NotSpecified".
 
 * `display_name` - (Required) The display name of the policy definition.
 
