@@ -74,7 +74,6 @@ resource "azurerm_firewall_network_rule_collection" "example" {
     destination_addresses = [
       "8.8.8.8",
       "8.8.4.4",
-      "ntp.ubuntu.com"
     ]
 
     protocols = [
