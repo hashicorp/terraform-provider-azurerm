@@ -1,4 +1,5 @@
 API Management
+Advisor
 Analysis Services
 App Configuration
 App Service (Web Apps)
@@ -7,6 +8,7 @@ Authorization
 Automation
 Base
 Batch
+Blueprints
 Bot
 CDN
 Cognitive Services
@@ -26,6 +28,7 @@ Databricks
 Dev Test
 DevSpace
 HDInsight
+Hardware Security Module
 Healthcare
 IoT Central
 IoT Hub
@@ -57,4 +60,6 @@ Service Fabric
 Spring Cloud
 Storage
 Stream Analytics
+Synapse
 Template
+Time Series Insights

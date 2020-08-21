@@ -126,7 +126,6 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForManagementGroupSen
 func (client PolicyTrackedResourcesClient) ListQueryResultsForManagementGroupResponder(resp *http.Response) (result PolicyTrackedResourcesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -253,7 +252,6 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceSender(req
 func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceResponder(resp *http.Response) (result PolicyTrackedResourcesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -382,7 +380,6 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceGroupSende
 func (client PolicyTrackedResourcesClient) ListQueryResultsForResourceGroupResponder(resp *http.Response) (result PolicyTrackedResourcesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -509,7 +506,6 @@ func (client PolicyTrackedResourcesClient) ListQueryResultsForSubscriptionSender
 func (client PolicyTrackedResourcesClient) ListQueryResultsForSubscriptionResponder(resp *http.Response) (result PolicyTrackedResourcesQueryResults, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -124,7 +124,6 @@ func (client UserConfirmationPasswordClient) SendMethodSender(req *http.Request)
 func (client UserConfirmationPasswordClient) SendMethodResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

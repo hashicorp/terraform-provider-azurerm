@@ -47,6 +47,8 @@ The following arguments are supported:
 
 * `password` - (Optional) The password to access the certificate's private key. Changing this forces a new resource to be created.
 
+* `hosting_environment_profile_id` - (Optional) Must be specified when the certificate is for an App Service Environment hosted App Service. Changing this forces a new resource to be created.
+
 * `key_vault_secret_id` - (Optional) The ID of the Key Vault secret. Changing this forces a new resource to be created.
 
 -> **NOTE:** If using `key_vault_secret_id`, the WebApp Service Resource Principal ID `abfa0a7c-a6b6-4736-8310-5855508787cd` must have 'Secret -> get' and 'Certificate -> get' permissions on the Key Vault containing the certificate. (Source: [App Service Blog](https://azure.github.io/AppService/2016/05/24/Deploying-Azure-Web-App-Certificate-through-Key-Vault.html)) If you use Terraform to create the access policy you have to specify the Object ID of this Principal. This Object ID can be retrieved via following data reference, since it is different in every AAD Tenant:

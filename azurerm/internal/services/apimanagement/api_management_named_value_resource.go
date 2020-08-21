@@ -48,6 +48,7 @@ func resourceArmApiManagementNamedValue() *schema.Resource {
 			"value": {
 				Type:         schema.TypeString,
 				Required:     true,
+				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -102,8 +103,13 @@ func resourceArmApiManagementNamedValueCreateUpdate(d *schema.ResourceData, meta
 		parameters.NamedValueCreateContractProperties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, "")
+	if err != nil {
 		return fmt.Errorf(" creating or updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("waiting on creating/updating Property %q (Resource Group %q / API Management Service %q): %+v", name, resourceGroup, serviceName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serviceName, name)
@@ -149,7 +155,10 @@ func resourceArmApiManagementNamedValueRead(d *schema.ResourceData, meta interfa
 	if properties := resp.NamedValueContractProperties; properties != nil {
 		d.Set("display_name", properties.DisplayName)
 		d.Set("secret", properties.Secret)
-		d.Set("value", properties.Value)
+		// API will not return `value` when `secret` is `true`, in which case we shall not set the `value`. Refer to the issue : #6688
+		if properties.Secret != nil && !*properties.Secret {
+			d.Set("value", properties.Value)
+		}
 		d.Set("tags", properties.Tags)
 	}
 

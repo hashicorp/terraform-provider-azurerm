@@ -111,6 +111,16 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"workspace_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"workspace_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -156,6 +166,9 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 		managedResourceGroupID = fmt.Sprintf("/subscriptions/%s/resourceGroups/%s", subscriptionID, managedResourceGroupName)
 	}
 
+	customParamsRaw := d.Get("custom_parameters").([]interface{})
+	customParams := expandWorkspaceCustomParameters(customParamsRaw)
+
 	workspace := databricks.Workspace{
 		Sku: &databricks.Sku{
 			Name: utils.String(skuName),
@@ -163,7 +176,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 		Location: utils.String(location),
 		WorkspaceProperties: &databricks.WorkspaceProperties{
 			ManagedResourceGroupID: &managedResourceGroupID,
-			Parameters:             expandWorkspaceCustomParameters(d),
+			Parameters:             customParams,
 		},
 		Tags: expandedTags,
 	}
@@ -230,7 +243,13 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 		}
 		d.Set("managed_resource_group_id", props.ManagedResourceGroupID)
 		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
-		d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters))
+
+		if err := d.Set("custom_parameters", flattenWorkspaceCustomParameters(props.Parameters)); err != nil {
+			return fmt.Errorf("Error setting `custom_parameters`: %+v", err)
+		}
+
+		d.Set("workspace_url", props.WorkspaceURL)
+		d.Set("workspace_id", props.WorkspaceID)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -294,12 +313,12 @@ func flattenWorkspaceCustomParameters(p *databricks.WorkspaceCustomParameters) [
 	return []interface{}{parameters}
 }
 
-func expandWorkspaceCustomParameters(d *schema.ResourceData) *databricks.WorkspaceCustomParameters {
-	configList, ok := d.GetOkExists("custom_parameters")
-	if !ok {
+func expandWorkspaceCustomParameters(input []interface{}) *databricks.WorkspaceCustomParameters {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
-	config := configList.([]interface{})[0].(map[string]interface{})
+
+	config := input[0].(map[string]interface{})
 	parameters := databricks.WorkspaceCustomParameters{}
 
 	if v, ok := config["no_public_ip"].(bool); ok {

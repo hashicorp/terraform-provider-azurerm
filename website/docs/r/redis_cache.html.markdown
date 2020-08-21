@@ -92,6 +92,9 @@ A `redis_configuration` block supports the following:
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
 * `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKU's.
+
+-> **NOTE:** If `rdb_backup_enabled` set to `true`, `rdb_storage_connection_string` must also be set.
+
 * `rdb_backup_frequency` - (Optional) The Backup Frequency in Minutes. Only supported on Premium SKU's. Possible values are: `15`, `30`, `60`, `360`, `720` and `1440`.
 * `rdb_backup_max_snapshot_count` - (Optional) The maximum number of snapshots to create as a backup. Only supported for Premium SKU's.
 * `rdb_storage_connection_string` - (Optional) The Connection String to the Storage Account. Only supported for Premium SKU's. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.example.primary_blob_endpoint};AccountName=${azurerm_storage_account.example.name};AccountKey=${azurerm_storage_account.example.primary_access_key}`.
@@ -101,7 +104,7 @@ A `redis_configuration` block supports the following:
 ```
 resource "azurerm_redis_cache" "example" {
   # ...
-  ignore_changes = ["redis_configuration.0.rdb_storage_connection_string"]
+  ignore_changes = [redis_configuration.0.rdb_storage_connection_string]
 }
 ```
 

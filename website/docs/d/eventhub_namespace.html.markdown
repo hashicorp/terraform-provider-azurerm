@@ -42,6 +42,10 @@ output "eventhub_namespace_id" {
 
 * `maximum_throughput_units` -  Specifies the maximum number of throughput units when Auto Inflate is Enabled.
 
+* `zone_redundant` - Is this EventHub Namespace deployed across Availability Zones?
+
+* `dedicated_cluster_id` - The ID of the EventHub Dedicated Cluster where this Namespace exists.
+
 * `tags` - A mapping of tags to assign to the EventHub Namespace.
 
 The following attributes are exported only if there is an authorization rule named
@@ -50,10 +54,16 @@ The following attributes are exported only if there is an authorization rule nam
 * `default_primary_connection_string` - The primary connection string for the authorization
     rule `RootManageSharedAccessKey`.
 
+* `default_primary_connection_string_alias` - The alias of the primary connection string for the authorization
+    rule `RootManageSharedAccessKey`.
+
+* `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
+
 * `default_secondary_connection_string` - The secondary connection string for the
     authorization rule `RootManageSharedAccessKey`.
 
-* `default_primary_key` - The primary access key for the authorization rule `RootManageSharedAccessKey`.
+* `default_secondary_connection_string_alias` - The alias of the secondary connection string for the
+    authorization rule `RootManageSharedAccessKey`.
 
 * `default_secondary_key` - The secondary access key for the authorization rule `RootManageSharedAccessKey`.
 

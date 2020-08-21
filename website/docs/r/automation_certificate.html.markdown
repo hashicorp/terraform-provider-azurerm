@@ -28,11 +28,11 @@ resource "azurerm_automation_account" "example" {
 
 resource "azurerm_automation_certificate" "example" {
   name                    = "certificate1"
-  resource_group_name     = "${azurerm_resource_group.example.name}"
-  automation_account_name = "${azurerm_automation_account.example.name}"
+  resource_group_name     = azurerm_resource_group.example.name
+  automation_account_name = azurerm_automation_account.example.name
 
   description = "This is an example certificate"
-  base64      = base64encode(file("certificate.pfx"))
+  base64      = filebase64("certificate.pfx")
 }
 ```
 

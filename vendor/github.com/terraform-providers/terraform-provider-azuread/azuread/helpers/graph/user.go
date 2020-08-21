@@ -9,7 +9,7 @@ import (
 
 func UserGetByObjectId(client *graphrbac.UsersClient, ctx context.Context, objectId string) (*graphrbac.User, error) {
 	filter := fmt.Sprintf("objectId eq '%s'", objectId)
-	resp, err := client.ListComplete(ctx, filter)
+	resp, err := client.ListComplete(ctx, filter, "")
 	if err != nil {
 		return nil, fmt.Errorf("Error listing Azure AD Users for filter %q: %+v", filter, err)
 	}
@@ -37,8 +37,8 @@ func UserGetByObjectId(client *graphrbac.UsersClient, ctx context.Context, objec
 }
 
 func UserGetByMailNickname(client *graphrbac.UsersClient, ctx context.Context, mailNickname string) (*graphrbac.User, error) {
-	filter := fmt.Sprintf("startswith(mailNickname,'%s')", mailNickname)
-	resp, err := client.ListComplete(ctx, filter)
+	filter := fmt.Sprintf("mailNickname eq '%s'", mailNickname)
+	resp, err := client.ListComplete(ctx, filter, "")
 	if err != nil {
 		return nil, fmt.Errorf("Error listing Azure AD Users for filter %q: %+v", filter, err)
 	}

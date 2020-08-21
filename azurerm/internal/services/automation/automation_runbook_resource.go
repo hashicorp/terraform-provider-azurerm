@@ -10,10 +10,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/helper"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -42,14 +45,14 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationRunbookName(),
+				ValidateFunc: validate.AutomationRunbookName(),
 			},
 
 			"automation_account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: azure.ValidateAutomationAccountName(),
+				ValidateFunc: validate.AutomationAccountName(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -87,15 +90,20 @@ func resourceArmAutomationRunbook() *schema.Resource {
 			},
 
 			"content": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				AtLeastOneOf: []string{"content", "publish_content_link"},
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
+			"job_schedule": helper.JobScheduleSchema(),
+
 			"publish_content_link": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:         schema.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				AtLeastOneOf: []string{"content", "publish_content_link"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"uri": {
@@ -136,6 +144,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
+	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -166,19 +175,23 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
 
-	contentLink := expandContentLink(d)
-
 	parameters := automation.RunbookCreateOrUpdateParameters{
 		RunbookCreateOrUpdateProperties: &automation.RunbookCreateOrUpdateProperties{
-			LogVerbose:         &logVerbose,
-			LogProgress:        &logProgress,
-			RunbookType:        runbookType,
-			Description:        &description,
-			PublishContentLink: &contentLink,
+			LogVerbose:  &logVerbose,
+			LogProgress: &logProgress,
+			RunbookType: runbookType,
+			Description: &description,
 		},
 
 		Location: &location,
 		Tags:     tags.Expand(t),
+	}
+
+	contentLink := expandContentLink(d.Get("publish_content_link").([]interface{}))
+	if contentLink != nil {
+		parameters.RunbookCreateOrUpdateProperties.PublishContentLink = contentLink
+	} else {
+		parameters.RunbookCreateOrUpdateProperties.Draft = &automation.RunbookDraft{}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
@@ -210,11 +223,41 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
+	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, resGroup, accName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+		if err != nil {
+			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accName, err)
+		}
+		if props := jsIterator.Value().JobScheduleProperties; props != nil {
+			if props.Runbook.Name != nil && *props.Runbook.Name == name {
+				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
+					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accName, err)
+				}
+				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
+				if err != nil {
+					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
+				}
+				if _, err := jsClient.Delete(ctx, resGroup, accName, jsId); err != nil {
+					return fmt.Errorf("deleting job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
+				}
+			}
+		}
+	}
+
+	if v, ok := d.GetOk("job_schedule"); ok {
+		jsMap := helper.ExpandAutomationJobSchedule(v.(*schema.Set).List(), name)
+		for jsuuid, js := range jsMap {
+			if _, err := jsClient.Create(ctx, resGroup, accName, jsuuid, js); err != nil {
+				return fmt.Errorf("creating Automation Runbook %q Job Schedules (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+			}
+		}
+	}
+
 	return resourceArmAutomationRunbookRead(d, meta)
 }
 
 func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.RunbookClient
+	jsClient := meta.(*clients.Client).Automation.JobScheduleClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -252,7 +295,11 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 
 	response, err := client.GetContent(ctx, resGroup, accName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		if utils.ResponseWasNotFound(response.Response) {
+			d.Set("content", "")
+		} else {
+			return fmt.Errorf("retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
+		}
 	}
 
 	if v := response.Value; v != nil {
@@ -264,6 +311,30 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 			content := buf.String()
 			d.Set("content", content)
 		}
+	}
+
+	jsMap := make(map[uuid.UUID]automation.JobScheduleProperties)
+	for jsIterator, err := jsClient.ListByAutomationAccountComplete(ctx, resGroup, accName, ""); jsIterator.NotDone(); err = jsIterator.NextWithContext(ctx) {
+		if err != nil {
+			return fmt.Errorf("loading Automation Account %q Job Schedule List: %+v", accName, err)
+		}
+		if props := jsIterator.Value().JobScheduleProperties; props != nil {
+			if props.Runbook.Name != nil && *props.Runbook.Name == name {
+				if jsIterator.Value().JobScheduleID == nil || *jsIterator.Value().JobScheduleID == "" {
+					return fmt.Errorf("job schedule Id is nil or empty listed by Automation Account %q Job Schedule List: %+v", accName, err)
+				}
+				jsId, err := uuid.FromString(*jsIterator.Value().JobScheduleID)
+				if err != nil {
+					return fmt.Errorf("parsing job schedule Id listed by Automation Account %q Job Schedule List:%v", accName, err)
+				}
+				jsMap[jsId] = *props
+			}
+		}
+	}
+
+	jobSchedule := helper.FlattenAutomationJobSchedule(jsMap)
+	if err := d.Set("job_schedule", jobSchedule); err != nil {
+		return fmt.Errorf("setting `job_schedule`: %+v", err)
 	}
 
 	if t := resp.Tags; t != nil {
@@ -298,12 +369,14 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func expandContentLink(d *schema.ResourceData) automation.ContentLink {
-	inputs := d.Get("publish_content_link").([]interface{})
+func expandContentLink(inputs []interface{}) *automation.ContentLink {
+	if len(inputs) == 0 || inputs[0] == nil {
+		return nil
+	}
+
 	input := inputs[0].(map[string]interface{})
 	uri := input["uri"].(string)
 	version := input["version"].(string)
-
 	hashes := input["hash"].([]interface{})
 
 	if len(hashes) > 0 {
@@ -311,7 +384,7 @@ func expandContentLink(d *schema.ResourceData) automation.ContentLink {
 		hashValue := hash["value"].(string)
 		hashAlgorithm := hash["algorithm"].(string)
 
-		return automation.ContentLink{
+		return &automation.ContentLink{
 			URI:     &uri,
 			Version: &version,
 			ContentHash: &automation.ContentHash{
@@ -321,7 +394,7 @@ func expandContentLink(d *schema.ResourceData) automation.ContentLink {
 		}
 	}
 
-	return automation.ContentLink{
+	return &automation.ContentLink{
 		URI:     &uri,
 		Version: &version,
 	}

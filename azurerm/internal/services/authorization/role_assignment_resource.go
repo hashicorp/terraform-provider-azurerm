@@ -1,6 +1,7 @@
 package authorization
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -66,7 +66,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 				ForceNew:         true,
 				ConflictsWith:    []string{"role_definition_id"},
 				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     validateRoleDefinitionName,
+				ValidateFunc:     validation.StringIsNotEmpty,
 			},
 
 			"principal_id": {
@@ -127,17 +127,15 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		name = uuid
 	}
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := roleAssignmentsClient.Get(ctx, scope, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
-			}
+	existing, err := roleAssignmentsClient.Get(ctx, scope, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
 	}
 
 	properties := authorization.RoleAssignmentCreateParameters{
@@ -148,21 +146,37 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
-
 	if skipPrincipalCheck {
 		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
 	}
 
+	// TODO: we should switch this to use the timeout
 	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
 		return err
 	}
-
 	read, err := roleAssignmentsClient.Get(ctx, scope, name)
 	if err != nil {
 		return err
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Role Assignment ID for %q (Scope %q)", name, scope)
+	}
+
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{
+			"pending",
+		},
+		Target: []string{
+			"ready",
+		},
+		Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, *read.ID),
+		MinTimeout:                5 * time.Second,
+		ContinuousTargetOccurence: 5,
+		Timeout:                   d.Timeout(schema.TimeoutCreate),
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err)
 	}
 
 	d.SetId(*read.ID)
@@ -230,18 +244,6 @@ func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %s to be string", k)}
-	}
-
-	if ok := strings.Contains(v, "(Preview)"); ok {
-		return nil, []error{fmt.Errorf("Preview roles are not supported")}
-	}
-	return nil, nil
-}
-
 func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
 		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
@@ -281,4 +283,17 @@ func parseRoleAssignmentId(input string) (*roleAssignmentId, error) {
 		name:  segments[1],
 	}
 	return &id, nil
+}
+
+func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *authorization.RoleAssignmentsClient, roleID string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.GetByID(ctx, roleID)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "pending", nil
+			}
+			return resp, "failed", err
+		}
+		return resp, "ready", nil
+	}
 }

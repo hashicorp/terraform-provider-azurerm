@@ -121,7 +121,6 @@ func (client CustomImagesClient) CreateOrUpdateSender(req *http.Request) (future
 func (client CustomImagesClient) CreateOrUpdateResponder(resp *http.Response) (result CustomImage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -199,7 +198,6 @@ func (client CustomImagesClient) DeleteSender(req *http.Request) (future CustomI
 func (client CustomImagesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,7 +278,6 @@ func (client CustomImagesClient) GetSender(req *http.Request) (*http.Response, e
 func (client CustomImagesClient) GetResponder(resp *http.Response) (result CustomImage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -373,7 +370,6 @@ func (client CustomImagesClient) ListSender(req *http.Request) (*http.Response, 
 func (client CustomImagesClient) ListResponder(resp *http.Response) (result ResponseWithContinuationCustomImage, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -113,7 +113,6 @@ func (client UpdatesClient) ListSender(req *http.Request) (*http.Response, error
 func (client UpdatesClient) ListResponder(resp *http.Response) (result ListUpdatesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -197,7 +196,6 @@ func (client UpdatesClient) ListParentSender(req *http.Request) (*http.Response,
 func (client UpdatesClient) ListParentResponder(resp *http.Response) (result ListUpdatesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

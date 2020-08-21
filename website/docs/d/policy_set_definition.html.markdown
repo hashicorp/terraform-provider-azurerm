@@ -13,10 +13,6 @@ Use this data source to access information about an existing Policy Set Definiti
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 data "azurerm_policy_set_definition" "example" {
   display_name = "Policy Set Definition Example"
 }

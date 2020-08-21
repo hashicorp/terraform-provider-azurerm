@@ -3,7 +3,7 @@ package compute
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-12-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -753,7 +753,7 @@ func VirtualMachineScaleSetDataDiskSchema() *schema.Schema {
 				"disk_size_gb": {
 					Type:         schema.TypeInt,
 					Required:     true,
-					ValidateFunc: validation.IntBetween(0, 1023),
+					ValidateFunc: validation.IntBetween(1, 32767),
 				},
 
 				"lun": {

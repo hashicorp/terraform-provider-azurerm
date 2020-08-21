@@ -8,8 +8,8 @@ resource "azurerm_resource_group" "rg" {
 }
 
 # **********************  NETWORK SECURITY GROUPS ********************** #
-resource "azurerm_network_security_group" "master" {
-  name                = "${var.nsg_spark_master_name}"
+resource "azurerm_network_security_group" "primary" {
+  name                = "${var.nsg_spark_primary_name}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${azurerm_resource_group.rg.location}"
 
@@ -53,8 +53,8 @@ resource "azurerm_network_security_group" "master" {
   }
 }
 
-resource "azurerm_network_security_group" "slave" {
-  name                = "${var.nsg_spark_slave_name}"
+resource "azurerm_network_security_group" "secondary" {
+  name                = "${var.nsg_spark_secondary_name}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   location            = "${azurerm_resource_group.rg.location}"
 
@@ -103,8 +103,8 @@ resource "azurerm_subnet" "subnet1" {
   name                      = "${var.vnet_spark_subnet1_name}"
   virtual_network_name      = "${azurerm_virtual_network.spark.name}"
   resource_group_name       = "${azurerm_resource_group.rg.name}"
-  address_prefix            = "${var.vnet_spark_subnet1_prefix}"
-  network_security_group_id = "${azurerm_network_security_group.master.id}"
+  address_prefixes            = ["${var.vnet_spark_subnet1_prefix}"]
+  network_security_group_id = "${azurerm_network_security_group.primary.id}"
   depends_on                = ["azurerm_virtual_network.spark"]
 }
 
@@ -112,30 +112,30 @@ resource "azurerm_subnet" "subnet2" {
   name                 = "${var.vnet_spark_subnet2_name}"
   virtual_network_name = "${azurerm_virtual_network.spark.name}"
   resource_group_name  = "${azurerm_resource_group.rg.name}"
-  address_prefix       = "${var.vnet_spark_subnet2_prefix}"
+  address_prefixes     = ["${var.vnet_spark_subnet2_prefix}"]
 }
 
 resource "azurerm_subnet" "subnet3" {
   name                 = "${var.vnet_spark_subnet3_name}"
   virtual_network_name = "${azurerm_virtual_network.spark.name}"
   resource_group_name  = "${azurerm_resource_group.rg.name}"
-  address_prefix       = "${var.vnet_spark_subnet3_prefix}"
+  address_prefixes     = ["${var.vnet_spark_subnet3_prefix}"]
 }
 
 # **********************  PUBLIC IP ADDRESSES ********************** #
-resource "azurerm_public_ip" "master" {
-  name                         = "${var.public_ip_master_name}"
+resource "azurerm_public_ip" "primary" {
+  name                         = "${var.public_ip_primary_name}"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
   allocation_method = "Static"
 }
 
-resource "azurerm_public_ip" "slave" {
-  name                         = "${var.public_ip_slave_name_prefix}${count.index}"
+resource "azurerm_public_ip" "secondary" {
+  name                         = "${var.public_ip_secondary_name_prefix}${count.index}"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
   allocation_method = "Static"
-  count                        = "${var.vm_number_of_slaves}"
+  count                        = "${var.vm_number_of_secondarys}"
 }
 
 resource "azurerm_public_ip" "cassandra" {
@@ -146,36 +146,36 @@ resource "azurerm_public_ip" "cassandra" {
 }
 
 # **********************  NETWORK INTERFACE ********************** #
-resource "azurerm_network_interface" "master" {
-  name                      = "${var.nic_master_name}"
+resource "azurerm_network_interface" "primary" {
+  name                      = "${var.nic_primary_name}"
   location                  = "${azurerm_resource_group.rg.location}"
   resource_group_name       = "${azurerm_resource_group.rg.name}"
-  network_security_group_id = "${azurerm_network_security_group.master.id}"
-  depends_on                = ["azurerm_virtual_network.spark", "azurerm_public_ip.master", "azurerm_network_security_group.master"]
+  network_security_group_id = "${azurerm_network_security_group.primary.id}"
+  depends_on                = ["azurerm_virtual_network.spark", "azurerm_public_ip.primary", "azurerm_network_security_group.primary"]
 
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = "${azurerm_subnet.subnet1.id}"
     private_ip_address_allocation = "Static"
-    private_ip_address            = "${var.nic_master_node_ip}"
-    public_ip_address_id          = "${azurerm_public_ip.master.id}"
+    private_ip_address            = "${var.nic_primary_node_ip}"
+    public_ip_address_id          = "${azurerm_public_ip.primary.id}"
   }
 }
 
-resource "azurerm_network_interface" "slave" {
-  name                      = "${var.nic_slave_name_prefix}${count.index}"
+resource "azurerm_network_interface" "secondary" {
+  name                      = "${var.nic_secondary_name_prefix}${count.index}"
   location                  = "${azurerm_resource_group.rg.location}"
   resource_group_name       = "${azurerm_resource_group.rg.name}"
-  network_security_group_id = "${azurerm_network_security_group.slave.id}"
-  count                     = "${var.vm_number_of_slaves}"
-  depends_on                = ["azurerm_virtual_network.spark", "azurerm_public_ip.slave", "azurerm_network_security_group.slave"]
+  network_security_group_id = "${azurerm_network_security_group.secondary.id}"
+  count                     = "${var.vm_number_of_secondarys}"
+  depends_on                = ["azurerm_virtual_network.spark", "azurerm_public_ip.secondary", "azurerm_network_security_group.secondary"]
 
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = "${azurerm_subnet.subnet2.id}"
     private_ip_address_allocation = "Static"
-    private_ip_address            = "${var.nic_slave_node_ip_prefix}${5 + count.index}"
-    public_ip_address_id          = "${element(azurerm_public_ip.slave.*.id, count.index)}"
+    private_ip_address            = "${var.nic_secondary_node_ip_prefix}${5 + count.index}"
+    public_ip_address_id          = "${element(azurerm_public_ip.secondary.*.id, count.index)}"
   }
 }
 
@@ -196,8 +196,8 @@ resource "azurerm_network_interface" "cassandra" {
 }
 
 # **********************  AVAILABILITY SET ********************** #
-resource "azurerm_availability_set" "slave" {
-  name                         = "${var.availability_slave_name}"
+resource "azurerm_availability_set" "secondary" {
+  name                         = "${var.availability_secondary_name}"
   location                     = "${azurerm_resource_group.rg.location}"
   resource_group_name          = "${azurerm_resource_group.rg.name}"
   platform_update_domain_count = 5
@@ -205,37 +205,36 @@ resource "azurerm_availability_set" "slave" {
 }
 
 # **********************  STORAGE ACCOUNTS ********************** #
-resource "azurerm_storage_account" "master" {
-  name                     = "master${var.unique_prefix}"
+resource "azurerm_storage_account" "primary" {
+  name                     = "primary${var.unique_prefix}"
   resource_group_name      = "${azurerm_resource_group.rg.name}"
   location                 = "${azurerm_resource_group.rg.location}"
-  account_tier             = "${var.storage_master_account_tier}"
-  account_replication_type = "${var.storage_master_replication_type}"
+  account_tier             = "${var.storage_primary_account_tier}"
+  account_replication_type = "${var.storage_primary_replication_type}"
 }
 
-resource "azurerm_storage_container" "master" {
-  name                  = "${var.vm_master_storage_account_container_name}"
+resource "azurerm_storage_container" "primary" {
+  name                  = "${var.vm_primary_storage_account_container_name}"
   resource_group_name   = "${azurerm_resource_group.rg.name}"
-  storage_account_name  = "${azurerm_storage_account.master.name}"
+  storage_account_name  = "${azurerm_storage_account.primary.name}"
   container_access_type = "private"
-  depends_on            = ["azurerm_storage_account.master"]
+  depends_on            = ["azurerm_storage_account.primary"]
 }
 
-resource "azurerm_storage_account" "slave" {
-  name                     = "slave${var.unique_prefix}${count.index}"
+resource "azurerm_storage_account" "secondary" {
+  name                     = "secondary${var.unique_prefix}${count.index}"
   resource_group_name      = "${azurerm_resource_group.rg.name}"
   location                 = "${azurerm_resource_group.rg.location}"
-  count                    = "${var.vm_number_of_slaves}"
-  account_tier             = "${var.storage_slave_account_tier}"
-  account_replication_type = "${var.storage_slave_replication_type}"
+  count                    = "${var.vm_number_of_secondarys}"
+  account_tier             = "${var.storage_secondary_account_tier}"
+  account_replication_type = "${var.storage_secondary_replication_type}"
 }
 
-resource "azurerm_storage_container" "slave" {
-  name                  = "${var.vm_slave_storage_account_container_name}${count.index}"
-  resource_group_name   = "${azurerm_resource_group.rg.name}"
-  storage_account_name  = "${element(azurerm_storage_account.slave.*.name, count.index)}"
+resource "azurerm_storage_container" "secondary" {
+  name                  = "${var.vm_secondary_storage_account_container_name}${count.index}"
+  storage_account_name  = "${element(azurerm_storage_account.secondary.*.name, count.index)}"
   container_access_type = "private"
-  depends_on            = ["azurerm_storage_account.slave"]
+  depends_on            = ["azurerm_storage_account.secondary"]
 }
 
 resource "azurerm_storage_account" "cassandra" {
@@ -248,20 +247,19 @@ resource "azurerm_storage_account" "cassandra" {
 
 resource "azurerm_storage_container" "cassandra" {
   name                  = "${var.vm_cassandra_storage_account_container_name}"
-  resource_group_name   = "${azurerm_resource_group.rg.name}"
   storage_account_name  = "${azurerm_storage_account.cassandra.name}"
   container_access_type = "private"
   depends_on            = ["azurerm_storage_account.cassandra"]
 }
 
-# ********************** MASTER VIRTUAL MACHINE ********************** #
-resource "azurerm_virtual_machine" "master" {
-  name                  = "${var.vm_master_name}"
+# ********************** PRIMARY VIRTUAL MACHINE ********************** #
+resource "azurerm_virtual_machine" "primary" {
+  name                  = "${var.vm_primary_name}"
   resource_group_name   = "${azurerm_resource_group.rg.name}"
   location              = "${azurerm_resource_group.rg.location}"
-  vm_size               = "${var.vm_master_vm_size}"
-  network_interface_ids = ["${azurerm_network_interface.master.id}"]
-  depends_on            = ["azurerm_storage_account.master", "azurerm_network_interface.master", "azurerm_storage_container.master"]
+  vm_size               = "${var.vm_primary_vm_size}"
+  network_interface_ids = ["${azurerm_network_interface.primary.id}"]
+  depends_on            = ["azurerm_storage_account.primary", "azurerm_network_interface.primary", "azurerm_storage_container.primary"]
 
   storage_image_reference {
     publisher = "${var.os_image_publisher}"
@@ -271,14 +269,14 @@ resource "azurerm_virtual_machine" "master" {
   }
 
   storage_os_disk {
-    name          = "${var.vm_master_os_disk_name}"
-    vhd_uri       = "http://${azurerm_storage_account.master.name}.blob.core.windows.net/${azurerm_storage_container.master.name}/${var.vm_master_os_disk_name}.vhd"
+    name          = "${var.vm_primary_os_disk_name}"
+    vhd_uri       = "http://${azurerm_storage_account.primary.name}.blob.core.windows.net/${azurerm_storage_container.primary.name}/${var.vm_primary_os_disk_name}.vhd"
     create_option = "FromImage"
     caching       = "ReadWrite"
   }
 
   os_profile {
-    computer_name  = "${var.vm_master_name}"
+    computer_name  = "${var.vm_primary_name}"
     admin_username = "${var.vm_admin_username}"
     admin_password = "${var.vm_admin_password}"
   }
@@ -289,7 +287,7 @@ resource "azurerm_virtual_machine" "master" {
 
   connection {
     type     = "ssh"
-    host     = "${azurerm_public_ip.master.ip_address}"
+    host     = "${azurerm_public_ip.primary.ip_address}"
     user     = "${var.vm_admin_username}"
     password = "${var.vm_admin_password}"
   }
@@ -297,21 +295,21 @@ resource "azurerm_virtual_machine" "master" {
   provisioner "remote-exec" {
     inline = [
       "wget ${var.artifacts_location}${var.script_spark_provisioner_script_file_name}",
-      "echo ${var.vm_admin_password} | sudo -S sh ./${var.script_spark_provisioner_script_file_name} -runas=master -master=${var.nic_master_node_ip}",
+      "echo ${var.vm_admin_password} | sudo -S sh ./${var.script_spark_provisioner_script_file_name} -runas=primary -primary=${var.nic_primary_node_ip}",
     ]
   }
 }
 
-# ********************** SLAVE VIRTUAL MACHINES ********************** #
-resource "azurerm_virtual_machine" "slave" {
-  name                  = "${var.vm_slave_name_prefix}${count.index}"
+# ********************** SECONDARY VIRTUAL MACHINES ********************** #
+resource "azurerm_virtual_machine" "secondary" {
+  name                  = "${var.vm_secondary_name_prefix}${count.index}"
   resource_group_name   = "${azurerm_resource_group.rg.name}"
   location              = "${azurerm_resource_group.rg.location}"
-  vm_size               = "${var.vm_slave_vm_size}"
-  network_interface_ids = ["${element(azurerm_network_interface.slave.*.id, count.index)}"]
-  count                 = "${var.vm_number_of_slaves}"
-  availability_set_id   = "${azurerm_availability_set.slave.id}"
-  depends_on            = ["azurerm_storage_account.slave", "azurerm_network_interface.slave", "azurerm_storage_container.slave"]
+  vm_size               = "${var.vm_secondary_vm_size}"
+  network_interface_ids = ["${element(azurerm_network_interface.secondary.*.id, count.index)}"]
+  count                 = "${var.vm_number_of_secondarys}"
+  availability_set_id   = "${azurerm_availability_set.secondary.id}"
+  depends_on            = ["azurerm_storage_account.secondary", "azurerm_network_interface.secondary", "azurerm_storage_container.secondary"]
 
   storage_image_reference {
     publisher = "${var.os_image_publisher}"
@@ -321,14 +319,14 @@ resource "azurerm_virtual_machine" "slave" {
   }
 
   storage_os_disk {
-    name          = "${var.vm_slave_os_disk_name_prefix}${count.index}"
-    vhd_uri       = "http://${element(azurerm_storage_account.slave.*.name, count.index)}.blob.core.windows.net/${element(azurerm_storage_container.slave.*.name, count.index)}/${var.vm_slave_os_disk_name_prefix}.vhd"
+    name          = "${var.vm_secondary_os_disk_name_prefix}${count.index}"
+    vhd_uri       = "http://${element(azurerm_storage_account.secondary.*.name, count.index)}.blob.core.windows.net/${element(azurerm_storage_container.secondary.*.name, count.index)}/${var.vm_secondary_os_disk_name_prefix}.vhd"
     create_option = "FromImage"
     caching       = "ReadWrite"
   }
 
   os_profile {
-    computer_name  = "${var.vm_slave_name_prefix}${count.index}"
+    computer_name  = "${var.vm_secondary_name_prefix}${count.index}"
     admin_username = "${var.vm_admin_username}"
     admin_password = "${var.vm_admin_password}"
   }
@@ -339,7 +337,7 @@ resource "azurerm_virtual_machine" "slave" {
 
   connection {
     type     = "ssh"
-    host     = "${element(azurerm_public_ip.slave.*.ip_address, count.index)}"
+    host     = "${element(azurerm_public_ip.secondary.*.ip_address, count.index)}"
     user     = "${var.vm_admin_username}"
     password = "${var.vm_admin_password}"
   }
@@ -347,7 +345,7 @@ resource "azurerm_virtual_machine" "slave" {
   provisioner "remote-exec" {
     inline = [
       "wget ${var.artifacts_location}${var.script_spark_provisioner_script_file_name}",
-      "echo ${var.vm_admin_password} | sudo -S sh ./${var.script_spark_provisioner_script_file_name} -runas=slave -master=${var.nic_master_node_ip}",
+      "echo ${var.vm_admin_password} | sudo -S sh ./${var.script_spark_provisioner_script_file_name} -runas=secondary -primary=${var.nic_primary_node_ip}",
     ]
   }
 }

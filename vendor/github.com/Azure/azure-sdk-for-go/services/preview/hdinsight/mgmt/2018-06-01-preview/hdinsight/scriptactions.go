@@ -111,7 +111,6 @@ func (client ScriptActionsClient) DeleteSender(req *http.Request) (*http.Respons
 func (client ScriptActionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -188,7 +187,6 @@ func (client ScriptActionsClient) GetExecutionDetailSender(req *http.Request) (*
 func (client ScriptActionsClient) GetExecutionDetailResponder(resp *http.Response) (result RuntimeScriptActionDetail, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -265,7 +263,6 @@ func (client ScriptActionsClient) ListByClusterSender(req *http.Request) (*http.
 func (client ScriptActionsClient) ListByClusterResponder(resp *http.Response) (result ScriptActionsList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

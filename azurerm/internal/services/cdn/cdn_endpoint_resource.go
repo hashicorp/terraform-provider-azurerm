@@ -59,7 +59,6 @@ func resourceArmCdnEndpoint() *schema.Resource {
 			"origin_host_header": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 
 			"is_http_allowed": {

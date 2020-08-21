@@ -82,10 +82,17 @@ func TestAccAzureRMCdnEndpoint_updateHostHeader(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCdnEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCdnEndpoint_hostHeader(data, "www.example.com"),
+				Config: testAccAzureRMCdnEndpoint_hostHeader(data, "www.contoso.com"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMCdnEndpointExists(data.ResourceName),
-					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.contoso.com"),
+				),
+			},
+			{
+				Config: testAccAzureRMCdnEndpoint_hostHeader(data, ""),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMCdnEndpointExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", ""),
 				),
 			},
 			{
@@ -183,7 +190,7 @@ func TestAccAzureRMCdnEndpoint_fullFields(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "is_https_allowed", "true"),
 					resource.TestCheckResourceAttr(data.ResourceName, "origin_path", "/origin-path"),
 					resource.TestCheckResourceAttr(data.ResourceName, "probe_path", "/origin-path/probe"),
-					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.example.com"),
+					resource.TestCheckResourceAttr(data.ResourceName, "origin_host_header", "www.contoso.com"),
 					resource.TestCheckResourceAttr(data.ResourceName, "optimization_type", "GeneralWebDelivery"),
 					resource.TestCheckResourceAttr(data.ResourceName, "querystring_caching_behaviour", "UseQueryString"),
 					resource.TestCheckResourceAttr(data.ResourceName, "content_types_to_compress.#", "1"),
@@ -451,7 +458,7 @@ resource "azurerm_cdn_endpoint" "test" {
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -472,7 +479,7 @@ resource "azurerm_cdn_endpoint" "import" {
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -507,7 +514,7 @@ resource "azurerm_cdn_endpoint" "test" {
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -546,7 +553,7 @@ resource "azurerm_cdn_endpoint" "test" {
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -585,7 +592,7 @@ resource "azurerm_cdn_endpoint" "test" {
 
   origin {
     name       = "acceptanceTestCdnOrigin2"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -627,7 +634,7 @@ resource "azurerm_cdn_endpoint" "test" {
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -676,7 +683,7 @@ resource "azurerm_cdn_endpoint" "test" {
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -712,14 +719,14 @@ resource "azurerm_cdn_endpoint" "test" {
   content_types_to_compress     = ["text/html"]
   is_compression_enabled        = true
   querystring_caching_behaviour = "UseQueryString"
-  origin_host_header            = "www.example.com"
+  origin_host_header            = "www.contoso.com"
   optimization_type             = "GeneralWebDelivery"
   origin_path                   = "/origin-path"
   probe_path                    = "/origin-path/probe"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -765,7 +772,7 @@ resource "azurerm_cdn_endpoint" "test" {
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -797,11 +804,11 @@ resource "azurerm_cdn_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  origin_host_header = "www.example.com"
+  origin_host_header = "www.contoso.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -840,11 +847,11 @@ resource "azurerm_cdn_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  origin_host_header = "www.example.com"
+  origin_host_header = "www.contoso.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -889,11 +896,11 @@ resource "azurerm_cdn_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  origin_host_header = "www.example.com"
+  origin_host_header = "www.contoso.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -925,11 +932,11 @@ resource "azurerm_cdn_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  origin_host_header = "www.example.com"
+  origin_host_header = "www.contoso.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -975,11 +982,11 @@ resource "azurerm_cdn_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  origin_host_header = "www.example.com"
+  origin_host_header = "www.contoso.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -1026,11 +1033,11 @@ resource "azurerm_cdn_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  origin_host_header = "www.example.com"
+  origin_host_header = "www.contoso.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }
@@ -1091,11 +1098,11 @@ resource "azurerm_cdn_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  origin_host_header = "www.example.com"
+  origin_host_header = "www.contoso.com"
 
   origin {
     name       = "acceptanceTestCdnOrigin1"
-    host_name  = "www.example.com"
+    host_name  = "www.contoso.com"
     https_port = 443
     http_port  = 80
   }

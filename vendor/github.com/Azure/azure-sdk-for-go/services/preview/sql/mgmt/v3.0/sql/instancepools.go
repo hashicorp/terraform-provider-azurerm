@@ -127,7 +127,6 @@ func (client InstancePoolsClient) CreateOrUpdateSender(req *http.Request) (futur
 func (client InstancePoolsClient) CreateOrUpdateResponder(resp *http.Response) (result InstancePool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -204,7 +203,6 @@ func (client InstancePoolsClient) DeleteSender(req *http.Request) (future Instan
 func (client InstancePoolsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -280,7 +278,6 @@ func (client InstancePoolsClient) GetSender(req *http.Request) (*http.Response, 
 func (client InstancePoolsClient) GetResponder(resp *http.Response) (result InstancePool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -352,7 +349,6 @@ func (client InstancePoolsClient) ListSender(req *http.Request) (*http.Response,
 func (client InstancePoolsClient) ListResponder(resp *http.Response) (result InstancePoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -465,7 +461,6 @@ func (client InstancePoolsClient) ListByResourceGroupSender(req *http.Request) (
 func (client InstancePoolsClient) ListByResourceGroupResponder(resp *http.Response) (result InstancePoolListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -582,7 +577,6 @@ func (client InstancePoolsClient) UpdateSender(req *http.Request) (future Instan
 func (client InstancePoolsClient) UpdateResponder(resp *http.Response) (result InstancePool, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

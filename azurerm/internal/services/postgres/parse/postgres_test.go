@@ -32,7 +32,7 @@ func TestAnalysisServicesServerId(t *testing.T) {
 		},
 		{
 			Name:     "Missing Servers Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Web/servers/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/",
 			Expected: nil,
 		},
 		{

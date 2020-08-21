@@ -20,15 +20,15 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_recovery_services_vault" "example" {
   name                = "tfex-recovery-vault"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 }
 
 resource "azurerm_backup_policy_vm" "example" {
   name                = "tfex-recovery-vault-policy"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
+  resource_group_name = azurerm_resource_group.example.name
+  recovery_vault_name = azurerm_recovery_services_vault.example.name
 
   backup {
     frequency = "Daily"
@@ -37,10 +37,10 @@ resource "azurerm_backup_policy_vm" "example" {
 }
 
 resource "azurerm_backup_protected_vm" "vm1" {
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
-  source_vm_id        = "${azurerm_virtual_machine.example.id}"
-  backup_policy_id    = "${azurerm_backup_policy_vm.example.id}"
+  resource_group_name = azurerm_resource_group.example.name
+  recovery_vault_name = azurerm_recovery_services_vault.example.name
+  source_vm_id        = azurerm_virtual_machine.example.id
+  backup_policy_id    = azurerm_backup_policy_vm.example.id
 }
 ```
 
@@ -48,7 +48,7 @@ resource "azurerm_backup_protected_vm" "vm1" {
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the Recovery Services Protected VM. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Recovery Services Vault. Changing this forces a new resource to be created.
 
 * `recovery_vault_name` - (Required) Specifies the name of the Recovery Services Vault to use. Changing this forces a new resource to be created.
 

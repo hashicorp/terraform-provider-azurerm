@@ -144,7 +144,7 @@ The following arguments are supported:
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.
 
-* `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `false`.
+* `overprovision` - (Optional) Should Azure over-provision Virtual Machines in this Scale Set? This means that multiple Virtual Machines will be provisioned and Azure will keep the instances which become available first - which improves provisioning success rates and improves deployment time. You're not billed for these over-provisioned VM's and they don't count towards the Subscription Quota. Defaults to `true`.
 
 * `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
 
@@ -411,6 +411,18 @@ A `winrm_listener` block supports the following:
 -> **NOTE:** This can be sourced from the `secret_id` field within the `azurerm_key_vault_certificate` Resource.
 
 * `protocol` - (Required) The Protocol of the WinRM Listener. Possible values are `Http` and `Https`.
+
+---
+
+`source_image_reference` supports the following:
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 ## Attributes Reference
 

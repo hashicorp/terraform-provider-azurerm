@@ -123,7 +123,6 @@ func (client WorkspaceSettingsClient) CreateSender(req *http.Request) (*http.Res
 func (client WorkspaceSettingsClient) CreateResponder(resp *http.Response) (result WorkspaceSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -203,7 +202,6 @@ func (client WorkspaceSettingsClient) DeleteSender(req *http.Request) (*http.Res
 func (client WorkspaceSettingsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -283,7 +281,6 @@ func (client WorkspaceSettingsClient) GetSender(req *http.Request) (*http.Respon
 func (client WorkspaceSettingsClient) GetResponder(resp *http.Response) (result WorkspaceSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -362,7 +359,6 @@ func (client WorkspaceSettingsClient) ListSender(req *http.Request) (*http.Respo
 func (client WorkspaceSettingsClient) ListResponder(resp *http.Response) (result WorkspaceSettingList, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -482,7 +478,6 @@ func (client WorkspaceSettingsClient) UpdateSender(req *http.Request) (*http.Res
 func (client WorkspaceSettingsClient) UpdateResponder(resp *http.Response) (result WorkspaceSetting, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

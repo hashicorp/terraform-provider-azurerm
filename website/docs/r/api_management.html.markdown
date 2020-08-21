@@ -110,6 +110,8 @@ A `hostname_configuration` block supports the following:
 
 * `portal` - (Optional) One or more `portal` blocks as documented below.
 
+* `developer_portal` - (Optional) One or more `developer_portal` blocks as documented below.
+
 * `proxy` - (Optional) One or more `proxy` blocks as documented below.
 
 * `scm` - (Optional) One or more `scm` blocks as documented below.
@@ -118,11 +120,17 @@ A `hostname_configuration` block supports the following:
 
 A `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. At this time the only supported value is`SystemAssigned`.
+~> **Note:** User Assigned Managed Identities are in Preview
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this API Management Service. Possible values are `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) A list of IDs for User Assigned Managed Identity resources to be assigned.
+
+~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
-A `management`, `portal` and `scm` block supports the following:
+A `management`, `portal`, `developer_portal` and `scm` block supports the following:
 
 * `host_name` - (Required) The Hostname to use for the Management API.
 
@@ -280,6 +288,8 @@ In addition to all arguments above, the following attributes are exported:
 * `management_api_url` - The URL for the Management API associated with this API Management service.
 
 * `portal_url` - The URL for the Publisher Portal associated with this API Management service.
+
+* `developer_portal_url` - The URL for the Developer Portal associated with this API Management service.
 
 * `public_ip_addresses` - The Public IP addresses of the API Management Service.
 

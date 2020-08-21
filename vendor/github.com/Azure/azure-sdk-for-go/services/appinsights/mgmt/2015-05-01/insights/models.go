@@ -119,6 +119,23 @@ func PossibleFlowTypeValues() []FlowType {
 	return []FlowType{Bluefield}
 }
 
+// IngestionMode enumerates the values for ingestion mode.
+type IngestionMode string
+
+const (
+	// ApplicationInsights ...
+	ApplicationInsights IngestionMode = "ApplicationInsights"
+	// ApplicationInsightsWithDiagnosticSettings ...
+	ApplicationInsightsWithDiagnosticSettings IngestionMode = "ApplicationInsightsWithDiagnosticSettings"
+	// LogAnalytics ...
+	LogAnalytics IngestionMode = "LogAnalytics"
+)
+
+// PossibleIngestionModeValues returns an array of possible values for the IngestionMode const type.
+func PossibleIngestionModeValues() []IngestionMode {
+	return []IngestionMode{ApplicationInsights, ApplicationInsightsWithDiagnosticSettings, LogAnalytics}
+}
+
 // ItemScope enumerates the values for item scope.
 type ItemScope string
 
@@ -885,6 +902,8 @@ type ApplicationInsightsComponentProperties struct {
 	ImmediatePurgeDataOn30Days *bool `json:"ImmediatePurgeDataOn30Days,omitempty"`
 	// PrivateLinkScopedResources - READ-ONLY; List of linked private link scope resources.
 	PrivateLinkScopedResources *[]PrivateLinkScopedResource `json:"PrivateLinkScopedResources,omitempty"`
+	// IngestionMode - Indicates the flow of the ingestion. Possible values include: 'ApplicationInsights', 'ApplicationInsightsWithDiagnosticSettings', 'LogAnalytics'
+	IngestionMode IngestionMode `json:"IngestionMode,omitempty"`
 }
 
 // ApplicationInsightsComponentQuotaStatus an Application Insights component daily data volume cap status

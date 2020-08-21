@@ -21,12 +21,45 @@ func dataSourceArmVirtualMachine() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
-
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"location": azure.SchemaLocationForDataSource(),
+
+			"identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"identity_ids": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -50,6 +83,10 @@ func dataSourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(*resp.ID)
+
+	if err := d.Set("identity", flattenVirtualMachineIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
 
 	return nil
 }

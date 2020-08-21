@@ -68,8 +68,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the Traffic Manager endpoint. Changing this forces a
     new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the Traffic Manager endpoint.
+* `resource_group_name` - (Required) The name of the resource group where the Traffic Manager Profile exists.
 
 * `profile_name` - (Required) The name of the Traffic Manager Profile to attach
     create the Traffic Manager endpoint.
@@ -156,3 +155,5 @@ Traffic Manager Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_traffic_manager_endpoint.exampleEndpoints /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1/azureEndpoints/mytrafficmanagerendpoint
 ```
+
+-> **NOTE:** `azureEndpoints` in the above shell command should be replaced with `externalEndpoints` or `nestedEndpoints` while using other endpoint types.

@@ -114,7 +114,6 @@ func (client ExtensionsClient) CreateSender(req *http.Request) (future Extension
 func (client ExtensionsClient) CreateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -191,7 +190,6 @@ func (client ExtensionsClient) DeleteSender(req *http.Request) (future Extension
 func (client ExtensionsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -266,7 +264,6 @@ func (client ExtensionsClient) DisableMonitoringSender(req *http.Request) (futur
 func (client ExtensionsClient) DisableMonitoringResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -344,7 +341,6 @@ func (client ExtensionsClient) EnableMonitoringSender(req *http.Request) (future
 func (client ExtensionsClient) EnableMonitoringResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
 		autorest.ByClosing())
 	result.Response = resp
@@ -421,7 +417,6 @@ func (client ExtensionsClient) GetSender(req *http.Request) (*http.Response, err
 func (client ExtensionsClient) GetResponder(resp *http.Response) (result Extension, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -497,7 +492,6 @@ func (client ExtensionsClient) GetMonitoringStatusSender(req *http.Request) (*ht
 func (client ExtensionsClient) GetMonitoringStatusResponder(resp *http.Response) (result ClusterMonitoringResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

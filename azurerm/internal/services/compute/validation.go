@@ -35,7 +35,7 @@ func ValidateVmName(i interface{}, k string) (warnings []string, errors []error)
 		errors = append(errors, fmt.Errorf("%q must begin with an alphanumeric character", k))
 	}
 
-	if matched := regexp.MustCompile(`[a-z0-9_]$`).Match([]byte(v)); !matched {
+	if matched := regexp.MustCompile(`\w$`).Match([]byte(v)); !matched {
 		errors = append(errors, fmt.Errorf("%q must end with an alphanumeric character or underscore", k))
 	}
 
@@ -55,6 +55,10 @@ func ValidateLinuxComputerNameFull(i interface{}, k string) (warnings []string, 
 func ValidateLinuxComputerNamePrefix(i interface{}, k string) (warnings []string, errors []error) {
 	// Linux host name prefix cannot exceed 58 characters in length
 	return ValidateLinuxComputerName(i, k, 58)
+}
+
+func ValidateOrchestratedVMSSName(i interface{}, k string) (warnings []string, errors []error) {
+	return ValidateVmName(i, k)
 }
 
 func ValidateLinuxComputerName(i interface{}, k string, maxLength int) (warnings []string, errors []error) {
@@ -164,9 +168,9 @@ func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []er
 
 func validateManagedDiskSizeGB(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(int)
-	if value < 0 || value > 32767 {
+	if value < 0 || value > 65536 {
 		errors = append(errors, fmt.Errorf(
-			"The `disk_size_gb` can only be between 0 and 32767"))
+			"The `disk_size_gb` can only be between 0 and 65536"))
 	}
 	return warnings, errors
 }

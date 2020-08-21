@@ -38,9 +38,10 @@ resource "azurerm_sql_server" "example" {
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
+
 resource "azurerm_mssql_database" "test" {
-  name           = "acctest-db-%d"
-  server_id      = azurerm_sql_server.test.id
+  name           = "acctest-db-d"
+  server_id      = azurerm_sql_server.example.id
   collation      = "SQL_Latin1_General_CP1_CI_AS"
   license_type   = "LicenseIncluded"
   max_size_gb    = 4
@@ -81,7 +82,7 @@ The following arguments are supported:
 
 * `collation` - (Optional) Specifies the collation of the database. Changing this forces a new resource to be created.
 
-* `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database. Changing this forces a new resource to be created.
+* `elastic_pool_id` - (Optional) Specifies the ID of the elastic pool containing this database.
 
 * `extended_auditing_policy` - (Optional) A `extended_auditing_policy` block as defined below.
 
@@ -99,7 +100,7 @@ The following arguments are supported:
 
 * `sample_name` - (Optional) Specifies the name of the sample schema to apply when creating this database. Possible value is `AdventureWorksLT`.
 
-* `sku_name` - (Optional) Specifies the name of the sku used by the database. Changing this forces a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
+* `sku_name` - (Optional) Specifies the name of the sku used by the database. Only changing this from tier `Hyperscale` to another tier will force a new resource to be created. For example, `GP_S_Gen5_2`,`HS_Gen4_1`,`BC_Gen5_2`, `ElasticPool`, `Basic`,`S0`, `P2` ,`DW100c`, `DS100`.
 
 ~> **NOTE** The default sku_name value may differ between Azure locations depending on local availability of Gen4/Gen5 capacity.
 

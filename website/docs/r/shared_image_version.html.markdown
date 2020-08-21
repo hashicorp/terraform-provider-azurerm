@@ -35,7 +35,7 @@ resource "azurerm_shared_image_version" "example" {
 
   target_region {
     name                   = data.azurerm_shared_image.existing.location
-    regional_replica_count = "5"
+    regional_replica_count = 5
     storage_account_type   = "Standard_LRS"
   }
 }
@@ -55,25 +55,29 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group in which the Shared Image Gallery exists. Changing this forces a new resource to be created.
 
-* `managed_image_id` - (Required) The ID of the Managed Image which should be used for this Shared Image Version. Changing this forces a new resource to be created.
-
--> **NOTE:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html).
-
 * `target_region` - (Required) One or more `target_region` blocks as documented below.
 
 * `exclude_from_latest` - (Optional) Should this Image Version be excluded from the `latest` filter? If set to `true` this Image Version won't be returned for the `latest` version. Defaults to `false`.
+
+* `managed_image_id` - (Optional) The ID of the Managed Image or Virtual Machine ID which should be used for this Shared Image Version. Changing this forces a new resource to be created.
+
+-> **NOTE:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html).
+
+* `os_disk_snapshot_id` - (Optional) The ID of the OS disk snapshot which should be used for this Shared Image Version. Changing this forces a new resource to be created.
+
+-> **NOTE:** You must specify exact one of `managed_image_id` and `os_disk_snapshot_id`.
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
 
 ---
 
-The `target_region` block exports the following:
+The `target_region` block supports the following:
 
 * `name` - (Required) The Azure Region in which this Image Version should exist.
 
 * `regional_replica_count` - (Required) The number of replicas of the Image Version to be created per region.
 
-* `storage_account_type` - (Optional) The storage account type for the image version, which defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
+* `storage_account_type` - (Optional) The storage account type for the image version. Possible values are `Standard_LRS` and `Standard_ZRS`. Defaults to `Standard_LRS`. You can store all of your image version replicas in Zone Redundant Storage by specifying `Standard_ZRS`.
 
 ## Attributes Reference
 

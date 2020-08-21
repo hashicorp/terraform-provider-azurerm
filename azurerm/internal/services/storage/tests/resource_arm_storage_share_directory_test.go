@@ -124,7 +124,7 @@ func TestAccAzureRMStorageShareDirectory_nested(t *testing.T) {
 				Config: testAccAzureRMStorageShareDirectory_nested(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.parent"),
-					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.child"),
+					testCheckAzureRMStorageShareDirectoryExists("azurerm_storage_share_directory.child_two"),
 				),
 			},
 		},
@@ -302,6 +302,12 @@ resource "azurerm_storage_share_directory" "parent" {
 
 resource "azurerm_storage_share_directory" "child" {
   name                 = "${azurerm_storage_share_directory.parent.name}/child"
+  share_name           = azurerm_storage_share.test.name
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_storage_share_directory" "child_two" {
+  name                 = "${azurerm_storage_share_directory.parent.name}/child-two"
   share_name           = azurerm_storage_share.test.name
   storage_account_name = azurerm_storage_account.test.name
 }
