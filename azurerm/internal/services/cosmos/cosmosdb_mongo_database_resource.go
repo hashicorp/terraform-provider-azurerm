@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
@@ -83,19 +82,17 @@ func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Cosmos Mongo Database %q (Account: %q): %+v", name, account, err)
-			}
-		} else {
-			if existing.ID == nil && *existing.ID == "" {
-				return fmt.Errorf("Error generating import ID for Cosmos Mongo Database %q (Account: %q)", name, account)
-			}
-
-			return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_database", *existing.ID)
+	existing, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of creating Cosmos Mongo Database %q (Account: %q): %+v", name, account, err)
 		}
+	} else {
+		if existing.ID == nil && *existing.ID == "" {
+			return fmt.Errorf("Error generating import ID for Cosmos Mongo Database %q (Account: %q)", name, account)
+		}
+
+		return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_database", *existing.ID)
 	}
 
 	db := documentdb.MongoDBDatabaseCreateUpdateParameters{
