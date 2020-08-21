@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -24,6 +25,9 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 		Read:   resourceArmNetworkConnectionMonitorRead,
 		Update: resourceArmNetworkConnectionMonitorCreateUpdate,
 		Delete: resourceArmNetworkConnectionMonitorDelete,
+
+		MigrateState:  ResourceNetworkConnectionMonitorMigrateState,
+		SchemaVersion: 1,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -191,26 +195,23 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetworkConnectionMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	watcherName := id.Path["networkWatchers"]
-	name := id.Path["connectionMonitors"]
 
-	resp, err := client.Get(ctx, resourceGroup, watcherName, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.WatcherName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("Error reading Connection Monitor %q (Watcher %q / Resource Group %q) %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
 	}
 
-	d.Set("name", name)
-	d.Set("network_watcher_name", watcherName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("name", id.Name)
+	d.Set("network_watcher_name", id.WatcherName)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -238,23 +239,20 @@ func resourceArmNetworkConnectionMonitorDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := parse.NetworkConnectionMonitorID(d.Id())
 	if err != nil {
 		return err
 	}
-	resourceGroup := id.ResourceGroup
-	watcherName := id.Path["networkWatchers"]
-	name := id.Path["connectionMonitors"]
 
-	future, err := client.Delete(ctx, resourceGroup, watcherName, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.WatcherName, id.Name)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error deleting Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+			return fmt.Errorf("Error deleting Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
 		}
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", name, watcherName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for the deletion of Connection Monitor %q (Watcher %q / Resource Group %q): %+v", id.Name, id.WatcherName, id.ResourceGroup, err)
 	}
 
 	return nil
