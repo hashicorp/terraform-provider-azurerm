@@ -8,17 +8,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func ResourceNetworkPacketCaptureMigrateState(v int, is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+func ResourceNetworkPacketCaptureMigrateState(v int, is *terraform.InstanceState, _ interface{}) (*terraform.InstanceState, error) {
 	switch v {
 	case 0:
 		log.Println("[INFO] Found AzureRM Network Packet Capture State v0; migrating to v1")
-		return resourceNetworkPacketCaptureStateV0toV1(is, meta)
+		return resourceNetworkPacketCaptureStateV0toV1(is)
 	default:
 		return is, fmt.Errorf("Unexpected schema version: %d", v)
 	}
 }
 
-func resourceNetworkPacketCaptureStateV0toV1(is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+func resourceNetworkPacketCaptureStateV0toV1(is *terraform.InstanceState) (*terraform.InstanceState, error) {
 	if is.Empty() {
 		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
 		return is, nil
