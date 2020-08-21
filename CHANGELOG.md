@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* `azurerm_batch_pool` - Remove `network_configuration` from update payload [GH-8189]
 * `azurerm_shared_image` - Support for `purchase_plan` [GH-8124]
 
 ## 2.24.0 (August 20, 2020)
