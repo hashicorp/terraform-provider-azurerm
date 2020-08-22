@@ -118,9 +118,9 @@ A `global_delivery_rule` block supports the following:
 
 A `delivery_rule` block supports the following:
 
-* `name` - (Required) The Name which should be used for this Delivery Rule.
+* `name` - (Required) The name which should be used for this Delivery Rule.
 
-* `order` - (Required) The order used for this rule, which must be larger than 1.
+* `order` - (Required) The order used for this rule. Order numbers must start from 0 and are consecutive.
 
 * `cache_expiration_action` - (Optional) A `cache_expiration_action` block as defined above.
 
