@@ -915,9 +915,84 @@ func schemaAutoHealRules() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"triggers": {
-					Type:     schema.TypeSet,
+					Type:     schema.TypeList,
 					Computed: true,
-					Elem:     &schema.Schema{Type: schema.TypeString},
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"requests": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"count": {
+											Type:     schema.TypeInt,
+											Optional: false,
+										},
+										"time_interval": {
+											Type:         schema.TypeString,
+											Optional:     false,
+											ValidateFunc: validation.StringIsNotWhiteSpace,
+										},
+									},
+								},
+							},
+							"slow_requests": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"time_taken": {
+											Type:         schema.TypeString,
+											Optional:     false,
+											ValidateFunc: validation.StringIsNotWhiteSpace,
+										},
+										"count": {
+											Type:     schema.TypeInt,
+											Optional: false,
+										},
+										"time_interval": {
+											Type:         schema.TypeString,
+											Optional:     false,
+											ValidateFunc: validation.StringIsNotWhiteSpace,
+										},
+									},
+								},
+							},
+							"status_codes": {
+								Type:     schema.TypeList,
+								Computed: true,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"status": {
+											Type:     schema.TypeInt,
+											Optional: false,
+										},
+										"sub_status": {
+											Type:     schema.TypeInt,
+											Optional: true,
+										},
+										"win32_status": {
+											Type:     schema.TypeInt,
+											Optional: true,
+										},
+										"count": {
+											Type:     schema.TypeInt,
+											Optional: false,
+										},
+										"time_interval": {
+											Type:         schema.TypeString,
+											Optional:     false,
+											ValidateFunc: validation.StringIsNotWhiteSpace,
+										},
+									},
+								},
+							},
+							"private_bytes_in_kb": {
+								Type:     schema.TypeInt,
+								Optional: true,
+							},
+						},
+					},
 				},
 
 				"actions": {
@@ -929,10 +1004,15 @@ func schemaAutoHealRules() *schema.Schema {
 								Type:     schema.TypeString,
 								Required: true,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(AutoHealActionType.CustomAction),
-									string(AutoHealActionType.LogEvent),
-									string(AutoHealActionType.Recycle),
+									string(web.CustomAction),
+									string(web.LogEvent),
+									string(web.Recycle),
 								}, false),
+							},
+							"min_process_execution_time": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotWhiteSpace,
 							},
 						},
 					},
@@ -1649,6 +1729,15 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.AutoHealEnabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["auto_heal_rules"]; ok {
+		autoHealRulesValues := v.([]interface{})
+		autoHealRules, err := expandAppServiceAutoHealRules(autoHealRulesValues)
+		if err != nil {
+			return siteConfig, err
+		}
+		siteConfig.AutoHealRules = &autoHealRules
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -1766,6 +1855,8 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["auto_heal_enabled"] = *input.AutoHealEnabled
 	}
 
+	result["auto_heal_rules"] = flattenAutoHealRules(input.AutoHealRules)
+
 	result["min_tls_version"] = string(input.MinTLSVersion)
 
 	result["cors"] = FlattenWebCorsSettings(input.Cors)
@@ -1775,6 +1866,11 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	return append(results, result)
+}
+
+func flattenAutoHealRules(input *web.AutoHealRules) []interface{} {
+	// TODO:
+	return nil
 }
 
 func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interface{} {
@@ -1865,6 +1961,10 @@ func flattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValu
 	}
 
 	return results
+}
+
+func expandAppServiceAutoHealRules(input []interface{}) (web.AutoHealRules, error) {
+	return web.AutoHealRules{}, nil
 }
 
 func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
