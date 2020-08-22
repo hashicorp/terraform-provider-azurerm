@@ -779,6 +779,8 @@ func schemaAppServiceDataSourceSiteConfig() *schema.Schema {
 					Optional: true,
 				},
 
+				"auto_heal_rules": schemaAutoHealRules(),
+
 				"linux_fx_version": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -899,6 +901,41 @@ func schemaAppServiceDataSourceIpRestriction() *schema.Schema {
 				"action": {
 					Type:     schema.TypeString,
 					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaAutoHealRules() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"triggers": {
+					Type:     schema.TypeSet,
+					Computed: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+
+				"actions": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"action_type": {
+								Type:     schema.TypeString,
+								Required: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(AutoHealActionType.CustomAction),
+									string(AutoHealActionType.LogEvent),
+									string(AutoHealActionType.Recycle),
+								}, false),
+							},
+						},
+					},
 				},
 			},
 		},
