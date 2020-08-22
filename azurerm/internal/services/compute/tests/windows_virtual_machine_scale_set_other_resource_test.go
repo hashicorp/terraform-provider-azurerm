@@ -597,6 +597,7 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_otherUpgradeMode(t *testing.T) 
 			},
 			data.ImportStep(
 				"admin_password",
+				"enable_automatic_updates",
 			),
 		},
 	})
