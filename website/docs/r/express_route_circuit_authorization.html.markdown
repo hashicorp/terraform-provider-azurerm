@@ -62,7 +62,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the ExpressRoute Circuit Authorization.
+* `id` - The ID of the ExpressRoute Circuit Authorization.
 
 * `authorization_key` - The Authorization Key.
 

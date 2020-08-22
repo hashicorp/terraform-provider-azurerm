@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `dead_lettering_on_message_expiration` - (Optional) Boolean flag which controls whether the Queue has dead letter support when a message expires. Defaults to `false`.
 
-* `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which duplicates can be detected. Defaults to 10 minute (`PT10M`).
+* `duplicate_detection_history_time_window` - (Optional) The ISO 8601 timespan duration during which duplicates can be detected. Defaults to 10 minutes (`PT10M`).
 
 * `max_delivery_count` - (Optional) Integer value which controls when a message is automatically dead lettered. Defaults to `10`.
 
