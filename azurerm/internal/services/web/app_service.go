@@ -937,7 +937,7 @@ func schemaAutoHealRules() *schema.Schema {
 								},
 							},
 							"slow_requests": {
-								Type:     schema.TypeSet,
+								Type:     schema.TypeList,
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
@@ -959,7 +959,7 @@ func schemaAutoHealRules() *schema.Schema {
 								},
 							},
 							"status_codes": {
-								Type:     schema.TypeList,
+								Type:     schema.TypeSet,
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
@@ -1730,8 +1730,8 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	}
 
 	if v, ok := config["auto_heal_rules"]; ok {
-		autoHealRulesValues := v.([]interface{})
-		autoHealRules, err := expandAppServiceAutoHealRules(autoHealRulesValues)
+		autoHealRulesVals := v.(map[string]interface{})
+		autoHealRules, err := expandAppServiceAutoHealRules(autoHealRulesVals)
 		if err != nil {
 			return siteConfig, err
 		}
@@ -1992,8 +1992,52 @@ func flattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValu
 	return results
 }
 
-func expandAppServiceAutoHealRules(input []interface{}) (web.AutoHealRules, error) {
-	return web.AutoHealRules{}, nil
+func expandAppServiceAutoHealRules(input map[string]interface{}) (web.AutoHealRules, error) {
+	triggerVals := input["triggers"].(map[string]interface{})
+	
+	autoHeal := web.AutoHealRules{}
+
+	triggers := web.AutoHealTriggers{}
+	slowRequests := triggerVals["slow_requets"].(map[string]interface{})
+	if slowRequests != nil {
+		trigger := web.SlowRequestsBasedTrigger{
+			Count:        slowRequests["count"].(*int32),
+			TimeInterval: slowRequests["time_interval"].(*string),
+			TimeTaken:    slowRequests["time_taken"].(*string)
+		}
+		triggers.SlowRequests = &trigger
+	}
+
+	requests := triggerVals["requests"].(map[string]interface{})
+	if requests != nil {
+		trigger := web.RequestsBasedTrigger{Count: requests["count"].(*int32), TimeInterval: requests["time_interval"].(*string)}
+		triggers.Requests = &trigger
+	}
+
+	statusCodes := triggerVals["status_codes"].(map[string]interface{})
+	if statusCodes != nil {
+		return nil, fmt.Errorf("statusCodes trigger not yet implemented")
+	}
+	
+	privateBytesInKB := triggerVals["private_bytes_in_kb"].(*int32)
+	triggers.PrivateBytesInKB = privateBytesInKB;
+
+	if statusCodes == nil && slowRequests == nil && requests == nil && privateBytesInKB == nil {
+		return nil, fmt.Errorf("At least one trigger must be defined")
+	}
+
+	autoHeal.Triggers = triggers
+	
+	actionsVals := input["actions"].(map[string]interface{})
+	actions := web.AutoHealActions{}
+	actions.ActionType = actionsVals["action_type"].(*string)
+	actions.MinProcessExecutionTime = actionsVals["min_process_execution_time"].(*string)
+
+	if actionVals["custom_action"] != nil {
+		return nil, fmt.Errorf("customAction action not yet implemented")
+	}
+	
+	return autoHeal, nil
 }
 
 func expandAppServiceIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
