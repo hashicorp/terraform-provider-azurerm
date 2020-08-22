@@ -97,13 +97,13 @@ You can also cross-compile if necessary:
 GOOS=windows GOARCH=amd64 make build
 ```
 
-In order to run the Unit Tests for the provider, you can run:
+In order to run the `Unit Tests` for the provider, you can run:
 
 ```sh
 $ make test
 ```
 
-The majority of tests in the provider are Acceptance Tests - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
+The majority of tests in the provider are `Acceptance Tests` - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
 
 ```sh
 make acctests SERVICE='resource' TESTARGS='-run=TestAccAzureRMResourceGroup' TESTTIMEOUT='60m'
