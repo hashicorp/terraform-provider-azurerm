@@ -191,6 +191,8 @@ A `site_config` block supports the following:
 
 * `health_check_path` - (Optional) The health check path to be pinged by App Service. [For more information - please see the corresponding Kudu Wiki page](https://github.com/projectkudu/kudu/wiki/Health-Check-(Preview)).
 
+* `auto_heal_enabled` - (Optional) Proactive auto heal. [For mor information - please see the correspodning Azure blog post](https://azure.github.io/AppService/2017/08/17/Introducing-Proactive-Auto-Heal.html)
+
 ~> **Note:** This functionality is in Preview and is subject to changes (including breaking changes) on Azure's end
 
 * `http2_enabled` - (Optional) Is HTTP2 Enabled on this App Service? Defaults to `false`.

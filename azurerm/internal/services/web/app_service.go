@@ -460,6 +460,11 @@ func schemaAppServiceSiteConfig() *schema.Schema {
 					Optional: true,
 				},
 
+				"auto_heal_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+				},
+
 				"linux_fx_version": {
 					Type:     schema.TypeString,
 					Optional: true,
@@ -767,6 +772,11 @@ func schemaAppServiceDataSourceSiteConfig() *schema.Schema {
 				"health_check_path": {
 					Type:     schema.TypeString,
 					Computed: true,
+				},
+
+				"auto_heal_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
 				},
 
 				"linux_fx_version": {
@@ -1598,6 +1608,10 @@ func expandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.HealthCheckPath = utils.String(v.(string))
 	}
 
+	if v, ok := config["auto_heal_enabled"]; ok {
+		siteConfig.AutoHealEnabled = utils.Bool(v.(bool))
+	}
+
 	if v, ok := config["min_tls_version"]; ok {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
@@ -1709,6 +1723,10 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.HealthCheckPath != nil {
 		result["health_check_path"] = *input.HealthCheckPath
+	}
+
+	if input.AutoHealEnabled != nil {
+		result["auto_heal_enabled"] = *input.AutoHealEnabled
 	}
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
