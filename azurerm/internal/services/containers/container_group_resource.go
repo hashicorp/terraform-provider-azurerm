@@ -1153,7 +1153,6 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 		for _, envVar := range *input {
 			if envVar.Name != nil && envVar.Value == nil {
 				envVarValue := d.Get(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, *envVar.Name))
-				log.Printf("[DEBUG] SECURE    : Name: %s - Value: %s", *envVar.Name, envVarValue)
 				output[*envVar.Name] = envVarValue
 			}
 		}
