@@ -915,7 +915,7 @@ func schemaAutoHealRules() *schema.Schema {
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"triggers": {
-					Type:     schema.TypeList,
+					Type:     schema.TypeList,					
 					Computed: true,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -926,11 +926,11 @@ func schemaAutoHealRules() *schema.Schema {
 									Schema: map[string]*schema.Schema{
 										"count": {
 											Type:     schema.TypeInt,
-											Optional: false,
+											Required: true,
 										},
 										"time_interval": {
 											Type:         schema.TypeString,
-											Optional:     false,
+											Required:     true,
 											ValidateFunc: validation.StringIsNotWhiteSpace,
 										},
 									},
@@ -943,16 +943,16 @@ func schemaAutoHealRules() *schema.Schema {
 									Schema: map[string]*schema.Schema{
 										"time_taken": {
 											Type:         schema.TypeString,
-											Optional:     false,
+											Required:     true,
 											ValidateFunc: validation.StringIsNotWhiteSpace,
 										},
 										"count": {
 											Type:     schema.TypeInt,
-											Optional: false,
+											Required: true,
 										},
 										"time_interval": {
 											Type:         schema.TypeString,
-											Optional:     false,
+											Required:     true,
 											ValidateFunc: validation.StringIsNotWhiteSpace,
 										},
 									},
@@ -965,7 +965,7 @@ func schemaAutoHealRules() *schema.Schema {
 									Schema: map[string]*schema.Schema{
 										"status": {
 											Type:     schema.TypeInt,
-											Optional: false,
+											Required: true,
 										},
 										"sub_status": {
 											Type:     schema.TypeInt,
@@ -977,11 +977,11 @@ func schemaAutoHealRules() *schema.Schema {
 										},
 										"count": {
 											Type:     schema.TypeInt,
-											Optional: false,
+											Required: true,
 										},
 										"time_interval": {
 											Type:         schema.TypeString,
-											Optional:     false,
+											Required:     true,
 											ValidateFunc: validation.StringIsNotWhiteSpace,
 										},
 									},
