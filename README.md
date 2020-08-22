@@ -50,13 +50,23 @@ Further [usage documentation is available on the Terraform website](https://www.
 * [Terraform](https://www.terraform.io/downloads.html) version 0.12.x +
 * [Go](https://golang.org/doc/install) version 1.14.x (to build the provider plugin)
 
+### On Windows 
+
 If you're on Windows you'll also need:
-* [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
 * [Git Bash for Windows](https://git-scm.com/download/win)
+* [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
 
 For *GNU32 Make*, make sure its bin path is added to PATH environment variable.*
 
 For *Git Bash for Windows*, at the step of "Adjusting your PATH environment", please choose "Use Git and optional Unix tools from Windows Command Prompt".*
+
+Or install via [Chocolatey](https://chocolatey.org/install) (`Git Bash for Windows` must be installed per steps above)
+```powershell
+choco install make golang terraform -y
+refreshenv
+```
+
+You must run  `Developing the Provider` commands in `bash` because `sh` scrips are invoked as part of these.
 
 ## Developing the Provider
 
