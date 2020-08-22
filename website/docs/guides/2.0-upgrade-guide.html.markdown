@@ -296,8 +296,6 @@ The deprecated `port` and `protocol` fields in the `container`  block will be re
 
 The deprecated `command` field in the `container` block will be removed. This has been replaced by the `commands` field in the `container` block.
 
-Previously the value of `PRIVATE_EMPTY` field wouldn't be stored into state file when it is set as empty string in tf config, but the behavior has been updated, and now it would be stored. 
-
 ### Resource: `azurerm_container_registry`
 
 The deprecated `storage_account` block will be removed. This has been replaced by the `storage_account_id` field and is only applicable to `Classic` Container Registries.
