@@ -937,7 +937,7 @@ func schemaAutoHealRules() *schema.Schema {
 								},
 							},
 							"slow_requests": {
-								Type:     schema.TypeList,
+								Type:     schema.TypeSet,
 								Computed: true,
 								Elem: &schema.Resource{
 									Schema: map[string]*schema.Schema{
@@ -1868,9 +1868,38 @@ func flattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	return append(results, result)
 }
 
-func flattenAutoHealRules(input *web.AutoHealRules) []interface{} {
-	// TODO:
-	return nil
+func flattenAutoHealRules(input *web.AutoHealRules) interface{} {
+	rules := make([]interface{}, 0)
+	if input == nil {
+		return rules
+	}
+
+	rule := make(map[string]interface{})
+
+	triggers := input.Triggers
+	triggerVals := make(map[string]interface{})
+	if requests := triggers.Requests; requests != nil {
+		vals := make(map[string]interface{})
+		vals["count"] = requests.Count
+		vals["time_interval"] = requests.TimeInterval
+		triggerVals["requests"] = vals
+	}
+
+	if slowRequests := triggers.SlowRequests; slowRequests != nil {
+		vals := make(map[string]interface{})
+		vals["count"] = slowRequests.Count
+		vals["time_interval"] = slowRequests.TimeInterval
+		vals["time_taken"] = slowRequests.TimeTaken
+		triggerVals["slow_requests"] = vals
+	}
+
+	actions := input.Actions
+	actionVals := make(map[string]interface{})
+	actionVals["action_type"] = actions.ActionType
+	actionVals["min_process_execution_time"] = actions.MinProcessExecutionTime
+	rule["actions"] = actionVals
+
+	return rule
 }
 
 func flattenAppServiceIpRestriction(input *[]web.IPSecurityRestriction) []interface{} {
