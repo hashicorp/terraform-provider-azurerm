@@ -123,7 +123,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"ip_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
+							MinItems: 0,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.IPv4Address,
