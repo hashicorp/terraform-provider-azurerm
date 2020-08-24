@@ -156,7 +156,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				}, false),
 			},
 
-			"data_endpoint_enabled": {
+			"public_data_endpoint_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -405,7 +405,7 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 		parameters.ManagedInstanceProperties.AdministratorLoginPassword = utils.String(adminPassword)
 	}
 
-	if v, ok := d.GetOk("data_endpoint_enabled"); ok {
+	if v, ok := d.GetOk("public_data_endpoint_enabled"); ok {
 		publicDataEndpointEnabled := v.(bool)
 		parameters.ManagedInstanceProperties.PublicDataEndpointEnabled = utils.Bool(publicDataEndpointEnabled)
 	}
@@ -531,7 +531,7 @@ func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{
 		d.Set("collation", props.Collation)
 		d.Set("dns_zone", props.DNSZone)
 		d.Set("dns_zone_partner", props.DNSZonePartner)
-		d.Set("data_endpoint_enabled", props.PublicDataEndpointEnabled)
+		d.Set("public_data_endpoint_enabled", props.PublicDataEndpointEnabled)
 		d.Set("source_managed_instance_id", props.SourceManagedInstanceID)
 		d.Set("restore_point_in_time", props.RestorePointInTime)
 		d.Set("proxy_override", props.ProxyOverride)

@@ -98,7 +98,7 @@ func dataSourceArmMSSQLManagedInstance() *schema.Resource {
 				Computed: true,
 			},
 
-			"data_endpoint_enabled": {
+			"public_data_endpoint_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -197,7 +197,7 @@ func dataSourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interfac
 		d.Set("collation", props.Collation)
 		d.Set("dns_zone", props.DNSZone)
 		d.Set("dns_zone_partner", props.DNSZonePartner)
-		d.Set("data_endpoint_enabled", props.PublicDataEndpointEnabled)
+		d.Set("public_data_endpoint_enabled", props.PublicDataEndpointEnabled)
 		d.Set("source_managed_instance_id", props.SourceManagedInstanceID)
 		d.Set("restore_point_in_time", props.RestorePointInTime)
 
