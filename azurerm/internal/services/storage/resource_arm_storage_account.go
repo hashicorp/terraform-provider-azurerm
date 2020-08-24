@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
+	autorestAzure "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -604,6 +605,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
+	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -648,11 +650,21 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			MinimumTLSVersion:      storage.MinimumTLSVersion(minimumTLSVersion),
 			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
-			AllowBlobPublicAccess:  &allowBlobPublicAccess,
 		},
+	}
+
+	// For all Clouds except Public, don't specify "allow_blob_public_access" and "min_tls_version" in request body.
+	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
+	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
+	if envName != autorestAzure.PublicCloud.Name {
+		if allowBlobPublicAccess || minimumTLSVersion != string(storage.TLS10) {
+			return fmt.Errorf(`"allow_blob_public_access" and "min_tls_version" are not supported for a Storage Account located in %q`, envName)
+		}
+	} else {
+		parameters.AccountPropertiesCreateParameters.AllowBlobPublicAccess = &allowBlobPublicAccess
+		parameters.AccountPropertiesCreateParameters.MinimumTLSVersion = storage.MinimumTLSVersion(minimumTLSVersion)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -784,6 +796,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
+	envName := meta.(*clients.Client).Account.Environment.Name
 	client := meta.(*clients.Client).Storage.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -888,28 +901,44 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	if d.HasChange("min_tls_version") {
 		minimumTLSVersion := d.Get("min_tls_version").(string)
 
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				MinimumTLSVersion: storage.MinimumTLSVersion(minimumTLSVersion),
-			},
-		}
+		// For all Clouds except Public, don't specify "min_tls_version" in request body.
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
+		if envName != autorestAzure.PublicCloud.Name {
+			if minimumTLSVersion != string(storage.TLS10) {
+				return fmt.Errorf(`"min_tls_version" is not supported for a Storage Account located in %q`, envName)
+			}
+		} else {
+			opts := storage.AccountUpdateParameters{
+				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+					MinimumTLSVersion: storage.MinimumTLSVersion(minimumTLSVersion),
+				},
+			}
 
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account min_tls_version %q: %+v", storageAccountName, err)
+			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account min_tls_version %q: %+v", storageAccountName, err)
+			}
 		}
 	}
 
 	if d.HasChange("allow_blob_public_access") {
 		allowBlobPublicAccess := d.Get("allow_blob_public_access").(bool)
 
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				AllowBlobPublicAccess: &allowBlobPublicAccess,
-			},
-		}
+		// For all Clouds except Public, don't specify "allow_blob_public_access" in request body.
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
+		if envName != autorestAzure.PublicCloud.Name {
+			if allowBlobPublicAccess {
+				return fmt.Errorf(`"allow_blob_public_access" is not supported for a Storage Account located in %q`, envName)
+			}
+		} else {
+			opts := storage.AccountUpdateParameters{
+				AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
+					AllowBlobPublicAccess: &allowBlobPublicAccess,
+				},
+			}
 
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
+			if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account allow_blob_public_access %q: %+v", storageAccountName, err)
+			}
 		}
 	}
 
@@ -1066,9 +1095,21 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
-		d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
 		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
+		// For all Clouds except Public, "min_tls_version" is not returned from Azure so always persist the default values for "min_tls_version".
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/7812
+		// https://github.com/terraform-providers/terraform-provider-azurerm/issues/8083
+		if meta.(*clients.Client).Account.Environment.Name != autorestAzure.PublicCloud.Name {
+			d.Set("min_tls_version", string(storage.TLS10))
+		} else {
+			// For storage account created using old API, the response of GET call will not return "min_tls_version", either.
+			minTlsVersion := string(storage.TLS10)
+			if props.MinimumTLSVersion != "" {
+				minTlsVersion = string(props.MinimumTLSVersion)
+			}
+			d.Set("min_tls_version", minTlsVersion)
+		}
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {

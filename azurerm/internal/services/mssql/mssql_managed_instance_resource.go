@@ -34,7 +34,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(600 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(600 * time.Minute),
+			Update: schema.DefaultTimeout(1200 * time.Minute),
 			Delete: schema.DefaultTimeout(5 * time.Minute),
 		},
 
@@ -100,11 +100,13 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 			"dns_zone_partner": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"instance_pool_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"license_type": {
@@ -119,6 +121,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 			"maintenance_configuration_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"create_mode": {
