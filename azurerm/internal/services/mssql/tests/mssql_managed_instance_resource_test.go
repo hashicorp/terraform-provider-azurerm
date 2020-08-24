@@ -307,6 +307,27 @@ func TestAccAzureRMMsSqlManagedInstance_updateTlsVersion(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMsSqlManagedInstance_DnsZonePartner(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	dns := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "dnspartner")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMMsSqlManagedInstanceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMsSqlManagedInstance_DnsZonePartner(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlManagedInstanceExists(data.ResourceName),
+					testCheckAzureRMMsSqlManagedInstanceExists(dns.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testAccAzureRMMsSqlManagedInstance_basicTemplate(data acceptance.TestData) string {
 	return testAccAzureRMMsSqlManagedInstance_basic(data, "miadmin", "LengthyPassword@1234", 8, "Gen5", "GP_Gen5", "GeneralPurpose", "BasePrice", "SQL_Latin1_General_CP1_CI_AS", "Redirect", 64, 8, "UTC", "1.1")
 }
@@ -350,86 +371,90 @@ func testAccAzureRMMsSqlManagedInstance_updateTlsVersion(data acceptance.TestDat
 func testAccAzureRMMsSqlManagedInstance_basic(data acceptance.TestData, adminLogin string, adminPassword string, skuCapacity int, skuFamily string, skuName string, skuTier string, licenseType string, collation string, proxyOverride string, storageSize int, vcores int, timeZoneId string, minTlsVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
-  
+
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
-  
+
 resource "azurerm_network_security_group" "test" {
-	name                = "accTestNetworkSecurityGroup"
-	location            = "%[2]s"
-	resource_group_name = azurerm_resource_group.test.name
+  name                = "accTestNetworkSecurityGroup-%[1]d"
+  location            = "%[2]s"
+  resource_group_name = azurerm_resource_group.test.name
 }
-  
+
 resource "azurerm_virtual_network" "test" {
-	name                = "acctest-%[1]d-network"
-	resource_group_name = azurerm_resource_group.test.name
-	location            = "%[2]s"
-	address_space       = ["10.0.0.0/16"]
+  name                = "acctest-%[1]d-network"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[2]s"
+  address_space       = ["10.0.0.0/16"]
 }
-  
+
 resource "azurerm_subnet" "test" {
-	name                 = "internal"
-	virtual_network_name = azurerm_virtual_network.test.name
-	resource_group_name  = azurerm_resource_group.test.name
-	address_prefixes     = ["10.0.1.0/24"]
-	delegation {
-		name = "miDelegation"
-		  service_delegation {
-			name    = "Microsoft.Sql/managedInstances"
-		}
-	}
+  name                 = "internal"
+  virtual_network_name = azurerm_virtual_network.test.name
+  resource_group_name  = azurerm_resource_group.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "miDelegation"
+    service_delegation {
+      name = "Microsoft.Sql/managedInstances"
+    }
+  }
 }
-  
+
 resource "azurerm_subnet_network_security_group_association" "test" {
-	subnet_id                 = azurerm_subnet.test.id
-	network_security_group_id = azurerm_network_security_group.test.id
+  subnet_id                 = azurerm_subnet.test.id
+  network_security_group_id = azurerm_network_security_group.test.id
 }
-  
+
 resource "azurerm_route_table" "test" {
-	name                = "test-routetable"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name  
-	route {
-		name                   = "test"
-		address_prefix         = "10.100.0.0/14"
-		next_hop_type          = "VirtualAppliance"
-		next_hop_in_ip_address = "10.10.1.1"
-	}
+  name                = "test-routetable-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  route {
+    name                   = "test"
+    address_prefix         = "10.100.0.0/14"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = "10.10.1.1"
+  }
 }
-  
+
 resource "azurerm_subnet_route_table_association" "test" {
-	subnet_id      = azurerm_subnet.test.id
-	route_table_id = azurerm_route_table.test.id
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
 }
-  
+
 resource "azurerm_mssql_managed_instance" "test" {
-	name                 			= "acctest-mi-%[1]d"
-	resource_group_name 			= azurerm_resource_group.test.name
-	location            			= azurerm_resource_group.test.location
-	administrator_login 			= "%[3]s"
-	administrator_login_password 	= "%[4]s"
-	subnet_id 						= azurerm_subnet.test.id
-	identity {
-	  type = "SystemAssigned"
-	}
-	sku {
-		capacity	= %[5]d
-		family 		= "%[6]s"
-		name 		= "%[7]s"
-		tier 		= "%[8]s"
-	}
-	license_type 			= "%[9]s"
-	collation 				= "%[10]s"
-	proxy_override 			= "%[11]s"
-	storage_size_gb 		= %[12]d
-	vcores 					= %[13]d
-	data_endpoint_enabled 	= true
-	timezone_id 			= "%[14]s"
-	minimal_tls_version 	= "%[15]s"
+  name                         = "acctest-mi-%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "%[3]s"
+  administrator_login_password = "%[4]s"
+  subnet_id                    = azurerm_subnet.test.id
+  identity {
+    type = "SystemAssigned"
+  }
+  sku {
+    capacity = %[5]d
+    family   = "%[6]s"
+    name     = "%[7]s"
+    tier     = "%[8]s"
+  }
+  license_type          = "%[9]s"
+  collation             = "%[10]s"
+  proxy_override        = "%[11]s"
+  storage_size_gb       = %[12]d
+  vcores                = %[13]d
+  data_endpoint_enabled = true
+  timezone_id           = "%[14]s"
+  minimal_tls_version   = "%[15]s"
+  depends_on = [
+	azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, adminLogin, adminPassword, skuCapacity, skuFamily, skuName, skuTier, licenseType, collation, proxyOverride, storageSize, vcores, timeZoneId, minTlsVersion)
 }
@@ -440,29 +465,63 @@ func testAccAzureRMMsSqlManagedInstance_requiresImport(data acceptance.TestData)
 %s
 
 resource "azurerm_mssql_managed_instance" "import" {
-	name                 			= "acctest-mi-%[2]d"
-	resource_group_name 			= azurerm_resource_group.test.name
-	location            			= azurerm_resource_group.test.location
-	administrator_login 			= "miadministrator"
-	administrator_login_password 	= "Password@1234"
-	subnet_id 						= azurerm_subnet.test.id
-	identity {
-	  type = "SystemAssigned"
-	}
-	sku {
-		capacity	= 8
-		family 		= "Gen5"
-		name 		= "GP_Gen5"
-		tier 		= "GeneralPurpose"
-	}
-	license_type 			= "LicenseIncluded"
-	collation 				= "SQL_Latin1_General_CP1_CI_AS"
-	proxy_override 			= "Redirect"
-	storage_size_gb 		= 256
-	vcores 					= 16
-	data_endpoint_enabled 	= true
-	timezone_id 			= "UTC"
-	minimal_tls_version 	= "1.1"
+  name                         = "acctest-mi-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "miadministrator"
+  administrator_login_password = "Password@1234"
+  subnet_id                    = azurerm_subnet.test.id
+  identity {
+    type = "SystemAssigned"
+  }
+  sku {
+    capacity = 8
+    family   = "Gen5"
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+  }
+  license_type          = "LicenseIncluded"
+  collation             = "SQL_Latin1_General_CP1_CI_AS"
+  proxy_override        = "Redirect"
+  storage_size_gb       = 256
+  vcores                = 16
+  data_endpoint_enabled = true
+  timezone_id           = "UTC"
+  minimal_tls_version   = "1.1"
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMMsSqlManagedInstance_DnsZonePartner(data acceptance.TestData) string {
+	template := testAccAzureRMMsSqlManagedInstance_basicTemplate(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_managed_instance" "dnspartner" {
+  name                         = "acctest-mi-dns-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "miadministrator2"
+  administrator_login_password = "LengthyPassword@4321"
+  subnet_id                    = azurerm_subnet.test.id
+  identity {
+    type = "SystemAssigned"
+  }
+  sku {
+    capacity = 8
+    family   = "Gen5"
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+  }
+  license_type          = "BasePrice"
+  collation             = "SQL_Latin1_General_CP1_CI_AS"
+  proxy_override        = "Redirect"
+  storage_size_gb       = 64
+  vcores                = 8
+  data_endpoint_enabled = true
+  timezone_id           = "UTC"
+  dns_zone_partner      = azurerm_mssql_managed_instance.test.id
+  minimal_tls_version   = "1.1"
 }
 `, template, data.RandomInteger)
 }
