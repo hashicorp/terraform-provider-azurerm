@@ -16,8 +16,8 @@ BUG FIXES:
 * Data Source: `azurerm_app_service` - ensuring the `site_config` block is correctly set into the state [GH-8212]
 * Enhanced Validation: supporting "centralindia", "southindia" and "westindia" as valid regions in Azure Public (working around invalid data from the Azure API) [GH-8217]
 * `azurerm_application_gateway` - allow setting `ip_addresses` within the `backend_address_pool` block to an empty list [GH-8210]
-* `azurerm_dedicated_host` - waiting for the resource to be gone 20 times rather than 10 to work around an API issue [GH-8221]
 * `azurerm_container_group` - the `secure_environment_variables` field within the `container` now maps keys with empty values [GH-8151]
+* `azurerm_dedicated_host` - waiting for the resource to be gone 20 times rather than 10 to work around an API issue [GH-8221]
 
 ## 2.24.0 (August 20, 2020)
 
