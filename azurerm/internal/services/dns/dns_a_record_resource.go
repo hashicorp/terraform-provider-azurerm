@@ -2,6 +2,7 @@ package dns
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"net/http"
 	"time"
 
@@ -68,12 +69,12 @@ func resourceArmDnsARecord() *schema.Resource {
 			},
 
 			"target_resource_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ValidateFunc:  azure.ValidateResourceID,
-				ConflictsWith: []string{"records"},
-
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: azure.ValidateResourceID,
 				// TODO: switch ConflictsWith for ExactlyOneOf when the Provider SDK's updated
+				ConflictsWith:    []string{"records"},
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"tags": tags.Schema(),
