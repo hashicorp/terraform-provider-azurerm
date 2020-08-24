@@ -863,7 +863,7 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagement.HostnameC
 		if len(existingHostnames) > 0 {
 			v := existingHostnames[0].(map[string]interface{})
 
-			if valsRaw, ok := v[strings.ToLower(string(config.Type))]; ok {
+			if valsRaw, ok := v[azure.ToSnakeCase(string(config.Type))]; ok {
 				vals := valsRaw.([]interface{})
 				for _, val := range vals {
 					oldConfig := val.(map[string]interface{})
