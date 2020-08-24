@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -77,17 +76,15 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	// example.azuredatalakestore.net/test/example.txt
 	id := fmt.Sprintf("%s.%s%s", accountName, client.AdlsFileSystemDNSSuffix, remoteFilePath)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Data Lake Store File %q (Account %q): %s", remoteFilePath, accountName, err)
-			}
+	existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of existing Data Lake Store File %q (Account %q): %s", remoteFilePath, accountName, err)
 		}
+	}
 
-		if existing.FileStatus != nil && existing.FileStatus.ModificationTime != nil {
-			return tf.ImportAsExistsError("azurerm_data_lake_store_file", id)
-		}
+	if existing.FileStatus != nil && existing.FileStatus.ModificationTime != nil {
+		return tf.ImportAsExistsError("azurerm_data_lake_store_file", id)
 	}
 
 	file, err := os.Open(localFilePath)

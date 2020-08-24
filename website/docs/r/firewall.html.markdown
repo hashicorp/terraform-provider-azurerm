@@ -86,7 +86,7 @@ A `ip_configuration` block supports the following:
 
 -> **NOTE** At least one and only one `ip_configuration` block may contain a `subnet_id`.
 
-* `public_ip_address_id` - (Required) The Resource ID of the Public IP Address associated with the firewall.
+* `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
 -> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
 
@@ -94,7 +94,7 @@ A `ip_configuration` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The Resource ID of the Azure Firewall.
+* `id` - The ID of the Azure Firewall.
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
 
@@ -102,11 +102,9 @@ The following attributes are exported:
 
 A `ip_configuration` block exports the following:
 
-* `private_ip_address` - The private IP address of the Azure Firewall.
+* `private_ip_address` - The Private IP address of the Azure Firewall.
 
 ## Timeouts
-
-
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
