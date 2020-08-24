@@ -79,6 +79,36 @@ func resourceArmFirewall() *schema.Resource {
 				},
 			},
 
+			"management_ip_configuration": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"subnet_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validateAzureFirewallSubnetName,
+						},
+						"public_ip_address_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+						"private_ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"threat_intel_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -126,20 +156,12 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(d)
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
+	i := d.Get("ip_configuration").([]interface{})
+	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(i)
 	if err != nil {
-		return fmt.Errorf("Error Building list of Azure Firewall IP Configurations: %+v", err)
+		return fmt.Errorf("Error building list of Azure Firewall IP Configurations: %+v", err)
 	}
-
-	locks.ByName(name, azureFirewallResourceName)
-	defer locks.UnlockByName(name, azureFirewallResourceName)
-
-	locks.MultipleByName(vnetToLock, VirtualNetworkResourceName)
-	defer locks.UnlockMultipleByName(vnetToLock, VirtualNetworkResourceName)
-
-	locks.MultipleByName(subnetToLock, SubnetResourceName)
-	defer locks.UnlockMultipleByName(subnetToLock, SubnetResourceName)
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	parameters := network.AzureFirewall{
 		Location: &location,
@@ -150,6 +172,35 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		},
 		Zones: zones,
 	}
+	m := d.Get("management_ip_configuration").(*schema.Set).List()
+	if len(m) == 1 {
+		mgmtIPConfig, mgmtSubnetName, mgmtVirtualNetworkName, err := expandArmFirewallIPConfigurations(m)
+		if err != nil {
+			return fmt.Errorf("Error parsing Azure Firewall Management IP Configurations: %+v", err)
+		}
+
+		if !azure.SliceContainsValue(*subnetToLock, (*mgmtSubnetName)[0]) {
+			*subnetToLock = append(*subnetToLock, (*mgmtSubnetName)[0])
+		}
+
+		if !azure.SliceContainsValue(*vnetToLock, (*mgmtVirtualNetworkName)[0]) {
+			*vnetToLock = append(*vnetToLock, (*mgmtVirtualNetworkName)[0])
+		}
+		if *mgmtIPConfig != nil {
+			parameters.ManagementIPConfiguration = &(*mgmtIPConfig)[0]
+		}
+	} else if len(m) > 1 {
+		return fmt.Errorf("Enter only one management IP configuration block")
+	}
+
+	locks.ByName(name, azureFirewallResourceName)
+	defer locks.UnlockByName(name, azureFirewallResourceName)
+
+	locks.MultipleByName(vnetToLock, VirtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnetToLock, VirtualNetworkResourceName)
+
+	locks.MultipleByName(subnetToLock, SubnetResourceName)
+	defer locks.UnlockMultipleByName(subnetToLock, SubnetResourceName)
 
 	if !d.IsNewResource() {
 		exists, err2 := client.Get(ctx, resourceGroup, name)
@@ -224,6 +275,10 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
+		mip := &[]network.AzureFirewallIPConfiguration{*props.ManagementIPConfiguration}
+		if err := d.Set("management_ip_configuration", flattenArmFirewallIPConfigurations(mip)); err != nil {
+			return fmt.Errorf("Error setting `management_ip_configuration`: %+v", err)
+		}
 		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
 	}
 
@@ -266,17 +321,36 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 					continue
 				}
 
-				parsedSubnetId, err2 := azure.ParseAzureResourceID(*config.Subnet.ID)
+				parsedSubnetID, err2 := azure.ParseAzureResourceID(*config.Subnet.ID)
 				if err2 != nil {
 					return err2
 				}
-				subnetName := parsedSubnetId.Path["subnets"]
+				subnetName := parsedSubnetID.Path["subnets"]
 
 				if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
 					subnetNamesToLock = append(subnetNamesToLock, subnetName)
 				}
 
-				virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
+				virtualNetworkName := parsedSubnetID.Path["virtualNetworks"]
+				if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
+					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
+				}
+			}
+		}
+
+		if mconfig := props.ManagementIPConfiguration; mconfig != nil {
+			if mconfig.Subnet != nil && mconfig.Subnet.ID != nil {
+				parsedSubnetID, err2 := azure.ParseAzureResourceID(*mconfig.Subnet.ID)
+				if err2 != nil {
+					return err2
+				}
+				subnetName := parsedSubnetID.Path["subnets"]
+
+				if !azure.SliceContainsValue(subnetNamesToLock, subnetName) {
+					subnetNamesToLock = append(subnetNamesToLock, subnetName)
+				}
+
+				virtualNetworkName := parsedSubnetID.Path["virtualNetworks"]
 				if !azure.SliceContainsValue(virtualNetworkNamesToLock, virtualNetworkName) {
 					virtualNetworkNamesToLock = append(virtualNetworkNamesToLock, virtualNetworkName)
 				}
@@ -305,8 +379,7 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
-	configs := d.Get("ip_configuration").([]interface{})
+func expandArmFirewallIPConfigurations(configs []interface{}) (*[]network.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
 	ipConfigs := make([]network.AzureFirewallIPConfiguration, 0)
 	subnetNamesToLock := make([]string, 0)
 	virtualNetworkNamesToLock := make([]string, 0)
@@ -409,8 +482,8 @@ func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string
 		return warnings, errors
 	}
 	subnetName := parsed.Path["subnets"]
-	if subnetName != "AzureFirewallSubnet" {
-		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
+	if subnetName != "AzureFirewallSubnet" && subnetName != "AzureFirewallManagementSubnet" {
+		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureFirewallSubnet', or 'AzureFirewallManagementSubnet' for the management IP configuration, to be used for the Azure Firewall resource", k))
 	}
 
 	return warnings, errors
