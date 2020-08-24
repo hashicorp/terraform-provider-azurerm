@@ -2,7 +2,7 @@
 
 UPGRADE NOTES:
 
-* `azurerm_container_group` - previously the value of `PRIVATE_EMPTY` field wouldn't be stored into state file when it is set as empty string in tf config, but the behavior has been updated, and now it would be stored. ([#8096](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8096))
+* `azurerm_container_group` - The `secure_environment_variables` field within the `container` now maps keys with empty values, which differs from previous versions of this provider which ignored empty values [GH-8151]
 
 IMPROVEMENTS:
 
@@ -16,6 +16,7 @@ BUG FIXES:
 * Data Source: `azurerm_app_service` - ensuring the `site_config` block is correctly set into the state [GH-8212]
 * `azurerm_application_gateway` - allow setting `ip_addresses` within the `backend_address_pool` block to an empty list [GH-8210]
 * `azurerm_dedicated_host` - waiting for the resource to be gone 20 times rather than 10 to work around an API issue [GH-8221]
+* `azurerm_container_group` - the `secure_environment_variables` field within the `container` now maps keys with empty values [GH-8151]
 
 ## 2.24.0 (August 20, 2020)
 
