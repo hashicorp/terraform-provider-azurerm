@@ -1304,6 +1304,7 @@ func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
@@ -1414,21 +1415,61 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 
 	for k, v := range *input.Extensions {
 		ext := make(map[string]interface{})
-		ext["name"] = *v.Name
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
+		}
+		ext["name"] = name
+
 		if props := v.VirtualMachineScaleSetExtensionProperties; props != nil {
-			ext["publisher"] = *props.Publisher
-			ext["type"] = *props.Type
-			ext["type_handler_version"] = *props.TypeHandlerVersion
-			ext["auto_upgrade_minor_version"] = *props.AutoUpgradeMinorVersion
-			ext["provision_after_extensions"] = utils.FlattenStringSlice(props.ProvisionAfterExtensions)
-			settings, err := structure.FlattenJsonToString(props.Settings.(map[string]interface{}))
-			if err != nil {
-				return nil, err
+			extPublisher := ""
+			if props.Publisher != nil {
+				extPublisher = *props.Publisher
 			}
-			ext["settings"] = settings
+			ext["publisher"] = extPublisher
+
+			extType := ""
+			if props.Type != nil {
+				extType = *props.Type
+			}
+			ext["type"] = extType
+
+			extTypeVersion := ""
+			if props.TypeHandlerVersion != nil {
+				extTypeVersion = *props.TypeHandlerVersion
+			}
+			ext["type_handler_version"] = extTypeVersion
+
+			autoUpgradeMinorVersion := false
+			if props.AutoUpgradeMinorVersion != nil {
+				autoUpgradeMinorVersion = *props.AutoUpgradeMinorVersion
+			}
+			ext["auto_upgrade_minor_version"] = autoUpgradeMinorVersion
+
+			forceUpdateTag := ""
+			if props.ForceUpdateTag != nil {
+				forceUpdateTag = *props.ForceUpdateTag
+			}
+			ext["force_update_tag"] = forceUpdateTag
+
+			provisionAfterExtension := make([]interface{}, 0)
+			if props.ProvisionAfterExtensions != nil {
+				provisionAfterExtension = utils.FlattenStringSlice(props.ProvisionAfterExtensions)
+			}
+			ext["provision_after_extensions"] = provisionAfterExtension
+
+			extSettings := ""
+			if props.Settings != nil {
+				extSettingsRaw, err := structure.FlattenJsonToString(props.Settings.(map[string]interface{}))
+				if err != nil {
+					return nil, err
+				}
+				extSettings = extSettingsRaw
+			}
+			ext["settings"] = extSettings
 
 			// protected_settings isn't returned, so we attempt to get it from config otherwise set to empty string
-			if protectedSettings, ok := d.GetOk(fmt.Sprintf("vm_extension.%d.protected_settings", k)); ok {
+			if protectedSettings, ok := d.GetOk(fmt.Sprintf("extension.%d.protected_settings", k)); ok {
 				if protectedSettings.(string) != "" && protectedSettings.(string) != "{}" {
 					ext["protected_settings"] = protectedSettings.(string)
 				}

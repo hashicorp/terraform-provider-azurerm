@@ -109,7 +109,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		},
 		VirtualMachineScaleSet: features.VirtualMachineScaleSetFeatures{
 			RollInstancesWhenRequired: true,
-			UseExtensionsBeta:         false,
 		},
 		KeyVault: features.KeyVaultFeatures{
 			PurgeSoftDeleteOnDestroy:    true,
@@ -155,9 +154,6 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			scaleSetRaw := items[0].(map[string]interface{})
 			if v, ok := scaleSetRaw["roll_instances_when_required"]; ok {
 				features.VirtualMachineScaleSet.RollInstancesWhenRequired = v.(bool)
-			}
-			if v, ok := scaleSetRaw["use_extensions_beta"]; ok {
-				features.VirtualMachineScaleSet.UseExtensionsBeta = v.(bool)
 			}
 		}
 	}
