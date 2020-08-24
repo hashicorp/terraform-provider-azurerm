@@ -380,7 +380,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_group" "test" {
-  name                = "accTestNetworkSecurityGroup"
+  name                = "accTestNetworkSecurityGroup-%[1]d"
   location            = "%[2]s"
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -411,7 +411,7 @@ resource "azurerm_subnet_network_security_group_association" "test" {
 }
 
 resource "azurerm_route_table" "test" {
-  name                = "test-routetable"
+  name                = "test-routetable-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   route {
@@ -451,6 +451,10 @@ resource "azurerm_mssql_managed_instance" "test" {
   data_endpoint_enabled = true
   timezone_id           = "%[14]s"
   minimal_tls_version   = "%[15]s"
+  depends_on = [
+	azurerm_subnet_network_security_group_association.test,
+    azurerm_subnet_route_table_association.test,
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, adminLogin, adminPassword, skuCapacity, skuFamily, skuName, skuTier, licenseType, collation, proxyOverride, storageSize, vcores, timeZoneId, minTlsVersion)
 }
