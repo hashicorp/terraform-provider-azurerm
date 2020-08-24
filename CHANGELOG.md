@@ -5,6 +5,10 @@ IMPROVEMENTS:
 * `azurerm_batch_pool` - Remove `network_configuration` from update payload [GH-8189]
 * `azurerm_shared_image` - Support for `purchase_plan` [GH-8124]
 
+BUG FIXES:
+
+* Data Source: `azurerm_app_service` - ensuring the `site_config` block is correctly set into the state [GH-8212]
+
 ## 2.24.0 (August 20, 2020)
 
 FEATURES:
