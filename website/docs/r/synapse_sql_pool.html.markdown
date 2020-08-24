@@ -24,8 +24,7 @@ resource "azurerm_storage_account" "example" {
   location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "StorageV2"
-  is_hns_enabled           = "true"
+  account_kind             = "BlobStorage"
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
@@ -45,6 +44,8 @@ resource "azurerm_synapse_workspace" "example" {
 resource "azurerm_synapse_sql_pool" "example" {
   name                 = "examplesqlpool"
   synapse_workspace_id = azurerm_synapse_workspace.example.id
+  sku_name             = "DW100c"
+  create_mode          = "Default"
 }
 ```
 
@@ -54,19 +55,27 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Synapse Sql Pool. Changing this forces a new synapse SqlPool to be created.
 
-* `synapse_workspace_id` - (Required) The resource ID of Synapse Workspace. Changing this forces a new synapse SqlPool to be created.
+* `synapse_workspace_id` - (Required) The ID of Synapse Workspace within which this Sql Pool should be created. Changing this forces a new Synapse Sql Pool to be created.
 
-* `sku_name` - (Optional) Specifies the SKU Name for this Synapse Sql Pool. Possible values are `DW100c`, `DW200c`, `DW300c`, `DW400c`, `DW500c`, `DW1000c`, `DW1500c`, `DW2000c`, `DW2500c`, `DW3000c`, `DW5000c`, `DW6000c`, `DW7500c`, `DW10000c`, `DW15000c` or `DW30000c`. Defaults to `DW1000c`.
+* `sku_name` - (Required) Specifies the SKU Name for this Synapse Sql Pool. Possible values are `DW100c`, `DW200c`, `DW300c`, `DW400c`, `DW500c`, `DW1000c`, `DW1500c`, `DW2000c`, `DW2500c`, `DW3000c`, `DW5000c`, `DW6000c`, `DW7500c`, `DW10000c`, `DW15000c` or `DW30000c`.
 
 * `create_mode` - (Optional) Specifies how to create the Sql Pool. Valid values are: `Default`, `Recovery` or `PointInTimeRestore`. Must be `Default` to create a new database. Defaults to `Default`.
 
-* `collation` - (Optional) The name of the collation to use with this pool. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
+* `collation` - (Optional) The name of the collation to use with this pool, only applicable when `create_mode` is set to `Default`. Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
 
-* `source_database_id` - (Optional) The ID of the Synapse Sql Pool or Sql Database which is to restore or back up. It needs to be specified if `create_mode` is `PointInTimeRestore` or `Recovery`.
+* `recovery_database_id` - (Optional) The ID of the Synapse Sql Pool or Sql Database which is to back up, only applicable when `create_mode` is set to `Recovery`. Changing this forces a new Synapse Sql Pool to be created.
 
-* `restore_point_in_time` - (Optional) Specifies the Snapshot time to restore.
+* `restore` - (Optional)  A `restore` block as defined below. only applicable when `create_mode` is set to `PointInTimeRestore`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Sql Pool.
+
+---
+
+An `restore` block supports the following:
+
+* `source_database_id` - (Optional) The ID of the Synapse Sql Pool or Sql Database which is to restore. Changing this forces a new Synapse Sql Pool to be created.
+
+* `point_in_time` - (Optional) Specifies the Snapshot time to restore. Changing this forces a new Synapse Sql Pool to be created.
 
 ## Attributes Reference
 

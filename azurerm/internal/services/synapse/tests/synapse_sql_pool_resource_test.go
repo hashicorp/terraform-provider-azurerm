@@ -17,7 +17,7 @@ func TestAccAzureRMSynapseSqlPool_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMsynapseSqlPoolDestroy,
+		CheckDestroy: testCheckAzureRMSynapseSqlPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseSqlPool_basic(data),
@@ -35,7 +35,7 @@ func TestAccAzureRMSynapseSqlPool_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMsynapseSqlPoolDestroy,
+		CheckDestroy: testCheckAzureRMSynapseSqlPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseSqlPool_basic(data),
@@ -53,7 +53,7 @@ func TestAccAzureRMSynapseSqlPool_complete(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMsynapseSqlPoolDestroy,
+		CheckDestroy: testCheckAzureRMSynapseSqlPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseSqlPool_complete(data),
@@ -71,7 +71,7 @@ func TestAccAzureRMSynapseSqlPool_update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
-		CheckDestroy: testCheckAzureRMsynapseSqlPoolDestroy,
+		CheckDestroy: testCheckAzureRMSynapseSqlPoolDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSynapseSqlPool_basic(data),
@@ -120,7 +120,7 @@ func testCheckAzureRMSynapseSqlPoolExists(resourceName string) resource.TestChec
 	}
 }
 
-func testCheckAzureRMsynapseSqlPoolDestroy(s *terraform.State) error {
+func testCheckAzureRMSynapseSqlPoolDestroy(s *terraform.State) error {
 	client := acceptance.AzureProvider.Meta().(*clients.Client).Synapse.SqlPoolClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
@@ -145,11 +145,17 @@ func testCheckAzureRMsynapseSqlPoolDestroy(s *terraform.State) error {
 func testAccAzureRMSynapseSqlPool_basic(data acceptance.TestData) string {
 	template := testAccAzureRMSynapseSqlPool_template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_synapse_sql_pool" "test" {
   name                 = "acctestSP%s"
   synapse_workspace_id = azurerm_synapse_workspace.test.id
+  sku_name             = "DW100c"
+  create_mode          = "Default"
 }
 `, template, data.RandomString)
 }
@@ -162,6 +168,8 @@ func testAccAzureRMSynapseSqlPool_requiresImport(data acceptance.TestData) strin
 resource "azurerm_synapse_sql_pool" "import" {
   name                 = azurerm_synapse_sql_pool.test.name
   synapse_workspace_id = azurerm_synapse_sql_pool.test.synapse_workspace_id
+  sku_name             = azurerm_synapse_sql_pool.test.sku_name
+  create_mode          = azurerm_synapse_sql_pool.test.create_mode
 }
 `, config)
 }
@@ -169,6 +177,10 @@ resource "azurerm_synapse_sql_pool" "import" {
 func testAccAzureRMSynapseSqlPool_complete(data acceptance.TestData) string {
 	template := testAccAzureRMSynapseSqlPool_template(data)
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_synapse_sql_pool" "test" {
@@ -188,10 +200,6 @@ resource "azurerm_synapse_sql_pool" "test" {
 
 func testAccAzureRMSynapseSqlPool_template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-synapse-%d"
   location = "%s"

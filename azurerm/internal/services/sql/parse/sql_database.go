@@ -7,10 +7,21 @@ import (
 )
 
 type SqlDatabaseId struct {
-	SubscriptionID string
-	ResourceGroup  string
-	ServerName     string
-	Name           string
+	ResourceGroup string
+	ServerName    string
+	Name          string
+}
+
+func NewSqlDatabaseID(resourceGroup, serverName, name string) SqlDatabaseId {
+	return SqlDatabaseId{
+		ResourceGroup: resourceGroup,
+		ServerName:    serverName,
+		Name:          name,
+	}
+}
+
+func (id SqlDatabaseId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/databases/%s", subscriptionId, id.ResourceGroup, id.ServerName, id.Name)
 }
 
 func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
@@ -20,8 +31,7 @@ func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
 	}
 
 	sqlDatabaseId := SqlDatabaseId{
-		SubscriptionID: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
+		ResourceGroup: id.ResourceGroup,
 	}
 	if sqlDatabaseId.ServerName, err = id.PopSegment("servers"); err != nil {
 		return nil, err
@@ -34,8 +44,4 @@ func SqlDatabaseID(input string) (*SqlDatabaseId, error) {
 	}
 
 	return &sqlDatabaseId, nil
-}
-
-func (id *SqlDatabaseId) String() string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Sql/servers/%s/databases/%s", id.SubscriptionID, id.ResourceGroup, id.ServerName, id.Name)
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	postgresValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/validate"
 	sqlParse "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/parse"
 	sqlValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/synapse/parse"
@@ -20,6 +21,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+const (
+	DefaultCreateMode            = "Default"
+	RecoveryCreateMode           = "Recovery"
+	PointInTimeRestoreCreateMode = "PointInTimeRestore"
 )
 
 func resourceArmSynapseSqlPool() *schema.Resource {
@@ -42,7 +49,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 					return []*schema.ResourceData{d}, err
 				}
 
-				d.Set("create_mode", "Default")
+				d.Set("create_mode", DefaultCreateMode)
 				if v, ok := d.GetOk("create_mode"); ok && v.(string) != "" {
 					d.Set("create_mode", v)
 				}
@@ -56,7 +63,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.SynapseSqlPoolName,
+				ValidateFunc: validate.SqlPoolName,
 			},
 
 			"synapse_workspace_id": {
@@ -68,8 +75,7 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 
 			"sku_name": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "DW1000c",
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"DW100c",
 					"DW200c",
@@ -93,35 +99,60 @@ func resourceArmSynapseSqlPool() *schema.Resource {
 			"create_mode": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "Default",
+				Default:  DefaultCreateMode,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"Default",
-					"Recovery",
-					"PointInTimeRestore",
+					DefaultCreateMode,
+					RecoveryCreateMode,
+					PointInTimeRestoreCreateMode,
 				}, false),
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: postgresValidate.PostgresDatabaseCollation,
 			},
 
-			"source_database_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+			"recovery_database_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"restore"},
 				ValidateFunc: validation.Any(
-					validate.SynapseSqlPoolID,
+					validate.SqlPoolID,
 					sqlValidate.SqlDatabaseID,
 				),
 			},
 
-			"restore_point_in_time": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsRFC3339Time,
+			"restore": {
+				Type:          schema.TypeList,
+				ForceNew:      true,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"recovery_database_id"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"point_in_time": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.IsRFC3339Time,
+						},
+
+						"source_database_id": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.Any(
+								validate.SqlPoolID,
+								sqlValidate.SqlDatabaseID,
+							),
+						},
+					},
+				},
 			},
 
 			"data_encrypted": {
@@ -138,16 +169,20 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)
-	workspaceId, _ := parse.SynapseWorkspaceID(d.Get("synapse_workspace_id").(string))
+	workspaceId, err := parse.SynapseWorkspaceID(d.Get("synapse_workspace_id").(string))
+	if err != nil {
+		return err
+	}
 
 	existing, err := sqlClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for present of existing Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", name, workspaceId.ResourceGroup, workspaceId.Name, err)
+			return fmt.Errorf("checking for presence of existing Synapse Sql Pool %q (workspace %q / Resource Group %q): %+v", name, workspaceId.Name, workspaceId.ResourceGroup, err)
 		}
 	}
 	if existing.ID != nil && *existing.ID != "" {
@@ -156,7 +191,7 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 
 	workspace, err := workspaceClient.Get(ctx, workspaceId.ResourceGroup, workspaceId.Name)
 	if err != nil {
-		return fmt.Errorf("reading Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
+		return fmt.Errorf("retrieving Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
 	}
 
 	mode := d.Get("create_mode").(string)
@@ -172,21 +207,25 @@ func resourceArmSynapseSqlPoolCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	switch mode {
-	case "Default":
+	case DefaultCreateMode:
 		sqlPoolInfo.SQLPoolResourceProperties.Collation = utils.String(d.Get("collation").(string))
-	case "Recovery":
-		sourceDatabaseId := constructSourceDatabaseId(d.Get("source_database_id").(string))
-		if sourceDatabaseId == "" {
-			return fmt.Errorf("`source_database_id` must be set when `create_mode` is `Recovery`")
+	case RecoveryCreateMode:
+		recoveryDatabaseId := constructSourceDatabaseId(d.Get("recovery_database_id").(string), subscriptionId)
+		if recoveryDatabaseId == "" {
+			return fmt.Errorf("`recovery_database_id` must be set when `create_mode` is %q", RecoveryCreateMode)
 		}
-		sqlPoolInfo.SQLPoolResourceProperties.RecoverableDatabaseID = utils.String(sourceDatabaseId)
-	case "PointInTimeRestore":
-		sourceDatabaseId := constructSourceDatabaseId(d.Get("source_database_id").(string))
-		restorePointInTimeStr := d.Get("restore_point_in_time").(string)
-		if sourceDatabaseId == "" || restorePointInTimeStr == "" {
-			return fmt.Errorf("`source_database_id` and `restore_point_in_time` must be set when `create_mode` is `PointInTimeRestore`")
+		sqlPoolInfo.SQLPoolResourceProperties.RecoverableDatabaseID = utils.String(recoveryDatabaseId)
+	case PointInTimeRestoreCreateMode:
+		restore := d.Get("restore").([]interface{})
+		if len(restore) == 0 || restore[0] == nil {
+			return fmt.Errorf("`restore` block must be set when `create_mode` is %q", PointInTimeRestoreCreateMode)
 		}
-		restorePointInTime, _ := time.Parse(time.RFC3339, restorePointInTimeStr)
+		v := restore[0].(map[string]interface{})
+		sourceDatabaseId := constructSourceDatabaseId(v["source_database_id"].(string), subscriptionId)
+		restorePointInTime, err := time.Parse(time.RFC3339, v["point_in_time"].(string))
+		if err != nil {
+			return err
+		}
 		sqlPoolInfo.SQLPoolResourceProperties.RestorePointInTime = &date.Time{Time: restorePointInTime}
 		sqlPoolInfo.SQLPoolResourceProperties.SourceDatabaseID = utils.String(sourceDatabaseId)
 	}
@@ -300,11 +339,11 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 	resp, err := sqlClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] synapse %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Synapse SQL Pool %q (Workspace %q / Resource Group %q) does not exist - removing from state", id.Name, id.Workspace.Name, id.Workspace.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Synapse SqlPool %q (Resource Group %q / workspaceName %q): %+v", id.Name, id.Workspace.ResourceGroup, id.Workspace.Name, err)
+		return fmt.Errorf("retrieving Synapse SqlPool %q (workspace %q / Resource Group %q): %+v", id.Name, id.Workspace.Name, id.Workspace.ResourceGroup, err)
 	}
 
 	transparentDataEncryption, err := sqlPTDEClient.Get(ctx, id.Workspace.ResourceGroup, id.Workspace.Name, id.Name)
@@ -323,6 +362,10 @@ func resourceArmSynapseSqlPoolRead(d *schema.ResourceData, meta interface{}) err
 	if props := transparentDataEncryption.TransparentDataEncryptionProperties; props != nil {
 		d.Set("data_encrypted", props.Status == synapse.TransparentDataEncryptionStatusEnabled)
 	}
+
+	// whole "restore" block is not returned. to avoid conflict, so set it from the old state
+	d.Set("restore", d.Get("restore").([]interface{}))
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -363,16 +406,10 @@ func synapseSqlPoolScaleStateRefreshFunc(ctx context.Context, client *synapse.SQ
 // sqlPool backend service is a proxy to sql database
 // backend service restore and backup only accept id format of sql database
 // so if the id is sqlPool, we need to construct the corresponding sql database id
-func constructSourceDatabaseId(id string) string {
+func constructSourceDatabaseId(id string, subscriptionId string) string {
 	sqlPoolId, err := parse.SynapseSqlPoolID(id)
 	if err != nil {
 		return id
 	}
-	sqlDataBaseId := sqlParse.SqlDatabaseId{
-		SubscriptionID: sqlPoolId.Workspace.SubscriptionID,
-		ResourceGroup:  sqlPoolId.Workspace.ResourceGroup,
-		ServerName:     sqlPoolId.Workspace.Name,
-		Name:           sqlPoolId.Name,
-	}
-	return sqlDataBaseId.String()
+	return sqlParse.NewSqlDatabaseID(sqlPoolId.Workspace.ResourceGroup, sqlPoolId.Workspace.Name, sqlPoolId.Name).ID(subscriptionId)
 }
