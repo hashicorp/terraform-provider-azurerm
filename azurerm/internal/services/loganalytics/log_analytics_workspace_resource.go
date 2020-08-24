@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -54,12 +54,12 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(operationalinsights.Free),
-					string(operationalinsights.PerGB2018),
-					string(operationalinsights.PerNode),
-					string(operationalinsights.Premium),
-					string(operationalinsights.Standalone),
-					string(operationalinsights.Standard),
+					string(operationalinsights.WorkspaceSkuNameEnumFree),
+					string(operationalinsights.WorkspaceSkuNameEnumPerGB2018),
+					string(operationalinsights.WorkspaceSkuNameEnumPerNode),
+					string(operationalinsights.WorkspaceSkuNameEnumPremium),
+					string(operationalinsights.WorkspaceSkuNameEnumStandalone),
+					string(operationalinsights.WorkspaceSkuNameEnumStandard),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
@@ -123,8 +123,8 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	skuName := d.Get("sku").(string)
-	sku := &operationalinsights.Sku{
-		Name: operationalinsights.SkuNameEnum(skuName),
+	sku := &operationalinsights.WorkspaceSku{
+		Name: operationalinsights.WorkspaceSkuNameEnum(skuName),
 	}
 
 	retentionInDays := int32(d.Get("retention_in_days").(int))
