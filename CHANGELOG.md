@@ -1,5 +1,9 @@
 ## 2.25.0 (Unreleased)
 
+UPGRADE NOTES:
+
+* `azurerm_container_group` - previously the value of `PRIVATE_EMPTY` field wouldn't be stored into state file when it is set as empty string in tf config, but the behavior has been updated, and now it would be stored. ([#8096](https://github.com/terraform-providers/terraform-provider-azurerm/issues/8096))
+
 IMPROVEMENTS:
 
 * `azurerm_app_service_slot_virtual_network_swift_connection` - adding validation that the `app_service_id` is an App Service / Function App ID [GH-8111]
