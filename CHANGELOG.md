@@ -8,6 +8,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * Data Source: `azurerm_app_service` - ensuring the `site_config` block is correctly set into the state [GH-8212]
+* `azurerm_application_gateway` - allow setting `ip_addresses` within the `backend_address_pool` block to an empty list [GH-8210]
 
 ## 2.24.0 (August 20, 2020)
 
