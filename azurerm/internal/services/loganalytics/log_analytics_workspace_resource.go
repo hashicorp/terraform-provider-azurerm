@@ -2,6 +2,7 @@ package loganalytics
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"log"
 	"regexp"
 	"time"
@@ -78,8 +79,9 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 			},
 
 			"portal_url": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
 			},
 
 			"primary_shared_key": {
@@ -166,6 +168,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 
 func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspacesClient
+	sharedKeysClient := meta.(*clients.Client).LogAnalytics.SharedKeysClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 	id, err := parse.LogAnalyticsWorkspaceID(d.Id())
@@ -189,13 +192,12 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("workspace_id", resp.CustomerID)
-	d.Set("portal_url", resp.PortalURL)
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", sku.Name)
 	}
 	d.Set("retention_in_days", resp.RetentionInDays)
 
-	sharedKeys, err := client.GetSharedKeys(ctx, id.ResourceGroup, id.Name)
+	sharedKeys, err := sharedKeysClient.GetSharedKeys(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		log.Printf("[ERROR] Unable to List Shared keys for Log Analytics workspaces %s: %+v", id.Name, err)
 	} else {
@@ -214,14 +216,17 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 
+	force := false
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name, utils.Bool(force))
 	if err != nil {
-		if utils.ResponseWasNotFound(resp) {
-			return nil
-		}
+		return fmt.Errorf("issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.Name, err)
+	}
 
-		return fmt.Errorf("Error issuing AzureRM delete request for Log Analytics Workspaces '%s': %+v", id.Name, err)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("waiting for deletion of Log Analytics Worspace %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		}
 	}
 
 	return nil

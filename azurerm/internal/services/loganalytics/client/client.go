@@ -9,6 +9,7 @@ import (
 type Client struct {
 	DataSourcesClient    *operationalinsights.DataSourcesClient
 	LinkedServicesClient *operationalinsights.LinkedServicesClient
+	SharedKeysClient     *operationalinsights.SharedKeysClient
 	SolutionsClient      *operationsmanagement.SolutionsClient
 	WorkspacesClient     *operationalinsights.WorkspacesClient
 }
@@ -20,6 +21,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	WorkspacesClient := operationalinsights.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 
+	SharedKeysClient := operationalinsights.NewSharedKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SharedKeysClient.Client, o.ResourceManagerAuthorizer)
+
 	SolutionsClient := operationsmanagement.NewSolutionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, "Microsoft.OperationsManagement", "solutions", "testing")
 	o.ConfigureClient(&SolutionsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -29,6 +33,7 @@ func NewClient(o *common.ClientOptions) *Client {
 	return &Client{
 		DataSourcesClient:    &DataSourcesClient,
 		LinkedServicesClient: &LinkedServicesClient,
+		SharedKeysClient:     &SharedKeysClient,
 		SolutionsClient:      &SolutionsClient,
 		WorkspacesClient:     &WorkspacesClient,
 	}
