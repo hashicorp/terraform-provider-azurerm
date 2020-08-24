@@ -62,8 +62,14 @@ func resourceArmAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *schem
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appID, _ := parse.AppServiceID(d.Get("app_service_id").(string))
-	subnetID, _ := subnetParse.SubnetID(d.Get("subnet_id").(string))
+	appID, err := parse.AppServiceID(d.Get("app_service_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing app service ID %+v", err)
+	}
+	subnetID, err := subnetParse.SubnetID(d.Get("subnet_id").(string))
+	if err != nil {
+		return fmt.Errorf("parsing subnet ID %+v", err)
+	}
 
 	resourceGroup := appID.ResourceGroup
 	name := appID.Name
