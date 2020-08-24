@@ -83,6 +83,7 @@ func resourceArmFirewall() *schema.Resource {
 				Type:     schema.TypeSet,
 				Optional: true,
 				ForceNew: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -189,8 +190,6 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		if *mgmtIPConfig != nil {
 			parameters.ManagementIPConfiguration = &(*mgmtIPConfig)[0]
 		}
-	} else if len(m) > 1 {
-		return fmt.Errorf("Enter only one management IP configuration block")
 	}
 
 	locks.ByName(name, azureFirewallResourceName)
