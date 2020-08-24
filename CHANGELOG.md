@@ -9,7 +9,10 @@ IMPROVEMENTS:
 * `azurerm_app_service_slot_virtual_network_swift_connection` - adding validation that the `app_service_id` is an App Service / Function App ID [GH-8111]
 * `azurerm_app_service_slot_virtual_network_swift_connection` - adding validation that the `subnet` is a Subnet ID [GH-8111]
 * `azurerm_batch_pool` - Remove `network_configuration` from update payload [GH-8189]
+* `azurerm_linux_virtual_machine_scale_set` - `upgrade_mode="Automatic"` no longer requires health probe [GH-6667]
 * `azurerm_shared_image` - Support for `purchase_plan` [GH-8124]
+* `azurerm_windows_virtual_machine_scale_set` - `upgrade_mode="Automatic"` no longer requires health probe [GH-6667]
+
 
 BUG FIXES:
 
