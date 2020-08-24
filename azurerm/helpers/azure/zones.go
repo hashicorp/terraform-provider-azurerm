@@ -11,7 +11,7 @@ func SchemaZones() *schema.Schema {
 		Optional: true,
 		ForceNew: true,
 		Elem: &schema.Schema{
-			Type: schema.TypeString,
+			Type:         schema.TypeString,
 			ValidateFunc: validate.NoEmptyStrings,
 		},
 	}
@@ -24,7 +24,7 @@ func SchemaSingleZone() *schema.Schema {
 		ForceNew: true,
 		MaxItems: 1,
 		Elem: &schema.Schema{
-			Type: schema.TypeString,
+			Type:         schema.TypeString,
 			ValidateFunc: validate.NoEmptyStrings,
 		},
 	}
@@ -37,7 +37,7 @@ func SchemaMultipleZones() *schema.Schema {
 		ForceNew: true,
 		MinItems: 1,
 		Elem: &schema.Schema{
-			Type: schema.TypeString,
+			Type:         schema.TypeString,
 			ValidateFunc: validate.NoEmptyStrings,
 		},
 	}
@@ -49,7 +49,7 @@ func SchemaZonesComputed() *schema.Schema {
 		Optional: true,
 		Computed: true,
 		Elem: &schema.Schema{
-			Type: schema.TypeString,
+			Type:         schema.TypeString,
 			ValidateFunc: validate.NoEmptyStrings,
 		},
 	}
