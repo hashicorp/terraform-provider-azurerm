@@ -153,7 +153,7 @@ func resourceWindowsVirtualMachine() *schema.Resource {
 				Default:  true,
 			},
 
-			"encryption_at_host": {
+			"encryption_at_host_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -385,7 +385,7 @@ func resourceWindowsVirtualMachineCreate(d *schema.ResourceData, meta interface{
 				VMSize: compute.VirtualMachineSizeTypes(size),
 			},
 			SecurityProfile: &compute.SecurityProfile{
-				EncryptionAtHost: utils.Bool(d.Get("encryption_at_host").(bool)),
+				EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
 			},
 			OsProfile: &compute.OSProfile{
 				AdminPassword:            utils.String(adminPassword),

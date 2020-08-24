@@ -127,6 +127,8 @@ The following arguments are supported:
 
 * `enable_automatic_updates` - (Optional) Specifies if Automatic Updates are Enabled for the Windows Virtual Machine. Changing this forces a new resource to be created.
 
+* `encryption_at_host_enabled` - (Optional) Should Azure encrypt the data stored on the VM host at rest and flows encrypted to the Storage service.
+
 * `eviction_policy` - (Optional) Specifies what should happen when the Virtual Machine is evicted for price reasons when using a Spot instance. At this time the only supported value is `Deallocate`. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can only be configured when `priority` is set to `Spot`.

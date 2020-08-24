@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `enable_automatic_updates` - (Optional) Are automatic updates enabled for this Virtual Machine? Defaults to `true`.
 
-* `encryption_at_host` - (Optional) Should Azure encrypt the data stored on the VM host at rest and flows encrypted to the Storage service.
+* `encryption_at_host_enabled` - (Optional) Should Azure encrypt the data stored on the VM host at rest and flows encrypted to the Storage service.
 
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 

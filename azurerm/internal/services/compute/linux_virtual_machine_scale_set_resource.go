@@ -126,7 +126,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 				Default:  false,
 			},
 
-			"encryption_at_host": {
+			"encryption_at_host_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
@@ -382,7 +382,7 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
 		Priority: priority,
 		SecurityProfile: &compute.SecurityProfile{
-			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host").(bool)),
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
 		},
 		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
 			AdminUsername:      utils.String(d.Get("admin_username").(string)),

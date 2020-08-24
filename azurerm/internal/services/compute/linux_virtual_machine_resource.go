@@ -151,6 +151,11 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 				Default:  true,
 			},
 
+			"encryption_at_host_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     schema.TypeString,
@@ -353,6 +358,9 @@ func resourceLinuxVirtualMachineCreate(d *schema.ResourceData, meta interface{})
 		VirtualMachineProperties: &compute.VirtualMachineProperties{
 			HardwareProfile: &compute.HardwareProfile{
 				VMSize: compute.VirtualMachineSizeTypes(size),
+			},
+			SecurityProfile: &compute.SecurityProfile{
+				EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
 			},
 			OsProfile: &compute.OSProfile{
 				AdminUsername:            utils.String(adminUsername),

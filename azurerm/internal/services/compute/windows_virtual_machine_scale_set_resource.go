@@ -128,6 +128,11 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 				Default:  true,
 			},
 
+			"encryption_at_host_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     schema.TypeString,
@@ -395,6 +400,9 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 
 	virtualMachineProfile := compute.VirtualMachineScaleSetVMProfile{
 		Priority: priority,
+		SecurityProfile: &compute.SecurityProfile{
+			EncryptionAtHost: utils.Bool(d.Get("encryption_at_host_enabled").(bool)),
+		},
 		OsProfile: &compute.VirtualMachineScaleSetOSProfile{
 			AdminPassword:      utils.String(d.Get("admin_password").(string)),
 			AdminUsername:      utils.String(d.Get("admin_username").(string)),
