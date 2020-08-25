@@ -70,6 +70,7 @@ func resourceArmCdnProfile() *schema.Resource {
 }
 
 func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -121,7 +122,12 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Cannot read CDN Profile %s (resource group %s) ID", name, resGroup)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.CdnProfileID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmCdnProfileRead(d, meta)
 }

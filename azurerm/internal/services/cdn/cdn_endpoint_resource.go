@@ -205,6 +205,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 }
 
 func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	endpointsClient := meta.(*clients.Client).Cdn.EndpointsClient
 	profilesClient := meta.(*clients.Client).Cdn.ProfilesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -308,7 +309,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	d.SetId(id.ID())
+	d.SetId(id.ID(subscriptionId))
 
 	return resourceArmCdnEndpointRead(d, meta)
 }
