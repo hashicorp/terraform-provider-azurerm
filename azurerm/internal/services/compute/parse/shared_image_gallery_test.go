@@ -6,24 +6,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
 
-var _ resourceid.Formatter = SharedImageId{}
+var _ resourceid.Formatter = SharedImageGalleryId{}
 
-func TestSharedImageIDFormatter(t *testing.T) {
+func TestSharedImageGalleryIDFormatter(t *testing.T) {
 	subscriptionId := "12345678-1234-5678-1234-123456789012"
-	galleryId := NewSharedImageGalleryId("group1", "gallery1")
-	actual := NewSharedImageId(galleryId, "image1").ID(subscriptionId)
-	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/galleries/gallery1/images/image1"
+	actual := NewSharedImageGalleryId("group1", "gallery1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/galleries/gallery1"
 	if actual != expected {
 		t.Fatalf("Expected %q but got %q", expected, actual)
 	}
 }
 
-func TestSharedImageID(t *testing.T) {
+func TestSharedImageGalleryID(t *testing.T) {
 	testData := []struct {
 		Name   string
 		Input  string
 		Error  bool
-		Expect *SharedImageId
+		Expect *SharedImageGalleryId
 	}{
 		{
 			Name:  "Empty",
@@ -47,27 +46,26 @@ func TestSharedImageID(t *testing.T) {
 		},
 		{
 			Name:  "Missing galleries segment",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/images/image1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/",
 			Error: true,
 		},
 		{
-			Name:  "Missing image Value",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/gallery1/images",
+			Name:  "Missing gallery Value",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Compute/galleries/",
 			Error: true,
 		},
 		{
-			Name:  "Image ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/images/image1",
+			Name:  "Shared Image Gallery ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1",
 			Error: false,
-			Expect: &SharedImageId{
+			Expect: &SharedImageGalleryId{
 				ResourceGroup: "mygroup1",
-				Gallery:       "gallery1",
-				Name:          "image1",
+				Name:          "gallery1",
 			},
 		},
 		{
 			Name:  "Wrong Casing",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/Images/image1",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/Galleries/gallery1",
 			Error: true,
 		},
 	}
@@ -75,7 +73,7 @@ func TestSharedImageID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := SharedImageID(v.Input)
+		actual, err := SharedImageGalleryID(v.Input)
 		if err != nil {
 			if v.Error {
 				continue
@@ -86,10 +84,6 @@ func TestSharedImageID(t *testing.T) {
 
 		if actual.Name != v.Expect.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expect.Name, actual.Name)
-		}
-
-		if actual.Gallery != v.Expect.Gallery {
-			t.Fatalf("Expected %q but got %q for Gallery", v.Expect.Gallery, actual.Gallery)
 		}
 
 		if actual.ResourceGroup != v.Expect.ResourceGroup {
