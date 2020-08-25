@@ -33,473 +33,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 
-// AccountState enumerates the values for account state.
-type AccountState string
-
-const (
-	// Ok ...
-	Ok AccountState = "Ok"
-	// Suspended ...
-	Suspended AccountState = "Suspended"
-	// Unavailable ...
-	Unavailable AccountState = "Unavailable"
-)
-
-// PossibleAccountStateValues returns an array of possible values for the AccountState const type.
-func PossibleAccountStateValues() []AccountState {
-	return []AccountState{Ok, Suspended, Unavailable}
-}
-
-// AgentRegistrationKeyName enumerates the values for agent registration key name.
-type AgentRegistrationKeyName string
-
-const (
-	// Primary ...
-	Primary AgentRegistrationKeyName = "primary"
-	// Secondary ...
-	Secondary AgentRegistrationKeyName = "secondary"
-)
-
-// PossibleAgentRegistrationKeyNameValues returns an array of possible values for the AgentRegistrationKeyName const type.
-func PossibleAgentRegistrationKeyNameValues() []AgentRegistrationKeyName {
-	return []AgentRegistrationKeyName{Primary, Secondary}
-}
-
-// ContentSourceType enumerates the values for content source type.
-type ContentSourceType string
-
-const (
-	// EmbeddedContent ...
-	EmbeddedContent ContentSourceType = "embeddedContent"
-	// URI ...
-	URI ContentSourceType = "uri"
-)
-
-// PossibleContentSourceTypeValues returns an array of possible values for the ContentSourceType const type.
-func PossibleContentSourceTypeValues() []ContentSourceType {
-	return []ContentSourceType{EmbeddedContent, URI}
-}
-
-// DscConfigurationProvisioningState enumerates the values for dsc configuration provisioning state.
-type DscConfigurationProvisioningState string
-
-const (
-	// Succeeded ...
-	Succeeded DscConfigurationProvisioningState = "Succeeded"
-)
-
-// PossibleDscConfigurationProvisioningStateValues returns an array of possible values for the DscConfigurationProvisioningState const type.
-func PossibleDscConfigurationProvisioningStateValues() []DscConfigurationProvisioningState {
-	return []DscConfigurationProvisioningState{Succeeded}
-}
-
-// DscConfigurationState enumerates the values for dsc configuration state.
-type DscConfigurationState string
-
-const (
-	// DscConfigurationStateEdit ...
-	DscConfigurationStateEdit DscConfigurationState = "Edit"
-	// DscConfigurationStateNew ...
-	DscConfigurationStateNew DscConfigurationState = "New"
-	// DscConfigurationStatePublished ...
-	DscConfigurationStatePublished DscConfigurationState = "Published"
-)
-
-// PossibleDscConfigurationStateValues returns an array of possible values for the DscConfigurationState const type.
-func PossibleDscConfigurationStateValues() []DscConfigurationState {
-	return []DscConfigurationState{DscConfigurationStateEdit, DscConfigurationStateNew, DscConfigurationStatePublished}
-}
-
-// GroupTypeEnum enumerates the values for group type enum.
-type GroupTypeEnum string
-
-const (
-	// System ...
-	System GroupTypeEnum = "System"
-	// User ...
-	User GroupTypeEnum = "User"
-)
-
-// PossibleGroupTypeEnumValues returns an array of possible values for the GroupTypeEnum const type.
-func PossibleGroupTypeEnumValues() []GroupTypeEnum {
-	return []GroupTypeEnum{System, User}
-}
-
-// HTTPStatusCode enumerates the values for http status code.
-type HTTPStatusCode string
-
-const (
-	// Accepted ...
-	Accepted HTTPStatusCode = "Accepted"
-	// Ambiguous ...
-	Ambiguous HTTPStatusCode = "Ambiguous"
-	// BadGateway ...
-	BadGateway HTTPStatusCode = "BadGateway"
-	// BadRequest ...
-	BadRequest HTTPStatusCode = "BadRequest"
-	// Conflict ...
-	Conflict HTTPStatusCode = "Conflict"
-	// Continue ...
-	Continue HTTPStatusCode = "Continue"
-	// Created ...
-	Created HTTPStatusCode = "Created"
-	// ExpectationFailed ...
-	ExpectationFailed HTTPStatusCode = "ExpectationFailed"
-	// Forbidden ...
-	Forbidden HTTPStatusCode = "Forbidden"
-	// Found ...
-	Found HTTPStatusCode = "Found"
-	// GatewayTimeout ...
-	GatewayTimeout HTTPStatusCode = "GatewayTimeout"
-	// Gone ...
-	Gone HTTPStatusCode = "Gone"
-	// HTTPVersionNotSupported ...
-	HTTPVersionNotSupported HTTPStatusCode = "HttpVersionNotSupported"
-	// InternalServerError ...
-	InternalServerError HTTPStatusCode = "InternalServerError"
-	// LengthRequired ...
-	LengthRequired HTTPStatusCode = "LengthRequired"
-	// MethodNotAllowed ...
-	MethodNotAllowed HTTPStatusCode = "MethodNotAllowed"
-	// Moved ...
-	Moved HTTPStatusCode = "Moved"
-	// MovedPermanently ...
-	MovedPermanently HTTPStatusCode = "MovedPermanently"
-	// MultipleChoices ...
-	MultipleChoices HTTPStatusCode = "MultipleChoices"
-	// NoContent ...
-	NoContent HTTPStatusCode = "NoContent"
-	// NonAuthoritativeInformation ...
-	NonAuthoritativeInformation HTTPStatusCode = "NonAuthoritativeInformation"
-	// NotAcceptable ...
-	NotAcceptable HTTPStatusCode = "NotAcceptable"
-	// NotFound ...
-	NotFound HTTPStatusCode = "NotFound"
-	// NotImplemented ...
-	NotImplemented HTTPStatusCode = "NotImplemented"
-	// NotModified ...
-	NotModified HTTPStatusCode = "NotModified"
-	// OK ...
-	OK HTTPStatusCode = "OK"
-	// PartialContent ...
-	PartialContent HTTPStatusCode = "PartialContent"
-	// PaymentRequired ...
-	PaymentRequired HTTPStatusCode = "PaymentRequired"
-	// PreconditionFailed ...
-	PreconditionFailed HTTPStatusCode = "PreconditionFailed"
-	// ProxyAuthenticationRequired ...
-	ProxyAuthenticationRequired HTTPStatusCode = "ProxyAuthenticationRequired"
-	// Redirect ...
-	Redirect HTTPStatusCode = "Redirect"
-	// RedirectKeepVerb ...
-	RedirectKeepVerb HTTPStatusCode = "RedirectKeepVerb"
-	// RedirectMethod ...
-	RedirectMethod HTTPStatusCode = "RedirectMethod"
-	// RequestedRangeNotSatisfiable ...
-	RequestedRangeNotSatisfiable HTTPStatusCode = "RequestedRangeNotSatisfiable"
-	// RequestEntityTooLarge ...
-	RequestEntityTooLarge HTTPStatusCode = "RequestEntityTooLarge"
-	// RequestTimeout ...
-	RequestTimeout HTTPStatusCode = "RequestTimeout"
-	// RequestURITooLong ...
-	RequestURITooLong HTTPStatusCode = "RequestUriTooLong"
-	// ResetContent ...
-	ResetContent HTTPStatusCode = "ResetContent"
-	// SeeOther ...
-	SeeOther HTTPStatusCode = "SeeOther"
-	// ServiceUnavailable ...
-	ServiceUnavailable HTTPStatusCode = "ServiceUnavailable"
-	// SwitchingProtocols ...
-	SwitchingProtocols HTTPStatusCode = "SwitchingProtocols"
-	// TemporaryRedirect ...
-	TemporaryRedirect HTTPStatusCode = "TemporaryRedirect"
-	// Unauthorized ...
-	Unauthorized HTTPStatusCode = "Unauthorized"
-	// UnsupportedMediaType ...
-	UnsupportedMediaType HTTPStatusCode = "UnsupportedMediaType"
-	// Unused ...
-	Unused HTTPStatusCode = "Unused"
-	// UpgradeRequired ...
-	UpgradeRequired HTTPStatusCode = "UpgradeRequired"
-	// UseProxy ...
-	UseProxy HTTPStatusCode = "UseProxy"
-)
-
-// PossibleHTTPStatusCodeValues returns an array of possible values for the HTTPStatusCode const type.
-func PossibleHTTPStatusCodeValues() []HTTPStatusCode {
-	return []HTTPStatusCode{Accepted, Ambiguous, BadGateway, BadRequest, Conflict, Continue, Created, ExpectationFailed, Forbidden, Found, GatewayTimeout, Gone, HTTPVersionNotSupported, InternalServerError, LengthRequired, MethodNotAllowed, Moved, MovedPermanently, MultipleChoices, NoContent, NonAuthoritativeInformation, NotAcceptable, NotFound, NotImplemented, NotModified, OK, PartialContent, PaymentRequired, PreconditionFailed, ProxyAuthenticationRequired, Redirect, RedirectKeepVerb, RedirectMethod, RequestedRangeNotSatisfiable, RequestEntityTooLarge, RequestTimeout, RequestURITooLong, ResetContent, SeeOther, ServiceUnavailable, SwitchingProtocols, TemporaryRedirect, Unauthorized, UnsupportedMediaType, Unused, UpgradeRequired, UseProxy}
-}
-
-// JobProvisioningState enumerates the values for job provisioning state.
-type JobProvisioningState string
-
-const (
-	// JobProvisioningStateFailed ...
-	JobProvisioningStateFailed JobProvisioningState = "Failed"
-	// JobProvisioningStateProcessing ...
-	JobProvisioningStateProcessing JobProvisioningState = "Processing"
-	// JobProvisioningStateSucceeded ...
-	JobProvisioningStateSucceeded JobProvisioningState = "Succeeded"
-	// JobProvisioningStateSuspended ...
-	JobProvisioningStateSuspended JobProvisioningState = "Suspended"
-)
-
-// PossibleJobProvisioningStateValues returns an array of possible values for the JobProvisioningState const type.
-func PossibleJobProvisioningStateValues() []JobProvisioningState {
-	return []JobProvisioningState{JobProvisioningStateFailed, JobProvisioningStateProcessing, JobProvisioningStateSucceeded, JobProvisioningStateSuspended}
-}
-
-// JobStatus enumerates the values for job status.
-type JobStatus string
-
-const (
-	// JobStatusActivating ...
-	JobStatusActivating JobStatus = "Activating"
-	// JobStatusBlocked ...
-	JobStatusBlocked JobStatus = "Blocked"
-	// JobStatusCompleted ...
-	JobStatusCompleted JobStatus = "Completed"
-	// JobStatusDisconnected ...
-	JobStatusDisconnected JobStatus = "Disconnected"
-	// JobStatusFailed ...
-	JobStatusFailed JobStatus = "Failed"
-	// JobStatusNew ...
-	JobStatusNew JobStatus = "New"
-	// JobStatusRemoving ...
-	JobStatusRemoving JobStatus = "Removing"
-	// JobStatusResuming ...
-	JobStatusResuming JobStatus = "Resuming"
-	// JobStatusRunning ...
-	JobStatusRunning JobStatus = "Running"
-	// JobStatusStopped ...
-	JobStatusStopped JobStatus = "Stopped"
-	// JobStatusStopping ...
-	JobStatusStopping JobStatus = "Stopping"
-	// JobStatusSuspended ...
-	JobStatusSuspended JobStatus = "Suspended"
-	// JobStatusSuspending ...
-	JobStatusSuspending JobStatus = "Suspending"
-)
-
-// PossibleJobStatusValues returns an array of possible values for the JobStatus const type.
-func PossibleJobStatusValues() []JobStatus {
-	return []JobStatus{JobStatusActivating, JobStatusBlocked, JobStatusCompleted, JobStatusDisconnected, JobStatusFailed, JobStatusNew, JobStatusRemoving, JobStatusResuming, JobStatusRunning, JobStatusStopped, JobStatusStopping, JobStatusSuspended, JobStatusSuspending}
-}
-
-// JobStreamType enumerates the values for job stream type.
-type JobStreamType string
-
-const (
-	// Any ...
-	Any JobStreamType = "Any"
-	// Debug ...
-	Debug JobStreamType = "Debug"
-	// Error ...
-	Error JobStreamType = "Error"
-	// Output ...
-	Output JobStreamType = "Output"
-	// Progress ...
-	Progress JobStreamType = "Progress"
-	// Verbose ...
-	Verbose JobStreamType = "Verbose"
-	// Warning ...
-	Warning JobStreamType = "Warning"
-)
-
-// PossibleJobStreamTypeValues returns an array of possible values for the JobStreamType const type.
-func PossibleJobStreamTypeValues() []JobStreamType {
-	return []JobStreamType{Any, Debug, Error, Output, Progress, Verbose, Warning}
-}
-
-// KeyName enumerates the values for key name.
-type KeyName string
-
-const (
-	// KeyNamePrimary ...
-	KeyNamePrimary KeyName = "Primary"
-	// KeyNameSecondary ...
-	KeyNameSecondary KeyName = "Secondary"
-)
-
-// PossibleKeyNameValues returns an array of possible values for the KeyName const type.
-func PossibleKeyNameValues() []KeyName {
-	return []KeyName{KeyNamePrimary, KeyNameSecondary}
-}
-
-// KeyPermissions enumerates the values for key permissions.
-type KeyPermissions string
-
-const (
-	// Full ...
-	Full KeyPermissions = "Full"
-	// Read ...
-	Read KeyPermissions = "Read"
-)
-
-// PossibleKeyPermissionsValues returns an array of possible values for the KeyPermissions const type.
-func PossibleKeyPermissionsValues() []KeyPermissions {
-	return []KeyPermissions{Full, Read}
-}
-
-// ModuleProvisioningState enumerates the values for module provisioning state.
-type ModuleProvisioningState string
-
-const (
-	// ModuleProvisioningStateActivitiesStored ...
-	ModuleProvisioningStateActivitiesStored ModuleProvisioningState = "ActivitiesStored"
-	// ModuleProvisioningStateCancelled ...
-	ModuleProvisioningStateCancelled ModuleProvisioningState = "Cancelled"
-	// ModuleProvisioningStateConnectionTypeImported ...
-	ModuleProvisioningStateConnectionTypeImported ModuleProvisioningState = "ConnectionTypeImported"
-	// ModuleProvisioningStateContentDownloaded ...
-	ModuleProvisioningStateContentDownloaded ModuleProvisioningState = "ContentDownloaded"
-	// ModuleProvisioningStateContentRetrieved ...
-	ModuleProvisioningStateContentRetrieved ModuleProvisioningState = "ContentRetrieved"
-	// ModuleProvisioningStateContentStored ...
-	ModuleProvisioningStateContentStored ModuleProvisioningState = "ContentStored"
-	// ModuleProvisioningStateContentValidated ...
-	ModuleProvisioningStateContentValidated ModuleProvisioningState = "ContentValidated"
-	// ModuleProvisioningStateCreated ...
-	ModuleProvisioningStateCreated ModuleProvisioningState = "Created"
-	// ModuleProvisioningStateCreating ...
-	ModuleProvisioningStateCreating ModuleProvisioningState = "Creating"
-	// ModuleProvisioningStateFailed ...
-	ModuleProvisioningStateFailed ModuleProvisioningState = "Failed"
-	// ModuleProvisioningStateModuleDataStored ...
-	ModuleProvisioningStateModuleDataStored ModuleProvisioningState = "ModuleDataStored"
-	// ModuleProvisioningStateModuleImportRunbookComplete ...
-	ModuleProvisioningStateModuleImportRunbookComplete ModuleProvisioningState = "ModuleImportRunbookComplete"
-	// ModuleProvisioningStateRunningImportModuleRunbook ...
-	ModuleProvisioningStateRunningImportModuleRunbook ModuleProvisioningState = "RunningImportModuleRunbook"
-	// ModuleProvisioningStateStartingImportModuleRunbook ...
-	ModuleProvisioningStateStartingImportModuleRunbook ModuleProvisioningState = "StartingImportModuleRunbook"
-	// ModuleProvisioningStateSucceeded ...
-	ModuleProvisioningStateSucceeded ModuleProvisioningState = "Succeeded"
-	// ModuleProvisioningStateUpdating ...
-	ModuleProvisioningStateUpdating ModuleProvisioningState = "Updating"
-)
-
-// PossibleModuleProvisioningStateValues returns an array of possible values for the ModuleProvisioningState const type.
-func PossibleModuleProvisioningStateValues() []ModuleProvisioningState {
-	return []ModuleProvisioningState{ModuleProvisioningStateActivitiesStored, ModuleProvisioningStateCancelled, ModuleProvisioningStateConnectionTypeImported, ModuleProvisioningStateContentDownloaded, ModuleProvisioningStateContentRetrieved, ModuleProvisioningStateContentStored, ModuleProvisioningStateContentValidated, ModuleProvisioningStateCreated, ModuleProvisioningStateCreating, ModuleProvisioningStateFailed, ModuleProvisioningStateModuleDataStored, ModuleProvisioningStateModuleImportRunbookComplete, ModuleProvisioningStateRunningImportModuleRunbook, ModuleProvisioningStateStartingImportModuleRunbook, ModuleProvisioningStateSucceeded, ModuleProvisioningStateUpdating}
-}
-
-// RunbookProvisioningState enumerates the values for runbook provisioning state.
-type RunbookProvisioningState string
-
-const (
-	// RunbookProvisioningStateSucceeded ...
-	RunbookProvisioningStateSucceeded RunbookProvisioningState = "Succeeded"
-)
-
-// PossibleRunbookProvisioningStateValues returns an array of possible values for the RunbookProvisioningState const type.
-func PossibleRunbookProvisioningStateValues() []RunbookProvisioningState {
-	return []RunbookProvisioningState{RunbookProvisioningStateSucceeded}
-}
-
-// RunbookState enumerates the values for runbook state.
-type RunbookState string
-
-const (
-	// RunbookStateEdit ...
-	RunbookStateEdit RunbookState = "Edit"
-	// RunbookStateNew ...
-	RunbookStateNew RunbookState = "New"
-	// RunbookStatePublished ...
-	RunbookStatePublished RunbookState = "Published"
-)
-
-// PossibleRunbookStateValues returns an array of possible values for the RunbookState const type.
-func PossibleRunbookStateValues() []RunbookState {
-	return []RunbookState{RunbookStateEdit, RunbookStateNew, RunbookStatePublished}
-}
-
-// RunbookTypeEnum enumerates the values for runbook type enum.
-type RunbookTypeEnum string
-
-const (
-	// Graph ...
-	Graph RunbookTypeEnum = "Graph"
-	// GraphPowerShell ...
-	GraphPowerShell RunbookTypeEnum = "GraphPowerShell"
-	// GraphPowerShellWorkflow ...
-	GraphPowerShellWorkflow RunbookTypeEnum = "GraphPowerShellWorkflow"
-	// PowerShell ...
-	PowerShell RunbookTypeEnum = "PowerShell"
-	// PowerShellWorkflow ...
-	PowerShellWorkflow RunbookTypeEnum = "PowerShellWorkflow"
-	// Script ...
-	Script RunbookTypeEnum = "Script"
-)
-
-// PossibleRunbookTypeEnumValues returns an array of possible values for the RunbookTypeEnum const type.
-func PossibleRunbookTypeEnumValues() []RunbookTypeEnum {
-	return []RunbookTypeEnum{Graph, GraphPowerShell, GraphPowerShellWorkflow, PowerShell, PowerShellWorkflow, Script}
-}
-
-// ScheduleDay enumerates the values for schedule day.
-type ScheduleDay string
-
-const (
-	// Friday ...
-	Friday ScheduleDay = "Friday"
-	// Monday ...
-	Monday ScheduleDay = "Monday"
-	// Saturday ...
-	Saturday ScheduleDay = "Saturday"
-	// Sunday ...
-	Sunday ScheduleDay = "Sunday"
-	// Thursday ...
-	Thursday ScheduleDay = "Thursday"
-	// Tuesday ...
-	Tuesday ScheduleDay = "Tuesday"
-	// Wednesday ...
-	Wednesday ScheduleDay = "Wednesday"
-)
-
-// PossibleScheduleDayValues returns an array of possible values for the ScheduleDay const type.
-func PossibleScheduleDayValues() []ScheduleDay {
-	return []ScheduleDay{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday}
-}
-
-// ScheduleFrequency enumerates the values for schedule frequency.
-type ScheduleFrequency string
-
-const (
-	// Day ...
-	Day ScheduleFrequency = "Day"
-	// Hour ...
-	Hour ScheduleFrequency = "Hour"
-	// Minute The minimum allowed interval for Minute schedules is 15 minutes.
-	Minute ScheduleFrequency = "Minute"
-	// Month ...
-	Month ScheduleFrequency = "Month"
-	// OneTime ...
-	OneTime ScheduleFrequency = "OneTime"
-	// Week ...
-	Week ScheduleFrequency = "Week"
-)
-
-// PossibleScheduleFrequencyValues returns an array of possible values for the ScheduleFrequency const type.
-func PossibleScheduleFrequencyValues() []ScheduleFrequency {
-	return []ScheduleFrequency{Day, Hour, Minute, Month, OneTime, Week}
-}
-
-// SkuNameEnum enumerates the values for sku name enum.
-type SkuNameEnum string
-
-const (
-	// Basic ...
-	Basic SkuNameEnum = "Basic"
-	// Free ...
-	Free SkuNameEnum = "Free"
-)
-
-// PossibleSkuNameEnumValues returns an array of possible values for the SkuNameEnum const type.
-func PossibleSkuNameEnumValues() []SkuNameEnum {
-	return []SkuNameEnum{Basic, Free}
-}
-
 // Account definition of the automation account type.
 type Account struct {
 	autorest.Response `json:"-"`
@@ -780,10 +313,15 @@ func (alr AccountListResult) IsEmpty() bool {
 	return alr.Value == nil || len(*alr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (alr AccountListResult) hasNextLink() bool {
+	return alr.NextLink != nil && len(*alr.NextLink) != 0
+}
+
 // accountListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (alr AccountListResult) accountListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+	if !alr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -811,11 +349,16 @@ func (page *AccountListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.alr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.alr)
+		if err != nil {
+			return err
+		}
+		page.alr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.alr = next
 	return nil
 }
 
@@ -863,6 +406,21 @@ type AccountProperties struct {
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Description - Gets or sets the description.
 	Description *string `json:"description,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AccountProperties.
+func (ap AccountProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ap.Sku != nil {
+		objectMap["sku"] = ap.Sku
+	}
+	if ap.LastModifiedBy != nil {
+		objectMap["lastModifiedBy"] = ap.LastModifiedBy
+	}
+	if ap.Description != nil {
+		objectMap["description"] = ap.Description
+	}
+	return json.Marshal(objectMap)
 }
 
 // AccountUpdateParameters the parameters supplied to the update automation account operation.
@@ -1094,10 +652,15 @@ func (alr ActivityListResult) IsEmpty() bool {
 	return alr.Value == nil || len(*alr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (alr ActivityListResult) hasNextLink() bool {
+	return alr.NextLink != nil && len(*alr.NextLink) != 0
+}
+
 // activityListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (alr ActivityListResult) activityListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+	if !alr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1125,11 +688,16 @@ func (page *ActivityListResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.alr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.alr)
+		if err != nil {
+			return err
+		}
+		page.alr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.alr = next
 	return nil
 }
 
@@ -1367,8 +935,8 @@ func (c *Certificate) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// CertificateCreateOrUpdateParameters the parameters supplied to the create or update or replace
-// certificate operation.
+// CertificateCreateOrUpdateParameters the parameters supplied to the create or update or replace certificate
+// operation.
 type CertificateCreateOrUpdateParameters struct {
 	// Name - Gets or sets the name of the certificate.
 	Name *string `json:"name,omitempty"`
@@ -1510,10 +1078,15 @@ func (clr CertificateListResult) IsEmpty() bool {
 	return clr.Value == nil || len(*clr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (clr CertificateListResult) hasNextLink() bool {
+	return clr.NextLink != nil && len(*clr.NextLink) != 0
+}
+
 // certificateListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (clr CertificateListResult) certificateListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if clr.NextLink == nil || len(to.String(clr.NextLink)) < 1 {
+	if !clr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1541,11 +1114,16 @@ func (page *CertificateListResultPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.clr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.clr)
+		if err != nil {
+			return err
+		}
+		page.clr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.clr = next
 	return nil
 }
 
@@ -1593,6 +1171,15 @@ type CertificateProperties struct {
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Description - Gets or sets the description.
 	Description *string `json:"description,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CertificateProperties.
+func (cp CertificateProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cp.Description != nil {
+		objectMap["description"] = cp.Description
+	}
+	return json.Marshal(objectMap)
 }
 
 // CertificateUpdateParameters the parameters supplied to the update certificate operation.
@@ -1882,10 +1469,15 @@ func (clr ConnectionListResult) IsEmpty() bool {
 	return clr.Value == nil || len(*clr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (clr ConnectionListResult) hasNextLink() bool {
+	return clr.NextLink != nil && len(*clr.NextLink) != 0
+}
+
 // connectionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (clr ConnectionListResult) connectionListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if clr.NextLink == nil || len(to.String(clr.NextLink)) < 1 {
+	if !clr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -1913,11 +1505,16 @@ func (page *ConnectionListResultPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.clr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.clr)
+		if err != nil {
+			return err
+		}
+		page.clr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.clr = next
 	return nil
 }
 
@@ -2207,10 +1804,15 @@ func (ctlr ConnectionTypeListResult) IsEmpty() bool {
 	return ctlr.Value == nil || len(*ctlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (ctlr ConnectionTypeListResult) hasNextLink() bool {
+	return ctlr.NextLink != nil && len(*ctlr.NextLink) != 0
+}
+
 // connectionTypeListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (ctlr ConnectionTypeListResult) connectionTypeListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if ctlr.NextLink == nil || len(to.String(ctlr.NextLink)) < 1 {
+	if !ctlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2238,11 +1840,16 @@ func (page *ConnectionTypeListResultPage) NextWithContext(ctx context.Context) (
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.ctlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.ctlr)
+		if err != nil {
+			return err
+		}
+		page.ctlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.ctlr = next
 	return nil
 }
 
@@ -2621,10 +2228,15 @@ func (clr CredentialListResult) IsEmpty() bool {
 	return clr.Value == nil || len(*clr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (clr CredentialListResult) hasNextLink() bool {
+	return clr.NextLink != nil && len(*clr.NextLink) != 0
+}
+
 // credentialListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (clr CredentialListResult) credentialListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if clr.NextLink == nil || len(to.String(clr.NextLink)) < 1 {
+	if !clr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -2652,11 +2264,16 @@ func (page *CredentialListResultPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.clr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.clr)
+		if err != nil {
+			return err
+		}
+		page.clr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.clr = next
 	return nil
 }
 
@@ -2700,6 +2317,15 @@ type CredentialProperties struct {
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Description - Gets or sets the description.
 	Description *string `json:"description,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CredentialProperties.
+func (cp CredentialProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cp.Description != nil {
+		objectMap["description"] = cp.Description
+	}
+	return json.Marshal(objectMap)
 }
 
 // CredentialUpdateParameters the parameters supplied to the Update credential operation.
@@ -3021,10 +2647,15 @@ func (dcjlr DscCompilationJobListResult) IsEmpty() bool {
 	return dcjlr.Value == nil || len(*dcjlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dcjlr DscCompilationJobListResult) hasNextLink() bool {
+	return dcjlr.NextLink != nil && len(*dcjlr.NextLink) != 0
+}
+
 // dscCompilationJobListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dcjlr DscCompilationJobListResult) dscCompilationJobListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dcjlr.NextLink == nil || len(to.String(dcjlr.NextLink)) < 1 {
+	if !dcjlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3052,11 +2683,16 @@ func (page *DscCompilationJobListResultPage) NextWithContext(ctx context.Context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dcjlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dcjlr)
+		if err != nil {
+			return err
+		}
+		page.dcjlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dcjlr = next
 	return nil
 }
 
@@ -3463,10 +3099,15 @@ func (dclr DscConfigurationListResult) IsEmpty() bool {
 	return dclr.Value == nil || len(*dclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dclr DscConfigurationListResult) hasNextLink() bool {
+	return dclr.NextLink != nil && len(*dclr.NextLink) != 0
+}
+
 // dscConfigurationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dclr DscConfigurationListResult) dscConfigurationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dclr.NextLink == nil || len(to.String(dclr.NextLink)) < 1 {
+	if !dclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3494,11 +3135,16 @@ func (page *DscConfigurationListResultPage) NextWithContext(ctx context.Context)
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dclr)
+		if err != nil {
+			return err
+		}
+		page.dclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dclr = next
 	return nil
 }
 
@@ -3604,8 +3250,7 @@ func (dcp DscConfigurationProperties) MarshalJSON() ([]byte, error) {
 	return json.Marshal(objectMap)
 }
 
-// DscConfigurationUpdateParameters the parameters supplied to the create or update configuration
-// operation.
+// DscConfigurationUpdateParameters the parameters supplied to the create or update configuration operation.
 type DscConfigurationUpdateParameters struct {
 	// DscConfigurationCreateOrUpdateProperties - Gets or sets configuration create or update properties.
 	*DscConfigurationCreateOrUpdateProperties `json:"properties,omitempty"`
@@ -3719,6 +3364,39 @@ type DscNode struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for DscNode.
+func (dn DscNode) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dn.LastSeen != nil {
+		objectMap["lastSeen"] = dn.LastSeen
+	}
+	if dn.RegistrationTime != nil {
+		objectMap["registrationTime"] = dn.RegistrationTime
+	}
+	if dn.IP != nil {
+		objectMap["ip"] = dn.IP
+	}
+	if dn.AccountID != nil {
+		objectMap["accountId"] = dn.AccountID
+	}
+	if dn.NodeConfiguration != nil {
+		objectMap["nodeConfiguration"] = dn.NodeConfiguration
+	}
+	if dn.Status != nil {
+		objectMap["status"] = dn.Status
+	}
+	if dn.NodeID != nil {
+		objectMap["nodeId"] = dn.NodeID
+	}
+	if dn.Etag != nil {
+		objectMap["etag"] = dn.Etag
+	}
+	if dn.ExtensionHandler != nil {
+		objectMap["extensionHandler"] = dn.ExtensionHandler
+	}
+	return json.Marshal(objectMap)
+}
+
 // DscNodeConfiguration definition of the dsc node configuration.
 type DscNodeConfiguration struct {
 	autorest.Response `json:"-"`
@@ -3734,6 +3412,21 @@ type DscNodeConfiguration struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DscNodeConfiguration.
+func (dnc DscNodeConfiguration) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dnc.LastModifiedTime != nil {
+		objectMap["lastModifiedTime"] = dnc.LastModifiedTime
+	}
+	if dnc.CreationTime != nil {
+		objectMap["creationTime"] = dnc.CreationTime
+	}
+	if dnc.Configuration != nil {
+		objectMap["configuration"] = dnc.Configuration
+	}
+	return json.Marshal(objectMap)
 }
 
 // DscNodeConfigurationAssociationProperty the dsc node configuration property associated with the entity.
@@ -3764,8 +3457,7 @@ type DscNodeConfigurationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// DscNodeConfigurationListResultIterator provides access to a complete listing of DscNodeConfiguration
-// values.
+// DscNodeConfigurationListResultIterator provides access to a complete listing of DscNodeConfiguration values.
 type DscNodeConfigurationListResultIterator struct {
 	i    int
 	page DscNodeConfigurationListResultPage
@@ -3833,10 +3525,15 @@ func (dnclr DscNodeConfigurationListResult) IsEmpty() bool {
 	return dnclr.Value == nil || len(*dnclr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dnclr DscNodeConfigurationListResult) hasNextLink() bool {
+	return dnclr.NextLink != nil && len(*dnclr.NextLink) != 0
+}
+
 // dscNodeConfigurationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dnclr DscNodeConfigurationListResult) dscNodeConfigurationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dnclr.NextLink == nil || len(to.String(dnclr.NextLink)) < 1 {
+	if !dnclr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -3864,11 +3561,16 @@ func (page *DscNodeConfigurationListResultPage) NextWithContext(ctx context.Cont
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dnclr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dnclr)
+		if err != nil {
+			return err
+		}
+		page.dnclr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dnclr = next
 	return nil
 }
 
@@ -3987,10 +3689,15 @@ func (dnlr DscNodeListResult) IsEmpty() bool {
 	return dnlr.Value == nil || len(*dnlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dnlr DscNodeListResult) hasNextLink() bool {
+	return dnlr.NextLink != nil && len(*dnlr.NextLink) != 0
+}
+
 // dscNodeListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dnlr DscNodeListResult) dscNodeListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dnlr.NextLink == nil || len(to.String(dnlr.NextLink)) < 1 {
+	if !dnlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4018,11 +3725,16 @@ func (page *DscNodeListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dnlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dnlr)
+		if err != nil {
+			return err
+		}
+		page.dnlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dnlr = next
 	return nil
 }
 
@@ -4176,10 +3888,15 @@ func (dnrlr DscNodeReportListResult) IsEmpty() bool {
 	return dnrlr.Value == nil || len(*dnrlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dnrlr DscNodeReportListResult) hasNextLink() bool {
+	return dnrlr.NextLink != nil && len(*dnrlr.NextLink) != 0
+}
+
 // dscNodeReportListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dnrlr DscNodeReportListResult) dscNodeReportListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dnrlr.NextLink == nil || len(to.String(dnrlr.NextLink)) < 1 {
+	if !dnrlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4207,11 +3924,16 @@ func (page *DscNodeReportListResultPage) NextWithContext(ctx context.Context) (e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dnrlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dnrlr)
+		if err != nil {
+			return err
+		}
+		page.dnrlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dnrlr = next
 	return nil
 }
 
@@ -4422,10 +4144,15 @@ func (hrwglr HybridRunbookWorkerGroupsListResult) IsEmpty() bool {
 	return hrwglr.Value == nil || len(*hrwglr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (hrwglr HybridRunbookWorkerGroupsListResult) hasNextLink() bool {
+	return hrwglr.NextLink != nil && len(*hrwglr.NextLink) != 0
+}
+
 // hybridRunbookWorkerGroupsListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (hrwglr HybridRunbookWorkerGroupsListResult) hybridRunbookWorkerGroupsListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if hrwglr.NextLink == nil || len(to.String(hrwglr.NextLink)) < 1 {
+	if !hrwglr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4453,11 +4180,16 @@ func (page *HybridRunbookWorkerGroupsListResultPage) NextWithContext(ctx context
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.hrwglr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.hrwglr)
+		if err != nil {
+			return err
+		}
+		page.hrwglr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.hrwglr = next
 	return nil
 }
 
@@ -4692,10 +4424,15 @@ func (jlr JobListResult) IsEmpty() bool {
 	return jlr.Value == nil || len(*jlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jlr JobListResult) hasNextLink() bool {
+	return jlr.NextLink != nil && len(*jlr.NextLink) != 0
+}
+
 // jobListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jlr JobListResult) jobListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jlr.NextLink == nil || len(to.String(jlr.NextLink)) < 1 {
+	if !jlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -4723,11 +4460,16 @@ func (page *JobListResultPage) NextWithContext(ctx context.Context) (err error) 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jlr)
+		if err != nil {
+			return err
+		}
+		page.jlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jlr = next
 	return nil
 }
 
@@ -5070,10 +4812,15 @@ func (jslr JobScheduleListResult) IsEmpty() bool {
 	return jslr.Value == nil || len(*jslr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jslr JobScheduleListResult) hasNextLink() bool {
+	return jslr.NextLink != nil && len(*jslr.NextLink) != 0
+}
+
 // jobScheduleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jslr JobScheduleListResult) jobScheduleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jslr.NextLink == nil || len(to.String(jslr.NextLink)) < 1 {
+	if !jslr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5101,11 +4848,16 @@ func (page *JobScheduleListResultPage) NextWithContext(ctx context.Context) (err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jslr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jslr)
+		if err != nil {
+			return err
+		}
+		page.jslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jslr = next
 	return nil
 }
 
@@ -5305,10 +5057,15 @@ func (jslr JobStreamListResult) IsEmpty() bool {
 	return jslr.Value == nil || len(*jslr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (jslr JobStreamListResult) hasNextLink() bool {
+	return jslr.NextLink != nil && len(*jslr.NextLink) != 0
+}
+
 // jobStreamListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (jslr JobStreamListResult) jobStreamListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if jslr.NextLink == nil || len(to.String(jslr.NextLink)) < 1 {
+	if !jslr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5336,11 +5093,16 @@ func (page *JobStreamListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.jslr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.jslr)
+		if err != nil {
+			return err
+		}
+		page.jslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.jslr = next
 	return nil
 }
 
@@ -5725,10 +5487,15 @@ func (mlr ModuleListResult) IsEmpty() bool {
 	return mlr.Value == nil || len(*mlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (mlr ModuleListResult) hasNextLink() bool {
+	return mlr.NextLink != nil && len(*mlr.NextLink) != 0
+}
+
 // moduleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (mlr ModuleListResult) moduleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if mlr.NextLink == nil || len(to.String(mlr.NextLink)) < 1 {
+	if !mlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -5756,11 +5523,16 @@ func (page *ModuleListResultPage) NextWithContext(ctx context.Context) (err erro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.mlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.mlr)
+		if err != nil {
+			return err
+		}
+		page.mlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.mlr = next
 	return nil
 }
 
@@ -6271,8 +6043,8 @@ func (future *RunbookDraftPublishFuture) Result(client RunbookDraftClient) (ar a
 	return
 }
 
-// RunbookDraftReplaceContentFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// RunbookDraftReplaceContentFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type RunbookDraftReplaceContentFuture struct {
 	azure.Future
 }
@@ -6385,10 +6157,15 @@ func (rlr RunbookListResult) IsEmpty() bool {
 	return rlr.Value == nil || len(*rlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (rlr RunbookListResult) hasNextLink() bool {
+	return rlr.NextLink != nil && len(*rlr.NextLink) != 0
+}
+
 // runbookListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (rlr RunbookListResult) runbookListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if rlr.NextLink == nil || len(to.String(rlr.NextLink)) < 1 {
+	if !rlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6416,11 +6193,16 @@ func (page *RunbookListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.rlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.rlr)
+		if err != nil {
+			return err
+		}
+		page.rlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.rlr = next
 	return nil
 }
 
@@ -6871,10 +6653,15 @@ func (slr ScheduleListResult) IsEmpty() bool {
 	return slr.Value == nil || len(*slr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (slr ScheduleListResult) hasNextLink() bool {
+	return slr.NextLink != nil && len(*slr.NextLink) != 0
+}
+
 // scheduleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (slr ScheduleListResult) scheduleListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if slr.NextLink == nil || len(to.String(slr.NextLink)) < 1 {
+	if !slr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -6902,11 +6689,16 @@ func (page *ScheduleListResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.slr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.slr)
+		if err != nil {
+			return err
+		}
+		page.slr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.slr = next
 	return nil
 }
 
@@ -6970,6 +6762,51 @@ type ScheduleProperties struct {
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Description - Gets or sets the description.
 	Description *string `json:"description,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ScheduleProperties.
+func (sp ScheduleProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sp.StartTime != nil {
+		objectMap["startTime"] = sp.StartTime
+	}
+	if sp.ExpiryTime != nil {
+		objectMap["expiryTime"] = sp.ExpiryTime
+	}
+	if sp.ExpiryTimeOffsetMinutes != nil {
+		objectMap["expiryTimeOffsetMinutes"] = sp.ExpiryTimeOffsetMinutes
+	}
+	if sp.IsEnabled != nil {
+		objectMap["isEnabled"] = sp.IsEnabled
+	}
+	if sp.NextRun != nil {
+		objectMap["nextRun"] = sp.NextRun
+	}
+	if sp.NextRunOffsetMinutes != nil {
+		objectMap["nextRunOffsetMinutes"] = sp.NextRunOffsetMinutes
+	}
+	if sp.Interval != nil {
+		objectMap["interval"] = sp.Interval
+	}
+	if sp.Frequency != "" {
+		objectMap["frequency"] = sp.Frequency
+	}
+	if sp.TimeZone != nil {
+		objectMap["timeZone"] = sp.TimeZone
+	}
+	if sp.AdvancedSchedule != nil {
+		objectMap["advancedSchedule"] = sp.AdvancedSchedule
+	}
+	if sp.CreationTime != nil {
+		objectMap["creationTime"] = sp.CreationTime
+	}
+	if sp.LastModifiedTime != nil {
+		objectMap["lastModifiedTime"] = sp.LastModifiedTime
+	}
+	if sp.Description != nil {
+		objectMap["description"] = sp.Description
+	}
+	return json.Marshal(objectMap)
 }
 
 // ScheduleUpdateParameters the parameters supplied to the update schedule operation.
@@ -7447,10 +7284,15 @@ func (vlr VariableListResult) IsEmpty() bool {
 	return vlr.Value == nil || len(*vlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (vlr VariableListResult) hasNextLink() bool {
+	return vlr.NextLink != nil && len(*vlr.NextLink) != 0
+}
+
 // variableListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (vlr VariableListResult) variableListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if vlr.NextLink == nil || len(to.String(vlr.NextLink)) < 1 {
+	if !vlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7478,11 +7320,16 @@ func (page *VariableListResultPage) NextWithContext(ctx context.Context) (err er
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.vlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.vlr)
+		if err != nil {
+			return err
+		}
+		page.vlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.vlr = next
 	return nil
 }
 
@@ -7834,10 +7681,15 @@ func (wlr WebhookListResult) IsEmpty() bool {
 	return wlr.Value == nil || len(*wlr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (wlr WebhookListResult) hasNextLink() bool {
+	return wlr.NextLink != nil && len(*wlr.NextLink) != 0
+}
+
 // webhookListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (wlr WebhookListResult) webhookListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if wlr.NextLink == nil || len(to.String(wlr.NextLink)) < 1 {
+	if !wlr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -7865,11 +7717,16 @@ func (page *WebhookListResultPage) NextWithContext(ctx context.Context) (err err
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.wlr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.wlr)
+		if err != nil {
+			return err
+		}
+		page.wlr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.wlr = next
 	return nil
 }
 

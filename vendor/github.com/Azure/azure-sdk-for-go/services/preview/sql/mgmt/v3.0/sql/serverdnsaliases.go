@@ -390,6 +390,9 @@ func (client ServerDNSAliasesClient) ListByServer(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "sql.ServerDNSAliasesClient", "ListByServer", resp, "Failure responding to request")
 	}
+	if result.sdalr.hasNextLink() && result.sdalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

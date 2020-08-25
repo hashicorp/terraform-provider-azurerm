@@ -31,95 +31,6 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
 
-// DataSourceKind enumerates the values for data source kind.
-type DataSourceKind string
-
-const (
-	// AzureActivityLog ...
-	AzureActivityLog DataSourceKind = "AzureActivityLog"
-	// ChangeTrackingCustomRegistry ...
-	ChangeTrackingCustomRegistry DataSourceKind = "ChangeTrackingCustomRegistry"
-	// ChangeTrackingDefaultPath ...
-	ChangeTrackingDefaultPath DataSourceKind = "ChangeTrackingDefaultPath"
-	// ChangeTrackingDefaultRegistry ...
-	ChangeTrackingDefaultRegistry DataSourceKind = "ChangeTrackingDefaultRegistry"
-	// ChangeTrackingPath ...
-	ChangeTrackingPath DataSourceKind = "ChangeTrackingPath"
-	// CustomLog ...
-	CustomLog DataSourceKind = "CustomLog"
-	// CustomLogCollection ...
-	CustomLogCollection DataSourceKind = "CustomLogCollection"
-	// GenericDataSource ...
-	GenericDataSource DataSourceKind = "GenericDataSource"
-	// IISLogs ...
-	IISLogs DataSourceKind = "IISLogs"
-	// LinuxPerformanceCollection ...
-	LinuxPerformanceCollection DataSourceKind = "LinuxPerformanceCollection"
-	// LinuxPerformanceObject ...
-	LinuxPerformanceObject DataSourceKind = "LinuxPerformanceObject"
-	// LinuxSyslog ...
-	LinuxSyslog DataSourceKind = "LinuxSyslog"
-	// LinuxSyslogCollection ...
-	LinuxSyslogCollection DataSourceKind = "LinuxSyslogCollection"
-	// WindowsEvent ...
-	WindowsEvent DataSourceKind = "WindowsEvent"
-	// WindowsPerformanceCounter ...
-	WindowsPerformanceCounter DataSourceKind = "WindowsPerformanceCounter"
-)
-
-// PossibleDataSourceKindValues returns an array of possible values for the DataSourceKind const type.
-func PossibleDataSourceKindValues() []DataSourceKind {
-	return []DataSourceKind{AzureActivityLog, ChangeTrackingCustomRegistry, ChangeTrackingDefaultPath, ChangeTrackingDefaultRegistry, ChangeTrackingPath, CustomLog, CustomLogCollection, GenericDataSource, IISLogs, LinuxPerformanceCollection, LinuxPerformanceObject, LinuxSyslog, LinuxSyslogCollection, WindowsEvent, WindowsPerformanceCounter}
-}
-
-// EntityStatus enumerates the values for entity status.
-type EntityStatus string
-
-const (
-	// Canceled ...
-	Canceled EntityStatus = "Canceled"
-	// Creating ...
-	Creating EntityStatus = "Creating"
-	// Deleting ...
-	Deleting EntityStatus = "Deleting"
-	// Failed ...
-	Failed EntityStatus = "Failed"
-	// ProvisioningAccount ...
-	ProvisioningAccount EntityStatus = "ProvisioningAccount"
-	// Succeeded ...
-	Succeeded EntityStatus = "Succeeded"
-)
-
-// PossibleEntityStatusValues returns an array of possible values for the EntityStatus const type.
-func PossibleEntityStatusValues() []EntityStatus {
-	return []EntityStatus{Canceled, Creating, Deleting, Failed, ProvisioningAccount, Succeeded}
-}
-
-// SkuNameEnum enumerates the values for sku name enum.
-type SkuNameEnum string
-
-const (
-	// CapacityReservation ...
-	CapacityReservation SkuNameEnum = "CapacityReservation"
-	// Free ...
-	Free SkuNameEnum = "Free"
-	// PerGB2018 ...
-	PerGB2018 SkuNameEnum = "PerGB2018"
-	// PerNode ...
-	PerNode SkuNameEnum = "PerNode"
-	// Premium ...
-	Premium SkuNameEnum = "Premium"
-	// Standalone ...
-	Standalone SkuNameEnum = "Standalone"
-	// Standard ...
-	Standard SkuNameEnum = "Standard"
-)
-
-// PossibleSkuNameEnumValues returns an array of possible values for the SkuNameEnum const type.
-func PossibleSkuNameEnumValues() []SkuNameEnum {
-	return []SkuNameEnum{CapacityReservation, Free, PerGB2018, PerNode, Premium, Standalone, Standard}
-}
-
 // DataSource datasources under OMS Workspace.
 type DataSource struct {
 	autorest.Response `json:"-"`
@@ -240,10 +151,15 @@ func (dslr DataSourceListResult) IsEmpty() bool {
 	return dslr.Value == nil || len(*dslr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (dslr DataSourceListResult) hasNextLink() bool {
+	return dslr.NextLink != nil && len(*dslr.NextLink) != 0
+}
+
 // dataSourceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (dslr DataSourceListResult) dataSourceListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if dslr.NextLink == nil || len(to.String(dslr.NextLink)) < 1 {
+	if !dslr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -271,11 +187,16 @@ func (page *DataSourceListResultPage) NextWithContext(ctx context.Context) (err 
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.dslr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.dslr)
+		if err != nil {
+			return err
+		}
+		page.dslr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.dslr = next
 	return nil
 }
 
@@ -527,6 +448,15 @@ type OperationListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for OperationListResult.
+func (olr OperationListResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if olr.Value != nil {
+		objectMap["value"] = olr.Value
+	}
+	return json.Marshal(objectMap)
+}
+
 // OperationListResultIterator provides access to a complete listing of Operation values.
 type OperationListResultIterator struct {
 	i    int
@@ -595,10 +525,15 @@ func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
 }
 
+// hasNextLink returns true if the NextLink is not empty.
+func (olr OperationListResult) hasNextLink() bool {
+	return olr.NextLink != nil && len(*olr.NextLink) != 0
+}
+
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
 func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
-	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
+	if !olr.hasNextLink() {
 		return nil, nil
 	}
 	return autorest.Prepare((&http.Request{}).WithContext(ctx),
@@ -626,11 +561,16 @@ func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err e
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	next, err := page.fn(ctx, page.olr)
-	if err != nil {
-		return err
+	for {
+		next, err := page.fn(ctx, page.olr)
+		if err != nil {
+			return err
+		}
+		page.olr = next
+		if !next.hasNextLink() || !next.IsEmpty() {
+			break
+		}
 	}
-	page.olr = next
 	return nil
 }
 
@@ -911,8 +851,23 @@ type WorkspaceProperties struct {
 	RetentionInDays *int32 `json:"retentionInDays,omitempty"`
 }
 
-// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
-// long-running operation.
+// MarshalJSON is the custom marshaler for WorkspaceProperties.
+func (wp WorkspaceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wp.ProvisioningState != "" {
+		objectMap["provisioningState"] = wp.ProvisioningState
+	}
+	if wp.Sku != nil {
+		objectMap["sku"] = wp.Sku
+	}
+	if wp.RetentionInDays != nil {
+		objectMap["retentionInDays"] = wp.RetentionInDays
+	}
+	return json.Marshal(objectMap)
+}
+
+// WorkspacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
 type WorkspacesCreateOrUpdateFuture struct {
 	azure.Future
 }

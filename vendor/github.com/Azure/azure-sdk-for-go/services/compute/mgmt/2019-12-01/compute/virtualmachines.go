@@ -719,6 +719,9 @@ func (client VirtualMachinesClient) List(ctx context.Context, resourceGroupName 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "List", resp, "Failure responding to request")
 	}
+	if result.vmlr.hasNextLink() && result.vmlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -830,6 +833,9 @@ func (client VirtualMachinesClient) ListAll(ctx context.Context, statusOnly stri
 	result.vmlr, err = client.ListAllResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "ListAll", resp, "Failure responding to request")
+	}
+	if result.vmlr.hasNextLink() && result.vmlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -1024,6 +1030,9 @@ func (client VirtualMachinesClient) ListByLocation(ctx context.Context, location
 	result.vmlr, err = client.ListByLocationResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.VirtualMachinesClient", "ListByLocation", resp, "Failure responding to request")
+	}
+	if result.vmlr.hasNextLink() && result.vmlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -159,6 +159,9 @@ func (client WorkflowTriggerHistoriesClient) List(ctx context.Context, resourceG
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.WorkflowTriggerHistoriesClient", "List", resp, "Failure responding to request")
 	}
+	if result.wthlr.hasNextLink() && result.wthlr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

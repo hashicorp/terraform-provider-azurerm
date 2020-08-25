@@ -315,6 +315,9 @@ func (client DedicatedHostGroupsClient) ListByResourceGroup(ctx context.Context,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DedicatedHostGroupsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.dhglr.hasNextLink() && result.dhglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -424,6 +427,9 @@ func (client DedicatedHostGroupsClient) ListBySubscription(ctx context.Context) 
 	result.dhglr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "compute.DedicatedHostGroupsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.dhglr.hasNextLink() && result.dhglr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

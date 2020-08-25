@@ -419,6 +419,9 @@ func (client EnterpriseChannelsClient) ListByResourceGroup(ctx context.Context, 
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "botservice.EnterpriseChannelsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.ecrl.hasNextLink() && result.ecrl.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

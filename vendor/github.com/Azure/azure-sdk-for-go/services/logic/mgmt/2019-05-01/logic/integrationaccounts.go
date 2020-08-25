@@ -303,6 +303,9 @@ func (client IntegrationAccountsClient) ListByResourceGroup(ctx context.Context,
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
 	}
+	if result.ialr.hasNextLink() && result.ialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -416,6 +419,9 @@ func (client IntegrationAccountsClient) ListBySubscription(ctx context.Context, 
 	result.ialr, err = client.ListBySubscriptionResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "logic.IntegrationAccountsClient", "ListBySubscription", resp, "Failure responding to request")
+	}
+	if result.ialr.hasNextLink() && result.ialr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

@@ -71,6 +71,9 @@ func (client ProviderClient) GetAvailableStacks(ctx context.Context, osTypeSelec
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "GetAvailableStacks", resp, "Failure responding to request")
 	}
+	if result.asc.hasNextLink() && result.asc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -177,6 +180,9 @@ func (client ProviderClient) GetAvailableStacksOnPrem(ctx context.Context, osTyp
 	result.asc, err = client.GetAvailableStacksOnPremResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "GetAvailableStacksOnPrem", resp, "Failure responding to request")
+	}
+	if result.asc.hasNextLink() && result.asc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return
@@ -289,6 +295,9 @@ func (client ProviderClient) ListOperations(ctx context.Context) (result CsmOper
 	result.coc, err = client.ListOperationsResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "web.ProviderClient", "ListOperations", resp, "Failure responding to request")
+	}
+	if result.coc.hasNextLink() && result.coc.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

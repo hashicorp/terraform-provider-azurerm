@@ -495,6 +495,9 @@ func (client AccountsClient) List(ctx context.Context, filter string, top *int32
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "List", resp, "Failure responding to request")
 	}
+	if result.dlsalr.hasNextLink() && result.dlsalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
@@ -643,6 +646,9 @@ func (client AccountsClient) ListByResourceGroup(ctx context.Context, resourceGr
 	result.dlsalr, err = client.ListByResourceGroupResponder(resp)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "account.AccountsClient", "ListByResourceGroup", resp, "Failure responding to request")
+	}
+	if result.dlsalr.hasNextLink() && result.dlsalr.IsEmpty() {
+		err = result.NextWithContext(ctx)
 	}
 
 	return

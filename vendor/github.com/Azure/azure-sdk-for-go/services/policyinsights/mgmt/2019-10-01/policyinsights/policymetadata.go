@@ -153,6 +153,9 @@ func (client PolicyMetadataClient) List(ctx context.Context, top *int32) (result
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "policyinsights.PolicyMetadataClient", "List", resp, "Failure responding to request")
 	}
+	if result.pmc.hasNextLink() && result.pmc.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }

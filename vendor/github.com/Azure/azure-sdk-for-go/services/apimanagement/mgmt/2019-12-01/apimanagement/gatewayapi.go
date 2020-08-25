@@ -381,6 +381,9 @@ func (client GatewayAPIClient) ListByService(ctx context.Context, resourceGroupN
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "apimanagement.GatewayAPIClient", "ListByService", resp, "Failure responding to request")
 	}
+	if result.ac.hasNextLink() && result.ac.IsEmpty() {
+		err = result.NextWithContext(ctx)
+	}
 
 	return
 }
