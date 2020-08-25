@@ -34,10 +34,10 @@ func resourceArmMySQLServerKey() *schema.Resource {
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -57,20 +57,20 @@ func resourceArmMySQLServerKey() *schema.Resource {
 	}
 }
 
-func getMySQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (string, error) {
+func getMySQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (*string, error) {
 	keyVaultKeyID, err := azure.ParseKeyVaultChildID(keyVaultKeyURI)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	keyVaultIDRaw, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version), nil
+	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
 func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -116,7 +116,7 @@ func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interfac
 		},
 	}
 
-	future, err := keysClient.CreateOrUpdate(ctx, serverID.Name, name, param, serverID.ResourceGroup)
+	future, err := keysClient.CreateOrUpdate(ctx, serverID.Name, *name, param, serverID.ResourceGroup)
 	if err != nil {
 		return fmt.Errorf("creating/updating MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
 	}
@@ -124,7 +124,7 @@ func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("waiting for creation/update of MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
 	}
 
-	resp, err := keysClient.Get(ctx, serverID.ResourceGroup, serverID.Name, name)
+	resp, err := keysClient.Get(ctx, serverID.ResourceGroup, serverID.Name, *name)
 	if err != nil {
 		return fmt.Errorf("retrieving MySQL Server Key (Resource Group %q / Server %q): %+v", serverID.ResourceGroup, serverID.Name, err)
 	}
@@ -181,6 +181,9 @@ func resourceArmMySQLServerKeyDelete(d *schema.ResourceData, meta interface{}) e
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.ServerName, mySQLServerResourceName)
+	defer locks.UnlockByName(id.ServerName, mySQLServerResourceName)
 
 	future, err := client.Delete(ctx, id.ServerName, id.Name, id.ResourceGroup)
 	if err != nil {
