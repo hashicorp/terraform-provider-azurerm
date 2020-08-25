@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
 
-* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine? Changing this forces a new resource to be created.
+* `allow_extension_operations` - (Optional) Should Extension Operations be allowed on this Virtual Machine?
 
 * `availability_set_id` - (Optional) Specifies the ID of the Availability Set in which the Virtual Machine should exist. Changing this forces a new resource to be created.
 
@@ -259,6 +259,18 @@ A `secret` block supports the following:
 
 ---
 
+`source_image_reference` supports the following:
+
+* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
+
+* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
+
+* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
+
+---
+
 A `winrm_listener` block supports the following:
 
 * `Protocol` - (Required) Specifies Specifies the protocol of listener. Possible values are `Http` or `Https`
@@ -290,18 +302,6 @@ An `identity` block exports the following:
 * `principal_id` - The ID of the System Managed Service Principal.
 
 * `tenant_id` - The ID of the Tenant the System Managed Service Principal is assigned in.
-
----
-
-`source_image_reference` supports the following:
-
-* `publisher` - (Optional) Specifies the publisher of the image used to create the virtual machines.
-
-* `offer` - (Optional) Specifies the offer of the image used to create the virtual machines.
-
-* `sku` - (Optional) Specifies the SKU of the image used to create the virtual machines.
-
-* `version` - (Optional) Specifies the version of the image used to create the virtual machines.
 
 ## Timeouts
 

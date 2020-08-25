@@ -133,7 +133,6 @@ func (client HeatMapClient) GetSender(req *http.Request) (*http.Response, error)
 func (client HeatMapClient) GetResponder(resp *http.Response) (result HeatMapModel, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -132,7 +132,6 @@ func (client GatewayHostnameConfigurationClient) CreateOrUpdateSender(req *http.
 func (client GatewayHostnameConfigurationClient) CreateOrUpdateResponder(resp *http.Response) (result GatewayHostnameConfigurationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -227,7 +226,6 @@ func (client GatewayHostnameConfigurationClient) DeleteSender(req *http.Request)
 func (client GatewayHostnameConfigurationClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -321,7 +319,6 @@ func (client GatewayHostnameConfigurationClient) GetSender(req *http.Request) (*
 func (client GatewayHostnameConfigurationClient) GetResponder(resp *http.Response) (result GatewayHostnameConfigurationContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -416,7 +413,6 @@ func (client GatewayHostnameConfigurationClient) GetEntityTagSender(req *http.Re
 func (client GatewayHostnameConfigurationClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -520,7 +516,6 @@ func (client GatewayHostnameConfigurationClient) ListByServiceSender(req *http.R
 func (client GatewayHostnameConfigurationClient) ListByServiceResponder(resp *http.Response) (result GatewayHostnameConfigurationCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

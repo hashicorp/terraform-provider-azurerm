@@ -22,6 +22,26 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedZonal(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("admin_password"),
+		},
+	})
+}
+
+func TestAccAzureRMLinuxVirtualMachine_orchestratedZonalWithProximityPlacementGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLinuxVirtualMachine_orchestratedZonalWithProximityPlacementGroup(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+				),
+			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -40,6 +60,7 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedNonZonal(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -58,6 +79,7 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedMultipleZonal(t *testing.T) {
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -76,6 +98,7 @@ func TestAccAzureRMLinuxVirtualMachine_orchestratedMultipleNonZonal(t *testing.T
 					checkLinuxVirtualMachineExists(data.ResourceName),
 				),
 			},
+			data.ImportStep("admin_password"),
 		},
 	})
 }
@@ -139,6 +162,78 @@ resource "azurerm_linux_virtual_machine" "test" {
   zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
 }
 `, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func testAccAzureRMLinuxVirtualMachine_orchestratedZonalWithProximityPlacementGroup(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_templateBaseForOchestratedVMSS(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_proximity_placement_group" "test" {
+  name                = "acctestPPG-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestnic-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestVMO-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 1
+
+  proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+
+  zones = ["1"]
+
+  tags = {
+    ENV = "Test"
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                            = "acctestVM-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  size                            = "Standard_F2"
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssw0rd1234!"
+  disable_password_authentication = false
+
+  proximity_placement_group_id = azurerm_proximity_placement_group.test.id
+
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.test.id
+  zone                         = azurerm_orchestrated_virtual_machine_scale_set.test.zones.0
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMLinuxVirtualMachine_orchestratedNonZonal(data acceptance.TestData) string {

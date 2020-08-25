@@ -123,7 +123,6 @@ func (client IntegrationAccountAssembliesClient) CreateOrUpdateSender(req *http.
 func (client IntegrationAccountAssembliesClient) CreateOrUpdateResponder(resp *http.Response) (result AssemblyDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -201,7 +200,6 @@ func (client IntegrationAccountAssembliesClient) DeleteSender(req *http.Request)
 func (client IntegrationAccountAssembliesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -278,7 +276,6 @@ func (client IntegrationAccountAssembliesClient) GetSender(req *http.Request) (*
 func (client IntegrationAccountAssembliesClient) GetResponder(resp *http.Response) (result AssemblyDefinition, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -354,7 +351,6 @@ func (client IntegrationAccountAssembliesClient) ListSender(req *http.Request) (
 func (client IntegrationAccountAssembliesClient) ListResponder(resp *http.Response) (result AssemblyCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -432,7 +428,6 @@ func (client IntegrationAccountAssembliesClient) ListContentCallbackURLSender(re
 func (client IntegrationAccountAssembliesClient) ListContentCallbackURLResponder(resp *http.Response) (result WorkflowTriggerCallbackURL, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -116,18 +116,14 @@ func TestAccAzureRMWindowsVirtualMachineScaleSet_disksOSDiskDiskEncryptionSet(t 
 		CheckDestroy: testCheckAzureRMWindowsVirtualMachineScaleSetDestroy,
 		Steps: []resource.TestStep{
 			{
-				// TODO: After applying soft-delete and purge-protection in keyVault, this extra step can be removed.
-				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetDependencies(data),
-				Check: resource.ComposeTestCheckFunc(
-					enableSoftDeleteAndPurgeProtectionForKeyVault("azurerm_key_vault.test"),
-				),
-			},
-			{
 				Config: testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSet(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMWindowsVirtualMachineScaleSetExists(data.ResourceName),
 				),
 			},
+			data.ImportStep(
+				"admin_password",
+			),
 		},
 	})
 }
@@ -298,10 +294,6 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetDependencies(data acceptance.TestData) string {
-	// whilst this is in Preview it's only supported in: West Central US, Canada Central, North Europe
-	// TODO: switch back to default location
-	location := "westus2"
-
 	return fmt.Sprintf(`
 locals {
   vm_name = "acctestVM-%d"
@@ -319,6 +311,8 @@ resource "azurerm_key_vault" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
+  soft_delete_enabled         = true
+  purge_protection_enabled    = true
   enabled_for_disk_encryption = true
 }
 
@@ -372,7 +366,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.0.2.0/24"
 }
-`, data.RandomInteger, data.RandomInteger, location, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
 func testAccAzureRMWindowsVirtualMachineScaleSet_disksOSDisk_diskEncryptionSetResource(data acceptance.TestData) string {

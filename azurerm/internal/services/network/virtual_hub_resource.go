@@ -54,6 +54,7 @@ func resourceArmVirtualHub() *schema.Resource {
 			"address_prefix": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.CIDR,
 			},
 

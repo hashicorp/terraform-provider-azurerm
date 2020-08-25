@@ -22,7 +22,7 @@ func NamespaceAuthorizationRuleID(input string) (*NamespaceAuthorizationRuleId, 
 		return nil, err
 	}
 
-	if rule.Name, err = id.PopSegment("AuthorizationRules"); err != nil {
+	if rule.Name, err = id.PopSegment("authorizationRules"); err != nil {
 		return nil, err
 	}
 

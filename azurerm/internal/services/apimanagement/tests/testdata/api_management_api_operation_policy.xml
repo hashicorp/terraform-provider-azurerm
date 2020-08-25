@@ -1,0 +1,38 @@
+<policies>
+    <inbound>
+        <base />
+        <cors>
+            <allowed-origins>
+                <origin>*</origin>
+            </allowed-origins>
+            <allowed-methods>
+                <method>*</method>
+            </allowed-methods>
+            <allowed-headers>
+                <header>*</header>
+            </allowed-headers>
+        </cors>
+        <send-request mode="new" response-variable-name="getCertResponse" timeout="10" ignore-error="false">
+            <set-url>https://github.com/terraform-providers/terraform-provider-azurerm</set-url>
+            <set-method>GET</set-method>
+            <set-header name="Authorization" exists-action="override">
+                <value>@(context.Request.Headers.GetValueOrDefault("Authorization",""))</value>
+            </set-header>
+        </send-request>
+        <set-header name="Authorization" exists-action="override">
+            <value>@{
+                var responseObj = ((IResponse)context.Variables[&quot;getCertResponse&quot;]).Body.As&lt;JObject&gt;();
+                var jwt = (string)responseObj[&quot;payload&quot;];
+                return $&quot;Bearer {jwt}&quot;;}</value>
+        </set-header>
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

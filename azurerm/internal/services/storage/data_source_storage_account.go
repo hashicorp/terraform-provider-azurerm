@@ -72,6 +72,16 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"min_tls_version": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
+			"allow_blob_public_access": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"is_hns_enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
@@ -306,7 +316,9 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	if props := resp.AccountProperties; props != nil {
 		d.Set("access_tier", props.AccessTier)
 		d.Set("enable_https_traffic_only", props.EnableHTTPSTrafficOnly)
+		d.Set("min_tls_version", string(props.MinimumTLSVersion))
 		d.Set("is_hns_enabled", props.IsHnsEnabled)
+		d.Set("allow_blob_public_access", props.AllowBlobPublicAccess)
 
 		if customDomain := props.CustomDomain; customDomain != nil {
 			if err := d.Set("custom_domain", flattenStorageAccountCustomDomain(customDomain)); err != nil {

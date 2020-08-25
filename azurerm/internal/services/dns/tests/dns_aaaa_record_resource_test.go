@@ -187,7 +187,7 @@ func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsAaaaRecordExists(data.ResourceName),
 					resource.TestCheckResourceAttr(data.ResourceName, "records.#", "2"),
-					resource.TestCheckNoResourceAttr(data.ResourceName, "target_resource_id"),
+					resource.TestCheckResourceAttr(data.ResourceName, "target_resource_id", ""),
 				),
 			},
 			data.ImportStep(),

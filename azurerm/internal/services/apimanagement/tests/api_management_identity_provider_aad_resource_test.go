@@ -26,7 +26,7 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_basic(t *testing.T) {
 					testCheckAzureRMApiManagementIdentityProviderAADExists(data.ResourceName),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
@@ -60,7 +60,7 @@ func TestAccAzureRMApiManagementIdentityProviderAAD_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "allowed_tenants.1", data.Client().TenantID),
 				),
 			},
-			data.ImportStep(),
+			data.ImportStep("client_secret"),
 		},
 	})
 }
@@ -159,6 +159,7 @@ resource "azurerm_api_management_identity_provider_aad" "test" {
   api_management_name = azurerm_api_management.test.name
   client_id           = "00000000-0000-0000-0000-000000000000"
   client_secret       = "00000000000000000000000000000000"
+  signin_tenant       = "00000000-0000-0000-0000-000000000000"
   allowed_tenants     = ["%s"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Client().TenantID)

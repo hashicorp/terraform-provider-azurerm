@@ -110,7 +110,6 @@ func (client LocationsClient) CheckNameAvailabilitySender(req *http.Request) (*h
 func (client LocationsClient) CheckNameAvailabilityResponder(resp *http.Response) (result EntityNameAvailabilityCheckOutput, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

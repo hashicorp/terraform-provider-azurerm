@@ -352,7 +352,7 @@ func resourceArmKeyVaultUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	d.Partial(true)
 
-	// first pull the existing key vault since we need to lock on several bits of it's information
+	// first pull the existing key vault since we need to lock on several bits of its information
 	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)

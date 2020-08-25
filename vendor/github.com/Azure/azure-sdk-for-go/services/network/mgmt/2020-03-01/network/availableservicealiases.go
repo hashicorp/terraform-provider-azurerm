@@ -109,7 +109,6 @@ func (client AvailableServiceAliasesClient) ListSender(req *http.Request) (*http
 func (client AvailableServiceAliasesClient) ListResponder(resp *http.Response) (result AvailableServiceAliasesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -223,7 +222,6 @@ func (client AvailableServiceAliasesClient) ListByResourceGroupSender(req *http.
 func (client AvailableServiceAliasesClient) ListByResourceGroupResponder(resp *http.Response) (result AvailableServiceAliasesResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -139,7 +139,6 @@ func (client OpenIDConnectProviderClient) CreateOrUpdateSender(req *http.Request
 func (client OpenIDConnectProviderClient) CreateOrUpdateResponder(resp *http.Response) (result OpenidConnectProviderContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -231,7 +230,6 @@ func (client OpenIDConnectProviderClient) DeleteSender(req *http.Request) (*http
 func (client OpenIDConnectProviderClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -319,7 +317,6 @@ func (client OpenIDConnectProviderClient) GetSender(req *http.Request) (*http.Re
 func (client OpenIDConnectProviderClient) GetResponder(resp *http.Response) (result OpenidConnectProviderContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -408,7 +405,6 @@ func (client OpenIDConnectProviderClient) GetEntityTagSender(req *http.Request) 
 func (client OpenIDConnectProviderClient) GetEntityTagResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByClosing())
 	result.Response = resp
@@ -513,7 +509,6 @@ func (client OpenIDConnectProviderClient) ListByServiceSender(req *http.Request)
 func (client OpenIDConnectProviderClient) ListByServiceResponder(resp *http.Response) (result OpenIDConnectProviderCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -639,7 +634,6 @@ func (client OpenIDConnectProviderClient) ListSecretsSender(req *http.Request) (
 func (client OpenIDConnectProviderClient) ListSecretsResponder(resp *http.Response) (result ClientSecretContract, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -734,7 +728,6 @@ func (client OpenIDConnectProviderClient) UpdateSender(req *http.Request) (*http
 func (client OpenIDConnectProviderClient) UpdateResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

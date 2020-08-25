@@ -123,7 +123,6 @@ func (client PolicyDescriptionClient) ListByServiceSender(req *http.Request) (*h
 func (client PolicyDescriptionClient) ListByServiceResponder(resp *http.Response) (result PolicyDescriptionCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

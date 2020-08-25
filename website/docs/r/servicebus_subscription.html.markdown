@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "tfex_sevicebus_namespace"
+  name                = "tfex-sevicebus-namespace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
@@ -75,6 +75,8 @@ The following arguments are supported:
 * `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to.
 
 * `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward Dead Letter messages to.
+
+* `status` - (Optional) The status of the Subscription. Possible values are `Active`,`ReceiveDisabled`, or `Disabled`. Defaults to `Active`.
 
 ## Attributes Reference
 

@@ -131,7 +131,6 @@ func (client ActivityRunsClient) QueryByPipelineRunSender(req *http.Request) (*h
 func (client ActivityRunsClient) QueryByPipelineRunResponder(resp *http.Response) (result ActivityRunsQueryResponse, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

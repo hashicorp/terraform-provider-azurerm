@@ -56,7 +56,13 @@ The following arguments are supported:
 
 * `virtual_network_configuration`- (Optional) A `virtual_network_configuration` block as defined below.
 
+* `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON` and `R`.
+
+* `optimized_auto_scale` - (Optional) An `optimized_auto_scale` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `trusted_external_tenants` - (Optional) Specifies a list of tenant IDs that are trusted by the cluster.
 
 * `zones` - (Optional) A list of Availability Zones in which the cluster instances should be created in. Changing this forces a new resource to be created.
 
@@ -66,7 +72,10 @@ A `sku` block supports the following:
 
 * `name` - (Required) The name of the SKU. Valid values are: `Dev(No SLA)_Standard_D11_v2`, `Dev(No SLA)_Standard_E2a_v4`, `Standard_D11_v2`, `Standard_D12_v2`, `Standard_D13_v2`, `Standard_D14_v2`, `Standard_DS13_v2+1TB_PS`, `Standard_DS13_v2+2TB_PS`, `Standard_DS14_v2+3TB_PS`, `Standard_DS14_v2+4TB_PS`, `Standard_E16as_v4+3TB_PS`, `Standard_E16as_v4+4TB_PS`, `Standard_E16a_v4`, `Standard_E2a_v4`, `Standard_E4a_v4`, `Standard_E8as_v4+1TB_PS`, `Standard_E8as_v4+2TB_PS`, `Standard_E8a_v4`, `Standard_L16s`, `Standard_L4s` and `Standard_L8s`
 
-* `capacity` - (Required) Specifies the node count for the cluster. Boundaries depend on the sku name.
+* `capacity` - (Optional) Specifies the node count for the cluster. Boundaries depend on the sku name.
+
+~> **NOTE:** If no `optimized_auto_scale` block is defined, then the capacity is required.
+~> **NOTE:** If an `optimized_auto_scale` block is defined and no capacity is set, then the capacatiy is initially set to the value of `minimum_instances`.
 
 ---
 
@@ -91,6 +100,14 @@ An `identity` block supports the following:
 * `identity_ids` - (Computed) The list of user identities associated with the Kusto cluster.
 
 ~> **NOTE:** When `type` is set to `SystemAssigned`, the Principal ID can be retrieved after the cluster has been created. More details are available below. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for additional information.
+
+---
+
+A `optimized_auto_scale` block supports the following:
+
+* `minimum_instances` - (Required) The minimum number of allowed instances. Must between `0` and `1000`.
+
+* `maximum_instances` - (Required) The maximum number of allowed instances. Must between `0` and `1000`.
 
 ## Attributes Reference
 

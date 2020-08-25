@@ -135,7 +135,6 @@ func (client RulesEnginesClient) CreateOrUpdateSender(req *http.Request) (future
 func (client RulesEnginesClient) CreateOrUpdateResponder(resp *http.Response) (result RulesEngine, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated, http.StatusAccepted),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -229,7 +228,6 @@ func (client RulesEnginesClient) DeleteSender(req *http.Request) (future RulesEn
 func (client RulesEnginesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -322,7 +320,6 @@ func (client RulesEnginesClient) GetSender(req *http.Request) (*http.Response, e
 func (client RulesEnginesClient) GetResponder(resp *http.Response) (result RulesEngine, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -411,7 +408,6 @@ func (client RulesEnginesClient) ListByFrontDoorSender(req *http.Request) (*http
 func (client RulesEnginesClient) ListByFrontDoorResponder(resp *http.Response) (result RulesEngineListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

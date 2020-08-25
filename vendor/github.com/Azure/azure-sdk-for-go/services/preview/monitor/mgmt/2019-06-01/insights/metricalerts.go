@@ -126,7 +126,6 @@ func (client MetricAlertsClient) CreateOrUpdateSender(req *http.Request) (*http.
 func (client MetricAlertsClient) CreateOrUpdateResponder(resp *http.Response) (result MetricAlertResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -202,7 +201,6 @@ func (client MetricAlertsClient) DeleteSender(req *http.Request) (*http.Response
 func (client MetricAlertsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -277,7 +275,6 @@ func (client MetricAlertsClient) GetSender(req *http.Request) (*http.Response, e
 func (client MetricAlertsClient) GetResponder(resp *http.Response) (result MetricAlertResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -351,7 +348,6 @@ func (client MetricAlertsClient) ListByResourceGroupSender(req *http.Request) (*
 func (client MetricAlertsClient) ListByResourceGroupResponder(resp *http.Response) (result MetricAlertResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -422,7 +418,6 @@ func (client MetricAlertsClient) ListBySubscriptionSender(req *http.Request) (*h
 func (client MetricAlertsClient) ListBySubscriptionResponder(resp *http.Response) (result MetricAlertResourceCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -501,7 +496,6 @@ func (client MetricAlertsClient) UpdateSender(req *http.Request) (*http.Response
 func (client MetricAlertsClient) UpdateResponder(resp *http.Response) (result MetricAlertResource, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-03-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -201,8 +201,10 @@ func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta int
 	direction := d.Get("direction").(string)
 	protocol := d.Get("protocol").(string)
 
-	locks.ByName(nsgName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
+		locks.ByName(nsgName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+	}
 
 	rule := network.SecurityRule{
 		Name: &name,
@@ -373,8 +375,10 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 	nsgName := id.Path["networkSecurityGroups"]
 	sgRuleName := id.Path["securityRules"]
 
-	locks.ByName(nsgName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+	if !meta.(*clients.Client).Features.Network.RelaxedLocking {
+		locks.ByName(nsgName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
+	}
 
 	future, err := client.Delete(ctx, resGroup, nsgName, sgRuleName)
 	if err != nil {

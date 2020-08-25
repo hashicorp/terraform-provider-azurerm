@@ -49,6 +49,34 @@ func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDisabled(t *testing
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_otherAllowExtensionOperationsDefault(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "true"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_otherAllowExtensionOperationsDisabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 

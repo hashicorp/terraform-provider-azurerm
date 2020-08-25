@@ -119,7 +119,6 @@ func (client GroupsClient) AddMemberSender(req *http.Request) (*http.Response, e
 func (client GroupsClient) AddMemberResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -202,7 +201,6 @@ func (client GroupsClient) AddOwnerSender(req *http.Request) (*http.Response, er
 func (client GroupsClient) AddOwnerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -285,7 +283,6 @@ func (client GroupsClient) CreateSender(req *http.Request) (*http.Response, erro
 func (client GroupsClient) CreateResponder(resp *http.Response) (result ADGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -359,7 +356,6 @@ func (client GroupsClient) DeleteSender(req *http.Request) (*http.Response, erro
 func (client GroupsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -432,7 +428,6 @@ func (client GroupsClient) GetSender(req *http.Request) (*http.Response, error) 
 func (client GroupsClient) GetResponder(resp *http.Response) (result ADGroup, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -512,7 +507,6 @@ func (client GroupsClient) GetGroupMembersSender(req *http.Request) (*http.Respo
 func (client GroupsClient) GetGroupMembersResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -602,7 +596,6 @@ func (client GroupsClient) GetGroupMembersNextSender(req *http.Request) (*http.R
 func (client GroupsClient) GetGroupMembersNextResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -685,7 +678,6 @@ func (client GroupsClient) GetMemberGroupsSender(req *http.Request) (*http.Respo
 func (client GroupsClient) GetMemberGroupsResponder(resp *http.Response) (result GroupGetMemberGroupsResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -768,7 +760,6 @@ func (client GroupsClient) IsMemberOfSender(req *http.Request) (*http.Response, 
 func (client GroupsClient) IsMemberOfResponder(resp *http.Response) (result CheckGroupMembershipResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -850,7 +841,6 @@ func (client GroupsClient) ListSender(req *http.Request) (*http.Response, error)
 func (client GroupsClient) ListResponder(resp *http.Response) (result GroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -940,7 +930,6 @@ func (client GroupsClient) ListNextSender(req *http.Request) (*http.Response, er
 func (client GroupsClient) ListNextResponder(resp *http.Response) (result GroupListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1015,7 +1004,6 @@ func (client GroupsClient) ListOwnersSender(req *http.Request) (*http.Response, 
 func (client GroupsClient) ListOwnersResponder(resp *http.Response) (result DirectoryObjectListResult, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -1128,7 +1116,6 @@ func (client GroupsClient) RemoveMemberSender(req *http.Request) (*http.Response
 func (client GroupsClient) RemoveMemberResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -1203,7 +1190,6 @@ func (client GroupsClient) RemoveOwnerSender(req *http.Request) (*http.Response,
 func (client GroupsClient) RemoveOwnerResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp

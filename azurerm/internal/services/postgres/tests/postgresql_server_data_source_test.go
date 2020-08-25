@@ -25,6 +25,7 @@ func TestAccDataSourceAzureRMPPostgreSqlServer_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "fqdn"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "version"),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "administrator_login"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "sku_name"),
 					resource.TestCheckResourceAttr(data.ResourceName, "tags.%", "0"),
 				),
 			},

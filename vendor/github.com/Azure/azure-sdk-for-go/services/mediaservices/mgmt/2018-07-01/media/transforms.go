@@ -122,7 +122,6 @@ func (client TransformsClient) CreateOrUpdateSender(req *http.Request) (*http.Re
 func (client TransformsClient) CreateOrUpdateResponder(resp *http.Response) (result Transform, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -200,7 +199,6 @@ func (client TransformsClient) DeleteSender(req *http.Request) (*http.Response, 
 func (client TransformsClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
@@ -277,7 +275,6 @@ func (client TransformsClient) GetSender(req *http.Request) (*http.Response, err
 func (client TransformsClient) GetResponder(resp *http.Response) (result Transform, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNotFound),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -362,7 +359,6 @@ func (client TransformsClient) ListSender(req *http.Request) (*http.Response, er
 func (client TransformsClient) ListResponder(resp *http.Response) (result TransformCollection, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
@@ -480,7 +476,6 @@ func (client TransformsClient) UpdateSender(req *http.Request) (*http.Response, 
 func (client TransformsClient) UpdateResponder(resp *http.Response) (result Transform, err error) {
 	err = autorest.Respond(
 		resp,
-		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())

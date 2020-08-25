@@ -120,7 +120,7 @@ func TestAccAzureRMCosmosDbGremlinGraph_update(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbGremlinGraphDestroy(s *terraform.State) error {
-	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+	client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.GremlinClient
 	ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -150,7 +150,7 @@ func testCheckAzureRMCosmosDbGremlinGraphDestroy(s *terraform.State) error {
 
 func testCheckAzureRmCosmosDbGremlinGraphExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.DatabaseClient
+		client := acceptance.AzureProvider.Meta().(*clients.Client).Cosmos.GremlinClient
 		ctx := acceptance.AzureProvider.Meta().(*clients.Client).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -165,7 +165,7 @@ func testCheckAzureRmCosmosDbGremlinGraphExists(resourceName string) resource.Te
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		database := rs.Primary.Attributes["database_name"]
 
-		resp, err := client.GetGremlinGraph(ctx, resourceGroup, database, account, name)
+		resp, err := client.GetGremlinGraph(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get on cosmosAccountsClient: %+v", err)
 		}

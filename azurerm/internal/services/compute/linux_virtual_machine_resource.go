@@ -100,7 +100,6 @@ func resourceLinuxVirtualMachine() *schema.Resource {
 			"allow_extension_operations": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 				Default:  true,
 			},
 
@@ -816,11 +815,58 @@ func resourceLinuxVirtualMachineUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	if d.HasChange("allow_extension_operations") {
+		provisionVMAgent := d.Get("provision_vm_agent").(bool)
+		allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+
+		if !provisionVMAgent && allowExtensionOperations {
+			return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
+		}
+
+		shouldUpdate = true
+
+		if update.OsProfile == nil {
+			update.OsProfile = &compute.OSProfile{}
+		}
+
+		update.OsProfile.AllowExtensionOperations = utils.Bool(allowExtensionOperations)
+	}
+
 	if d.HasChange("tags") {
 		shouldUpdate = true
 
 		tagsRaw := d.Get("tags").(map[string]interface{})
 		update.Tags = tags.Expand(tagsRaw)
+	}
+
+	if instanceView.Statuses != nil {
+		for _, status := range *instanceView.Statuses {
+			if status.Code == nil {
+				continue
+			}
+
+			// could also be the provisioning state which we're not bothered with here
+			state := strings.ToLower(*status.Code)
+			if !strings.HasPrefix(state, "powerstate/") {
+				continue
+			}
+
+			state = strings.TrimPrefix(state, "powerstate/")
+			switch strings.ToLower(state) {
+			case "deallocated":
+				// VM already deallocated, no shutdown and deallocation needed anymore
+				shouldShutDown = false
+				shouldDeallocate = false
+			case "deallocating":
+				// VM is deallocating
+				// To make sure we do not start updating before this action has finished,
+				// only skip the shutdown and send another deallocation request if shouldDeallocate == true
+				shouldShutDown = false
+			case "stopped":
+				// VM already stopped, no shutdown needed anymore
+				shouldShutDown = false
+			}
+		}
 	}
 
 	if shouldShutDown {

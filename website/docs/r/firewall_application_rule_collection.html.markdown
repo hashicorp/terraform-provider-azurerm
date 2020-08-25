@@ -105,7 +105,7 @@ A `rule` block supports the following:
 
 * `source_addresses` - (Required) A list of source IP addresses and/or IP ranges.
 
-* `fqdn_tags` - (Optional) A list of FQDN tags. Possible values are `AppServiceEnvironment`, `AzureBackup`, `MicrosoftActiveProtectionService`, `WindowsDiagnostics` and `WindowsUpdate`
+* `fqdn_tags` - (Optional) A list of FQDN tags. Possible values are `AppServiceEnvironment`, `AzureBackup`, `AzureKubernetesService`, `HDInsight`, `MicrosoftActiveProtectionService`, `WindowsDiagnostics`, `WindowsUpdate` and `WindowsVirtualDesktop`.
 
 * `target_fqdns` - (Optional) A list of FQDNs.
 

@@ -325,14 +325,17 @@ func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) err
 	// The resource NetApp Volume depends on the resource NetApp Pool.
 	// Although the delete API returns 404 which means the NetApp Volume resource has been deleted.
 	// Then it tries to immediately delete NetApp Pool but it still throws error `Can not delete resource before nested resources are deleted.`
-	// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
+	// In this case we're going to re-check status code again.
 	// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6485
 	log.Printf("[DEBUG] Waiting for NetApp Volume Provisioning Service %q (Resource Group %q) to be deleted", id.Name, id.ResourceGroup)
 	stateConf := &resource.StateChangeConf{
-		Pending: []string{"200", "202"},
-		Target:  []string{"404"},
-		Refresh: netappVolumeDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.PoolName, id.Name),
-		Timeout: d.Timeout(schema.TimeoutDelete),
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netappVolumeDeleteStateRefreshFunc(ctx, client, id.ResourceGroup, id.AccountName, id.PoolName, id.Name),
+		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
@@ -349,10 +352,6 @@ func netappVolumeDeleteStateRefreshFunc(ctx context.Context, client *netapp.Volu
 			if !utils.ResponseWasNotFound(res.Response) {
 				return nil, "", fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): %s", name, resourceGroupName, err)
 			}
-		}
-
-		if _, err := client.Delete(ctx, resourceGroupName, accountName, poolName, name); err != nil {
-			log.Printf("Error reissuing NetApp Volume %q delete request (Resource Group %q): %+v", name, resourceGroupName, err)
 		}
 
 		return res, strconv.Itoa(res.StatusCode), nil

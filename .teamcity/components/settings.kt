@@ -4,6 +4,9 @@ var defaultStartHour = 0
 // specifies the default level of parallelism per-service-package
 var defaultParallelism = 20
 
+// specifies the default version of Terraform Core which should be used for testing
+var defaultTerraformCoreVersion = "0.12.28"
+
 var locations = mapOf(
         "public" to LocationConfiguration("westeurope", "eastus2", "francecentral", false),
         "germany" to LocationConfiguration("germanynortheast", "germanycentral", "", false)
@@ -21,6 +24,10 @@ var serviceTestConfigurationOverrides = mapOf(
 
         // Data Lake has a low quota
         "datalake" to testConfiguration(2, defaultStartHour),
+
+        // servicebus quotas are limited and we experience failures if tests
+        // execute too quickly as we run out of namespaces in the sub
+        "servicebus" to testConfiguration(10, defaultStartHour),
 
         // SignalR only allows provisioning one "Free" instance at a time,
         // which is used in multiple tests
