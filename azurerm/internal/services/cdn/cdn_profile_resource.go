@@ -23,32 +23,34 @@ import (
 )
 
 func resourceArmCdnProfile() *schema.Resource {
-	schemaDef := map[string]*schema.Schema{
-		"name": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+	tmpResource := &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
+
+			"location": azure.SchemaLocation(),
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"sku": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.StandardAkamai),
+					string(cdn.StandardChinaCdn),
+					string(cdn.StandardVerizon),
+					string(cdn.StandardMicrosoft),
+					string(cdn.PremiumVerizon),
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"tags": tags.Schema(),
 		},
-
-		"location": azure.SchemaLocation(),
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"sku": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.StandardAkamai),
-				string(cdn.StandardChinaCdn),
-				string(cdn.StandardVerizon),
-				string(cdn.StandardMicrosoft),
-				string(cdn.PremiumVerizon),
-			}, true),
-			DiffSuppressFunc: suppress.CaseDifference,
-		},
-
-		"tags": tags.Schema(),
 	}
 
 	return &schema.Resource{
@@ -69,12 +71,12 @@ func resourceArmCdnProfile() *schema.Resource {
 			return err
 		}),
 
-		Schema: schemaDef,
+		Schema: tmpResource.Schema,
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    schema.Resource{Schema: schemaDef}.CoreConfigSchema().ImpliedType(),
+				Type:    tmpResource.CoreConfigSchema().ImpliedType(),
 				Upgrade: migration.CdnProfileV0ToV1,
 				Version: 0,
 			},

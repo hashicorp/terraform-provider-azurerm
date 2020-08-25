@@ -23,167 +23,169 @@ import (
 )
 
 func resourceArmCdnEndpoint() *schema.Resource {
-	schemaDef := map[string]*schema.Schema{
-		"name": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-
-		"location": azure.SchemaLocation(),
-
-		"resource_group_name": azure.SchemaResourceGroupName(),
-
-		"profile_name": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
-		},
-
-		"origin_host_header": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-
-		"is_http_allowed": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"is_https_allowed": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"origin": {
-			Type:     schema.TypeSet,
-			Required: true,
-			ForceNew: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"name": {
-						Type:     schema.TypeString,
-						Required: true,
-						ForceNew: true,
-					},
-
-					"host_name": {
-						Type:     schema.TypeString,
-						Required: true,
-						ForceNew: true,
-					},
-
-					"http_port": {
-						Type:     schema.TypeInt,
-						Optional: true,
-						ForceNew: true,
-						Default:  80,
-					},
-
-					"https_port": {
-						Type:     schema.TypeInt,
-						Optional: true,
-						ForceNew: true,
-						Default:  443,
-					},
-				},
+	tmpResource := &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
-		},
 
-		"origin_path": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
+			"location": azure.SchemaLocation(),
 
-		"querystring_caching_behaviour": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Default:  string(cdn.IgnoreQueryString),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.BypassCaching),
-				string(cdn.IgnoreQueryString),
-				string(cdn.NotSet),
-				string(cdn.UseQueryString),
-			}, false),
-		},
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-		"content_types_to_compress": {
-			Type:     schema.TypeSet,
-			Optional: true,
-			Computed: true,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
+			"profile_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
-			Set: schema.HashString,
-		},
 
-		"is_compression_enabled": {
-			Type:     schema.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
+			"origin_host_header": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 
-		"probe_path": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
+			"is_http_allowed": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
-		"geo_filter": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"relative_path": {
-						Type:     schema.TypeString,
-						Required: true,
-					},
-					"action": {
-						Type:     schema.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.Allow),
-							string(cdn.Block),
-						}, true),
-						DiffSuppressFunc: suppress.CaseDifference,
-					},
-					"country_codes": {
-						Type:     schema.TypeList,
-						Required: true,
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
+			"is_https_allowed": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"origin": {
+				Type:     schema.TypeSet,
+				Required: true,
+				ForceNew: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+
+						"host_name": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+
+						"http_port": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							ForceNew: true,
+							Default:  80,
+						},
+
+						"https_port": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							ForceNew: true,
+							Default:  443,
 						},
 					},
 				},
 			},
+
+			"origin_path": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"querystring_caching_behaviour": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(cdn.IgnoreQueryString),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.BypassCaching),
+					string(cdn.IgnoreQueryString),
+					string(cdn.NotSet),
+					string(cdn.UseQueryString),
+				}, false),
+			},
+
+			"content_types_to_compress": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Set: schema.HashString,
+			},
+
+			"is_compression_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"probe_path": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"geo_filter": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"relative_path": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cdn.Allow),
+								string(cdn.Block),
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+						"country_codes": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			"optimization_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(cdn.DynamicSiteAcceleration),
+					string(cdn.GeneralMediaStreaming),
+					string(cdn.GeneralWebDelivery),
+					string(cdn.LargeFileDownload),
+					string(cdn.VideoOnDemandMediaStreaming),
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
+			"host_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"global_delivery_rule": endpointGlobalDeliveryRule(),
+
+			"delivery_rule": endpointDeliveryRule(),
+
+			"tags": tags.Schema(),
 		},
-
-		"optimization_type": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(cdn.DynamicSiteAcceleration),
-				string(cdn.GeneralMediaStreaming),
-				string(cdn.GeneralWebDelivery),
-				string(cdn.LargeFileDownload),
-				string(cdn.VideoOnDemandMediaStreaming),
-			}, true),
-			DiffSuppressFunc: suppress.CaseDifference,
-		},
-
-		"host_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"global_delivery_rule": endpointGlobalDeliveryRule(),
-
-		"delivery_rule": endpointDeliveryRule(),
-
-		"tags": tags.Schema(),
 	}
 
 	return &schema.Resource{
@@ -204,12 +206,12 @@ func resourceArmCdnEndpoint() *schema.Resource {
 			return err
 		}),
 
-		Schema: schemaDef,
+		Schema: tmpResource.Schema,
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    schema.Resource{Schema: schemaDef}.CoreConfigSchema().ImpliedType(),
+				Type:    tmpResource.CoreConfigSchema().ImpliedType(),
 				Upgrade: migration.CdnEndpointV0ToV1,
 				Version: 0,
 			},
