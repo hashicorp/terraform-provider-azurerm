@@ -45,7 +45,7 @@ func resourceArmMySQLServerKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.MysqlServerServerID,
+				ValidateFunc: validate.MySQLServerID,
 			},
 
 			"key_vault_key_id": {
@@ -79,7 +79,7 @@ func resourceArmMySQLServerKeyCreateUpdate(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverID, err := parse.MysqlServerServerID(d.Get("server_id").(string))
+	serverID, err := parse.MySQLServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}

@@ -4,11 +4,11 @@ import (
 	"testing"
 )
 
-func TestValidateMysqlServerServerID(t *testing.T) {
+func TestMySQLServerID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *MysqlServerServerId
+		Expected *MySQLServerId
 	}{
 		{
 			Name:     "Empty resource ID",
@@ -38,7 +38,7 @@ func TestValidateMysqlServerServerID(t *testing.T) {
 		{
 			Name:  "Valid",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DBforMySQL/servers/test-mysql",
-			Expected: &MysqlServerServerId{
+			Expected: &MySQLServerId{
 				Name:          "test-mysql",
 				ResourceGroup: "test-rg",
 			},
@@ -48,7 +48,7 @@ func TestValidateMysqlServerServerID(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := MysqlServerServerID(v.Input)
+		actual, err := MySQLServerID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

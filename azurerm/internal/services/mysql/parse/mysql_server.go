@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type MysqlServerServerId struct {
+type MySQLServerId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func MysqlServerServerID(input string) (*MysqlServerServerId, error) {
+func MySQLServerID(input string) (*MySQLServerId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse MySQL Server ID %q: %+v", input, err)
 	}
 
-	server := MysqlServerServerId{
+	server := MySQLServerId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
