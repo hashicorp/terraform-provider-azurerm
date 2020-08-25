@@ -34,10 +34,10 @@ func resourceArmPostgreSQLServerKey() *schema.Resource {
 		}),
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -79,7 +79,7 @@ func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	serverID, err := parse.PostgresServerServerID(d.Get("server_id").(string))
+	serverID, err := parse.PostgreSQLServerID(d.Get("server_id").(string))
 	if err != nil {
 		return err
 	}

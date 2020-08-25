@@ -15,7 +15,7 @@ type PostgreSQLServerKeyId struct {
 func PostgreSQLServerKeyID(input string) (*PostgreSQLServerKeyId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Postgres Server ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Postgres Server Key ID %q: %+v", input, err)
 	}
 
 	server := PostgreSQLServerKeyId{

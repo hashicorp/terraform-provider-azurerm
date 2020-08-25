@@ -8,7 +8,7 @@ func TestAnalysisServicesServerId(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *PostgresServerServerId
+		Expected *PostgreSQLServerId
 	}{
 		{
 			Name:     "Empty",
@@ -38,7 +38,7 @@ func TestAnalysisServicesServerId(t *testing.T) {
 		{
 			Name:  "Postgres Server ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.DBforPostgreSQL/servers/Server1",
-			Expected: &PostgresServerServerId{
+			Expected: &PostgreSQLServerId{
 				Name:          "Server1",
 				ResourceGroup: "resGroup1",
 			},
@@ -53,7 +53,7 @@ func TestAnalysisServicesServerId(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := PostgresServerServerID(v.Input)
+		actual, err := PostgreSQLServerID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
