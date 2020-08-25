@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/parse"
 )
 
-func PostgresServerServerName(i interface{}, k string) (_ []string, errors []error) {
+func PostgreSQLServerName(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `^[0-9a-z][-0-9a-z]{1,61}[0-9a-z]$`); !m {
 		return nil, append(regexErrs, fmt.Errorf("%q can contain only lowercase letters, numbers, and '-', but can't start or end with '-'. And must be at least 3 characters and at most 63 characters", k))
 	}
@@ -33,7 +33,7 @@ func PostgresDatabaseCollation(i interface{}, k string) (warnings []string, erro
 	return warnings, errors
 }
 
-func PostgresServerServerID(i interface{}, k string) (warnings []string, errors []error) {
+func PostgreSQLServerID(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))

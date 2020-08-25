@@ -45,7 +45,7 @@ func resourceArmPostgreSQLServerKey() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PostgresServerServerID,
+				ValidateFunc: validate.PostgreSQLServerID,
 			},
 
 			"key_vault_key_id": {

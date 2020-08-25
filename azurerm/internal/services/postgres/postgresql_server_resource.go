@@ -62,7 +62,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PostgresServerServerName,
+				ValidateFunc: validate.PostgreSQLServerName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -217,7 +217,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"creation_source_server_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.PostgresServerServerID,
+				ValidateFunc: validate.PostgreSQLServerID,
 			},
 
 			"identity": {
