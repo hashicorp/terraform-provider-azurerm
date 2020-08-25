@@ -181,6 +181,9 @@ func resourceArmPostgreSQLServerKeyDelete(d *schema.ResourceData, meta interface
 		return err
 	}
 
+	locks.ByName(id.ServerName, postgreSQLServerResourceName)
+	defer locks.UnlockByName(id.ServerName, postgreSQLServerResourceName)
+
 	future, err := client.Delete(ctx, id.ServerName, id.Name, id.ResourceGroup)
 	if err != nil {
 		return fmt.Errorf("deleting PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", id.Name, id.ResourceGroup, id.ServerName, err)
