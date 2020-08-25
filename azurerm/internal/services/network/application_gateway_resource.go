@@ -821,6 +821,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							}, true),
 						},
 
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validate.PortNumber,
+						},
+
 						"path": {
 							Type:     schema.TypeString,
 							Required: true,
