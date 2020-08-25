@@ -16,7 +16,7 @@ resource "azurerm_storage_account" "example" {
   account_kind              = "StorageV2"
   account_replication_type  = "LRS"
   enable_https_traffic_only = true
-  access_tier               = "Cool"
+  access_tier               = "Hot"
   allow_blob_public_access  = true
 }
 
@@ -35,7 +35,7 @@ resource "azurerm_storage_account" "example2" {
   account_kind              = "StorageV2"
   account_replication_type  = "LRS"
   enable_https_traffic_only = true
-  access_tier               = "Cool"
+  access_tier               = "Hot"
   allow_blob_public_access  = true
 }
 
