@@ -303,7 +303,12 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error retrieving CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	d.SetId(*read.ID)
+	id, err := parse.CdnEndpointID(*read.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
 
 	return resourceArmCdnEndpointRead(d, meta)
 }

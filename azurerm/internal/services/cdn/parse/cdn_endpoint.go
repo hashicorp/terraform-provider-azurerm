@@ -7,6 +7,8 @@ import (
 )
 
 type CdnEndpointId struct {
+	Subscription  string
+	Provider      string
 	ResourceGroup string
 	ProfileName   string
 	Name          string
@@ -19,6 +21,8 @@ func CdnEndpointID(input string) (*CdnEndpointId, error) {
 	}
 
 	endpoint := CdnEndpointId{
+		Subscription:  id.SubscriptionID,
+		Provider:      id.Provider,
 		ResourceGroup: id.ResourceGroup,
 	}
 
@@ -35,4 +39,10 @@ func CdnEndpointID(input string) (*CdnEndpointId, error) {
 	}
 
 	return &endpoint, nil
+}
+
+// This ID is a workaround for issue: https://github.com/Azure/azure-rest-api-specs/issues/10576
+func (id CdnEndpointId) ID() string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/%s/profiles/%s/endpoints/%s",
+		id.Subscription, id.ResourceGroup, id.Provider, id.ProfileName, id.Name)
 }
