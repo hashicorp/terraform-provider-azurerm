@@ -60,6 +60,14 @@ func resourceArmLogicAppIntegrationAccount() *schema.Resource {
 				}, false),
 			},
 
+			"integration_service_environment_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.IntegrationServiceEnvironmentID,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -91,6 +99,9 @@ func resourceArmLogicAppIntegrationAccountCreateUpdate(d *schema.ResourceData, m
 			Name: logic.IntegrationAccountSkuName(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
+		account.IntegrationAccountProperties.IntegrationServiceEnvironment.ID = utils.String(iseID.(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, account); err != nil {
@@ -128,7 +139,18 @@ func resourceArmLogicAppIntegrationAccountRead(d *schema.ResourceData, meta inte
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("sku_name", string(resp.Sku.Name))
+
+	sku := ""
+	if resp.Sku != nil {
+		sku = string(resp.Sku.Name)
+	}
+	d.Set("sku_name", sku)
+
+	iseID := ""
+	if resp.IntegrationAccountProperties != nil && resp.IntegrationAccountProperties.IntegrationServiceEnvironment != nil && resp.IntegrationAccountProperties.IntegrationServiceEnvironment.ID != nil {
+		iseID = *resp.IntegrationAccountProperties.IntegrationServiceEnvironment.ID
+	}
+	d.Set("integration_service_environment_id", iseID)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

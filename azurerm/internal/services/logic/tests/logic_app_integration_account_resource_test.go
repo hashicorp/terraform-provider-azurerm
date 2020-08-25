@@ -68,6 +68,25 @@ func TestAccAzureRMLogicAppIntegrationAccount_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLogicAppIntegrationAccount_completeWithISE(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: testCheckAzureRMLogicAppIntegrationAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogicAppIntegrationAccount_completeWithISE(data),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogicAppIntegrationAccountExists(data.ResourceName),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func TestAccAzureRMLogicAppIntegrationAccount_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
 
@@ -203,6 +222,26 @@ resource "azurerm_logic_app_integration_account" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testAccAzureRMLogicAppIntegrationAccount_completeWithISE(data acceptance.TestData) string {
+	template := testAccAzureRMIntegrationServiceEnvironment_basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_integration_account" "test" {
+  name                = "acctest-IA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+
+  integration_service_environment_id = azurerm_integration_service_environment.test.id
+
   tags = {
     ENV = "Test"
   }
