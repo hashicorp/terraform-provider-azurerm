@@ -18,7 +18,7 @@ import (
 
 // NOTE: this isn't a recommended way of building resources in Terraform
 // this pattern is used to work around a generic but pedantic API endpoint
-var hdInsightHBaseClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightHBaseClusterHeadNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         2,
 	MaxInstanceCount:         utils.Int(2),
@@ -26,14 +26,14 @@ var hdInsightHBaseClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
 }
 
-var hdInsightHBaseClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightHBaseClusterWorkerNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount: true,
 	MinInstanceCount:        1,
 	CanSpecifyDisks:         false,
 	CanAutoScaleOnSchedule:  true,
 }
 
-var hdInsightHBaseClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
+var hdInsightHBaseClusterZookeeperNodeDefinition = HDInsightNodeDefinition{
 	CanSpecifyInstanceCount:  false,
 	MinInstanceCount:         3,
 	MaxInstanceCount:         utils.Int(3),
@@ -59,17 +59,17 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": azure.SchemaHDInsightName(),
+			"name": SchemaHDInsightName(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
-			"cluster_version": azure.SchemaHDInsightClusterVersion(),
+			"cluster_version": SchemaHDInsightClusterVersion(),
 
-			"tier": azure.SchemaHDInsightTier(),
+			"tier": SchemaHDInsightTier(),
 
-			"tls_min_version": azure.SchemaHDInsightTls(),
+			"tls_min_version": SchemaHDInsightTls(),
 
 			"component_version": {
 				Type:     schema.TypeList,
@@ -86,13 +86,13 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 				},
 			},
 
-			"gateway": azure.SchemaHDInsightsGateway(),
+			"gateway": SchemaHDInsightsGateway(),
 
-			"metastores": azure.SchemaHDInsightsExternalMetastores(),
+			"metastores": SchemaHDInsightsExternalMetastores(),
 
-			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
+			"storage_account": SchemaHDInsightsStorageAccounts(),
 
-			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
+			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
 			"roles": {
 				Type:     schema.TypeList,
@@ -100,11 +100,11 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"head_node": azure.SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHBaseClusterHeadNodeDefinition),
+						"head_node": SchemaHDInsightNodeDefinition("roles.0.head_node", hdInsightHBaseClusterHeadNodeDefinition),
 
-						"worker_node": azure.SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHBaseClusterWorkerNodeDefinition),
+						"worker_node": SchemaHDInsightNodeDefinition("roles.0.worker_node", hdInsightHBaseClusterWorkerNodeDefinition),
 
-						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHBaseClusterZookeeperNodeDefinition),
+						"zookeeper_node": SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHBaseClusterZookeeperNodeDefinition),
 					},
 				},
 			},
@@ -121,7 +121,7 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
-			"monitor": azure.SchemaHDInsightsMonitor(),
+			"monitor": SchemaHDInsightsMonitor(),
 		},
 	}
 }
@@ -144,7 +144,7 @@ func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interfa
 	componentVersions := expandHDInsightHBaseComponentVersion(componentVersionsRaw)
 
 	gatewayRaw := d.Get("gateway").([]interface{})
-	configurations := azure.ExpandHDInsightsConfigurations(gatewayRaw)
+	configurations := ExpandHDInsightsConfigurations(gatewayRaw)
 
 	metastoresRaw := d.Get("metastores").([]interface{})
 	metastores := expandHDInsightsMetastore(metastoresRaw)
@@ -154,7 +154,7 @@ func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interfa
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
 	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
-	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
+	storageAccounts, identity, err := ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("failure expanding `storage_account`: %s", err)
 	}
@@ -290,7 +290,7 @@ func resourceArmHDInsightHBaseClusterRead(d *schema.ResourceData, meta interface
 				return fmt.Errorf("failure flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(gateway)); err != nil {
+			if err := d.Set("gateway", FlattenHDInsightsConfigurations(gateway)); err != nil {
 				return fmt.Errorf("failure flattening `gateway`: %+v", err)
 			}
 
@@ -307,9 +307,9 @@ func resourceArmHDInsightHBaseClusterRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("failure flattening `roles`: %+v", err)
 		}
 
-		httpEndpoint := azure.FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
+		httpEndpoint := FindHDInsightConnectivityEndpoint("HTTPS", props.ConnectivityEndpoints)
 		d.Set("https_endpoint", httpEndpoint)
-		sshEndpoint := azure.FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
+		sshEndpoint := FindHDInsightConnectivityEndpoint("SSH", props.ConnectivityEndpoints)
 		d.Set("ssh_endpoint", sshEndpoint)
 
 		monitor, err := extensionsClient.GetMonitoringStatus(ctx, resourceGroup, name)

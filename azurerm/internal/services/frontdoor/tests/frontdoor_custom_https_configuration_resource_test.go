@@ -6,9 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -49,24 +49,15 @@ func testCheckAzureRMFrontDoorCustomHttpsConfigurationExists(resourceName string
 		}
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-		id, err := azure.ParseAzureResourceID(rs.Primary.Attributes["frontend_endpoint_id"])
+		id, err := parse.FrontendEndpointID(rs.Primary.Attributes["frontend_endpoint_id"])
 		if err != nil {
 			return fmt.Errorf("Bad: cannot parse frontend_endpoint_id for %q", resourceName)
 		}
-		frontDoorName := id.Path["frontdoors"]
-		// Link to issue: https://github.com/Azure/azure-sdk-for-go/issues/6762
-		if frontDoorName == "" {
-			frontDoorName = id.Path["Frontdoors"]
-		}
-		frontendEndpointName := id.Path["frontendendpoints"]
-		if frontendEndpointName == "" {
-			frontDoorName = id.Path["FrontendEndpoints"]
-		}
 
-		resp, err := client.Get(ctx, resourceGroup, frontDoorName, frontendEndpointName)
+		resp, err := client.Get(ctx, resourceGroup, id.FrontDoorName, id.Name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Front Door (%q) Frontend Endpoint %q (Resource Group %q) does not exist", frontDoorName, frontendEndpointName, resourceGroup)
+				return fmt.Errorf("Bad: Frontend Endpoint %q (Front Door %q / Resource Group %q) does not exist", id.Name, id.FrontDoorName, resourceGroup)
 			}
 			return fmt.Errorf("Bad: Get on FrontDoorsFrontendClient: %+v", err)
 		}

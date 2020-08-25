@@ -2,7 +2,21 @@ package parse
 
 import (
 	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/resourceid"
 )
+
+var _ resourceid.Formatter = DedicatedHostId{}
+
+func TestDedicatedHostIDFormatter(t *testing.T) {
+	subscriptionId := "12345678-1234-5678-1234-123456789012"
+	hostGroupId := NewDedicatedHostGroupId("group1", "hostGroup1")
+	actual := NewDedicatedHostId(hostGroupId, "host1").ID(subscriptionId)
+	expected := "/subscriptions/12345678-1234-5678-1234-123456789012/resourceGroups/group1/providers/Microsoft.Compute/hostGroups/hostGroup1/hosts/host1"
+	if actual != expected {
+		t.Fatalf("Expected %q but got %q", expected, actual)
+	}
+}
 
 func TestDedicatedHostID(t *testing.T) {
 	testData := []struct {
