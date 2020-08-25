@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2020-05-01/network"
@@ -80,7 +81,7 @@ func resourceArmFirewall() *schema.Resource {
 			},
 
 			"management_ip_configuration": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				ForceNew: true,
 				MaxItems: 1,
@@ -93,13 +94,14 @@ func resourceArmFirewall() *schema.Resource {
 						},
 						"subnet_id": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ForceNew:     true,
 							ValidateFunc: validateAzureFirewallSubnetName,
 						},
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"private_ip_address": {
@@ -173,7 +175,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		},
 		Zones: zones,
 	}
-	m := d.Get("management_ip_configuration").(*schema.Set).List()
+	m := d.Get("management_ip_configuration").([]interface{})
 	if len(m) == 1 {
 		mgmtIPConfig, mgmtSubnetName, mgmtVirtualNetworkName, err := expandArmFirewallIPConfigurations(m)
 		if err != nil {
@@ -483,8 +485,11 @@ func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string
 		return warnings, errors
 	}
 	subnetName := parsed.Path["subnets"]
-	if subnetName != "AzureFirewallSubnet" && subnetName != "AzureFirewallManagementSubnet" {
-		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureFirewallSubnet', or 'AzureFirewallManagementSubnet' for the management IP configuration, to be used for the Azure Firewall resource", k))
+	res := strings.Split(k, ".")[0]
+	if subnetName != "AzureFirewallSubnet" && res == "ip_configuration" {
+		errors = append(errors, fmt.Errorf("The name of the subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
+	} else if subnetName != "AzureFirewallManagementSubnet" && res == "management_ip_configuration" {
+		errors = append(errors, fmt.Errorf("The name of the management subnet for %q must be exactly 'AzureFirewallManagementSubnet' to be used for the Azure Firewall resource", k))
 	}
 
 	return warnings, errors
