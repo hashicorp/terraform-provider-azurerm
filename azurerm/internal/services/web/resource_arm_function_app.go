@@ -458,6 +458,8 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	// repo_url is required by the API
 	_, hasSourceControl := d.GetOk("source_control.0.repo_url")
 
+	scmType := web.ScmType("None")
+
 	if d.HasChange("site_config") || hasSourceControl {
 		siteConfig, err := expandFunctionAppSiteConfig(d)
 		if err != nil {
@@ -467,7 +469,9 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 			SiteConfig: &siteConfig,
 		}
 
-		if hasSourceControl {
+		scmType = siteConfig.ScmType
+		// ScmType being set blocks the update of source_control in _most_ cases, ADO is an exception
+		if hasSourceControl && scmType != web.ScmTypeVSTSRM {
 			siteConfigResource.SiteConfig.ScmType = "None"
 		}
 
@@ -476,7 +480,8 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	if hasSourceControl {
+	// Don't send source_control changes for ADO controlled Apps
+	if hasSourceControl && scmType != web.ScmTypeVSTSRM {
 		sourceControlProperties := expandAppServiceSiteSourceControl(d)
 		sourceControl := &web.SiteSourceControl{}
 		sourceControl.SiteSourceControlProperties = sourceControlProperties
