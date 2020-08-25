@@ -64,7 +64,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			}
 
 			if d.HasChange("roles.0.worker_node.0.autoscale") {
-				autoscale := azure.ExpandHDInsightNodeAutoScaleDefinition(workerNode["autoscale"].([]interface{}))
+				autoscale := ExpandHDInsightNodeAutoScaleDefinition(workerNode["autoscale"].([]interface{}))
 				params := hdinsight.AutoscaleConfigurationUpdateParameter{
 					Autoscale: autoscale,
 				}
