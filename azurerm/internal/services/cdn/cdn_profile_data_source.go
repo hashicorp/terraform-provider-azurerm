@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/migration"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -38,6 +40,15 @@ func dataSourceArmCdnProfile() *schema.Resource {
 			},
 
 			"tags": tags.SchemaDataSource(),
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceArmCdnProfile().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.CdnProfileV0ToV1,
+				Version: 0,
+			},
 		},
 	}
 }

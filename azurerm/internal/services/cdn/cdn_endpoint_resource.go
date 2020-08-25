@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/migration"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -200,6 +202,15 @@ func resourceArmCdnEndpoint() *schema.Resource {
 			"delivery_rule": endpointDeliveryRule(),
 
 			"tags": tags.Schema(),
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceArmCdnEndpoint().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.CdnEndpointV0ToV1,
+				Version: 0,
+			},
 		},
 	}
 }
