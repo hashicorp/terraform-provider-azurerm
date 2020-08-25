@@ -57,20 +57,20 @@ func resourceArmPostgreSQLServerKey() *schema.Resource {
 	}
 }
 
-func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (string, error) {
+func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.VaultsClient, keyVaultKeyURI string) (*string, error) {
 	keyVaultKeyID, err := azure.ParseKeyVaultChildID(keyVaultKeyURI)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	keyVaultIDRaw, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultsClient, keyVaultKeyID.KeyVaultBaseUrl)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version), nil
+	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.Name, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
 func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -116,7 +116,7 @@ func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta int
 		},
 	}
 
-	future, err := keysClient.CreateOrUpdate(ctx, serverID.Name, name, param, serverID.ResourceGroup)
+	future, err := keysClient.CreateOrUpdate(ctx, serverID.Name, *name, param, serverID.ResourceGroup)
 	if err != nil {
 		return fmt.Errorf("creating/updating PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", name, serverID.ResourceGroup, serverID.Name, err)
 	}
@@ -124,7 +124,7 @@ func resourceArmPostgreSQLServerKeyCreateUpdate(d *schema.ResourceData, meta int
 		return fmt.Errorf("waiting for creation/update of PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", name, serverID.ResourceGroup, serverID.Name, err)
 	}
 
-	resp, err := keysClient.Get(ctx, serverID.ResourceGroup, serverID.Name, name)
+	resp, err := keysClient.Get(ctx, serverID.ResourceGroup, serverID.Name, *name)
 	if err != nil {
 		return fmt.Errorf("retrieving PostgreSQL Server Key %q (Resource Group %q / Server %q): %+v", name, serverID.ResourceGroup, serverID.Name, err)
 	}
