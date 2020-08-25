@@ -112,6 +112,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 					},
 				},
 			},
+			"indexing_policy": common.CosmosDbIndexingPolicySchema(),
 		},
 	}
 }
@@ -143,7 +144,8 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 	db := documentdb.SQLContainerCreateUpdateParameters{
 		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
 			Resource: &documentdb.SQLContainerResource{
-				ID: &name,
+				ID:             &name,
+				IndexingPolicy: common.ExpandAzureRmCosmosDbIndexingPolicy(d),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -219,7 +221,8 @@ func resourceArmCosmosDbSQLContainerUpdate(d *schema.ResourceData, meta interfac
 	db := documentdb.SQLContainerCreateUpdateParameters{
 		SQLContainerCreateUpdateProperties: &documentdb.SQLContainerCreateUpdateProperties{
 			Resource: &documentdb.SQLContainerResource{
-				ID: &id.Name,
+				ID:             &id.Name,
+				IndexingPolicy: common.ExpandAzureRmCosmosDbIndexingPolicy(d),
 			},
 			Options: &documentdb.CreateUpdateOptions{},
 		},
@@ -315,6 +318,10 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 
 			if defaultTTL := res.DefaultTTL; defaultTTL != nil {
 				d.Set("default_ttl", defaultTTL)
+			}
+
+			if indexingPolicy := res.IndexingPolicy; indexingPolicy != nil {
+				d.Set("indexing_policy", common.FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy))
 			}
 		}
 	}
