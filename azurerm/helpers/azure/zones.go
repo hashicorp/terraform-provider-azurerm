@@ -2,7 +2,7 @@ package azure
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func SchemaZones() *schema.Schema {
@@ -12,7 +12,7 @@ func SchemaZones() *schema.Schema {
 		ForceNew: true,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
@@ -25,7 +25,7 @@ func SchemaSingleZone() *schema.Schema {
 		MaxItems: 1,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
@@ -38,7 +38,7 @@ func SchemaMultipleZones() *schema.Schema {
 		MinItems: 1,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
@@ -50,7 +50,7 @@ func SchemaZonesComputed() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Schema{
 			Type:         schema.TypeString,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
