@@ -41,6 +41,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku_name` - The sku name of the Logic App Integration Account.
 
+* `integration_service_environment_id` - The ID of the Integration Service Environment to which this Integration Account belongs. Empty if not part of an ISE.
+
 * `tags` - A mapping of tags assigned to the Logic App Integration Account.
 
 ## Timeouts

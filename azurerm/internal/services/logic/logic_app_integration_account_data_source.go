@@ -36,6 +36,11 @@ func dataSourceLogicAppIntegrationAccount() *schema.Resource {
 				Computed: true,
 			},
 
+			"integration_service_environment_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -65,6 +70,16 @@ func dataSourceArmLogicAppIntegrationAccountRead(d *schema.ResourceData, meta in
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("sku_name", string(resp.Sku.Name))
+	sku := ""
+	if resp.Sku != nil {
+		sku = string(resp.Sku.Name)
+	}
+	d.Set("sku_name", sku)
+
+	iseID := ""
+	if resp.IntegrationAccountProperties != nil && resp.IntegrationAccountProperties.IntegrationServiceEnvironment != nil && resp.IntegrationAccountProperties.IntegrationServiceEnvironment.ID != nil {
+		iseID = *resp.IntegrationAccountProperties.IntegrationServiceEnvironment.ID
+	}
+	d.Set("integration_service_environment_id", iseID)
 	return tags.FlattenAndSet(d, resp.Tags)
 }
