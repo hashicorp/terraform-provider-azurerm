@@ -101,7 +101,9 @@ func resourceArmLogicAppIntegrationAccountCreateUpdate(d *schema.ResourceData, m
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if iseID, ok := d.GetOk("integration_service_environment_id"); ok {
-		account.IntegrationAccountProperties.IntegrationServiceEnvironment.ID = utils.String(iseID.(string))
+		account.IntegrationAccountProperties.IntegrationServiceEnvironment = &logic.IntegrationServiceEnvironment{
+			ID: utils.String(iseID.(string)),
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, account); err != nil {
