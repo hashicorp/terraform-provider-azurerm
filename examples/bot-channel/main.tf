@@ -28,6 +28,6 @@ resource "azurerm_bot_channel_directline" "example" {
   }
 
   lifecycle {
-    ignore_changes = ["site"]
+    ignore_changes = [site]
   }
 }
