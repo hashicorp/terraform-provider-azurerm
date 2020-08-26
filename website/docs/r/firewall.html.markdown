@@ -64,7 +64,9 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `ip_configuration` - (Required) A `ip_configuration` block as documented below.
+* `ip_configuration` - (Required) An `ip_configuration` block as documented below.
+
+* `management_ip_configuration` - (Optional) The management IP configuration has the exact same configuration as an `ip_configuration` block documented below. Only one `management_ip_configuration` block is allowed. This block is needed when the firewall will be used to force tunnel traffic to a different device, e.g. on-prem firewall or an NVA in Azure. Adding or removing this block this forces a new resource to be created.
 
 * `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert` and `Deny`. Defaults to `Alert`
 
@@ -82,9 +84,11 @@ A `ip_configuration` block supports the following:
 
 * `subnet_id` - (Optional) Reference to the subnet associated with the IP Configuration.
 
--> **NOTE** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least `/26`.
+-> **NOTE** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least a `/26`.
 
 -> **NOTE** At least one and only one `ip_configuration` block may contain a `subnet_id`.
+
+-> **NOTE** The Management Subnet used for the Firewall must have the name `AzureFirewallManagementSubnet` and the subnet mask must be at least a `/26`.
 
 * `public_ip_address_id` - (Required) The Resource ID of the Public IP Address associated with the firewall.
 
