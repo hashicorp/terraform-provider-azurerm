@@ -101,7 +101,6 @@ func resourceArmFirewall() *schema.Resource {
 						"public_ip_address_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 						"private_ip_address": {
