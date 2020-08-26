@@ -246,23 +246,27 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ~> **Note:** In order to enable the use of your own custom `HTTPS certificate` you must grant `Azure Front Door Service` access to your key vault. For instuctions on how to configure your `Key Vault` correctly please refer to the [product documentation](https://docs.microsoft.com/en-us/azure/frontdoor/front-door-custom-domain-https#option-2-use-your-own-certificate).
 
+-> **NOTE:** Custom https configurations for a Front Door Frontend Endpoint can be defined both within the `azurerm_frontdoor` resource or by using a separate [`azurerm_frontdoor_custom_https_configuration` resource](frontdoor_custom_https_configuration.html). Defining custom https configurations using a separate resource allows for parallel creation/update.
+
 ---
 
 ## Attributes Reference
 
 `backend_pool` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Pool.
+* `id` - The ID of the Azure Front Door Backend Pool.
 
+---
 
 `backend` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend.
+* `id` - The ID of the Azure Front Door Backend.
 
+---
 
 `frontend_endpoint` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Frontend Endpoint.
+* `id` - The ID of the Azure Front Door Frontend Endpoint.
 
 * `provisioning_state` - Provisioning state of the Front Door.
 
@@ -270,25 +274,31 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 [//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
 
+---
 
 `backend_pool_health_probe` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Health Probe.
+* `id` - The ID of the Azure Front Door Backend Health Probe.
 
+---
 
 `backend_pool_load_balancing` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Load Balancer.
+* `id` - The ID of the Azure Front Door Backend Load Balancer.
 
+---
 
 `routing_rule` exports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Routing Rule.
+* `id` - The ID of the Azure Front Door Backend Routing Rule.
+
+---
 
 `custom_https_configuration` exports the following:
 
 * `minimum_tls_version` - Minimum client TLS version supported.
 
+---
 
 The following attributes are exported:
 

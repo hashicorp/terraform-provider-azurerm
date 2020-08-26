@@ -272,7 +272,7 @@ func resourceArmDedicatedHostDelete(d *schema.ResourceData, meta interface{}) er
 		Target:                    []string{"NotFound"},
 		Refresh:                   dedicatedHostDeletedRefreshFunc(ctx, client, id),
 		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 10,
+		ContinuousTargetOccurence: 20,
 		Timeout:                   d.Timeout(schema.TimeoutDelete),
 	}
 

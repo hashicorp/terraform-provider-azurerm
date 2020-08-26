@@ -73,9 +73,11 @@ func resourceArmMonitorScheduledQueryRulesAlert() *schema.Resource {
 							},
 						},
 						"custom_webhook_payload": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Default:      "{}",
+							Type:     schema.TypeString,
+							Optional: true,
+							// TODO remove `Computed: true` in 3.0. This is a breaking change where the Default used to be "{}"
+							// We'll keep Computed: true for users who expect the same functionality but will remove it in 3.0
+							Computed:     true,
 							ValidateFunc: validation.StringIsJSON,
 						},
 						"email_subject": {
@@ -418,7 +420,9 @@ func expandMonitorScheduledQueryRulesAlertAction(input []interface{}) *insights.
 		actionGroups := v["action_group"].(*schema.Set).List()
 		result.ActionGroup = utils.ExpandStringSlice(actionGroups)
 		result.EmailSubject = utils.String(v["email_subject"].(string))
-		result.CustomWebhookPayload = utils.String(v["custom_webhook_payload"].(string))
+		if v := v["custom_webhook_payload"].(string); v != "" {
+			result.CustomWebhookPayload = utils.String(v)
+		}
 	}
 
 	return &result
