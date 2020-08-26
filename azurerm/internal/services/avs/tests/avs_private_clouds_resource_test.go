@@ -89,7 +89,7 @@ func TestAccAzureRMavsPrivateCloud_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
 				),
 			},
-			data.ImportStep("nsxt_password", "vcenter_password"),
+			data.ImportStep("nsxt_password", "vcenter_password", "identity_source.#", "identity_source.0.alias", "identity_source.0.base_group_dn", "identity_source.0.base_user_dn", "identity_source.0.domain", "identity_source.0.name", "identity_source.0.password", "identity_source.0.primary_server_url", "identity_source.0.secondary_server_url", "identity_source.0.ssl_enabled", "identity_source.0.username"),
 		},
 	})
 }
@@ -121,7 +121,7 @@ func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
 				),
 			},
-			data.ImportStep("nsxt_password", "vcenter_password"),
+			data.ImportStep("nsxt_password", "vcenter_password", "identity_source.#", "identity_source.0.alias", "identity_source.0.base_group_dn", "identity_source.0.base_user_dn", "identity_source.0.domain", "identity_source.0.name", "identity_source.0.password", "identity_source.0.primary_server_url", "identity_source.0.secondary_server_url", "identity_source.0.ssl_enabled", "identity_source.0.username"),
 			{
 				Config: testAccAzureRMavsPrivateCloud_update(data),
 				Check: resource.ComposeTestCheckFunc(
@@ -142,7 +142,7 @@ func TestAccAzureRMavsPrivateCloud_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(data.ResourceName, "vmotion_network"),
 				),
 			},
-			data.ImportStep("nsxt_password", "vcenter_password"),
+			data.ImportStep("nsxt_password", "vcenter_password", "identity_source.#", "identity_source.0.alias", "identity_source.0.base_group_dn", "identity_source.0.base_user_dn", "identity_source.0.domain", "identity_source.0.name", "identity_source.0.password", "identity_source.0.primary_server_url", "identity_source.0.secondary_server_url", "identity_source.0.ssl_enabled", "identity_source.0.username"),
 		},
 	})
 }

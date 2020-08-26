@@ -348,9 +348,9 @@ func resourceArmAvsPrivateCloudRead(d *schema.ResourceData, meta interface{}) er
 		if err := d.Set("circuit", flattenArmPrivateCloudCircuit(props.Circuit)); err != nil {
 			return fmt.Errorf("setting `circuit`: %+v", err)
 		}
-		if err := d.Set("identity_source", flattenArmPrivateCloudIdentitySourceArray(props.IdentitySources)); err != nil {
-			return fmt.Errorf("setting `identity_source`: %+v", err)
-		}
+		//if err := d.Set("identity_source", flattenArmPrivateCloudIdentitySourceArray(props.IdentitySources)); err != nil {
+		//	return fmt.Errorf("setting `identity_source`: %+v", err)
+		//}
 		d.Set("internet_connected", props.Internet == avs.Enabled)
 		d.Set("hcx_cloud_manager_endpoint", props.Endpoints.HcxCloudManager)
 		d.Set("nsxt_manager_endpoint", props.Endpoints.NsxtManager)
