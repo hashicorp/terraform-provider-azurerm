@@ -20,14 +20,28 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
-* The `zone` attribute can no longer be passed in as empty [GH-8233]
 * Data Source: `azurerm_app_service` - ensuring the `site_config` block is correctly set into the state [GH-8212]
 * Enhanced Validation: supporting "centralindia", "southindia" and "westindia" as valid regions in Azure Public (working around invalid data from the Azure API) [GH-8217]
 * `azurerm_application_gateway` - allow setting `ip_addresses` within the `backend_address_pool` block to an empty list [GH-8210]
+* `azurerm_application_gateway` - adding validation to the `zone` field [GH-8233]
 * `azurerm_container_group` - the `secure_environment_variables` field within the `container` now maps keys with empty values [GH-8151]
 * `azurerm_dedicated_host` - waiting for the resource to be gone 20 times rather than 10 to work around an API issue [GH-8221]
+* `azurerm_dedicated_host_group` - adding validation to the `zone` field [GH-8233]
+* `azurerm_firewall` - adding validation to the `zone` field [GH-8233]
+* `azurerm_hardware_security_module` - adding validation to the `zone` field [GH-8233]
+* `azurerm_lb` - adding validation to the `zone` field [GH-8233]
 * `azurerm_linux_virtual_machine` - support for updating `ultra_ssd_enabled` within the `additional_capabilities` block without recreating the virtual machine [GH-8015]
+* `azurerm_linux_virtual_machine_scale_set` - adding validation to the `zone` field [GH-8233]
+* `azurerm_managed_disk` - adding validation to the `zone` field [GH-8233]
+* `azurerm_nat_gateway` - adding validation to the `zone` field [GH-8233]
+* `azurerm_orchestrated_virtual_machine_scale_set` - adding validation to the `zone` field [GH-8233]
+* `azurerm_public_ip_prefix` - adding validation to the `zone` field [GH-8233]
+* `azurerm_public_ip` - adding validation to the `zone` field [GH-8233]
+* `azurerm_redis_cache` - adding validation to the `zone` field [GH-8233]
+* `azurerm_virtual_machine` - adding validation to the `zone` field [GH-8233]
+* `azurerm_virtual_machine_scale_set` - adding validation to the `zone` field [GH-8233]
 * `azurerm_windows_virtual_machine` - support for updating `ultra_ssd_enabled` within the `additional_capabilities` block without recreating the virtual machine [GH-8015]
+* `azurerm_windows_virtual_machine_scale_set` - adding validation to the `zone` field [GH-8233]
 
 ## 2.24.0 (August 20, 2020)
 
