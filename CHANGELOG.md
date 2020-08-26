@@ -4,6 +4,10 @@ UPGRADE NOTES:
 
 * `azurerm_container_group` - The `secure_environment_variables` field within the `container` now maps keys with empty values, which differs from previous versions of this provider which ignored empty values [GH-8151]
 
+FEATURES:
+
+* **New Resource** `azurerm_spring_cloud_certificate` [GH-8067]
+
 IMPROVEMENTS:
 
 * `azurerm_app_service_slot_virtual_network_swift_connection` - adding validation that the `app_service_id` is an App Service / Function App ID [GH-8111]
