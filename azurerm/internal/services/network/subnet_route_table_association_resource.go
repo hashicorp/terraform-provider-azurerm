@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -65,7 +66,7 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	parsedRouteTableId, err := ParseRouteTableID(routeTableId)
+	parsedRouteTableId, err := parse.RouteTableID(routeTableId)
 	if err != nil {
 		return err
 	}
@@ -200,7 +201,7 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 	}
 
 	// once we have the route table id to lock on, lock on that
-	parsedRouteTableId, err := ParseRouteTableID(*props.RouteTable.ID)
+	parsedRouteTableId, err := parse.RouteTableID(*props.RouteTable.ID)
 	if err != nil {
 		return err
 	}

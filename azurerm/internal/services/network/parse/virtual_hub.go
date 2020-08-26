@@ -1,4 +1,4 @@
-package network
+package parse
 
 import (
 	"fmt"
@@ -6,22 +6,22 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type VPNGatewayResourceID struct {
+type VirtualHubId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func ParseVPNGatewayID(input string) (*VPNGatewayResourceID, error) {
+func VirtualHubID(input string) (*VirtualHubId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse VPN Gateway ID %q: %+v", input, err)
+		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Hub ID %q: %+v", input, err)
 	}
 
-	gateway := VPNGatewayResourceID{
+	virtualHub := VirtualHubId{
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	if gateway.Name, err = id.PopSegment("vpnGateways"); err != nil {
+	if virtualHub.Name, err = id.PopSegment("virtualHubs"); err != nil {
 		return nil, err
 	}
 
@@ -29,5 +29,5 @@ func ParseVPNGatewayID(input string) (*VPNGatewayResourceID, error) {
 		return nil, err
 	}
 
-	return &gateway, nil
+	return &virtualHub, nil
 }

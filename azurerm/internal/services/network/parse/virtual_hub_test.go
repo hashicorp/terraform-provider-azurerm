@@ -1,14 +1,12 @@
-package network
+package parse
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestParseRouteFilter(t *testing.T) {
+func TestParseVirtualHub(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *RouteFilterResourceID
+		Expected *VirtualHubId
 	}{
 		{
 			Name:     "Empty",
@@ -16,19 +14,19 @@ func TestParseRouteFilter(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "No Route Filter Segment",
+			Name:     "No Virtual Hubs Segment",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
 			Expected: nil,
 		},
 		{
-			Name:     "No Route Filter Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/routeFilters/",
+			Name:     "No Virtual Hubs Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualHubs/",
 			Expected: nil,
 		},
 		{
 			Name:  "Completed",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/routeFilters/example",
-			Expected: &RouteFilterResourceID{
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualHubs/example",
+			Expected: &VirtualHubId{
 				Name:          "example",
 				ResourceGroup: "foo",
 			},
@@ -38,7 +36,7 @@ func TestParseRouteFilter(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseRouteFilterID(v.Input)
+		actual, err := VirtualHubID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

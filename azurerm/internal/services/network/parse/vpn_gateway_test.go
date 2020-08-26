@@ -1,14 +1,14 @@
-package network
+package parse
 
 import (
 	"testing"
 )
 
-func TestParseRouteTable(t *testing.T) {
+func TestParseVPNGateway(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *RouteTableResourceID
+		Expected *VPNGatewayId
 	}{
 		{
 			Name:     "Empty",
@@ -16,19 +16,19 @@ func TestParseRouteTable(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "No Route Table Segment",
+			Name:     "No VPN Gateways Segment",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
 			Expected: nil,
 		},
 		{
-			Name:     "No Route Table Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/routeTables/",
+			Name:     "No VPN Gateways Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/vpnGateways/",
 			Expected: nil,
 		},
 		{
 			Name:  "Completed",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/routeTables/example",
-			Expected: &RouteTableResourceID{
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/vpnGateways/example",
+			Expected: &VPNGatewayId{
 				Name:          "example",
 				ResourceGroup: "foo",
 			},
@@ -38,7 +38,7 @@ func TestParseRouteTable(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseRouteTableID(v.Input)
+		actual, err := ParseVPNGatewayID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

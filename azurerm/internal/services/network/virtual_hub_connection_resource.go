@@ -81,7 +81,7 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualHubID(d.Get("virtual_hub_id").(string))
+	id, err := parse.VirtualHubID(d.Get("virtual_hub_id").(string))
 	if err != nil {
 		return err
 	}
