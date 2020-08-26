@@ -340,7 +340,7 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
   custom_rule {
     name                           = "Rule3"
     enabled                        = true
-    priority                       = 2
+    priority                       = 3
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
     type                           = "MatchRule"
