@@ -141,7 +141,7 @@ func testCheckAzureRMVirtualHubConnectionExists(resourceName string) resource.Te
 			return fmt.Errorf("Virtual Hub Connection not found: %s", resourceName)
 		}
 
-		id, err := parse.ParseVirtualHubConnectionID(rs.Primary.ID)
+		id, err := parse.VirtualHubConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -166,7 +166,7 @@ func testCheckAzureRMVirtualHubConnectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parse.ParseVirtualHubConnectionID(rs.Primary.ID)
+		id, err := parse.VirtualHubConnectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

@@ -82,7 +82,7 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseVirtualHubID(d.Get("virtual_hub_id").(string))
+	id, err := parse.VirtualHubID(d.Get("virtual_hub_id").(string))
 	if err != nil {
 		return err
 	}
@@ -134,12 +134,12 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
-	virtualHubClient := meta.(*clients.Client).Network.VirtualHubClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseVirtualHubConnectionID(d.Id())
+	id, err := parse.VirtualHubConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -154,16 +154,8 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("reading Connection %q (Virtual Hub %q / Resource Group %q): %+v", id.Name, id.Name, id.ResourceGroup, err)
 	}
 
-	virtualHubResp, err := virtualHubClient.Get(ctx, id.ResourceGroup, id.VirtualHubName)
-	if err != nil {
-		return fmt.Errorf("retrieving Virtual Hub %q (Resource Group %q): %+v", id.VirtualHubName, id.ResourceGroup, err)
-	}
-	if virtualHubResp.ID == nil || *virtualHubResp.ID == "" {
-		return fmt.Errorf("Cannot read Virtual Hub %q (Resource Group %q) ID", id.VirtualHubName, id.ResourceGroup)
-	}
-
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", virtualHubResp.ID)
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.Name).ID(subscriptionId))
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
 		d.Set("internet_security_enabled", props.EnableInternetSecurity)
@@ -182,7 +174,7 @@ func resourceArmVirtualHubConnectionDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ParseVirtualHubConnectionID(d.Id())
+	id, err := parse.VirtualHubConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
