@@ -23,7 +23,25 @@ import (
 )
 
 func resourceArmCdnEndpoint() *schema.Resource {
-	tmpResource := &schema.Resource{
+
+	return &schema.Resource{
+		Create: resourceArmCdnEndpointCreate,
+		Read:   resourceArmCdnEndpointRead,
+		Update: resourceArmCdnEndpointUpdate,
+		Delete: resourceArmCdnEndpointDelete,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.CdnEndpointID(id)
+			return err
+		}),
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -186,32 +204,11 @@ func resourceArmCdnEndpoint() *schema.Resource {
 
 			"tags": tags.Schema(),
 		},
-	}
-
-	return &schema.Resource{
-		Create: resourceArmCdnEndpointCreate,
-		Read:   resourceArmCdnEndpointRead,
-		Update: resourceArmCdnEndpointUpdate,
-		Delete: resourceArmCdnEndpointDelete,
-
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
-		},
-
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := parse.CdnEndpointID(id)
-			return err
-		}),
-
-		Schema: tmpResource.Schema,
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type:    tmpResource.CoreConfigSchema().ImpliedType(),
+				Type:    migration.CdnEndpointV0Schema().CoreConfigSchema().ImpliedType(),
 				Upgrade: migration.CdnEndpointV0ToV1,
 				Version: 0,
 			},
