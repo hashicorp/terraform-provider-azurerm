@@ -57,11 +57,10 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 			},
 
 			"node_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				// TODO: this can go to 0 after the next version of the Azure SDK
-				ValidateFunc: validation.IntBetween(1, 100),
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"tags": tags.Schema(),
@@ -130,7 +129,7 @@ func resourceArmKubernetesClusterNodePool() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				// NOTE: rather than setting `0` users should instead pass `null` here
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"node_labels": {
