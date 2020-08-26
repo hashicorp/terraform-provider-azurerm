@@ -198,10 +198,6 @@ func resourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.VirtualHubProperties; props != nil {
-		// TODO 3.0: remove the two lines below
-		d.Set("hub_to_vitual_network_traffic_allowed", false)
-		d.Set("vitual_network_to_hub_gateways_traffic_allowed", false)
-
 		d.Set("address_prefix", props.AddressPrefix)
 
 		if err := d.Set("route", flattenArmVirtualHubRoute(props.RouteTable)); err != nil {

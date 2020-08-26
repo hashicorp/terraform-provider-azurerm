@@ -18,7 +18,8 @@ import (
 
 func resourceArmVirtualHubConnection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmVirtualHubConnectionCreate,
+		Create: resourceArmVirtualHubConnectionCreateOrUpdate,
+		Update: resourceArmVirtualHubConnectionCreateOrUpdate,
 		Read:   resourceArmVirtualHubConnectionRead,
 		Delete: resourceArmVirtualHubConnectionDelete,
 
@@ -77,7 +78,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 	}
 }
 
-func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmVirtualHubConnectionCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -92,14 +93,16 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 
 	name := d.Get("name").(string)
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Connection %q (Virtual Hub %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+	if d.IsNewResource() {
+		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("checking for presence of existing Connection %q (Virtual Hub %q / Resource Group %q): %+v", name, id.Name, id.ResourceGroup, err)
+			}
 		}
-	}
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_virtual_hub_connection", *existing.ID)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_virtual_hub_connection", *existing.ID)
+		}
 	}
 
 	connection := network.HubVirtualNetworkConnection{
