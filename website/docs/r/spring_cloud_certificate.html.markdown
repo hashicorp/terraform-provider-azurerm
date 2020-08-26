@@ -3,12 +3,12 @@ subcategory: "Spring Cloud"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_spring_cloud_certificate"
 description: |-
-  Manage an Azure Spring Cloud Certificate.
+  Manages an Azure Spring Cloud Certificate.
 ---
 
 # azurerm_spring_cloud_certificate
 
-Manage an Azure Spring Cloud Certificate.
+Manages an Azure Spring Cloud Certificate.
 
 ## Example Usage
 
