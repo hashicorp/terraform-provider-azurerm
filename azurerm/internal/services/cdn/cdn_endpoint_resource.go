@@ -23,7 +23,6 @@ import (
 )
 
 func resourceArmCdnEndpoint() *schema.Resource {
-
 	return &schema.Resource{
 		Create: resourceArmCdnEndpointCreate,
 		Read:   resourceArmCdnEndpointRead,
