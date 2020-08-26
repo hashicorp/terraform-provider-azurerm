@@ -1,4 +1,4 @@
-package network
+package parse
 
 import (
 	"fmt"
@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type NetworkSecurityGroupResourceID struct {
+type NetworkSecurityGroupId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func ParseNetworkSecurityGroupID(input string) (*NetworkSecurityGroupResourceID, error) {
+func NetworkSecurityGroupID(input string) (*NetworkSecurityGroupId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Network Security Group ID %q: %+v", input, err)
 	}
 
-	networkSecurityGroup := NetworkSecurityGroupResourceID{
+	networkSecurityGroup := NetworkSecurityGroupId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -31,7 +32,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 		Delete: resourceArmNetworkSecurityGroupDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := ParseNetworkSecurityGroupID(id)
+			_, err := parse.NetworkSecurityGroupID(id)
 			return err
 		}),
 
@@ -247,7 +248,7 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseNetworkSecurityGroupID(d.Id())
+	id, err := parse.NetworkSecurityGroupID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -282,7 +283,7 @@ func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParseNetworkSecurityGroupID(d.Id())
+	id, err := parse.NetworkSecurityGroupID(d.Id())
 	if err != nil {
 		return err
 	}
