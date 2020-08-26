@@ -20,12 +20,14 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* The `zone` attribute can no longer be passed in as empty [GH-8233]
 * Data Source: `azurerm_app_service` - ensuring the `site_config` block is correctly set into the state [GH-8212]
 * Enhanced Validation: supporting "centralindia", "southindia" and "westindia" as valid regions in Azure Public (working around invalid data from the Azure API) [GH-8217]
 * `azurerm_application_gateway` - allow setting `ip_addresses` within the `backend_address_pool` block to an empty list [GH-8210]
 * `azurerm_container_group` - the `secure_environment_variables` field within the `container` now maps keys with empty values [GH-8151]
 * `azurerm_dedicated_host` - waiting for the resource to be gone 20 times rather than 10 to work around an API issue [GH-8221]
-* The `zone` attribute can no longer be passed in as empty [GH-8233]
+* `azurerm_linux_virtual_machine` - support for updating `ultra_ssd_enabled` within the `additional_capabilities` block without recreating the virtual machine [GH-8015]
+* `azurerm_windows_virtual_machine` - support for updating `ultra_ssd_enabled` within the `additional_capabilities` block without recreating the virtual machine [GH-8015]
 
 ## 2.24.0 (August 20, 2020)
 
