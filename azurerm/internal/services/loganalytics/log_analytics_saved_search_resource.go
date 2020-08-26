@@ -2,14 +2,16 @@ package loganalytics
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"log"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -20,9 +22,8 @@ import (
 
 func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmLogAnalyticsSavedSearchCreateUpdate,
+		Create: resourceArmLogAnalyticsSavedSearchCreate,
 		Read:   resourceArmLogAnalyticsSavedSearchRead,
-		Update: resourceArmLogAnalyticsSavedSearchCreateUpdate,
 		Delete: resourceArmLogAnalyticsSavedSearchDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -53,6 +54,7 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 
 			"category": {
 				Type:         schema.TypeString,
+				ForceNew:     true,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -60,39 +62,41 @@ func resourceArmLogAnalyticsSavedSearch() *schema.Resource {
 			"display_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"query": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"function_alias": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"function_parameters": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"version": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeSet,
 				Optional: true,
-				Default:  2,
-				// TODO Test less than 2 and waaaay higher than 2
-				// ValidateFunc: validation.IntAtLeast(2),
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^[a-zA-Z0-9!-_]*:[a-zA-Z0-9!_-]+=[a-zA-Z0-9!_-]+`),
+						"Log Analytics Saved Search Function Parameters must be in the following format: param-name1:type1 = default_value1",
+					),
+				},
 			},
 		},
 	}
 }
 
-func resourceArmLogAnalyticsSavedSearchCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmLogAnalyticsSavedSearchCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.SavedSearchesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -120,12 +124,22 @@ func resourceArmLogAnalyticsSavedSearchCreateUpdate(d *schema.ResourceData, meta
 
 	parameters := operationalinsights.SavedSearch{
 		SavedSearchProperties: &operationalinsights.SavedSearchProperties{
-			Category:           utils.String(d.Get("category").(string)),
-			DisplayName:        utils.String(d.Get("display_name").(string)),
-			Query:              utils.String(d.Get("query").(string)),
-			FunctionAlias:      utils.String(d.Get("function_alias").(string)),
-			FunctionParameters: utils.String(d.Get("function_parameters").(string)),
+			Category:      utils.String(d.Get("category").(string)),
+			DisplayName:   utils.String(d.Get("display_name").(string)),
+			Query:         utils.String(d.Get("query").(string)),
+			FunctionAlias: utils.String(d.Get("function_alias").(string)),
 		},
+	}
+
+	if v, ok := d.GetOk("function_parameters"); ok {
+		attrs := v.(*schema.Set).List()
+		result := make([]string, 0)
+		for _, item := range attrs {
+			if item != nil {
+				result = append(result, item.(string))
+			}
+		}
+		parameters.SavedSearchProperties.FunctionParameters = utils.String(strings.Join(result, ", "))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, name, parameters); err != nil {
@@ -182,8 +196,9 @@ func resourceArmLogAnalyticsSavedSearchRead(d *schema.ResourceData, meta interfa
 		d.Set("category", props.Category)
 		d.Set("query", props.Query)
 		d.Set("function_alias", props.FunctionAlias)
-		d.Set("function_parameters", props.FunctionParameters)
-		d.Set("version", props.Version)
+		if props.FunctionParameters != nil {
+			d.Set("function_parameters", strings.Split(*props.FunctionParameters, ", "))
+		}
 	}
 
 	return nil

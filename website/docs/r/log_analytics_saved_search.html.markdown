@@ -44,17 +44,15 @@ The following arguments are supported:
 
 * `log_analytics_workspace_id` - (Required) Specifies the ID of the Log Analytics Work Space that the Saved Search will be associated with. Changing this forces a new resource to be created.
 
-* `display_name` - (Required) The name that Saved Search will be displayed as.
+* `display_name` - (Required) The name that Saved Search will be displayed as. Changing this forces a new resource to be created.
 
-* `category` - (Required) The category that the Saved Search will be listed under.
+* `category` - (Required) The category that the Saved Search will be listed under. Changing this forces a new resource to be created.
 
-* `query` - (Required) The query expression for the saved search.
+* `query` - (Required) The query expression for the saved search. Changing this forces a new resource to be created.
 
-* `function_alias` - (Optional) The function alias if the query serves as a function.
+* `function_alias` - (Optional) The function alias if the query serves as a function. Changing this forces a new resource to be created.
 
-* `function_parameters` - (Optional) The function parameters if the query serves as a function.
-
-* `version` - (Optional) The version number of the query language. Defaults to `2`.
+* `function_parameters` - (Optional) The function parameters if the query serves as a function. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

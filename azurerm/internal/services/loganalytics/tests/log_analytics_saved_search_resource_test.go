@@ -31,7 +31,7 @@ func TestAccAzureRMLogAnalyticsSavedSearch_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLogAnalyticsSavedSearch_update(t *testing.T) {
+func TestAccAzureRMLogAnalyticsSavedSearch_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -40,21 +40,7 @@ func TestAccAzureRMLogAnalyticsSavedSearch_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMLogAnalyticsSavedSearchDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMLogAnalyticsSavedSearch_basic(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSavedSearchExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLogAnalyticsSavedSearch_update(data),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsSavedSearchExists(data.ResourceName),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: testAccAzureRMLogAnalyticsSavedSearch_basic(data),
+				Config: testAccAzureRMLogAnalyticsSavedSearch_complete(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMLogAnalyticsSavedSearchExists(data.ResourceName),
 				),
@@ -65,7 +51,7 @@ func TestAccAzureRMLogAnalyticsSavedSearch_update(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsSavedSearch_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -80,7 +66,7 @@ func TestAccAzureRMLogAnalyticsSavedSearch_requiresImport(t *testing.T) {
 			},
 			{
 				Config:      testAccAzureRMLogAnalyticsSavedSearch_requiresImport(data),
-				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_workspace"),
+				ExpectError: acceptance.RequiresImportError("azurerm_log_analytics_saved_search"),
 			},
 		},
 	})
@@ -165,21 +151,21 @@ resource "azurerm_log_analytics_saved_search" "test" {
   name                       = "acctestLASS-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  category     = "testCategory"
-  display_name = "testDisplayName"
-  query        = "testQuery"
+  category     = "Saved Search Test Category"
+  display_name = "Create or Update Saved Search Test"
+  query        = "Heartbeat | summarize Count() by Computer | take a"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func testAccAzureRMLogAnalyticsSavedSearch_requiresImport(data acceptance.TestData) string {
-	template := testAccAzureRMLogAnalyticsWorkspace_basic(data)
+	template := testAccAzureRMLogAnalyticsSavedSearch_basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_log_analytics_saved_search" "test" {
+resource "azurerm_log_analytics_saved_search" "import" {
   name                       = azurerm_log_analytics_saved_search.test.name
-  log_analytics_workspace_id = azurerm_log_analytics_saved_search.test.workspace_id
+  log_analytics_workspace_id = azurerm_log_analytics_saved_search.test.log_analytics_workspace_id
 
   category     = azurerm_log_analytics_saved_search.test.category
   display_name = azurerm_log_analytics_saved_search.test.display_name
@@ -188,7 +174,7 @@ resource "azurerm_log_analytics_saved_search" "test" {
 `, template)
 }
 
-func testAccAzureRMLogAnalyticsSavedSearch_update(data acceptance.TestData) string {
+func testAccAzureRMLogAnalyticsSavedSearch_complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -210,13 +196,12 @@ resource "azurerm_log_analytics_saved_search" "test" {
   name                       = "acctestLASS-%d"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  category     = "testCategory"
-  display_name = "testDisplayName"
-  query        = "testQuery"
+  category     = "Saved Search Test Category"
+  display_name = "Create or Update Saved Search Test"
+  query        = "Heartbeat | summarize Count() by Computer | take a"
 
-  function_alias      = "testAlias"
-  function_parameters = "testParameters"
-  version             = 0
+  function_alias      = "heartbeat_func"
+  function_parameters = ["a:int=1"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
