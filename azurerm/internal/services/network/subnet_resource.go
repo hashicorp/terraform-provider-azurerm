@@ -112,7 +112,7 @@ func resourceArmSubnet() *schema.Resource {
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
 											"Microsoft.Kusto/clusters",
 											"Microsoft.Logic/integrationServiceEnvironments",
-											"Microsoft.MachineLearningServices.workspaces",
+											"Microsoft.MachineLearningServices/workspaces",
 											"Microsoft.Netapp/volumes",
 											"Microsoft.Network/managedResolvers",
 											"Microsoft.PowerPlatform/vnetaccesslinks",
