@@ -12,10 +12,23 @@ type VirtualMachineExtensionId struct {
 	VirtualMachine string
 }
 
+func NewVirtualMachineExtensionId(id VirtualMachineId, name string) VirtualMachineExtensionId {
+	return VirtualMachineExtensionId{
+		ResourceGroup:  id.ResourceGroup,
+		VirtualMachine: id.Name,
+		Name:           name,
+	}
+}
+
+func (id VirtualMachineExtensionId) ID(subscriptionId string) string {
+	base := NewVirtualMachineId(id.ResourceGroup, id.VirtualMachine).ID(subscriptionId)
+	return fmt.Sprintf("%s/extensions/%s", base, id.Name)
+}
+
 func VirtualMachineExtensionID(input string) (*VirtualMachineExtensionId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse App Service ID %q: %+v", input, err)
+		return nil, fmt.Errorf("unable to parse Virtual Machine Extension ID %q: %+v", input, err)
 	}
 
 	virtualMachineExtension := VirtualMachineExtensionId{

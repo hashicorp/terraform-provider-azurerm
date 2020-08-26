@@ -95,7 +95,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 ## Import
 
-Policy Set Definitions can be imported using the Resource ID, e.g.
+Policy Set Definitions can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/testPolicySet
