@@ -85,10 +85,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the API Management Service API Diagnostics Logs should exist. Changing this forces a new API Management Service API Diagnostics Logs to be created.
 
----
-
-* `enabled` - (Optional) Should the Diagnostics Logs be enabled?
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

@@ -65,12 +65,6 @@ func resourceArmApiManagementApiDiagnostic() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validate.ApiManagementLoggerID,
 			},
-
-			"enabled": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "this property has been removed from the API and will be removed in version 3.0 of the provider",
-			},
 		},
 	}
 }
@@ -112,7 +106,7 @@ func resourceArmApiManagementApiDiagnosticCreateUpdate(d *schema.ResourceData, m
 	if err != nil {
 		return fmt.Errorf("retrieving Diagnostic %q (Resource Group %q / API Management Service %q / API %q): %+v", diagnosticId, resourceGroup, serviceName, apiName, err)
 	}
-	if resp.ID == nil {
+	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("reading ID for Diagnostic %q (Resource Group %q / API Management Service %q / API %q): ID is empty", diagnosticId, resourceGroup, serviceName, apiName)
 	}
 	d.SetId(*resp.ID)
