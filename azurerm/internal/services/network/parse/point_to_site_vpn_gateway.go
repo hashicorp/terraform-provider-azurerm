@@ -1,4 +1,4 @@
-package network
+package parse
 
 import (
 	"fmt"
@@ -6,18 +6,18 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type PointToSiteVPNGatewayResourceID struct {
+type PointToSiteVPNGatewayId struct {
 	ResourceGroup string
 	Name          string
 }
 
-func ParsePointToSiteVPNGatewayID(input string) (*PointToSiteVPNGatewayResourceID, error) {
+func PointToSiteVPNGatewayID(input string) (*PointToSiteVPNGatewayId, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Point-to-Site VPN Gateway ID %q: %+v", input, err)
 	}
 
-	routeTable := PointToSiteVPNGatewayResourceID{
+	routeTable := PointToSiteVPNGatewayId{
 		ResourceGroup: id.ResourceGroup,
 	}
 

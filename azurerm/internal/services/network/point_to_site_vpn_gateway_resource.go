@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -176,7 +177,7 @@ func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParsePointToSiteVPNGatewayID(d.Id())
+	id, err := parse.PointToSiteVPNGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -232,7 +233,7 @@ func resourceArmPointToSiteVPNGatewayDelete(d *schema.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := ParsePointToSiteVPNGatewayID(d.Id())
+	id, err := parse.PointToSiteVPNGatewayID(d.Id())
 	if err != nil {
 		return err
 	}
