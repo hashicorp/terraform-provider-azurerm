@@ -19,8 +19,8 @@ import (
 func resourceArmVirtualHubConnection() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmVirtualHubConnectionCreateOrUpdate,
-		Update: resourceArmVirtualHubConnectionCreateOrUpdate,
 		Read:   resourceArmVirtualHubConnectionRead,
+		Update: resourceArmVirtualHubConnectionCreateOrUpdate,
 		Delete: resourceArmVirtualHubConnectionDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -30,6 +30,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
@@ -161,6 +162,8 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.Name).ID(subscriptionId))
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
+		d.Set("hub_to_vitual_network_traffic_allowed", props.AllowHubToRemoteVnetTransit)
+		d.Set("vitual_network_to_hub_gateways_traffic_allowed", props.AllowRemoteVnetToUseHubVnetGateways)
 		d.Set("internet_security_enabled", props.EnableInternetSecurity)
 		remoteVirtualNetworkId := ""
 		if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.ID != nil {

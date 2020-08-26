@@ -101,6 +101,10 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	if _, ok := ctx.Deadline(); !ok {
+		return fmt.Errorf("deadline is not properly set for Virtual Hub")
+	}
+
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
@@ -149,6 +153,8 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 	// Hub returns provisioned while the routing state is still "provisining". This might cause issues with following hubvnet connection operations.
 	// https://github.com/Azure/azure-rest-api-specs/issues/10391
 	// As a workaround, we will poll the routing state and ensure it is "Provisioned".
+
+	// deadline is checked at the entry point of this function
 	timeout, _ := ctx.Deadline()
 	stateConf := &resource.StateChangeConf{
 		Pending:                   []string{"Provisioning"},

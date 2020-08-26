@@ -20,8 +20,8 @@ func NewVirtualHubConnectionID(id VirtualHubId, name string) VirtualHubConnectio
 	}
 }
 
-func (id VirtualHubConnectionId) ID(subscription string) string {
-	base := NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscription)
+func (id VirtualHubConnectionId) ID(subscriptionId string) string {
+	base := NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId)
 	return fmt.Sprintf("%s/hubVirtualNetworkConnections/%s", base, id.Name)
 }
 

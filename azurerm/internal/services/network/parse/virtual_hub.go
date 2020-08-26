@@ -17,8 +17,8 @@ func NewVirtualHubID(resourceGroup, name string) VirtualHubId {
 		Name:          name,
 	}
 }
-func (id VirtualHubId) ID(subscription string) string {
-	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s", subscription, id.ResourceGroup, id.Name)
+func (id VirtualHubId) ID(subscriptionId string) string {
+	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualHubs/%s", subscriptionId, id.ResourceGroup, id.Name)
 }
 
 func VirtualHubID(input string) (*VirtualHubId, error) {
