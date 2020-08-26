@@ -149,11 +149,12 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 	// As a workaround, we will poll the routing state and ensure it is "Provisioned".
 	timeout, _ := ctx.Deadline()
 	stateConf := &resource.StateChangeConf{
-		Pending:      []string{"Provisioning"},
-		Target:       []string{"Provisioned", "Failed"},
-		Refresh:      virtualHubCreateRefreshFunc(ctx, client, resourceGroup, name),
-		PollInterval: 5 * time.Second,
-		Timeout:      time.Until(timeout),
+		Pending:                   []string{"Provisioning"},
+		Target:                    []string{"Provisioned", "Failed"},
+		Refresh:                   virtualHubCreateRefreshFunc(ctx, client, resourceGroup, name),
+		PollInterval:              15 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Timeout:                   time.Until(timeout),
 	}
 	respRaw, err := stateConf.WaitForState()
 	if err != nil {
@@ -195,6 +196,10 @@ func resourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.VirtualHubProperties; props != nil {
+		// TODO 3.0: remove the two lines below
+		d.Set("hub_to_vitual_network_traffic_allowed", false)
+		d.Set("vitual_network_to_hub_gateways_traffic_allowed", false)
+
 		d.Set("address_prefix", props.AddressPrefix)
 
 		if err := d.Set("route", flattenArmVirtualHubRoute(props.RouteTable)); err != nil {
@@ -303,6 +308,10 @@ func virtualHubCreateRefreshFunc(ctx context.Context, client *network.VirtualHub
 			return nil, "", fmt.Errorf("unexpected nil properties of Virtual Hub %q (Resource Group %q)", resourceGroup, name)
 		}
 
+		state := res.VirtualHubProperties.RoutingState
+		if state == "Failed" {
+			return nil, "", fmt.Errorf("failed to provision routing on Virtual Hub %q (Resource Group %q)", resourceGroup, name)
+		}
 		return res, string(res.VirtualHubProperties.RoutingState), nil
 	}
 }
