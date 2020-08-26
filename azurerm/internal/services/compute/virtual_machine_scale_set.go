@@ -1368,10 +1368,10 @@ func VirtualMachineScaleSetExtensionsSchema() *schema.Schema {
 	}
 }
 
-func expandVirtualMachineScaleSetExtensions(input []interface{}) *compute.VirtualMachineScaleSetExtensionProfile {
+func expandVirtualMachineScaleSetExtensions(input []interface{}) (*compute.VirtualMachineScaleSetExtensionProfile, error) {
 	result := &compute.VirtualMachineScaleSetExtensionProfile{}
 	if len(input) == 0 {
-		return result
+		return result, nil
 	}
 
 	extensions := make([]compute.VirtualMachineScaleSetExtension, 0)
@@ -1393,10 +1393,17 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) *compute.Virtua
 			extensionProps.ForceUpdateTag = utils.String(forceUpdateTag.(string))
 		}
 
-		settings, _ := structure.ExpandJsonFromString(extensionRaw["settings"].(string))
+		settings, err := structure.ExpandJsonFromString(extensionRaw["settings"].(string))
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+		}
 		extensionProps.Settings = settings
 
-		protectedSettings, _ := structure.ExpandJsonFromString(extensionRaw["protected_settings"].(string))
+		protectedSettings, err := structure.ExpandJsonFromString(extensionRaw["protected_settings"].(string))
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse JSON from `settings`: %+v", err)
+		}
+
 		extensionProps.ProtectedSettings = protectedSettings
 
 		extension.VirtualMachineScaleSetExtensionProperties = &extensionProps
@@ -1404,7 +1411,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) *compute.Virtua
 	}
 	result.Extensions = &extensions
 
-	return result
+	return result, nil
 }
 
 func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleSetExtensionProfile, d *schema.ResourceData) ([]map[string]interface{}, error) {
@@ -1469,13 +1476,13 @@ func flattenVirtualMachineScaleSetExtensions(input *compute.VirtualMachineScaleS
 			ext["settings"] = extSettings
 
 			// protected_settings isn't returned, so we attempt to get it from config otherwise set to empty string
-			if protectedSettings, ok := d.GetOk(fmt.Sprintf("extension.%d.protected_settings", k)); ok {
-				if protectedSettings.(string) != "" && protectedSettings.(string) != "{}" {
-					ext["protected_settings"] = protectedSettings.(string)
+			protectedSettings := ""
+			if protectedSettingsFromConfig, ok := d.GetOk(fmt.Sprintf("extension.%d.protected_settings", k)); ok {
+				if protectedSettingsFromConfig.(string) != "" && protectedSettingsFromConfig.(string) != "{}" {
+					protectedSettings = protectedSettingsFromConfig.(string)
 				}
-			} else {
-				ext["protected_settings"] = ""
 			}
+			ext["protected_settings"] = protectedSettings
 		}
 		result = append(result, ext)
 	}

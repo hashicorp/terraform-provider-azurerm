@@ -415,7 +415,10 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 
 	if features.VMSSExtensionsBeta() {
 		if vmExtensionsRaw, ok := d.GetOk("extension"); ok {
-			virtualMachineProfile.ExtensionProfile = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+			virtualMachineProfile.ExtensionProfile, err = expandVirtualMachineScaleSetExtensions(vmExtensionsRaw.([]interface{}))
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -770,7 +773,10 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 
 	if features.VMSSExtensionsBeta() {
 		if d.HasChange("extension") {
-			extensionProfile := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+			extensionProfile, err := expandVirtualMachineScaleSetExtensions(d.Get("extension").([]interface{}))
+			if err != nil {
+				return err
+			}
 			updateProps.VirtualMachineProfile.ExtensionProfile = extensionProfile
 		}
 	}
@@ -983,15 +989,11 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 		}
 
 		if features.VMSSExtensionsBeta() {
-			if profile.ExtensionProfile != nil {
-				if extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d); err != nil {
-					return fmt.Errorf("failed flettening `vm_extension`: %+v", err)
-				} else if err := d.Set("extension", extensionProfile); err != nil {
-					return fmt.Errorf("failed to set vm_extension: %+v", err)
-				}
-			} else {
-				d.Set("extension", []map[string]interface{}{})
+			extensionProfile, err := flattenVirtualMachineScaleSetExtensions(profile.ExtensionProfile, d)
+			if err != nil {
+				return fmt.Errorf("failed flettening `extension`: %+v", err)
 			}
+			d.Set("extension", extensionProfile)
 		}
 	}
 

@@ -30,13 +30,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *schema.Schema {
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"roll_instances_when_required": {
-						Type: schema.TypeBool,
-						// TODO - switch back to Required after beta for extensions closes
-						Optional: true,
-					},
-					"use_extensions_beta": {
 						Type:     schema.TypeBool,
-						Optional: true,
+						Required: true,
 					},
 				},
 			},

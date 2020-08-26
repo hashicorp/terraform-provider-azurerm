@@ -2037,11 +2037,7 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensions(data acceptance
 %[1]s
 
 provider "azurerm" {
-  features {
-    virtual_machine_scale_set {
-      use_extensions_beta = true
-    }
-  }
+  features {}
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -2085,9 +2081,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
 
-    settings = jsonencode({ "commandToExecute" = "echo $HOSTNAME" })
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
 
-    protected_settings = jsonencode({ "managedIdentity" = {} })
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
 
   }
 
@@ -2104,11 +2104,7 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsForceUpdateTag(d
 %[1]s
 
 provider "azurerm" {
-  features {
-    virtual_machine_scale_set {
-      use_extensions_beta = true
-    }
-  }
+  features {}
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -2153,10 +2149,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
     force_update_tag           = %q
 
-    settings = jsonencode({ "commandToExecute" = "echo $HOSTNAME" })
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
 
-    protected_settings = jsonencode({ "managedIdentity" = {} })
-
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
   }
 
   tags = {
@@ -2172,11 +2171,7 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsMultiple(data ac
 %[1]s
 
 provider "azurerm" {
-  features {
-    virtual_machine_scale_set {
-      use_extensions_beta = true
-    }
-  }
+  features {}
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -2220,9 +2215,15 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
 
-    settings = jsonencode({ "commandToExecute" = "echo $HOSTNAME" })
+    provision_after_extensions = ["VMAccessForLinux"]
 
-    protected_settings = jsonencode({ "managedIdentity" = {} })
+    settings = jsonencode({
+      "commandToExecute" = "echo $HOSTNAME"
+    })
+
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
 
   }
 
@@ -2233,7 +2234,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type_handler_version       = "1.5"
     auto_upgrade_minor_version = true
 
-    protected_settings = jsonencode({ "reset_ssh" = "True" })
+    protected_settings = jsonencode({
+      "reset_ssh" = "True"
+    })
 
   }
 
@@ -2250,11 +2253,7 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_otherVmExtensionsUpdate(data acce
 %[1]s
 
 provider "azurerm" {
-  features {
-    virtual_machine_scale_set {
-      use_extensions_beta = true
-    }
-  }
+  features {}
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
@@ -2298,7 +2297,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     type_handler_version       = "2.0"
     auto_upgrade_minor_version = true
 
-    settings = jsonencode({ "commandToExecute" = "echo $(date)" })
+    settings = jsonencode({
+      "commandToExecute" = "echo $(date)"
+    })
   }
 
   tags = {

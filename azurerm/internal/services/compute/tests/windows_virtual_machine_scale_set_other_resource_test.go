@@ -2422,6 +2422,10 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensions(data acceptan
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -2461,9 +2465,13 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type_handler_version       = "1.10"
     auto_upgrade_minor_version = true
 
-    settings = jsonencode({ "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\"" })
+    settings = jsonencode({
+      "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\""
+    })
 
-    protected_settings = jsonencode({ "managedIdentity" = {} })
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
   }
 }
 `, template)
@@ -2473,6 +2481,10 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsForceUpdateTag
 	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
@@ -2514,9 +2526,13 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     auto_upgrade_minor_version = true
     force_update_tag           = %q
 
-    settings = jsonencode({ "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\"" })
+    settings = jsonencode({
+      "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\""
+    })
 
-    protected_settings = jsonencode({ "managedIdentity" = {} })
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
   }
 }
 `, template, updateTag)
@@ -2526,6 +2542,10 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsMultiple(data 
 	template := testAccAzureRMWindowsVirtualMachineScaleSet_template(data)
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
@@ -2566,9 +2586,15 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type_handler_version       = "1.10"
     auto_upgrade_minor_version = true
 
-    settings = jsonencode({ "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\"" })
+    provision_after_extensions = ["AADLoginForWindows"]
 
-    protected_settings = jsonencode({ "managedIdentity" = {} })
+    settings = jsonencode({
+      "commandToExecute" = "powershell.exe -c \"Get-Content env:computername\""
+    })
+
+    protected_settings = jsonencode({
+      "managedIdentity" = {}
+    })
   }
 
   extension {
@@ -2587,6 +2613,10 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherVmExtensionsUpdate(data ac
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -2626,8 +2656,9 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     type_handler_version       = "1.10"
     auto_upgrade_minor_version = true
 
-    settings = jsonencode({ "commandToExecute" = "powershell.exe -c \"Get-Process | Where-Object { $_.CPU -gt 10000 }\"" })
-
+    settings = jsonencode({
+      "commandToExecute" = "powershell.exe -c \"Get-Process | Where-Object { $_.CPU -gt 10000 }\""
+    })
   }
 }
 `, template)

@@ -146,7 +146,7 @@ The following arguments are supported:
 
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
-~> **NOTE:** This block is in Opt-In beta and requires the environment variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` to be set to a non-empty value to be used
+!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used.
 
 * `eviction_policy` - (Optional) The Policy which should be used Virtual Machines are Evicted from the Scale Set. Changing this forces a new resource to be created.
 
@@ -282,6 +282,8 @@ A `diff_disk_settings` block supports the following:
 
 An `extension` block supports the following:
 
+!> **NOTE:** This block is only available in the Opt-In beta and requires that the Environment Variable `ARM_PROVIDER_VMSS_EXTENSIONS_BETA` is set to `true` to be used.
+
 * `name` - (Required) The name for the Virtual Machine Scale Set Extension.
 
 * `publisher` - (Required) Specifies the Publisher of the Extension.
@@ -298,11 +300,15 @@ An `extension` block supports the following:
 
 ~> **NOTE:** Keys within the `protected_settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
 
+-> **Note:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
+
 * `provision_after_extensions` - (Optional) An ordered list of Extension names which this should be provisioned after.
 
 * `settings` - (Optional) A JSON String which specifies Settings for the Extension.
 
 ~> **NOTE:** Keys within the `settings` block are notoriously case-sensitive, where the casing required (e.g. TitleCase vs snakeCase) depends on the Extension being used. Please refer to the documentation for the specific Virtual Machine Extension you're looking to use for more information.
+
+-> **Note:** Rather than defining JSON inline [you can use the `jsonencode` interpolation function](https://www.terraform.io/docs/configuration/functions/jsonencode.html) to define this in a cleaner way.
 
 ---
 
