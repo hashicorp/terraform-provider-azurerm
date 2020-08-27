@@ -30,7 +30,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2019-09-01/keyvault"
 
 // AccessPolicyUpdateKind enumerates the values for access policy update kind.
 type AccessPolicyUpdateKind string
@@ -1568,8 +1568,12 @@ type VaultPatchProperties struct {
 	EnabledForDiskEncryption *bool `json:"enabledForDiskEncryption,omitempty"`
 	// EnabledForTemplateDeployment - Property to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault.
 	EnabledForTemplateDeployment *bool `json:"enabledForTemplateDeployment,omitempty"`
-	// EnableSoftDelete - Property to specify whether the 'soft delete' functionality is enabled for this key vault. It does not accept false value.
+	// EnableSoftDelete - Property to specify whether the 'soft delete' functionality is enabled for this key vault. Once set to true, it cannot be reverted to false.
 	EnableSoftDelete *bool `json:"enableSoftDelete,omitempty"`
+	// EnableRbacAuthorization - Property that controls how data actions are authorized. When true, the key vault will use Role Based Access Control (RBAC) for authorization of data actions, and the access policies specified in vault properties will be  ignored (warning: this is a preview feature). When false, the key vault will use the access policies specified in vault properties, and any policy stored on Azure Resource Manager will be ignored. If null or not specified, the value of this property will not change.
+	EnableRbacAuthorization *bool `json:"enableRbacAuthorization,omitempty"`
+	// SoftDeleteRetentionInDays - softDelete data retention days. It accepts >=7 and <=90.
+	SoftDeleteRetentionInDays *int32 `json:"softDeleteRetentionInDays,omitempty"`
 	// CreateMode - The vault's create mode to indicate whether the vault need to be recovered or not. Possible values include: 'CreateModeRecover', 'CreateModeDefault'
 	CreateMode CreateMode `json:"createMode,omitempty"`
 	// EnablePurgeProtection - Property specifying whether protection against purge is enabled for this vault. Setting this property to true activates protection against purge for this vault and its content - only the Key Vault service may initiate a hard, irrecoverable deletion. The setting is effective only if soft delete is also enabled. Enabling this functionality is irreversible - that is, the property does not accept false as its value.
@@ -1594,8 +1598,12 @@ type VaultProperties struct {
 	EnabledForDiskEncryption *bool `json:"enabledForDiskEncryption,omitempty"`
 	// EnabledForTemplateDeployment - Property to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault.
 	EnabledForTemplateDeployment *bool `json:"enabledForTemplateDeployment,omitempty"`
-	// EnableSoftDelete - Property to specify whether the 'soft delete' functionality is enabled for this key vault. It does not accept false value.
+	// EnableSoftDelete - Property to specify whether the 'soft delete' functionality is enabled for this key vault. If it's not set to any value(true or false) when creating new key vault, it will be set to true by default. Once set to true, it cannot be reverted to false.
 	EnableSoftDelete *bool `json:"enableSoftDelete,omitempty"`
+	// SoftDeleteRetentionInDays - softDelete data retention days. It accepts >=7 and <=90.
+	SoftDeleteRetentionInDays *int32 `json:"softDeleteRetentionInDays,omitempty"`
+	// EnableRbacAuthorization - Property that controls how data actions are authorized. When true, the key vault will use Role Based Access Control (RBAC) for authorization of data actions, and the access policies specified in vault properties will be  ignored (warning: this is a preview feature). When false, the key vault will use the access policies specified in vault properties, and any policy stored on Azure Resource Manager will be ignored. If null or not specified, the vault is created with the default value of false. Note that management actions are always authorized with RBAC.
+	EnableRbacAuthorization *bool `json:"enableRbacAuthorization,omitempty"`
 	// CreateMode - The vault's create mode to indicate whether the vault need to be recovered or not. Possible values include: 'CreateModeRecover', 'CreateModeDefault'
 	CreateMode CreateMode `json:"createMode,omitempty"`
 	// EnablePurgeProtection - Property specifying whether protection against purge is enabled for this vault. Setting this property to true activates protection against purge for this vault and its content - only the Key Vault service may initiate a hard, irrecoverable deletion. The setting is effective only if soft delete is also enabled. Enabling this functionality is irreversible - that is, the property does not accept false as its value.

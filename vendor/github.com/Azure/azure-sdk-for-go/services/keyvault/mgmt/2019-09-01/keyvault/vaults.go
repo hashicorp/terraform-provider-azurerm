@@ -91,7 +91,7 @@ func (client VaultsClient) CheckNameAvailabilityPreparer(ctx context.Context, va
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -176,7 +176,7 @@ func (client VaultsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -259,7 +259,7 @@ func (client VaultsClient) DeletePreparer(ctx context.Context, resourceGroupName
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -333,7 +333,7 @@ func (client VaultsClient) GetPreparer(ctx context.Context, resourceGroupName st
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -408,7 +408,7 @@ func (client VaultsClient) GetDeletedPreparer(ctx context.Context, vaultName str
 		"vaultName":      autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -598,7 +598,7 @@ func (client VaultsClient) ListByResourceGroupPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -711,7 +711,7 @@ func (client VaultsClient) ListBySubscriptionPreparer(ctx context.Context, top *
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -822,7 +822,7 @@ func (client VaultsClient) ListDeletedPreparer(ctx context.Context) (*http.Reque
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -928,7 +928,7 @@ func (client VaultsClient) PurgeDeletedPreparer(ctx context.Context, vaultName s
 		"vaultName":      autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1015,7 +1015,7 @@ func (client VaultsClient) UpdatePreparer(ctx context.Context, resourceGroupName
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1104,7 +1104,7 @@ func (client VaultsClient) UpdateAccessPolicyPreparer(ctx context.Context, resou
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

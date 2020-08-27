@@ -72,6 +72,7 @@ func TestAccAzureRMFrontDoorFirewallPolicy_update(t *testing.T) {
 					resource.TestCheckResourceAttr(data.ResourceName, "name", fmt.Sprintf("testAccFrontDoorWAF%d", data.RandomInteger)),
 					resource.TestCheckResourceAttr(data.ResourceName, "mode", "Prevention"),
 					resource.TestCheckResourceAttr(data.ResourceName, "custom_rule.1.name", "Rule2"),
+					resource.TestCheckResourceAttr(data.ResourceName, "custom_rule.2.name", "Rule3"),
 				),
 			},
 			{
@@ -321,6 +322,32 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
 
     match_condition {
       match_variable     = "RemoteAddr"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
+    }
+
+    match_condition {
+      match_variable     = "RequestHeader"
+      selector           = "UserAgent"
+      operator           = "Contains"
+      negation_condition = false
+      match_values       = ["windows"]
+      transforms         = ["Lowercase", "Trim"]
+    }
+  }
+
+  custom_rule {
+    name                           = "Rule3"
+    enabled                        = true
+    priority                       = 3
+    rate_limit_duration_in_minutes = 1
+    rate_limit_threshold           = 10
+    type                           = "MatchRule"
+    action                         = "Block"
+
+    match_condition {
+      match_variable     = "SocketAddr"
       operator           = "IPMatch"
       negation_condition = false
       match_values       = ["192.168.1.0/24"]
