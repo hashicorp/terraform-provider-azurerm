@@ -58,22 +58,25 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 
 			// TODO 3.0: remove this property
 			"hub_to_vitual_network_traffic_allowed": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
+				Type:             schema.TypeBool,
+				Optional:         true,
+				Deprecated:       "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
+				DiffSuppressFunc: func(_, _, _ string, _ *schema.ResourceData) bool { return true },
 			},
 
 			// TODO 3.0: remove this property
 			"vitual_network_to_hub_gateways_traffic_allowed": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Deprecated: "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
+				Type:             schema.TypeBool,
+				Optional:         true,
+				Deprecated:       "Due to a breaking behavioural change in the Azure API this property is no longer functional and will be removed in version 3.0 of the provider",
+				DiffSuppressFunc: func(_, _, _ string, _ *schema.ResourceData) bool { return true },
 			},
 
 			"internet_security_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
+				Default:  false,
 			},
 		},
 	}
@@ -159,11 +162,9 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("name", id.Name)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.Name).ID(subscriptionId))
+	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.ResourceGroup, id.VirtualHubName).ID(subscriptionId))
 
 	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
-		d.Set("hub_to_vitual_network_traffic_allowed", props.AllowHubToRemoteVnetTransit)
-		d.Set("vitual_network_to_hub_gateways_traffic_allowed", props.AllowRemoteVnetToUseHubVnetGateways)
 		d.Set("internet_security_enabled", props.EnableInternetSecurity)
 		remoteVirtualNetworkId := ""
 		if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.ID != nil {
