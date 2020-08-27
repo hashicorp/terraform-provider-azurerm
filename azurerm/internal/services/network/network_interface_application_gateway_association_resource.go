@@ -84,7 +84,6 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationC
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
-
 			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", networkInterfaceName, resourceGroup)
 		}
 
