@@ -44,17 +44,17 @@ func NewLinkedServicesClientWithBaseURI(baseURI string, subscriptionID string) L
 
 // CreateOrUpdate create or update a linked service.
 // Parameters:
-// resourceGroupName - the name of the resource group to get. The name is case insensitive.
-// workspaceName - name of the Log Analytics Workspace that will contain the linkedServices resource
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 // linkedServiceName - name of the linkedServices resource
 // parameters - the parameters required to create or update a linked service.
-func (client LinkedServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, workspaceName string, linkedServiceName string, parameters LinkedService) (result LinkedService, err error) {
+func (client LinkedServicesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, workspaceName string, linkedServiceName string, parameters LinkedService) (result LinkedServicesCreateOrUpdateFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LinkedServicesClient.CreateOrUpdate")
 		defer func() {
 			sc := -1
-			if result.Response.Response != nil {
-				sc = result.Response.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -64,9 +64,14 @@ func (client LinkedServicesClient) CreateOrUpdate(ctx context.Context, resourceG
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 4, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}},
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.LinkedServiceProperties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "parameters.LinkedServiceProperties.ResourceID", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "parameters.LinkedServiceProperties", Name: validation.Null, Rule: true, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("operationalinsights.LinkedServicesClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -76,16 +81,10 @@ func (client LinkedServicesClient) CreateOrUpdate(ctx context.Context, resourceG
 		return
 	}
 
-	resp, err := client.CreateOrUpdateSender(req)
+	result, err = client.CreateOrUpdateSender(req)
 	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "operationalinsights.LinkedServicesClient", "CreateOrUpdate", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "operationalinsights.LinkedServicesClient", "CreateOrUpdate", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.CreateOrUpdateResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "operationalinsights.LinkedServicesClient", "CreateOrUpdate", resp, "Failure responding to request")
 	}
 
 	return
@@ -100,7 +99,7 @@ func (client LinkedServicesClient) CreateOrUpdatePreparer(ctx context.Context, r
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2015-11-01-preview"
+	const APIVersion = "2020-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -117,8 +116,14 @@ func (client LinkedServicesClient) CreateOrUpdatePreparer(ctx context.Context, r
 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
-func (client LinkedServicesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client LinkedServicesClient) CreateOrUpdateSender(req *http.Request) (future LinkedServicesCreateOrUpdateFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -135,16 +140,16 @@ func (client LinkedServicesClient) CreateOrUpdateResponder(resp *http.Response) 
 
 // Delete deletes a linked service instance.
 // Parameters:
-// resourceGroupName - the name of the resource group to get. The name is case insensitive.
-// workspaceName - name of the Log Analytics Workspace that contains the linkedServices resource
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 // linkedServiceName - name of the linked service.
-func (client LinkedServicesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, linkedServiceName string) (result autorest.Response, err error) {
+func (client LinkedServicesClient) Delete(ctx context.Context, resourceGroupName string, workspaceName string, linkedServiceName string) (result LinkedServicesDeleteFuture, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LinkedServicesClient.Delete")
 		defer func() {
 			sc := -1
-			if result.Response != nil {
-				sc = result.Response.StatusCode
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -153,7 +158,13 @@ func (client LinkedServicesClient) Delete(ctx context.Context, resourceGroupName
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 4, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("operationalinsights.LinkedServicesClient", "Delete", err.Error())
 	}
 
@@ -163,16 +174,10 @@ func (client LinkedServicesClient) Delete(ctx context.Context, resourceGroupName
 		return
 	}
 
-	resp, err := client.DeleteSender(req)
+	result, err = client.DeleteSender(req)
 	if err != nil {
-		result.Response = resp
-		err = autorest.NewErrorWithError(err, "operationalinsights.LinkedServicesClient", "Delete", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "operationalinsights.LinkedServicesClient", "Delete", result.Response(), "Failure sending request")
 		return
-	}
-
-	result, err = client.DeleteResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "operationalinsights.LinkedServicesClient", "Delete", resp, "Failure responding to request")
 	}
 
 	return
@@ -187,7 +192,7 @@ func (client LinkedServicesClient) DeletePreparer(ctx context.Context, resourceG
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2015-11-01-preview"
+	const APIVersion = "2020-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -202,25 +207,32 @@ func (client LinkedServicesClient) DeletePreparer(ctx context.Context, resourceG
 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
-func (client LinkedServicesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return client.Send(req, azure.DoRetryWithRegistration(client.Client))
+func (client LinkedServicesClient) DeleteSender(req *http.Request) (future LinkedServicesDeleteFuture, err error) {
+	var resp *http.Response
+	resp, err = client.Send(req, azure.DoRetryWithRegistration(client.Client))
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client LinkedServicesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
+func (client LinkedServicesClient) DeleteResponder(resp *http.Response) (result LinkedService, err error) {
 	err = autorest.Respond(
 		resp,
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = resp
+	result.Response = autorest.Response{Response: resp}
 	return
 }
 
 // Get gets a linked service instance.
 // Parameters:
-// resourceGroupName - the name of the resource group to get. The name is case insensitive.
-// workspaceName - name of the Log Analytics Workspace that contains the linkedServices resource
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 // linkedServiceName - name of the linked service.
 func (client LinkedServicesClient) Get(ctx context.Context, resourceGroupName string, workspaceName string, linkedServiceName string) (result LinkedService, err error) {
 	if tracing.IsEnabled() {
@@ -237,7 +249,13 @@ func (client LinkedServicesClient) Get(ctx context.Context, resourceGroupName st
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 4, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("operationalinsights.LinkedServicesClient", "Get", err.Error())
 	}
 
@@ -271,7 +289,7 @@ func (client LinkedServicesClient) GetPreparer(ctx context.Context, resourceGrou
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2015-11-01-preview"
+	const APIVersion = "2020-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -304,8 +322,8 @@ func (client LinkedServicesClient) GetResponder(resp *http.Response) (result Lin
 
 // ListByWorkspace gets the linked services instances in a workspace.
 // Parameters:
-// resourceGroupName - the name of the resource group to get. The name is case insensitive.
-// workspaceName - name of the Log Analytics Workspace that contains the linked services.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
+// workspaceName - the name of the workspace.
 func (client LinkedServicesClient) ListByWorkspace(ctx context.Context, resourceGroupName string, workspaceName string) (result LinkedServiceListResult, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/LinkedServicesClient.ListByWorkspace")
@@ -321,7 +339,13 @@ func (client LinkedServicesClient) ListByWorkspace(ctx context.Context, resource
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}}}); err != nil {
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: workspaceName,
+			Constraints: []validation.Constraint{{Target: "workspaceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "workspaceName", Name: validation.MinLength, Rule: 4, Chain: nil},
+				{Target: "workspaceName", Name: validation.Pattern, Rule: `^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("operationalinsights.LinkedServicesClient", "ListByWorkspace", err.Error())
 	}
 
@@ -354,7 +378,7 @@ func (client LinkedServicesClient) ListByWorkspacePreparer(ctx context.Context, 
 		"workspaceName":     autorest.Encode("path", workspaceName),
 	}
 
-	const APIVersion = "2015-11-01-preview"
+	const APIVersion = "2020-03-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
