@@ -177,9 +177,8 @@ func resourceArmKeyVault() *schema.Resource {
 			},
 
 			"soft_delete_retention_days": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				//Computed:     true,
+				Type:         schema.TypeInt,
+				Optional:     true,
 				ValidateFunc: validation.IntBetween(7, 90),
 			},
 
