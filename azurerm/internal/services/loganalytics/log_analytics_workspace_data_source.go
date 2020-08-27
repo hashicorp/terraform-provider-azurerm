@@ -95,6 +95,7 @@ func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.Set("workspace_id", resp.CustomerID)
+	d.Set("portal_url", "")
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", sku.Name)
 	}
