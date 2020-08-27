@@ -101,7 +101,7 @@ The following arguments are supported:
 
 `capabilities` Configures the capabilities to enable for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `MongoDBv3.4`, and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`,`EnableMongo`, `EnableTable`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
 **NOTE:** The `prefix` and `failover_priority` fields of a location cannot be changed for the location with a failover priority of `0`.
 

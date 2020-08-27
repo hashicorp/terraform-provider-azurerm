@@ -109,7 +109,7 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 }
 
 func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -176,7 +176,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -233,7 +233,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -300,7 +300,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Logic.WorkflowsClient
+	client := meta.(*clients.Client).Logic.WorkflowClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

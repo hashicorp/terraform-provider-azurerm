@@ -354,6 +354,74 @@ func TestAccLinuxVirtualMachine_otherTags(t *testing.T) {
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherUltraSsdDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_otherUltraSsdDefault(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_capabilities.0.ultra_ssd_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherUltraSsdEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_otherUltraSsdEnabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_capabilities.0.ultra_ssd_enabled", "true"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherUltraSsdUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkLinuxVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testLinuxVirtualMachine_otherUltraSsdDefault(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_capabilities.0.ultra_ssd_enabled", "false"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: testLinuxVirtualMachine_otherUltraSsdEnabled(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkLinuxVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "additional_capabilities.0.ultra_ssd_enabled", "true"),
+				),
+			},
+			data.ImportStep(),
+		},
+	})
+}
+
 func testLinuxVirtualMachine_otherAllowExtensionOperationsDefault(data acceptance.TestData) string {
 	template := testLinuxVirtualMachine_template(data)
 	return fmt.Sprintf(`
@@ -1171,6 +1239,82 @@ resource "azurerm_linux_virtual_machine" "test" {
   tags = {
     Hello     = "World"
     Dimension = "C-137"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_otherUltraSsdDefault(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+  zone = 1
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func testLinuxVirtualMachine_otherUltraSsdEnabled(data acceptance.TestData) string {
+	template := testLinuxVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+  zone = 1
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  additional_capabilities {
+    ultra_ssd_enabled = true
   }
 }
 `, template, data.RandomInteger)

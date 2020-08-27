@@ -323,21 +323,19 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	rollingUpgradePolicyRaw := d.Get("rolling_upgrade_policy").([]interface{})
 	rollingUpgradePolicy := ExpandVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicyRaw)
 
-	if upgradeMode != compute.Manual && healthProbeId == "" {
-		return fmt.Errorf("`healthProbeId` must be set when `upgrade_mode` is set to %q", string(upgradeMode))
-	}
-
 	if upgradeMode != compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("An `automatic_os_upgrade_policy` block cannot be specified when `upgrade_mode` is not set to `Automatic`")
 	}
-	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) == 0 {
-		return fmt.Errorf("An `automatic_os_upgrade_policy` block must be specified when `upgrade_mode` is set to `Automatic`")
+
+	if upgradeMode == compute.Automatic && len(automaticOSUpgradePolicyRaw) > 0 && healthProbeId == "" {
+		return fmt.Errorf("`healthProbeId` must be set when `upgrade_mode` is set to %q and `automatic_os_upgrade_policy` block exists", string(upgradeMode))
 	}
 
 	shouldHaveRollingUpgradePolicy := upgradeMode == compute.Automatic || upgradeMode == compute.Rolling
 	if !shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) > 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block cannot be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}
+	shouldHaveRollingUpgradePolicy = upgradeMode == compute.Rolling
 	if shouldHaveRollingUpgradePolicy && len(rollingUpgradePolicyRaw) == 0 {
 		return fmt.Errorf("A `rolling_upgrade_policy` block must be specified when `upgrade_mode` is set to %q", string(upgradeMode))
 	}

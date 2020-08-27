@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -67,6 +68,9 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 	iotHubName := d.Get("iothub_name").(string)
 	endpointName := d.Get("eventhub_endpoint_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+
+	locks.ByName(iotHubName, IothubResourceName)
+	defer locks.UnlockByName(iotHubName, IothubResourceName)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
@@ -144,6 +148,9 @@ func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface
 	iotHubName := id.Path["IotHubs"]
 	endpointName := id.Path["eventHubEndpoints"]
 	name := id.Path["ConsumerGroups"]
+
+	locks.ByName(iotHubName, IothubResourceName)
+	defer locks.UnlockByName(iotHubName, IothubResourceName)
 
 	resp, err := client.DeleteEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 

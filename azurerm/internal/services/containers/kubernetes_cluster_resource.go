@@ -7,18 +7,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-03-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2020-04-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	computeValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/parse"
 	containerValidate "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -660,17 +659,15 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.Get(ctx, resGroup, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
-			}
+	existing, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
 		}
+	}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_kubernetes_cluster", *existing.ID)
-		}
+	if existing.ID != nil && *existing.ID != "" {
+		return tf.ImportAsExistsError("azurerm_kubernetes_cluster", *existing.ID)
 	}
 
 	if err := validateKubernetesCluster(d, nil, resGroup, name); err != nil {
