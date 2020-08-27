@@ -3,16 +3,12 @@ package migration
 import (
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/location"
+
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2019-04-15/cdn"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/deliveryruleactions"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/deliveryruleconditions"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn/parse"
 )
 
@@ -25,9 +21,19 @@ func CdnEndpointV0Schema() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				StateFunc:        location.StateFunc,
+				DiffSuppressFunc: location.DiffSuppressFunc,
+			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": {
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+			},
 
 			"profile_name": {
 				Type:     schema.TypeString,
@@ -97,12 +103,6 @@ func CdnEndpointV0Schema() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  string(cdn.IgnoreQueryString),
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.BypassCaching),
-					string(cdn.IgnoreQueryString),
-					string(cdn.NotSet),
-					string(cdn.UseQueryString),
-				}, false),
 			},
 
 			"content_types_to_compress": {
@@ -137,12 +137,8 @@ func CdnEndpointV0Schema() *schema.Resource {
 							Required: true,
 						},
 						"action": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cdn.Allow),
-								string(cdn.Block),
-							}, true),
+							Type:             schema.TypeString,
+							Required:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"country_codes": {
@@ -157,15 +153,8 @@ func CdnEndpointV0Schema() *schema.Resource {
 			},
 
 			"optimization_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.DynamicSiteAcceleration),
-					string(cdn.GeneralMediaStreaming),
-					string(cdn.GeneralWebDelivery),
-					string(cdn.LargeFileDownload),
-					string(cdn.VideoOnDemandMediaStreaming),
-				}, true),
+				Type:             schema.TypeString,
+				Optional:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -174,7 +163,6 @@ func CdnEndpointV0Schema() *schema.Resource {
 				Computed: true,
 			},
 
-			// This is a point-in-time copy paste of the return value of `endpointGlobalDeliveryRule()` used in V1 schema
 			"global_delivery_rule": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -185,194 +173,814 @@ func CdnEndpointV0Schema() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleactions.CacheExpiration(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"behavior": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"duration": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"cache_key_query_string_action": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleactions.CacheKeyQueryString(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"behavior": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"parameters": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"modify_request_header_action": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleactions.ModifyRequestHeader(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"value": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"modify_response_header_action": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleactions.ModifyResponseHeader(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"value": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"url_redirect_action": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleactions.URLRedirect(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"redirect_type": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"protocol": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  string(cdn.MatchRequest),
+									},
+
+									"hostname": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"path": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"query_string": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"fragment": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"url_rewrite_action": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleactions.URLRewrite(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"source_pattern": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"destination": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"preserve_unmatched_path": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 
-			// This is a point-in-time copy paste of the return value of `endpointDeliveryRule()` used in V1 schema
 			"delivery_rule": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.EndpointDeliveryRuleName(),
+							Type:     schema.TypeString,
+							Required: true,
 						},
 
 						"order": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntAtLeast(1),
+							Type:     schema.TypeInt,
+							Required: true,
 						},
 
 						"cookies_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.Cookies(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"selector": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"transforms": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"http_version_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.HTTPVersion(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "Equal",
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"device_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleconditions.Device(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "Equal",
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"post_arg_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.PostArg(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"selector": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"transforms": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"query_string_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.QueryString(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"transforms": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"remote_address_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.RemoteAddress(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"request_body_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.RequestBody(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"transforms": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"request_header_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.RequestHeader(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"selector": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"transforms": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"request_method_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleconditions.RequestMethod(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "Equal",
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"request_scheme_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleconditions.RequestScheme(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "Equal",
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"request_uri_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.RequestURI(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"transforms": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"url_file_extension_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.URLFileExtension(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"transforms": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"url_file_name_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.URLFileName(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"transforms": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"url_path_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleconditions.URLPath(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"negate_condition": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  false,
+									},
+
+									"match_values": {
+										Type:     schema.TypeSet,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+
+									"transforms": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 
 						"cache_expiration_action": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleactions.CacheExpiration(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"behavior": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"duration": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"cache_key_query_string_action": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleactions.CacheKeyQueryString(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"behavior": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"parameters": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"modify_request_header_action": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleactions.ModifyRequestHeader(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"value": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"modify_response_header_action": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem:     deliveryruleactions.ModifyResponseHeader(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"value": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"url_redirect_action": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleactions.URLRedirect(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"redirect_type": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"protocol": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  string(cdn.MatchRequest),
+									},
+
+									"hostname": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"path": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"query_string": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+
+									"fragment": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 
 						"url_rewrite_action": {
 							Type:     schema.TypeList,
 							Optional: true,
 							MaxItems: 1,
-							Elem:     deliveryruleactions.URLRewrite(),
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"source_pattern": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"destination": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"preserve_unmatched_path": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
