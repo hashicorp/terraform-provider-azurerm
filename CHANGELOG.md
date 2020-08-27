@@ -1,4 +1,9 @@
 ## 2.26.0 (Unreleased)
+
+ENHANCEMENTS:
+
+* dependencies: updating `loganalytics` to `/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights` [GH-8234]
+
 ## 2.25.0 (August 27, 2020)
 
 UPGRADE NOTES:
