@@ -183,7 +183,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresSession := d.Get("requires_session").(bool)
 	status := servicebus.EntityStatus(d.Get("status").(string))
 
-        if d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

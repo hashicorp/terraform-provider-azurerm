@@ -86,7 +86,7 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 	workspaceName := d.Get("workspace_name").(string)
 	lsName := d.Get("linked_service_name").(string)
 
-        if d.IsNewResource() {
+	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, workspaceName, lsName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
