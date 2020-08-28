@@ -2,7 +2,15 @@
 
 ENHANCEMENTS:
 
-* dependencies: updating `loganalytics` to `/preview/operationalinsights/mgmt/2020-03-01-preview/operationalinsights` [GH-8234]
+* dependencies: updating `loganalytics` to `2020-03-01-preview` [GH-8234]
+
+BUG FIXES:
+
+* `azurerm_network_interface_application_gateway_association` - handling the Network Interface being deleted during a refresh [GH-8267]
+* `azurerm_network_interface_application_security_group_association` - handling the Network Interface being deleted during a refresh [GH-8267]
+* `azurerm_network_interface_backend_address_pool_association` - handling the Network Interface being deleted during a refresh [GH-8267]
+* `azurerm_network_interface_nat_rule_association_resource` - handling the Network Interface being deleted during a refresh [GH-8267]
+* `azurerm_network_interface_network_security_group_association` - handling the Network Interface being deleted during a refresh [GH-8267]
 
 ## 2.25.0 (August 27, 2020)
 
