@@ -36,6 +36,7 @@ resource "azurerm_service_fabric_cluster" "example" {
     http_endpoint_port   = 80
   }
 }
+}
 ```
 ## Argument Reference
 
@@ -145,7 +146,7 @@ A `client_certificate_thumbprint` block supports the following:
 
 A `client_certificate_common_name` block supports the following:
 
-* `certificate_common_name` - (Required) The common or subject name of the certificate.
+* `common_name` - (Required) The common or subject name of the certificate.
 
 * `certificate_issuer_thumbprint` - (Optional) The Issuer Thumbprint of the Certificate.
 
