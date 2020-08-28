@@ -13,8 +13,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/parse"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	azSchema "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,8 +27,18 @@ func resourceArmAvailabilitySet() *schema.Resource {
 		Read:   resourceArmAvailabilitySetRead,
 		Update: resourceArmAvailabilitySetCreateUpdate,
 		Delete: resourceArmAvailabilitySetDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := parse.AvailabilitySetID(id)
+			return err
+		}),
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    migration.AvailabilitySetV0V1Schema().CoreConfigSchema().ImpliedType(),
+				Upgrade: migration.AvailabilitySetV0ToV1,
+				Version: 0,
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -88,6 +100,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 }
 
 func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -96,6 +109,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+	availabilitySetId := parse.NewAvailabilitySetId(resGroup, name)
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
@@ -105,8 +119,8 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_availability_set", *existing.ID)
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return tf.ImportAsExistsError("azurerm_availability_set", availabilitySetId.ID(subscriptionId))
 		}
 	}
 
@@ -139,12 +153,11 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resGroup, name, availSet)
-	if err != nil {
-		return err
+	if _, err := client.CreateOrUpdate(ctx, resGroup, name, availSet); err != nil {
+		return fmt.Errorf("creating/updating Availability Set %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(availabilitySetId.ID(subscriptionId))
 
 	return resourceArmAvailabilitySetRead(d, meta)
 }
@@ -199,7 +212,9 @@ func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	_, err = client.Delete(ctx, id.ResourceGroup, id.Name)
+	if _, err := client.Delete(ctx, id.ResourceGroup, id.Name); err != nil {
+		return fmt.Errorf("deleting Availability Set %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	}
 
-	return err
+	return nil
 }
