@@ -107,6 +107,38 @@ func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdated(t *testin
 	})
 }
 
+func TestAccWindowsVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmAgent(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.PreCheck(t) },
+		Providers:    acceptance.SupportedProviders,
+		CheckDestroy: checkWindowsVirtualMachineIsDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testWindowsVirtualMachine_otherAllowExtensionOperationsDisabledWithoutVmAgent(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "false"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+			{
+				Config: testWindowsVirtualMachine_otherAllowExtensionOperationsEnabledWithoutVmAgent(data),
+				Check: resource.ComposeTestCheckFunc(
+					checkWindowsVirtualMachineExists(data.ResourceName),
+					resource.TestCheckResourceAttr(data.ResourceName, "allow_extension_operations", "true"),
+				),
+			},
+			data.ImportStep(
+				"admin_password",
+			),
+		},
+	})
+}
+
 func TestAccWindowsVirtualMachine_otherBootDiagnostics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 
@@ -740,6 +772,72 @@ resource "azurerm_windows_virtual_machine" "test" {
   admin_username             = "adminuser"
   admin_password             = "P@$$w0rd1234!"
   allow_extension_operations = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherAllowExtensionOperationsDisabledWithoutVmAgent(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                       = local.vm_name
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  admin_username             = "adminuser"
+  admin_password             = "P@$$w0rd1234!"
+  allow_extension_operations = false
+  provision_vm_agent         = false
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter"
+    version   = "latest"
+  }
+}
+`, template)
+}
+
+func testWindowsVirtualMachine_otherAllowExtensionOperationsEnabledWithoutVmAgent(data acceptance.TestData) string {
+	template := testWindowsVirtualMachine_template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine" "test" {
+  name                       = local.vm_name
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  size                       = "Standard_F2"
+  admin_username             = "adminuser"
+  admin_password             = "P@$$w0rd1234!"
+  allow_extension_operations = true
+  provision_vm_agent         = false
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
