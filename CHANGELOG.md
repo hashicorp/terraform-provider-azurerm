@@ -6,11 +6,13 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_linux_virtual_machine` - allow updating `allow_extension_operations` regardless of the value of `provision_vm_agent` (for when the VM Agent has been installed manually) [GH-8001]
 * `azurerm_network_interface_application_gateway_association` - handling the Network Interface being deleted during a refresh [GH-8267]
 * `azurerm_network_interface_application_security_group_association` - handling the Network Interface being deleted during a refresh [GH-8267]
 * `azurerm_network_interface_backend_address_pool_association` - handling the Network Interface being deleted during a refresh [GH-8267]
 * `azurerm_network_interface_nat_rule_association_resource` - handling the Network Interface being deleted during a refresh [GH-8267]
 * `azurerm_network_interface_network_security_group_association` - handling the Network Interface being deleted during a refresh [GH-8267]
+* `azurerm_windows_virtual_machine` - allow updating `allow_extension_operations` regardless of the value of `provision_vm_agent` (for when the VM Agent has been installed manually) [GH-8001]
 
 ## 2.25.0 (August 27, 2020)
 
