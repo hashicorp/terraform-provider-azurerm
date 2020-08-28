@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 * dependencies: updating `loganalytics` to `2020-03-01-preview` [GH-8234]
+* `azurerm_api_management_subscription` - Support `allow_tracing property` [GH-7969]
 * `azurerm_log_analytics_workspace`- the `sku` value is now optional and defaults to `PerGB2018` [GH-8272]
 
 BUG FIXES:
