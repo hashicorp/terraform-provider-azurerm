@@ -52,8 +52,9 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 
 			"sku": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
+				Default:  string(operationalinsights.PerGB2018),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(operationalinsights.WorkspaceSkuNameEnumFree),
 					string(operationalinsights.WorkspaceSkuNameEnumPerGB2018),
