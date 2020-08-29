@@ -1,6 +1,8 @@
 package attestation
 
 import (
+	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	"log"
 	"time"
@@ -50,56 +52,9 @@ func resourceArmAttestation() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"policy_signing_certificate": {
-				Type:     schema.TypeList,
+			"policy_signing_certificate_data": {
+				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"key": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"alg": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"kid": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"kty": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"use": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-									},
-
-									"x5c": {
-										Type:     schema.TypeSet,
-										Optional: true,
-										ForceNew: true,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 
 			"tags": tags.Schema(),
@@ -113,11 +68,13 @@ func resourceArmAttestation() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+		},
+		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
+			if d.HasChange("policy_signing_certificate_data") {
+				d.ForceNew("policy_signing_certificate_data")
+			}
 
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			return nil
 		},
 	}
 }
@@ -140,12 +97,26 @@ func resourceArmAttestationCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	props := attestation.ServiceCreationParams{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location:   utils.String(location.Normalize(d.Get("location").(string))),
 		Properties: &attestation.ServiceCreationSpecificParams{
 			// AttestationPolicy was deprecated in October of 2019
-			PolicySigningCertificates: expandArmAttestationProviderJSONWebKeySet(d.Get("policy_signing_certificate").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	// NOTE: This maybe an slice in a future release or even a slice of slices
+	//       The service team does not currently have any user data for this
+	//       resource.
+	policySigningCertificate := d.Get("policy_signing_certificate_data").(string)
+
+	if policySigningCertificate != "" {
+		block, _ := pem.Decode([]byte(policySigningCertificate))
+		if block == nil {
+			return fmt.Errorf("invalid X.509 certificate, unable to decode")
+		}
+
+		v := base64.StdEncoding.EncodeToString(block.Bytes)
+		props.Properties.PolicySigningCertificates = expandArmAttestationProviderJSONWebKeySet(v)
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, props); err != nil {
@@ -193,7 +164,6 @@ func resourceArmAttestationRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("attest_uri", props.AttestURI)
 		d.Set("trust_model", props.TrustModel)
 	}
-	d.Set("type", resp.Type)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -235,29 +205,28 @@ func resourceArmAttestationDelete(d *schema.ResourceData, meta interface{}) erro
 	return nil
 }
 
-func expandArmAttestationProviderJSONWebKeySet(input []interface{}) *attestation.JSONWebKeySet {
-	if len(input) == 0 {
+func expandArmAttestationProviderJSONWebKeySet(pem string) *attestation.JSONWebKeySet {
+	if len(pem) == 0 {
 		return nil
 	}
-	v := input[0].(map[string]interface{})
+
 	result := attestation.JSONWebKeySet{
-		Keys: expandArmAttestationProviderJSONWebKeyArray(v["key"].(*schema.Set).List()),
+		Keys: expandArmAttestationProviderJSONWebKeyArray(pem),
 	}
+
 	return &result
 }
 
-func expandArmAttestationProviderJSONWebKeyArray(input []interface{}) *[]attestation.JSONWebKey {
+func expandArmAttestationProviderJSONWebKeyArray(pem string) *[]attestation.JSONWebKey {
 	results := make([]attestation.JSONWebKey, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		result := attestation.JSONWebKey{
-			Alg: utils.String(v["alg"].(string)),
-			Kid: utils.String(v["kid"].(string)),
-			Kty: utils.String(v["kty"].(string)),
-			Use: utils.String(v["use"].(string)),
-			X5c: utils.ExpandStringSlice(v["x5c"].(*schema.Set).List()),
-		}
-		results = append(results, result)
+	certs := []string{pem}
+
+	result := attestation.JSONWebKey{
+		Kty: utils.String("RSA"),
+		X5c: &certs,
 	}
+
+	results = append(results, result)
+
 	return &results
 }
