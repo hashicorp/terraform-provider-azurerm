@@ -38,7 +38,7 @@ resource "azurerm_attestation" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  policy_signing_certificate_data = file(dir/cert.pem)
+  policy_signing_certificate_data = file("./example/cert.pem")
 }
 ```
 
