@@ -56,15 +56,13 @@ func testAccAzureRMNetworkConnectionMonitor_requiresImport(t *testing.T) {
 func testAccAzureRMNetworkConnectionMonitor_addressComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
 
-	autoStart := "false"
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
 		Providers:    acceptance.SupportedProviders,
 		CheckDestroy: testCheckAzureRMNetworkConnectionMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data, autoStart),
+				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
 				),
@@ -76,8 +74,6 @@ func testAccAzureRMNetworkConnectionMonitor_addressComplete(t *testing.T) {
 
 func testAccAzureRMNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_connection_monitor", "test")
-
-	autoStart := "true"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { acceptance.PreCheck(t) },
@@ -91,7 +87,7 @@ func testAccAzureRMNetworkConnectionMonitor_addressUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data, autoStart),
+				Config: testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(data.ResourceName),
 				),
