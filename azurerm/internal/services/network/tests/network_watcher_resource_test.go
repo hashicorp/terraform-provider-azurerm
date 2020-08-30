@@ -45,6 +45,8 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"missingDestinationInvalid": testAccAzureRMNetworkConnectionMonitor_missingDestination,
 			"bothDestinationsInvalid":   testAccAzureRMNetworkConnectionMonitor_conflictingDestinations,
 			"requiresImport":            testAccAzureRMNetworkConnectionMonitor_requiresImport,
+			"httpConfiguration":         testAccAzureRMNetworkConnectionMonitor_httpConfiguration,
+			"icmpConfiguration":         testAccAzureRMNetworkConnectionMonitor_icmpConfiguration,
 		},
 		"PacketCapture": {
 			"localDisk":                  testAccAzureRMNetworkPacketCapture_localDisk,

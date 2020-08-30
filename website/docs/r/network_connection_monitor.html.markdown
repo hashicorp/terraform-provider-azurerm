@@ -17,54 +17,142 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_resource_group" "example" {
-  name = "example-resources"
+resource "azurerm_resource_group" "example" {
+  name     = "example-watcher-resources"
+  location = "eastus2"
 }
 
 resource "azurerm_network_watcher" "example" {
-  name                = "example-nw"
-  location            = data.azurerm_resource_group.example.location
-  resource_group_name = data.azurerm_resource_group.example.name
+  name                = "example-watcher"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-data "azurerm_virtual_machine" "src" {
-  name                = "example-vm"
-  resource_group_name = data.azurerm_resource_group.example.name
+resource "azurerm_virtual_network" "example" {
+  name                = "example-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_virtual_machine_extension" "src" {
-  name                       = "network-watcher"
-  virtual_machine_id         = data.azurerm_virtual_machine.src.id
+resource "azurerm_subnet" "example" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_network_interface" "example" {
+  name                = "example-nic"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = azurerm_subnet.example.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "example" {
+  name                  = "example-vm"
+  location              = azurerm_resource_group.example.location
+  resource_group_name   = azurerm_resource_group.example.name
+  network_interface_ids = [azurerm_network_interface.example.id]
+  vm_size               = "Standard_D2s_v3"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "osdisk-example01"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  os_profile {
+    computer_name  = "hostnametest01"
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+}
+
+resource "azurerm_virtual_machine_extension" "example" {
+  name                       = "example-vmextension"
+  virtual_machine_id         = azurerm_virtual_machine.example.id
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
   type_handler_version       = "1.4"
   auto_upgrade_minor_version = true
 }
 
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-workspace"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "pergb2018"
+}
+
 resource "azurerm_network_connection_monitor" "example" {
-  name                 = "example-ncm"
+  name                 = "example-monitor"
   network_watcher_name = azurerm_network_watcher.example.name
-  resource_group_name  = data.azurerm_resource_group.example.name
+  resource_group_name  = azurerm_resource_group.example.name
   location             = azurerm_network_watcher.example.location
 
-  auto_start          = false
-  interval_in_seconds = 30
+  endpoint {
+    name               = "source"
+    virtual_machine_id = azurerm_virtual_machine.example.id
 
-  source {
-    virtual_machine_id = data.azurerm_virtual_machine.src.id
-    port               = 20020
+    filter {
+      item {
+        address = azurerm_virtual_machine.example.id
+        type    = "AgentAddress"
+      }
+
+      type = "Include"
+    }
   }
 
-  destination {
+  endpoint {
+    name    = "destination"
     address = "terraform.io"
-    port    = 443
   }
 
-  tags = {
-    foo = "bar"
+  test_configuration {
+    name               = "tcpName"
+    protocol           = "Tcp"
+    test_frequency_sec = 60
+
+    tcp_configuration {
+      port = 80
+    }
   }
 
-  depends_on = [azurerm_virtual_machine_extension.src]
+  test_group {
+    name                = "exampletg"
+    destinations        = ["destination"]
+    sources             = ["source"]
+    test_configurations = ["tcpName"]
+    disable             = false
+  }
+
+  notes = "examplenote"
+
+  output {
+    type                  = "Workspace"
+    workspace_resource_id = azurerm_log_analytics_workspace.example.id
+  }
+
+  depends_on = [azurerm_virtual_machine_extension.example]
 }
 ```
 
@@ -78,17 +166,35 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Network Connection Monitor should exist. Changing this forces a new Network Connection Monitor to be created.
 
-* `destination` - (Required) A `destination` block as defined below.
-
 * `network_watcher_name` - (Required) The name of the Network Watcher. Changing this forces a new Network Connection Monitor to be created.
-
-* `source` - (Required) A `source` block as defined below.
 
 ---
 
-* `auto_start` - (Optional) Will the connection monitor start automatically once created? Changing this forces a new Network Connection Monitor to be created.
+* `auto_start` - (Optional) Will the connection monitor start automatically once created?
+
+~> **NOTE:** The field `auto_start` has been deprecated in new api version 2020-05-01.
+
+* `destination` - (Optional) A `destination` block as defined below.
+
+~> **NOTE:** The field `destination` has been deprecated in favor of `endpoint`.
+
+* `endpoint` - (Optional) A `endpoint` block as defined below.
 
 * `interval_in_seconds` - (Optional) Monitoring interval in seconds.
+
+~> **NOTE:** The field `interval_in_seconds` has been deprecated in favor of `test_frequency_sec`.
+
+* `notes` - (Optional) The notes to be associated with the connection monitor.
+
+* `output` - (Optional) A `output` block as defined below.
+
+* `source` - (Optional) A `source` block as defined below.
+
+~> **NOTE:** The field `source` has been deprecated in favor of `endpoint`.
+
+* `test_configuration` - (Optional) A `test_configuration` block as defined below.
+
+* `test_group` - (Optional) A `test_group` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Network Connection Monitor.
 
@@ -104,11 +210,127 @@ A `destination` block supports the following:
 
 ---
 
+A `endpoint` block supports the following:
+
+* `name` - (Required) The name of the connection monitor endpoint.
+
+* `address` - (Optional) The address of the connection monitor endpoint (IP or domain name).
+
+* `filter` - (Optional) A `filter` block as defined below.
+
+* `virtual_machine_id` - (Optional) The ID of the virtual machine used as the endpoint by connection monitor.
+
+---
+
+A `filter` block supports the following:
+
+* `type` - (Optional) The behavior of the endpoint filter. Possible value is `Include`. Defaults to `Include`.
+
+* `item` - (Optional) A `item` block as defined below.
+
+---
+
+A `item` block supports the following:
+
+* `type` - (Optional) The type of item included in the filter. Possible value is `AgentAddress`. Defaults to `AgentAddress`.
+
+* `address` - (Optional) The address of the filter item.
+
+---
+
+A `output` block supports the following:
+
+* `workspace_resource_id` - (Required) The ID of the log analytics workspace.
+
+* `type` - (Optional) The connection monitor output destination type. Possible value is `Workspace`. Defaults to `Workspace`.
+
+---
+
 A `source` block supports the following:
 
 * `virtual_machine_id` - (Required) The ID of the virtual machine used as the source by connection monitor.
 
-* `port` - (Optional) The source port used by connection monitor.
+* `port` - (Optional) The source port used by connection monitor. Defaults to `0`.
+
+---
+
+A `test_configuration` block supports the following:
+
+* `name` - (Required) The name of the connection monitor test configuration.
+
+* `protocol` - (Required) The protocol to use in test evaluation. Possible values are `Tcp`, `Http` and `Icmp`.
+
+* `test_frequency_sec` - (Optional) The frequency of test evaluation, in seconds. Defaults to `60`.
+
+* `http_configuration` - (Optional) A `http_configuration` block as defined below.
+
+* `icmp_configuration` - (Optional) A `icmp_configuration` block as defined below.
+
+* `preferred_ip_version` - (Optional) The preferred IP version to use in test evaluation. Possible values are `IPv4` and `IPv6`. 
+
+* `success_threshold` - (Optional) A `success_threshold` block as defined below.
+
+* `tcp_configuration` - (Optional) A `tcp_configuration` block as defined below.
+
+---
+
+A `http_configuration` block supports the following:
+
+* `method` - (Optional) The HTTP method to use. Possible values are `Get` and `Post`. Defaults to `Get`.
+
+* `port` - (Optional) The port to connect to.
+
+* `path` - (Optional) The path component of the URI. For instance, "/dir1/dir2".
+
+* `prefer_https` - (Optional) Will https be preferred over http in cases where the choice is not explicit?
+
+* `request_header` - (Optional) A `request_header` block as defined below.
+
+* `valid_status_code_ranges` - (Optional) The http status codes to consider successful. For instance, "2xx, 301-304, 418".
+
+---
+
+A `request_header` block supports the following:
+
+* `name` - (Required) The name in HTTP header.
+
+* `value` - (Required) The value in HTTP header.
+
+---
+
+A `icmp_configuration` block supports the following:
+
+* `disable_trace_route` - (Optional) Will path evaluation with trace route be disabled?
+
+---
+
+A `success_threshold` block supports the following:
+
+* `checks_failed_percent` - (Optional) The maximum percentage of failed checks permitted for a test to evaluate as successful.
+
+* `round_trip_time_ms` - (Optional) The maximum round-trip time in milliseconds permitted for a test to evaluate as successful.
+
+---
+
+A `tcp_configuration` block supports the following:
+
+* `port` - (Required) The port to connect to.
+
+* `disable_trace_route` - (Optional) Will path evaluation with trace route be disabled?
+
+---
+
+A `test_group` block supports the following:
+
+* `name` - (Required) The name of the connection monitor test group.
+
+* `destinations` - (Required) A list of destination endpoint names.
+
+* `sources` - (Required) A list of source endpoint names.
+
+* `test_configurations` - (Required) A list of test configuration names.
+
+* `disable` - (Optional) Will the test group be disabled?
 
 ## Attributes Reference
 
