@@ -500,7 +500,7 @@ resource "azurerm_network_connection_monitor" "test" {
 `, config, data.RandomInteger)
 }
 
-func testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data acceptance.TestData, autoStart string) string {
+func testAccAzureRMNetworkConnectionMonitor_completeAddressConfig(data acceptance.TestData) string {
 	config := testAccAzureRMNetworkConnectionMonitor_baseConfig(data)
 	return fmt.Sprintf(`
 %s
