@@ -41,5 +41,5 @@ func CdnProfileID(input string) (*CdnProfileId, error) {
 
 func (id CdnProfileId) ID(subscriptionId string) string {
 	return fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Cdn/profiles/%s",
-		subscription, id.ResourceGroup, id.Name)
+		subscriptionId, id.ResourceGroup, id.Name)
 }

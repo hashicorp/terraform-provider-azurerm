@@ -46,6 +46,6 @@ func CdnEndpointID(input string) (*CdnEndpointId, error) {
 }
 
 func (id CdnEndpointId) ID(subscriptionId string) string {
-	base := NewCdnProfileID(id.ResourceGroup, id.ProfileName).ID(subscription)
+	base := NewCdnProfileID(id.ResourceGroup, id.ProfileName).ID(subscriptionId)
 	return fmt.Sprintf("%s/endpoints/%s", base, id.Name)
 }
