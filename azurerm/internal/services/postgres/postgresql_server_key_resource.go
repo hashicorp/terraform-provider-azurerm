@@ -66,6 +66,10 @@ func getPostgreSQLServerKeyName(ctx context.Context, vaultsClient *keyvault.Vaul
 	if err != nil {
 		return nil, err
 	}
+	// function azure.GetKeyVaultIDFromBaseUrl returns nil with nil error when it does not find the keyvault by the keyvault URL
+	if keyVaultIDRaw == nil {
+		return nil, fmt.Errorf("cannot get the keyvault ID from keyvault URL %q", keyVaultKeyID.KeyVaultBaseUrl)
+	}
 	keyVaultID, err := keyVaultParse.KeyVaultID(*keyVaultIDRaw)
 	if err != nil {
 		return nil, err
