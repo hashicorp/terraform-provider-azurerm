@@ -305,6 +305,12 @@ resource "azurerm_shared_image" "test" {
     offer     = "AccTesOffer%d"
     sku       = "AccTesSku%d"
   }
+
+  purchase_plan {
+    name      = "AccTestPlan"
+    publisher = "AccTestPlanPublisher"
+    product   = "AccTestPlanProduct"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, hyperVGen, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

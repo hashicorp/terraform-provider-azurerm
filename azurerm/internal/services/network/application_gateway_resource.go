@@ -123,7 +123,6 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"ip_addresses": {
 							Type:     schema.TypeList,
 							Optional: true,
-							MinItems: 1,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.IPv4Address,
@@ -845,6 +844,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"unhealthy_threshold": {
 							Type:     schema.TypeInt,
 							Required: true,
+						},
+
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validate.PortNumber,
 						},
 
 						"pick_host_name_from_backend_http_settings": {
@@ -2583,6 +2588,7 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 		name := v["name"].(string)
 		probePath := v["path"].(string)
 		protocol := v["protocol"].(string)
+		port := int32(v["port"].(int))
 		timeout := int32(v["timeout"].(int))
 		unhealthyThreshold := int32(v["unhealthy_threshold"].(int))
 		pickHostNameFromBackendHTTPSettings := v["pick_host_name_from_backend_http_settings"].(bool)
@@ -2617,6 +2623,10 @@ func expandApplicationGatewayProbes(d *schema.ResourceData) *[]network.Applicati
 			}
 			outputMatch.Body = utils.String(matchBody)
 			output.ApplicationGatewayProbePropertiesFormat.Match = outputMatch
+		}
+
+		if port != 0 {
+			output.ApplicationGatewayProbePropertiesFormat.Port = utils.Int32(port)
 		}
 
 		results = append(results, output)
@@ -2664,6 +2674,12 @@ func flattenApplicationGatewayProbes(input *[]network.ApplicationGatewayProbe) [
 			if threshold := props.UnhealthyThreshold; threshold != nil {
 				output["unhealthy_threshold"] = int(*threshold)
 			}
+
+			port := 0
+			if props.Port != nil {
+				port = int(*props.Port)
+			}
+			output["port"] = port
 
 			if pickHostNameFromBackendHTTPSettings := props.PickHostNameFromBackendHTTPSettings; pickHostNameFromBackendHTTPSettings != nil {
 				output["pick_host_name_from_backend_http_settings"] = *pickHostNameFromBackendHTTPSettings

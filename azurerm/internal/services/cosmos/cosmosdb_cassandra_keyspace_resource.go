@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/migration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/parse"
@@ -83,19 +82,17 @@ func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta int
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
 
-	if features.ShouldResourcesBeImported() {
-		existing, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Cosmos Cassandra Keyspace %q (Account: %q): %+v", name, account, err)
-			}
-		} else {
-			if existing.ID == nil && *existing.ID == "" {
-				return fmt.Errorf("Error generating import ID for Cosmos Cassandra Keyspace %q (Account: %q)", name, account)
-			}
-
-			return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", *existing.ID)
+	existing, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("Error checking for presence of creating Cosmos Cassandra Keyspace %q (Account: %q): %+v", name, account, err)
 		}
+	} else {
+		if existing.ID == nil && *existing.ID == "" {
+			return fmt.Errorf("Error generating import ID for Cosmos Cassandra Keyspace %q (Account: %q)", name, account)
+		}
+
+		return tf.ImportAsExistsError("azurerm_cosmosdb_cassandra_keyspace", *existing.ID)
 	}
 
 	db := documentdb.CassandraKeyspaceCreateUpdateParameters{
