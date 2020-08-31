@@ -557,10 +557,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   notes = "testnote"
 
-  output {
-    type                  = "Workspace"
-    workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  }
+  output_workspace_resource_ids = [azurerm_log_analytics_workspace.test.id]
 
   tags = {
     env = "test"

@@ -10,13 +10,13 @@ description: |-
 
 Manages a Network Connection Monitor.
 
+~> **NOTE:** As `endpoint` cannot distinguish `source` and `destination`, so terraform cannot make `endpoint` compatible with `source` and `destination` while flattens `endpoint`.
+
+~> **NOTE:** As `test_frequency_sec` has default value, so terraform cannot make `test_frequency_sec` compatible with `interval_in_seconds` while flattens `test_frequency_sec`.
+
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-watcher-resources"
   location = "eastus2"
@@ -147,10 +147,7 @@ resource "azurerm_network_connection_monitor" "example" {
 
   notes = "examplenote"
 
-  output {
-    type                  = "Workspace"
-    workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  }
+  output_workspace_resource_ids = [azurerm_log_analytics_workspace.example.id]
 
   depends_on = [azurerm_virtual_machine_extension.example]
 }
@@ -186,7 +183,7 @@ The following arguments are supported:
 
 * `notes` - (Optional) The notes to be associated with the connection monitor.
 
-* `output` - (Optional) A `output` block as defined below.
+* `output_workspace_resource_ids` - (Optional) A list of the log analytics workspace id.
 
 * `source` - (Optional) A `source` block as defined below.
 
@@ -235,14 +232,6 @@ A `item` block supports the following:
 * `type` - (Optional) The type of item included in the filter. Possible value is `AgentAddress`. Defaults to `AgentAddress`.
 
 * `address` - (Optional) The address of the filter item.
-
----
-
-A `output` block supports the following:
-
-* `workspace_resource_id` - (Required) The ID of the log analytics workspace.
-
-* `type` - (Optional) The connection monitor output destination type. Possible value is `Workspace`. Defaults to `Workspace`.
 
 ---
 
