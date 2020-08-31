@@ -278,16 +278,11 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		managementIPConfigs := make([]interface{}, 0)
 		if props.ManagementIPConfiguration != nil {
 			managementIPConfigs = flattenArmFirewallIPConfigurations(&[]network.AzureFirewallIPConfiguration{
-			*props.ManagementIPConfiguration,
+				*props.ManagementIPConfiguration,
 			})
 		}
 		if err := d.Set("management_ip_configuration", managementIPConfigs); err != nil {
- 			return fmt.Errorf("Error setting `management_ip_configuration`: %+v", err)
- 		}
-			mip := &[]network.AzureFirewallIPConfiguration{*props.ManagementIPConfiguration}
-			if err := d.Set("management_ip_configuration", flattenArmFirewallIPConfigurations(mip)); err != nil {
-				return fmt.Errorf("Error setting `management_ip_configuration`: %+v", err)
-			}
+			return fmt.Errorf("Error setting `management_ip_configuration`: %+v", err)
 		}
 		d.Set("threat_intel_mode", string(props.ThreatIntelMode))
 	}

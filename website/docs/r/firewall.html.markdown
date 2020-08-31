@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `ip_configuration` - (Required) An `ip_configuration` block as documented below.
 
-* `management_ip_configuration` - (Optional) A `management_ip_configuration` block as documented below, which can be used to force-tunnel traffic. Changing this forces a new resource to be created.
+* `management_ip_configuration` - (Optional) A `management_ip_configuration` block as documented below, which allows force-tunnelling of traffic to be performed by the firewall. Changing this forces a new resource to be created.
 
 * `threat_intel_mode` - (Optional) The operation mode for threat intelligence-based filtering. Possible values are: `Off`, `Alert` and `Deny`. Defaults to `Alert`
 
@@ -78,7 +78,7 @@ The following arguments are supported:
 
 ---
 
-A `ip_configuration` block supports the following:
+An `ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 
@@ -86,9 +86,21 @@ A `ip_configuration` block supports the following:
 
 -> **NOTE** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least a `/26`.
 
--> **NOTE** The Management Subnet used for the Firewall must have the name `AzureFirewallManagementSubnet` and the subnet mask must be at least a `/26`.
-
 -> **NOTE** At least one and only one `ip_configuration` block may contain a `subnet_id`.
+
+* `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
+
+-> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
+
+---
+
+A `management_ip_configuration` block supports the following:
+
+* `name` - (Required) Specifies the name of the IP Configuration.
+
+* `subnet_id` - (Required) Reference to the subnet associated with the IP Configuration.
+
+-> **NOTE** The Management Subnet used for the Firewall must have the name `AzureFirewallManagementSubnet` and the subnet mask must be at least a `/26`.
 
 * `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
