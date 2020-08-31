@@ -874,6 +874,11 @@ func schemaAppServiceDataSourceIpRestriction() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+				"subnet_id": {
+					// TODO - Remove in 3.0
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 				"virtual_network_subnet_id": {
 					Type:     schema.TypeString,
 					Computed: true,

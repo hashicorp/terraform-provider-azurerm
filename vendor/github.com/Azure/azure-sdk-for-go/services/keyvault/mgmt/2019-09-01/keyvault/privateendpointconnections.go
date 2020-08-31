@@ -90,7 +90,7 @@ func (client PrivateEndpointConnectionsClient) DeletePreparer(ctx context.Contex
 		"vaultName":                     autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -179,7 +179,7 @@ func (client PrivateEndpointConnectionsClient) GetPreparer(ctx context.Context, 
 		"vaultName":                     autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -263,7 +263,7 @@ func (client PrivateEndpointConnectionsClient) PutPreparer(ctx context.Context, 
 		"vaultName":                     autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2018-02-14"
+	const APIVersion = "2019-09-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
