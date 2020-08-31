@@ -22,7 +22,6 @@ func dataSourceArmFunctionAppHostKeys() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				ForceNew: true,
 				Required: true,
 			},
 
@@ -34,21 +33,9 @@ func dataSourceArmFunctionAppHostKeys() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"function_keys": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-				Sensitive: true,
-			},
-
-			"system_keys": {
-				Type:     schema.TypeMap,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+			"default_function_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
 				Sensitive: true,
 			},
 		},
@@ -63,6 +50,16 @@ func dataSourceArmFunctionAppHostKeysRead(d *schema.ResourceData, meta interface
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
+	functionSettings, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(functionSettings.Response) {
+			return fmt.Errorf("Error: AzureRM Function App %q (Resource Group %q) was not found", name, resourceGroup)
+		}
+		return fmt.Errorf("Error making Read request on AzureRM Function App %q: %+v", name, err)
+	}
+
+	d.SetId(*functionSettings.ID)
+
 	res, err := client.ListHostKeys(ctx, resourceGroup, name)
 
 	if err != nil {
@@ -73,16 +70,14 @@ func dataSourceArmFunctionAppHostKeysRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error making Read request on AzureRM Function App Hostkeys %q: %+v", name, err)
 	}
 
-	d.SetId(time.Now().UTC().String())
-	if err := d.Set("master_key", res.MasterKey); err != nil {
-		return err
+	d.Set("master_key", res.MasterKey)
+	defaultFunctionKey := ""
+
+	if v, ok := res.FunctionKeys["default"]; ok {
+		defaultFunctionKey = *v
 	}
-	if err = d.Set("function_keys", res.FunctionKeys); err != nil {
-		return err
-	}
-	if err = d.Set("system_keys", res.SystemKeys); err != nil {
-		return err
-	}
+
+	d.Set("default_function_key", defaultFunctionKey)
 
 	return nil
 }

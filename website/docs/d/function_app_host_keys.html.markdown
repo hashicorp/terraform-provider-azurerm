@@ -3,18 +3,18 @@ subcategory: 'App Service (Web Apps)'
 layout: 'azurerm'
 page_title: 'Azure Resource Manager: azurerm_function_app_host_keys'
 description: |-
-  Gets HostKeys of an existing Function App.
+  Gets the Host Keys of an existing Function App.
 ---
 
 # Data Source: azurerm_function_app_host_keys
 
-Use this data source to fetch the Hostkeys of an existing Function App
+Use this data source to fetch the Host Keys of an existing Function App
 
 ## Example Usage
 
 ```hcl
 data "azurerm_function_app_host_keys" "example" {
-  name                = "test-azure-functions"
+  name                = "example-function"
   resource_group_name = azurerm_resource_group.example.name
 }
 ```
@@ -33,8 +33,6 @@ The following arguments are supported:
 
 The following arguments are supported:
 
-- `function_keys` - A key-value pair of Host level function keys.
+- `default_function_key` - Function App resource's default function key.
 
-- `system_keys` - A key-value pair of system keys
-
-- `master_key` - Secret key
+- `master_key` - Function App resource's secret key

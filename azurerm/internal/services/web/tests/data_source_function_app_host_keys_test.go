@@ -22,7 +22,7 @@ func TestAccDataSourceAzureRMFunctionAppHostKeys_basic(t *testing.T) {
 					testCheckAzureRMFunctionAppExists(data.ResourceName),
 					testCheckAzureRMFunctionAppHasNoContentShare(data.ResourceName),
 					resource.TestCheckResourceAttrSet(data.ResourceName, "master_key"),
-					resource.TestCheckResourceAttrSet(data.ResourceName, "function_keys.default"),
+					resource.TestCheckResourceAttrSet(data.ResourceName, "default_function_key"),
 				),
 			},
 		},
