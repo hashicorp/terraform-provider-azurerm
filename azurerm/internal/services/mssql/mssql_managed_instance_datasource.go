@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v3.0/sql"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -37,7 +37,7 @@ func dataSourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			
+
 			"identity": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -46,7 +46,6 @@ func dataSourceArmMSSQLManagedInstance() *schema.Resource {
 						"type": {
 							Type:     schema.TypeString,
 							Computed: true,
-							
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -185,7 +184,7 @@ func dataSourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
-	if props := resp.ManagedInstanceProperties ; props != nil {
+	if props := resp.ManagedInstanceProperties; props != nil {
 		d.Set("create_mode", string(props.ManagedInstanceCreateMode))
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("administrator_login", props.AdministratorLogin)

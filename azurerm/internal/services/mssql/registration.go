@@ -38,5 +38,6 @@ func (r Registration) SupportedResources() map[string]*schema.Resource {
 		"azurerm_mssql_server_vulnerability_assessment":                 resourceArmMssqlServerVulnerabilityAssessment(),
 		"azurerm_mssql_virtual_machine":                                 resourceArmMsSqlVirtualMachine(),
 		"azurerm_mssql_managed_instance":                                resourceArmMSSQLManagedInstance(),
+		"azurerm_mssql_managed_database":                                resourceArmMSSQLManagedDatabase(),
 	}
 }

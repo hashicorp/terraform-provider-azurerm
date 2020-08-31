@@ -101,6 +101,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
 			},
 
 			"instance_pool_id": {
@@ -164,7 +165,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 			"restore_point_in_time": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				ForceNew:         true,
+				Computed:         true,
 				DiffSuppressFunc: suppress.RFC3339Time,
 				ValidateFunc:     validation.IsRFC3339Time,
 			},
@@ -173,6 +174,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Computed: true,
 			},
 
 			"storage_size_gb": {
@@ -191,6 +193,7 @@ func resourceArmMSSQLManagedInstance() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "UTC",
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateManagedInstanceTimeZones(),
 			},
 
@@ -338,7 +341,7 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 
 	if d.HasChange("create_mode") {
 		if createMode == string(sql.ManagedServerCreateModePointInTimeRestore) && (len(restorePoint) == 0 || len(sourceManagedInstanceID) == 0) {
-			return fmt.Errorf("could not configure managed SQL instance %q (Resource Group %q) in restore in point create mode", name, resourceGroup)
+			return fmt.Errorf("could not configure managed SQL instance %q (Resource Group %q) in restore in point create mode. The restore point in time value must be supplied", name, resourceGroup)
 		}
 		parameters.ManagedInstanceProperties.ManagedInstanceCreateMode = sql.ManagedServerCreateMode(createMode)
 	}
@@ -384,6 +387,9 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
+		if createMode != string(sql.ManagedServerCreateModePointInTimeRestore) {
+			return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(sql.ManagedServerCreateModePointInTimeRestore))
+		}
 		restorePointInTime := v.(string)
 		restorePointInTimeDate, err2 := date.ParseTime(time.RFC3339, restorePointInTime)
 		if err2 != nil {
@@ -396,6 +402,9 @@ func resourceArmMSSQLManagedInstanceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("source_managed_instance_id"); ok {
+		if createMode != string(sql.ManagedServerCreateModePointInTimeRestore) {
+			return fmt.Errorf("'source_managed_instance_id' is supported only for create_mode %s", string(sql.ManagedServerCreateModePointInTimeRestore))
+		}
 		sourceManagedInstance := v.(string)
 		parameters.ManagedInstanceProperties.SourceManagedInstanceID = utils.String(sourceManagedInstance)
 	}
@@ -520,7 +529,6 @@ func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{
 	}
 
 	if props := resp.ManagedInstanceProperties; props != nil {
-		d.Set("create_mode", props.ManagedInstanceCreateMode)
 		d.Set("fully_qualified_domain_name", props.FullyQualifiedDomainName)
 		d.Set("administrator_login", props.AdministratorLogin)
 		d.Set("subnet_id", props.SubnetID)
@@ -530,10 +538,7 @@ func resourceArmMSSQLManagedInstanceRead(d *schema.ResourceData, meta interface{
 		d.Set("storage_size_gb", props.StorageSizeInGB)
 		d.Set("collation", props.Collation)
 		d.Set("dns_zone", props.DNSZone)
-		d.Set("dns_zone_partner", props.DNSZonePartner)
 		d.Set("public_data_endpoint_enabled", props.PublicDataEndpointEnabled)
-		d.Set("source_managed_instance_id", props.SourceManagedInstanceID)
-		d.Set("restore_point_in_time", props.RestorePointInTime)
 		d.Set("proxy_override", props.ProxyOverride)
 		d.Set("timezone_id", props.TimezoneID)
 		d.Set("instance_pool_id", props.InstancePoolID)

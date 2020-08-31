@@ -21,6 +21,7 @@ type Client struct {
 	VirtualMachinesClient                              *sqlvirtualmachine.SQLVirtualMachinesClient
 	ManagedInstancesClient                             *sql.ManagedInstancesClient
 	ManagedInstanceAdministratorsClient                *sql.ManagedInstanceAdministratorsClient
+	ManagedDatabasesClient                             *sql.ManagedDatabasesClient
 }
 
 func NewClient(o *common.ClientOptions) *Client {
@@ -66,6 +67,9 @@ func NewClient(o *common.ClientOptions) *Client {
 	managedInstanceAdministratorsClient := sql.NewManagedInstanceAdministratorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&managedInstanceAdministratorsClient.Client, o.ResourceManagerAuthorizer)
 
+	managedDatabaseClient := sql.NewManagedDatabasesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&managedDatabaseClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		DatabasesClient: &databasesClient,
 		DatabaseExtendedBlobAuditingPoliciesClient:         &databaseExtendedBlobAuditingPoliciesClient,
@@ -81,5 +85,6 @@ func NewClient(o *common.ClientOptions) *Client {
 		VirtualMachinesClient:                              &sqlVirtualMachinesClient,
 		ManagedInstancesClient:                             &managedInstancesClient,
 		ManagedInstanceAdministratorsClient:                &managedInstanceAdministratorsClient,
+		ManagedDatabasesClient:                             &managedDatabaseClient,
 	}
 }
